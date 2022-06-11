@@ -1,0 +1,27 @@
+{
+  "name": "palmares",
+  "version": "0.0.1",
+  "description": "The palmares framework, a framework to write simple, fast and reliable node.js code on the server",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/palmaresHQ/palmares.git"
+  },
+  "keywords": [
+    "palmares",
+    "framework"
+  ],
+  "author": "Nicolas Melo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/palmaresHQ/palmares/issues"
+  },
+  "homepage": "https://github.com/palmaresHQ/palmares#readme",
+  "devDependencies": {
+    "@types/node": "^17.0.42",
+    "prettier": "2.6.2",
+    "swc": "^1.0.11",
+    "ts-node": "^10.8.1",
+    "typescript": "^4.7.3"
+  }
+}

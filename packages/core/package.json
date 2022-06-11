@@ -1,0 +1,24 @@
+{
+  "name": "@palmares/core",
+  "version": "0.0.1",
+  "description": "This is the core part of the palmares framework, palmares is a framework heavily inspired by django and nestjs core ideas",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/palmaresHQ/palmares.git"
+  },
+  "keywords": [
+    "palmares",
+    "framework",
+    "core"
+  ],
+  "author": "Nicolas Leal",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/palmaresHQ/palmares/issues"
+  },
+  "homepage": "https://github.com/palmaresHQ/palmares#readme"
+}
