@@ -1,14 +1,16 @@
-import { MessageCategories, MessagesCallbackType } from "../logging/types"
+import { MessageCategories, MessagesCallbackType } from "../logging/types";
+import { DatabaseConfigurationType } from "../databases/types"; 
 
 export type SettingsType = {
     ENV?: string,
+    ADAPTER: string;
     DEBUG: boolean,
     PORT: number,
     SECRET_KEY: string,
     APP_NAME?: string,
     BASE_PATH: string,
     ROOT_URLCONF: string,
-    INSTALLED_APPS?: string[],
+    INSTALLED_APPS: string[],
     MIDDLEWARE?: string[],
     LOGGING?: {
         [key: string]: {
@@ -16,7 +18,7 @@ export type SettingsType = {
             callback: MessagesCallbackType
         }
     },
-    DATABASES?: {
+    DATABASES: {
         [key: string]: {
             engine: string,
             databaseName: string,

@@ -18,7 +18,7 @@ export default class BaseAdapter {
     /**
      * This resieves the root router path and then configures the routes for the adapter.
      */
-    async configureRoutes(rootUrlconf: string): Promise<void> {
+    async configureRoutes(rootUrlconf: string, database?: any): Promise<void> {
         throw new NotImplementedException('configureRoutes');
     }
 

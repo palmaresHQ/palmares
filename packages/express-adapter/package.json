@@ -1,8 +1,11 @@
 {
-  "name": "@palmares/core",
+  "name": "@palmares/express-adapter",
   "version": "0.0.1",
-  "description": "This is the core part of the palmares framework, palmares is a framework heavily inspired by django and nestjs core ideas",
-  "main": "index.ts",
+  "description": "This is the adapter for express framework to work with Palmares framework",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "ts-node teste.ts"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/palmaresHQ/palmares.git"
@@ -10,11 +13,9 @@
   "keywords": [
     "palmares",
     "framework",
-    "core"
+    "express",
+    "adapter"
   ],
-  "scripts": {
-    "test": "ts-node index.ts"
-  },
   "author": "Nicolas Leal",
   "license": "MIT",
   "bugs": {
@@ -22,6 +23,10 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
-    "@palmares/express-adapter": "*"
+    "@palmares/core": "*",
+    "express": "^4.18.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.13"
   }
 }
