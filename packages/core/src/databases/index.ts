@@ -1,7 +1,7 @@
 import { ERR_MODULE_NOT_FOUND, LOGGING_DATABASE_MODELS_NOT_FOUND } from "../utils";
 import { SettingsType } from "../conf/types";
-import { DatabaseConfigurationType, FoundModelType } from "../databases/types";
-import Engine from "./engines";
+import { DatabaseConfigurationType, FoundModelType, initializedEngineInstancesType } from "../databases/types";
+import Engine from "./engine";
 import logging from "../logging";
 import { Model } from "./models";
 
@@ -9,13 +9,9 @@ import path from "path";
 
 
 class Databases {
-    availableEngines = {
-        'SequelizeEngine': class SequelizeEngine {
-
-        },
-    }
-    settings: SettingsType;
-    initializedEngineInstances = {};
+    availableEngines = ['@palmares/sequelize-engine'];
+    settings!: SettingsType;
+    initializedEngineInstances: initializedEngineInstancesType = {};
     obligatoryModels: typeof Model[] = []
 
     async init(settings: SettingsType) {
@@ -24,7 +20,7 @@ class Databases {
         const isDatabaseDefined: boolean = typeof settings.DATABASES === "object" && 
             settings.DATABASES !== undefined;
         if (isDatabaseDefined) {
-            const databaseEntries: [string, DatabaseConfigurationType][] = Object.entries(settings.DATABASES);
+            const databaseEntries: [string, DatabaseConfigurationType<string, {}>][] = Object.entries(settings.DATABASES);
             for (const [databaseName, databaseSettings] of databaseEntries) {
                 await this.initializeDatabase(databaseName, databaseSettings);
             }
@@ -32,16 +28,30 @@ class Databases {
     }
 
     async getEngine(engine: typeof Engine | string): Promise<typeof Engine> {
-        if (typeof engine === "string") {
-            return this.availableEngines[engine];
-        } 
+        const isEngineAString = typeof engine === "string";
+        if (isEngineAString) {
+            const EngineClass = await import(engine);
+            return EngineClass;
+        }
         return engine;
     }
 
-    async initializeDatabase(databaseName: string, databaseSettings: DatabaseConfigurationType) {
+    /**
+     * Closes the database connection on all of the initialized engine instances.
+     */
+    async close() {
+        const initializedEngineInstances = Object.values(this.initializedEngineInstances);
+        
+        const promises = initializedEngineInstances.map(async (engineInstance) => {
+            await engineInstance.close();
+        })
+        await Promise.all(promises);
+    }
+
+    async initializeDatabase(databaseName: string, databaseSettings: DatabaseConfigurationType<string, {}>) {
         const models: FoundModelType[] = await this.getModels();
         const engine: typeof Engine = await this.getEngine(databaseSettings.engine);
-        const engineInstance: Engine = new engine(databaseName, databaseSettings);
+        const engineInstance: Engine = await engine.new(databaseName, databaseSettings);
 
         if (await engineInstance.isConnected()) {
             this.initializeModels(engineInstance, models);
@@ -95,7 +105,7 @@ class Databases {
             } catch (e) {
                 const error: any = e;
                 if (error.code === ERR_MODULE_NOT_FOUND) {
-                    logging.logMessage(LOGGING_DATABASE_MODELS_NOT_FOUND, { appName: fullPath });
+                    await logging.logMessage(LOGGING_DATABASE_MODELS_NOT_FOUND, { appName: fullPath });
                 } else {
                     throw e;
                 }
@@ -107,3 +117,4 @@ class Databases {
 }
 
 export default new Databases();
+export { Engine, DatabaseConfigurationType };

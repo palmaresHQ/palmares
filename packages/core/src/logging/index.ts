@@ -3,6 +3,8 @@ import {
     LOGGING_USING_SETTINGS_FROM_PATH,
     LOGGING_SETTINGS_MODULE_NOT_FOUND, 
     LOGGING_DATABASE_MODELS_NOT_FOUND,
+    LOGGING_DATABASE_CLOSING,
+    LOGGING_DATABASE_IS_NOT_CONNECTED,
     LOGGING_APP_START_SERVER,
     LOGGING_APP_STOP_SERVER
 } from '../utils/constants';
@@ -28,6 +30,14 @@ class Logging {
         [LOGGING_DATABASE_MODELS_NOT_FOUND]: {
             category: MessageCategories.Warn,
             callback: async ({appName}) => `Looks like the app ${appName} did not define any models.\nIf that's not intended behaviour, you should create the 'models.ts'/'models.js' file in the ${appName} app.`
+        },
+        [LOGGING_DATABASE_CLOSING]: {
+            category: MessageCategories.Info,
+            callback: async ({databaseName}) => `Closing the ${databaseName} database connection.`
+        },
+        [LOGGING_DATABASE_IS_NOT_CONNECTED]: {
+            category: MessageCategories.Warn,
+            callback: async () => `${FRAMEWORK_NAME} wasn't able to connect to the database.`
         },
         [LOGGING_APP_START_SERVER]: {
             category: MessageCategories.Info,

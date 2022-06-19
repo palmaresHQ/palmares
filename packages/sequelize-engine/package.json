@@ -1,0 +1,25 @@
+{
+  "name": "@palmares/sequelize-engine",
+  "version": "0.0.1",
+  "description": "This is the engine that wraps the hole sequelize interface in a way palmares can understand and have full control of",
+  "main": "src/index.ts",
+  "keywords": [
+    "sequelize",
+    "sequelize-engine",
+    "palmares"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/palmaresHQ/palmares.git"
+  },
+  "bugs": {
+    "url": "https://github.com/palmaresHQ/palmares/issues"
+  },
+  "homepage": "https://github.com/palmaresHQ/palmares#readme",
+  "author": "Nicolas Melo",
+  "license": "MIT",
+  "dependencies": {
+    "@palmares/core": "*",
+    "sequelize": "^6.21.0"
+  }
+}

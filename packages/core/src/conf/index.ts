@@ -26,12 +26,12 @@ class Configuration {
         const settingsModulePath: string = isEnvDefined ? 
             process.env.PALMARES_SETTINGS_MODULE || '' : settingsPath;
         try {
-            logging.logMessage(LOGGING_USING_SETTINGS_FROM_PATH, { pathOfSettings: settingsModulePath });
+            await logging.logMessage(LOGGING_USING_SETTINGS_FROM_PATH, { pathOfSettings: settingsModulePath });
             return await import(settingsModulePath);
         } catch (e) {
             const error: any = e;
             if (error.code === ERR_MODULE_NOT_FOUND) {
-                logging.logMessage(LOGGING_SETTINGS_MODULE_NOT_FOUND, { pathOfModule: settingsModulePath });
+                await logging.logMessage(LOGGING_SETTINGS_MODULE_NOT_FOUND, { pathOfModule: settingsModulePath });
             }
         }
         return defaultSettings;

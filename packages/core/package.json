@@ -2,7 +2,7 @@
   "name": "@palmares/core",
   "version": "0.0.1",
   "description": "This is the core part of the palmares framework, palmares is a framework heavily inspired by django and nestjs core ideas",
-  "main": "index.ts",
+  "main": "src/index.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/palmaresHQ/palmares.git"
@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
-    "@palmares/express-adapter": "*"
+    "@palmares/express-adapter": "*",
+    "@palmares/sequelize-engine": "*"
   }
 }

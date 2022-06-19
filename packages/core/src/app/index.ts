@@ -1,6 +1,7 @@
 import BaseAdapter from '../adapters';
 import { SettingsType } from '../conf/types';
 import logging from '../logging';
+import databases from '../databases';
 import { 
     ERR_MODULE_NOT_FOUND, LOGGING_APP_START_SERVER, 
     LOGGING_APP_STOP_SERVER, LOGGING_ADAPTER_NOT_FOUND
@@ -14,7 +15,7 @@ import { AdapterNotFoundException } from './exceptions';
  * configure everything.
  */
 export default class App {
-    settings = <SettingsType>{}
+    settings: SettingsType;
     adapter: BaseAdapter | undefined;
     //websocketsAdapter: BaseWebsocketsAdapter
 
@@ -70,16 +71,12 @@ export default class App {
     }
     
     async #initializeDatabase(): Promise<void> {
-        const isDatabaseDefined : boolean = typeof this.settings.DATABASES === 'object' && 
-            this.settings.DATABASES !== undefined
-        if (isDatabaseDefined) {
-            //await databases.init(this.settings.DATABASES)
-        }
+        await databases.init(this.settings)
     }
 
     async #cleanup(): Promise<void> {
-        logging.logMessage(LOGGING_APP_STOP_SERVER)
-        //await databases.close()
+        await logging.logMessage(LOGGING_APP_STOP_SERVER)
+        await databases.close()
     }
 
     /**
@@ -91,8 +88,8 @@ export default class App {
     async run(): Promise<http.Server> {
         const server = await this.#init()
 
-        server?.listen(this.settings.PORT, () => {
-            logging.logMessage(LOGGING_APP_START_SERVER, { 
+        server?.listen(this.settings.PORT, async () => {
+            await logging.logMessage(LOGGING_APP_START_SERVER, { 
                 appName: this.settings.APP_NAME, 
                 port: this.settings.PORT 
             })

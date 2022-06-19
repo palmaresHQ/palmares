@@ -19,15 +19,7 @@ export type SettingsType = {
         }
     },
     DATABASES: {
-        [key: string]: {
-            engine: string,
-            databaseName: string,
-            username: string,
-            password: string,
-            host: string,
-            port: number,
-            extraOptions?: object
-        }
+        [key: string]: DatabaseConfigurationType<string, {}>
     }
     SOCKETS?: {
         ROOT_URLCONF: string,
