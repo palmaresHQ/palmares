@@ -13,7 +13,7 @@
     "core"
   ],
   "scripts": {
-    "test": "ts-node index.ts"
+    "test": "ts-node teste.ts"
   },
   "author": "Nicolas Leal",
   "license": "MIT",
