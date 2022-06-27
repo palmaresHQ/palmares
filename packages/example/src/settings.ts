@@ -1,0 +1,34 @@
+import path from 'path';
+
+export const ENV = ![null, undefined, ''].includes(process.env.NODE_ENV) ?
+  process.env.NODE_ENV : 
+  'development'
+export const DEBUG = ENV === 'development';
+export const PORT = 4000;
+export const SECRET_KEY = 'example-secret';
+export const APP_NAME = 'example';
+
+export const BASE_PATH = path.dirname(path.resolve(__dirname));
+export const ROOT_URLCONF = path.join(BASE_PATH, 'src', 'routes');
+
+export const INSTALLED_APPS = [
+  path.join('src', 'core'),
+]
+
+export const DATABASES = {
+  default: {
+    engine: '@palmares/sequelize-engine',
+    dialect: 'postgres',
+    databaseName: 'postgres',
+    username: 'postgres', 
+    password: '',
+    host: 'localhost',
+    port: 5435,
+    extraOptions: {
+      logging: false,
+      query: { 
+        raw: true
+      }
+    }
+  }
+}

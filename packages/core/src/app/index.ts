@@ -75,7 +75,7 @@ export default class App {
     }
 
     async #cleanup(): Promise<void> {
-        await logging.logMessage(LOGGING_APP_STOP_SERVER)
+        await logging.logMessage(LOGGING_APP_STOP_SERVER, {appName: this.settings.APP_NAME})
         await databases.close()
     }
 

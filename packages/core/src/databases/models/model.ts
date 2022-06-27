@@ -1,7 +1,18 @@
 import Engine from "../engine";
-import { ModelAttributesType, ModelOptionsType } from "./types";
-import * as fields from "./fields";
-
+import { 
+  ModelFieldsType, 
+  ModelOptionsType, 
+  ModelType, 
+  ManagersOfInstanceType 
+} from "./types";
+import { 
+  ModelCircularAbstractError,
+  ModelInvalidAbstractFieldError, 
+  ModelInvalidAbstractManagerError 
+} from "./exceptions";
+import { Field } from "./fields";
+import { BigAutoField } from "./fields";
+import Manager from "./manager";
 
 /**
  * This class is used for initializing a model. This will work similar to django except that instead of 
@@ -86,27 +97,119 @@ import * as fields from "./fields";
  * This way we can keep queries more concise and representative by just making functions. Also
  * you can have the hole power of linting VSCode and other IDEs give you.
  */
-export default class Model {
-    attributes!: ModelAttributesType;
-    options?: ModelOptionsType;
-    abstracts: Model[] = [];
+export default class Model implements ModelType {
+  [managers: string]: Manager;
+  fields: ModelFieldsType = {};
+  options!: ModelOptionsType;
+  abstracts: typeof Model[] = [];
+  instances: Map<string, Model> = new Map<string, Model>();
+  
+  readonly #defaultOptions = {
+    autoId: true,
+    primaryKeyField: new BigAutoField(),
+    abstract: false,
+    underscored: true,
+    tableName: undefined,
+    managed: true,
+    ordering: [],
+    indexes: [],
+    databases: ['default'],
+    customOptions: {}
+  }
 
-    static instances = new Map<string, Model>();
+  /**
+   * Retrieves the managers from a instance, by default the instance we retrieve is the current model
+   * instance but since this function is used in the `#initializeAbstracts` function we can 
+   * pass a different instance.
+   */
+  async #getManagers(instance: Model = this): Promise<ManagersOfInstanceType> {
+    let managers: ManagersOfInstanceType = {};
+    const entriesOfInstance = Object.entries(instance);
+    for (const [key, value] of entriesOfInstance) {
+      if (value instanceof Manager) {
+        managers[key] = value;
+      }
+    }
+    return managers;
+  }
 
-    readonly _defaultOptions = {
-        autoId: true,
-        primaryKeyField: new fields.BigAutoField(),
-        abstract: false,
-        underscored: true,
-        tableName: null,
-        managed: true,
-        ordering: [],
-        indexes: [],
-        databases: ['default'],
-        customOptions: {}
+
+  async #loadAbstract(abstractKls: typeof Model, composedAbstracts: string[]): Promise<void> {
+    if (composedAbstracts.includes(abstractKls.name)) {
+      throw new ModelCircularAbstractError(this.constructor.name, abstractKls.name);
     }
 
-    async init(model: typeof Model, engineInstance: Engine) {
-        throw new Error("Method not implemented.");
+    const abstractInstance = new abstractKls();
+    const abstractManagers: [string, Model][] = Object.entries(this.#getManagers(abstractInstance));
+    const abstractFieldEntries = Object.entries(abstractInstance.fields);
+    const loadAbstractPromises = abstractInstance.abstracts.map(
+      (abstractKlsFromAbstract) => this.#loadAbstract(abstractKlsFromAbstract, composedAbstracts)
+    );
+    
+    for (const [fieldName, field] of abstractFieldEntries) {
+      if (this.fields[fieldName]) {
+        throw new ModelInvalidAbstractFieldError(this.constructor.name, abstractKls.name, fieldName);
+      }
+      this.fields[fieldName] = field;
     }
+
+    if (this.options === undefined && abstractInstance.options) {
+      this.options = abstractInstance.options;
+      this.options.abstract = false;
+    }
+
+    for (const [managerName, managerInstance] of abstractManagers) {
+      if (this[managerName]) {
+        throw new ModelInvalidAbstractManagerError(
+          this.constructor.name, abstractKls.name, managerName
+        );
+      }
+      this[managerName] = managerInstance;
+    }
+
+    await Promise.all(loadAbstractPromises);
+  }
+
+  async #initializeAbstracts(): Promise<void> {
+    const alreadyComposedAbstracts = [this.constructor.name];
+    for (const abstractModel of this.abstracts) {
+      this.#loadAbstract(abstractModel, alreadyComposedAbstracts);
+    }
+  }
+
+  async #initializeFields(engineInstance: Engine) {
+    const allFields = Object.entries(this.fields);
+    const promises = allFields.map(([fieldName, field]) => {
+      return field.init(engineInstance, fieldName);
+    }) 
+    await Promise.all(promises);
+  }
+
+  async #initializeOptions() {
+    this.options = {
+      ...this.#defaultOptions,
+      ...this.options
+    };
+    const doesModelHaveAutoIdField = this.options.autoId && this.options.primaryKeyField
+    if (doesModelHaveAutoIdField) {
+      const primaryKeyFieldInstance = this.options.primaryKeyField as Field;
+      this.fields = {
+        id: primaryKeyFieldInstance,
+        ...this.fields
+      };
+    }
+  }
+
+  async #initializeManagers() {
+    
+  }
+
+  async init(modelKls: typeof Model, engineInstance: Engine, customModelName?: string | undefined) {
+    const modelName = customModelName || modelKls.constructor.name;
+    const databaseConnectionName = engineInstance.databaseName;
+    await this.#initializeAbstracts();
+    await this.#initializeOptions();
+    await this.#initializeFields(engineInstance);
+    await engineInstance.initializeModel(modelName, this);
+  }
 }

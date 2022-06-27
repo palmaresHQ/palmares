@@ -1,7 +1,13 @@
 import { Field } from "./fields";
+import Model from './model';
+import Manager from './manager';
 
-export type ModelAttributesType = {
+export type ModelFieldsType = {
     [key: string]: Field
+}
+
+export type ManagersOfInstanceType = {
+    [key: string]: Manager
 }
 
 export type ModelIndexType = {
@@ -14,10 +20,18 @@ export type ModelOptionsType = {
     primaryKeyField?: Field,
     abstract?: boolean,
     underscored?: boolean,
-    tableName?: null,
-    managed?: true,
+    tableName?: string,
+    managed?: boolean,
     ordering?: string[] | [],
     indexes?: ModelIndexType[],
-    databases: string[] | [],
-    customOptions: any
+    databases?: string[] | [],
+    customOptions?: any
+}
+
+export interface ModelType {
+    fields: ModelFieldsType;
+    options: ModelOptionsType;
+    abstracts: typeof Model[];
+    instances: Map<string, Model>;
+    [managers: string]: Manager;
 }

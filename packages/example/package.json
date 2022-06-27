@@ -9,6 +9,7 @@
     "dev": "ts-node manage.ts dev"
   },
   "dependencies": {
-    "@palmares/core": "*"
+    "@palmares/core": "*",
+    "pg": "^8.7.3"
   }
 }
