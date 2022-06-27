@@ -1,4 +1,6 @@
 import { models, ModelOptionsType } from "@palmares/core";
+import { Model } from "sequelize";
+
 import SequelizeEngine from "./engine";
 import SequelizeEngineFields from "./fields";
 
@@ -15,7 +17,7 @@ export default class ModelTranslator {
 
   }
 
-  async translate(modelName: string, model: models.Model) {
-
+  async translate(modelName: string, model: models.Model): Promise<Model> {
+    
   }
 }

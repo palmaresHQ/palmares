@@ -2,7 +2,8 @@ import {
   Engine, 
   DatabaseConfigurationType, 
   ModelFieldsType, 
-  ModelOptionsType 
+  ModelOptionsType, 
+  models
 } from "@palmares/core";
 
 import { InitializedModelsType } from "./types";
@@ -103,10 +104,11 @@ export default class SequelizeEngine extends Engine {
 
   async initializeModels(
     modelName: string, 
-    fields: ModelFieldsType, 
-    options: ModelOptionsType
+    model: models.Model
   ): Promise<Model> {
-    this.#modelTranslator.translate(modelName, model);
+    const modelInstance = await this.#modelTranslator.translate(modelName, model);
+    this.#initializedModels[modelName] = modelInstance;
+    return modelInstance;
   }
 }
 
