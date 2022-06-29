@@ -31,6 +31,7 @@ export type ModelOptionsType = {
 export interface ModelType {
     fields: ModelFieldsType;
     options: ModelOptionsType;
+    name: string;
     abstracts: typeof Model[];
     instances: Map<string, Model>;
     [managers: string]: Manager;

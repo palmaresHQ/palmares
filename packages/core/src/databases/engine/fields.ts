@@ -10,11 +10,13 @@ import { Field } from "../models/fields";
  */
 export default class EngineFields implements EngineFieldsType {
   engineInstance!: Engine;
+  fields: Map<Field["fieldName"], Field> = new Map();
+
 	constructor(engineInstance: Engine) {
 		this.engineInstance = engineInstance;
 	}
 
 	async set(field: Field): Promise<void> {
-		throw new NotImplementedEngineFieldsException('set');
+		this.fields.set(field.fieldName, field);
 	}
 }

@@ -12,7 +12,6 @@ import { Model } from "./models";
 
 import path from "path";
 
-
 class Databases {
   availableEngines = ['@palmares/sequelize-engine'];
   settings!: SettingsType;
@@ -36,6 +35,17 @@ class Databases {
     }
   }
 
+  /**
+   * Gets the engine instance for the given database name or throws an error if no engine is found.
+   * 
+   * @param databaseName - The name of the database, not the name of the engine, and not the name of 
+   * the database in postgres or mysql or whatever. It's a 'magic' name that is used to identify the 
+   * engine and database.
+   * @param engine- Could be a string or a class directly, the string is the package that we need to 
+   * import, the class is the engine class that we will be using.
+   * 
+   * @returns - The engine class to use in the application.
+   */
   async getEngine(databaseName: string, engine: typeof Engine | string): Promise<typeof Engine> {
     const isEngineAString = typeof engine === "string";
     if (isEngineAString) {
@@ -54,7 +64,7 @@ class Databases {
   /**
    * Closes the database connection on all of the initialized engine instances.
    */
-  async close() {
+  async close(): Promise<void> {
     const initializedEngineInstances = Object.values(this.initializedEngineInstances);
 
     const promises = initializedEngineInstances.map(async (engineInstance) => {
@@ -63,6 +73,12 @@ class Databases {
     await Promise.all(promises);
   }
 
+  /**
+   * Initializes the database connection and load the models to their respective engines.
+   * 
+   * @param databaseName - The name of the database that we are using.
+   * @param databaseSettings - The settings object for the database.
+   */
   async initializeDatabase(databaseName: string, databaseSettings: DatabaseConfigurationType<string, {}>) {
     const models: FoundModelType[] = await this.getModels();
     const engine: typeof Engine = await this.getEngine(databaseName, databaseSettings.engine);

@@ -1,60 +1,71 @@
-import { FieldDefaultParamsType, DecimalFieldParamsType, CharFieldParamsType, TextFieldParamsType } from "./types";
+import { 
+  ON_DELETE, 
+  FieldDefaultParamsType, 
+  DateFieldParamsType,
+  DecimalFieldParamsType, 
+  CharFieldParamsType, 
+  TextFieldParamsType,
+  ForeignKeyFieldParamsType
+} from "./types";
 import Engine from "../../engine";
+import Model from "../model";
+import { ForeignKeyFieldRequiredParamsMissingError } from "./exceptions";
 
+export { ON_DELETE as ON_DELETE };
 
-export const ON_DELETE = {
-    CASCADE: 'cascade',
-    SET_NULL: 'set_null',
-    SET_DEFAULT: 'set_default',
-    DO_NOTHING: 'do_nothing',
-    RESTRICT: 'restrict'
+export class Field implements FieldDefaultParamsType, DateFieldParamsType, ForeignKeyFieldParamsType {
+  primaryKey: boolean;
+  defaultValue: string | number | boolean | null | undefined | Date;
+  allowNull: boolean;
+  unique: boolean;
+  dbIndex: boolean;
+  databaseName: string | null;
+  underscored: boolean;
+  customAttributes: any | undefined | object | null;
+  model!: Model;
+  fieldName!: string;
+  autoNow?: boolean;
+  autoNowAdd?: boolean;
+  relatedTo!: Model | string | null;
+  onDelete!: ON_DELETE | null;
+  customName?: string;
+  relatedName?: boolean;
+  toField?: string;
+  
+  constructor({
+    primaryKey=false, 
+    defaultValue=undefined, 
+    allowNull=false, 
+    unique=false, 
+    dbIndex=false, 
+    databaseName=null, 
+    underscored=true, 
+    customAttributes={}
+  }: FieldDefaultParamsType = {}) {
+    this.primaryKey = primaryKey;
+    this.defaultValue = defaultValue;
+    this.allowNull = allowNull;
+    this.unique = unique;
+    this.dbIndex = dbIndex;
+    this.databaseName = databaseName;
+    this.underscored = underscored;
+    this.customAttributes = customAttributes;
+  }
+
+  async init(engineInstance: Engine, fieldName: string, model: Model) {
+    this.fieldName = fieldName;
+    this.model = model;
+    await engineInstance.fields.set(this);
+  }
 }
-
-export class Field implements FieldDefaultParamsType {
-    primaryKey: boolean;
-    defaultValue: string | number | boolean | null | undefined | Date;
-    allowNull: boolean;
-    unique: boolean;
-    allowBlank: boolean;
-    dbIndex: boolean;
-    databaseName: string | null;
-    underscored: boolean;
-    customAttributes: any | undefined | object | null;
-    engineInstance!: Engine;
-    fieldName!: string;
-
-    constructor({
-        primaryKey=false, 
-        defaultValue=undefined, 
-        allowNull=false, 
-        unique=false, 
-        allowBlank=true,
-        dbIndex=false, 
-        databaseName=null, 
-        underscored=true, 
-        customAttributes={}
-    }: FieldDefaultParamsType = {}) {
-        this.primaryKey = primaryKey;
-        this.defaultValue = defaultValue;
-        this.allowNull = allowNull;
-        this.unique = unique;
-        this.allowBlank = allowBlank;
-        this.dbIndex = dbIndex;
-        this.databaseName = databaseName;
-        this.underscored = underscored;
-        this.customAttributes = customAttributes;
-    }
-
-}
-
 /**
  * This is similar to an Integer Field except that it is the `id` of the database.
  * By default it is an auto-incrementing integer field, it is the primary key and it is unique.
  */
 export class AutoField extends Field {
-    constructor({...rest} : FieldDefaultParamsType = {}) {
-        super({...rest, primaryKey: true, allowNull: false, unique: true, dbIndex: true});
-    }
+  constructor({...rest} : FieldDefaultParamsType = {}) {
+    super({...rest, primaryKey: true, allowNull: false, unique: true, dbIndex: true});
+  }
 }
 
 /**
@@ -62,9 +73,9 @@ export class AutoField extends Field {
  * By default it is an auto-incrementing integer field, it is the primary key and it is unique.
  */
 export class BigAutoField extends Field {
-    constructor({...rest} : FieldDefaultParamsType = {}) {
-        super({...rest, primaryKey: true, allowNull: false, unique: true, dbIndex: true});
-    }
+  constructor({...rest} : FieldDefaultParamsType = {}) {
+    super({...rest, primaryKey: true, allowNull: false, unique: true, dbIndex: true});
+  }
 }
 
 export class IntegerField extends Field {
@@ -144,4 +155,49 @@ export class TextField extends Field {
         });
         this.allowBlank = allowBlank;
     }
+}
+
+export class ForeignKeyField extends Field implements ForeignKeyFieldParamsType {
+  relatedTo!: Model | string | null;
+  onDelete!: ON_DELETE | null;
+  customName?: string;
+  relatedName?: boolean;
+  toField?: string;
+
+  constructor({ 
+    relatedTo,
+    onDelete,
+    customName,
+    relatedName,
+    toField,
+    ...rest
+  }: ForeignKeyFieldParamsType & FieldDefaultParamsType = { 
+    relatedTo: null, 
+    onDelete: ON_DELETE.CASCADE
+  }) {
+    super(rest);  
+    this.relatedTo = relatedTo;
+    this.customName = customName;
+    this.relatedName = relatedName;
+    this.onDelete = onDelete;
+    this.toField = toField;
+  }
+
+  async init(engineInstance: Engine, fieldName: string, model: Model): Promise<void> {
+    const isRelatedToAModel: boolean = this.relatedTo instanceof Function && 
+      Object.getPrototypeOf(this.relatedTo).name === 'Model';
+    const isRelatedToAndOnDeleteNotDefined = (typeof this.relatedTo !== 'string' || isRelatedToAModel) && 
+      typeof this.onDelete !== 'string';
+
+    if (isRelatedToAndOnDeleteNotDefined) {
+      throw new ForeignKeyFieldRequiredParamsMissingError(this.fieldName);
+    }
+
+    if (isRelatedToAModel) {
+      const relatedToAsAModel: Model = this.relatedTo as Model;
+      this.relatedTo = relatedToAsAModel.name;
+    }
+
+    await super.init(engineInstance, fieldName, model);
+  }
 }

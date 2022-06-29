@@ -39,10 +39,9 @@ export default class Engine implements EngineType {
 		await logging.logMessage(LOGGING_DATABASE_CLOSING, { databaseName: this.databaseName });
 	}
 
-  async initializeModel(
-    modelName: string, 
-    model: Model,
-  ) {
+	async initializeModel(
+    model: Model
+	): Promise<any> {
 		throw new NotImplementedEngineException('initializeModel');
   }
 }

@@ -103,7 +103,8 @@ export default class Model implements ModelType {
   options!: ModelOptionsType;
   abstracts: typeof Model[] = [];
   instances: Map<string, Model> = new Map<string, Model>();
-  
+  name!: string;
+
   readonly #defaultOptions = {
     autoId: true,
     primaryKeyField: new BigAutoField(),
@@ -180,7 +181,7 @@ export default class Model implements ModelType {
   async #initializeFields(engineInstance: Engine) {
     const allFields = Object.entries(this.fields);
     const promises = allFields.map(([fieldName, field]) => {
-      return field.init(engineInstance, fieldName);
+      return field.init(engineInstance, fieldName, this);
     }) 
     await Promise.all(promises);
   }
@@ -205,11 +206,11 @@ export default class Model implements ModelType {
   }
 
   async init(modelKls: typeof Model, engineInstance: Engine, customModelName?: string | undefined) {
-    const modelName = customModelName || modelKls.constructor.name;
+    this.modelName = customModelName || modelKls.constructor.name;
     const databaseConnectionName = engineInstance.databaseName;
     await this.#initializeAbstracts();
     await this.#initializeOptions();
     await this.#initializeFields(engineInstance);
-    await engineInstance.initializeModel(modelName, this);
+    await engineInstance.initializeModel(this);
   }
 }
