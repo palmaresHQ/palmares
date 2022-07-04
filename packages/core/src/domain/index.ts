@@ -15,15 +15,15 @@ export async function retrieveDomains(settings: SettingsType): Promise<typeof Do
 }
 
 export default class Domain implements DomainType {
-  appName: string;
-  appPath: string;
+  name: string;
+  path: string;
 
-  constructor(appName?: string, appPath?: string) { 
-    const isAppNameAndAppPathDefined = typeof appName === 'string' &&
-      typeof appPath === 'string'
+  constructor(name?: string, path?: string) {
+    const isAppNameAndAppPathDefined = typeof name === 'string' &&
+      typeof path === 'string'
     if (isAppNameAndAppPathDefined) {
-      this.appName = appName as string;
-      this.appPath = appPath as string;
+      this.name = name as string;
+      this.path = path as string;
     } else {
       throw new DomainObligatoryParamsUndefinedError();
     }

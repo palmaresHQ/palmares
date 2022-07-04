@@ -8,14 +8,26 @@ export enum ON_DELETE {
   RESTRICT = 'restrict'
 }
 
+export enum FieldTypes {
+  Field = 'Field',
+  AutoField = 'Auto',
+  BigAutoField = 'BigAuto',
+  IntegerField = 'Integer',
+  BigIntegerField = 'BigInteger',
+  DecimalField = 'Decimal',
+  CharField = 'Char',
+  TextField = 'Text',
+  ForeignKeyField = 'ForeignKey'
+}
+
 export interface FieldDefaultParamsType {
   primaryKey?: boolean;
   defaultValue?: string | number | boolean | null | undefined | Date;
   allowNull?: boolean;
-  unique?: boolean; 
-  dbIndex?: boolean; 
-  underscored?: boolean; 
-  databaseName?: string | null; 
+  unique?: boolean;
+  dbIndex?: boolean;
+  underscored?: boolean;
+  databaseName?: string | null;
   customAttributes?: any | undefined | object | null;
 };
 
@@ -45,6 +57,6 @@ export interface ForeignKeyFieldParamsType extends FieldDefaultParamsType {
   relatedTo: Model | string;
   onDelete: ON_DELETE;
   customName?: string;
-  relatedName?: boolean;
+  relatedName?: string;
   toField?: string;
 }

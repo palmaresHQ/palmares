@@ -1,15 +1,15 @@
-import { 
+import {
     retrieveDomains,
     logging,
-    ERR_MODULE_NOT_FOUND, 
-    LOGGING_DATABASE_MODELS_NOT_FOUND 
+    ERR_MODULE_NOT_FOUND,
+    LOGGING_DATABASE_MODELS_NOT_FOUND
 } from "@palmares/core";
 
-import { 
+import {
   DatabaseSettingsType,
-  DatabaseConfigurationType, 
-  FoundModelType, 
-  initializedEngineInstancesType 
+  DatabaseConfigurationType,
+  FoundModelType,
+  initializedEngineInstancesType
 } from "./types";
 import { DatabaseNoEngineFoundError } from './exceptions';
 import Engine from "./engine";
@@ -25,7 +25,7 @@ class Databases {
 
   /**
    * Initializes the database connection and load the models to their respective engines.
-   * 
+   *
    * @param settings - The settings object from the file itself.
    */
   async init(settings: DatabaseSettingsType) {
@@ -35,20 +35,20 @@ class Databases {
     if (isDatabaseDefined) {
       const databaseEntries: [string, DatabaseConfigurationType<string, {}>][] = Object.entries(settings.DATABASES);
       for (const [databaseName, databaseSettings] of databaseEntries) {
-          await this.initializeDatabase(databaseName, databaseSettings);
+        await this.initializeDatabase(databaseName, databaseSettings);
       }
     }
   }
 
   /**
    * Gets the engine instance for the given database name or throws an error if no engine is found.
-   * 
-   * @param databaseName - The name of the database, not the name of the engine, and not the name of 
-   * the database in postgres or mysql or whatever. It's a 'magic' name that is used to identify the 
+   *
+   * @param databaseName - The name of the database, not the name of the engine, and not the name of
+   * the database in postgres or mysql or whatever. It's a 'magic' name that is used to identify the
    * engine and database.
-   * @param engine- Could be a string or a class directly, the string is the package that we need to 
+   * @param engine- Could be a string or a class directly, the string is the package that we need to
    * import, the class is the engine class that we will be using.
-   * 
+   *
    * @returns - The engine class to use in the application.
    */
   async getEngine(databaseName: string, engine: typeof Engine | string): Promise<typeof Engine> {
@@ -81,7 +81,7 @@ class Databases {
 
   /**
    * Initializes the database connection and load the models to their respective engines.
-   * 
+   *
    * @param databaseName - The name of the database that we are using.
    * @param databaseSettings - The settings object for the database.
    */
@@ -94,32 +94,35 @@ class Databases {
   }
 
   async initializeModels(engineInstance: Engine, projectModels: FoundModelType[]) {
+    const initializedProjectModels = [];
+    const initializedInternalModels = [];
+
+    for (const { domainPath, domainName, model} of projectModels) {
+      const modelInstance = new model();
+      const initializedModel = await modelInstance.init(model, engineInstance);
+      initializedProjectModels.push({
+        domainName,
+        domainPath,
+        initialized: initializedModel,
+        original: modelInstance
+      });
+    }
+
+    for (const model of this.obligatoryModels) {
+      const modelInstance = new model();
+      const initializedModel = await modelInstance.init(model, engineInstance);
+      initializedInternalModels.push({
+        domainName: "",
+        domainPath: "",
+        initialized: initializedModel,
+        original: modelInstance
+      });
+    }
+
     return {
       engineInstance,
-      projectModels: await Promise.all(
-          projectModels.map(async ({ appName, appPath, model }) => {
-          const modelInstance = new model();
-          const initializedModel = await modelInstance.init(model, engineInstance);
-          return {
-            appName,
-            appPath,
-            initialized: initializedModel,
-            original: modelInstance
-          }
-        })
-      ),
-      internalModels: await Promise.all(
-        this.obligatoryModels.map(async (model) => {
-          const modelInstance = new model();
-          const initializedModel = await modelInstance.init(model, engineInstance);
-          return {
-            appName: "",
-            appPath: "",
-            initialized: initializedModel,
-            original: modelInstance
-          }
-        })
-      )
+      projectModels: initializedProjectModels,
+      internalModels: initializedInternalModels
     }
   }
 
@@ -128,16 +131,19 @@ class Databases {
     const domainClasses = await retrieveDomains(this.settings);
     const promises: Promise<void>[] = domainClasses.map(async (domainClass) => {
       const domain = new domainClass();
-      const fullPath = path.join(domain.appPath, 'models');
+      const fullPath = path.join(domain.path, 'models');
       try {
         const models = await import(fullPath);
         const modelsArray: typeof Model[] = Object.values(models);
+
         for (const model of modelsArray) {
-          foundModels.push({
-              model,
-              appName: domain.appName,
-              appPath: domain.appPath,
-          })
+          if (model.prototype instanceof Model) {
+            foundModels.push({
+                model,
+                domainName: domain.name,
+                domainPath: domain.path,
+            })
+          }
         }
       } catch (e) {
         const error: any = e;

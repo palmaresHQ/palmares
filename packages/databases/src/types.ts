@@ -21,8 +21,8 @@ export type initializedEngineInstancesType = {
 }
 
 export type FoundModelType = {
-  appName: string,
-  appPath: string,
+  domainName: string,
+  domainPath: string,
   model: typeof Model,
 }
 

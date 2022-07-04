@@ -19,6 +19,7 @@
   "author": "Nicolas Melo",
   "license": "MIT",
   "dependencies": {
+    "@palmares/databases": "*",
     "@palmares/core": "*",
     "sequelize": "^6.21.0"
   }

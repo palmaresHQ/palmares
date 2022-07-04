@@ -1,8 +1,8 @@
-import { Model, ModelAttributeColumnOptions } from "sequelize";
-import { models } from "@palmares/core";
+import { ModelAttributeColumnOptions, ModelStatic, Model, ModelCtor } from "sequelize";
+import { models } from "@palmares/databases";
 
-export type InitializedModelsType = {
-    [key: string]: Model | null
+export type InitializedModelsType<T extends Model> = {
+    [key: string]: ModelCtor<T> | undefined
 }
 
 export type ModelTranslatorIndexesType = {

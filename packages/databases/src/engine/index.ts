@@ -16,7 +16,7 @@ export default class Engine implements EngineType {
   databaseName!: string;
   fields!: EngineFields;
 
-  constructor(databaseName: string) {
+	constructor(databaseName: string) {
     this.databaseName = databaseName;
     this.buildLogging();
 	}

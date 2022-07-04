@@ -1,9 +1,9 @@
-import { 
-  Engine, 
-  DatabaseConfigurationType, 
+import {
+  Engine,
+  DatabaseConfigurationType,
   models
 } from "@palmares/databases";
-import { Sequelize, Dialect, Options, Op, Model } from 'sequelize';
+import { Sequelize, Dialect, Options, Op, Model, ModelCtor } from 'sequelize';
 
 import { InitializedModelsType } from "./types";
 import SequelizeEngineFields from "./fields";
@@ -12,7 +12,7 @@ import ModelTranslator from "./model";
 export default class SequelizeEngine extends Engine {
   #isConnected: boolean | null = null;
   #modelTranslator!: ModelTranslator;
-  _initializedModels: InitializedModelsType = {};
+  _initializedModels: InitializedModelsType<Model> = {};
   sequelizeInstance!: Sequelize | null;
   fields!: SequelizeEngineFields;
   operations = {
@@ -55,7 +55,7 @@ export default class SequelizeEngine extends Engine {
   }
 
   static async new(
-    databaseName: string, 
+    databaseName: string,
     databaseSettings: DatabaseConfigurationType<Dialect, Options>
   ): Promise<Engine> {
     const isUrlDefined: boolean = typeof databaseSettings.url === "string";
@@ -66,7 +66,7 @@ export default class SequelizeEngine extends Engine {
     }
 
     const sequelizeInstance = new Sequelize(
-      databaseSettings.databaseName, 
+      databaseSettings.databaseName,
       databaseSettings.username,
       databaseSettings.password,
       {
@@ -93,18 +93,25 @@ export default class SequelizeEngine extends Engine {
         this.#isConnected = false;
       }
 
-      if (this.#isConnected) return this.#isConnected;    
+      if (this.#isConnected) return this.#isConnected;
     }
 
     this.sequelizeInstance = null;
     return await super.isConnected();
   }
 
+  async seeInitializedModels() {
+    for (const model of Object.values(this._initializedModels)) {
+      console.log(model?.getAttributes());
+    }
+  }
   async initializeModel(
     model: models.Model
-  ): Promise<Model | null> {
+  ): Promise<ModelCtor<Model> | undefined> {
     const modelInstance = await this.#modelTranslator.translate(model);
     this._initializedModels[model.name] = modelInstance;
+    await this.fields.handleRelatedFieldsAfterModelCreation(model.name);
+    await this.seeInitializedModels();
     return modelInstance;
   }
 }

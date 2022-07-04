@@ -1,25 +1,27 @@
 import { models } from '@palmares/databases';
 
-export class ExampleModel extends models.Model {
+export class Post extends models.Model {
   fields = {
     number: new models.fields.IntegerField(),
-    related: new models.fields.ForeignKeyField({
-      relatedTo: 'RelatedModel',
+    userUuid: new models.fields.ForeignKeyField({
+      relatedTo: 'User',
+      toField: 'uuid',
       onDelete: models.fields.ON_DELETE.CASCADE
     }),
   }
 
   options = {
-    tableName: 'example_model'
+    tableName: 'post'
   }
 }
 
-export class RelatedModel extends models.Model {
+export class User extends models.Model {
   fields = {
-    text: new models.fields.CharField({ maxLength: 255 }),
+    firstName: new models.fields.CharField({ maxLength: 255 }),
+    uuid: new models.fields.UUIDField({ autoGenerate: true, maxLength: 36 })
   }
 
   options = {
-    tableName: 'example_model'
+    tableName: 'user'
   }
 }

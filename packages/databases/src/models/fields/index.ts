@@ -1,11 +1,11 @@
 import { utils } from "@palmares/core";
 
-import { 
-  ON_DELETE, 
-  FieldDefaultParamsType, 
+import {
+  ON_DELETE,
+  FieldDefaultParamsType,
   DateFieldParamsType,
-  DecimalFieldParamsType, 
-  CharFieldParamsType, 
+  DecimalFieldParamsType,
+  CharFieldParamsType,
   TextFieldParamsType,
   ForeignKeyFieldParamsType,
   UUIDFieldParamsType
@@ -24,18 +24,19 @@ export class Field implements FieldDefaultParamsType {
   dbIndex: boolean;
   databaseName: string | null;
   underscored: boolean;
+  typeName: string = Field.name;
   customAttributes: any | undefined | object | null;
   model!: Model;
   fieldName!: string;
-  
+
   constructor({
-    primaryKey=false, 
-    defaultValue=undefined, 
-    allowNull=false, 
-    unique=false, 
-    dbIndex=false, 
-    databaseName=null, 
-    underscored=true, 
+    primaryKey=false,
+    defaultValue=undefined,
+    allowNull=false,
+    unique=false,
+    dbIndex=false,
+    databaseName=null,
+    underscored=true,
     customAttributes={}
   }: FieldDefaultParamsType = {}) {
     this.primaryKey = primaryKey;
@@ -49,7 +50,7 @@ export class Field implements FieldDefaultParamsType {
   }
 
   async init(engineInstance: Engine, fieldName: string, model: Model) {
-    const isUnderscored: boolean = (this.underscored || model.options.underscored) === true; 
+    const isUnderscored: boolean = (this.underscored || model.options.underscored) === true;
     this.fieldName = fieldName;
     this.model = model;
 
@@ -64,6 +65,8 @@ export class Field implements FieldDefaultParamsType {
  * By default it is an auto-incrementing integer field, it is the primary key and it is unique.
  */
 export class AutoField extends Field {
+  typeName: string = AutoField.name;
+
   constructor({...rest} : FieldDefaultParamsType = {}) {
     super({...rest, allowNull: false, unique: true, dbIndex: true});
   }
@@ -74,99 +77,105 @@ export class AutoField extends Field {
  * By default it is an auto-incrementing integer field, it is the primary key and it is unique.
  */
 export class BigAutoField extends Field {
+  typeName: string = BigAutoField.name;
+
   constructor({...rest} : FieldDefaultParamsType = {}) {
     super({...rest, allowNull: false, unique: true, dbIndex: true});
   }
 }
 
 export class IntegerField extends Field {
-    constructor(integerFieldParams: FieldDefaultParamsType = {}) {
-        const isDefaultValueDefined: boolean = integerFieldParams.defaultValue === 'number' || 
-            integerFieldParams.defaultValue === null; 
-        /*if (isDefaultValueDefined) {
-            const isDefaultValueANumber: boolean = typeof integerFieldParams.defaultValue === 'number';
-            if (!isDefaultValueANumber) {
-                throw new InvalidDefaultValueForFieldType(, );
-            }
-        }*/
-        super({
-            ...integerFieldParams, 
-            defaultValue: isDefaultValueDefined ? integerFieldParams.defaultValue: undefined
-        });
-    }
+  typeName: string = IntegerField.name;
+
+  constructor(integerFieldParams: FieldDefaultParamsType = {}) {
+    const isDefaultValueDefined: boolean = integerFieldParams.defaultValue === 'number' ||
+      integerFieldParams.defaultValue === null;
+    super({
+      ...integerFieldParams,
+      defaultValue: isDefaultValueDefined ? integerFieldParams.defaultValue: undefined
+    });
+  }
 }
 
 export class BigIntegerField extends Field {
-    constructor(bigIntegerFieldParams: FieldDefaultParamsType = {}) {
-        const isDefaultValueDefined: boolean = bigIntegerFieldParams.defaultValue === 'number' || 
-            bigIntegerFieldParams.defaultValue === null; 
-        super({
-            ...bigIntegerFieldParams, 
-            defaultValue: isDefaultValueDefined ? bigIntegerFieldParams.defaultValue: undefined
-        });
-    }
+  typeName: string = BigIntegerField.name;
+
+  constructor(bigIntegerFieldParams: FieldDefaultParamsType = {}) {
+    const isDefaultValueDefined: boolean = bigIntegerFieldParams.defaultValue === 'number' ||
+      bigIntegerFieldParams.defaultValue === null;
+    super({
+      ...bigIntegerFieldParams,
+      defaultValue: isDefaultValueDefined ? bigIntegerFieldParams.defaultValue: undefined
+    });
+  }
 }
 
 export class DecimalField extends Field {
-    maxDigits: number | null;
-    decimalPlaces: number | null;
+  typeName: string = DecimalField.name;
+  maxDigits: number | null;
+  decimalPlaces: number | null;
 
-    constructor({ maxDigits=null, decimalPlaces=null, ...rest }: FieldDefaultParamsType & DecimalFieldParamsType = {}) {
-        const isDefaultValueDefined: boolean = rest.defaultValue === 'number' || 
-            rest.defaultValue === null; 
-        super({
-            ...rest, 
-            defaultValue: isDefaultValueDefined ? rest.defaultValue: undefined
-        });
-        this.maxDigits = maxDigits;
-        this.decimalPlaces = decimalPlaces;
-    }
+  constructor({ maxDigits=null, decimalPlaces=null, ...rest }: FieldDefaultParamsType & DecimalFieldParamsType = {}) {
+    const isDefaultValueDefined: boolean = rest.defaultValue === 'number' ||
+      rest.defaultValue === null;
+    super({
+      ...rest,
+      defaultValue: isDefaultValueDefined ? rest.defaultValue: undefined
+    });
+    this.maxDigits = maxDigits;
+    this.decimalPlaces = decimalPlaces;
+  }
 }
 
 export class CharField extends Field implements CharFieldParamsType {
-    allowBlank: boolean;
-    maxLength: number;
+  typeName: string = CharField.name;
+  allowBlank: boolean;
+  maxLength: number;
 
-    constructor({ 
-        maxLength, 
-        allowBlank=true, 
-        ...rest 
-    }: CharFieldParamsType = {
-        maxLength: 255
-    }) {
-        const isDefaultValueDefined: boolean = (
-            rest.defaultValue === 'string' && 
-            rest.defaultValue.length <= maxLength
-        ) || rest.defaultValue === null;
-        super({
-            ...rest, 
-            defaultValue: isDefaultValueDefined ? rest.defaultValue: undefined
-        });
-        this.allowBlank = allowBlank;
-        this.maxLength = maxLength;
-    }
+  constructor({
+    maxLength,
+    allowBlank=true,
+    ...rest
+  }: CharFieldParamsType = {
+    maxLength: 255
+  }) {
+    const isDefaultValueDefined: boolean = (
+      rest.defaultValue === 'string' &&
+      rest.defaultValue.length <= maxLength
+    ) || rest.defaultValue === null;
+
+    super({
+      ...rest,
+      defaultValue: isDefaultValueDefined ? rest.defaultValue: undefined
+    });
+    this.allowBlank = allowBlank;
+    this.maxLength = maxLength;
+  }
 }
 
 export class TextField extends Field implements TextFieldParamsType {
-    allowBlank: boolean;
-    constructor({ 
-      allowBlank=true, 
-      ...rest 
-    }: TextFieldParamsType = {}) {
-        const isDefaultValueDefined: boolean = rest.defaultValue === 'string' || 
-            rest.defaultValue === null;
-        super({
-            ...rest, 
-            defaultValue: isDefaultValueDefined ? rest.defaultValue: undefined
-        });
-        this.allowBlank = allowBlank;
-    }
+  typeName: string = TextField.name;
+  allowBlank: boolean;
+
+  constructor({
+    allowBlank=true,
+    ...rest
+  }: TextFieldParamsType = {}) {
+    const isDefaultValueDefined: boolean = rest.defaultValue === 'string' ||
+      rest.defaultValue === null;
+    super({
+      ...rest,
+      defaultValue: isDefaultValueDefined ? rest.defaultValue: undefined
+    });
+    this.allowBlank = allowBlank;
+  }
 }
 
 export class UUIDField extends CharField implements UUIDFieldParamsType {
+  typeName: string = UUIDField.name;
   autoGenerate: boolean;
-  
-  constructor({ 
+
+  constructor({
     autoGenerate = false, ...rest
   } : UUIDFieldParamsType = {
     maxLength: 36
@@ -179,6 +188,7 @@ export class UUIDField extends CharField implements UUIDFieldParamsType {
 }
 
 export class DateField extends Field implements DateFieldParamsType {
+  typeName: string = DateField.name;
   autoNow: boolean;
   autoNowAdd: boolean;
 
@@ -189,27 +199,28 @@ export class DateField extends Field implements DateFieldParamsType {
   }
 }
 export class ForeignKeyField extends Field implements ForeignKeyFieldParamsType {
+  typeName: string = ForeignKeyField.name;
   relatedTo!: string;
   onDelete!: ON_DELETE;
   customName?: string;
-  relatedName?: boolean;
+  relatedName?: string;
   toField?: string;
 
-  constructor({ 
+  constructor({
     relatedTo,
     onDelete,
     customName,
     relatedName,
     toField,
     ...rest
-  }: ForeignKeyFieldParamsType = { 
-    relatedTo: '', 
+  }: ForeignKeyFieldParamsType = {
+    relatedTo: '',
     onDelete: ON_DELETE.CASCADE
   }) {
-    super(rest);  
+    super(rest);
 
     let relatedToAsString: string = relatedTo as string;
-    const isRelatedToAModel: boolean = typeof relatedTo === 'function' && 
+    const isRelatedToAModel: boolean = typeof relatedTo === 'function' &&
       (relatedTo as Model).prototype instanceof Model;
     if (isRelatedToAModel) {
       relatedToAsString = (relatedTo as Model).name;
@@ -223,7 +234,7 @@ export class ForeignKeyField extends Field implements ForeignKeyFieldParamsType 
   }
 
   async init(engineInstance: Engine, fieldName: string, model: Model): Promise<void> {
-    const isRelatedToAndOnDeleteNotDefined = typeof this.relatedTo !== 'string' && 
+    const isRelatedToAndOnDeleteNotDefined = typeof this.relatedTo !== 'string' &&
       typeof this.onDelete !== 'string';
 
     if (isRelatedToAndOnDeleteNotDefined) {
@@ -231,5 +242,11 @@ export class ForeignKeyField extends Field implements ForeignKeyFieldParamsType 
     }
 
     await super.init(engineInstance, fieldName, model);
+
+    const wasRelatedNameDefined: boolean = typeof this.relatedName === 'string';
+    const relatedToWithFirstStringLower: string = this.relatedTo.charAt(0).toLowerCase() + this.relatedTo.slice(1);
+    const modelWithFirstStringUpper: string = this.model.name.charAt(0).toUpperCase() + this.model.name.slice(1);
+    this.relatedName = wasRelatedNameDefined ? this.relatedName as string :
+      `${relatedToWithFirstStringLower}${modelWithFirstStringUpper}s`;
   }
 }

@@ -1,5 +1,5 @@
-import { models, ModelOptionsType } from "@palmares/core";
-import { Sequelize, ModelOptions, ModelAttributes, ModelAttributeColumnOptions } from "sequelize";
+import { models } from "@palmares/databases";
+import { Sequelize, ModelOptions, ModelAttributeColumnOptions, Model, ModelStatic, ModelCtor } from "sequelize";
 
 import SequelizeEngine from "./engine";
 import SequelizeEngineFields from "./fields";
@@ -42,10 +42,10 @@ export default class ModelTranslator {
     return translatedFields;
   }
 
-  async translate(model: models.Model) {
+  async translate(model: models.Model): Promise<ModelCtor<Model> | undefined> {
     const translatedOptions = await this.#translateOptions(model);
     const translatedAttributes = await this.#translateFields(model);
-    console.log(translatedAttributes);
-    return null;
+
+    return this.engine.sequelizeInstance?.define(model.name, translatedAttributes, translatedOptions);
   }
 }

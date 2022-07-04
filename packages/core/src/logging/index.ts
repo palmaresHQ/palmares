@@ -1,17 +1,17 @@
-import { 
-    FRAMEWORK_NAME, 
+import {
+    FRAMEWORK_NAME,
     LOGGING_USING_SETTINGS_FROM_PATH,
-    LOGGING_SETTINGS_MODULE_NOT_FOUND, 
+    LOGGING_SETTINGS_MODULE_NOT_FOUND,
     LOGGING_DATABASE_MODELS_NOT_FOUND,
     LOGGING_DATABASE_CLOSING,
     LOGGING_DATABASE_IS_NOT_CONNECTED,
     LOGGING_APP_START_SERVER,
     LOGGING_APP_STOP_SERVER
 } from '../utils/constants';
-import { 
-    MessagesType, 
-    MessageCategories, 
-    MessagesCallbackType, 
+import {
+    MessagesType,
+    MessageCategories,
+    MessagesCallbackType,
     SettingsModuleNotFoundParameters
 } from './types';
 import { ExistingMessageException, MessageDoesNotExistException } from './exceptions';
@@ -71,7 +71,7 @@ class Logging {
   }
 
   async log(category: MessageCategories, message: string) {
-    const logMessage: string = `${this.defaultLogInfo()} ${category} ${message}`;
+    const logMessage: string = `${this.defaultLogInfo()} ${this.stringByMessageType[category]} ${message}`;
 
     switch (category) {
       case MessageCategories.Debug:
