@@ -5,7 +5,7 @@ import Engine from ".";
 export type EngineType = {
   databaseName: string;
   fields: EngineFields;
-
+  modelType: any;
 }
 
 export type EngineFieldsType = {

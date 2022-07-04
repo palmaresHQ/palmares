@@ -15,6 +15,8 @@ export default class SequelizeEngine extends Engine {
   _initializedModels: InitializedModelsType<Model> = {};
   sequelizeInstance!: Sequelize | null;
   fields!: SequelizeEngineFields;
+  modelType!: Model;
+
   operations = {
     and: Op.and,
     or: Op.or,
@@ -100,18 +102,12 @@ export default class SequelizeEngine extends Engine {
     return await super.isConnected();
   }
 
-  async seeInitializedModels() {
-    for (const model of Object.values(this._initializedModels)) {
-      console.log(model?.getAttributes());
-    }
-  }
   async initializeModel(
     model: models.Model
   ): Promise<ModelCtor<Model> | undefined> {
     const modelInstance = await this.#modelTranslator.translate(model);
     this._initializedModels[model.name] = modelInstance;
     await this.fields.handleRelatedFieldsAfterModelCreation(model.name);
-    await this.seeInitializedModels();
     return modelInstance;
   }
 }

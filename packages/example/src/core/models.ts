@@ -1,4 +1,5 @@
 import { models } from '@palmares/databases';
+import SequelizeModel from '@palmares/sequelize-engine';
 
 export class Post extends models.Model {
   fields = {

@@ -13,6 +13,8 @@ import {
 import { Field } from "./fields";
 import { BigAutoField } from "./fields";
 import Manager from "./manager";
+import { DatabaseSettingsType } from "../types";
+import { EngineType } from "../engine/types";
 
 /**
  * This class is used for initializing a model. This will work similar to django except that instead of
@@ -102,8 +104,9 @@ export default class Model implements ModelType {
   fields: ModelFieldsType = {};
   options!: ModelOptionsType;
   abstracts: typeof Model[] = [];
-  instances: Map<string, Model> = new Map<string, Model>();
   name!: string;
+
+  static instances: ModelType["instances"]
 
   readonly #defaultOptions = {
     autoId: true,

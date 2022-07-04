@@ -1,6 +1,8 @@
 import { Field } from "./fields";
 import Model from './model';
 import Manager from './manager';
+import { DatabaseSettingsType } from "../types";
+import { EngineType } from "../engine/types";
 
 export type ModelFieldsType = {
     [key: string]: Field
@@ -33,6 +35,5 @@ export interface ModelType {
     options: ModelOptionsType;
     name: string;
     abstracts: typeof Model[];
-    instances: Map<string, Model>;
-    [managers: string]: Manager;
+    instances?: Map<keyof DatabaseSettingsType["DATABASES"], any>;
 }
