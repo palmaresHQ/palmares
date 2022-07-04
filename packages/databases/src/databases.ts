@@ -1,20 +1,25 @@
-import { ERR_MODULE_NOT_FOUND, LOGGING_DATABASE_MODELS_NOT_FOUND } from "../utils";
-import { SettingsType } from "../conf/types";
 import { 
+    retrieveDomains,
+    logging,
+    ERR_MODULE_NOT_FOUND, 
+    LOGGING_DATABASE_MODELS_NOT_FOUND 
+} from "@palmares/core";
+
+import { 
+  DatabaseSettingsType,
   DatabaseConfigurationType, 
   FoundModelType, 
   initializedEngineInstancesType 
-} from "../databases/types";
+} from "./types";
 import { DatabaseNoEngineFoundError } from './exceptions';
-import Engine, { EngineFields } from "./engine";
-import logging from "../logging";
+import Engine from "./engine";
 import { Model } from "./models";
 
 import path from "path";
 
 class Databases {
   availableEngines = ['@palmares/sequelize-engine'];
-  settings!: SettingsType;
+  settings!: DatabaseSettingsType;
   initializedEngineInstances: initializedEngineInstancesType = {};
   obligatoryModels: typeof Model[] = []
 
@@ -23,14 +28,14 @@ class Databases {
    * 
    * @param settings - The settings object from the file itself.
    */
-  async init(settings: SettingsType) {
+  async init(settings: DatabaseSettingsType) {
     this.settings = settings;
 
-    const isDatabaseDefined: boolean = settings.DATABASES !== undefined && typeof settings.DATABASES === "object";
+    const isDatabaseDefined: boolean = this.settings.DATABASES !== undefined && typeof settings.DATABASES === "object";
     if (isDatabaseDefined) {
       const databaseEntries: [string, DatabaseConfigurationType<string, {}>][] = Object.entries(settings.DATABASES);
       for (const [databaseName, databaseSettings] of databaseEntries) {
-        await this.initializeDatabase(databaseName, databaseSettings);
+          await this.initializeDatabase(databaseName, databaseSettings);
       }
     }
   }
@@ -69,7 +74,8 @@ class Databases {
 
     const promises = initializedEngineInstances.map(async (engineInstance) => {
       await engineInstance.close();
-    })
+    });
+
     await Promise.all(promises);
   }
 
@@ -91,7 +97,7 @@ class Databases {
     return {
       engineInstance,
       projectModels: await Promise.all(
-        projectModels.map(async ({ appName, appPath, model }) => {
+          projectModels.map(async ({ appName, appPath, model }) => {
           const modelInstance = new model();
           const initializedModel = await modelInstance.init(model, engineInstance);
           return {
@@ -119,16 +125,18 @@ class Databases {
 
   async getModels() {
     const foundModels: FoundModelType[] = [];
-    const promises: Promise<void>[] = this.settings.INSTALLED_APPS.map(async (appName) => {
-      const fullPath = path.join(this.settings.BASE_PATH, appName, 'models');
+    const domainClasses = await retrieveDomains(this.settings);
+    const promises: Promise<void>[] = domainClasses.map(async (domainClass) => {
+      const domain = new domainClass();
+      const fullPath = path.join(domain.appPath, 'models');
       try {
         const models = await import(fullPath);
         const modelsArray: typeof Model[] = Object.values(models);
         for (const model of modelsArray) {
           foundModels.push({
-            model,
-            appName,
-            appPath: fullPath,
+              model,
+              appName: domain.appName,
+              appPath: domain.appPath,
           })
         }
       } catch (e) {
@@ -139,11 +147,10 @@ class Databases {
           throw e;
         }
       }
-    })
+    });
     await Promise.all(promises);
     return foundModels;
   }
 }
 
 export default new Databases();
-export { Engine, DatabaseConfigurationType, EngineFields };

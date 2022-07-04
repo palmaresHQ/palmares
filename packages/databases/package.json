@@ -1,0 +1,23 @@
+{
+  "name": "@palmares/databases",
+  "version": "0.0.0",
+  "description": "Add support for working with databases with palmared framework",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/palmaresHQ/palmares.git"
+  },
+  "keywords": [
+    "palmares",
+    "databases"
+  ],
+  "author": "Nicolas Melo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/palmaresHQ/palmares/issues"
+  },
+  "homepage": "https://github.com/palmaresHQ/palmares#readme"
+}

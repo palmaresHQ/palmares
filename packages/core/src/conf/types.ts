@@ -1,31 +1,30 @@
 import { MessageCategories, MessagesCallbackType } from "../logging/types";
-import { DatabaseConfigurationType } from "../databases/types"; 
+import Domain from "../domain";
+
+export type InstalledDomainsType = Promise<{ default: typeof Domain }>[] | typeof Domain[]
 
 export type SettingsType = {
-    ENV?: string,
-    ADAPTER: string;
-    DEBUG: boolean,
-    PORT: number,
-    SECRET_KEY: string,
-    APP_NAME?: string,
-    BASE_PATH: string,
+  ENV?: string,
+  ADAPTER: string;
+  DEBUG: boolean,
+  PORT: number,
+  SECRET_KEY: string,
+  APP_NAME?: string,
+  BASE_PATH: string,
+  ROOT_URLCONF: string,
+  INSTALLED_DOMAINS: InstalledDomainsType,
+  MIDDLEWARE?: string[],
+  LOGGING?: {
+    [key: string]: {
+      category: MessageCategories,
+      callback: MessagesCallbackType
+    }
+  },
+  SOCKETS?: {
     ROOT_URLCONF: string,
-    INSTALLED_APPS: string[],
-    MIDDLEWARE?: string[],
-    LOGGING?: {
-        [key: string]: {
-            category: MessageCategories,
-            callback: MessagesCallbackType
-        }
-    },
-    DATABASES: {
-        [key: string]: DatabaseConfigurationType<string, {}>
+    ENGINE: string,
+    LAYER?: {
+      BACKEND: string,
     }
-    SOCKETS?: {
-        ROOT_URLCONF: string,
-        ENGINE: string,
-        LAYER?: {
-            BACKEND: string,
-        }
-    }
+  }
 }

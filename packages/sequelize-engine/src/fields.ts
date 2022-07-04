@@ -1,47 +1,67 @@
-import { EngineFields, models, } from "@palmares/core";
+import { EngineFields, models } from "@palmares/databases";
 import { DataTypes, ModelAttributeColumnOptions, ModelAttributes } from "sequelize";
 
 import SequelizeEngine from "./engine";
-import { ModelTranslatorIndexesType } from "./types";
+import { UnsupportedFieldTypeError, PreventForeignKeyError } from "./exceptions";
+import { 
+  InitializedModelsType, 
+  ModelTranslatorIndexesType, 
+  RelatedModelToEvaluateAfterType 
+} from "./types";
 
+/**
+ * This class is used to translate the fields of a model to the attributes of a sequelize model.
+ * This is closely tied to the engine itself because sometimes we might need the models after it was translated
+ * or sometimes we need to translate stuff outside of the fields for example the indexes that are from the model 
+ * itself.
+ */
 export default class SequelizeEngineFields extends EngineFields {
   engineInstance!: SequelizeEngine;
-  dateFieldsAsAutoNowToAddHooks = new Map<string, string[]>()
+  #dateFieldsAsAutoNowToAddHooks = new Map<string, string[]>()
+  #initializedModels: InitializedModelsType;
   #indexes: ModelTranslatorIndexesType = {};
+  #relatedFieldsToEvaluate: RelatedModelToEvaluateAfterType = {};
 
   constructor(engineInstance: SequelizeEngine) {
     super(engineInstance);
+    this.#initializedModels = engineInstance._initializedModels;
   }
-
+  
+  /**
+   * Used for appending the hook to the model to update the date of the date field with the current date.
+   * 
+   * This is set when `autoNow` is set to true in the DateField or DatetimeField.
+   * 
+   * Reference on hooks: https://sequelize.org/docs/v6/other-topics/hooks/
+   * 
+   * @param modelName - The name of the model that the field belongs to.
+   * @param fieldName - The name of the field that is being updated.
+   */
   async #addHooksToUpdateDateFields(modelName: string, fieldName: string) {
-    if (this.dateFieldsAsAutoNowToAddHooks.has(modelName)) {
-      this.dateFieldsAsAutoNowToAddHooks.get(modelName)?.push(fieldName);
+    if (this.#dateFieldsAsAutoNowToAddHooks.has(modelName)) {
+      this.#dateFieldsAsAutoNowToAddHooks.get(modelName)?.push(fieldName);
     } else {
-      this.dateFieldsAsAutoNowToAddHooks.set(modelName, [fieldName]);
+      this.#dateFieldsAsAutoNowToAddHooks.set(modelName, [fieldName]);
     }
   }
-
-  /** 
-   * Retrieves the sequelize ModelAttributes for a given date field type. 
-   * For dates we have two possible dates: created_at and updated_at. The Created_at is created
-   * with the autoNowAdd as set to `true`. This means that we will only add this date once.
-   * The `autoNow` is for the updated_at date. This means that we will add this date every time
-   * the data is updated. In order for this to work we need to create a hook that will update the date
-   * on every update on the model.
-   * 
-   * Reference: https://sequelize.org/docs/v7/other-topics/hooks/
-   * 
-   * @param modelAttributes - The sequelize ModelAttributes object that we are constructing.
-   * @param field - The field that we are currently processing.
+  
+  /**
+   * Append the field to an array so we can evaluate this later after the model is defined.
    */
-  async #handleAutoDate(
-    modelAttributes: ModelAttributeColumnOptions, 
-    field: models.fields.Field
+  async #addRelatedFieldToEvaluateAfter(
+    field: models.fields.ForeignKeyField, 
+    fieldAttributes: ModelAttributeColumnOptions
   ) {
-    const isAutoNow = field.autoNow === true;
-    const hasAutoNowOrAutoNowAdd = field.autoNowAdd === true || isAutoNow;
-    if (hasAutoNowOrAutoNowAdd) modelAttributes.defaultValue = DataTypes.NOW;
-    if (isAutoNow) await this.#addHooksToUpdateDateFields(field.model.name, field.fieldName);
+    const relatedModelName = field.relatedTo
+    const isModelAlreadyInObject = this.#relatedFieldsToEvaluate[relatedModelName] !== undefined;
+    if (isModelAlreadyInObject === false) this.#relatedFieldsToEvaluate[relatedModelName] = [];
+    
+    this.#relatedFieldsToEvaluate[relatedModelName].push({
+      field: field,
+      fieldAttributes: fieldAttributes
+    });
+
+    throw new PreventForeignKeyError();
   }
 
   async #appendIndexes(field: models.fields.Field) {
@@ -79,47 +99,180 @@ export default class SequelizeEngineFields extends EngineFields {
     }
   }
   
+  async #translateTextFieldValidations(field: models.fields.TextField, fieldAttributes: ModelAttributeColumnOptions) {
+    if (field.allowBlank === false) fieldAttributes.validate = { 
+      ...fieldAttributes.validate,
+      notEmpty: !field.allowBlank 
+    };
+  }
+
+  async #translateTextField(
+    field: models.fields.TextField,
+    fieldAttributes: ModelAttributeColumnOptions,
+  ) {
+    fieldAttributes.type = DataTypes.STRING;
+    await this.#translateTextFieldValidations(field, fieldAttributes);
+  }
+
+  async #translateCharField(
+    field: models.fields.CharField, 
+    fieldAttributes: ModelAttributeColumnOptions, 
+  ): Promise<void> {
+    fieldAttributes.type = DataTypes.STRING(field.maxLength);
+    await this.#translateTextFieldValidations(field, fieldAttributes);
+  }
+
+  async #translateUUIDField(
+    field: models.fields.UUIDField, 
+    fieldAttributes: ModelAttributeColumnOptions, 
+  ): Promise<void> {
+    fieldAttributes.type = DataTypes.UUID;
+    if (field.autoGenerate === true) fieldAttributes.defaultValue = DataTypes.UUIDV4;
+    fieldAttributes.validate = {
+      ...fieldAttributes.validate,
+      isUUID: 4
+    }
+    await this.#translateTextFieldValidations(field, fieldAttributes);
+  }
+
+  async #translateDateField(
+    field: models.fields.DateField, 
+    fieldAttributes: ModelAttributeColumnOptions, 
+  ): Promise<void> {
+    fieldAttributes.type = DataTypes.DATEONLY;
+    const isAutoNow = field.autoNow === true;
+    const hasAutoNowOrAutoNowAdd = field.autoNowAdd === true || isAutoNow;
+    if (hasAutoNowOrAutoNowAdd) fieldAttributes.defaultValue = DataTypes.NOW;
+    if (isAutoNow) await this.#addHooksToUpdateDateFields(field.model.name, field.fieldName);
+  }
+  
+  async #translateAutoField(
+    field: models.fields.AutoField, 
+    fieldAttributes: ModelAttributeColumnOptions
+  ) {
+    fieldAttributes.autoIncrement = true;
+    fieldAttributes.autoIncrementIdentity = true;
+    fieldAttributes.type = DataTypes.INTEGER;
+    fieldAttributes.validate = {
+      ...fieldAttributes.validate,
+      isNumeric: true,
+      isInt: true
+    };
+  }
+
+  async #translateBigAutoField(
+    field: models.fields.BigAutoField, 
+    fieldAttributes: ModelAttributeColumnOptions
+  ) {
+    fieldAttributes.autoIncrement = true;
+    fieldAttributes.autoIncrementIdentity = true;
+    fieldAttributes.type = DataTypes.BIGINT;
+    fieldAttributes.validate = {
+      ...fieldAttributes.validate,
+      isNumeric: true,
+      isInt: true
+    };
+  }
+
+  async #translateIntegerField(
+    field: models.fields.IntegerField,
+    fieldAttributes: ModelAttributeColumnOptions
+  ) {
+    fieldAttributes.type = DataTypes.INTEGER;
+    fieldAttributes.validate = {
+      ...fieldAttributes.validate,
+      isNumeric: true,
+      isInt: true
+    };
+  }
+
+  async #translateForeignKeyField(
+    field: models.fields.ForeignKeyField, 
+    fieldAttributes: ModelAttributeColumnOptions, 
+  ): Promise<void> {
+    const wasModelAlreadyInitialized: boolean = this.#initializedModels[field.relatedTo] !== undefined;
+    if (wasModelAlreadyInitialized) {
+      
+    } else {
+      await this.#addRelatedFieldToEvaluateAfter(field, fieldAttributes);
+    }
+  }
+
   async #translateFieldType(
     fieldAttributes: ModelAttributeColumnOptions,
     field: models.fields.Field, 
     fieldType: string, 
   ): Promise<void> {
+    // Yes we can definitely simplify it by not making the translate functions private
+    // but the problem is that this will make it harder to read and know what types of fields 
+    // are supported by the engine.
     switch (fieldType) {
-      case 'BooleanField':
-        return await this.#translateBooleanField(field, fieldAttributes);
       case 'CharField':
-        return await this.#translateCharField(field, fieldAttributes);
+        return await this.#translateCharField(
+          field as models.fields.CharField, 
+          fieldAttributes
+        );
       case 'TextField':
-        return await this.#translateTextField(field, fieldAttributes);
+        return await this.#translateTextField(
+          field as models.fields.TextField, 
+          fieldAttributes
+        );
+      case 'UUIDField':
+        return await this.#translateUUIDField(
+          field as models.fields.UUIDField, 
+          fieldAttributes
+        );
       case 'DateField':
-        return await this.#translateDateField(field, fieldAttributes);
-      case 'DecimalField':
-        return await this.#translateDecimalField(field, fieldAttributes);
-      case 'IntegerField':
-        return await this.#translateIntegerField(field, fieldAttributes);
-      case 'BigIntegerField':
-        return await this.#translateBigIntegerField(field, fieldAttributes);
+        return await this.#translateDateField(
+          field as models.fields.DateField, 
+          fieldAttributes
+        );
       case 'AutoField':
-        return await this.#translateAutoField(field, fieldAttributes);
+        return await this.#translateAutoField(
+          field as models.fields.AutoField, 
+          fieldAttributes
+        );
       case 'BigAutoField':
-        return await this.#translateAutoBigIntegerField(field, fieldAttributes);
+        return await this.#translateBigAutoField(
+          field as models.fields.AutoField, 
+          fieldAttributes
+        );
+      case 'IntegerField':
+        return await this.#translateIntegerField(
+          field as models.fields.IntegerField,
+          fieldAttributes
+        );
       case 'ForeignKeyField':
-        return await this.#translateForeignKeyField(field, fieldAttributes);
+        return await this.#translateForeignKeyField(
+          field as models.fields.ForeignKeyField, 
+          fieldAttributes
+        );
+      default:
+        throw new UnsupportedFieldTypeError(field.constructor.name);
     }
   }
 
-  async #translateField(field: models.fields.Field) {
+  async #translateField(field: models.fields.Field): Promise<ModelAttributeColumnOptions> {
     const fieldType = field.constructor.name;
     let fieldAttributes = {} as ModelAttributeColumnOptions;
-    await this.#handleAutoDate(fieldAttributes, field);
     await this.#handleDefaultAttributes(fieldAttributes, field);
     await this.#translateFieldType(fieldAttributes, field, fieldType);
+    return fieldAttributes;
   }
 
-  async get(fieldName: string): Promise<ModelAttributes | null> {
+  async get(fieldName: string): Promise<ModelAttributeColumnOptions | null> {
     const field = this.fields.get(fieldName) as models.fields.Field;
-    const attributes = await this.#translateField(field);
-
-    return null
+    try {
+      const attributes = await this.#translateField(field);
+      return attributes;
+    } catch (e) {
+      const error = e as Error;
+      switch (error.name) {
+        case PreventForeignKeyError.name:
+          return null;
+        default:
+          throw error;
+      }
+    }
   }
 }

@@ -1,6 +1,5 @@
 import Engine from ".";
 import { EngineFieldsType } from "./types";
-import { NotImplementedEngineFieldsException } from "./exceptions";
 import { Field } from "../models/fields";
 
 /**

@@ -15,7 +15,7 @@ import {
     SettingsModuleNotFoundParameters
 } from './types';
 import { ExistingMessageException, MessageDoesNotExistException } from './exceptions';
-
+import Logger from './logger';
 
 class Logging {
   messages: MessagesType = {
@@ -26,19 +26,6 @@ class Logging {
     [LOGGING_SETTINGS_MODULE_NOT_FOUND]: {
       category: MessageCategories.Error,
       callback: async (customArgs?: SettingsModuleNotFoundParameters) => `Your settings module was not found at ${customArgs?.pathOfModule}.`
-    },
-    [LOGGING_DATABASE_MODELS_NOT_FOUND]: {
-      category: MessageCategories.Warn,
-      callback: async ({appName}) => `Looks like the app ${appName} did not define any models.\n`+
-        `If that's not intended behaviour, you should create the 'models.ts'/'models.js' file in the ${appName} app.`
-    },
-    [LOGGING_DATABASE_CLOSING]: {
-      category: MessageCategories.Info,
-      callback: async ({databaseName}) => `Closing the ${databaseName} database connection.`
-    },
-    [LOGGING_DATABASE_IS_NOT_CONNECTED]: {
-      category: MessageCategories.Warn,
-      callback: async ({databaseName}) => `${FRAMEWORK_NAME} wasn't able to connect to the '${databaseName}' database.`
     },
     [LOGGING_APP_START_SERVER]: {
       category: MessageCategories.Info,
@@ -57,13 +44,13 @@ class Logging {
     [MessageCategories.Error]: '\x1b[31mERROR\x1b[0m'
   }
 
-  async defaultLogInfo(): Promise<string> {
+  defaultLogInfo(): string {
     return `\x1b[32m[${FRAMEWORK_NAME}]\x1b[0m \x1b[33m${new Date().toISOString()}\x1b[0m`
   }
 
-  async appendMessage(
+  appendMessage(
     messageName: string, category: MessageCategories, callback: MessagesCallbackType
-  ): Promise<void> {
+  ): void {
 
     const alreadyExists = this.messages[messageName] !== undefined;
     if (alreadyExists) throw new ExistingMessageException(messageName);
@@ -79,11 +66,14 @@ class Logging {
     const isMessageNotDefined = message === undefined;
     if (isMessageNotDefined) throw new MessageDoesNotExistException(messageName);
 
-    const logMessage: string = `${await this.defaultLogInfo()} ` + 
-      `${this.stringByMessageType[message.category]} ` + 
-      `${await Promise.resolve(message.callback(customData))}`;
+    const customMessage = await Promise.resolve(message.callback(customData))
+    await this.log(message.category, customMessage)
+  }
 
-    switch (message.category) {
+  async log(category: MessageCategories, message: string) {
+    const logMessage: string = `${this.defaultLogInfo()} ${category} ${message}`;
+
+    switch (category) {
       case MessageCategories.Debug:
         console.debug(logMessage);
         break;
@@ -97,6 +87,10 @@ class Logging {
         console.error(logMessage);
         break;
     }
+  }
+
+  createLogger(name: string) {
+    return new Logger(name, this)
   }
 }
 

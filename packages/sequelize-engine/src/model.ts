@@ -1,5 +1,5 @@
 import { models, ModelOptionsType } from "@palmares/core";
-import { Sequelize, ModelOptions, ModelAttributes } from "sequelize";
+import { Sequelize, ModelOptions, ModelAttributes, ModelAttributeColumnOptions } from "sequelize";
 
 import SequelizeEngine from "./engine";
 import SequelizeEngineFields from "./fields";
@@ -31,10 +31,13 @@ export default class ModelTranslator {
   }
 
   async #translateFields(model: models.Model) {
-    let translatedFields: { [key: string]: ModelAttributes | null } = {};
+    let translatedFields: { [key: string]: ModelAttributeColumnOptions } = {};
     const fieldsEntries = Object.keys(model.fields);
     for (const fieldName of fieldsEntries) {
-      translatedFields[fieldName] = await this.fields.get(fieldName);
+      const translatedAttributes = await this.fields.get(fieldName);
+      const isTranslatedAttributeDefined = translatedAttributes !== null &&
+        typeof translatedAttributes === "object";
+      if (isTranslatedAttributeDefined) translatedFields[fieldName] = translatedAttributes;
     }
     return translatedFields;
   }
@@ -42,6 +45,7 @@ export default class ModelTranslator {
   async translate(model: models.Model) {
     const translatedOptions = await this.#translateOptions(model);
     const translatedAttributes = await this.#translateFields(model);
+    console.log(translatedAttributes);
     return null;
   }
 }

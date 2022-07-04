@@ -11,8 +11,9 @@ export const APP_NAME = 'example';
 export const BASE_PATH = path.dirname(path.resolve(__dirname));
 export const ROOT_URLCONF = path.join(BASE_PATH, 'src', 'routes');
 
-export const INSTALLED_APPS = [
-  path.join('src', 'core'),
+export const INSTALLED_DOMAINS = [
+  import('@palmares/databases'),
+  import('./core'),
 ]
 
 export const DATABASES = {

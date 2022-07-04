@@ -1,3 +1,5 @@
+import { utils } from "@palmares/core";
+
 import { 
   ON_DELETE, 
   FieldDefaultParamsType, 
@@ -5,7 +7,8 @@ import {
   DecimalFieldParamsType, 
   CharFieldParamsType, 
   TextFieldParamsType,
-  ForeignKeyFieldParamsType
+  ForeignKeyFieldParamsType,
+  UUIDFieldParamsType
 } from "./types";
 import Engine from "../../engine";
 import Model from "../model";
@@ -13,7 +16,7 @@ import { ForeignKeyFieldRequiredParamsMissingError } from "./exceptions";
 
 export { ON_DELETE as ON_DELETE };
 
-export class Field implements FieldDefaultParamsType, DateFieldParamsType, ForeignKeyFieldParamsType {
+export class Field implements FieldDefaultParamsType {
   primaryKey: boolean;
   defaultValue: string | number | boolean | null | undefined | Date;
   allowNull: boolean;
@@ -24,13 +27,6 @@ export class Field implements FieldDefaultParamsType, DateFieldParamsType, Forei
   customAttributes: any | undefined | object | null;
   model!: Model;
   fieldName!: string;
-  autoNow?: boolean;
-  autoNowAdd?: boolean;
-  relatedTo!: Model | string | null;
-  onDelete!: ON_DELETE | null;
-  customName?: string;
-  relatedName?: boolean;
-  toField?: string;
   
   constructor({
     primaryKey=false, 
@@ -53,8 +49,13 @@ export class Field implements FieldDefaultParamsType, DateFieldParamsType, Forei
   }
 
   async init(engineInstance: Engine, fieldName: string, model: Model) {
+    const isUnderscored: boolean = (this.underscored || model.options.underscored) === true; 
     this.fieldName = fieldName;
     this.model = model;
+
+    if (isUnderscored) this.databaseName = utils.camelToSnakeCase(this.fieldName);
+    else this.databaseName = this.fieldName;
+
     await engineInstance.fields.set(this);
   }
 }
@@ -64,7 +65,7 @@ export class Field implements FieldDefaultParamsType, DateFieldParamsType, Forei
  */
 export class AutoField extends Field {
   constructor({...rest} : FieldDefaultParamsType = {}) {
-    super({...rest, primaryKey: true, allowNull: false, unique: true, dbIndex: true});
+    super({...rest, allowNull: false, unique: true, dbIndex: true});
   }
 }
 
@@ -74,7 +75,7 @@ export class AutoField extends Field {
  */
 export class BigAutoField extends Field {
   constructor({...rest} : FieldDefaultParamsType = {}) {
-    super({...rest, primaryKey: true, allowNull: false, unique: true, dbIndex: true});
+    super({...rest, allowNull: false, unique: true, dbIndex: true});
   }
 }
 
@@ -122,15 +123,17 @@ export class DecimalField extends Field {
     }
 }
 
-export class CharField extends Field {
+export class CharField extends Field implements CharFieldParamsType {
     allowBlank: boolean;
     maxLength: number;
 
     constructor({ 
-        maxLength=255, 
+        maxLength, 
         allowBlank=true, 
         ...rest 
-    }: FieldDefaultParamsType & CharFieldParamsType & TextFieldParamsType = {}) {
+    }: CharFieldParamsType = {
+        maxLength: 255
+    }) {
         const isDefaultValueDefined: boolean = (
             rest.defaultValue === 'string' && 
             rest.defaultValue.length <= maxLength
@@ -144,9 +147,12 @@ export class CharField extends Field {
     }
 }
 
-export class TextField extends Field {
+export class TextField extends Field implements TextFieldParamsType {
     allowBlank: boolean;
-    constructor({ allowBlank=true, ...rest }: FieldDefaultParamsType & TextFieldParamsType = {}) {
+    constructor({ 
+      allowBlank=true, 
+      ...rest 
+    }: TextFieldParamsType = {}) {
         const isDefaultValueDefined: boolean = rest.defaultValue === 'string' || 
             rest.defaultValue === null;
         super({
@@ -157,9 +163,34 @@ export class TextField extends Field {
     }
 }
 
+export class UUIDField extends CharField implements UUIDFieldParamsType {
+  autoGenerate: boolean;
+  
+  constructor({ 
+    autoGenerate = false, ...rest
+  } : UUIDFieldParamsType = {
+    maxLength: 36
+  }) {
+    const defaultValue = autoGenerate ? undefined : rest.defaultValue;
+
+    super({...rest, defaultValue: defaultValue});
+    this.autoGenerate = autoGenerate;
+  }
+}
+
+export class DateField extends Field implements DateFieldParamsType {
+  autoNow: boolean;
+  autoNowAdd: boolean;
+
+  constructor({autoNow=false, autoNowAdd=false, ...rest} ={}) {
+      super({...rest})
+      this.autoNow = autoNow
+      this.autoNowAdd = autoNowAdd
+  }
+}
 export class ForeignKeyField extends Field implements ForeignKeyFieldParamsType {
-  relatedTo!: Model | string | null;
-  onDelete!: ON_DELETE | null;
+  relatedTo!: string;
+  onDelete!: ON_DELETE;
   customName?: string;
   relatedName?: boolean;
   toField?: string;
@@ -171,12 +202,20 @@ export class ForeignKeyField extends Field implements ForeignKeyFieldParamsType 
     relatedName,
     toField,
     ...rest
-  }: ForeignKeyFieldParamsType & FieldDefaultParamsType = { 
-    relatedTo: null, 
+  }: ForeignKeyFieldParamsType = { 
+    relatedTo: '', 
     onDelete: ON_DELETE.CASCADE
   }) {
     super(rest);  
-    this.relatedTo = relatedTo;
+
+    let relatedToAsString: string = relatedTo as string;
+    const isRelatedToAModel: boolean = typeof relatedTo === 'function' && 
+      (relatedTo as Model).prototype instanceof Model;
+    if (isRelatedToAModel) {
+      relatedToAsString = (relatedTo as Model).name;
+    }
+
+    this.relatedTo = relatedToAsString;
     this.customName = customName;
     this.relatedName = relatedName;
     this.onDelete = onDelete;
@@ -184,18 +223,11 @@ export class ForeignKeyField extends Field implements ForeignKeyFieldParamsType 
   }
 
   async init(engineInstance: Engine, fieldName: string, model: Model): Promise<void> {
-    const isRelatedToAModel: boolean = this.relatedTo instanceof Function && 
-      Object.getPrototypeOf(this.relatedTo).name === 'Model';
-    const isRelatedToAndOnDeleteNotDefined = (typeof this.relatedTo !== 'string' || isRelatedToAModel) && 
+    const isRelatedToAndOnDeleteNotDefined = typeof this.relatedTo !== 'string' && 
       typeof this.onDelete !== 'string';
 
     if (isRelatedToAndOnDeleteNotDefined) {
       throw new ForeignKeyFieldRequiredParamsMissingError(this.fieldName);
-    }
-
-    if (isRelatedToAModel) {
-      const relatedToAsAModel: Model = this.relatedTo as Model;
-      this.relatedTo = relatedToAsAModel.name;
     }
 
     await super.init(engineInstance, fieldName, model);

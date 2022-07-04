@@ -1,10 +1,8 @@
 import { 
   Engine, 
   DatabaseConfigurationType, 
-  ModelFieldsType, 
-  ModelOptionsType, 
   models
-} from "@palmares/core";
+} from "@palmares/databases";
 import { Sequelize, Dialect, Options, Op, Model } from 'sequelize';
 
 import { InitializedModelsType } from "./types";
@@ -14,7 +12,7 @@ import ModelTranslator from "./model";
 export default class SequelizeEngine extends Engine {
   #isConnected: boolean | null = null;
   #modelTranslator!: ModelTranslator;
-  #initializedModels: InitializedModelsType = {};
+  _initializedModels: InitializedModelsType = {};
   sequelizeInstance!: Sequelize | null;
   fields!: SequelizeEngineFields;
   operations = {
@@ -106,7 +104,7 @@ export default class SequelizeEngine extends Engine {
     model: models.Model
   ): Promise<Model | null> {
     const modelInstance = await this.#modelTranslator.translate(model);
-    this.#initializedModels[model.name] = modelInstance;
+    this._initializedModels[model.name] = modelInstance;
     return modelInstance;
   }
 }

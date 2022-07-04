@@ -24,22 +24,26 @@ export type DecimalFieldParamsType = {
   decimalPlaces?: number | null;
 };
 
-export interface TextFieldParamsType {
+export interface TextFieldParamsType extends FieldDefaultParamsType {
   allowBlank?: boolean;
 };
 
-export interface CharFieldParamsType {
-  maxLength?: number;
+export interface CharFieldParamsType extends FieldDefaultParamsType, TextFieldParamsType {
+  maxLength: number;
 };
 
-export interface DateFieldParamsType {
+export interface UUIDFieldParamsType extends CharFieldParamsType {
+  autoGenerate?: boolean;
+}
+
+export interface DateFieldParamsType extends FieldDefaultParamsType {
   autoNow?: boolean;
   autoNowAdd?: boolean;
 }
 
-export interface ForeignKeyFieldParamsType {
-  relatedTo: Model | string | null;
-  onDelete: ON_DELETE | null;
+export interface ForeignKeyFieldParamsType extends FieldDefaultParamsType {
+  relatedTo: Model | string;
+  onDelete: ON_DELETE;
   customName?: string;
   relatedName?: boolean;
   toField?: string;

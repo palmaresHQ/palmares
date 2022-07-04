@@ -107,7 +107,7 @@ export default class Model implements ModelType {
 
   readonly #defaultOptions = {
     autoId: true,
-    primaryKeyField: new BigAutoField(),
+    primaryKeyField: new BigAutoField({ primaryKey: true }),
     abstract: false,
     underscored: true,
     tableName: undefined,

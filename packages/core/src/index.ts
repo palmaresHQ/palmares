@@ -1,6 +1,10 @@
 export { default as BaseAdapter } from './adapters';
 export { default as Commands } from './commands';
-export { Engine, EngineFields, DatabaseConfigurationType } from './databases';
-export { ModelFieldsType, ModelIndexType, ModelOptionsType } from './databases/models/types';
-export * as models from './databases/models';
+export { default as Domain, retrieveDomains } from './domain';
 export { default as logging } from './logging';
+export * from './logging/types';
+export { default as conf } from './conf';
+export * as utils from './utils';
+export * from './utils/constants';
+
+export * from './conf/types';

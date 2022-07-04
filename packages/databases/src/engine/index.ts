@@ -1,7 +1,8 @@
+import { logging, MessageCategories } from '@palmares/core';
+
 import { NotImplementedEngineException } from "./exceptions";
 import { DatabaseConfigurationType } from "../types";
-import logging from "../../logging";
-import { LOGGING_DATABASE_IS_NOT_CONNECTED, LOGGING_DATABASE_CLOSING } from "../../utils";
+import { LOGGING_DATABASE_IS_NOT_CONNECTED, LOGGING_DATABASE_CLOSING } from "../utils";
 import { EngineType } from "./types";
 import EngineFields from "./fields";
 import { Model } from "../models";
@@ -13,12 +14,13 @@ import { Model } from "../models";
  */
 export default class Engine implements EngineType {
   databaseName!: string;
-	fields!: EngineFields;
+  fields!: EngineFields;
 
-	constructor(databaseName: string) {
-		this.databaseName = databaseName;
+  constructor(databaseName: string) {
+    this.databaseName = databaseName;
+    this.buildLogging();
 	}
-
+  
 	/**
 	 * Factory function for creating a new Engine instance. Your engine should always implement this function
 	 * as static and return a new instance of your engine.
@@ -29,7 +31,20 @@ export default class Engine implements EngineType {
 	): Promise<Engine> {
 		throw new NotImplementedEngineException('new');
 	}
-    
+  
+  buildLogging() {
+    logging.appendMessage(
+      LOGGING_DATABASE_CLOSING, 
+      MessageCategories.Info, 
+      ({databaseName}) => `Closing the '${databaseName}' database connection.`
+    );
+    logging.appendMessage(
+      LOGGING_DATABASE_IS_NOT_CONNECTED, 
+      MessageCategories.Info, 
+      ({databaseName}) => `Couldn't connect to the '${databaseName}' database.`
+    );
+  }
+
 	async isConnected(): Promise<boolean> {
 		await logging.logMessage(LOGGING_DATABASE_IS_NOT_CONNECTED, { databaseName: this.databaseName });
 		return false;
