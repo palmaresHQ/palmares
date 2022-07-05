@@ -1,7 +1,11 @@
-import { SettingsType } from "@palmares/core";
+import { SettingsType, Domain } from "@palmares/core";
 
 import { Model } from "./models";
 import Engine from "./engine";
+
+export interface DatabaseDomain extends Domain {
+  getModels(): Promise<Model[]> | Model[];
+}
 
 export interface DatabaseConfigurationType<DialectOptions, ExtraOptions> {
   engine: string,
@@ -24,6 +28,13 @@ export type FoundModelType = {
   domainName: string,
   domainPath: string,
   model: typeof Model,
+}
+
+export type InitializedModelsType = {
+  domainName: string,
+  domainPath: string,
+  initialized: any,
+  original: Model
 }
 
 export interface DatabaseSettingsType extends SettingsType {

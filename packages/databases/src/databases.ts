@@ -9,13 +9,16 @@ import {
   DatabaseSettingsType,
   DatabaseConfigurationType,
   FoundModelType,
-  initializedEngineInstancesType
+  InitializedModelsType,
+  initializedEngineInstancesType,
 } from "./types";
+import { DatabaseDomain } from "./domain";
 import { DatabaseNoEngineFoundError } from './exceptions';
 import Engine from "./engine";
 import { Model } from "./models";
 
 import path from "path";
+import { models } from ".";
 
 class Databases {
   availableEngines = ['@palmares/sequelize-engine'];
@@ -93,9 +96,27 @@ class Databases {
     if (await engineInstance.isConnected()) this.initializeModels(engineInstance, models);
   }
 
-  async initializeModels(engineInstance: Engine, projectModels: FoundModelType[]) {
-    const initializedProjectModels = [];
-    const initializedInternalModels = [];
+  /**
+   * Initializes the models to the engine instance, the engine instance will convert the models to something it
+   * can understand. For example on sequelize engine we will convert the models to a sequelize model. On a Prisma
+   * engine for example we could interpret the models as a Prisma schema, and we could build the file after.
+   *
+   * @param engineInstance - The engine instance that we will be using.
+   * @param projectModels - The models from the project (not the default ones that we create).
+   *
+   * @returns - Returns the engine instance that we are using to build run everything over returns the project models
+   * and the internal models.
+   */
+  async initializeModels(
+    engineInstance: Engine,
+    projectModels: FoundModelType[]
+  ): Promise<{
+    engineInstance: Engine,
+    projectModels: InitializedModelsType[],
+    internalModels: InitializedModelsType[]
+  }> {
+    const initializedProjectModels: InitializedModelsType[] = [];
+    const initializedInternalModels: InitializedModelsType[] = [];
 
     for (const { domainPath, domainName, model} of projectModels) {
       const modelInstance = new model();
@@ -126,31 +147,49 @@ class Databases {
     }
   }
 
+  /**
+   * Retrieves the models on all of the installed domains. By default we will look for the models
+   * in the `models` file in the path of the domain. You can also define your domain app as
+   *
+   * @returns - Returns an array of models.
+   */
   async getModels() {
     const foundModels: FoundModelType[] = [];
-    const domainClasses = await retrieveDomains(this.settings);
+    const domainClasses = await retrieveDomains(this.settings) as typeof DatabaseDomain[];
     const promises: Promise<void>[] = domainClasses.map(async (domainClass) => {
       const domain = new domainClass();
-      const fullPath = path.join(domain.path, 'models');
-      try {
-        const models = await import(fullPath);
-        const modelsArray: typeof Model[] = Object.values(models);
+      const hasGetModelsMethodDefined = typeof domain.getModels === 'function';
+      if (hasGetModelsMethodDefined) {
+        const models = await Promise.resolve(domain.getModels());
+        models.forEach((model) => {
+          foundModels.push({
+            domainPath: domain.path,
+            domainName: domain.name,
+            model
+          });
+        });
+      } else {
+        const fullPath = path.join(domain.path, 'models');
+        try {
+          const models = await import(fullPath);
+          const modelsArray: typeof Model[] = Object.values(models);
 
-        for (const model of modelsArray) {
-          if (model.prototype instanceof Model) {
-            foundModels.push({
-                model,
-                domainName: domain.name,
-                domainPath: domain.path,
-            })
+          for (const model of modelsArray) {
+            if (model.prototype instanceof Model) {
+              foundModels.push({
+                  model,
+                  domainName: domain.name,
+                  domainPath: domain.path,
+              })
+            }
           }
-        }
-      } catch (e) {
-        const error: any = e;
-        if (error.code === ERR_MODULE_NOT_FOUND) {
-          await logging.logMessage(LOGGING_DATABASE_MODELS_NOT_FOUND, { appName: fullPath });
-        } else {
-          throw e;
+        } catch (e) {
+          const error: any = e;
+          if (error.code === ERR_MODULE_NOT_FOUND) {
+            await logging.logMessage(LOGGING_DATABASE_MODELS_NOT_FOUND, { appName: fullPath });
+          } else {
+            throw e;
+          }
         }
       }
     });

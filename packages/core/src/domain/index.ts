@@ -1,5 +1,8 @@
 import { DomainType } from "./types";
-import { DomainObligatoryParamsUndefinedError } from "./exceptions";
+import {
+  DomainObligatoryParamsUndefinedError,
+  NotAValidDomainDefaultExportedError
+} from "./exceptions";
 import { SettingsType } from "../conf/types";
 
 export async function retrieveDomains(settings: SettingsType): Promise<typeof Domain[]> {
@@ -9,11 +12,18 @@ export async function retrieveDomains(settings: SettingsType): Promise<typeof Do
     if (domainKls instanceof Promise) {
       domainKls = (await domainKls).default;
     }
-    domainClasses.push(domainKls);
+    if (domainKls.prototype instanceof Domain) {
+      domainClasses.push(domainKls);
+    } else {
+      throw new NotAValidDomainDefaultExportedError();
+    }
   }
   return domainClasses
 }
 
+/**
+ * The domain defines one of the domains of your application
+ */
 export default class Domain implements DomainType {
   name: string;
   path: string;
@@ -29,6 +39,11 @@ export default class Domain implements DomainType {
     }
   }
 
+  /**
+   * Code to run when the app runs. This is sequentially executed one after another so you can
+   * define the order of execution by defining the order of the INSTALLED_DOMAINS in the settings.ts/js
+   * file.
+   */
   async ready(): Promise<void> {}
   async close(): Promise<void> {}
 }
