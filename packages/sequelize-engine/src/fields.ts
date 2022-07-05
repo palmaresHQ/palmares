@@ -254,42 +254,42 @@ export default class SequelizeEngineFields extends EngineFields {
     // but the problem is that this will make it harder to read and know what types of fields
     // are supported by the engine.
     switch (field.typeName) {
-      case 'CharField':
+      case models.fields.CharField.name:
         return await this.#translateCharField(
           field as models.fields.CharField,
           fieldAttributes
         );
-      case 'TextField':
+      case models.fields.TextField.name:
         return await this.#translateTextField(
           field as models.fields.TextField,
           fieldAttributes
         );
-      case 'UUIDField':
+      case models.fields.UUIDField.name:
         return await this.#translateUUIDField(
           field as models.fields.UUIDField,
           fieldAttributes
         );
-      case 'DateField':
+      case models.fields.DateField.name:
         return await this.#translateDateField(
           field as models.fields.DateField,
           fieldAttributes
         );
-      case 'AutoField':
+      case models.fields.AutoField.name:
         return await this.#translateAutoField(
           field as models.fields.AutoField,
           fieldAttributes
         );
-      case 'BigAutoField':
+      case models.fields.BigAutoField.name:
         return await this.#translateBigAutoField(
-          field as models.fields.AutoField,
+          field as models.fields.BigAutoField,
           fieldAttributes
         );
-      case 'IntegerField':
+      case models.fields.IntegerField.name:
         return await this.#translateIntegerField(
           field as models.fields.IntegerField,
           fieldAttributes
         );
-      case 'ForeignKeyField':
+      case models.fields.ForeignKeyField.name:
         return await this.#translateForeignKeyField(
           field as models.fields.ForeignKeyField,
           fieldAttributes

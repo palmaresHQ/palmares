@@ -1,5 +1,4 @@
 import {
-    retrieveDomains,
     logging,
     ERR_MODULE_NOT_FOUND,
     LOGGING_DATABASE_MODELS_NOT_FOUND
@@ -18,7 +17,6 @@ import Engine from "./engine";
 import { Model } from "./models";
 
 import path from "path";
-import { models } from ".";
 
 class Databases {
   availableEngines = ['@palmares/sequelize-engine'];
@@ -149,13 +147,16 @@ class Databases {
 
   /**
    * Retrieves the models on all of the installed domains. By default we will look for the models
-   * in the `models` file in the path of the domain. You can also define your domain app as
+   * in the `models` file in the path of the domain. You can also define your domain app extending
+   * the `DatabaseDomain` class. With this type of domain you are able to export your models by defining
+   * the `getModels` method. When this method is defined we bypass the lookup of the models in the `models`
+   * file or folder, for complex projects you might want to use this method.
    *
    * @returns - Returns an array of models.
    */
   async getModels() {
     const foundModels: FoundModelType[] = [];
-    const domainClasses = await retrieveDomains(this.settings) as typeof DatabaseDomain[];
+    const domainClasses = await DatabaseDomain.retrieveDomains(this.settings) as typeof DatabaseDomain[];
     const promises: Promise<void>[] = domainClasses.map(async (domainClass) => {
       const domain = new domainClass();
       const hasGetModelsMethodDefined = typeof domain.getModels === 'function';

@@ -5,22 +5,6 @@ import {
 } from "./exceptions";
 import { SettingsType } from "../conf/types";
 
-export async function retrieveDomains(settings: SettingsType): Promise<typeof Domain[]> {
-  const domainClasses: typeof Domain[] = []
-  for (const domain of settings.INSTALLED_DOMAINS) {
-    let domainKls: Promise<{default: typeof Domain}> | typeof Domain = domain;
-    if (domainKls instanceof Promise) {
-      domainKls = (await domainKls).default;
-    }
-    if (domainKls.prototype instanceof Domain) {
-      domainClasses.push(domainKls);
-    } else {
-      throw new NotAValidDomainDefaultExportedError();
-    }
-  }
-  return domainClasses
-}
-
 /**
  * The domain defines one of the domains of your application
  */
@@ -37,6 +21,22 @@ export default class Domain implements DomainType {
     } else {
       throw new DomainObligatoryParamsUndefinedError();
     }
+  }
+
+  static async retrieveDomains(settings: SettingsType): Promise<typeof Domain[]> {
+    const domainClasses: typeof Domain[] = []
+    for (const domain of settings.INSTALLED_DOMAINS) {
+      let domainKls: Promise<{default: typeof Domain}> | typeof Domain = domain;
+      if (domainKls instanceof Promise) {
+        domainKls = (await domainKls).default;
+      }
+      if (domainKls.prototype instanceof Domain) {
+        domainClasses.push(domainKls);
+      } else {
+        throw new NotAValidDomainDefaultExportedError();
+      }
+    }
+    return domainClasses
   }
 
   /**

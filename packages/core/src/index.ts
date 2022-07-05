@@ -1,6 +1,6 @@
 export { default as BaseAdapter } from './adapters';
 export { default as Commands } from './commands';
-export { default as Domain, retrieveDomains } from './domain';
+export { default as Domain } from './domain';
 export { default as logging } from './logging';
 export * from './logging/types';
 export { default as conf } from './conf';
