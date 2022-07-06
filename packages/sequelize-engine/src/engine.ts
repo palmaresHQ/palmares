@@ -1,21 +1,32 @@
 import {
   Engine,
   DatabaseConfigurationType,
-  models
+  models,
+
 } from "@palmares/databases";
-import { Sequelize, Dialect, Options, Op, Model, ModelCtor } from 'sequelize';
+import { Sequelize, Dialect, Options, Op, Model, ModelCtor, Optional } from 'sequelize';
 
 import { InitializedModelsType } from "./types";
 import SequelizeEngineFields from "./fields";
 import ModelTranslator from "./model";
 
-export default class SequelizeEngine extends Engine {
+type IdField<T extends models.Model> = {
+  id: T["options"]["primaryKeyField"] extends models.fields.Field ?
+    T["options"]["primaryKeyField"]["type"] : T["defaultOptions"]["primaryKeyField"]["type"] |
+    T["defaultOptions"]["primaryKeyField"]["type"]
+}
+type Fields<T extends models.Model> = IdField<T> & {
+  [P in keyof T["fields"]]?: T["fields"][P]["type"];
+};
+
+export default class SequelizeEngine<M extends models.Model = models.Model> extends Engine {
   #isConnected: boolean | null = null;
   #modelTranslator!: ModelTranslator;
   _initializedModels: InitializedModelsType<Model> = {};
   sequelizeInstance!: Sequelize | null;
   fields!: SequelizeEngineFields;
-  modelType!: Model;
+
+  ModelType!: ModelCtor<Model<Fields<M>, Optional<Fields<M>, 'id'>>>;
 
   operations = {
     and: Op.and,
@@ -107,7 +118,7 @@ export default class SequelizeEngine extends Engine {
   ): Promise<ModelCtor<Model> | undefined> {
     const modelInstance = await this.#modelTranslator.translate(model);
     this._initializedModels[model.name] = modelInstance;
-    await this.fields.handleRelatedFieldsAfterModelCreation(model.name);
+    await this.fields.afterModelCreation(model.name);
     return modelInstance;
   }
 }

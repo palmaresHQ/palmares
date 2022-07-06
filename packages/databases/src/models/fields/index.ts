@@ -8,7 +8,8 @@ import {
   CharFieldParamsType,
   TextFieldParamsType,
   ForeignKeyFieldParamsType,
-  UUIDFieldParamsType
+  UUIDFieldParamsType,
+  Required
 } from "./types";
 import Engine from "../../engine";
 import Model from "../model";
@@ -16,13 +17,15 @@ import { ForeignKeyFieldRequiredParamsMissingError } from "./exceptions";
 
 export { ON_DELETE as ON_DELETE };
 
-export class Field implements FieldDefaultParamsType {
+export class Field<T extends Required = Required> implements FieldDefaultParamsType {
+  isRequired!: T;
+  type!: any;
   primaryKey: boolean;
   defaultValue: string | number | boolean | null | undefined | Date;
   allowNull: boolean;
   unique: boolean;
   dbIndex: boolean;
-  databaseName: string | null;
+  databaseName: string;
   underscored: boolean;
   typeName: string = Field.name;
   customAttributes: any | undefined | object | null;
@@ -44,7 +47,7 @@ export class Field implements FieldDefaultParamsType {
     this.allowNull = allowNull;
     this.unique = unique;
     this.dbIndex = dbIndex;
-    this.databaseName = databaseName;
+    this.databaseName = databaseName || '';
     this.underscored = underscored;
     this.customAttributes = customAttributes;
   }
@@ -77,6 +80,7 @@ export class AutoField extends Field {
  * By default it is an auto-incrementing integer field, it is the primary key and it is unique.
  */
 export class BigAutoField extends Field {
+  type!: number;
   typeName: string = BigAutoField.name;
 
   constructor({...rest} : FieldDefaultParamsType = {}) {
@@ -127,7 +131,8 @@ export class DecimalField extends Field {
   }
 }
 
-export class CharField extends Field implements CharFieldParamsType {
+export class CharField<T extends Required = Required> extends Field<T> implements CharFieldParamsType {
+  type!: string;
   typeName: string = CharField.name;
   allowBlank: boolean;
   maxLength: number;
@@ -171,7 +176,8 @@ export class TextField extends Field implements TextFieldParamsType {
   }
 }
 
-export class UUIDField extends CharField implements UUIDFieldParamsType {
+export class UUIDField<T extends Required = Required> extends CharField<T> implements UUIDFieldParamsType {
+  type!: string;
   typeName: string = UUIDField.name;
   autoGenerate: boolean;
 

@@ -20,6 +20,8 @@ export enum FieldTypes {
   ForeignKeyField = 'ForeignKey'
 }
 
+export class Required {};
+
 export interface FieldDefaultParamsType {
   primaryKey?: boolean;
   defaultValue?: string | number | boolean | null | undefined | Date;

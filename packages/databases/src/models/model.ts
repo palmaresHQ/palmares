@@ -12,9 +12,7 @@ import {
 } from "./exceptions";
 import { Field } from "./fields";
 import { BigAutoField } from "./fields";
-import Manager from "./manager";
-import { DatabaseSettingsType } from "../types";
-import { EngineType } from "../engine/types";
+import Manager, { DefaultManager } from "./manager";
 
 /**
  * This class is used for initializing a model. This will work similar to django except that instead of
@@ -99,16 +97,16 @@ import { EngineType } from "../engine/types";
  * This way we can keep queries more concise and representative by just making functions. Also
  * you can have the hole power of linting VSCode and other IDEs give you.
  */
-export default class Model implements ModelType {
-  [managers: string]: Manager;
+export default class Model {
+  [managers: string]: Manager | ModelFieldsType | ModelOptionsType | typeof Model[] | string | Function;
   fields: ModelFieldsType = {};
   options!: ModelOptionsType;
   abstracts: typeof Model[] = [];
   name!: string;
 
-  static instances: ModelType["instances"]
+  static default = new DefaultManager()
 
-  readonly #defaultOptions = {
+  readonly defaultOptions = {
     autoId: true,
     primaryKeyField: new BigAutoField({ primaryKey: true }),
     abstract: false,
@@ -137,14 +135,13 @@ export default class Model implements ModelType {
     return managers;
   }
 
-
   async #loadAbstract(abstractKls: typeof Model, composedAbstracts: string[]): Promise<void> {
     if (composedAbstracts.includes(abstractKls.name)) {
       throw new ModelCircularAbstractError(this.constructor.name, abstractKls.name);
     }
 
     const abstractInstance = new abstractKls();
-    const abstractManagers: [string, Model][] = Object.entries(this.#getManagers(abstractInstance));
+    const abstractManagers: [string, Manager][] = Object.entries(this.#getManagers(abstractInstance));
     const abstractFieldEntries = Object.entries(abstractInstance.fields);
     const loadAbstractPromises = abstractInstance.abstracts.map(
       (abstractKlsFromAbstract) => this.#loadAbstract(abstractKlsFromAbstract, composedAbstracts)
@@ -191,7 +188,7 @@ export default class Model implements ModelType {
 
   async #initializeOptions() {
     this.options = {
-      ...this.#defaultOptions,
+      ...this.defaultOptions,
       ...this.options
     };
     const doesModelHaveAutoIdField = this.options.autoId && this.options.primaryKeyField
@@ -204,8 +201,12 @@ export default class Model implements ModelType {
     }
   }
 
-  async #initializeManagers() {
-
+  async #initializeManagers(engineInstance: Engine, modelInstance: any) {
+    const managers: ManagersOfInstanceType = await this.#getManagers(this);
+    const managerValues = Object.values(managers);
+    for (const manager of managerValues) {
+      manager.setInstance(engineInstance.databaseName, modelInstance);
+    }
   }
 
   async init(modelKls: typeof Model, engineInstance: Engine, customModelName?: string | undefined) {
@@ -214,6 +215,9 @@ export default class Model implements ModelType {
     await this.#initializeAbstracts();
     await this.#initializeOptions();
     await this.#initializeFields(engineInstance);
-    await engineInstance.initializeModel(this);
+
+    const modelInstance = await engineInstance.initializeModel(this);
+    //this.instances[databaseConnectionName] = modelInstance;
+    await this.#initializeManagers(engineInstance, modelInstance);
   }
 }

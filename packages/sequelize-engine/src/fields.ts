@@ -3,7 +3,7 @@ import {
   DataTypes,
   ModelAttributeColumnOptions,
   Model,
-  ModelCtor, HasManyOptions, BelongsToOptions, HasOneOptions, ForeignKeyOptions
+  ModelCtor, HasManyOptions, BelongsToOptions, HasOneOptions, ForeignKeyOptions, IndexesOptions
 } from "sequelize";
 
 import SequelizeEngine from "./engine";
@@ -73,16 +73,60 @@ export default class SequelizeEngineFields extends EngineFields {
     throw new PreventForeignKeyError();
   }
 
+  /**
+   * Append the index to add it later to the model options.
+   *
+   * @param field - The field to add the index to.
+   */
   async #appendIndexes(field: models.fields.Field) {
     const index = {
       unique: field.unique === true,
-      fields: [field.fieldName]
+      fields: [field.databaseName]
     }
     const doesFieldIndexForModelNameExists = Array.isArray(this.#indexes[field.model.name]);
     if (doesFieldIndexForModelNameExists) {
       this.#indexes[field.model.name].push(index);
     } else {
       this.#indexes[field.model.name] = [index];
+    }
+  }
+
+  /**
+   * Function supposed to be called after the model was created in sequelize. This way we can add
+   * the hooks to update the date fields with `autoNow` set to true and handle the related fields
+   * that are defined in the model.
+   *
+   * @param modelName - The name of the model that was created so we can fetch it on the `#initializedModels`
+   * object.
+   */
+  async afterModelCreation(modelName: string) {
+    await Promise.all([
+      this.#handleHooksToUpdateDateFieldsAfterModelCreation(modelName),
+      this.#handleRelatedFieldsAfterModelCreation(modelName)
+    ]);
+  }
+
+  async #handleHooksToUpdateDateFieldsAfterModelCreation(modelName: string) {
+    const hasDateFieldToUpdateForModelName = this.#dateFieldsAsAutoNowToAddHooks.has(modelName);
+    if (hasDateFieldToUpdateForModelName) {
+      const modelToAddHook: ModelCtor<Model> = this.#initializedModels[modelName] as ModelCtor<Model>;
+      const dateFieldsToUpdate = this.#dateFieldsAsAutoNowToAddHooks.get(modelName) as string[];
+      modelToAddHook.beforeSave((instance: Model) => {
+        for (const updateDateHook of dateFieldsToUpdate) {
+          // @ts-ignore
+          instance[updateDateHook] = new Date();
+        }
+      });
+    }
+  }
+
+  async #handleRelatedFieldsAfterModelCreation(modelName: string) {
+    const hasRelatedFieldsToEvaluateForModelName = Array.isArray(this.#relatedFieldsToEvaluate[modelName])
+    if (hasRelatedFieldsToEvaluateForModelName) {
+      await Promise.all(
+        this.#relatedFieldsToEvaluate[modelName]
+        .map(({ field, fieldAttributes }) => this.#handleRelatedField(field, fieldAttributes))
+      )
     }
   }
 
@@ -105,16 +149,6 @@ export default class SequelizeEngineFields extends EngineFields {
     for (const [key, value] of customAttributesEntries) {
       const keyAsTypeofModelColumnOption = key as keyof ModelAttributeColumnOptions;
       modelAttributes[keyAsTypeofModelColumnOption] = value as never;
-    }
-  }
-
-  async handleRelatedFieldsAfterModelCreation(modelName: string) {
-    const hasRelatedFieldsToEvaluateForModelName = Array.isArray(this.#relatedFieldsToEvaluate[modelName])
-    if (hasRelatedFieldsToEvaluateForModelName) {
-      await Promise.all(
-        this.#relatedFieldsToEvaluate[modelName]
-        .map(({ field, fieldAttributes }) => this.#handleRelatedField(field, fieldAttributes))
-      )
     }
   }
 
@@ -304,6 +338,12 @@ export default class SequelizeEngineFields extends EngineFields {
     await this.#handleDefaultAttributes(fieldAttributes, field);
     await this.#translateFieldType(fieldAttributes, field);
     return fieldAttributes;
+  }
+
+  async getIndexes(modelName: string): Promise<IndexesOptions[]> {
+    const doesIndexesExistForModel = Array.isArray(this.#indexes[modelName]);
+    if (doesIndexesExistForModel) return this.#indexes[modelName];
+    return [];
   }
 
   async get(fieldName: string): Promise<ModelAttributeColumnOptions | null> {

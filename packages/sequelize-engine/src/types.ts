@@ -1,4 +1,4 @@
-import { ModelAttributeColumnOptions, ModelStatic, Model, ModelCtor } from "sequelize";
+import { ModelAttributeColumnOptions, ModelStatic, Model, ModelCtor, IndexesOptions } from "sequelize";
 import { models } from "@palmares/databases";
 
 export type InitializedModelsType<T extends Model> = {
@@ -6,10 +6,7 @@ export type InitializedModelsType<T extends Model> = {
 }
 
 export type ModelTranslatorIndexesType = {
-    [key: string]: {
-        unique: boolean,
-        fields: string[]
-    }[]
+    [key: string]: IndexesOptions[]
 }
 
 type RelatedFieldsToEvaluateType = {

@@ -1,10 +1,13 @@
 import { models } from "@palmares/databases";
-import { Sequelize, ModelOptions, ModelAttributeColumnOptions, Model, ModelStatic, ModelCtor } from "sequelize";
+import { Sequelize, ModelOptions, ModelAttributeColumnOptions, Model, ModelStatic, ModelCtor, OrderItem } from "sequelize";
 
 import SequelizeEngine from "./engine";
 import SequelizeEngineFields from "./fields";
 import { ModelTranslatorIndexesType } from "./types";
 
+/**
+ * This class is used to create a sequelize model from the default model definition.
+ */
 export default class ModelTranslator {
   engine: SequelizeEngine;
   fields: SequelizeEngineFields;
@@ -30,6 +33,19 @@ export default class ModelTranslator {
     };
   }
 
+  async #translateOrdering(originalModel: models.Model, translatedModel: ModelCtor<Model>) {
+    const translatedOrdering: OrderItem[] = (originalModel.options.ordering || [])?.map(order => {
+      const isDescending = order.startsWith('-');
+      return isDescending ? [order.substring(1), 'DESC'] : [order, 'ASC'];
+    });
+
+    if (translatedOrdering.length > 0) {
+      translatedModel.addScope('defaultScope', {
+        order: translatedOrdering || []
+      }, { override: true });
+    }
+  }
+
   async #translateFields(model: models.Model) {
     let translatedFields: { [key: string]: ModelAttributeColumnOptions } = {};
     const fieldsEntries = Object.keys(model.fields);
@@ -46,6 +62,11 @@ export default class ModelTranslator {
     const translatedOptions = await this.#translateOptions(model);
     const translatedAttributes = await this.#translateFields(model);
 
-    return this.engine.sequelizeInstance?.define(model.name, translatedAttributes, translatedOptions);
+    translatedOptions.indexes = await this.fields.getIndexes(model.name);
+
+    const translatedModel = this.engine.sequelizeInstance?.define(model.name, translatedAttributes, translatedOptions);
+
+    if (translatedModel !== undefined) await this.#translateOrdering(model, translatedModel);
+    return translatedModel;
   }
 }

@@ -1,7 +1,6 @@
 import {
     logging,
-    ERR_MODULE_NOT_FOUND,
-    LOGGING_DATABASE_MODELS_NOT_FOUND
+    ERR_MODULE_NOT_FOUND
 } from "@palmares/core";
 
 import {
@@ -15,6 +14,7 @@ import { DatabaseDomain } from "./domain";
 import { DatabaseNoEngineFoundError } from './exceptions';
 import Engine from "./engine";
 import { Model } from "./models";
+import { LOGGING_DATABASE_CLOSING, LOGGING_DATABASE_MODELS_NOT_FOUND } from './utils';
 
 import path from "path";
 
@@ -71,9 +71,8 @@ class Databases {
    * Closes the database connection on all of the initialized engine instances.
    */
   async close(): Promise<void> {
-    const initializedEngineInstances = Object.values(this.initializedEngineInstances);
-
-    const promises = initializedEngineInstances.map(async (engineInstance) => {
+    const initializedEngineEntries = Object.values(this.initializedEngineInstances);
+    const promises = initializedEngineEntries.map(async (engineInstance) => {
       await engineInstance.close();
     });
 
@@ -91,7 +90,8 @@ class Databases {
     const engine: typeof Engine = await this.getEngine(databaseName, databaseSettings.engine);
     const engineInstance: Engine = await engine.new(databaseName, databaseSettings);
 
-    if (await engineInstance.isConnected()) this.initializeModels(engineInstance, models);
+    if (await engineInstance.isConnected()) await this.initializeModels(engineInstance, models);
+    this.initializedEngineInstances[databaseName] = engineInstance;
   }
 
   /**
@@ -187,7 +187,7 @@ class Databases {
         } catch (e) {
           const error: any = e;
           if (error.code === ERR_MODULE_NOT_FOUND) {
-            await logging.logMessage(LOGGING_DATABASE_MODELS_NOT_FOUND, { appName: fullPath });
+            await logging.logMessage(LOGGING_DATABASE_MODELS_NOT_FOUND, { domainName: fullPath });
           } else {
             throw e;
           }

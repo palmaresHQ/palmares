@@ -15,5 +15,13 @@ export class ModelInvalidAbstractManagerError extends Error {
 	constructor(modelName: string, abstractModelName: string, managerName: string) {
 		super(`The abstract model ${abstractModelName} already have a manager named ${managerName}, `+
 		`please rename the field ${managerName} in the ${modelName} model`);
+    this.name = ModelInvalidAbstractManagerError.name;
 	}
+}
+
+export class ManagerEngineInstanceNotFoundError extends Error {
+  constructor(engineName: string) {
+    super(`The engine ${engineName} is not found in the manager. Make sure that this model is available for that engine.`);
+    this.name = ManagerEngineInstanceNotFoundError.name;
+  }
 }
