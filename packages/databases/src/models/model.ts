@@ -103,6 +103,8 @@ export default class Model {
   options!: ModelOptionsType;
   abstracts: typeof Model[] = [];
   name!: string;
+  domainName!: string;
+  domainPath!: string;
 
   static default = new DefaultManager()
 
@@ -123,6 +125,9 @@ export default class Model {
    * Retrieves the managers from a instance, by default the instance we retrieve is the current model
    * instance but since this function is used in the `#initializeAbstracts` function we can
    * pass a different instance.
+   *
+   * @param instance - maybe you don't want to retrieve the managers from this instance, so you can
+   * pass another one.
    */
   async #getManagers(instance: Model = this): Promise<ManagersOfInstanceType> {
     let managers: ManagersOfInstanceType = {};
@@ -135,6 +140,19 @@ export default class Model {
     return managers;
   }
 
+  /**
+   * This will load all of the abstract instances of the model. The abstracts will append 3 types of
+   * data in the current model:
+   * fields, options, managers and other abstracts
+   *
+   * So for fields we will just accept the ones not already defined in the field, if there is any clash we will throw an error.
+   * For options, we will only add them if the options are not already defined for the model.
+   * Managers are similar to fields, we will not accept clashing managers with the same manager name.
+   *
+   * @param abstractKls - The model class that we are instantiating.
+   * @param composedAbstracts - We can have an abstract with an abstract and so on, for that a recursive approach
+   * seems a good solution, this is an array with all of the abstracts that were already loaded for the current model.
+   */
   async #loadAbstract(abstractKls: typeof Model, composedAbstracts: string[]): Promise<void> {
     if (composedAbstracts.includes(abstractKls.name)) {
       throw new ModelCircularAbstractError(this.constructor.name, abstractKls.name);
@@ -154,8 +172,9 @@ export default class Model {
       this.fields[fieldName] = field;
     }
 
-    if (this.options === undefined && abstractInstance.options) {
-      this.options = abstractInstance.options;
+    const areAbstractInstanceOptionsDefined = Object.keys(abstractInstance.options).length > 1;
+    if (this.options === undefined && areAbstractInstanceOptionsDefined) {
+      this.options = abstractInstance.options
       this.options.abstract = false;
     }
 
@@ -171,6 +190,11 @@ export default class Model {
     await Promise.all(loadAbstractPromises);
   }
 
+  /**
+   * Initializes all of the abstract classes of the model and loads them to the current model.
+   *
+   * With this we will have the model with all of the fields, options and managers as the other abstracts.
+   */
   async #initializeAbstracts(): Promise<void> {
     const alreadyComposedAbstracts = [this.constructor.name];
     for (const abstractModel of this.abstracts) {
@@ -178,7 +202,7 @@ export default class Model {
     }
   }
 
-  async #initializeFields(engineInstance: Engine) {
+  async #initializeFields(engineInstance: Engine): Promise<void> {
     const allFields = Object.entries(this.fields);
     const promises = allFields.map(([fieldName, field]) => {
       return field.init(engineInstance, fieldName, this);
@@ -205,19 +229,26 @@ export default class Model {
     const managers: ManagersOfInstanceType = await this.#getManagers(this);
     const managerValues = Object.values(managers);
     for (const manager of managerValues) {
-      manager.setInstance(engineInstance.databaseName, modelInstance);
+      manager._setInstance(engineInstance.databaseName, modelInstance);
+      manager._setEngineInstance(engineInstance.databaseName, engineInstance);
     }
   }
 
-  async init(modelKls: typeof Model, engineInstance: Engine, customModelName?: string | undefined) {
+  async init(
+    modelKls: typeof Model,
+    engineInstance: Engine,
+    domainName: string,
+    domainPath: string,
+    customModelName?: string | undefined
+  ) {
+    this.domainName = domainName;
+    this.domainPath = domainPath;
     this.name = customModelName || modelKls.name;
-    const databaseConnectionName = engineInstance.databaseName;
     await this.#initializeAbstracts();
     await this.#initializeOptions();
     await this.#initializeFields(engineInstance);
 
     const modelInstance = await engineInstance.initializeModel(this);
-    //this.instances[databaseConnectionName] = modelInstance;
     await this.#initializeManagers(engineInstance, modelInstance);
   }
 }

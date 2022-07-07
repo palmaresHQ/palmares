@@ -17,7 +17,7 @@ export default class ModelTranslator {
   constructor(engine: SequelizeEngine, fields: SequelizeEngineFields) {
     this.engine = engine;
     this.fields = fields;
-    this.sequelize = engine.sequelizeInstance as Sequelize;
+    this.sequelize = engine.instance as Sequelize;
   }
 
   async #translateOptions(model: models.Model): Promise<ModelOptions> {
@@ -64,7 +64,7 @@ export default class ModelTranslator {
 
     translatedOptions.indexes = await this.fields.getIndexes(model.name);
 
-    const translatedModel = this.engine.sequelizeInstance?.define(model.name, translatedAttributes, translatedOptions);
+    const translatedModel = this.engine.instance?.define(model.name, translatedAttributes, translatedOptions);
 
     if (translatedModel !== undefined) await this.#translateOrdering(model, translatedModel);
     return translatedModel;

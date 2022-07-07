@@ -5,6 +5,7 @@ import { DatabaseConfigurationType } from "../types";
 import { LOGGING_DATABASE_IS_NOT_CONNECTED, LOGGING_DATABASE_CLOSING } from "../utils";
 import { EngineType } from "./types";
 import EngineFields from "./fields";
+import EngineMigrations from './migrations';
 import { Model } from "../models";
 
 /**
@@ -15,7 +16,9 @@ import { Model } from "../models";
 export default class Engine implements EngineType {
   databaseName!: string;
   fields!: EngineFields;
+  migrations!: EngineMigrations;
   ModelType: any;
+  instance: any;
 
 	constructor(databaseName: string) {
     this.databaseName = databaseName;
@@ -46,6 +49,8 @@ export default class Engine implements EngineType {
 	): Promise<any> {
 		throw new NotImplementedEngineException('initializeModel');
   }
+
+  async transaction() {}
 }
 
-export { EngineFields };
+export { EngineFields, EngineMigrations };

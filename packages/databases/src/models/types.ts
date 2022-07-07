@@ -9,7 +9,7 @@ export type ManagerInstancesType = {
 }
 
 export type ManagerEngineInstancesType = {
-  [engineName: string]: Engine;
+  [engineName: string]: any;
 }
 
 export type ModelFieldsType = {
@@ -45,3 +45,13 @@ export interface ModelType {
     abstracts: typeof Model[];
     instances?: Map<keyof DatabaseSettingsType["DATABASES"], any>;
 }
+
+type IdField<T extends Model> = {
+  id: T["options"]["primaryKeyField"] extends Field ?
+    T["options"]["primaryKeyField"]["type"] : T["defaultOptions"]["primaryKeyField"]["type"] |
+    T["defaultOptions"]["primaryKeyField"]["type"]
+}
+
+export type ModelFields<T extends Model> = IdField<T> & {
+  [P in keyof T["fields"]]?: T["fields"][P]["type"];
+};

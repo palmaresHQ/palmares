@@ -14,7 +14,7 @@ import { DatabaseDomain } from "./domain";
 import { DatabaseNoEngineFoundError } from './exceptions';
 import Engine from "./engine";
 import { Model } from "./models";
-import { LOGGING_DATABASE_CLOSING, LOGGING_DATABASE_MODELS_NOT_FOUND } from './utils';
+import { LOGGING_DATABASE_MODELS_NOT_FOUND } from './utils';
 
 import path from "path";
 
@@ -118,7 +118,7 @@ class Databases {
 
     for (const { domainPath, domainName, model} of projectModels) {
       const modelInstance = new model();
-      const initializedModel = await modelInstance.init(model, engineInstance);
+      const initializedModel = await modelInstance.init(model, engineInstance, domainName, domainPath);
       initializedProjectModels.push({
         domainName,
         domainPath,
@@ -129,7 +129,7 @@ class Databases {
 
     for (const model of this.obligatoryModels) {
       const modelInstance = new model();
-      const initializedModel = await modelInstance.init(model, engineInstance);
+      const initializedModel = await modelInstance.init(model, engineInstance, "", "");
       initializedInternalModels.push({
         domainName: "",
         domainPath: "",

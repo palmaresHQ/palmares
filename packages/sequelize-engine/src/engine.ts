@@ -2,7 +2,7 @@ import {
   Engine,
   DatabaseConfigurationType,
   models,
-
+  ModelFields
 } from "@palmares/databases";
 import { Sequelize, Dialect, Options, Op, Model, ModelCtor, Optional } from 'sequelize';
 
@@ -10,23 +10,14 @@ import { InitializedModelsType } from "./types";
 import SequelizeEngineFields from "./fields";
 import ModelTranslator from "./model";
 
-type IdField<T extends models.Model> = {
-  id: T["options"]["primaryKeyField"] extends models.fields.Field ?
-    T["options"]["primaryKeyField"]["type"] : T["defaultOptions"]["primaryKeyField"]["type"] |
-    T["defaultOptions"]["primaryKeyField"]["type"]
-}
-type Fields<T extends models.Model> = IdField<T> & {
-  [P in keyof T["fields"]]?: T["fields"][P]["type"];
-};
-
 export default class SequelizeEngine<M extends models.Model = models.Model> extends Engine {
   #isConnected: boolean | null = null;
   #modelTranslator!: ModelTranslator;
   _initializedModels: InitializedModelsType<Model> = {};
-  sequelizeInstance!: Sequelize | null;
+  instance!: Sequelize | null;
   fields!: SequelizeEngineFields;
 
-  ModelType!: ModelCtor<Model<Fields<M>, Optional<Fields<M>, 'id'>>>;
+  ModelType!: ModelCtor<Model<ModelFields<M>, Optional<ModelFields<M>, 'id'>>>;
 
   operations = {
     and: Op.and,
@@ -63,7 +54,7 @@ export default class SequelizeEngine<M extends models.Model = models.Model> exte
   constructor(databaseName: string, sequelizeInstance: Sequelize) {
     super(databaseName);
     this.fields = new SequelizeEngineFields(this);
-    this.sequelizeInstance = sequelizeInstance;
+    this.instance = sequelizeInstance;
     this.#modelTranslator = new ModelTranslator(this, this.fields);
   }
 
@@ -96,11 +87,11 @@ export default class SequelizeEngine<M extends models.Model = models.Model> exte
     const isConnectedDefined: boolean = typeof this.#isConnected === "boolean";
     if (isConnectedDefined) return this.#isConnected ? true : false;
 
-    const isSequelizeInstanceDefined = this.sequelizeInstance instanceof Sequelize;
+    const isSequelizeInstanceDefined = this.instance instanceof Sequelize;
     if (isSequelizeInstanceDefined) {
-      await this.sequelizeInstance?.authenticate();
+      await this.instance?.authenticate();
       try {
-        await this.sequelizeInstance?.authenticate();
+        await this.instance?.authenticate();
         this.#isConnected = true;
       } catch (error) {
         this.#isConnected = false;
@@ -109,7 +100,7 @@ export default class SequelizeEngine<M extends models.Model = models.Model> exte
       if (this.#isConnected) return this.#isConnected;
     }
 
-    this.sequelizeInstance = null;
+    this.instance = null;
     return await super.isConnected();
   }
 

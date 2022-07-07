@@ -1,6 +1,4 @@
-import { models, Engine } from '@palmares/databases';
-import SequelizeEngine from '@palmares/sequelize-engine';
-import Manager from 'packages/databases/src/models/manager';
+import { models } from '@palmares/databases';
 
 export class Post extends models.Model {
   fields = {
@@ -25,26 +23,5 @@ export class User extends models.Model {
 
   options = {
     tableName: 'user'
-  }
-}
-
-User.default.getInstance<SequelizeEngine<User>>().findAll({
-  where: {
-    id: 1,
-    firstName: 'string',
-    uuid: 'string'
-  }
-})
-
-
-class CustomManager extends Manager {
-  getInstance() {
-    return super.getInstance<SequelizeEngine<User>>('default')
-  }
-
-  async create() {
-    return await this.getInstance().create({
-      firstName: 'string'
-    })
   }
 }

@@ -22,6 +22,12 @@
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "devDependencies": {
     "@types/node": "^17.0.42",
+    "@typescript-eslint/eslint-plugin": "^5.30.5",
+    "@typescript-eslint/parser": "^5.30.5",
+    "eslint": "^8.19.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-security": "^1.5.0",
     "prettier": "2.6.2",
     "swc": "^1.0.11",
     "ts-node": "^10.8.1",
