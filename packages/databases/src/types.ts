@@ -30,10 +30,10 @@ export type FoundModelType = {
   model: typeof Model,
 }
 
-export type InitializedModelsType = {
+export type InitializedModelsType<M = any> = {
   domainName: string,
   domainPath: string,
-  initialized: any,
+  initialized: M,
   original: Model
 }
 

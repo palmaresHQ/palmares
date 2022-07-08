@@ -1,5 +1,5 @@
 import { StateModelsType } from "./types";
-import Model from "../model";
+import Model from "../models/model";
 
 export default class State {
   modelsByName: StateModelsType = {};

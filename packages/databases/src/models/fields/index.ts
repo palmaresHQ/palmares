@@ -14,6 +14,7 @@ import {
 import Engine from "../../engine";
 import Model from "../model";
 import { ForeignKeyFieldRequiredParamsMissingError } from "./exceptions";
+import { dedent } from "../../utils";
 
 export { ON_DELETE as ON_DELETE };
 
@@ -62,7 +63,18 @@ export class Field<T extends Required = Required> implements FieldDefaultParamsT
 
     await engineInstance.fields.set(this);
   }
+
+  async toStringForMigration(indentation=0, customParams: string = '') {
+    const ident = '  '.repeat(indentation);
+    return `new models.fields.${this.constructor.name}({${customParams !== '' ? `\n${customParams}` : ''}\n`+
+      `${ident}primaryKey: ${this.primaryKey},\n${ident}defaultValue: ${this.defaultValue},\n` +
+      `${ident}allowNull: ${this.allowNull},\n${ident}unique: ${this.unique},\n` +
+      `${ident}dbIndex: ${this.dbIndex},\n${ident}databaseName: ${this.databaseName},\n` +
+      `${ident}underscored: ${this.underscored},\n${ident}customAttributes: ${JSON.stringify(this.customAttributes)}\n` +
+      `${'  '.repeat(indentation-1)}})`;
+  }
 }
+
 /**
  * This is similar to an Integer Field except that it is the `id` of the database.
  * By default it is an auto-incrementing integer field, it is the primary key and it is unique.

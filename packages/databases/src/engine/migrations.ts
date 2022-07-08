@@ -1,7 +1,9 @@
 import Engine from ".";
 import { Model } from "../models";
-import Migration from "../models/migrations/migration";
+import Migration from "../migrations/migration";
 import EngineFields from "./fields";
+import { InitializedModelsType } from "../types";
+import { Field } from "../models/fields";
 
 export default class EngineMigrations {
   engine!: Engine;
@@ -13,8 +15,12 @@ export default class EngineMigrations {
   }
 
   async init() {}
-  async addModel(toModel: Model, migration: Migration) {}
-  async removeModel(fromModel: Model, migration: Migration){}
-  async changeModel(toModel: Model, fromModel: Model, migration: Migration){}
+  async addModel(toModel: InitializedModelsType, migration: Migration) {}
+  async removeModel(fromModel: InitializedModelsType, migration: Migration){}
+  async changeModel(toModel: InitializedModelsType, fromModel: InitializedModelsType, migration: Migration){}
+  async addField(toModel: InitializedModelsType, fromModel: InitializedModelsType, fieldName: string, migration: Migration){}
+  async changeField(toModel: InitializedModelsType, fromModel: InitializedModelsType, fieldBefore: Field, fieldAfter: Field, migration: Migration){}
+  async renameField(toModel: InitializedModelsType, fromModel: InitializedModelsType, fieldNameBefore: string, fieldNameAfter: string, migration: Migration){}
+  async deleteField(toModel: InitializedModelsType, fromModel: InitializedModelsType, fieldName: string, migration: Migration){}
   async finish() {}
 }

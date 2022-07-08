@@ -1,51 +1,16 @@
 import Engine from "../../engine";
-import { ModelFieldsType, ModelOptionsType, } from "../types";
+import { Operation } from "./operation";
+import { ModelFieldsType, ModelOptionsType, } from "../../models/types";
 import {
-  ActionToGenerateType,
-  StateModelsType,
   CreateModelToGenerateData,
   ChangeModelToGenerateData,
-  RenameModelToGenerateData
+  RenameModelToGenerateData,
+  MigrationFromAndToStateModelType,
+  ActionToGenerateType
 } from "./types";
-import Migration from "./migration";
-import State from "./state";
-
-/**
- * Actions are the operations that we do in each migration.
- *
- * Instead of needing to create a migration file with the changes we already did to the models
- * the database will look through all of the models and see the changes so we can apply the actions.
- *
- * The idea for migrations is that instead of creating a json with the state of the models
- * (other solutions made that: https://github.com/flexxnn/sequelize-auto-migrations)
- * what we do is that by creating our own migration files and models, we have full control over
- * what changed from one model to the other. And with that the migrations actually hold the state of
- * the models
- *
- * When we want to know what changed it's simple: just start from the first migration to the last and
- * modify the model based on that.
- *
- * By the end of the state generation we will probably have the same models.
- *
- * IMPORTANT: The order of the migrations is crucial for this to work, if you change the order of any of the
- * migrations it will crash.
- */
-export class Operation {
-  async stateForwards(state: State, domainName: string, domainPath: string) {}
-  async run(migration: Migration, engineInstance: Engine, fromState: StateModelsType, toState: StateModelsType) {}
-  static async defaultToGenerate<T>(domainName: string, domainPath: string, modelName: string, data: T): Promise<ActionToGenerateType<T>> {
-    return {
-      action: this.name,
-      domainName: domainName,
-      domainPath: domainPath,
-      modelName: modelName,
-      order: 0,
-      dependsOn: [],
-      data: data
-    }
-  }
-}
-
+import Migration from "../migration";
+import State from "../state";
+import { dedent } from "../../utils";
 
 export class CreateModel extends Operation {
   modelName: string;
@@ -67,7 +32,12 @@ export class CreateModel extends Operation {
     model.options = this.options;
   }
 
-  async run(migration: Migration, engineInstance: Engine, _: StateModelsType, toState: StateModelsType): Promise<void> {
+  async run(
+    migration: Migration,
+    engineInstance: Engine,
+    _: MigrationFromAndToStateModelType,
+    toState: MigrationFromAndToStateModelType
+  ): Promise<void> {
     const toModel = toState[this.modelName];
     await engineInstance.migrations.addModel(toModel, migration);
   }
@@ -79,6 +49,26 @@ export class CreateModel extends Operation {
     data: CreateModelToGenerateData,
   ) {
     return await super.defaultToGenerate(domainName, domainPath, modelName, data);
+  }
+
+  static async toString(
+    indentation: number = 0,
+    data: ActionToGenerateType<CreateModelToGenerateData>
+  ): Promise<string> {
+    const ident = '  '.repeat(indentation);
+    return `new actions.${this.name}(\n${ident}'${data.modelName}',\n${ident}{\n${await this.getAllAttributesAsString(indentation + 1, data)}${ident}}\n)`;
+  }
+
+  static async getAllAttributesAsString(
+    indentation: number = 0,
+    data: ActionToGenerateType<CreateModelToGenerateData>
+  ): Promise<string> {
+    const allFields = Object.entries(data.data.fields);
+    const stringifiedFields = [];
+    for (const [fieldName, field] of allFields) {
+      stringifiedFields.push(`${'  '.repeat(indentation)}${fieldName}: ${await field.toStringForMigration(indentation + 1)},\n`);
+    }
+    return `${stringifiedFields.join('')}`
   }
 }
 
@@ -98,8 +88,8 @@ export class DeleteModel extends Operation {
   async run(
     migration: Migration,
     engineInstance: Engine,
-    fromState: StateModelsType,
-    _: StateModelsType
+    fromState: MigrationFromAndToStateModelType,
+    _: MigrationFromAndToStateModelType
   ): Promise<void> {
     const fromModel = fromState[this.modelName];
     await engineInstance.migrations.removeModel(fromModel, migration)
@@ -133,7 +123,12 @@ export class ChangeModel extends Operation {
     model.options = this.optionsAfter;
   }
 
-  async run(migration: Migration, engineInstance: Engine, fromState: StateModelsType, toState: StateModelsType): Promise<void> {
+  async run(
+    migration: Migration,
+    engineInstance: Engine,
+    fromState: MigrationFromAndToStateModelType,
+    toState: MigrationFromAndToStateModelType
+  ) {
     const toModel = toState[this.modelName];
     const fromModel = fromState[this.modelName];
     await engineInstance.migrations.changeModel(toModel, fromModel, migration)

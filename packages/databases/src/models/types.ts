@@ -13,37 +13,37 @@ export type ManagerEngineInstancesType = {
 }
 
 export type ModelFieldsType = {
-    [key: string]: Field
+  [key: string]: Field
 }
 
 export type ManagersOfInstanceType = {
-    [key: string]: Manager
+  [key: string]: Manager
 }
 
 export type ModelIndexType = {
-    unique: boolean,
-    fields: string[]
+  unique: boolean,
+  fields: string[]
 }
 
 export type ModelOptionsType = {
-    autoId?: boolean,
-    primaryKeyField?: Field,
-    abstract?: boolean,
-    underscored?: boolean,
-    tableName?: string,
-    managed?: boolean,
-    ordering?: string[] | [],
-    indexes?: ModelIndexType[],
-    databases?: string[] | [],
-    customOptions?: any
+  autoId?: boolean,
+  primaryKeyField?: Field,
+  abstract?: boolean,
+  underscored?: boolean,
+  tableName?: string,
+  managed?: boolean,
+  ordering?: string[] | [],
+  indexes?: ModelIndexType[],
+  databases?: string[] | [],
+  customOptions?: any
 }
 
 export interface ModelType {
-    fields: ModelFieldsType;
-    options: ModelOptionsType;
-    name: string;
-    abstracts: typeof Model[];
-    instances?: Map<keyof DatabaseSettingsType["DATABASES"], any>;
+  fields: ModelFieldsType;
+  options: ModelOptionsType;
+  name: string;
+  abstracts: typeof Model[];
+  instances?: Map<keyof DatabaseSettingsType["DATABASES"], any>;
 }
 
 type IdField<T extends Model> = {

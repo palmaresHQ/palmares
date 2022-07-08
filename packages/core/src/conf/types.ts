@@ -10,6 +10,7 @@ export type SettingsType = {
   PORT: number,
   SECRET_KEY: string,
   APP_NAME?: string,
+  USE_TS?: boolean,
   BASE_PATH: string,
   ROOT_URLCONF: string,
   INSTALLED_DOMAINS: InstalledDomainsType,

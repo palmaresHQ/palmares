@@ -1,4 +1,4 @@
-import Engine from "../../engine";
+import Engine from "../engine";
 import { Operation } from "./actions";
 
 export default class Migration {
