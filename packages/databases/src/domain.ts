@@ -1,4 +1,4 @@
-import { Domain, logging, MessageCategories, DefaultCommandType, DomainReadyFunctionArgs } from "@palmares/core"
+import { Domain, logging, MessageCategories, DefaultCommandType, DomainReadyFunctionArgs, DomainHandlerFunctionArgs } from "@palmares/core"
 
 import { Model } from "./models";
 import databases from "./databases";
@@ -6,10 +6,12 @@ import { DatabaseSettingsType } from "./types";
 import {
   LOGGING_DATABASE_MODELS_NOT_FOUND,
   LOGGING_DATABASE_CLOSING,
-  LOGGING_DATABASE_IS_NOT_CONNECTED
+  LOGGING_DATABASE_IS_NOT_CONNECTED,
+  LOGGING_MIGRATIONS_NOT_FOUND
 } from './utils';
 import { MigrationFileType } from "./migrations/types";
 import { makeMigrations } from "./commands";
+import defaultSettings from "./settings";
 
 export class DatabaseDomain extends Domain {
   async getModels(): Promise<typeof Model[]> {
@@ -21,12 +23,15 @@ export class DatabaseDomain extends Domain {
   }
 }
 
-export default class DatabasesDomain extends Domain {
+export default class DatabasesDomain extends DatabaseDomain {
   commands: DefaultCommandType = {
     makemigrations: {
       description: 'Create the migrations automatically based on your created models',
       example: '',
-      handler: makeMigrations,
+      handler: async (options: DomainHandlerFunctionArgs) => {
+        await this.buildLogging();
+        await makeMigrations(options);
+      },
     }
   }
 
@@ -52,12 +57,28 @@ export default class DatabasesDomain extends Domain {
       MessageCategories.Info,
       async ({databaseName}) => `\x1b[1m[databases]\x1b[0m Couldn't connect to the '${databaseName}' database.`
     );
+    logging.appendMessage(
+      LOGGING_MIGRATIONS_NOT_FOUND,
+      MessageCategories.Warn,
+      async ({domainName}) => `\x1b[1m[databases]\x1b[0m No migrations were found for the '${domainName}', if this is ` +
+      `your first time running this command, you can safely ignore this message.\n\nYou can fully dismiss this message ` +
+      `by setting 'DATABASES_DISMISS_NO_MIGRATIONS_LOG = true;' in 'settings.(ts/js)'`
+    );
   }
 
   async ready({ settings, domains }: DomainReadyFunctionArgs<any, DatabaseSettingsType>): Promise<void> {
     await this.buildLogging();
+    const settingsWithDefault = defaultSettings(settings);
     const databaseDomains = domains as DatabaseDomain[];
-    await databases.init(settings, databaseDomains);
+    await databases.init(settingsWithDefault, databaseDomains);
+  }
+
+  async getModels(): Promise<(typeof Model)[]> {
+    return [];
+  }
+
+  async getMigrations(): Promise<MigrationFileType[]> {
+    return [];
   }
 
   async close(): Promise<void> {

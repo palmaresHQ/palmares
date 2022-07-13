@@ -34,3 +34,4 @@ export const DATABASES = {
     }
   }
 }
+export const DATABASES_DISMISS_NO_MIGRATIONS_LOG = true;

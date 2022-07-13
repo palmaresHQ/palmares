@@ -41,4 +41,5 @@ export interface DatabaseSettingsType extends SettingsType {
   DATABASES: {
     [key: string]: DatabaseConfigurationType<string, {}>
   }
+  DATABASES_DISMISS_NO_MIGRATIONS_LOG: boolean;
 }

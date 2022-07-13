@@ -14,7 +14,6 @@ import {
 import Engine from "../../engine";
 import Model from "../model";
 import { ForeignKeyFieldRequiredParamsMissingError } from "./exceptions";
-import { dedent } from "../../utils";
 
 export { ON_DELETE as ON_DELETE };
 

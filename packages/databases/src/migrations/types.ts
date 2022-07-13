@@ -1,3 +1,4 @@
+import { models as Models } from "..";
 import Model from "../models/model"
 import { Operation } from "./actions";
 
@@ -6,10 +7,17 @@ export type StateModelsType = {
 }
 
 export type MigrationFileType = {
+  name: string;
   engines: string[];
-  dependency: string;
-  customData: {
+  dependsOn: string;
+  customData?: {
     [key: string]: any;
-  }
+  };
   operations: Operation[]
+}
+
+export type FoundMigrationsFileType = {
+  domainName: string;
+  domainPath: string;
+  migration: MigrationFileType;
 }

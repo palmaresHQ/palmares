@@ -43,7 +43,7 @@ class Databases {
   }
 
   async makeMigrations(settings: DatabaseSettingsType, domains: DatabaseDomain[]) {
-    const migrations = new Migrations(this.settings, domains)
+    const migrations = new Migrations(settings, domains)
     await migrations.makeMigrations()
   }
 
