@@ -1,8 +1,8 @@
-export type DomainType = {
-  name: string;
-  path: string;
+import Domain from ".";
+import { SettingsType } from "../conf/types";
 
-  ready?: () => Promise<void>;
-  close?: () => Promise<void>;
-  [key: string]: any;
-}
+export type DomainReadyFunctionArgs<T = any, S = SettingsType> = {
+  app: T;
+  settings: S;
+  domains: Domain[];
+};

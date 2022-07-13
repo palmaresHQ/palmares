@@ -2,7 +2,7 @@ import { Field } from "./fields";
 import Model from './model';
 import Manager from './manager';
 import { DatabaseSettingsType } from "../types";
-import Engine from "../engine";
+import { fields } from ".";
 
 export type ManagerInstancesType = {
   [engineName: string]: any;
@@ -13,7 +13,7 @@ export type ManagerEngineInstancesType = {
 }
 
 export type ModelFieldsType = {
-  [key: string]: Field
+  [key: string]: Field<any, boolean>
 }
 
 export type ManagersOfInstanceType = {
@@ -21,20 +21,22 @@ export type ManagersOfInstanceType = {
 }
 
 export type ModelIndexType = {
-  unique: boolean,
-  fields: string[]
+  unique: true,
+  fields: string[];
 }
 
-export type ModelOptionsType = {
-  autoId?: boolean,
-  primaryKeyField?: Field,
+type OrderingOfModelOptions<M extends Model = Model> = keyof M["_fields"] |
+  keyof { [F in keyof M["_fields"] as F extends string ? `-${F}` : never] : 1}
+
+
+export type ModelOptionsType<M extends Model = Model> = {
+  indexes?: ModelIndexType[],
+  ordering?: OrderingOfModelOptions<M>[],
   abstract?: boolean,
   underscored?: boolean,
   tableName?: string,
   managed?: boolean,
-  ordering?: string[] | [],
-  indexes?: ModelIndexType[],
-  databases?: string[] | [],
+  databases?: string[],
   customOptions?: any
 }
 
@@ -46,12 +48,25 @@ export interface ModelType {
   instances?: Map<keyof DatabaseSettingsType["DATABASES"], any>;
 }
 
-type IdField<T extends Model> = {
-  id: T["options"]["primaryKeyField"] extends Field ?
-    T["options"]["primaryKeyField"]["type"] : T["defaultOptions"]["primaryKeyField"]["type"] |
-    T["defaultOptions"]["primaryKeyField"]["type"]
+
+type HasDefaultValueFields<M extends ModelFieldsType> = {
+  [F in keyof M as M[F]['hasDefaultValue'] extends false ? never : F] : M[F]
 }
 
-export type ModelFields<T extends Model> = IdField<T> & {
-  [P in keyof T["fields"]]?: T["fields"][P]["type"];
-};
+type OptionalFields<M extends Model> = {
+  [F in keyof HasDefaultValueFields<M['fields']>]?: AddNull<M['fields'][F]>
+}
+
+type DoNotHaveDefaultValueFields<M extends ModelFieldsType> = {
+  [F in keyof M as M[F]['hasDefaultValue'] extends false ? F : never] : M[F]
+}
+
+type RequiredFields<M extends Model> = {
+  [F in keyof DoNotHaveDefaultValueFields<M["fields"]>]: AddNull<M['fields'][F]>
+}
+
+type AddNull<F extends Field<any, boolean>> = F['allowNull'] extends true ?
+  F['type'] | null : F['type']
+
+export type ModelFields<M extends Model> = RequiredFields<M> & OptionalFields<M>
+

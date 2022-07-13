@@ -1,19 +1,32 @@
 import { NotImplementedException } from "./exceptions";
 
 import http from 'http';
+import { SettingsType } from "../conf/types";
 
 /**
  * This is the adapter class for the core framework that we are using, at the current time
  * we will only be supporting express.
  */
-export default class BaseAdapter {
+export default class Adapter {
+    _app: any
+
     /**
-     * Initialize the adapter. For express for example this will be something like:
+     * Loads the adapter. For express for example this will be something like:
      * const app = express()
      */
-    async init(): Promise<http.RequestListener> {
-        throw new NotImplementedException('init');
+    async load(): Promise<http.RequestListener> {
+      throw new NotImplementedException('load');
     }
+
+    /**
+     * Initialized the adapter. For express for example this will be something like:
+     * app.listen(() => {
+     * })
+     */
+    async init(settings: SettingsType, callback: () => Promise<void>): Promise<void> {
+      throw new NotImplementedException('init');
+    }
+
 
     /**
      * This resieves the root router path and then configures the routes for the adapter.

@@ -1,14 +1,17 @@
-import { DomainType } from "./types";
 import {
   DomainObligatoryParamsUndefinedError,
   NotAValidDomainDefaultExportedError
 } from "./exceptions";
 import { SettingsType } from "../conf/types";
+import Adapter from "../adapters";
+import { DefaultCommandType } from "../commands/types";
+import { DomainReadyFunctionArgs } from "./types";
 
 /**
  * The domain defines one of the domains of your application
  */
-export default class Domain implements DomainType {
+export default class Domain {
+  commands: DefaultCommandType = {} as DefaultCommandType;
   name: string;
   path: string;
 
@@ -40,10 +43,15 @@ export default class Domain implements DomainType {
   }
 
   /**
+   * Runs when the domain is loaded.
+   */
+  async load<S = SettingsType>(settings: S): Promise<void> {}
+
+  /**
    * Code to run when the app runs. This is sequentially executed one after another so you can
    * define the order of execution by defining the order of the INSTALLED_DOMAINS in the settings.ts/js
    * file.
    */
-  async ready(): Promise<void> {}
+  async ready<A extends Adapter = Adapter>(options: DomainReadyFunctionArgs): Promise<void> {}
   async close(): Promise<void> {}
 }

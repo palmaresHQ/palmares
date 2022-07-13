@@ -6,7 +6,8 @@
   "author": "Nicolas Melo",
   "license": "MIT",
   "scripts": {
-    "dev": "ts-node manage.ts dev"
+    "dev": "ts-node manage.ts dev",
+    "makemigrations": "ts-node manage.ts makemigrations"
   },
   "dependencies": {
     "@palmares/databases": "*",

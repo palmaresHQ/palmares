@@ -10,8 +10,16 @@ import {
 } from "./types";
 import Migration from "../migration";
 import State from "../state";
-import { dedent } from "../../utils";
+import { Model } from "../../models";
 
+/**
+ * This operation is used when you create a model in the application.
+ * Whenever a new model appears that it does not appear
+ * in the state, it will be understood that a new model had been created.
+ * We are certain that a new model have been created if the number of models
+ * from the state and the original increase in a factor of 1 or more.
+ * If the number of models doesn't change we can't be sure.
+ */
 export class CreateModel extends Operation {
   modelName: string;
   fields: ModelFieldsType;
@@ -56,23 +64,21 @@ export class CreateModel extends Operation {
     data: ActionToGenerateType<CreateModelToGenerateData>
   ): Promise<string> {
     const ident = '  '.repeat(indentation);
-    return `new actions.${this.name}(\n${ident}'${data.modelName}',\n${ident}{\n${await this.getAllAttributesAsString(indentation + 1, data)}${ident}}\n)`;
-  }
-
-  static async getAllAttributesAsString(
-    indentation: number = 0,
-    data: ActionToGenerateType<CreateModelToGenerateData>
-  ): Promise<string> {
-    const allFields = Object.entries(data.data.fields);
-    const stringifiedFields = [];
-    for (const [fieldName, field] of allFields) {
-      stringifiedFields.push(`${'  '.repeat(indentation)}${fieldName}: ${await field.toStringForMigration(indentation + 1)},\n`);
-    }
-    return `${stringifiedFields.join('')}`
+    return super.defaultToString(
+      indentation-1,
+      `${ident}"${data.modelName}",\n` +
+      `${ident}{\n` +
+      `${await Model.fieldsToString(indentation + 1, data.data.fields)}\n` +
+      `${ident}}`
+    );
   }
 }
 
-
+/**
+ * Operation that runs when a model is deleted. Similar to CreateModel, we know that the model
+ * was deleted and it is on the previous state and not on the current state. We are certain that it
+ * was deleted when the number of models decrease in a factor of 1 or more.
+ */
 export class DeleteModel extends Operation {
   modelName: string;
 
@@ -102,8 +108,25 @@ export class DeleteModel extends Operation {
   ) {
     return super.defaultToGenerate(domainName, domainPath, modelName, null);
   }
+
+  static async toString(
+    indentation: number = 0,
+    data: ActionToGenerateType<null>
+  ): Promise<string> {
+    const ident = '  '.repeat(indentation);
+    return super.defaultToString(
+      indentation-1,
+      `${ident}"${data.modelName}"`
+    );
+  }
 }
 
+/**
+ * Operation that runs when the model had changed, not the fields but the options.
+ *
+ * If any of the custom options of the model had changed we will then create a migration
+ * with this operation.
+ */
 export class ChangeModel extends Operation {
   modelName!: string;
   optionsBefore!: ModelOptionsType;
@@ -137,8 +160,25 @@ export class ChangeModel extends Operation {
   static async toGenerate(domainName: string, domainPath: string, modelName: string, data: ChangeModelToGenerateData) {
     return super.defaultToGenerate(domainName, domainPath, modelName, data);
   }
+
+  static async toString(
+    indentation: number = 0,
+    data: ActionToGenerateType<ChangeModelToGenerateData>
+  ): Promise<string> {
+    const ident = '  '.repeat(indentation);
+    return super.defaultToString(
+      indentation-1,
+      `${ident}"${data.modelName}",\n` +
+      `${await Model.optionsToString(indentation, data.data.optionsBefore)},\n` +
+      `${await Model.optionsToString(indentation, data.data.optionsAfter)}`
+    );
+  }
 }
 
+/**
+ * Operation used when the name of the model changes, it have any side effects besides
+ * changing the name of the model. It's more needed and used for updating the state.
+ */
 export class RenameModel extends Operation {
   oldModelName: string;
   newModelName: string;
@@ -162,5 +202,17 @@ export class RenameModel extends Operation {
 
   static async toGenerate(domainName: string, domainPath: string, modelName: string, data: RenameModelToGenerateData) {
     return super.defaultToGenerate(domainName, domainPath, modelName, data);
+  }
+
+  static async toString(
+    indentation: number = 0,
+    data: ActionToGenerateType<RenameModelToGenerateData>
+  ): Promise<string> {
+    const ident = '  '.repeat(indentation);
+    return super.defaultToString(
+      indentation-1,
+      `${ident}"${data.data.modelNameBefore}",\n` +
+      `${ident}"${data.data.modelNameBefore}"`
+    );
   }
 }

@@ -3,16 +3,19 @@ import {
   ModelFieldsType,
   ModelOptionsType,
   ModelType,
+  ModelFields,
   ManagersOfInstanceType
 } from "./types";
 import {
   ModelCircularAbstractError,
   ModelInvalidAbstractFieldError,
-  ModelInvalidAbstractManagerError
+  ModelInvalidAbstractManagerError,
+  ModelNoUniqueFieldsError
 } from "./exceptions";
 import { Field } from "./fields";
 import { BigAutoField } from "./fields";
 import Manager, { DefaultManager } from "./manager";
+import databases from "../databases";
 
 /**
  * This class is used for initializing a model. This will work similar to django except that instead of
@@ -98,9 +101,10 @@ import Manager, { DefaultManager } from "./manager";
  * you can have the hole power of linting VSCode and other IDEs give you.
  */
 export default class Model {
-  [managers: string]: Manager | ModelFieldsType | ModelOptionsType | typeof Model[] | string | Function;
+  [managers: string]: Manager | ModelFieldsType | ModelOptionsType<this> | typeof Model[] | string | Function;
   fields: ModelFieldsType = {};
-  options!: ModelOptionsType;
+  _fields!: ModelFields<this>;
+  options!: ModelOptionsType<this>;
   abstracts: typeof Model[] = [];
   name!: string;
   domainName!: string;
@@ -108,9 +112,7 @@ export default class Model {
 
   static default = new DefaultManager()
 
-  readonly defaultOptions = {
-    autoId: true,
-    primaryKeyField: new BigAutoField({ primaryKey: true }),
+  static readonly defaultOptions = {
     abstract: false,
     underscored: true,
     tableName: undefined,
@@ -203,26 +205,23 @@ export default class Model {
   }
 
   async #initializeFields(engineInstance: Engine): Promise<void> {
+    let modelHasNoUniqueFields = true;
     const allFields = Object.entries(this.fields);
     const promises = allFields.map(([fieldName, field]) => {
+      if (field.unique) modelHasNoUniqueFields = false;
       return field.init(engineInstance, fieldName, this);
     })
     await Promise.all(promises);
+    if (modelHasNoUniqueFields) {
+      throw new ModelNoUniqueFieldsError(this.constructor.name);
+    }
   }
 
   async #initializeOptions() {
     this.options = {
-      ...this.defaultOptions,
+      ...Model.defaultOptions,
       ...this.options
     };
-    const doesModelHaveAutoIdField = this.options.autoId && this.options.primaryKeyField
-    if (doesModelHaveAutoIdField) {
-      const primaryKeyFieldInstance = this.options.primaryKeyField as Field;
-      this.fields = {
-        id: primaryKeyFieldInstance,
-        ...this.fields
-      };
-    }
   }
 
   async #initializeManagers(engineInstance: Engine, modelInstance: any) {
@@ -250,5 +249,58 @@ export default class Model {
 
     const modelInstance = await engineInstance.initializeModel(this);
     await this.#initializeManagers(engineInstance, modelInstance);
+  }
+
+  static async fieldsToString(
+    indentation: number = 0,
+    fields: ModelFieldsType
+  ): Promise<string> {
+    const allFields = Object.entries(fields);
+    const ident = '  '.repeat(indentation);
+    const fieldsIdent = '  '.repeat(indentation+1);
+
+    const stringifiedFields = [];
+    for (let i = 0; i < allFields.length; i++) {
+      const fieldName = allFields[i][0]
+      const field = allFields[i][1]
+      const isLastField = i === allFields.length - 1;
+      stringifiedFields.push(
+        `${fieldsIdent}${fieldName}: ${await field.toString(indentation + 2)},${isLastField ? '' : '\n'}`
+      );
+    }
+    return `${ident}{\n` +
+      `${stringifiedFields.join('')}` +
+      `${ident}}`;
+  }
+
+  static async optionsToString(indentation: number = 0, options: ModelOptionsType) {
+    const ident = '  '.repeat(indentation);
+    const optionsIndent = '  '.repeat(indentation + 1);
+    const newOptions = {
+      ...this.defaultOptions,
+      ...options
+    }
+    return `${ident}{\n` +
+      `${optionsIndent}abstract: ${newOptions.abstract},\n` +
+      `${optionsIndent}underscored: ${newOptions.underscored},\n` +
+      `${optionsIndent}tableName: ${typeof newOptions.tableName === 'string' ?
+        `"${newOptions.tableName}"` :
+        newOptions.tableName
+      },\n` +
+      `${optionsIndent}managed: ${newOptions.managed},\n` +
+      `${optionsIndent}ordering: [${newOptions.ordering ?
+        newOptions.ordering?.map(field => `"${field}"`) :
+          ''
+        }],\n` +
+      `${optionsIndent}indexes: [${newOptions.indexes ?
+        newOptions.indexes?.map((dbIndex, i) =>
+          `{ unique: ${dbIndex.unique}, fields: ${dbIndex.fields.map(field => `"${field}"`)} }` +
+          `${i === (newOptions.indexes?.length || 1) - 1 ? '' : ',' }`) :
+        ''}],\n` +
+      `${optionsIndent}databases: [${newOptions.databases ?
+        newOptions.databases?.map(database => `"${database}"`) :
+        ''}],\n` +
+      `${optionsIndent}customOptions: ${JSON.stringify(newOptions.customOptions)}\n` +
+      `${ident}}`;
   }
 }

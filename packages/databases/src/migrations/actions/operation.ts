@@ -24,7 +24,23 @@ import { MigrationFromAndToStateModelType, ActionToGenerateType } from './types'
  * migrations it will crash.
  */
 export class Operation {
+  /**
+   * Function that will be used to construct and build the state of all of the models in the application so we
+   * can compare to the original ones.
+   *
+   * @param state - A state instance that holds all of the models of the application before.
+   * @param domainName - The name of the domain where this model was defined.
+   * @param domainPath - The path of the domain where this model exists so we can add the migration file there.
+   */
   async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {}
+
+  /**
+   * Method that runs when a migration is running on a migration file, when this happens we will call the exact
+   * function of the engine migrations.
+   *
+   * We also have the fromState (which will be state when the state) which will be the state of the models
+   * before running the migration and `toState` will be state AFTER running the migration
+   */
   async run(
     migration: Migration,
     engineInstance: Engine,
@@ -44,7 +60,10 @@ export class Operation {
     }
   }
 
-  static async defaultToString<T>(ident: number = 0, data: ActionToGenerateType<T>): Promise<string> {
-    return ''
+  static async defaultToString(indentation: number = 0, customAttributesOfAction: string = ''): Promise<string> {
+    const ident = '  '.repeat(indentation);
+    return `${ident}new actions.${this.name}(`+
+    `${customAttributesOfAction !== '' ?`\n${customAttributesOfAction}\n${ident}` : '' }`+
+    `)`
   }
 }

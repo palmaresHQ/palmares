@@ -1,6 +1,6 @@
 import {
     logging,
-    ERR_MODULE_NOT_FOUND
+    ERR_MODULE_NOT_FOUND,
 } from "@palmares/core";
 
 import {
@@ -17,6 +17,7 @@ import { Model } from "./models";
 import { LOGGING_DATABASE_MODELS_NOT_FOUND } from './utils';
 
 import path from "path";
+import Migrations from "./migrations";
 
 class Databases {
   availableEngines = ['@palmares/sequelize-engine'];
@@ -29,16 +30,21 @@ class Databases {
    *
    * @param settings - The settings object from the file itself.
    */
-  async init(settings: DatabaseSettingsType) {
+  async init(settings: DatabaseSettingsType, domains: DatabaseDomain[]) {
     this.settings = settings;
 
     const isDatabaseDefined: boolean = this.settings.DATABASES !== undefined && typeof settings.DATABASES === "object";
     if (isDatabaseDefined) {
       const databaseEntries: [string, DatabaseConfigurationType<string, {}>][] = Object.entries(settings.DATABASES);
       for (const [databaseName, databaseSettings] of databaseEntries) {
-        await this.initializeDatabase(databaseName, databaseSettings);
+        await this.initializeDatabase(databaseName, databaseSettings, domains);
       }
     }
+  }
+
+  async makeMigrations(settings: DatabaseSettingsType, domains: DatabaseDomain[]) {
+    const migrations = new Migrations(this.settings, domains)
+    await migrations.makeMigrations()
   }
 
   /**
@@ -85,8 +91,12 @@ class Databases {
    * @param databaseName - The name of the database that we are using.
    * @param databaseSettings - The settings object for the database.
    */
-  async initializeDatabase(databaseName: string, databaseSettings: DatabaseConfigurationType<string, {}>) {
-    const models: FoundModelType[] = await this.getModels();
+  async initializeDatabase(
+    databaseName: string,
+    databaseSettings: DatabaseConfigurationType<string, {}>,
+    domains: DatabaseDomain[]
+  ) {
+    const models: FoundModelType[] = await this.getModels(domains);
     const engine: typeof Engine = await this.getEngine(databaseName, databaseSettings.engine);
     const engineInstance: Engine = await engine.new(databaseName, databaseSettings);
 
@@ -154,11 +164,9 @@ class Databases {
    *
    * @returns - Returns an array of models.
    */
-  async getModels() {
+  async getModels(domains: DatabaseDomain[]) {
     const foundModels: FoundModelType[] = [];
-    const domainClasses = await DatabaseDomain.retrieveDomains(this.settings) as typeof DatabaseDomain[];
-    const promises: Promise<void>[] = domainClasses.map(async (domainClass) => {
-      const domain = new domainClass();
+    const promises: Promise<void>[] = domains.map(async (domain) => {
       const hasGetModelsMethodDefined = typeof domain.getModels === 'function';
       if (hasGetModelsMethodDefined) {
         const models = await Promise.resolve(domain.getModels());

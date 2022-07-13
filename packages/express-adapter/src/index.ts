@@ -1,2 +1,2 @@
-import { BaseAdapter } from "@palmares/core";
+import { Adapter } from "@palmares/core";
 

@@ -1,4 +1,4 @@
-import BaseAdapter from '../adapters';
+import Adapter from '../adapters';
 import { SettingsType } from '../conf/types';
 import logging from '../logging';
 import {
@@ -8,15 +8,13 @@ import {
 import { AdapterNotFoundException } from './exceptions';
 import Domain from '../domain';
 
-import http from 'http';
-
 /**
  * This is the main class of the framework, it is used to initialize the application and
  * configure everything.
  */
 export default class App {
   settings: SettingsType;
-  adapter: BaseAdapter | undefined;
+  adapter: Adapter | undefined;
   #initializedDomains: Domain[] = [];
   //websocketsAdapter: BaseWebsocketsAdapter
 
@@ -35,24 +33,23 @@ export default class App {
    *
    * After initializing we automatically assign the app to an http.createServer() instance.
    */
-  async #init(): Promise<http.Server> {
+  async #init(domains: Domain[]): Promise<Adapter["_app"]> {
     try {
       this.adapter = (await import(this.settings.ADAPTER))?.default;
 
-      const app = await this.adapter?.init()
-      const server = http.createServer(app)
+      const app = await this.adapter?.load()
 
-      await this.#initializeDomains()
+      await this.#initializeDomains(domains, app);
       await this.#initializeRouters()
       await this.#initializeMiddleware()
 
-      return server
+      return app;
     } catch(e) {
       const error: any = e;
       if (error.code === ERR_MODULE_NOT_FOUND) {
-          throw new AdapterNotFoundException(this.settings.ADAPTER);
+        throw new AdapterNotFoundException(this.settings.ADAPTER);
       } else {
-          throw e;
+        throw e;
       }
     }
   }
@@ -71,12 +68,14 @@ export default class App {
     }
   }
 
-  async #initializeDomains(): Promise<void> {
-    const domainClasses = await Domain.retrieveDomains(this.settings)
-    for (const domainClass of domainClasses) {
-      const initializedDomain = new domainClass()
-      await initializedDomain.ready();
-      this.#initializedDomains.push(initializedDomain);
+  async #initializeDomains(domains: Domain[], app: any): Promise<void> {
+    for (const domain of domains) {
+      await domain.ready({
+        app,
+        settings: this.settings,
+        domains
+      });
+      this.#initializedDomains.push(domain);
     }
   }
 
@@ -93,21 +92,19 @@ export default class App {
    * First we initialize the configurations, then we proceed to start the server and we also
    * initialize the a cleanup function when the server stops.
    */
-  async run(): Promise<http.Server> {
-    const server = await this.#init()
-
-    server?.listen(this.settings.PORT, async () => {
-      await logging.logMessage(LOGGING_APP_START_SERVER, {
-        appName: this.settings.APP_NAME,
-        port: this.settings.PORT
-      })
-    })
+  async run(domains: Domain[]): Promise<void> {
+    const app = await this.#init(domains)
 
     process.on('SIGINT', async () => {
         await this.#cleanup()
         process.exit(0)
     })
 
-    return server
+    await this.adapter?.init(this.settings, async () => {
+      await logging.logMessage(LOGGING_APP_START_SERVER, {
+        appName: this.settings.APP_NAME,
+        port: this.settings.PORT
+      })
+    })
   }
 }

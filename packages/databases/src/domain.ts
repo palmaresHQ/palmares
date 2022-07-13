@@ -1,4 +1,4 @@
-import { Domain, conf, logging, MessageCategories } from "@palmares/core"
+import { Domain, logging, MessageCategories, DefaultCommandType, DomainReadyFunctionArgs } from "@palmares/core"
 
 import { Model } from "./models";
 import databases from "./databases";
@@ -8,14 +8,28 @@ import {
   LOGGING_DATABASE_CLOSING,
   LOGGING_DATABASE_IS_NOT_CONNECTED
 } from './utils';
+import { MigrationFileType } from "./migrations/types";
+import { makeMigrations } from "./commands";
 
 export class DatabaseDomain extends Domain {
   async getModels(): Promise<typeof Model[]> {
     return [];
   }
+
+  async getMigrations(): Promise<MigrationFileType[]> {
+    return [];
+  }
 }
 
 export default class DatabasesDomain extends Domain {
+  commands: DefaultCommandType = {
+    makemigrations: {
+      description: 'Create the migrations automatically based on your created models',
+      example: '',
+      handler: makeMigrations,
+    }
+  }
+
   constructor() {
     super(DatabasesDomain.name, __dirname);
   }
@@ -40,10 +54,10 @@ export default class DatabasesDomain extends Domain {
     );
   }
 
-  async ready(): Promise<void> {
+  async ready({ settings, domains }: DomainReadyFunctionArgs<any, DatabaseSettingsType>): Promise<void> {
     await this.buildLogging();
-    const settings = conf.settings as DatabaseSettingsType;
-    await databases.init(settings);
+    const databaseDomains = domains as DatabaseDomain[];
+    await databases.init(settings, databaseDomains);
   }
 
   async close(): Promise<void> {

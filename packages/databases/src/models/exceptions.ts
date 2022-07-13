@@ -1,3 +1,10 @@
+export class ModelNoUniqueFieldsError extends Error {
+  constructor(modelName: string) {
+    super(`Model ${modelName} has no unique fields, it should have at least one unique field for `);
+    this.name = ModelNoUniqueFieldsError.name;
+  }
+}
+
 export class ModelCircularAbstractError extends Error {
 	constructor(originalModelName: string, abstractModelName: string) {
 		super(`Model ${originalModelName} have a circular abstract dependency with ${abstractModelName}`);

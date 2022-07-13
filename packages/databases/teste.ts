@@ -1,4 +1,4 @@
-import { CreateModel } from "./src/migrations/actions";
+import { ChangeModel, CreateModel } from "./src/migrations/actions";
 import { Model, fields } from "./src/models";
 
 class Teste extends Model {
@@ -6,13 +6,23 @@ class Teste extends Model {
     teste: new fields.IntegerField(),
     firstName: new fields.CharField(),
   }
+
+  options = {
+    tableName: 'teste'
+  }
 }
 
 const main = async () => {
   const TesteInstance = new Teste();
 
-  const data = await CreateModel.toGenerate("teste", "teste", Teste.name, { fields: TesteInstance.fields, options: {} });
-  console.log(await CreateModel.toString(1, data));
+  const data = await ChangeModel.toGenerate("teste", "teste", Teste.name, {
+    optionsBefore: TesteInstance.options,
+    optionsAfter: {
+      tableName: 'teste',
+      ordering: ['teste']
+    }
+  });
+  console.log(await ChangeModel.toString(1, data));
 }
 
 main()

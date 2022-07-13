@@ -20,23 +20,23 @@ export enum FieldTypes {
   ForeignKeyField = 'ForeignKey'
 }
 
-export class Required {};
+export type ClassConstructor<T> = {
+  new (...args: unknown[]): T;
+};
 
 export interface FieldDefaultParamsType {
   primaryKey?: boolean;
-  defaultValue?: string | number | boolean | null | undefined | Date;
-  allowNull?: boolean;
   unique?: boolean;
   dbIndex?: boolean;
   underscored?: boolean;
   databaseName?: string | null;
-  customAttributes?: any | undefined | object | null;
+  customAttributes?: any;
 };
 
 export type DecimalFieldParamsType = {
   maxDigits?: number | null;
   decimalPlaces?: number | null;
-};
+} & FieldDefaultParamsType;
 
 export interface TextFieldParamsType extends FieldDefaultParamsType {
   allowBlank?: boolean;
@@ -50,15 +50,17 @@ export interface UUIDFieldParamsType extends CharFieldParamsType {
   autoGenerate?: boolean;
 }
 
-export interface DateFieldParamsType extends FieldDefaultParamsType {
+export type DateFieldParamsType= {
   autoNow?: boolean;
   autoNowAdd?: boolean;
-}
+} & FieldDefaultParamsType
 
-export interface ForeignKeyFieldParamsType extends FieldDefaultParamsType {
-  relatedTo: Model | string;
+export type ForeignKeyFieldParamsType = {
   onDelete: ON_DELETE;
   customName?: string;
   relatedName?: string;
-  toField?: string;
-}
+} & FieldDefaultParamsType
+
+
+
+

@@ -1,7 +1,10 @@
 import App from '../app'
-import Configuration from '../conf';
+import { SettingsType } from '../conf/types';
+import { DomainHandlerFunctionArgs } from './types';
 
-export default async function devCommandHandler(args: string[]) {
-    const app = new App(Configuration.settings);
-    const server = await app.run();
+export default async function devCommandHandler({
+  settings, domains
+}: DomainHandlerFunctionArgs) {
+    const app = new App(settings as SettingsType);
+    await app.run(domains);
 }
