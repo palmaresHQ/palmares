@@ -15,11 +15,8 @@ export class Post extends models.Model {
   }
 
   options: ModelOptionsType<this> = {
+    tableName: 'post',
     ordering: ['id'],
-    indexes: [{
-      unique: true,
-      fields: ['id']
-    }]
   }
 }
 

@@ -26,7 +26,7 @@ export type ModelIndexType = {
 }
 
 type OrderingOfModelOptions<M extends Model = Model> = keyof M["_fields"] |
-  keyof { [F in keyof M["_fields"] as F extends string ? `-${F}` : never] : 1}
+  keyof { [F in keyof M["_fields"] as F extends string ? `-${F}` : never] : 1} | string;
 
 
 export type ModelOptionsType<M extends Model = Model> = {

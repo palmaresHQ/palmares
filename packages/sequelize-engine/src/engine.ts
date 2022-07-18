@@ -17,7 +17,7 @@ export default class SequelizeEngine<M extends models.Model = models.Model> exte
   instance!: Sequelize | null;
   fields!: SequelizeEngineFields;
 
-  ModelType!: ModelCtor<Model<ModelFields<M>, Optional<ModelFields<M>, 'id'>>>;
+  ModelType!: ModelCtor<Model<ModelFields<M>>>;
 
   operations = {
     and: Op.and,

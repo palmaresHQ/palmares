@@ -7,24 +7,37 @@ import { models, actions } from '@palmares/databases';
 
 export default {
   name: '001_creating_models',
-  engines: ['@palmares/sequelize-engine'],
+  databases: ['default'],
   dependsOn: "",
   operations: [
     new actions.CreateModel(
-      "LocationType",
+      "User",
       {
-        id:new models.fields.BigAutoField({"underscored":true,"primaryKey":true,"allowNull":false,"unique":false,"dbIndex":false,"databaseName":"id","customAttributes":{}}),
-        name:new models.fields.CharField({"underscored":true,"primaryKey":false,"allowBlank":false,"allowNull":false,"unique":false,"dbIndex":false,"databaseName":"name","customAttributes":{},"maxLength":200}),
-        order:new models.fields.IntegerField({"underscored":true,"primaryKey":false,"defaultValue":1,"allowNull":false,"unique":false,"dbIndex":false,"databaseName":"order","customAttributes":{}}),
+        id: new models.fields.AutoField(),
+        firstName: new models.fields.CharField({ maxLength: 255 }),
+        uuid: new models.fields.UUIDField({ autoGenerate: true, maxLength: 36 })
       },
       {
-        abstract: false,
-        underscored: true,
-        tableName: "location_type",
-        managed: true,
-        ordering: ["order"],
-        indexes: [],
-        customOptions: {},
+        tableName: 'user'
+      }
+    ),
+    new actions.CreateModel(
+      "Post",
+      {
+        id: new models.fields.AutoField(),
+        number: new models.fields.IntegerField({
+          allowNull: true,
+          defaultValue: 1
+        }),
+        userUuid: new models.fields.ForeignKeyField({
+          relatedTo: 'User',
+          onDelete: models.fields.ON_DELETE.CASCADE,
+          toField: 'id'
+        })
+      },
+      {
+        tableName: 'post',
+        ordering: ['id']
       }
     )
   ]

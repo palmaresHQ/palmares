@@ -68,7 +68,7 @@ export class CreateModel extends Operation {
       indentation-1,
       `${ident}"${data.modelName}",\n` +
       `${ident}{\n` +
-      `${await Model.fieldsToString(indentation + 1, data.data.fields)}\n` +
+      `${await Model._fieldsToString(indentation + 1, data.data.fields)}\n` +
       `${ident}}`
     );
   }
@@ -169,8 +169,8 @@ export class ChangeModel extends Operation {
     return super.defaultToString(
       indentation-1,
       `${ident}"${data.modelName}",\n` +
-      `${await Model.optionsToString(indentation, data.data.optionsBefore)},\n` +
-      `${await Model.optionsToString(indentation, data.data.optionsAfter)}`
+      `${await Model._optionsToString(indentation, data.data.optionsBefore)},\n` +
+      `${await Model._optionsToString(indentation, data.data.optionsAfter)}`
     );
   }
 }

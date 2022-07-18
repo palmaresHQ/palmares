@@ -99,7 +99,7 @@ export class AutoField<
     defaultValue?: D,
     allowNull?: N,
   } & FieldDefaultParamsType = {}) {
-    super({...rest, allowNull: false, unique: true, dbIndex: true});
+    super({...rest, primaryKey: true, allowNull: false, unique: true, dbIndex: true});
   }
 }
 
@@ -118,7 +118,7 @@ export class BigAutoField<
     defaultValue?: D,
     allowNull?: N,
   } & FieldDefaultParamsType = {}) {
-    super({...rest, allowNull: false, unique: true, dbIndex: true});
+    super({...rest, primaryKey: true, allowNull: false, unique: true, dbIndex: true});
   }
 }
 
@@ -342,6 +342,7 @@ export class ForeignKeyField<
   customName?: string;
   relatedName?: string;
   toField: F;
+  _originalRelatedName?: string;
 
   constructor({
     relatedTo,
@@ -359,9 +360,8 @@ export class ForeignKeyField<
     super(rest);
 
     let relatedToAsString: string = relatedTo as string;
-    const isRelatedToAModel: boolean = typeof relatedTo === 'function' &&
-      relatedTo instanceof Model;
-    if (isRelatedToAModel) {
+    const isRelatedToNotAString: boolean = typeof relatedTo !== 'string';
+    if (isRelatedToNotAString) {
       relatedToAsString = (relatedTo as ClassConstructor<Model>).name;
     }
 
@@ -381,12 +381,19 @@ export class ForeignKeyField<
     }
 
     await super.init(engineInstance, fieldName, model);
-
+    const isFromAStateModel: boolean = this.model._isState;
     const wasRelatedNameDefined: boolean = typeof this.relatedName === 'string';
-    const relatedToWithFirstStringLower: string = this.relatedTo.charAt(0).toLowerCase() + this.relatedTo.slice(1);
-    const modelWithFirstStringUpper: string = this.model.name.charAt(0).toUpperCase() + this.model.name.slice(1);
-    this.relatedName = wasRelatedNameDefined ? this.relatedName as string :
-      `${relatedToWithFirstStringLower}${modelWithFirstStringUpper}s`;
+    if (isFromAStateModel && wasRelatedNameDefined) {
+      this._originalRelatedName = this.relatedName;
+      this.relatedName = `state${this._originalRelatedName}`;
+    }
+    if (wasRelatedNameDefined === false) {
+      const relatedToWithFirstStringLower: string = this.relatedTo.charAt(0).toLowerCase() + this.relatedTo.slice(1);
+      const modelWithFirstStringUpper: string = this.model.name.charAt(0).toUpperCase() + this.model.name.slice(1);
+      const originalModelNameWithFirstStringUpper: string = this.model.originalName.charAt(0).toUpperCase() + this.model.originalName.slice(1);
+      this.relatedName = `${relatedToWithFirstStringLower}${modelWithFirstStringUpper}s`;
+      this._originalRelatedName = `${relatedToWithFirstStringLower}${originalModelNameWithFirstStringUpper}s`;
+    }
   }
 
   async toString(indentation: number = 0, customParams: string | undefined = undefined) {
@@ -397,7 +404,7 @@ export class ForeignKeyField<
       `${ident}toField: "${this.toField}"\n` +
       `${ident}onDelete: "${this.onDelete}"\n` +
       `${ident}customName: ${typeof this.customName === 'string' ? `"${this.customName}"` : this.customName}\n` +
-      `${ident}relatedName: ${typeof this.relatedName === 'string' ? `"${this.relatedName}"` : this.relatedName}`
+      `${ident}relatedName: ${typeof this._originalRelatedName === 'string' ? `"${this._originalRelatedName}"` : this._originalRelatedName}`
     );
   }
 }

@@ -20,8 +20,14 @@ export interface DatabaseConfigurationType<DialectOptions, ExtraOptions> {
   extraOptions?: ExtraOptions
 }
 
-export type initializedEngineInstancesType = {
-  [key: string]: Engine
+export type InitializedEngineInstancesType = {
+  [key: string]: InitializedEngineInstanceWithModelsType
+}
+
+export type InitializedEngineInstanceWithModelsType = {
+  engineInstance: Engine,
+  projectModels: InitializedModelsType[],
+  internalModels: InitializedModelsType[]
 }
 
 export type FoundModelType = {

@@ -14,7 +14,7 @@ export default class ModelTranslator {
   sequelize: Sequelize;
   #indexes: ModelTranslatorIndexesType = {};
 
-  constructor(engine: SequelizeEngine, fields: SequelizeEngineFields) {
+  constructor(engine: SequelizeEngine<any>, fields: SequelizeEngineFields) {
     this.engine = engine;
     this.fields = fields;
     this.sequelize = engine.instance as Sequelize;
@@ -35,8 +35,9 @@ export default class ModelTranslator {
 
   async #translateOrdering(originalModel: models.Model, translatedModel: ModelCtor<Model>) {
     const translatedOrdering: OrderItem[] = (originalModel.options.ordering || [])?.map(order => {
-      const isDescending = order.startsWith('-');
-      return isDescending ? [order.substring(1), 'DESC'] : [order, 'ASC'];
+      const orderAsString = order as string;
+      const isDescending = orderAsString.startsWith('-');
+      return isDescending ? [orderAsString.substring(1), 'DESC'] : [orderAsString, 'ASC'];
     });
 
     if (translatedOrdering.length > 0) {

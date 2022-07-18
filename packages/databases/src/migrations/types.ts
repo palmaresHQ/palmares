@@ -8,7 +8,7 @@ export type StateModelsType = {
 
 export type MigrationFileType = {
   name: string;
-  engines: string[];
+  databases: string[];
   dependsOn: string;
   customData?: {
     [key: string]: any;

@@ -101,12 +101,14 @@ import databases from "../databases";
  * you can have the hole power of linting VSCode and other IDEs give you.
  */
 export default class Model {
-  [managers: string]: Manager | ModelFieldsType | ModelOptionsType<this> | typeof Model[] | string | Function;
+  [managers: string]: Manager | ModelFieldsType | ModelOptionsType<this> | typeof Model[] | string | boolean | Function;
   fields: ModelFieldsType = {};
   _fields!: ModelFields<this>;
+  _isState: boolean = false;
   options!: ModelOptionsType<this>;
   abstracts: typeof Model[] = [];
   name!: string;
+  originalName!: string;
   domainName!: string;
   domainPath!: string;
 
@@ -121,6 +123,10 @@ export default class Model {
     indexes: [],
     databases: ['default'],
     customOptions: {}
+  }
+
+  constructor() {
+    if (this.options?.abstract) this.options.managed = false;
   }
 
   /**
@@ -233,25 +239,52 @@ export default class Model {
     }
   }
 
-  async init(
-    modelKls: typeof Model,
+  async _init(
+    modelKls: typeof Model | Function,
     engineInstance: Engine,
     domainName: string,
-    domainPath: string,
-    customModelName?: string | undefined
+    domainPath: string
   ) {
     this.domainName = domainName;
     this.domainPath = domainPath;
-    this.name = customModelName || modelKls.name;
+
+    if (this._isState) {
+      this.originalName = this.name;
+      this.name = `State${this.name}`;
+    } else {
+      this.originalName = modelKls.name;
+      this.name = modelKls.name;
+    }
+
     await this.#initializeAbstracts();
     await this.#initializeOptions();
     await this.#initializeFields(engineInstance);
 
     const modelInstance = await engineInstance.initializeModel(this);
     await this.#initializeManagers(engineInstance, modelInstance);
+    return modelInstance
   }
 
-  static async fieldsToString(
+  /**
+   * Compare this and another model to see if they are equal so we can create the migrations automatically for them. You see
+   * that we do not compare the fields, for the fields we have a hole set of `CRUD` operations if something changes there.
+   * So it doesn't matter if two models don't have the same set of fields, if the options are equal, then they are equal.
+   *
+   * @param model - The model to compare to the current model.
+   *
+   * @returns - Returns true if the models are equal and false otherwise.
+   */
+  async _compareModels(model: Model): Promise<boolean> {
+    return this.options.abstract === model.options.abstract &&
+      this.options.underscored === model.options.underscored &&
+      this.options.tableName === model.options.tableName &&
+      JSON.stringify(this.options.ordering) === JSON.stringify(model.options.ordering) &&
+      JSON.stringify(this.options.indexes) === JSON.stringify(model.options.indexes) &&
+      JSON.stringify(this.options.databases) === JSON.stringify(model.options.databases) &&
+      JSON.stringify(this.options.customOptions) === JSON.stringify(model.options.customOptions)
+  }
+
+  static async _fieldsToString(
     indentation: number = 0,
     fields: ModelFieldsType
   ): Promise<string> {
@@ -273,7 +306,7 @@ export default class Model {
       `${ident}}`;
   }
 
-  static async optionsToString(indentation: number = 0, options: ModelOptionsType) {
+  static async _optionsToString(indentation: number = 0, options: ModelOptionsType) {
     const ident = '  '.repeat(indentation);
     const optionsIndent = '  '.repeat(indentation + 1);
     const newOptions = {

@@ -8,7 +8,8 @@ import {
   DatabaseConfigurationType,
   FoundModelType,
   InitializedModelsType,
-  initializedEngineInstancesType,
+  InitializedEngineInstancesType,
+  InitializedEngineInstanceWithModelsType,
 } from "./types";
 import { DatabaseDomain } from "./domain";
 import { DatabaseNoEngineFoundError } from './exceptions';
@@ -22,7 +23,7 @@ import Migrations from "./migrations";
 class Databases {
   availableEngines = ['@palmares/sequelize-engine'];
   settings!: DatabaseSettingsType;
-  initializedEngineInstances: initializedEngineInstancesType = {};
+  initializedEngineInstances: InitializedEngineInstancesType = {};
   obligatoryModels: typeof Model[] = []
 
   /**
@@ -43,8 +44,9 @@ class Databases {
   }
 
   async makeMigrations(settings: DatabaseSettingsType, domains: DatabaseDomain[]) {
+    await this.init(settings, domains);
     const migrations = new Migrations(settings, domains)
-    await migrations.makeMigrations()
+    await migrations.makeMigrations(this.initializedEngineInstances)
   }
 
   /**
@@ -53,7 +55,7 @@ class Databases {
    * @param databaseName - The name of the database, not the name of the engine, and not the name of
    * the database in postgres or mysql or whatever. It's a 'magic' name that is used to identify the
    * engine and database.
-   * @param engine- Could be a string or a class directly, the string is the package that we need to
+   * @param engine - Could be a string or a class directly, the string is the package that we need to
    * import, the class is the engine class that we will be using.
    *
    * @returns - The engine class to use in the application.
@@ -78,7 +80,7 @@ class Databases {
    */
   async close(): Promise<void> {
     const initializedEngineEntries = Object.values(this.initializedEngineInstances);
-    const promises = initializedEngineEntries.map(async (engineInstance) => {
+    const promises = initializedEngineEntries.map(async ({ engineInstance }) => {
       await engineInstance.close();
     });
 
@@ -100,8 +102,9 @@ class Databases {
     const engine: typeof Engine = await this.getEngine(databaseName, databaseSettings.engine);
     const engineInstance: Engine = await engine.new(databaseName, databaseSettings);
 
-    if (await engineInstance.isConnected()) await this.initializeModels(engineInstance, models);
-    this.initializedEngineInstances[databaseName] = engineInstance;
+    if (await engineInstance.isConnected()) {
+      this.initializedEngineInstances[databaseName] = await this.initializeModels(engineInstance, models);
+    }
   }
 
   /**
@@ -118,17 +121,13 @@ class Databases {
   async initializeModels(
     engineInstance: Engine,
     projectModels: FoundModelType[]
-  ): Promise<{
-    engineInstance: Engine,
-    projectModels: InitializedModelsType[],
-    internalModels: InitializedModelsType[]
-  }> {
+  ): Promise<InitializedEngineInstanceWithModelsType> {
     const initializedProjectModels: InitializedModelsType[] = [];
     const initializedInternalModels: InitializedModelsType[] = [];
 
     for (const { domainPath, domainName, model} of projectModels) {
       const modelInstance = new model();
-      const initializedModel = await modelInstance.init(model, engineInstance, domainName, domainPath);
+      const initializedModel = await modelInstance._init(model, engineInstance, domainName, domainPath);
       initializedProjectModels.push({
         domainName,
         domainPath,
@@ -139,7 +138,7 @@ class Databases {
 
     for (const model of this.obligatoryModels) {
       const modelInstance = new model();
-      const initializedModel = await modelInstance.init(model, engineInstance, "", "");
+      const initializedModel = await modelInstance._init(model, engineInstance, "", "");
       initializedInternalModels.push({
         domainName: "",
         domainPath: "",
@@ -171,11 +170,14 @@ class Databases {
       if (hasGetModelsMethodDefined) {
         const models = await Promise.resolve(domain.getModels());
         models.forEach((model) => {
-          foundModels.push({
-            domainPath: domain.path,
-            domainName: domain.name,
-            model
-          });
+          const modelInstance = new model();
+          if (modelInstance.options.managed) {
+            foundModels.push({
+              domainPath: domain.path,
+              domainName: domain.name,
+              model
+            });
+          }
         });
       } else {
         const fullPath = path.join(domain.path, 'models');

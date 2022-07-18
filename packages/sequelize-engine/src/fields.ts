@@ -33,7 +33,7 @@ export default class SequelizeEngineFields extends EngineFields {
     [models.fields.ON_DELETE.RESTRICT]: 'RESTRICT',
     [models.fields.ON_DELETE.DO_NOTHING]: 'DO NOTHING'
   }
-  constructor(engineInstance: SequelizeEngine) {
+  constructor(engineInstance: SequelizeEngine<any>) {
     super(engineInstance);
     this.#initializedModels = engineInstance._initializedModels;
   }
@@ -58,14 +58,21 @@ export default class SequelizeEngineFields extends EngineFields {
 
   /**
    * Append the field to an array so we can evaluate this later after the model is defined.
+   *
+   * We append to the relatedTo model. So for example, we have User and we have Post. If Post is defined
+   * first an user is not defined, it's just after User is defined. That we will add the related field of
+   * 'Post' model to it. The problem, is: sometimes the otherway can occur: We have defined User already, but
+   * we need to wait until `Post` is defined to assign the related value, on this case the relatedTo will finish
    */
   async #addRelatedFieldToEvaluateAfter(
     field: models.fields.ForeignKeyField,
     fieldAttributes: ModelAttributeColumnOptions
   ) {
-    const relatedModelName = field.relatedTo
+    const isRelatedToModelAlreadyInitialized = this.#initializedModels[field.relatedTo];
+    const relatedModelName = isRelatedToModelAlreadyInitialized ? field.model.name : field.relatedTo;
     const isModelAlreadyInObject = this.#relatedFieldsToEvaluate[relatedModelName] !== undefined;
     if (isModelAlreadyInObject === false) this.#relatedFieldsToEvaluate[relatedModelName] = [];
+    this.#initializedModels[field.model.name];
     this.#relatedFieldsToEvaluate[relatedModelName].push({
       field: field,
       fieldAttributes: fieldAttributes
@@ -121,34 +128,13 @@ export default class SequelizeEngineFields extends EngineFields {
   }
 
   async #handleRelatedFieldsAfterModelCreation(modelName: string) {
-    const hasRelatedFieldsToEvaluateForModelName = Array.isArray(this.#relatedFieldsToEvaluate[modelName])
+    const hasRelatedFieldsToEvaluateForModelName = Array.isArray(this.#relatedFieldsToEvaluate[modelName]);
     if (hasRelatedFieldsToEvaluateForModelName) {
-      await Promise.all(
-        this.#relatedFieldsToEvaluate[modelName]
-        .map(({ field, fieldAttributes }) => this.#handleRelatedField(field, fieldAttributes))
+      this.#relatedFieldsToEvaluate[modelName] = await Promise.all(
+        this.#relatedFieldsToEvaluate[modelName].filter(
+          ({ field, fieldAttributes }) => this.#handleRelatedField(field, fieldAttributes)
+        )
       )
-    }
-  }
-
-  async #handleDefaultAttributes(
-    modelAttributes: ModelAttributeColumnOptions,
-    field: models.fields.Field
-  ): Promise<void> {
-    const isFieldAIndexOrIsFieldUnique = field.dbIndex === true || field.unique === true;
-    if (isFieldAIndexOrIsFieldUnique) await this.#appendIndexes(field);
-    if (modelAttributes.defaultValue === undefined)
-      modelAttributes.defaultValue = field.defaultValue;
-
-    modelAttributes.primaryKey = field.primaryKey;
-    modelAttributes.allowNull = field.allowNull;
-    modelAttributes.unique = field.unique;
-    modelAttributes.validate = { notNull: !field.allowNull };
-    modelAttributes.field = field.databaseName as string;
-
-    const customAttributesEntries = Object.entries(field.customAttributes);
-    for (const [key, value] of customAttributesEntries) {
-      const keyAsTypeofModelColumnOption = key as keyof ModelAttributeColumnOptions;
-      modelAttributes[keyAsTypeofModelColumnOption] = value as never;
     }
   }
 
@@ -160,6 +146,7 @@ export default class SequelizeEngineFields extends EngineFields {
     const relatedToModel: ModelCtor<Model> = this.#initializedModels[field.relatedTo] as ModelCtor<Model>;
     const isRelatedModelAndModelOfForeignDefined = relatedToModel !== undefined &&
       modelWithForeignKeyField !== undefined;
+
     if (isRelatedModelAndModelOfForeignDefined) {
       const translatedOnDelete: string = this.#onDeleteOperations[field.onDelete];
 
@@ -179,10 +166,30 @@ export default class SequelizeEngineFields extends EngineFields {
 
           relationOptions.as = relatedToLowerCased;
           modelWithForeignKeyField.belongsTo(relatedToModel, relationOptions);
-          return true;
-        default:
           return false;
       }
+    }
+    return true;
+  }
+
+  async #handleDefaultAttributes(
+    modelAttributes: ModelAttributeColumnOptions,
+    field: models.fields.Field
+  ): Promise<void> {
+    const isFieldAIndexOrIsFieldUnique = field.dbIndex === true || field.unique === true;
+    if (isFieldAIndexOrIsFieldUnique) await this.#appendIndexes(field);
+    if (modelAttributes.defaultValue === undefined)
+      modelAttributes.defaultValue = field.defaultValue;
+    modelAttributes.primaryKey = field.primaryKey;
+    modelAttributes.allowNull = field.allowNull;
+    modelAttributes.unique = field.unique;
+    modelAttributes.validate = { notNull: !field.allowNull };
+    modelAttributes.field = field.databaseName as string;
+
+    const customAttributesEntries = Object.entries(field.customAttributes);
+    for (const [key, value] of customAttributesEntries) {
+      const keyAsTypeofModelColumnOption = key as keyof ModelAttributeColumnOptions;
+      modelAttributes[keyAsTypeofModelColumnOption] = value as never;
     }
   }
 

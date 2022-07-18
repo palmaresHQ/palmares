@@ -1,12 +1,14 @@
 import { ERR_MODULE_NOT_FOUND, logging } from "@palmares/core";
 
 import { DatabaseDomain } from "../domain";
-import { DatabaseSettingsType } from "../types";
+import { DatabaseSettingsType, InitializedEngineInstancesType } from "../types";
 import { FoundMigrationsFileType, MigrationFileType } from './types';
 import { LOGGING_MIGRATIONS_NOT_FOUND } from "../utils";
 
 import path from "path";
 import fs from "fs";
+import State from "./state";
+import MakeMigrations from "./makemigrations/make-migrations";
 
 /**
  * Used for working with anything related to migrations inside of the project, from the automatic creation of migrations
@@ -21,9 +23,16 @@ export default class Migrations {
     this.domains = domains;
   }
 
-  async makeMigrations() {
+  async makeMigrations(initializedEngineInstances: InitializedEngineInstancesType) {
     const migrations = await this.#getMigrations();
-    console.log(migrations);
+    const initializedEngineInstancesEntries = Object.entries(initializedEngineInstances);
+    for (const [database, { engineInstance, projectModels }] of initializedEngineInstancesEntries) {
+      const filteredMigrationsOfDatabase = migrations.filter(migration => migration.migration.databases.includes(database));
+      const state = await State.buildState(filteredMigrationsOfDatabase);
+      const initializedState = await state.initializeModels(engineInstance);
+      const makemigrations = new MakeMigrations(projectModels, initializedState);
+      await makemigrations.run();
+    }
   }
 
   async #reorderMigrations(migrations: FoundMigrationsFileType[]): Promise<FoundMigrationsFileType[]> {
@@ -69,7 +78,7 @@ export default class Migrations {
           const promises = directoryFiles.map(async (element) => {
             const file = element as string;
             const migrationFile = (await import(path.join(fullPath, file))).default as MigrationFileType;
-            const isAValidMigrationFile = Array.isArray(migrationFile.engines) && Array.isArray(migrationFile.operations) &&
+            const isAValidMigrationFile = Array.isArray(migrationFile.databases) && Array.isArray(migrationFile.operations) &&
               typeof migrationFile.name === 'string';
             if (isAValidMigrationFile) {
               foundMigrations.push({

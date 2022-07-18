@@ -8,4 +8,5 @@ export default async function makeMigrations({ settings, domains }: DomainHandle
   const databaseSettings = defaultSettings(settings as DatabaseSettingsType);
   const databaseDomains = domains as DatabaseDomain[];
   await databases.makeMigrations(databaseSettings, databaseDomains);
+  process.exit(0);
 }
