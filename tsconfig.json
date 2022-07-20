@@ -15,7 +15,7 @@
 		"incremental": true,
 		"skipLibCheck": true,
 		"strict": true,
-		"forceConsistentCasingInFileNames": false,
+		"forceConsistentCasingInFileNames": true,
 		"noFallthroughCasesInSwitch": false,
 	}
 }

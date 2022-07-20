@@ -16,6 +16,7 @@ import { Field } from "./fields";
 import { BigAutoField } from "./fields";
 import Manager, { DefaultManager } from "./manager";
 import databases from "../databases";
+import { fields } from ".";
 
 /**
  * This class is used for initializing a model. This will work similar to django except that instead of
@@ -101,10 +102,14 @@ import databases from "../databases";
  * you can have the hole power of linting VSCode and other IDEs give you.
  */
 export default class Model {
-  [managers: string]: Manager | ModelFieldsType | ModelOptionsType<this> | typeof Model[] | string | boolean | Function;
-  fields: ModelFieldsType = {};
+  [managers: string]: Manager | ModelFieldsType |
+    ModelOptionsType<this> | typeof Model[] | string | string[] | boolean | Function;
+  fields: ModelFieldsType = {
+    id: new fields.AutoField()
+  };
   _fields!: ModelFields<this>;
   _isState: boolean = false;
+  _dependentOnModels: string[] = [];
   options!: ModelOptionsType<this>;
   abstracts: typeof Model[] = [];
   name!: string;

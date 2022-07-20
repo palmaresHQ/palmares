@@ -1,6 +1,6 @@
 import { NotImplementedException } from "./exceptions";
 
-import http from 'http';
+import { RequestListener } from 'http';
 import { SettingsType } from "../conf/types";
 
 /**
@@ -14,7 +14,7 @@ export default class Adapter {
      * Loads the adapter. For express for example this will be something like:
      * const app = express()
      */
-    async load(): Promise<http.RequestListener> {
+    async load(): Promise<RequestListener> {
       throw new NotImplementedException('load');
     }
 

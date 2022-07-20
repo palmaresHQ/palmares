@@ -81,6 +81,10 @@ export class Field<D = any, N extends boolean = boolean> {
       `${fieldParamsIdent}customAttributes: ${JSON.stringify(this.customAttributes)}\n` +
       `${ident}})`;
   }
+
+  async compare(field: Field): Promise<boolean> {
+    return true;
+  }
 }
 
 
@@ -133,12 +137,10 @@ export class IntegerField<
     defaultValue?: D;
     allowNull?: N;
   } & FieldDefaultParamsType = {}) {
+    super({...integerFieldParams});
     const isDefaultValueDefined: boolean = typeof integerFieldParams.defaultValue === 'number' ||
       integerFieldParams.defaultValue === null;
-    super({
-      ...integerFieldParams,
-      defaultValue: isDefaultValueDefined ? integerFieldParams.defaultValue: undefined
-    });
+    this.defaultValue = isDefaultValueDefined ? integerFieldParams.defaultValue: undefined;
   }
 }
 
@@ -153,12 +155,10 @@ export class BigIntegerField<
     defaultValue?: D;
     allowNull?: N;
   } & FieldDefaultParamsType = {}) {
+    super({...bigIntegerFieldParams});
     const isDefaultValueDefined: boolean = typeof bigIntegerFieldParams.defaultValue === 'number' ||
       bigIntegerFieldParams.defaultValue === null;
-    super({
-      ...bigIntegerFieldParams,
-      defaultValue: isDefaultValueDefined ? bigIntegerFieldParams.defaultValue: undefined
-    });
+    this.defaultValue = isDefaultValueDefined ? bigIntegerFieldParams.defaultValue: undefined;
   }
 }
 
@@ -175,12 +175,10 @@ export class DecimalField<
     defaultValue?: D;
     allowNull?: N;
   } & DecimalFieldParamsType = {}) {
+    super({...rest});
     const isDefaultValueDefined: boolean = typeof rest.defaultValue === 'number' ||
       rest.defaultValue === null;
-    super({
-      ...rest,
-      defaultValue: isDefaultValueDefined ? rest.defaultValue: undefined
-    });
+    this.defaultValue = isDefaultValueDefined ? rest.defaultValue: undefined;
     this.maxDigits = maxDigits;
     this.decimalPlaces = decimalPlaces;
   }
@@ -209,12 +207,10 @@ export class TextField<
     defaultValue?: D;
     allowNull?: N;
   } & TextFieldParamsType = {}) {
+    super({...rest});
     const isDefaultValueDefined: boolean = rest.defaultValue === 'string' ||
       rest.defaultValue === null;
-    super({
-      ...rest,
-      defaultValue: isDefaultValueDefined ? rest.defaultValue: undefined
-    });
+    this.defaultValue = isDefaultValueDefined ? rest.defaultValue: undefined;
     this.allowBlank = allowBlank;
   }
 
@@ -245,16 +241,13 @@ export class CharField<
     defaultValue?: D;
     allowNull?: N;
   } & CharFieldParamsType = {} as any) {
+    super({...rest});
     const defaultValueAsString = rest?.defaultValue as string;
     const isDefaultValueDefined: boolean = (
       defaultValueAsString === 'string' &&
       defaultValueAsString.length <= maxLength
     ) || defaultValueAsString === null;
-
-    super({
-      ...rest,
-      defaultValue: isDefaultValueDefined ? rest.defaultValue: undefined
-    });
+    this.defaultValue = isDefaultValueDefined ? rest.defaultValue: undefined
     this.allowBlank = allowBlank;
     this.maxLength = maxLength;
   }
@@ -287,8 +280,7 @@ export class UUIDField<
     defaultValue?: D;
     allowNull?: N;
   } & UUIDFieldParamsType = {} as any) {
-    const defaultValue = (autoGenerate ? '' : rest.defaultValue) as D;
-    super({ maxLength, defaultValue, ...rest });
+    super({ maxLength, defaultValue: (autoGenerate ? '' : rest.defaultValue) as D, ...rest });
     this.autoGenerate = autoGenerate;
   }
 
@@ -376,9 +368,11 @@ export class ForeignKeyField<
     const isRelatedToAndOnDeleteNotDefined = typeof this.relatedTo !== 'string' &&
       typeof this.onDelete !== 'string';
 
-    if (isRelatedToAndOnDeleteNotDefined) {
+    if (isRelatedToAndOnDeleteNotDefined)
       throw new ForeignKeyFieldRequiredParamsMissingError(this.fieldName);
-    }
+
+    // Appends to the model the other models this model is related to.
+    model._dependentOnModels.push(this.relatedTo);
 
     await super.init(engineInstance, fieldName, model);
     const isFromAStateModel: boolean = this.model._isState;
@@ -408,13 +402,3 @@ export class ForeignKeyField<
     );
   }
 }
-
-const userUuid = new ForeignKeyField({
-  relatedTo: 'User',
-  toField: 'uuid',
-  onDelete: ON_DELETE.CASCADE,
-  defaultValue: '123',
-  allowNull: true,
-});
-
-userUuid.allowNull

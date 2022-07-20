@@ -1,6 +1,7 @@
 import { ManagerInstancesType, ManagerEngineInstancesType } from "./types";
 import { ManagerEngineInstanceNotFoundError } from "./exceptions";
 import Engine from "../engine";
+import Model from "./model";
 
 export default class Manager<EI extends Engine | null = null> {
   instances: ManagerInstancesType;
@@ -24,6 +25,7 @@ export default class Manager<EI extends Engine | null = null> {
   _setInstance(engineName: string, instance: any) {
     const isDefaultEngineInstanceNameEmpty = this.defaultEngineInstanceName === '';
     if (isDefaultEngineInstanceNameEmpty) this.defaultEngineInstanceName = engineName;
+
     this.instances[engineName] = instance;
   }
 

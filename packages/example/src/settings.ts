@@ -1,15 +1,15 @@
-import path from 'path';
+import { dirname, resolve, join } from 'path';
 
-export const ENV = ![null, undefined, ''].includes(process.env.NODE_ENV) ?
-  process.env.NODE_ENV :
-  'development'
+export const ENV = typeof process.env.NODE_ENV === 'string' ? process.env.NODE_ENV :
+  'development';
+export const ADAPTER = '@palmares/express-adapter';
 export const DEBUG = ENV === 'development';
 export const PORT = 4000;
 export const SECRET_KEY = 'example-secret';
 export const APP_NAME = 'example';
 
-export const BASE_PATH = path.dirname(path.resolve(__dirname));
-export const ROOT_URLCONF = path.join(BASE_PATH, 'src', 'routes');
+export const BASE_PATH = dirname(resolve(__dirname));
+export const ROOT_URLCONF = join(BASE_PATH, 'src', 'routes');
 export const USE_TS = true;
 
 export const INSTALLED_DOMAINS = [
@@ -33,5 +33,6 @@ export const DATABASES = {
       }
     }
   }
-}
+};
+
 export const DATABASES_DISMISS_NO_MIGRATIONS_LOG = true;

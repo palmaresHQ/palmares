@@ -1,13 +1,13 @@
 import { Adapter, SettingsType } from "@palmares/core";
 
 import express, { Express } from "express";
-import http from 'http';
+import { RequestListener } from 'http';
 
 export default class ExpressAdapter extends Adapter {
   app!: Express;
   _app!: Express;
 
-  async load(): Promise<http.RequestListener> {
+  async load(): Promise<RequestListener> {
     this.app = express();
     return this.app
   }

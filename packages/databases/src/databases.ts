@@ -16,9 +16,9 @@ import { DatabaseNoEngineFoundError } from './exceptions';
 import Engine from "./engine";
 import { Model } from "./models";
 import { LOGGING_DATABASE_MODELS_NOT_FOUND } from './utils';
-
-import path from "path";
 import Migrations from "./migrations";
+
+import { join } from "path";
 
 class Databases {
   availableEngines = ['@palmares/sequelize-engine'];
@@ -180,7 +180,7 @@ class Databases {
           }
         });
       } else {
-        const fullPath = path.join(domain.path, 'models');
+        const fullPath = join(domain.path, 'models');
         try {
           const models = await import(fullPath);
           const modelsArray: typeof Model[] = Object.values(models);

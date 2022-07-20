@@ -4,11 +4,10 @@ import { DatabaseDomain } from "../domain";
 import { DatabaseSettingsType, InitializedEngineInstancesType } from "../types";
 import { FoundMigrationsFileType, MigrationFileType } from './types';
 import { LOGGING_MIGRATIONS_NOT_FOUND } from "../utils";
-
-import path from "path";
-import fs from "fs";
-import State from "./state";
 import MakeMigrations from "./makemigrations/make-migrations";
+
+import { join } from "path";
+import { Dirent, readdir } from "fs";
 
 /**
  * Used for working with anything related to migrations inside of the project, from the automatic creation of migrations
@@ -25,14 +24,7 @@ export default class Migrations {
 
   async makeMigrations(initializedEngineInstances: InitializedEngineInstancesType) {
     const migrations = await this.#getMigrations();
-    const initializedEngineInstancesEntries = Object.entries(initializedEngineInstances);
-    for (const [database, { engineInstance, projectModels }] of initializedEngineInstancesEntries) {
-      const filteredMigrationsOfDatabase = migrations.filter(migration => migration.migration.databases.includes(database));
-      const state = await State.buildState(filteredMigrationsOfDatabase);
-      const initializedState = await state.initializeModels(engineInstance);
-      const makemigrations = new MakeMigrations(projectModels, initializedState);
-      await makemigrations.run();
-    }
+    await MakeMigrations.buildAndRun(this.settings, migrations, initializedEngineInstances);
   }
 
   async #reorderMigrations(migrations: FoundMigrationsFileType[]): Promise<FoundMigrationsFileType[]> {
@@ -53,7 +45,7 @@ export default class Migrations {
     return reorderedMigrations;
   }
 
-  async #getMigrations() {
+  async #getMigrations(): Promise<FoundMigrationsFileType[]> {
     const foundMigrations: FoundMigrationsFileType[] = [];
     const promises: Promise<void>[] = this.domains.map(async (domain) => {
       const hasGetMigrationsMethodDefined = typeof domain.getMigrations === 'function';
@@ -67,18 +59,19 @@ export default class Migrations {
           });
         }
       } else {
-        const fullPath = path.join(domain.path, 'migrations');
+        const fullPath = join(domain.path, 'migrations');
         try {
-          const directoryFiles = await (new Promise<string[] | Buffer[] | fs.Dirent[]>((resolve, reject) => {
-            fs.readdir(fullPath, (error, data) => {
+          const directoryFiles = await (new Promise<string[] | Buffer[] | Dirent[]>((resolve, reject) => {
+            readdir(fullPath, (error, data) => {
               if (error) reject (error);
               resolve(data);
             });
           }));
           const promises = directoryFiles.map(async (element) => {
             const file = element as string;
-            const migrationFile = (await import(path.join(fullPath, file))).default as MigrationFileType;
-            const isAValidMigrationFile = Array.isArray(migrationFile.databases) && Array.isArray(migrationFile.operations) &&
+            const migrationFile = (await import(join(fullPath, file))).default as MigrationFileType;
+            const isAValidMigrationFile = typeof migrationFile === 'object' && migrationFile !== undefined &&
+              Array.isArray(migrationFile.databases) && Array.isArray(migrationFile.operations) &&
               typeof migrationFile.name === 'string';
             if (isAValidMigrationFile) {
               foundMigrations.push({

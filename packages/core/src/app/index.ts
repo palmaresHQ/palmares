@@ -5,7 +5,7 @@ import {
     ERR_MODULE_NOT_FOUND, LOGGING_APP_START_SERVER,
     LOGGING_APP_STOP_SERVER
 } from '../utils';
-import { AdapterNotFoundException } from './exceptions';
+import { AdapterNotFoundException, NotAValidAdapterException } from './exceptions';
 import Domain from '../domain';
 
 /**
@@ -35,15 +35,20 @@ export default class App {
    */
   async #init(domains: Domain[]): Promise<Adapter["_app"]> {
     try {
-      this.adapter = (await import(this.settings.ADAPTER))?.default;
+      const adapterClass = (await import(this.settings.ADAPTER))?.default as typeof Adapter;
+      const isAValidAdapter = adapterClass.prototype instanceof Adapter;
+      if (isAValidAdapter) {
+        this.adapter = new adapterClass();
+        const app = await this.adapter?.load()
 
-      const app = await this.adapter?.load()
+        await this.#initializeDomains(domains, app);
+        await this.#initializeRouters()
+        await this.#initializeMiddleware()
 
-      await this.#initializeDomains(domains, app);
-      await this.#initializeRouters()
-      await this.#initializeMiddleware()
-
-      return app;
+        return app;
+      } else {
+        throw new NotAValidAdapterException(this.settings.ADAPTER);
+      }
     } catch(e) {
       const error: any = e;
       if (error.code === ERR_MODULE_NOT_FOUND) {
@@ -93,11 +98,11 @@ export default class App {
    * initialize the a cleanup function when the server stops.
    */
   async run(domains: Domain[]): Promise<void> {
-    const app = await this.#init(domains)
+    await this.#init(domains)
 
     process.on('SIGINT', async () => {
-        await this.#cleanup()
-        process.exit(0)
+      await this.#cleanup();
+      process.exit(0);
     })
 
     await this.adapter?.init(this.settings, async () => {

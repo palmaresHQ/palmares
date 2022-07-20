@@ -12,6 +12,7 @@
   "dependencies": {
     "@palmares/databases": "*",
     "@palmares/core": "*",
+    "@palmares/express-adapter": "*",
     "pg": "^8.7.3"
   }
 }
