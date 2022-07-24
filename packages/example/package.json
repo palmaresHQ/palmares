@@ -6,7 +6,9 @@
   "author": "Nicolas Melo",
   "license": "MIT",
   "scripts": {
+    "start": "ts-node dist/manage.js dev",
     "dev": "ts-node manage.ts dev",
+    "test": "ts-node teste.ts",
     "makemigrations": "ts-node manage.ts makemigrations"
   },
   "dependencies": {

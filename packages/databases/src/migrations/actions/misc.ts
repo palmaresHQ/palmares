@@ -1,6 +1,6 @@
 import Engine from "../../engine";
 import Migration from "../migration";
-import { StateModelsType } from "../types";
+import { StateModelsConstructorType } from "../types";
 import { Operation } from "./operation";
 import { CodeFunctionType, MigrationFromAndToStateModelType } from "./types";
 
@@ -51,12 +51,17 @@ export class RunJs extends Operation {
     this.code = code;
   }
 
-  async run(migration: Migration, engineInstance: Engine, _: MigrationFromAndToStateModelType, toState: MigrationFromAndToStateModelType): Promise<void> {
-    const stateModels = {} as StateModelsType;
+  async run(
+    migration: Migration,
+    engineInstance: Engine,
+    _: MigrationFromAndToStateModelType,
+    toState: MigrationFromAndToStateModelType
+  ): Promise<void> {
+    const stateModels = {} as StateModelsConstructorType;
     const modelNamesAlreadyAvailable = Object.keys(toState);
     for (const modelName of modelNamesAlreadyAvailable) {
-      stateModels[modelName] = toState[modelName].original;
+      stateModels[modelName] = toState[modelName].class;
     }
-    await Promise.resolve(this.code(migration, engineInstance, stateModels));
+    await Promise.resolve(this.code(migration, engineInstance, stateModels as StateModelsConstructorType));
   }
 }

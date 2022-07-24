@@ -83,7 +83,15 @@ export class Field<D = any, N extends boolean = boolean> {
   }
 
   async compare(field: Field): Promise<boolean> {
-    return true;
+    return field.typeName === this.typeName &&
+      field.allowNull === this.allowNull &&
+      JSON.stringify(field.customAttributes) === JSON.stringify(this.customAttributes) &&
+      field.primaryKey === this.primaryKey &&
+      field.defaultValue === this.defaultValue &&
+      field.unique === this.unique &&
+      field.dbIndex === this.dbIndex &&
+      field.databaseName === this.databaseName &&
+      field.underscored === this.underscored
   }
 }
 
@@ -191,7 +199,15 @@ export class DecimalField<
       `${ident}decimalPlaces: ${this.decimalPlaces}`
     );
   }
+
+  async compare(field: Field): Promise<boolean> {
+    const fieldAsDecimal = field as DecimalField;
+    return (await super.compare(field)) &&
+      fieldAsDecimal.maxDigits === this.maxDigits &&
+      fieldAsDecimal.decimalPlaces === this.decimalPlaces;
+  }
 }
+
 export class TextField<
   D extends string | undefined = undefined,
   N extends boolean = false
@@ -219,7 +235,13 @@ export class TextField<
     const customParamsString = customParams ? `\n${customParams}`: '';
     return super.toString(
       indentation,
-      `${ident}allowBlank: ${this.allowBlank}` + customParamsString);
+      `${ident}allowBlank: ${this.allowBlank},` + customParamsString);
+  }
+
+  async compare(field: Field): Promise<boolean> {
+    const fieldAsText = field as TextField;
+    return (await super.compare(field)) &&
+      fieldAsText.allowBlank === this.allowBlank;
   }
 }
 
@@ -230,7 +252,6 @@ export class CharField<
   hasDefaultValue!: D extends undefined ? false : true;
   type!: string;
   typeName: string = CharField.name;
-  allowBlank: boolean;
   maxLength: number;
 
   constructor({
@@ -241,14 +262,15 @@ export class CharField<
     defaultValue?: D;
     allowNull?: N;
   } & CharFieldParamsType = {} as any) {
-    super({...rest});
+    super({
+      allowBlank: typeof allowBlank === 'boolean' ? allowBlank : true,
+      ...rest});
     const defaultValueAsString = rest?.defaultValue as string;
     const isDefaultValueDefined: boolean = (
       defaultValueAsString === 'string' &&
       defaultValueAsString.length <= maxLength
     ) || defaultValueAsString === null;
     this.defaultValue = isDefaultValueDefined ? rest.defaultValue: undefined
-    this.allowBlank = allowBlank;
     this.maxLength = maxLength;
   }
 
@@ -257,10 +279,15 @@ export class CharField<
     const customParamsString = customParams ? `\n${customParams}`: '';
     return super.toString(
       indentation,
-      `${ident}maxLength: ${this.maxLength},\n`+
-      `${ident}allowBlank: ${this.allowBlank}` +
+      `${ident}maxLength: ${this.maxLength},`+
       `${customParamsString}`
     );
+  }
+
+  async compare(field: Field): Promise<boolean> {
+    const fieldAsText = field as CharField;
+    return (await super.compare(field)) &&
+      fieldAsText.maxLength === this.maxLength;
   }
 }
 
@@ -280,7 +307,11 @@ export class UUIDField<
     defaultValue?: D;
     allowNull?: N;
   } & UUIDFieldParamsType = {} as any) {
-    super({ maxLength, defaultValue: (autoGenerate ? '' : rest.defaultValue) as D, ...rest });
+    super({
+      maxLength: typeof maxLength === 'number' ? maxLength : 36,
+      defaultValue: (autoGenerate ? '' : rest.defaultValue) as D,
+      ...rest
+    });
     this.autoGenerate = autoGenerate;
   }
 
@@ -289,11 +320,19 @@ export class UUIDField<
     const customParamsString = customParams ? `\n${customParams}`: '';
     return super.toString(
       indentation,
-      `${ident}autoGenerate: ${this.autoGenerate}${customParamsString}`
+      `${ident}autoGenerate: ${this.autoGenerate},${customParamsString}`
     );
+  }
+
+  async compare(field: Field): Promise<boolean> {
+    const fieldAsUUID = field as UUIDField;
+    return (await super.compare(field)) && fieldAsUUID.autoGenerate === this.autoGenerate;
   }
 }
 
+/**
+ * This field is used to hold only date values, not time, just dates.
+ */
 export class DateField<
   D extends string | Date | undefined = undefined,
   N extends boolean = false
@@ -319,8 +358,20 @@ export class DateField<
       `${ident}autoNow: ${this.autoNow},\n${ident}autoNowAdd: ${this.autoNowAdd}`
     );
   }
+
+  async compare(field: Field<any, boolean>): Promise<boolean> {
+    const fieldAsDate = field as DateField;
+    return (await super.compare(field)) && fieldAsDate.autoNow === this.autoNow &&
+      fieldAsDate.autoNowAdd === this.autoNowAdd;
+  }
 }
 
+/**
+ * This type of field is special and is supposed to hold foreign key references to another field of another model.
+ * Usually in relational databases like postgres we can have related fields like `user_id` inside of the table `posts`.
+ * What this means that each value in the column `user_id` is one of the ids of the `users` table. This means that we
+ * can use this value to join them together.
+ */
 export class ForeignKeyField<
   M extends Model = Model,
   F extends string = any,
@@ -394,11 +445,21 @@ export class ForeignKeyField<
     const ident = '  '.repeat(indentation + 1);
     return super.toString(
       indentation,
-      `${ident}relatedTo: ${this.relatedTo},\n` +
-      `${ident}toField: "${this.toField}"\n` +
-      `${ident}onDelete: "${this.onDelete}"\n` +
-      `${ident}customName: ${typeof this.customName === 'string' ? `"${this.customName}"` : this.customName}\n` +
-      `${ident}relatedName: ${typeof this._originalRelatedName === 'string' ? `"${this._originalRelatedName}"` : this._originalRelatedName}`
+      `${ident}relatedTo: "${this.relatedTo}",\n` +
+      `${ident}toField: "${this.toField}",\n` +
+      `${ident}onDelete: models.fields.ON_DELETE.${this.onDelete.toUpperCase()},\n` +
+      `${ident}customName: ${typeof this.customName === 'string' ? `"${this.customName}"` : this.customName},\n` +
+      `${ident}relatedName: ${typeof this._originalRelatedName === 'string' ? `"${this._originalRelatedName}",` : this._originalRelatedName}`
     );
+  }
+
+  async compare(field: Field): Promise<boolean> {
+    const fieldAsForeignKey = field as ForeignKeyField;
+    return (await super.compare(field)) &&
+      fieldAsForeignKey._originalRelatedName === this._originalRelatedName &&
+      fieldAsForeignKey.relatedTo === this.relatedTo &&
+      fieldAsForeignKey.toField === this.toField &&
+      fieldAsForeignKey.onDelete === this.onDelete &&
+      fieldAsForeignKey.customName === this.customName;
   }
 }

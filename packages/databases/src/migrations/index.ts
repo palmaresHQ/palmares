@@ -1,10 +1,10 @@
 import { ERR_MODULE_NOT_FOUND, logging } from "@palmares/core";
 
 import { DatabaseDomain } from "../domain";
-import { DatabaseSettingsType, InitializedEngineInstancesType } from "../types";
+import { DatabaseSettingsType, InitializedEngineInstancesType, OptionalMakemigrationsArgsType } from "../types";
 import { FoundMigrationsFileType, MigrationFileType } from './types';
 import { LOGGING_MIGRATIONS_NOT_FOUND } from "../utils";
-import MakeMigrations from "./makemigrations/make-migrations";
+import MakeMigrations from "./makemigrations";
 
 import { join } from "path";
 import { Dirent, readdir } from "fs";
@@ -22,9 +22,12 @@ export default class Migrations {
     this.domains = domains;
   }
 
-  async makeMigrations(initializedEngineInstances: InitializedEngineInstancesType) {
+  async makeMigrations(
+    initializedEngineInstances: InitializedEngineInstancesType,
+    optionalArgs: OptionalMakemigrationsArgsType
+  ) {
     const migrations = await this.#getMigrations();
-    await MakeMigrations.buildAndRun(this.settings, migrations, initializedEngineInstances);
+    await MakeMigrations.buildAndRun(this.settings, migrations, initializedEngineInstances, optionalArgs);
   }
 
   async #reorderMigrations(migrations: FoundMigrationsFileType[]): Promise<FoundMigrationsFileType[]> {
@@ -71,7 +74,7 @@ export default class Migrations {
             const file = element as string;
             const migrationFile = (await import(join(fullPath, file))).default as MigrationFileType;
             const isAValidMigrationFile = typeof migrationFile === 'object' && migrationFile !== undefined &&
-              Array.isArray(migrationFile.databases) && Array.isArray(migrationFile.operations) &&
+              typeof migrationFile.database === 'string' && Array.isArray(migrationFile.operations) &&
               typeof migrationFile.name === 'string';
             if (isAValidMigrationFile) {
               foundMigrations.push({

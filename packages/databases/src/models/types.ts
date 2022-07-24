@@ -54,7 +54,7 @@ type HasDefaultValueFields<M extends ModelFieldsType> = {
 }
 
 type OptionalFields<M extends Model> = {
-  [F in keyof HasDefaultValueFields<M['fields']>]?: AddNull<M['fields'][F]>
+  [F in keyof HasDefaultValueFields<M['fields']>]?: AddNull<M['fields'][F extends string ? F : never]>
 }
 
 type DoNotHaveDefaultValueFields<M extends ModelFieldsType> = {
@@ -62,7 +62,7 @@ type DoNotHaveDefaultValueFields<M extends ModelFieldsType> = {
 }
 
 type RequiredFields<M extends Model> = {
-  [F in keyof DoNotHaveDefaultValueFields<M["fields"]>]: AddNull<M['fields'][F]>
+  [F in keyof DoNotHaveDefaultValueFields<M["fields"]>]: AddNull<M['fields'][F extends string ? F : never]>
 }
 
 type AddNull<F extends Field<any, boolean>> = F['allowNull'] extends true ?

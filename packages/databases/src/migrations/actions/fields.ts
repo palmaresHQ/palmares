@@ -63,6 +63,12 @@ export class CreateField extends Operation {
       `${await data.data.fieldDefinition.toString(indentation)}`
     );
   }
+
+  static async describe(
+    data: ActionToGenerateType<CreateFieldToGenerateData>
+  ): Promise<string> {
+    return `Created the field '${data.data.fieldName}' on the '${data.modelName}' model`;
+  }
 }
 
 export class ChangeField extends Operation {
@@ -121,6 +127,12 @@ export class ChangeField extends Operation {
       `${await data.data.fieldDefinitionBefore.toString(indentation)},\n` +
       `${await data.data.fieldDefinitionAfter.toString(indentation)}`
     );
+  }
+
+  static async describe(
+    data: ActionToGenerateType<ChangeFieldToGenerateData>
+  ): Promise<string> {
+    return `Changed one of the attributes of the '${data.data.fieldName}' field on the '${data.modelName}' model`;
   }
 }
 
@@ -187,6 +199,12 @@ export class RenameField extends Operation {
       `${await data.data.fieldDefinition.toString(indentation)}`
     );
   }
+
+  static async describe(
+    data: ActionToGenerateType<RenameFieldToGenerateData>
+  ): Promise<string> {
+    return `Renamed the field '${data.data.fieldNameBefore}' to '${data.data.fieldNameAfter}' on the '${data.modelName}' model`;
+  }
 }
 
 export class DeleteField extends Operation {
@@ -237,5 +255,11 @@ export class DeleteField extends Operation {
       `${ident}"${data.modelName}",\n` +
       `${ident}"${data.data.fieldName}"`
     );
+  }
+
+  static async describe(
+    data: ActionToGenerateType<DeleteFieldToGenerateData>
+  ): Promise<string> {
+    return `Removed the field '${data.data.fieldName}' on the '${data.modelName}' model`;
   }
 }

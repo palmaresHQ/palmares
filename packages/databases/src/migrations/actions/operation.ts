@@ -50,7 +50,7 @@ export class Operation {
 
   static async defaultToGenerate<T>(domainName: string, domainPath: string, modelName: string, data: T): Promise<ActionToGenerateType<T>> {
     return {
-      action: this.name,
+      operation: this,
       domainName: domainName,
       domainPath: domainPath,
       modelName: modelName,
@@ -60,10 +60,18 @@ export class Operation {
     }
   }
 
+  static async toString(indentation: number=0, data: ActionToGenerateType<any>): Promise<string> {
+    return '';
+  }
+
   static async defaultToString(indentation: number = 0, customAttributesOfAction: string = ''): Promise<string> {
     const ident = '  '.repeat(indentation);
     return `${ident}new actions.${this.name}(`+
     `${customAttributesOfAction !== '' ?`\n${customAttributesOfAction}\n${ident}` : '' }`+
     `)`
+  }
+
+  static async describe(data: ActionToGenerateType<any>): Promise<string> {
+    return '';
   }
 }

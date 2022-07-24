@@ -46,14 +46,16 @@ export interface CharFieldParamsType extends FieldDefaultParamsType, TextFieldPa
   maxLength: number;
 };
 
-export interface UUIDFieldParamsType extends CharFieldParamsType {
+export interface UUIDFieldParamsType extends FieldDefaultParamsType, TextFieldParamsType {
   autoGenerate?: boolean;
+  maxLength?: number;
 }
 
 export type DateFieldParamsType= {
   autoNow?: boolean;
   autoNowAdd?: boolean;
 } & FieldDefaultParamsType
+
 
 export type ForeignKeyFieldParamsType = {
   onDelete: ON_DELETE;

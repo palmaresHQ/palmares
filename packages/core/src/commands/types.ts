@@ -6,7 +6,12 @@ export type DefaultCommandTypes = 'dev' | 'build' | 'test' | 'start' | 'help' | 
 export type DomainHandlerFunctionArgs = {
   settings: SettingsType;
   domains: Domain[];
-  args: string[]
+  args: {
+    positionalArgs: string[],
+    keywordArgs: {
+      [key: string]: any;
+    }
+  }
 }
 
 export type DefaultCommandType = {

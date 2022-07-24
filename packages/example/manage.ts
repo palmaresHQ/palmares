@@ -1,8 +1,6 @@
 import { Commands } from '@palmares/core';
 
-import { join } from 'path';
-
 Commands.handleCommands(
-  join(__dirname, 'src', 'settings.ts'),
+  import('./src/settings'),
   process.argv.slice(2)
 );

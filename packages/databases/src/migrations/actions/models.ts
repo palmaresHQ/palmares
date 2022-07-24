@@ -67,10 +67,15 @@ export class CreateModel extends Operation {
     return super.defaultToString(
       indentation-1,
       `${ident}"${data.modelName}",\n` +
-      `${ident}{\n` +
-      `${await Model._fieldsToString(indentation + 1, data.data.fields)}\n` +
-      `${ident}}`
+      `${await Model._fieldsToString(indentation, data.data.fields)},\n` +
+      `${await Model._optionsToString(indentation, data.data.options)}`
     );
+  }
+
+  static async describe(
+    data: ActionToGenerateType<CreateModelToGenerateData>
+  ): Promise<string> {
+    return `Create the model '${data.modelName}'`;
   }
 }
 
@@ -87,7 +92,11 @@ export class DeleteModel extends Operation {
     this.modelName = modelName;
   }
 
-  async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {
+  async stateForwards(
+    state: State,
+    domainName: string,
+    domainPath: string
+  ): Promise<void> {
     await state.remove(this.modelName);
   }
 
@@ -118,6 +127,10 @@ export class DeleteModel extends Operation {
       indentation-1,
       `${ident}"${data.modelName}"`
     );
+  }
+
+  static async describe(data: ActionToGenerateType<null>): Promise<string> {
+    return `Remove the model '${data.modelName}'`;
   }
 }
 
@@ -173,6 +186,12 @@ export class ChangeModel extends Operation {
       `${await Model._optionsToString(indentation, data.data.optionsAfter)}`
     );
   }
+
+  static async describe(
+    data: ActionToGenerateType<ChangeModelToGenerateData>
+  ): Promise<string> {
+    return `Changed one or more of the model '${data.modelName}' options`
+  }
 }
 
 /**
@@ -214,5 +233,11 @@ export class RenameModel extends Operation {
       `${ident}"${data.data.modelNameBefore}",\n` +
       `${ident}"${data.data.modelNameBefore}"`
     );
+  }
+
+  static async describe(
+    data: ActionToGenerateType<RenameModelToGenerateData>
+  ): Promise<string> {
+    return `Renamed the model '${data.data.modelNameBefore}' to '${data.data.modelNameAfter}'`
   }
 }

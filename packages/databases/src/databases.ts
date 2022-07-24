@@ -10,6 +10,7 @@ import {
   InitializedModelsType,
   InitializedEngineInstancesType,
   InitializedEngineInstanceWithModelsType,
+  OptionalMakemigrationsArgsType,
 } from "./types";
 import { DatabaseDomain } from "./domain";
 import { DatabaseNoEngineFoundError } from './exceptions';
@@ -43,10 +44,10 @@ class Databases {
     }
   }
 
-  async makeMigrations(settings: DatabaseSettingsType, domains: DatabaseDomain[]) {
+  async makeMigrations(settings: DatabaseSettingsType, domains: DatabaseDomain[], optionalArgs: OptionalMakemigrationsArgsType) {
     await this.init(settings, domains);
-    const migrations = new Migrations(settings, domains)
-    await migrations.makeMigrations(this.initializedEngineInstances)
+    const migrations = new Migrations(settings, domains);
+    await migrations.makeMigrations(this.initializedEngineInstances, optionalArgs);
   }
 
   /**
@@ -125,15 +126,18 @@ class Databases {
     const initializedProjectModels: InitializedModelsType[] = [];
     const initializedInternalModels: InitializedModelsType[] = [];
 
-    for (const { domainPath, domainName, model} of projectModels) {
+    for (const { domainPath, domainName, model } of projectModels) {
       const modelInstance = new model();
       const initializedModel = await modelInstance._init(model, engineInstance, domainName, domainPath);
-      initializedProjectModels.push({
-        domainName,
-        domainPath,
-        initialized: initializedModel,
-        original: modelInstance
-      });
+      if (modelInstance.options.databases?.includes(engineInstance.databaseName)) {
+        initializedProjectModels.push({
+          domainName,
+          domainPath,
+          class: model,
+          initialized: initializedModel,
+          original: modelInstance
+        });
+      }
     }
 
     for (const model of this.obligatoryModels) {
@@ -142,6 +146,7 @@ class Databases {
       initializedInternalModels.push({
         domainName: "",
         domainPath: "",
+        class: model,
         initialized: initializedModel,
         original: modelInstance
       });
@@ -188,9 +193,9 @@ class Databases {
           for (const model of modelsArray) {
             if (model.prototype instanceof Model) {
               foundModels.push({
-                  model,
-                  domainName: domain.name,
-                  domainPath: domain.path,
+                model,
+                domainName: domain.name,
+                domainPath: domain.path,
               })
             }
           }

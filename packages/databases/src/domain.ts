@@ -1,15 +1,14 @@
-import { Domain, logging, MessageCategories, DefaultCommandType, DomainReadyFunctionArgs, DomainHandlerFunctionArgs } from "@palmares/core"
+import {
+  Domain,
+  DefaultCommandType,
+  DomainReadyFunctionArgs,
+  DomainHandlerFunctionArgs
+} from "@palmares/core"
 
 import { Model } from "./models";
+import buildLogging from "./logging";
 import databases from "./databases";
 import { DatabaseSettingsType } from "./types";
-import {
-  LOGGING_DATABASE_MODELS_NOT_FOUND,
-  LOGGING_DATABASE_CLOSING,
-  LOGGING_DATABASE_IS_NOT_CONNECTED,
-  LOGGING_MIGRATIONS_NOT_FOUND,
-  LOGGING_NO_CHANGES_MADE_FOR_MIGRATIONS
-} from './utils';
 import { MigrationFileType } from "./migrations/types";
 import { makeMigrations } from "./commands";
 import defaultSettings from "./settings";
@@ -23,14 +22,13 @@ export class DatabaseDomain extends Domain {
     return [];
   }
 }
-
 export default class DatabasesDomain extends DatabaseDomain {
   commands: DefaultCommandType = {
     makemigrations: {
       description: 'Create the migrations automatically based on your created models',
       example: '',
       handler: async (options: DomainHandlerFunctionArgs) => {
-        await this.buildLogging();
+        await buildLogging();
         await makeMigrations(options);
       },
     }
@@ -40,52 +38,11 @@ export default class DatabasesDomain extends DatabaseDomain {
     super(DatabasesDomain.name, __dirname);
   }
 
-  async buildLogging() {
-    const defaultLoggingForDatabases = (message: string) => `\x1b[1m[databases]\x1b[0m ${message}`;
-    logging.appendMessage(
-      LOGGING_DATABASE_MODELS_NOT_FOUND,
-      MessageCategories.Warn,
-      async ({domainName}) =>  defaultLoggingForDatabases(`Looks like the domain ${domainName} did not define any models.`+
-      `\nIf that's not intended behavior, you should create the 'models.ts'/'models.js' file in the ${domainName} domain or ` +
-      `add the 'getModels' to the domain class.`)
-    );
-    logging.appendMessage(
-      LOGGING_DATABASE_CLOSING,
-      MessageCategories.Info,
-      async ({databaseName}) => defaultLoggingForDatabases(`Closing the '${databaseName}' database connection.`)
-    );
-    logging.appendMessage(
-      LOGGING_DATABASE_IS_NOT_CONNECTED,
-      MessageCategories.Info,
-      async ({databaseName}) => defaultLoggingForDatabases(`Couldn't connect to the '${databaseName}' database.`)
-    );
-    logging.appendMessage(
-      LOGGING_MIGRATIONS_NOT_FOUND,
-      MessageCategories.Warn,
-      async ({domainName}) => defaultLoggingForDatabases(`No migrations were found for the '${domainName}', if this is ` +
-      `your first time running this command, you can safely ignore this message.\n\nYou can fully dismiss this message ` +
-      `by setting 'DATABASES_DISMISS_NO_MIGRATIONS_LOG = true;' in 'settings.(ts/js)'`)
-    );
-    logging.appendMessage(
-      LOGGING_NO_CHANGES_MADE_FOR_MIGRATIONS,
-      MessageCategories.Info,
-      async () => defaultLoggingForDatabases(`No changes were found in your models.`)
-    )
-  }
-
   async ready({ settings, domains }: DomainReadyFunctionArgs<any, DatabaseSettingsType>): Promise<void> {
-    await this.buildLogging();
+    await buildLogging();
     const settingsWithDefault = defaultSettings(settings);
     const databaseDomains = domains as DatabaseDomain[];
     await databases.init(settingsWithDefault, databaseDomains);
-  }
-
-  async getModels(): Promise<(typeof Model)[]> {
-    return [];
-  }
-
-  async getMigrations(): Promise<MigrationFileType[]> {
-    return [];
   }
 
   async close(): Promise<void> {

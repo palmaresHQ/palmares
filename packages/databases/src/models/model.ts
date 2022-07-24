@@ -303,12 +303,14 @@ export default class Model {
       const field = allFields[i][1]
       const isLastField = i === allFields.length - 1;
       stringifiedFields.push(
-        `${fieldsIdent}${fieldName}: ${await field.toString(indentation + 2)},${isLastField ? '' : '\n'}`
+        `${fieldsIdent}${fieldName}: ${
+          (await field.toString(indentation + 1)).replace(new RegExp(`^${fieldsIdent}`), '')
+        },${isLastField ? '' : '\n'}`
       );
     }
     return `${ident}{\n` +
       `${stringifiedFields.join('')}` +
-      `${ident}}`;
+      `\n${ident}}`;
   }
 
   static async _optionsToString(indentation: number = 0, options: ModelOptionsType) {

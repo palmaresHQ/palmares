@@ -3,14 +3,15 @@ import { Field } from "../../models/fields";
 import { ModelFieldsType, ModelOptionsType } from "../../models/types";
 import { InitializedModelsType } from "../../types";
 import Migration from "../migration";
-import { StateModelsType } from "../types";
+import { StateModelsConstructorType } from "../types";
+import { Operation } from "./operation";
 
 export type MigrationFromAndToStateModelType = {
   [modelName: string]: InitializedModelsType
 }
 
 export type ActionToGenerateType<T> = {
-  action: string,
+  operation: typeof Operation,
   domainName: string,
   domainPath: string,
   modelName: string,
@@ -55,4 +56,4 @@ export type DeleteFieldToGenerateData = {
   fieldName: string;
 }
 
-export type CodeFunctionType = (migration: Migration, engineInstance: Engine, stateModels: StateModelsType) => Promise<void> | void;
+export type CodeFunctionType = (migration: Migration, engineInstance: Engine, stateModels: StateModelsConstructorType) => Promise<void> | void;

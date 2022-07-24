@@ -39,6 +39,7 @@ export type FoundModelType = {
 export type InitializedModelsType<M = any> = {
   domainName: string,
   domainPath: string,
+  class: typeof Model,
   initialized: M,
   original: Model
 }
@@ -48,4 +49,8 @@ export interface DatabaseSettingsType extends SettingsType {
     [key: string]: DatabaseConfigurationType<string, {}>
   }
   DATABASES_DISMISS_NO_MIGRATIONS_LOG: boolean;
+}
+
+export type OptionalMakemigrationsArgsType = {
+  empty?: string[] | string | boolean;
 }

@@ -1,4 +1,4 @@
-import { ModelFields, ModelFieldsType, ModelOptionsType, models } from '@palmares/databases';
+import { ModelOptionsType, models, ModelFields } from '@palmares/databases';
 
 export class Post extends models.Model {
   fields = {
@@ -10,16 +10,14 @@ export class Post extends models.Model {
     userUuid: new models.fields.ForeignKeyField({
       relatedTo: User,
       onDelete: models.fields.ON_DELETE.CASCADE,
-      toField: 'id'
+      toField: 'uuid'
     })
   }
 
   options: ModelOptionsType<this> = {
     tableName: 'post',
-    ordering: ['id'],
   }
 }
-
 
 export class User extends models.Model {
   fields = {
@@ -32,10 +30,11 @@ export class User extends models.Model {
       allowNull: true
     }),
     lastName: new models.fields.CharField({ maxLength: 255, allowNull: true }),
-    uuid: new models.fields.UUIDField({ autoGenerate: true, maxLength: 36 })
+    uuid: new models.fields.UUIDField({ autoGenerate: true })
   }
 
   options = {
-    tableName: 'user'
+    tableName: 'user',
   }
 }
+

@@ -44,11 +44,14 @@ class Configuration {
     };
   }
 
-  async loadConfiguration(settingsPath: string) {
-    const settingsModule = await this.#loadFromPathOrEnv(settingsPath);
-    if (settingsModule) {
-      this.mergeWithDefault(settingsModule);
-    }
+  async loadConfiguration(settingsOrSettingsPath: Promise<SettingsType> | SettingsType | string) {
+    const isSettingsAPath = typeof settingsOrSettingsPath === 'string';
+    let settingsModule = undefined;
+
+    if (isSettingsAPath) settingsModule = await this.#loadFromPathOrEnv(settingsOrSettingsPath as string);
+    else settingsModule = await Promise.resolve(settingsOrSettingsPath);
+
+    if (settingsModule) this.mergeWithDefault(settingsModule);
     return this.settings;
   }
 }

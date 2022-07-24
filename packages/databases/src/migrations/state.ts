@@ -16,13 +16,13 @@ export default class State {
    */
   async get(modelName: string): Promise<Model> {
     const model = this.modelsByName[modelName]
-    const doesModelExist = model instanceof Model;
-    if (doesModelExist) return model;
+    const doesModelExist = model && model.instance instanceof Model;
+    if (doesModelExist) return model.instance;
     else return await this.newModel(modelName);
   }
 
   async set(modelName: string, modifiedModel: Model) {
-    this.modelsByName[modelName] = modifiedModel;
+    this.modelsByName[modelName].instance = modifiedModel;
   }
 
   /**
@@ -39,10 +39,18 @@ export default class State {
    * model we will also run them.
    */
   async newModel(modelName: string): Promise<Model> {
-    const newModel = new Model();
+    const ModelClass = Model;
+    const expression = `return class State${modelName} extends ModelClass {}`;
+    const model = eval('(function() {' + expression + '}())');
+    //eval(`(function() { class State${modelName} extends Model {} })`)
+    //console.log(model);
+    const newModel = new model();
     newModel.name = modelName;
     newModel._isState = true;
-    this.modelsByName[modelName] = newModel;
+    this.modelsByName[modelName] = {
+      class: model,
+      instance: newModel
+    }
     return this.get(modelName);
   }
 
@@ -55,15 +63,16 @@ export default class State {
     const initializedStateModels: InitializedModelsType[] = [];
     for (const model of modelsInState) {
       initializedStateModels.push({
-        domainName: model.domainName,
-        domainPath: model.domainPath,
-        initialized: await model._init(
-          model.constructor,
+        domainName: model.instance.domainName,
+        domainPath: model.instance.domainPath,
+        class: model.class,
+        initialized: await model.instance._init(
+          model.class,
           engineInstance,
-          model.domainName,
-          model.domainPath,
+          model.instance.domainName,
+          model.instance.domainPath,
         ),
-        original: model
+        original: model.instance
       });
     }
     return initializedStateModels
