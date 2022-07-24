@@ -42,8 +42,6 @@ export default class State {
     const ModelClass = Model;
     const expression = `return class State${modelName} extends ModelClass {}`;
     const model = eval('(function() {' + expression + '}())');
-    //eval(`(function() { class State${modelName} extends Model {} })`)
-    //console.log(model);
     const newModel = new model();
     newModel.name = modelName;
     newModel._isState = true;
