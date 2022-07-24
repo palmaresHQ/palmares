@@ -1,6 +1,6 @@
 import DatabasesDomain from './domain';
 
-export { default as Engine, EngineFields, EngineMigrations } from './engine';
+export { default as Engine, EngineFields, EngineMigrations, EngineQuery } from './engine';
 export { DatabaseConfigurationType } from './types';
 export * as models from './models';
 export * from './models/types';

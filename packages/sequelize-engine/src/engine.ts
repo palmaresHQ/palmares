@@ -2,15 +2,17 @@ import {
   Engine,
   DatabaseConfigurationType,
   models,
-  ModelFields
+  ModelFields,
+  TModel
 } from "@palmares/databases";
 import { Sequelize, Dialect, Options, Op, Model, ModelCtor, Optional } from 'sequelize';
 
 import { InitializedModelsType } from "./types";
+import SequelizeEngineQuery from "./query";
 import SequelizeEngineFields from "./fields";
 import ModelTranslator from "./model";
 
-export default class SequelizeEngine<M extends models.Model = models.Model> extends Engine {
+export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
   #isConnected: boolean | null = null;
   #modelTranslator!: ModelTranslator;
   _initializedModels: InitializedModelsType<Model> = {};
@@ -52,7 +54,7 @@ export default class SequelizeEngine<M extends models.Model = models.Model> exte
   }
 
   constructor(databaseName: string, sequelizeInstance: Sequelize) {
-    super(databaseName);
+    super(databaseName, SequelizeEngineFields, SequelizeEngineQuery);
     this.fields = new SequelizeEngineFields(this);
     this.instance = sequelizeInstance;
     this.#modelTranslator = new ModelTranslator(this, this.fields);
@@ -105,7 +107,7 @@ export default class SequelizeEngine<M extends models.Model = models.Model> exte
   }
 
   async initializeModel(
-    model: models.Model
+    model: TModel
   ): Promise<ModelCtor<Model> | undefined> {
     const modelInstance = await this.#modelTranslator.translate(model);
     this._initializedModels[model.name] = modelInstance;

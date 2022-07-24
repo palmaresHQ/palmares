@@ -1,6 +1,6 @@
 import { FRAMEWORK_NAME, logging, Domain } from '@palmares/core';
 
-import { FieldOrModelParamType, OriginalOrStateModelsType } from './types';
+import { EmptyOptionsOnGenerateFilesType, FieldOrModelParamType, OriginalOrStateModelsType } from './types';
 import { FoundMigrationsFileType } from '../types';
 import {
   DatabaseSettingsType,
@@ -39,12 +39,20 @@ export default class MakeMigrations {
   #originalModelsByName!: OriginalOrStateModelsType;
   #stateModelsByName!: OriginalOrStateModelsType;
   settings: DatabaseSettingsType;
-
+  database: string;
+  filteredMigrationsOfDatabase: FoundMigrationsFileType[];
+  optionalArgs: OptionalMakemigrationsArgsType;
   constructor(
+    database: string,
     settings: DatabaseSettingsType,
     originalModels: InitializedModelsType[],
-    stateModels: InitializedModelsType[]
+    stateModels: InitializedModelsType[],
+    filteredMigrationsOfDatabase: FoundMigrationsFileType[],
+    optionalArgs: OptionalMakemigrationsArgsType
   ) {
+    this.database = database;
+    this.filteredMigrationsOfDatabase = filteredMigrationsOfDatabase;
+    this.optionalArgs = optionalArgs;
     this.settings = settings;
     this.modelsArrayToObjectByName(originalModels, stateModels);
   }
@@ -509,9 +517,10 @@ export default class MakeMigrations {
    * The automatic migrations are composed like so:
    * `{ordered number}_{database name}_auto_migration_{time when it was generated}`
    *
-   * @param database - The name of the database (one of the keys inside 'DATABASES' config in settings.ts/js)
    * @param operationsOfFile - All of the operations, in order, that we want to run inside of this migration.
    * @param domainPath - Where are we going to create this migration file.
+   * @param numberOfMigrations - (optional) - The number of migrations that were created in this single makemigrations
+   * run. This is useful so we can append the numbers accordingly.
    * @param lastMigrationName - (optional) - The last migration name that this depends on, most of them will have dependencies
    * on each one, except for the first one.
    * @param lastDomainPath - (optional) - Where the dependent migration was generated so we can look at it if we want to.
@@ -519,23 +528,21 @@ export default class MakeMigrations {
    * @returns - Returns the migration name automatically generated here in this function.
    */
   async #generateMigrationFile(
-    database: string,
     operationsOfFile: ActionToGenerateType<any>[],
     domainPath: string,
+    numberOfMigrations: number = 0,
     lastMigrationName: string = '',
     lastDomainPath: string = ''
   ) {
     const operationsAsString: string[] = [];
     const currentDate = new Date();
-    const lastMigrationMatch = lastMigrationName.match(/^\d+/);
-    const lastMigrationNumber = lastMigrationMatch ? parseInt(lastMigrationMatch[0]) : 0;
-    const migrationNumber = lastMigrationNumber + 1;
+    const migrationNumber = numberOfMigrations + 1;
     const migrationNumberToString = migrationNumber < 10 ? `00${migrationNumber}` :
       migrationNumber < 100 ? `0${migrationNumber}` : migrationNumber;
-    const migrationName = `${migrationNumberToString}_${database}_auto_migration_${Date.now().toString()}`;
+    const migrationName = `${migrationNumberToString}_${this.database}_auto_migration_${Date.now().toString()}`;
     logging.logMessage(LOGGING_MIGRATIONS_FILE_TITLE, { title: migrationName });
     logging.logMessage(LOGGING_MIGRATIONS_FILE_DESCRIPTION, {
-      database,
+      database: this.database,
       lastMigrationName,
       lastDomainPath
     });
@@ -552,7 +559,7 @@ export default class MakeMigrations {
     (this.settings?.USE_TS ? `import { models, actions } from "${PACKAGE_NAME}"; \n\n` :
     `const { models, actions } = require("${PACKAGE_NAME}");\n\n`) +
     (this.settings?.USE_TS ? `export default {\n` : `module.exports = {\n`) +
-    `  name: '${migrationName}',\n  database: "${database}",\n` +
+    `  name: '${migrationName}',\n  database: "${this.database}",\n` +
     `  dependsOn: "${lastMigrationName}",\n` +
     `  operations: [\n${operationsToString}\n  ]\n};\n`;
 
@@ -605,32 +612,26 @@ export default class MakeMigrations {
    * THat's exactly what we do in this function we merge operations related to the same domain in a single file so we
    * don't need one file for each operation.
    *
-   * @param database - Tha database name that we are generating this migration for. We need this so we are able
-   * to append to the file name and to the migration data.
    * @param operations - All of the operations that we need to run for this database. We will separate them to their files
    * inside of this method.
-   * @param filteredMigrationsOfDatabase - All of the previous migrations generated for this database. We only need this
-   * to get the names of the previous migrations.
-   * @param onDomain - (optional) - Creates a specific migration in an specific domain.
+   * @param emptyOptions - (optional) - Those are the custom options if the value is an empty migration. An empty
+   * migration is a migration file without any operations. This is preferred instead of creating the file by hand.
    *
    * @returns - Returns the last migration name.
    */
   async generateFiles(
-    database: string,
     operations: ActionToGenerateType<any>[],
-    filteredMigrationsOfDatabase: FoundMigrationsFileType[],
-    emptyOptions?: {
-      onDomain: string,
-      previousMigrationName?: string
-    }
+    emptyOptions?: EmptyOptionsOnGenerateFilesType
   ) {
-    const hasALastMigration = filteredMigrationsOfDatabase[filteredMigrationsOfDatabase.length - 1] !== undefined;
+    const lastMigrationIndex = this.filteredMigrationsOfDatabase.length - 1;
+    const hasALastMigration = this.filteredMigrationsOfDatabase[lastMigrationIndex] !== undefined;
     let previousDomainPath = operations[0] ? operations[0].domainPath : '';
     let lastDomainPath = hasALastMigration?
-      filteredMigrationsOfDatabase[filteredMigrationsOfDatabase.length - 1].domainPath : '';
+      this.filteredMigrationsOfDatabase[lastMigrationIndex].domainPath : '';
     let lastMigrationName = hasALastMigration ?
-      filteredMigrationsOfDatabase[filteredMigrationsOfDatabase.length - 1].migration.name :
+      this.filteredMigrationsOfDatabase[lastMigrationIndex].migration.name :
       '';
+    let numberOfMigrationFilesCreated = 0;
     let operationsOnFile: ActionToGenerateType<any>[] = [];
 
     for (let i=0; i<operations.length + 1; i++) {
@@ -640,14 +641,16 @@ export default class MakeMigrations {
 
       if (isLastOperationOrFromADifferentDomain) {
         const domainPath = operationsOnFile[0] ? operationsOnFile[0].domainPath : previousDomainPath;
+        const totalNumberOfMigrations = this.filteredMigrationsOfDatabase.length + numberOfMigrationFilesCreated;
         const migrationName = await this.#generateMigrationFile(
-          database,
           operationsOnFile,
           emptyOptions?.onDomain || domainPath,
+          totalNumberOfMigrations,
           emptyOptions?.previousMigrationName || lastMigrationName,
           emptyOptions?.onDomain || lastDomainPath
         );
 
+        numberOfMigrationFilesCreated++;
         lastDomainPath = domainPath;
         lastMigrationName = migrationName;
         operationsOnFile = [];
@@ -657,33 +660,35 @@ export default class MakeMigrations {
     return lastMigrationName;
   }
 
-  async _run(
-    database: string,
-    filteredMigrationsOfDatabase: FoundMigrationsFileType[],
-    optionalArgs: OptionalMakemigrationsArgsType
+  /**
+   * This will handle when the user wants to create an empty migration file without any operations in it.
+   *
+   * To create an empty migration file the user must define the domain name were he wants to add the migration,
+   * for example `AuthDomain`. By default this will create this empty migration file for all of the databases
+   * that he has but the user can define for which database does he want this empty migration to be created
+   * for by defining it like: `default:AuthDomain`. This guarantees that this migration will only exist for
+   * the `default` database.
+   *
+   * @param previousMigrationName - The last run migration so we can add the dependencies accordingly.
+   */
+  async #handleGenerateEmptyMigration(
+    previousMigrationName?: string
   ) {
-    let previousMigrationName: string | undefined = undefined;
-    const operations: ActionToGenerateType<any>[] = [];
-    await this.#getOperationsFromModelsOrFields(
-      this.#originalModelsByName, this.#stateModelsByName, 'model', operations
-    );
-    const didNotChangeAnythingInTheModels = operations.length === 0;
-    if (didNotChangeAnythingInTheModels) {
-      if (!optionalArgs?.empty) logging.logMessage(LOGGING_NO_CHANGES_MADE_FOR_MIGRATIONS);
-    } else {
-      const reorderedMigrations = await this.#reorderOperations(operations);
-      previousMigrationName = await this.generateFiles(database, reorderedMigrations, filteredMigrationsOfDatabase);
+    const isArgsAString = typeof this.optionalArgs?.empty === 'string';
+    const isToGenerateMigration = (domain: string) => {
+      const separatedArg = (this.optionalArgs.empty as string).split(':');
+      if (separatedArg.length > 1) {
+        return this.database === separatedArg[0] && domain === separatedArg[1]
+      }
+      return domain === this.optionalArgs.empty
     }
-
-    // Optional empty
-    if (optionalArgs?.empty) {
+    if (isArgsAString) {
       const domainClasses = await Domain.retrieveDomains(this.settings);
       for (const domainClass of domainClasses) {
         const domain = new domainClass();
-        const isDomainToGenerateFileTo = domain.name === optionalArgs?.empty;
-        if (isDomainToGenerateFileTo) {
+        if (isToGenerateMigration(domain.name)) {
           await this.generateFiles(
-            database, [], filteredMigrationsOfDatabase, {
+            [], {
               onDomain: domain.path,
               previousMigrationName
             }
@@ -692,6 +697,34 @@ export default class MakeMigrations {
         }
       }
     }
+  }
+
+  /**
+   * This is the main entrypoint for the `makemigrations` command. We run this function and the
+   * side effects run in order so we are able to retrieve the operations that we need to do in the database
+   * to match the changes that were made to the models.
+   *
+   * First we need to retrieve all of the operations, second we need to reorder those operations, and last but not least
+   * we generate the file.
+   * If the `makemigrations` has the `--empty` flag in it then we create an empty migration after every migration were
+   * created.
+   */
+  async _run() {
+    let previousMigrationName: string | undefined = undefined;
+    const operations: ActionToGenerateType<any>[] = [];
+    await this.#getOperationsFromModelsOrFields(
+      this.#originalModelsByName, this.#stateModelsByName, 'model', operations
+    );
+    const didNotChangeAnythingInTheModels = operations.length === 0;
+    if (didNotChangeAnythingInTheModels) {
+      if (!this.optionalArgs?.empty) logging.logMessage(LOGGING_NO_CHANGES_MADE_FOR_MIGRATIONS);
+    } else {
+      const reorderedMigrations = await this.#reorderOperations(operations);
+      previousMigrationName = await this.generateFiles(reorderedMigrations);
+    }
+
+    // Optional empty
+    if (this.optionalArgs?.empty) await this.#handleGenerateEmptyMigration(previousMigrationName);
   }
 
   static async buildAndRun(
@@ -703,12 +736,19 @@ export default class MakeMigrations {
     const initializedEngineInstancesEntries = Object.entries(initializedEngineInstances);
     for (const [database, { engineInstance, projectModels }] of initializedEngineInstancesEntries) {
       const filteredMigrationsOfDatabase = migrations.filter(migration =>
-        migration.migration.database === database
+        [database, '*'].includes(migration.migration.database)
       );
       const state = await State.buildState(filteredMigrationsOfDatabase);
       const initializedState = await state.initializeModels(engineInstance);
-      const makemigrations = new this(settings, projectModels, initializedState);
-      await makemigrations._run(database, filteredMigrationsOfDatabase, optionalArgs);
+      const makemigrations = new this(
+        database,
+        settings,
+        projectModels,
+        initializedState,
+        filteredMigrationsOfDatabase,
+        optionalArgs
+      );
+      await makemigrations._run();
     }
   }
 }

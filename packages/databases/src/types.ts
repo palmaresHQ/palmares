@@ -2,9 +2,10 @@ import { SettingsType, Domain } from "@palmares/core";
 
 import { Model } from "./models";
 import Engine from "./engine";
+import { TModel } from "./models/types";
 
 export interface DatabaseDomain extends Domain {
-  getModels(): Promise<Model[]> | Model[];
+  getModels(): Promise<TModel[]> | TModel[];
 }
 
 export interface DatabaseConfigurationType<DialectOptions, ExtraOptions> {
@@ -33,15 +34,15 @@ export type InitializedEngineInstanceWithModelsType = {
 export type FoundModelType = {
   domainName: string,
   domainPath: string,
-  model: typeof Model,
+  model: ReturnType<typeof Model>,
 }
 
 export type InitializedModelsType<M = any> = {
   domainName: string,
   domainPath: string,
-  class: typeof Model,
+  class: ReturnType<typeof Model>,
   initialized: M,
-  original: Model
+  original: TModel
 }
 
 export interface DatabaseSettingsType extends SettingsType {
@@ -52,5 +53,5 @@ export interface DatabaseSettingsType extends SettingsType {
 }
 
 export type OptionalMakemigrationsArgsType = {
-  empty?: string[] | string | boolean;
+  empty?: string;
 }

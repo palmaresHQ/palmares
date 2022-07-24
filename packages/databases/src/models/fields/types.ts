@@ -1,5 +1,3 @@
-import Model from "../model";
-
 export enum ON_DELETE {
   CASCADE = 'cascade',
   SET_NULL = 'set_null',

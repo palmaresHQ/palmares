@@ -1,5 +1,5 @@
 import State from "../state";
-import Migration from "../migration";
+import Migration from "../migrate/migration";
 import Engine from "../../engine";
 import { MigrationFromAndToStateModelType, ActionToGenerateType } from './types';
 

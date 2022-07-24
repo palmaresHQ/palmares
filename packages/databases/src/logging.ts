@@ -11,7 +11,6 @@ import {
   LOGGING_NO_CHANGES_MADE_FOR_MIGRATIONS
 } from './utils';
 
-
 export default async function buildLogging() {
   const defaultLoggingForDatabases = (message: string) => `\x1b[1m[databases]\x1b[0m ${message}`;
   logging.appendMessage(

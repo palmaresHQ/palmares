@@ -1,5 +1,5 @@
-import Engine from "../engine";
-import { Operation } from "./actions";
+import Engine from "../../engine";
+import { Operation } from "../actions";
 
 export default class Migration {
   dependsOn!: string;

@@ -2,7 +2,7 @@ import Engine from "../../engine";
 import { Field } from "../../models/fields";
 import { ModelFieldsType, ModelOptionsType } from "../../models/types";
 import { InitializedModelsType } from "../../types";
-import Migration from "../migration";
+import Migration from "../migrate/migration";
 import { StateModelsConstructorType } from "../types";
 import { Operation } from "./operation";
 

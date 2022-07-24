@@ -8,9 +8,9 @@ import {
   MigrationFromAndToStateModelType,
   ActionToGenerateType
 } from "./types";
-import Migration from "../migration";
+import Migration from "../migrate/migration";
 import State from "../state";
-import { Model } from "../../models";
+import { BaseModel } from "../../models";
 
 /**
  * This operation is used when you create a model in the application.
@@ -67,8 +67,8 @@ export class CreateModel extends Operation {
     return super.defaultToString(
       indentation-1,
       `${ident}"${data.modelName}",\n` +
-      `${await Model._fieldsToString(indentation, data.data.fields)},\n` +
-      `${await Model._optionsToString(indentation, data.data.options)}`
+      `${await BaseModel._fieldsToString(indentation, data.data.fields)},\n` +
+      `${await BaseModel._optionsToString(indentation, data.data.options)}`
     );
   }
 
@@ -182,8 +182,8 @@ export class ChangeModel extends Operation {
     return super.defaultToString(
       indentation-1,
       `${ident}"${data.modelName}",\n` +
-      `${await Model._optionsToString(indentation, data.data.optionsBefore)},\n` +
-      `${await Model._optionsToString(indentation, data.data.optionsAfter)}`
+      `${await BaseModel._optionsToString(indentation, data.data.optionsBefore)},\n` +
+      `${await BaseModel._optionsToString(indentation, data.data.optionsAfter)}`
     );
   }
 

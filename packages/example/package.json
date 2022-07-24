@@ -9,7 +9,8 @@
     "start": "ts-node dist/manage.js dev",
     "dev": "ts-node manage.ts dev",
     "test": "ts-node teste.ts",
-    "makemigrations": "ts-node manage.ts makemigrations"
+    "makemigrations": "ts-node manage.ts makemigrations",
+    "migrate": "ts-node manage.ts migrate"
   },
   "dependencies": {
     "@palmares/databases": "*",

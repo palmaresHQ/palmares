@@ -15,7 +15,7 @@ import {
 import { DatabaseDomain } from "./domain";
 import { DatabaseNoEngineFoundError } from './exceptions';
 import Engine from "./engine";
-import { Model } from "./models";
+import { Model, BaseModel } from "./models";
 import { LOGGING_DATABASE_MODELS_NOT_FOUND } from './utils';
 import Migrations from "./migrations";
 
@@ -25,7 +25,7 @@ class Databases {
   availableEngines = ['@palmares/sequelize-engine'];
   settings!: DatabaseSettingsType;
   initializedEngineInstances: InitializedEngineInstancesType = {};
-  obligatoryModels: typeof Model[] = []
+  obligatoryModels: ReturnType<typeof Model>[] = []
 
   /**
    * Initializes the database connection and load the models to their respective engines.
@@ -48,6 +48,12 @@ class Databases {
     await this.init(settings, domains);
     const migrations = new Migrations(settings, domains);
     await migrations.makeMigrations(this.initializedEngineInstances, optionalArgs);
+  }
+
+  async migrate(settings: DatabaseSettingsType, domains: DatabaseDomain[], optionalArgs: OptionalMakemigrationsArgsType) {
+    await this.init(settings, domains);
+    const migrations = new Migrations(settings, domains);
+    await migrations.migrate(this.initializedEngineInstances, optionalArgs);
   }
 
   /**
@@ -166,6 +172,9 @@ class Databases {
    * the `getModels` method. When this method is defined we bypass the lookup of the models in the `models`
    * file or folder, for complex projects you might want to use this method.
    *
+   * @param domains - The domains where we want to retrieve the models from. Those are all of the
+   * domains installed with INSTALLED_DOMAINS.
+   *
    * @returns - Returns an array of models.
    */
   async getModels(domains: DatabaseDomain[]) {
@@ -188,10 +197,10 @@ class Databases {
         const fullPath = join(domain.path, 'models');
         try {
           const models = await import(fullPath);
-          const modelsArray: typeof Model[] = Object.values(models);
+          const modelsArray: ReturnType<typeof Model>[] = Object.values(models);
 
           for (const model of modelsArray) {
-            if (model.prototype instanceof Model) {
+            if (model.prototype instanceof BaseModel) {
               foundModels.push({
                 model,
                 domainName: domain.name,

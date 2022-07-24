@@ -1,8 +1,7 @@
 import { Field } from "./fields";
-import Model from './model';
+import model, { Model }  from './model';
 import Manager from './manager';
 import { DatabaseSettingsType } from "../types";
-import { fields } from ".";
 
 export type ManagerInstancesType = {
   [engineName: string]: any;
@@ -13,7 +12,7 @@ export type ManagerEngineInstancesType = {
 }
 
 export type ModelFieldsType = {
-  [key: string]: Field<any, boolean>
+  [key: string | symbol]: Field<any, boolean>
 }
 
 export type ManagersOfInstanceType = {
@@ -48,6 +47,7 @@ export interface ModelType {
   instances?: Map<keyof DatabaseSettingsType["DATABASES"], any>;
 }
 
+export type TModel = InstanceType<ReturnType<typeof model>>
 
 type HasDefaultValueFields<M extends ModelFieldsType> = {
   [F in keyof M as M[F]['hasDefaultValue'] extends false ? never : F] : M[F]
@@ -55,6 +55,10 @@ type HasDefaultValueFields<M extends ModelFieldsType> = {
 
 type OptionalFields<M extends Model> = {
   [F in keyof HasDefaultValueFields<M['fields']>]?: AddNull<M['fields'][F extends string ? F : never]>
+}
+
+type AllOptionalFields<M extends Model> = {
+  [F in keyof M["fields"]]?: AddNull<M['fields'][F extends string ? F : never]>
 }
 
 type DoNotHaveDefaultValueFields<M extends ModelFieldsType> = {
@@ -65,8 +69,15 @@ type RequiredFields<M extends Model> = {
   [F in keyof DoNotHaveDefaultValueFields<M["fields"]>]: AddNull<M['fields'][F extends string ? F : never]>
 }
 
+type AllRequiredFields<M extends Model> = {
+  [F in keyof M["fields"]]: AddNull<M['fields'][F extends string ? F : never]>
+}
+
 type AddNull<F extends Field<any, boolean>> = F['allowNull'] extends true ?
   F['type'] | null : F['type']
 
 export type ModelFields<M extends Model> = RequiredFields<M> & OptionalFields<M>
 
+export type AllRequiredModelFields<M extends Model> = AllRequiredFields<M>;
+
+export type AllOptionalModelFields<M extends Model> = AllOptionalFields<M>;

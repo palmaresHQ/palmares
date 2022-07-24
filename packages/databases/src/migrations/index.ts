@@ -30,6 +30,14 @@ export default class Migrations {
     await MakeMigrations.buildAndRun(this.settings, migrations, initializedEngineInstances, optionalArgs);
   }
 
+  async migrate(
+    initializedEngineInstances: InitializedEngineInstancesType,
+    optionalArgs: OptionalMakemigrationsArgsType
+  ) {
+    const migrations = await this.#getMigrations();
+    console.log(migrations);
+  }
+
   async #reorderMigrations(migrations: FoundMigrationsFileType[]): Promise<FoundMigrationsFileType[]> {
     const reorderedMigrations = [];
     const reference: { [key: string]: number } = {};

@@ -9,7 +9,7 @@ import {
   RenameFieldToGenerateData,
   DeleteFieldToGenerateData
 } from "./types";
-import Migration from "../migration";
+import Migration from "../migrate/migration";
 import State from "../state";
 
 /**

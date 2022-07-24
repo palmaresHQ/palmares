@@ -14,6 +14,7 @@ import {
 import Engine from "../../engine";
 import Model from "../model";
 import { ForeignKeyFieldRequiredParamsMissingError } from "./exceptions";
+import { TModel } from "../types";
 
 export { ON_DELETE as ON_DELETE };
 
@@ -29,7 +30,7 @@ export class Field<D = any, N extends boolean = boolean> {
   underscored: boolean;
   typeName: string = Field.name;
   customAttributes: any | undefined | object | null;
-  model!: Model;
+  model!: TModel;
   fieldName!: string;
 
   constructor({
@@ -55,7 +56,7 @@ export class Field<D = any, N extends boolean = boolean> {
     this.customAttributes = customAttributes;
   }
 
-  async init(engineInstance: Engine, fieldName: string, model: Model) {
+  async init(engineInstance: Engine, fieldName: string, model: TModel) {
     const isUnderscored: boolean = (this.underscored || model.options.underscored) === true;
     this.fieldName = fieldName;
     this.model = model;
@@ -373,7 +374,7 @@ export class DateField<
  * can use this value to join them together.
  */
 export class ForeignKeyField<
-  M extends Model = Model,
+  M extends TModel = TModel,
   F extends string = any,
   D extends M["fields"][F]["type"] | undefined = undefined,
   N extends boolean = false
@@ -405,7 +406,7 @@ export class ForeignKeyField<
     let relatedToAsString: string = relatedTo as string;
     const isRelatedToNotAString: boolean = typeof relatedTo !== 'string';
     if (isRelatedToNotAString) {
-      relatedToAsString = (relatedTo as ClassConstructor<Model>).name;
+      relatedToAsString = (relatedTo as ClassConstructor<TModel>).name;
     }
 
     this.relatedTo = relatedToAsString;
@@ -415,7 +416,7 @@ export class ForeignKeyField<
     this.toField = toField;
   }
 
-  async init(engineInstance: Engine, fieldName: string, model: Model): Promise<void> {
+  async init(engineInstance: Engine, fieldName: string, model: TModel): Promise<void> {
     const isRelatedToAndOnDeleteNotDefined = typeof this.relatedTo !== 'string' &&
       typeof this.onDelete !== 'string';
 

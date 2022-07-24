@@ -1,4 +1,4 @@
-import { models } from "@palmares/databases";
+import { models, TModel } from "@palmares/databases";
 import { Sequelize, ModelOptions, ModelAttributeColumnOptions, Model, ModelStatic, ModelCtor, OrderItem } from "sequelize";
 
 import SequelizeEngine from "./engine";
@@ -20,7 +20,7 @@ export default class ModelTranslator {
     this.sequelize = engine.instance as Sequelize;
   }
 
-  async #translateOptions(model: models.Model): Promise<ModelOptions> {
+  async #translateOptions(model: TModel): Promise<ModelOptions> {
     const modelName = model.name;
     const options = model.options;
     const indexes = this.#indexes[modelName] ? this.#indexes[modelName] : [];
@@ -33,7 +33,7 @@ export default class ModelTranslator {
     };
   }
 
-  async #translateOrdering(originalModel: models.Model, translatedModel: ModelCtor<Model>) {
+  async #translateOrdering(originalModel: TModel, translatedModel: ModelCtor<Model>) {
     const translatedOrdering: OrderItem[] = (originalModel.options.ordering || [])?.map(order => {
       const orderAsString = order as string;
       const isDescending = orderAsString.startsWith('-');
@@ -47,7 +47,7 @@ export default class ModelTranslator {
     }
   }
 
-  async #translateFields(model: models.Model) {
+  async #translateFields(model: TModel) {
     let translatedFields: { [key: string]: ModelAttributeColumnOptions } = {};
     const fieldsEntries = Object.keys(model.fields);
     for (const fieldName of fieldsEntries) {
@@ -59,7 +59,7 @@ export default class ModelTranslator {
     return translatedFields;
   }
 
-  async translate(model: models.Model): Promise<ModelCtor<Model> | undefined> {
+  async translate(model: TModel): Promise<ModelCtor<Model> | undefined> {
     const translatedOptions = await this.#translateOptions(model);
     const translatedAttributes = await this.#translateFields(model);
 

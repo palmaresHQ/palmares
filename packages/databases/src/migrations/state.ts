@@ -1,7 +1,8 @@
 import { FoundMigrationsFileType, StateModelsType } from "./types";
-import Model from "../models/model";
+import model, { Model } from "../models/model";
 import { InitializedModelsType } from "../types";
 import Engine from "../engine";
+import { TModel } from "../models/types";
 
 export default class State {
   modelsByName: StateModelsType = {};
@@ -14,14 +15,14 @@ export default class State {
    *
    * @returns - Returns a model instance with all of the fields and options.
    */
-  async get(modelName: string): Promise<Model> {
+  async get(modelName: string): Promise<TModel> {
     const model = this.modelsByName[modelName]
     const doesModelExist = model && model.instance instanceof Model;
     if (doesModelExist) return model.instance;
     else return await this.newModel(modelName);
   }
 
-  async set(modelName: string, modifiedModel: Model) {
+  async set(modelName: string, modifiedModel: TModel) {
     this.modelsByName[modelName].instance = modifiedModel;
   }
 
@@ -39,14 +40,12 @@ export default class State {
    * model we will also run them.
    */
   async newModel(modelName: string): Promise<Model> {
-    const ModelClass = Model;
-    const expression = `return class State${modelName} extends ModelClass {}`;
-    const model = eval('(function() {' + expression + '}())');
-    const newModel = new model();
+    const ModelClass = class StateModel extends model() {};
+    const newModel = new ModelClass();
     newModel.name = modelName;
     newModel._isState = true;
     this.modelsByName[modelName] = {
-      class: model,
+      class: ModelClass,
       instance: newModel
     }
     return this.get(modelName);

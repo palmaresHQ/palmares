@@ -10,11 +10,11 @@ import buildLogging from "./logging";
 import databases from "./databases";
 import { DatabaseSettingsType } from "./types";
 import { MigrationFileType } from "./migrations/types";
-import { makeMigrations } from "./commands";
+import { makeMigrations, migrate } from "./commands";
 import defaultSettings from "./settings";
 
 export class DatabaseDomain extends Domain {
-  async getModels(): Promise<typeof Model[]> {
+  async getModels(): Promise<ReturnType<typeof Model>[]> {
     return [];
   }
 
@@ -22,6 +22,7 @@ export class DatabaseDomain extends Domain {
     return [];
   }
 }
+
 export default class DatabasesDomain extends DatabaseDomain {
   commands: DefaultCommandType = {
     makemigrations: {
@@ -31,6 +32,14 @@ export default class DatabasesDomain extends DatabaseDomain {
         await buildLogging();
         await makeMigrations(options);
       },
+    },
+    migrate: {
+      description: 'Run the pending migrations on your database',
+      example: '',
+      handler: async (options: DomainHandlerFunctionArgs) => {
+        await buildLogging();
+        await migrate(options);
+      }
     }
   }
 

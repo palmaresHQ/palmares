@@ -1,5 +1,5 @@
 import Engine from "../../engine";
-import Migration from "../migration";
+import Migration from "../migrate/migration";
 import { StateModelsConstructorType } from "../types";
 import { Operation } from "./operation";
 import { CodeFunctionType, MigrationFromAndToStateModelType } from "./types";

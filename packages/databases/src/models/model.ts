@@ -4,7 +4,8 @@ import {
   ModelOptionsType,
   ModelType,
   ModelFields,
-  ManagersOfInstanceType
+  ManagersOfInstanceType,
+  TModel
 } from "./types";
 import {
   ModelCircularAbstractError,
@@ -101,23 +102,22 @@ import { fields } from ".";
  * This way we can keep queries more concise and representative by just making functions. Also
  * you can have the hole power of linting VSCode and other IDEs give you.
  */
-export default class Model {
+
+export class Model<T = any> {
   [managers: string]: Manager | ModelFieldsType |
-    ModelOptionsType<this> | typeof Model[] | string | string[] | boolean | Function;
+    ModelOptionsType<T extends Model ? T : this> | typeof Model[] | string | string[] | boolean | Function;
   fields: ModelFieldsType = {
     id: new fields.AutoField()
   };
-  _fields!: ModelFields<this>;
+  _fields!: ModelFields<T extends Model ? T : this>;
   _isState: boolean = false;
   _dependentOnModels: string[] = [];
-  options!: ModelOptionsType<this>;
+  options!: ModelOptionsType<T extends Model ? T : this>;
   abstracts: typeof Model[] = [];
   name!: string;
   originalName!: string;
   domainName!: string;
   domainPath!: string;
-
-  static default = new DefaultManager()
 
   static readonly defaultOptions = {
     abstract: false,
@@ -144,11 +144,17 @@ export default class Model {
    */
   async #getManagers(instance: Model = this): Promise<ManagersOfInstanceType> {
     let managers: ManagersOfInstanceType = {};
-    const entriesOfInstance = Object.entries(instance);
-    for (const [key, value] of entriesOfInstance) {
-      if (value instanceof Manager) {
-        managers[key] = value;
+    let prototype = instance.constructor;
+    while (prototype) {
+      if (!(prototype.prototype instanceof Model)) break;
+      const propertyNamesOfModel = Object.getOwnPropertyNames(prototype);
+      for (const propName of propertyNamesOfModel) {
+        const value = (prototype as any)[propName];
+        if (value instanceof Manager) {
+          managers[propName] = value;
+        }
       }
+      prototype = Object.getPrototypeOf(prototype);
     }
     return managers;
   }
@@ -238,7 +244,9 @@ export default class Model {
   async #initializeManagers(engineInstance: Engine, modelInstance: any) {
     const managers: ManagersOfInstanceType = await this.#getManagers(this);
     const managerValues = Object.values(managers);
+
     for (const manager of managerValues) {
+      manager._setModel(this);
       manager._setInstance(engineInstance.databaseName, modelInstance);
       manager._setEngineInstance(engineInstance.databaseName, engineInstance);
     }
@@ -329,7 +337,7 @@ export default class Model {
       },\n` +
       `${optionsIndent}managed: ${newOptions.managed},\n` +
       `${optionsIndent}ordering: [${newOptions.ordering ?
-        newOptions.ordering?.map(field => `"${field}"`) :
+        newOptions.ordering?.map(field => `"${field as string}"`) :
           ''
         }],\n` +
       `${optionsIndent}indexes: [${newOptions.indexes ?
@@ -344,3 +352,10 @@ export default class Model {
       `${ident}}`;
   }
 }
+
+export default function model<M>() {
+  return class DefaultModel extends Model<M> {
+    static default = new DefaultManager< M extends Model ? M : Model>()
+  }
+}
+

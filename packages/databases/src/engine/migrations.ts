@@ -1,6 +1,6 @@
 import Engine from ".";
 import { Model } from "../models";
-import Migration from "../migrations/migration";
+import Migration from "../migrations/migrate/migration";
 import EngineFields from "./fields";
 import { InitializedModelsType } from "../types";
 import { Field } from "../models/fields";

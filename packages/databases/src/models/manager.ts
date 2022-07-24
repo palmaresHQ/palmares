@@ -1,17 +1,22 @@
-import { ManagerInstancesType, ManagerEngineInstancesType } from "./types";
+import { ManagerInstancesType, ManagerEngineInstancesType, ModelFields, AllOptionalModelFields, AllRequiredModelFields } from "./types";
 import { ManagerEngineInstanceNotFoundError } from "./exceptions";
 import Engine from "../engine";
-import Model from "./model";
+import { Model} from "./model";
 
-export default class Manager<EI extends Engine | null = null> {
+export default class Manager<M extends Model = Model, EI extends Engine | null = null> {
   instances: ManagerInstancesType;
   engineInstances: ManagerEngineInstancesType;
   defaultEngineInstanceName: string;
+  model!: M;
 
   constructor() {
     this.instances = {};
     this.engineInstances = {};
     this.defaultEngineInstanceName = '';
+  }
+
+  _setModel(model: M) {
+    this.model = model;
   }
 
   getInstance<T extends Engine = Engine>(engineName?: string): EI extends Engine ? EI["ModelType"] : T["ModelType"] {
@@ -33,15 +38,19 @@ export default class Manager<EI extends Engine | null = null> {
     let engineInstanceName: string = engineName || this.defaultEngineInstanceName;
     const doesInstanceExists = this.engineInstances[engineInstanceName] !== undefined;
     if (doesInstanceExists) return this.engineInstances[engineInstanceName];
-
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }
 
   _setEngineInstance(engineName: string, instance: Engine) {
+    console.log(engineName);
     const isDefaultEngineInstanceNameEmpty = this.defaultEngineInstanceName === '';
     if (isDefaultEngineInstanceNameEmpty) this.defaultEngineInstanceName = engineName;
     this.engineInstances[engineName] = instance;
   }
+
+  async get(search?: AllOptionalModelFields<M>, engineName?: string): Promise<AllRequiredModelFields<M>[] | null> {
+    return this.getEngineInstance().query.get<M>(this.getInstance(engineName), search);
+  }
 }
 
-export class DefaultManager extends Manager<null> {}
+export class DefaultManager<M extends Model> extends Manager<M, null> {}

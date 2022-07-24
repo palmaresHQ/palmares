@@ -1,6 +1,6 @@
-import { ModelOptionsType, models, ModelFields } from '@palmares/databases';
+import { models } from '@palmares/databases';
 
-export class Post extends models.Model {
+export class Post extends models.Model<Post>() {
   fields = {
     id: new models.fields.AutoField(),
     number: new models.fields.IntegerField({
@@ -14,12 +14,12 @@ export class Post extends models.Model {
     })
   }
 
-  options: ModelOptionsType<this> = {
+  options = {
     tableName: 'post',
   }
 }
 
-export class User extends models.Model {
+export class User extends models.Model<User>() {
   fields = {
     id: new models.fields.AutoField(),
     firstName: new models.fields.CharField({ maxLength: 255 }),
@@ -37,4 +37,3 @@ export class User extends models.Model {
     tableName: 'user',
   }
 }
-

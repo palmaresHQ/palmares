@@ -1,4 +1,4 @@
-import { logging, MessageCategories } from '@palmares/core';
+import { logging } from '@palmares/core';
 
 import { NotImplementedEngineException } from "./exceptions";
 import { DatabaseConfigurationType } from "../types";
@@ -6,7 +6,8 @@ import { LOGGING_DATABASE_IS_NOT_CONNECTED, LOGGING_DATABASE_CLOSING } from "../
 import { EngineType } from "./types";
 import EngineFields from "./fields";
 import EngineMigrations from './migrations';
-import { Model } from "../models";
+import EngineQuery from './query';
+import { Model } from '../models/model';
 
 /**
  * Instead of creating our own ORM for the framework we wrap any orm we want to use inside of this class. This allow
@@ -15,13 +16,16 @@ import { Model } from "../models";
  */
 export default class Engine implements EngineType {
   databaseName!: string;
-  fields!: EngineFields;
+  fields: EngineFields;
+  query: EngineQuery;
   migrations!: EngineMigrations;
   ModelType: any;
   instance: any;
 
-	constructor(databaseName: string) {
+	constructor(databaseName: string, fields: typeof EngineFields, query: typeof EngineQuery) {
     this.databaseName = databaseName;
+    this.fields = new fields(this);
+    this.query = new query(this);
 	}
 
 	/**
@@ -53,4 +57,4 @@ export default class Engine implements EngineType {
   async transaction() {}
 }
 
-export { EngineFields, EngineMigrations };
+export { EngineQuery, EngineFields, EngineMigrations };

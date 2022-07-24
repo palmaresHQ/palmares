@@ -1,15 +1,16 @@
 import Model from "../models/model"
+import { TModel } from "../models/types";
 import { Operation } from "./actions";
 
 export type StateModelsType = {
   [modelName: string]: {
-    class: typeof Model;
-    instance: Model;
+    class: ReturnType<typeof Model>;
+    instance: TModel;
   }
 }
 
 export type StateModelsConstructorType = {
-  [modelName: string]: typeof Model;
+  [modelName: string]: ReturnType<typeof Model>;
 }
 
 export type MigrationFileType = {
