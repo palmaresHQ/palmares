@@ -1,3 +1,5 @@
+import Engine, { EngineFields } from "../../engine";
+
 export enum ON_DELETE {
   CASCADE = 'cascade',
   SET_NULL = 'set_null',
@@ -16,6 +18,16 @@ export enum FieldTypes {
   CharField = 'Char',
   TextField = 'Text',
   ForeignKeyField = 'ForeignKey'
+}
+
+export type CustomImportsForFieldType = {
+  packageName: string;
+  value: `{ ${string} }` | `* as ${string}` | `{ default as ${string} }`;
+};
+
+export interface TranslatableFieldType {
+  translate?(engine: Engine, engineFields: EngineFields): Promise<any>,
+  toString(indentation: number, customParams: string | undefined): Promise<string>;
 }
 
 export type ClassConstructor<T> = {
@@ -60,7 +72,3 @@ export type ForeignKeyFieldParamsType = {
   customName?: string;
   relatedName?: string;
 } & FieldDefaultParamsType
-
-
-
-

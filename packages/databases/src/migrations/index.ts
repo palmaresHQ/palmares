@@ -8,6 +8,7 @@ import MakeMigrations from "./makemigrations";
 
 import { join } from "path";
 import { Dirent, readdir } from "fs";
+import Migrate from "./migrate";
 
 /**
  * Used for working with anything related to migrations inside of the project, from the automatic creation of migrations
@@ -35,7 +36,7 @@ export default class Migrations {
     optionalArgs: OptionalMakemigrationsArgsType
   ) {
     const migrations = await this.#getMigrations();
-    console.log(migrations);
+    await Migrate.buildAndRun(this.settings, migrations, initializedEngineInstances);
   }
 
   async #reorderMigrations(migrations: FoundMigrationsFileType[]): Promise<FoundMigrationsFileType[]> {

@@ -1,6 +1,6 @@
 import Engine from ".";
 import { EngineFieldsType } from "./types";
-import { Field } from "../models/fields";
+import { Field, TranslatableField } from "../models/fields";
 
 /**
  * This works as a storage and transformer for all of the fields. First we have the `set` method
@@ -18,4 +18,21 @@ export default class EngineFields implements EngineFieldsType {
 	async set(field: Field): Promise<void> {
 		this.fields.set(field.fieldName, field);
 	}
+
+  async get(fieldName: string) {
+    const field = this.fields.get(fieldName);
+    const hasTranslateHandler = typeof (field as TranslatableField).translate === 'function';
+    if (hasTranslateHandler) {
+      const fieldAsTranslatable = (field as TranslatableField);
+      return {
+        wasTranslated: true,
+        value: fieldAsTranslatable.translate ? fieldAsTranslatable.translate(this.engineInstance, this) : null
+      };
+    } else {
+      return {
+        wasTranslated: false,
+        value: field
+      }
+    }
+  }
 }

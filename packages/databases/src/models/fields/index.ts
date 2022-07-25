@@ -10,13 +10,14 @@ import {
   TextFieldParamsType,
   ForeignKeyFieldParamsType,
   UUIDFieldParamsType,
+  CustomImportsForFieldType
 } from "./types";
-import Engine from "../../engine";
-import Model from "../model";
+import Engine, { EngineFields } from "../../engine";
 import { ForeignKeyFieldRequiredParamsMissingError } from "./exceptions";
 import { TModel } from "../types";
 
 export { ON_DELETE as ON_DELETE };
+
 
 export class Field<D = any, N extends boolean = boolean> {
   hasDefaultValue!: D extends undefined ? false : true;
@@ -67,7 +68,7 @@ export class Field<D = any, N extends boolean = boolean> {
     await engineInstance.fields.set(this as Field);
   }
 
-  async toString(indentation: number = 0, customParams: string | undefined = undefined) {
+  async toString(indentation: number = 0, customParams: string | undefined = undefined): Promise<string> {
     const ident = '  '.repeat(indentation);
     const fieldParamsIdent = '  '.repeat(indentation + 1);
     return `${ident}new models.fields.${this.constructor.name}({`+
@@ -81,6 +82,10 @@ export class Field<D = any, N extends boolean = boolean> {
       `${fieldParamsIdent}underscored: ${this.underscored},\n` +
       `${fieldParamsIdent}customAttributes: ${JSON.stringify(this.customAttributes)}\n` +
       `${ident}})`;
+  }
+
+  async customImports(): Promise<CustomImportsForFieldType[]> {
+    return [];
   }
 
   async compare(field: Field): Promise<boolean> {
@@ -462,5 +467,11 @@ export class ForeignKeyField<
       fieldAsForeignKey.toField === this.toField &&
       fieldAsForeignKey.onDelete === this.onDelete &&
       fieldAsForeignKey.customName === this.customName;
+  }
+}
+
+export class TranslatableField extends Field {
+  async translate(engine: Engine, engineFields: EngineFields): Promise<any> {
+    return undefined;
   }
 }

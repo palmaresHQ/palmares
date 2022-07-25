@@ -6,7 +6,8 @@ import {
   ChangeModelToGenerateData,
   RenameModelToGenerateData,
   MigrationFromAndToStateModelType,
-  ActionToGenerateType
+  ActionToGenerateType,
+  ToStringFunctionReturnType
 } from "./types";
 import Migration from "../migrate/migration";
 import State from "../state";
@@ -62,14 +63,18 @@ export class CreateModel extends Operation {
   static async toString(
     indentation: number = 0,
     data: ActionToGenerateType<CreateModelToGenerateData>
-  ): Promise<string> {
+  ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
-    return super.defaultToString(
-      indentation-1,
-      `${ident}"${data.modelName}",\n` +
-      `${await BaseModel._fieldsToString(indentation, data.data.fields)},\n` +
-      `${await BaseModel._optionsToString(indentation, data.data.options)}`
-    );
+    const { asString: fieldsAsString, customImports } = await BaseModel._fieldsToString(indentation, data.data.fields);
+    return {
+      asString: await super.defaultToString(
+        indentation-1,
+        `${ident}"${data.modelName}",\n` +
+        `${fieldsAsString},\n` +
+        `${await BaseModel._optionsToString(indentation, data.data.options)}`
+      ),
+      customImports: customImports
+    };
   }
 
   static async describe(
@@ -121,12 +126,14 @@ export class DeleteModel extends Operation {
   static async toString(
     indentation: number = 0,
     data: ActionToGenerateType<null>
-  ): Promise<string> {
+  ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
-    return super.defaultToString(
-      indentation-1,
-      `${ident}"${data.modelName}"`
-    );
+    return {
+      asString: await super.defaultToString(
+        indentation-1,
+        `${ident}"${data.modelName}"`
+      )
+    };
   }
 
   static async describe(data: ActionToGenerateType<null>): Promise<string> {
@@ -177,14 +184,16 @@ export class ChangeModel extends Operation {
   static async toString(
     indentation: number = 0,
     data: ActionToGenerateType<ChangeModelToGenerateData>
-  ): Promise<string> {
+  ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
-    return super.defaultToString(
-      indentation-1,
-      `${ident}"${data.modelName}",\n` +
-      `${await BaseModel._optionsToString(indentation, data.data.optionsBefore)},\n` +
-      `${await BaseModel._optionsToString(indentation, data.data.optionsAfter)}`
-    );
+    return {
+      asString: await super.defaultToString(
+        indentation-1,
+        `${ident}"${data.modelName}",\n` +
+        `${await BaseModel._optionsToString(indentation, data.data.optionsBefore)},\n` +
+        `${await BaseModel._optionsToString(indentation, data.data.optionsAfter)}`
+      )
+    };
   }
 
   static async describe(
@@ -226,13 +235,15 @@ export class RenameModel extends Operation {
   static async toString(
     indentation: number = 0,
     data: ActionToGenerateType<RenameModelToGenerateData>
-  ): Promise<string> {
+  ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
-    return super.defaultToString(
-      indentation-1,
-      `${ident}"${data.data.modelNameBefore}",\n` +
-      `${ident}"${data.data.modelNameBefore}"`
-    );
+    return {
+      asString: await super.defaultToString(
+        indentation-1,
+        `${ident}"${data.data.modelNameBefore}",\n` +
+        `${ident}"${data.data.modelNameBefore}"`
+      )
+    };
   }
 
   static async describe(

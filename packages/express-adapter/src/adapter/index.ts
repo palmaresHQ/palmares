@@ -13,7 +13,7 @@ export default class ExpressAdapter extends Adapter {
   }
 
   async init(settings: SettingsType, callback: () => Promise<void>) {
-    this.app.listen(settings.PORT, callback)
+    this.app.listen(settings.PORT, callback);
   }
 
   async configureRoutes(rootUrlconf: string): Promise<void> {

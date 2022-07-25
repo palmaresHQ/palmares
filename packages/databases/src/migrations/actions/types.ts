@@ -1,5 +1,6 @@
 import Engine from "../../engine";
 import { Field } from "../../models/fields";
+import { CustomImportsForFieldType } from "../../models/fields/types";
 import { ModelFieldsType, ModelOptionsType } from "../../models/types";
 import { InitializedModelsType } from "../../types";
 import Migration from "../migrate/migration";
@@ -57,3 +58,8 @@ export type DeleteFieldToGenerateData = {
 }
 
 export type CodeFunctionType = (migration: Migration, engineInstance: Engine, stateModels: StateModelsConstructorType) => Promise<void> | void;
+
+export type ToStringFunctionReturnType = {
+  asString: string;
+  customImports?: CustomImportsForFieldType[];
+}

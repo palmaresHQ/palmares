@@ -1,6 +1,6 @@
 import { AllOptionalModelFields, AllRequiredModelFields, EngineQuery, ModelFields, TModel } from '@palmares/databases';
 
-import { ModelCtor, Model, Attributes, WhereOptions, CreateOptions, CreationAttributes } from 'sequelize/types';
+import { ModelCtor, Model, Attributes, WhereOptions, CreationAttributes } from 'sequelize/types';
 import { Col, Fn, Literal } from 'sequelize/types/utils';
 
 export default class SequelizeEngineQuery extends EngineQuery {

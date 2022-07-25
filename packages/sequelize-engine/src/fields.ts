@@ -1,4 +1,5 @@
 import { EngineFields, models } from "@palmares/databases";
+
 import {
   DataTypes,
   ModelAttributeColumnOptions,
@@ -22,6 +23,7 @@ import {
  */
 export default class SequelizeEngineFields extends EngineFields {
   engineInstance!: SequelizeEngine;
+  fieldAttributes: { [key: string]: ModelAttributeColumnOptions };
   #dateFieldsAsAutoNowToAddHooks = new Map<string, string[]>()
   #initializedModels: InitializedModelsType<Model>;
   #indexes: ModelTranslatorIndexesType = {};
@@ -33,9 +35,11 @@ export default class SequelizeEngineFields extends EngineFields {
     [models.fields.ON_DELETE.RESTRICT]: 'RESTRICT',
     [models.fields.ON_DELETE.DO_NOTHING]: 'DO NOTHING'
   }
+
   constructor(engineInstance: SequelizeEngine<any>) {
     super(engineInstance);
     this.#initializedModels = engineInstance._initializedModels;
+    this.fieldAttributes = {};
   }
 
   /**
@@ -172,7 +176,7 @@ export default class SequelizeEngineFields extends EngineFields {
     return true;
   }
 
-  async #handleDefaultAttributes(
+  async handleDefaultAttributes(
     modelAttributes: ModelAttributeColumnOptions,
     field: models.fields.Field
   ): Promise<void> {
@@ -342,7 +346,7 @@ export default class SequelizeEngineFields extends EngineFields {
 
   async #translateField(field: models.fields.Field): Promise<ModelAttributeColumnOptions> {
     let fieldAttributes = {} as ModelAttributeColumnOptions;
-    await this.#handleDefaultAttributes(fieldAttributes, field);
+    await this.handleDefaultAttributes(fieldAttributes, field);
     await this.#translateFieldType(fieldAttributes, field);
     return fieldAttributes;
   }
@@ -353,19 +357,23 @@ export default class SequelizeEngineFields extends EngineFields {
     return [];
   }
 
-  async get(fieldName: string): Promise<ModelAttributeColumnOptions | null> {
-    const field = this.fields.get(fieldName) as models.fields.Field;
-    try {
-      const attributes = await this.#translateField(field);
-      return attributes;
-    } catch (e) {
-      const error = e as Error;
-      switch (error.name) {
-        case PreventForeignKeyError.name:
-          return null;
-        default:
-          throw error;
+  async getTranslated(fieldName: string): Promise<ModelAttributeColumnOptions | null> {
+    const { value, wasTranslated } = await super.get(fieldName);
+    if (!wasTranslated) {
+      const field = this.fields.get(fieldName) as models.fields.Field;
+      try {
+        const attributes = await this.#translateField(field);
+        return attributes;
+      } catch (e) {
+        const error = e as Error;
+        switch (error.name) {
+          case PreventForeignKeyError.name:
+            return null;
+          default:
+            throw error;
+        }
       }
     }
+    return value as ModelAttributeColumnOptions | null;
   }
 }

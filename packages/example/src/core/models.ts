@@ -4,7 +4,6 @@ export class Post extends models.Model<Post>() {
   fields = {
     id: new models.fields.AutoField(),
     number: new models.fields.IntegerField({
-      allowNull: true,
       defaultValue: 1
     }),
     userUuid: new models.fields.ForeignKeyField({

@@ -42,7 +42,6 @@ export default class Manager<M extends Model = Model, EI extends Engine | null =
   }
 
   _setEngineInstance(engineName: string, instance: Engine) {
-    console.log(engineName);
     const isDefaultEngineInstanceNameEmpty = this.defaultEngineInstanceName === '';
     if (isDefaultEngineInstanceNameEmpty) this.defaultEngineInstanceName = engineName;
     this.engineInstances[engineName] = instance;

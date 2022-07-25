@@ -2,10 +2,8 @@ import Engine from "../engine";
 import {
   ModelFieldsType,
   ModelOptionsType,
-  ModelType,
   ModelFields,
   ManagersOfInstanceType,
-  TModel
 } from "./types";
 import {
   ModelCircularAbstractError,
@@ -13,11 +11,10 @@ import {
   ModelInvalidAbstractManagerError,
   ModelNoUniqueFieldsError
 } from "./exceptions";
-import { Field } from "./fields";
-import { BigAutoField } from "./fields";
 import Manager, { DefaultManager } from "./manager";
-import databases from "../databases";
 import { fields } from ".";
+import { getUniqueCustomImports } from "../utils";
+import { CustomImportsForFieldType } from "./fields/types";
 
 /**
  * This class is used for initializing a model. This will work similar to django except that instead of
@@ -300,7 +297,8 @@ export class Model<T = any> {
   static async _fieldsToString(
     indentation: number = 0,
     fields: ModelFieldsType
-  ): Promise<string> {
+  ): Promise<{ asString: string, customImports: CustomImportsForFieldType[] }> {
+    const customImportsOfModel: CustomImportsForFieldType[] = [];
     const allFields = Object.entries(fields);
     const ident = '  '.repeat(indentation);
     const fieldsIdent = '  '.repeat(indentation+1);
@@ -310,15 +308,20 @@ export class Model<T = any> {
       const fieldName = allFields[i][0]
       const field = allFields[i][1]
       const isLastField = i === allFields.length - 1;
+      const customImportsOfField = await field.customImports();
       stringifiedFields.push(
         `${fieldsIdent}${fieldName}: ${
           (await field.toString(indentation + 1)).replace(new RegExp(`^${fieldsIdent}`), '')
         },${isLastField ? '' : '\n'}`
       );
+      getUniqueCustomImports(customImportsOfField, customImportsOfModel);
     }
-    return `${ident}{\n` +
+    return {
+      asString: `${ident}{\n` +
       `${stringifiedFields.join('')}` +
-      `\n${ident}}`;
+      `\n${ident}}`,
+      customImports: customImportsOfModel
+    };
   }
 
   static async _optionsToString(indentation: number = 0, options: ModelOptionsType) {
@@ -353,9 +356,12 @@ export class Model<T = any> {
   }
 }
 
+/**
+ * This function is needed so we can add the type to the DefaultManager. This will help keeping the API simple for the
+ * end user without complicating too much stuff.
+ */
 export default function model<M>() {
   return class DefaultModel extends Model<M> {
     static default = new DefaultManager< M extends Model ? M : Model>()
   }
 }
-

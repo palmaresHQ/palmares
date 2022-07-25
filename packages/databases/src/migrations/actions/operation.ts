@@ -1,7 +1,7 @@
 import State from "../state";
 import Migration from "../migrate/migration";
 import Engine from "../../engine";
-import { MigrationFromAndToStateModelType, ActionToGenerateType } from './types';
+import { MigrationFromAndToStateModelType, ActionToGenerateType, ToStringFunctionReturnType } from './types';
 
 /**
  * Actions are the operations that we do in each migration.
@@ -60,8 +60,10 @@ export class Operation {
     }
   }
 
-  static async toString(indentation: number=0, data: ActionToGenerateType<any>): Promise<string> {
-    return '';
+  static async toString(indentation: number=0, data: ActionToGenerateType<any>): Promise<ToStringFunctionReturnType> {
+    return {
+      asString: ''
+    };
   }
 
   static async defaultToString(indentation: number = 0, customAttributesOfAction: string = ''): Promise<string> {

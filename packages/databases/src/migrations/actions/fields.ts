@@ -7,7 +7,8 @@ import {
   CreateFieldToGenerateData,
   ChangeFieldToGenerateData,
   RenameFieldToGenerateData,
-  DeleteFieldToGenerateData
+  DeleteFieldToGenerateData,
+  ToStringFunctionReturnType
 } from "./types";
 import Migration from "../migrate/migration";
 import State from "../state";
@@ -54,14 +55,17 @@ export class CreateField extends Operation {
   static async toString(
     indentation: number = 0,
     data: ActionToGenerateType<CreateFieldToGenerateData>
-  ): Promise<string> {
+  ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
-    return super.defaultToString(
-      indentation-1,
-      `${ident}"${data.modelName}",\n` +
-      `${ident}"${data.data.fieldName}",\n` +
-      `${await data.data.fieldDefinition.toString(indentation)}`
-    );
+    return {
+      asString: await super.defaultToString(
+        indentation-1,
+        `${ident}"${data.modelName}",\n` +
+        `${ident}"${data.data.fieldName}",\n` +
+        `${await data.data.fieldDefinition.toString(indentation)}`
+      ),
+      customImports: await data.data.fieldDefinition.customImports()
+    };
   }
 
   static async describe(
@@ -118,15 +122,22 @@ export class ChangeField extends Operation {
   static async toString(
     indentation: number = 0,
     data: ActionToGenerateType<ChangeFieldToGenerateData>
-  ): Promise<string> {
+  ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
-    return super.defaultToString(
-      indentation-1,
-      `${ident}"${data.modelName}",\n` +
-      `${ident}"${data.data.fieldName}",\n` +
-      `${await data.data.fieldDefinitionBefore.toString(indentation)},\n` +
-      `${await data.data.fieldDefinitionAfter.toString(indentation)}`
-    );
+    return {
+      asString: await super.defaultToString(
+        indentation-1,
+        `${ident}"${data.modelName}",\n` +
+        `${ident}"${data.data.fieldName}",\n` +
+        `${await data.data.fieldDefinitionBefore.toString(indentation)},\n` +
+        `${await data.data.fieldDefinitionAfter.toString(indentation)}`
+      ),
+      customImports: (
+        await data.data.fieldDefinitionBefore.customImports()
+      ).concat(
+        await data.data.fieldDefinitionAfter.customImports()
+      )
+    }
   }
 
   static async describe(
@@ -189,15 +200,18 @@ export class RenameField extends Operation {
   static async toString(
     indentation: number = 0,
     data: ActionToGenerateType<RenameFieldToGenerateData>
-  ): Promise<string> {
+  ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
-    return super.defaultToString(
-      indentation-1,
-      `${ident}"${data.modelName}",\n` +
-      `${ident}"${data.data.fieldNameBefore}",\n` +
-      `${ident}"${data.data.fieldNameAfter}",\n` +
-      `${await data.data.fieldDefinition.toString(indentation)}`
-    );
+    return {
+      asString: await super.defaultToString(
+        indentation-1,
+        `${ident}"${data.modelName}",\n` +
+        `${ident}"${data.data.fieldNameBefore}",\n` +
+        `${ident}"${data.data.fieldNameAfter}",\n` +
+        `${await data.data.fieldDefinition.toString(indentation)}`
+      ),
+      customImports: await data.data.fieldDefinition.customImports()
+    };
   }
 
   static async describe(
@@ -248,13 +262,15 @@ export class DeleteField extends Operation {
   static async toString(
     indentation: number = 0,
     data: ActionToGenerateType<DeleteFieldToGenerateData>
-  ): Promise<string> {
+  ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
-    return super.defaultToString(
-      indentation-1,
-      `${ident}"${data.modelName}",\n` +
-      `${ident}"${data.data.fieldName}"`
-    );
+    return {
+      asString: await super.defaultToString(
+        indentation-1,
+        `${ident}"${data.modelName}",\n` +
+        `${ident}"${data.data.fieldName}"`
+      )
+    };
   }
 
   static async describe(
