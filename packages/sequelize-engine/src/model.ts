@@ -48,20 +48,20 @@ export default class ModelTranslator {
   }
 
   async #translateFields(model: TModel) {
+    const fieldAttributes: { [key: string]: ModelAttributeColumnOptions } = {};
     const fieldsEntries = Object.keys(model.fields);
     for (const fieldName of fieldsEntries) {
       const translatedAttributes = await this.fields.getTranslated(fieldName);
       const isTranslatedAttributeDefined = translatedAttributes !== null &&
         typeof translatedAttributes === "object";
-      if (isTranslatedAttributeDefined) this.fields.fieldAttributes[fieldName] = translatedAttributes;
+      if (isTranslatedAttributeDefined) fieldAttributes[fieldName] = translatedAttributes;
     }
-    return this.fields.fieldAttributes;
+    return fieldAttributes;
   }
 
   async translate(model: TModel): Promise<ModelCtor<Model> | undefined> {
     const translatedOptions = await this.#translateOptions(model);
     const translatedAttributes = await this.#translateFields(model);
-
     translatedOptions.indexes = await this.fields.getIndexes(model.name);
 
     const translatedModel = this.engine.instance?.define(model.name, translatedAttributes, translatedOptions);

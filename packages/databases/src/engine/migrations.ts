@@ -21,6 +21,6 @@ export default class EngineMigrations {
   async addField(toModel: InitializedModelsType, fromModel: InitializedModelsType, fieldName: string, migration: Migration){}
   async changeField(toModel: InitializedModelsType, fromModel: InitializedModelsType, fieldBefore: Field, fieldAfter: Field, migration: Migration){}
   async renameField(toModel: InitializedModelsType, fromModel: InitializedModelsType, fieldNameBefore: string, fieldNameAfter: string, migration: Migration){}
-  async deleteField(toModel: InitializedModelsType, fromModel: InitializedModelsType, fieldName: string, migration: Migration){}
+  async removeField(toModel: InitializedModelsType, fromModel: InitializedModelsType, fieldName: string, migration: Migration){}
   async finish() {}
 }

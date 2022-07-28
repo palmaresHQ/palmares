@@ -10,7 +10,6 @@ import {
 import SequelizeEngine from "./engine";
 import { UnsupportedFieldTypeError, PreventForeignKeyError } from "./exceptions";
 import {
-  InitializedModelsType,
   ModelTranslatorIndexesType,
   RelatedModelToEvaluateAfterType
 } from "./types";
@@ -23,9 +22,7 @@ import {
  */
 export default class SequelizeEngineFields extends EngineFields {
   engineInstance!: SequelizeEngine;
-  fieldAttributes: { [key: string]: ModelAttributeColumnOptions };
   #dateFieldsAsAutoNowToAddHooks = new Map<string, string[]>()
-  #initializedModels: InitializedModelsType<Model>;
   #indexes: ModelTranslatorIndexesType = {};
   #relatedFieldsToEvaluate: RelatedModelToEvaluateAfterType = {};
   #onDeleteOperations = {
@@ -38,8 +35,6 @@ export default class SequelizeEngineFields extends EngineFields {
 
   constructor(engineInstance: SequelizeEngine<any>) {
     super(engineInstance);
-    this.#initializedModels = engineInstance._initializedModels;
-    this.fieldAttributes = {};
   }
 
   /**
@@ -72,12 +67,11 @@ export default class SequelizeEngineFields extends EngineFields {
     field: models.fields.ForeignKeyField,
     fieldAttributes: ModelAttributeColumnOptions
   ) {
-    const isRelatedToModelAlreadyInitialized = this.#initializedModels[field.relatedTo];
-    const relatedModelName = isRelatedToModelAlreadyInitialized ? field.model.name : field.relatedTo;
-    const isModelAlreadyInObject = this.#relatedFieldsToEvaluate[relatedModelName] !== undefined;
-    if (isModelAlreadyInObject === false) this.#relatedFieldsToEvaluate[relatedModelName] = [];
-    this.#initializedModels[field.model.name];
-    this.#relatedFieldsToEvaluate[relatedModelName].push({
+    const isModelAlreadyInitialized = this.engineInstance.initializedModels[field.relatedTo] !== undefined;
+    const modelNameToHandleRelation = isModelAlreadyInitialized ? field.model.name : field.relatedTo;
+    const isModelAlreadyInObject = this.#relatedFieldsToEvaluate[modelNameToHandleRelation] !== undefined;
+    if (isModelAlreadyInObject === false) this.#relatedFieldsToEvaluate[modelNameToHandleRelation] = [];
+    this.#relatedFieldsToEvaluate[modelNameToHandleRelation].push({
       field: field,
       fieldAttributes: fieldAttributes
     });
@@ -120,7 +114,7 @@ export default class SequelizeEngineFields extends EngineFields {
   async #handleHooksToUpdateDateFieldsAfterModelCreation(modelName: string) {
     const hasDateFieldToUpdateForModelName = this.#dateFieldsAsAutoNowToAddHooks.has(modelName);
     if (hasDateFieldToUpdateForModelName) {
-      const modelToAddHook: ModelCtor<Model> = this.#initializedModels[modelName] as ModelCtor<Model>;
+      const modelToAddHook: ModelCtor<Model> = this.engineInstance.initializedModels[modelName] as ModelCtor<Model>;
       const dateFieldsToUpdate = this.#dateFieldsAsAutoNowToAddHooks.get(modelName) as string[];
       modelToAddHook.beforeSave((instance: Model) => {
         for (const updateDateHook of dateFieldsToUpdate) {
@@ -133,10 +127,11 @@ export default class SequelizeEngineFields extends EngineFields {
 
   async #handleRelatedFieldsAfterModelCreation(modelName: string) {
     const hasRelatedFieldsToEvaluateForModelName = Array.isArray(this.#relatedFieldsToEvaluate[modelName]);
+
     if (hasRelatedFieldsToEvaluateForModelName) {
       this.#relatedFieldsToEvaluate[modelName] = await Promise.all(
         this.#relatedFieldsToEvaluate[modelName].filter(
-          ({ field, fieldAttributes }) => this.#handleRelatedField(field, fieldAttributes)
+          async ({ field, fieldAttributes }) => await this.#handleRelatedField(field, fieldAttributes)
         )
       )
     }
@@ -146,8 +141,8 @@ export default class SequelizeEngineFields extends EngineFields {
     field: models.fields.ForeignKeyField,
     fieldAttributes: ModelAttributeColumnOptions & ForeignKeyOptions
   ) {
-    const modelWithForeignKeyField: ModelCtor<Model> = this.#initializedModels[field.model.name] as ModelCtor<Model>;
-    const relatedToModel: ModelCtor<Model> = this.#initializedModels[field.relatedTo] as ModelCtor<Model>;
+    const modelWithForeignKeyField: ModelCtor<Model> = this.engineInstance.initializedModels[field.model.name] as ModelCtor<Model>;
+    const relatedToModel: ModelCtor<Model> = this.engineInstance.initializedModels[field.relatedTo] as ModelCtor<Model>;
     const isRelatedModelAndModelOfForeignDefined = relatedToModel !== undefined &&
       modelWithForeignKeyField !== undefined;
 
@@ -162,7 +157,6 @@ export default class SequelizeEngineFields extends EngineFields {
         sourceKey: field.toField
       };
       const relatedToLowerCased = field.relatedTo.charAt(0).toLowerCase() + field.relatedTo.slice(1);
-
       switch (field.typeName) {
         case models.fields.ForeignKeyField.name:
           relationOptions.as = field.relatedName as string;

@@ -1,5 +1,6 @@
 import { MigrationFileType } from "../migrations/types"
-import { models, actions } from "..";
+import * as actions from "../migrations/actions";
+import * as models from "../models";
 
 const migrations: MigrationFileType[] = [
   {

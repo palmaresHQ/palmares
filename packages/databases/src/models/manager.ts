@@ -1,13 +1,23 @@
-import { ManagerInstancesType, ManagerEngineInstancesType, ModelFields, AllOptionalModelFields, AllRequiredModelFields } from "./types";
+import {
+  ManagerInstancesType,
+  ManagerEngineInstancesType,
+  AllOptionalModelFields,
+  AllRequiredModelFields,
+  TModel
+} from "./types";
 import { ManagerEngineInstanceNotFoundError } from "./exceptions";
 import Engine from "../engine";
-import { Model} from "./model";
+import { Model, default as model } from "./model";
+
+export type ClassConstructor<T> = {
+  new (...args: unknown[]): T;
+};
 
 export default class Manager<M extends Model = Model, EI extends Engine | null = null> {
   instances: ManagerInstancesType;
   engineInstances: ManagerEngineInstancesType;
   defaultEngineInstanceName: string;
-  model!: M;
+  model!: ReturnType<typeof model<M>>;
 
   constructor() {
     this.instances = {};
@@ -16,7 +26,7 @@ export default class Manager<M extends Model = Model, EI extends Engine | null =
   }
 
   _setModel(model: M) {
-    this.model = model;
+    this.model = model as any;
   }
 
   getInstance<T extends Engine = Engine>(engineName?: string): EI extends Engine ? EI["ModelType"] : T["ModelType"] {

@@ -27,8 +27,7 @@ export type InitializedEngineInstancesType = {
 
 export type InitializedEngineInstanceWithModelsType = {
   engineInstance: Engine,
-  projectModels: InitializedModelsType[],
-  internalModels: InitializedModelsType[]
+  projectModels: InitializedModelsType[]
 }
 
 export type FoundModelType = {

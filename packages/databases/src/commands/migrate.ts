@@ -12,5 +12,6 @@ export default async function migrate({ settings, domains, args }: DomainHandler
     databaseDomains,
     args.keywordArgs as OptionalMakemigrationsArgsType
   );
+  await databases.close();
   process.exit(0);
 }

@@ -4,6 +4,7 @@ export class Post extends models.Model<Post>() {
   fields = {
     id: new models.fields.AutoField(),
     number: new models.fields.IntegerField({
+      allowNull: true,
       defaultValue: 1
     }),
     userUuid: new models.fields.ForeignKeyField({
@@ -21,15 +22,14 @@ export class Post extends models.Model<Post>() {
 export class User extends models.Model<User>() {
   fields = {
     id: new models.fields.AutoField(),
-    firstName: new models.fields.CharField({ maxLength: 255 }),
+    firstName: new models.fields.CharField({ maxLength: 255, dbIndex: true }),
+    lastName: new models.fields.CharField({ maxLength: 255, allowNull: true }),
     dependsOn: new models.fields.ForeignKeyField({
       relatedTo: 'User',
-      toField: 'id',
       onDelete: models.fields.ON_DELETE.CASCADE,
-      allowNull: true
+      toField: 'uuid',
     }),
-    lastName: new models.fields.CharField({ maxLength: 255, allowNull: true }),
-    uuid: new models.fields.UUIDField({ autoGenerate: true })
+    uuid: new models.fields.UUIDField({ autoGenerate: true, unique: true })
   }
 
   options = {

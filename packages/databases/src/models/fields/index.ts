@@ -15,9 +15,9 @@ import {
 import Engine, { EngineFields } from "../../engine";
 import { ForeignKeyFieldRequiredParamsMissingError } from "./exceptions";
 import { TModel } from "../types";
+import { generateUUID } from "../../utils";
 
 export { ON_DELETE as ON_DELETE };
-
 
 export class Field<D = any, N extends boolean = boolean> {
   hasDefaultValue!: D extends undefined ? false : true;
@@ -84,10 +84,28 @@ export class Field<D = any, N extends boolean = boolean> {
       `${ident}})`;
   }
 
+  /**
+   * This method enables the framework to automatically import the files when generating the migrations.
+   *
+   * This is generally useful for custom field types.
+   *
+   * @return - Returns a list of packages that we want to import in the migration file.
+   */
   async customImports(): Promise<CustomImportsForFieldType[]> {
     return [];
   }
 
+  /**
+   * Used for comparing one field with the other so we are able to tell if they are different or not.
+   *
+   * This is obligatory to add if you create any custom fields.
+   *
+   * For custom fields you will call this super method before continuing, we first check if they are the same type.
+   *
+   * @param field - The field to compare to.
+   *
+   * @return - Returns true if the fields are equal and false otherwise
+   */
   async compare(field: Field): Promise<boolean> {
     return field.typeName === this.typeName &&
       field.allowNull === this.allowNull &&
@@ -389,7 +407,6 @@ export class ForeignKeyField<
   relatedTo!: string;
   onDelete!: ON_DELETE;
   customName?: string;
-  relatedName?: string;
   toField: F;
   _originalRelatedName?: string;
 
@@ -416,7 +433,7 @@ export class ForeignKeyField<
 
     this.relatedTo = relatedToAsString;
     this.customName = customName;
-    this.relatedName = relatedName;
+    this._originalRelatedName = relatedName;
     this.onDelete = onDelete;
     this.toField = toField;
   }
@@ -432,19 +449,18 @@ export class ForeignKeyField<
     model._dependentOnModels.push(this.relatedTo);
 
     await super.init(engineInstance, fieldName, model);
-    const isFromAStateModel: boolean = this.model._isState;
     const wasRelatedNameDefined: boolean = typeof this.relatedName === 'string';
-    if (isFromAStateModel && wasRelatedNameDefined) {
-      this._originalRelatedName = this.relatedName;
-      this.relatedName = `state${this._originalRelatedName}`;
-    }
+
     if (wasRelatedNameDefined === false) {
       const relatedToWithFirstStringLower: string = this.relatedTo.charAt(0).toLowerCase() + this.relatedTo.slice(1);
-      const modelWithFirstStringUpper: string = this.model.name.charAt(0).toUpperCase() + this.model.name.slice(1);
       const originalModelNameWithFirstStringUpper: string = this.model.originalName.charAt(0).toUpperCase() + this.model.originalName.slice(1);
-      this.relatedName = `${relatedToWithFirstStringLower}${modelWithFirstStringUpper}s`;
       this._originalRelatedName = `${relatedToWithFirstStringLower}${originalModelNameWithFirstStringUpper}s`;
     }
+  }
+
+  get relatedName() {
+    if (this.model._isState) return `${generateUUID()}-${this._originalRelatedName}`;
+    else return this._originalRelatedName;
   }
 
   async toString(indentation: number = 0, customParams: string | undefined = undefined) {

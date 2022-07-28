@@ -1,7 +1,10 @@
 import { FRAMEWORK_NAME, logging, Domain } from '@palmares/core';
 
-import { EmptyOptionsOnGenerateFilesType, FieldOrModelParamType, OriginalOrStateModelsType } from './types';
-import { FoundMigrationsFileType } from '../types';
+import {
+  EmptyOptionsOnGenerateFilesType,
+  FieldOrModelParamType
+} from './types';
+import { FoundMigrationsFileType, OriginalOrStateModelsByNameType } from '../types';
 import {
   DatabaseSettingsType,
   InitializedEngineInstancesType,
@@ -38,8 +41,8 @@ import { CustomImportsForFieldType } from '../../models/fields/types';
  * generating migrations errors might happen.
  */
 export default class MakeMigrations {
-  #originalModelsByName!: OriginalOrStateModelsType;
-  #stateModelsByName!: OriginalOrStateModelsType;
+  #originalModelsByName!: OriginalOrStateModelsByNameType;
+  #stateModelsByName!: OriginalOrStateModelsByNameType;
   settings: DatabaseSettingsType;
   database: string;
   filteredMigrationsOfDatabase: FoundMigrationsFileType[];
@@ -105,8 +108,8 @@ export default class MakeMigrations {
    * @param operations - The array where we will hold all of the operations that we need to do in our migration.
    */
   async #getOperationsFromModelsOrFields(
-    originalModelsByNameOrFields: OriginalOrStateModelsType | ModelFieldsType,
-    stateModelsByNameOrFields: OriginalOrStateModelsType | ModelFieldsType,
+    originalModelsByNameOrFields: OriginalOrStateModelsByNameType | ModelFieldsType,
+    stateModelsByNameOrFields: OriginalOrStateModelsByNameType | ModelFieldsType,
     fieldOrModel: FieldOrModelParamType = 'model',
     operations: ActionToGenerateType<any>[] = []
   ): Promise<void> {

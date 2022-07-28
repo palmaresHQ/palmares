@@ -1,5 +1,6 @@
 import Model from "../models/model"
 import { TModel } from "../models/types";
+import { InitializedModelsType } from "../types";
 import { Operation } from "./actions";
 
 export type StateModelsType = {
@@ -8,6 +9,10 @@ export type StateModelsType = {
     instance: TModel;
   }
 }
+
+export type OriginalOrStateModelsByNameType = {
+  [modelName: string]: InitializedModelsType;
+};
 
 export type StateModelsConstructorType = {
   [modelName: string]: ReturnType<typeof Model>;

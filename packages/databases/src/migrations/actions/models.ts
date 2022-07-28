@@ -5,10 +5,10 @@ import {
   CreateModelToGenerateData,
   ChangeModelToGenerateData,
   RenameModelToGenerateData,
-  MigrationFromAndToStateModelType,
   ActionToGenerateType,
   ToStringFunctionReturnType
 } from "./types";
+import { OriginalOrStateModelsByNameType } from "../types";
 import Migration from "../migrate/migration";
 import State from "../state";
 import { BaseModel } from "../../models";
@@ -44,8 +44,8 @@ export class CreateModel extends Operation {
   async run(
     migration: Migration,
     engineInstance: Engine,
-    _: MigrationFromAndToStateModelType,
-    toState: MigrationFromAndToStateModelType
+    _: OriginalOrStateModelsByNameType,
+    toState: OriginalOrStateModelsByNameType
   ): Promise<void> {
     const toModel = toState[this.modelName];
     await engineInstance.migrations.addModel(toModel, migration);
@@ -108,8 +108,8 @@ export class DeleteModel extends Operation {
   async run(
     migration: Migration,
     engineInstance: Engine,
-    fromState: MigrationFromAndToStateModelType,
-    _: MigrationFromAndToStateModelType
+    fromState: OriginalOrStateModelsByNameType,
+    _: OriginalOrStateModelsByNameType
   ): Promise<void> {
     const fromModel = fromState[this.modelName];
     await engineInstance.migrations.removeModel(fromModel, migration)
@@ -169,8 +169,8 @@ export class ChangeModel extends Operation {
   async run(
     migration: Migration,
     engineInstance: Engine,
-    fromState: MigrationFromAndToStateModelType,
-    toState: MigrationFromAndToStateModelType
+    fromState: OriginalOrStateModelsByNameType,
+    toState: OriginalOrStateModelsByNameType
   ) {
     const toModel = toState[this.modelName];
     const fromModel = fromState[this.modelName];

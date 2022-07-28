@@ -1,5 +1,7 @@
+import Engine from "../../engine";
 import { DatabaseSettingsType, InitializedEngineInstancesType } from "../../types";
 import { FoundMigrationsFileType } from "../types";
+import Migration from "./migration";
 
 export default class Migrate {
   settings: DatabaseSettingsType;
@@ -8,8 +10,13 @@ export default class Migrate {
     this.settings = settings;
   }
 
-  async _run() {
-
+  async _run(
+    engineInstance: Engine,
+    allMigrationsOfDatabase: FoundMigrationsFileType[]
+  ) {
+    for (const migrationFile of allMigrationsOfDatabase) {
+      await Migration.buildFromFile(engineInstance, migrationFile, allMigrationsOfDatabase);
+    }
   }
 
   static async buildAndRun(
@@ -18,12 +25,12 @@ export default class Migrate {
     initializedEngineInstances: InitializedEngineInstancesType
   ) {
     const initializedEngineInstancesEntries = Object.entries(initializedEngineInstances);
-    for (const [database, { engineInstance, projectModels }] of initializedEngineInstancesEntries) {
+    for (const [database, { engineInstance }] of initializedEngineInstancesEntries) {
       const filteredMigrationsOfDatabase = migrations.filter(migration =>
         [database, '*'].includes(migration.migration.database)
       );
       const migrate = new this(settings);
-      await migrate._run()
+      await migrate._run(engineInstance, filteredMigrationsOfDatabase);
     }
   }
 }

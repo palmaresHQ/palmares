@@ -2,7 +2,6 @@ import Engine from "../../engine";
 import { Operation } from "./operation";
 import { Field } from "../../models/fields";
 import {
-  MigrationFromAndToStateModelType,
   ActionToGenerateType,
   CreateFieldToGenerateData,
   ChangeFieldToGenerateData,
@@ -10,6 +9,7 @@ import {
   DeleteFieldToGenerateData,
   ToStringFunctionReturnType
 } from "./types";
+import { OriginalOrStateModelsByNameType } from "../types";
 import Migration from "../migrate/migration";
 import State from "../state";
 
@@ -40,8 +40,8 @@ export class CreateField extends Operation {
   async run(
     migration: Migration,
     engineInstance: Engine,
-    fromState: MigrationFromAndToStateModelType,
-    toState: MigrationFromAndToStateModelType
+    fromState: OriginalOrStateModelsByNameType,
+    toState: OriginalOrStateModelsByNameType
   ) {
     const toModel = toState[this.modelName];
     const fromModel = fromState[this.modelName];
@@ -105,8 +105,8 @@ export class ChangeField extends Operation {
   async run(
     migration: Migration,
     engineInstance: Engine,
-    fromState: MigrationFromAndToStateModelType,
-    toState: MigrationFromAndToStateModelType
+    fromState: OriginalOrStateModelsByNameType,
+    toState: OriginalOrStateModelsByNameType
   ) {
     const fromModel = fromState[this.modelName];
     const toModel = toState[this.modelName];
@@ -180,7 +180,12 @@ export class RenameField extends Operation {
     await state.set(this.modelName, model);
   }
 
-  async run(migration: Migration, engineInstance: Engine, fromState: MigrationFromAndToStateModelType, toState: MigrationFromAndToStateModelType): Promise<void> {
+  async run(
+    migration: Migration,
+    engineInstance: Engine,
+    fromState: OriginalOrStateModelsByNameType,
+    toState: OriginalOrStateModelsByNameType
+  ): Promise<void> {
     const fromModel = fromState[this.modelName];
     const toModel = toState[this.modelName];
     await engineInstance.migrations.renameField(
@@ -242,12 +247,12 @@ export class DeleteField extends Operation {
   async run(
     migration: Migration,
     engineInstance: Engine,
-    fromState: MigrationFromAndToStateModelType,
-    toState: MigrationFromAndToStateModelType
+    fromState: OriginalOrStateModelsByNameType,
+    toState: OriginalOrStateModelsByNameType
   ) {
     const fromModel = fromState[this.modelName];
     const toModel = toState[this.modelName];
-    await engineInstance.migrations.deleteField(toModel, fromModel, this.fieldName, migration);
+    await engineInstance.migrations.removeField(toModel, fromModel, this.fieldName, migration);
   }
 
   static async toGenerate(

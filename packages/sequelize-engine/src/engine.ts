@@ -3,19 +3,20 @@ import {
   DatabaseConfigurationType,
   models,
   ModelFields,
-  TModel
+  TModel,
+  EngineInitializedModels
 } from "@palmares/databases";
-import { Sequelize, Dialect, Options, Op, Model, ModelCtor, Optional } from 'sequelize';
+import { Sequelize, Dialect, Options, Op, Model, ModelCtor, Optional, Transaction } from 'sequelize';
 
-import { InitializedModelsType } from "./types";
 import SequelizeEngineQuery from "./query";
 import SequelizeEngineFields from "./fields";
 import ModelTranslator from "./model";
+import SequelizeMigrations from "./migrations";
 
 export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
   #isConnected: boolean | null = null;
   #modelTranslator!: ModelTranslator;
-  _initializedModels: InitializedModelsType<Model> = {};
+  initializedModels!: EngineInitializedModels<ModelCtor<Model<ModelFields<M>>>>;
   instance!: Sequelize | null;
   fields!: SequelizeEngineFields;
 
@@ -53,8 +54,12 @@ export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
     match: Op.match
   }
 
-  constructor(databaseName: string, sequelizeInstance: Sequelize) {
-    super(databaseName, SequelizeEngineFields, SequelizeEngineQuery);
+  constructor(
+    databaseName: string,
+    databaseSettings: DatabaseConfigurationType<Dialect, Options>,
+    sequelizeInstance: Sequelize
+  ) {
+    super(databaseName, databaseSettings, SequelizeEngineFields, SequelizeEngineQuery, SequelizeMigrations);
     this.fields = new SequelizeEngineFields(this);
     this.instance = sequelizeInstance;
     this.#modelTranslator = new ModelTranslator(this, this.fields);
@@ -68,7 +73,7 @@ export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
     if (isUrlDefined) {
       const databaseUrl: string = databaseSettings.url || ''
       const sequelizeInstance = new Sequelize(databaseUrl, databaseSettings.extraOptions);
-      return new this(databaseName, sequelizeInstance);
+      return new this(databaseName, databaseSettings, sequelizeInstance);
     }
 
     const sequelizeInstance = new Sequelize(
@@ -82,7 +87,7 @@ export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
         ...databaseSettings.extraOptions
       }
     );
-    return new this(databaseName, sequelizeInstance);
+    return new this(databaseName, databaseSettings, sequelizeInstance);
   }
 
   async isConnected(): Promise<boolean> {
@@ -109,10 +114,35 @@ export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
   async initializeModel(
     model: TModel
   ): Promise<ModelCtor<Model> | undefined> {
-    const modelInstance = await this.#modelTranslator.translate(model);
-    this._initializedModels[model.name] = modelInstance;
+    const modelInstance = super.initializeModel(
+      model,
+      await this.#modelTranslator.translate(model)
+    );
     await this.fields.afterModelCreation(model.name);
-    return modelInstance;
+    return modelInstance
+  }
+
+  async transaction<P extends Array<any>, R>(
+    callback: (transaction: Transaction, ...args: P) => R | Promise<R>,
+    ...args: P
+  ): Promise<R> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        this.instance?.transaction(async transaction => {
+          try {
+            resolve(await callback(transaction, ...args));
+          } catch (e) {
+            reject(e);
+          }
+        });
+      } catch (e) {
+        reject(e);
+      }
+    })
+  }
+
+  async close(): Promise<void> {
+    await Promise.resolve(this.instance?.close());
   }
 }
 

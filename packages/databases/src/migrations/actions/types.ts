@@ -2,14 +2,9 @@ import Engine from "../../engine";
 import { Field } from "../../models/fields";
 import { CustomImportsForFieldType } from "../../models/fields/types";
 import { ModelFieldsType, ModelOptionsType } from "../../models/types";
-import { InitializedModelsType } from "../../types";
 import Migration from "../migrate/migration";
 import { StateModelsConstructorType } from "../types";
 import { Operation } from "./operation";
-
-export type MigrationFromAndToStateModelType = {
-  [modelName: string]: InitializedModelsType
-}
 
 export type ActionToGenerateType<T> = {
   operation: typeof Operation,

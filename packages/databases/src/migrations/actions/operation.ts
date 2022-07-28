@@ -1,7 +1,8 @@
 import State from "../state";
 import Migration from "../migrate/migration";
 import Engine from "../../engine";
-import { MigrationFromAndToStateModelType, ActionToGenerateType, ToStringFunctionReturnType } from './types';
+import { ActionToGenerateType, ToStringFunctionReturnType } from './types';
+import { OriginalOrStateModelsByNameType } from "../types";
 
 /**
  * Actions are the operations that we do in each migration.
@@ -44,8 +45,8 @@ export class Operation {
   async run(
     migration: Migration,
     engineInstance: Engine,
-    fromState: MigrationFromAndToStateModelType,
-    toState: MigrationFromAndToStateModelType
+    fromState: OriginalOrStateModelsByNameType,
+    toState: OriginalOrStateModelsByNameType
   ): Promise<void> {}
 
   static async defaultToGenerate<T>(domainName: string, domainPath: string, modelName: string, data: T): Promise<ActionToGenerateType<T>> {

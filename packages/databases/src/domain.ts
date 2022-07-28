@@ -12,14 +12,15 @@ import { DatabaseSettingsType } from "./types";
 import { MigrationFileType } from "./migrations/types";
 import { makeMigrations, migrate } from "./commands";
 import defaultSettings from "./settings";
+import { defaultMigrations, defaultModels } from "./defaults";
 
 export class DatabaseDomain extends Domain {
   async getModels(): Promise<ReturnType<typeof Model>[]> {
-    return [];
+    return defaultModels;
   }
 
   async getMigrations(): Promise<MigrationFileType[]> {
-    return [];
+    return defaultMigrations;
   }
 }
 

@@ -130,7 +130,7 @@ class Databases {
     projectModels: FoundModelType[]
   ): Promise<InitializedEngineInstanceWithModelsType> {
     const initializedProjectModels: InitializedModelsType[] = [];
-    const initializedInternalModels: InitializedModelsType[] = [];
+    //const initializedInternalModels: InitializedModelsType[] = [];
 
     for (const { domainPath, domainName, model } of projectModels) {
       const modelInstance = new model();
@@ -146,22 +146,9 @@ class Databases {
       }
     }
 
-    for (const model of this.obligatoryModels) {
-      const modelInstance = new model();
-      const initializedModel = await modelInstance._init(model, engineInstance, "", "");
-      initializedInternalModels.push({
-        domainName: "",
-        domainPath: "",
-        class: model,
-        initialized: initializedModel,
-        original: modelInstance
-      });
-    }
-
     return {
       engineInstance,
       projectModels: initializedProjectModels,
-      internalModels: initializedInternalModels
     }
   }
 
@@ -185,7 +172,7 @@ class Databases {
         const models = await Promise.resolve(domain.getModels());
         models.forEach((model) => {
           const modelInstance = new model();
-          if (modelInstance.options.managed) {
+          if (modelInstance.options?.managed !== false) {
             foundModels.push({
               domainPath: domain.path,
               domainName: domain.name,

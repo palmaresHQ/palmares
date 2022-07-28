@@ -1,4 +1,4 @@
-import { FoundMigrationsFileType, StateModelsType } from "./types";
+import { FoundMigrationsFileType, StateModelsType, OriginalOrStateModelsByNameType } from "./types";
 import model, { Model } from "../models/model";
 import { InitializedModelsType } from "../types";
 import Engine from "../engine";
@@ -6,6 +6,7 @@ import { TModel } from "../models/types";
 
 export default class State {
   modelsByName: StateModelsType = {};
+  initializedModelsByName: OriginalOrStateModelsByNameType = {};
 
   /**
    * Gets the model instance by a given model name. If the model does not exist
@@ -75,20 +76,45 @@ export default class State {
     return initializedStateModels
   }
 
+  async geInitializedModelsByName(engineInstance: Engine) {
+    const duplicatedEngineInstance = await engineInstance.duplicate();
+    const closeEngineInstance = duplicatedEngineInstance.close.bind(duplicatedEngineInstance);
+
+    const wasInitialized = Object.keys(this.initializedModelsByName).length > 0;
+    if (wasInitialized) return {
+      initializedModels: this.initializedModelsByName,
+      closeEngineInstance
+    };
+
+    const initializedModels = await this.initializeModels(duplicatedEngineInstance);
+    for (const initializedModel of initializedModels) {
+      this.initializedModelsByName[initializedModel.original.originalName] = initializedModel;
+    }
+    return {
+      initializedModels: this.initializedModelsByName,
+      closeEngineInstance
+    };
+  }
+
   static async buildState(
     foundMigrations: FoundMigrationsFileType[],
     untilMigration?: string,
-    migrationIndex?: { from: undefined | number, to: undefined | number }
+    untilOperationIndex?: number
   ) {
     const state = new State();
+
     for (const foundMigration of foundMigrations) {
       const isToBuildStateUntilThisMigration = foundMigration.migration.name === untilMigration;
-      if (isToBuildStateUntilThisMigration) break;
 
       for (let i = 0; i<foundMigration.migration.operations.length; i++) {
+        const isToBuildUntilOperationIndex = i === untilOperationIndex;
+        if (isToBuildStateUntilThisMigration && isToBuildUntilOperationIndex) return state;
+
         const operation = foundMigration.migration.operations[i];
         await operation.stateForwards(state, foundMigration.domainName, foundMigration.domainPath);
       }
+
+      if (isToBuildStateUntilThisMigration) return state;
     }
     return state;
   }
