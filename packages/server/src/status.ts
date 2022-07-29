@@ -5,7 +5,6 @@
  * And RFC 4918 - https://tools.ietf.org/html/rfc4918
  */
 
-
 export const isInformational = (code: number) => code >= 100 && code <= 199
 
 export const isSuccess = (code: number) => code >= 200 && code <= 299

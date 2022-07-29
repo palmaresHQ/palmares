@@ -5,16 +5,11 @@ export type InstalledDomainsType = Promise<{ default: typeof Domain }>[] | typeo
 
 export type SettingsType = {
   ENV?: string,
-  ADAPTER: string;
   DEBUG: boolean,
-  PORT: number,
-  SECRET_KEY: string,
   APP_NAME?: string,
   USE_TS?: boolean,
   BASE_PATH: string,
-  ROOT_URLCONF: string,
   INSTALLED_DOMAINS: InstalledDomainsType,
-  MIDDLEWARE?: string[],
   LOGGING?: {
     [key: string]: {
       category: MessageCategories,

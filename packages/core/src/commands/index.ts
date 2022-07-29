@@ -1,19 +1,11 @@
 import Domain from '../domain';
 import Configuration from '../conf';
 import { SettingsType } from '../conf/types';
-import devCommandHandler from './dev';
 import { CommandNotFoundException } from './exceptions';
 import { DefaultCommandType } from './types';
 
 class Commands {
-  #initializedDomains: Domain[] = [];
-	#defaultCommands: DefaultCommandType = {
-		dev: {
-			description: 'Start development server',
-			example: 'node manage.js dev',
-			handler: devCommandHandler
-		}
-	}
+	#defaultCommands: DefaultCommandType = {}
 
   async #initializeDomains(settings: SettingsType) {
     const initializedDomains: Domain[] = [];

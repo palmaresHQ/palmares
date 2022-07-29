@@ -13,7 +13,6 @@ import {
   OptionalMakemigrationsArgsType,
 } from "./types";
 import { DatabaseDomain } from "./domain";
-import { DatabaseNoEngineFoundError } from './exceptions';
 import Engine from "./engine";
 import { Model, BaseModel } from "./models";
 import { LOGGING_DATABASE_MODELS_NOT_FOUND } from './utils';
@@ -21,7 +20,7 @@ import Migrations from "./migrations";
 
 import { join } from "path";
 
-class Databases {
+export default class Databases {
   availableEngines = ['@palmares/sequelize-engine'];
   settings!: DatabaseSettingsType;
   initializedEngineInstances: InitializedEngineInstancesType = {};
@@ -70,32 +69,6 @@ class Databases {
   }
 
   /**
-   * Gets the engine instance for the given database name or throws an error if no engine is found.
-   *
-   * @param databaseName - The name of the database, not the name of the engine, and not the name of
-   * the database in postgres or mysql or whatever. It's a 'magic' name that is used to identify the
-   * engine and database.
-   * @param engine - Could be a string or a class directly, the string is the package that we need to
-   * import, the class is the engine class that we will be using.
-   *
-   * @returns - The engine class to use in the application.
-   */
-  async getEngine(databaseName: string, engine: typeof Engine | string): Promise<typeof Engine> {
-    const isEngineAString = typeof engine === "string";
-    if (isEngineAString) {
-      const engineExports = await import(engine);
-      const possibleEngines: typeof Engine[] = Object.values(engineExports);
-      for (const possibleEngine of possibleEngines) {
-        if (possibleEngine.prototype instanceof Engine) {
-          return possibleEngine;
-        }
-      }
-      throw new DatabaseNoEngineFoundError(databaseName);
-    }
-    return engine;
-  }
-
-  /**
    * Closes the database connection on all of the initialized engine instances.
    */
   async close(): Promise<void> {
@@ -110,20 +83,20 @@ class Databases {
   /**
    * Initializes the database connection and load the models to their respective engines.
    *
-   * @param databaseName - The name of the database that we are using.
+   * @param engineName - A custom name of the engine that we are using.
    * @param databaseSettings - The settings object for the database.
    */
   async initializeDatabase(
-    databaseName: string,
+    engineName: string,
     databaseSettings: DatabaseConfigurationType<string, {}>,
     domains: DatabaseDomain[]
   ) {
+    const engine = databaseSettings.engine;
     const models: FoundModelType[] = await this.getModels(domains);
-    const engine: typeof Engine = await this.getEngine(databaseName, databaseSettings.engine);
-    const engineInstance: Engine = await engine.new(databaseName, databaseSettings);
+    const engineInstance: Engine = await engine.new(engineName, databaseSettings);
 
     if (await engineInstance.isConnected()) {
-      this.initializedEngineInstances[databaseName] = await this.initializeModels(engineInstance, models);
+      this.initializedEngineInstances[engineName] = await this.initializeModels(engineInstance, models);
     }
   }
 
@@ -222,5 +195,3 @@ class Databases {
     return foundModels;
   }
 }
-
-export default new Databases();

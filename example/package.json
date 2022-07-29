@@ -16,6 +16,7 @@
     "@palmares/databases": "*",
     "@palmares/core": "*",
     "@palmares/express-adapter": "*",
+    "@palmares/sequelize-engine": "*",
     "pg": "^8.7.3"
   }
 }

@@ -1,0 +1,2 @@
+export const LOGGING_APP_START_SERVER: string = 'APP_START_SERVER';
+export const LOGGING_APP_STOP_SERVER: string = 'APP_STOP_SERVER';

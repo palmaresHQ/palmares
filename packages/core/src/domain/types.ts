@@ -1,9 +1,8 @@
 import Domain from ".";
-import Adapter from "../adapters";
 import { SettingsType } from "../conf/types";
 
-export type DomainReadyFunctionArgs<A extends Adapter = Adapter, S = SettingsType> = {
-  app: A["_app"];
+export type DomainReadyFunctionArgs<S = SettingsType, C extends object = {}> = {
   settings: S;
   domains: Domain[];
+  customOptions: C
 };

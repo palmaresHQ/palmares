@@ -23,14 +23,6 @@ class Logging {
     [LOGGING_SETTINGS_MODULE_NOT_FOUND]: {
       category: MessageCategories.Error,
       callback: async (customArgs?: SettingsModuleNotFoundParameters) => `Your settings module was not found at ${customArgs?.pathOfModule}.`
-    },
-    [LOGGING_APP_START_SERVER]: {
-      category: MessageCategories.Info,
-      callback: async ({appName, port}) => `${appName} is running on port ${port}.\nPress Ctrl+C to quit.`
-    },
-    [LOGGING_APP_STOP_SERVER]: {
-      category: MessageCategories.Info,
-      callback: async ({appName}) => `${appName} server is stopping, running cleanup now.`
     }
   }
 

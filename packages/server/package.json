@@ -1,7 +1,7 @@
 {
-  "name": "@palmares/databases",
+  "name": "@palmares/server",
   "version": "0.0.0",
-  "description": "Add support for working with databases with palmares framework",
+  "description": "The server from palmares, this is what you will use generally to make HTTP requests",
   "main": "src/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -12,7 +12,7 @@
   },
   "keywords": [
     "palmares",
-    "databases"
+    "server"
   ],
   "author": "Nicolas Melo",
   "license": "MIT",

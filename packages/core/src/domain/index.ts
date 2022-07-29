@@ -3,7 +3,6 @@ import {
   NotAValidDomainDefaultExportedError
 } from "./exceptions";
 import { SettingsType } from "../conf/types";
-import Adapter from "../adapters";
 import { DefaultCommandType } from "../commands/types";
 import { DomainReadyFunctionArgs } from "./types";
 
@@ -14,6 +13,8 @@ export default class Domain {
   commands: DefaultCommandType = {} as DefaultCommandType;
   name: string;
   path: string;
+  isReady: boolean = false;
+  isClosed: boolean = false;
 
   constructor(name?: string, path?: string) {
     const isAppNameAndAppPathDefined = typeof name === 'string' &&
@@ -45,13 +46,17 @@ export default class Domain {
   /**
    * Runs when the domain is loaded.
    */
-  async load<S = SettingsType>(settings: S): Promise<void> {}
+  async load<S extends SettingsType = SettingsType>(settings: S): Promise<void> {}
 
   /**
    * Code to run when the app runs. This is sequentially executed one after another so you can
    * define the order of execution by defining the order of the INSTALLED_DOMAINS in the settings.ts/js
    * file.
    */
-  async ready<A extends Adapter = Adapter>(options: DomainReadyFunctionArgs): Promise<void> {}
-  async close(): Promise<void> {}
+  async ready(options: DomainReadyFunctionArgs): Promise<void> {
+    this.isReady = true;
+  }
+  async close(): Promise<void> {
+    this.isClosed = true;
+  }
 }

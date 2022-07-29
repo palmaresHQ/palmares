@@ -1,4 +1,3 @@
-export { default as Adapter } from './adapters';
 export { default as Commands } from './commands';
 export * from './commands/types';
 export { default as Domain } from './domain';

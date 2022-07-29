@@ -9,7 +9,7 @@ export interface DatabaseDomain extends Domain {
 }
 
 export interface DatabaseConfigurationType<DialectOptions, ExtraOptions> {
-  engine: string,
+  engine: typeof Engine,
   url?: string | undefined,
   dialect: DialectOptions,
   databaseName: string,

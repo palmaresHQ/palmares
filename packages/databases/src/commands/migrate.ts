@@ -1,16 +1,16 @@
 import { DomainHandlerFunctionArgs } from "@palmares/core";
+import Databases from "../databases";
 import databases from "../databases";
 import { DatabaseDomain } from "../domain";
 import defaultSettings from "../settings";
-import { DatabaseSettingsType, OptionalMakemigrationsArgsType } from "../types";
+import { DatabaseSettingsType } from "../types";
 
-export default async function migrate({ settings, domains, args }: DomainHandlerFunctionArgs) {
+export default async function migrate(databases: Databases, { settings, domains, args }: DomainHandlerFunctionArgs) {
   const databaseSettings = defaultSettings(settings as DatabaseSettingsType);
   const databaseDomains = domains as DatabaseDomain[];
   await databases.migrate(
     databaseSettings,
-    databaseDomains,
-    args.keywordArgs as OptionalMakemigrationsArgsType
+    databaseDomains
   );
   await databases.close();
   process.exit(0);
