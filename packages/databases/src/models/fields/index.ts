@@ -458,6 +458,16 @@ export class ForeignKeyField<
     }
   }
 
+  /**
+   * This is needed for the state. Some ORMs cannot have the same relatedName twice. What happens is that when recreating the state
+   * we repeat the models from the database. By doing it this way we able to create a random relatedName so we guarantee that the same related name will not be
+   * used twice inside inside of the engine to two different models.
+   *
+   * This is a logic that should live here and not on the engine itself because the engine should not be aware of such errors that might occur. We just want
+   * to keep it simple to develop engines.
+   *
+   * @return - Returns a random relatedName if it is a state model, otherwise returns the normal related name.
+   */
   get relatedName() {
     if (this.model._isState) return `${generateUUID()}-${this._originalRelatedName}`;
     else return this._originalRelatedName;
@@ -486,6 +496,11 @@ export class ForeignKeyField<
   }
 }
 
+/**
+ * Enables developers to create custom fields while also being able to translate them dynamically for a specific engine.
+ * Engines might solve the most common issues but they might not support all fields out of the box so you use this field
+ * to support the field you are looking to.
+ */
 export class TranslatableField extends Field {
   async translate(engine: Engine, engineFields: EngineFields): Promise<any> {
     return undefined;

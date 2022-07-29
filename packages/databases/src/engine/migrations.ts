@@ -1,10 +1,15 @@
 import Engine from ".";
-import { Model } from "../models";
 import Migration from "../migrations/migrate/migration";
 import EngineFields from "./fields";
 import { InitializedModelsType } from "../types";
 import { Field } from "../models/fields";
 
+/**
+ * Engine migrations enables developers to have migrations easily and automatically, no matter the orm they use.
+ *
+ * The hole idea of this application is to simplify and padronize the database access in our application.
+ * So, instead of
+ */
 export default class EngineMigrations {
   engine!: Engine;
   engineFields!: EngineFields;

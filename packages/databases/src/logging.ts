@@ -5,10 +5,12 @@ import {
   LOGGING_DATABASE_CLOSING,
   LOGGING_DATABASE_IS_NOT_CONNECTED,
   LOGGING_MIGRATIONS_NOT_FOUND,
+  LOGGING_MIGRATIONS_RUNNING_FILE_NAME,
   LOGGING_MIGRATIONS_ACTION_DESCRIPTION,
   LOGGING_MIGRATIONS_FILE_DESCRIPTION,
   LOGGING_MIGRATIONS_FILE_TITLE,
-  LOGGING_NO_CHANGES_MADE_FOR_MIGRATIONS
+  LOGGING_NO_CHANGES_MADE_FOR_MIGRATIONS,
+  LOGGING_MIGRATIONS_NO_NEW_MIGRATIONS
 } from './utils';
 
 export default async function buildLogging() {
@@ -51,6 +53,17 @@ export default async function buildLogging() {
       ` that depends on the migration \x1b[1m'${lastMigrationName}'\x1b[0m that exists ` +
       `on \x1b[1m'${lastDomainPath}'\x1b[0m` : '')
     )
+  );
+  logging.appendMessage(
+    LOGGING_MIGRATIONS_NO_NEW_MIGRATIONS,
+    MessageCategories.Info,
+    async ({ databaseName }) => defaultLoggingForDatabases(`There are no migrations to run for '${databaseName}'. If `+
+    'you made changes to your models, please run\x1b[1m makemigrations\x1b[0m command first.')
+  );
+  logging.appendMessage(
+    LOGGING_MIGRATIONS_RUNNING_FILE_NAME,
+    MessageCategories.Info,
+    async ({title}) => defaultLoggingForDatabases(`Running migration: \[36m${title}`)
   );
   logging.appendMessage(
     LOGGING_MIGRATIONS_ACTION_DESCRIPTION,

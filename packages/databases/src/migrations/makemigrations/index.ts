@@ -47,6 +47,7 @@ export default class MakeMigrations {
   database: string;
   filteredMigrationsOfDatabase: FoundMigrationsFileType[];
   optionalArgs: OptionalMakemigrationsArgsType;
+
   constructor(
     database: string,
     settings: DatabaseSettingsType,
@@ -550,6 +551,7 @@ export default class MakeMigrations {
     const migrationNumberToString = migrationNumber < 10 ? `00${migrationNumber}` :
       migrationNumber < 100 ? `0${migrationNumber}` : migrationNumber;
     const migrationName = `${migrationNumberToString}_${this.database}_auto_migration_${Date.now().toString()}`;
+
     logging.logMessage(LOGGING_MIGRATIONS_FILE_TITLE, { title: migrationName });
     logging.logMessage(LOGGING_MIGRATIONS_FILE_DESCRIPTION, {
       database: this.database,

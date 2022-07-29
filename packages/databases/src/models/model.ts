@@ -102,7 +102,7 @@ import { CustomImportsForFieldType } from "./fields/types";
 
 export class Model<T = any> {
   [managers: string]: Manager | ModelFieldsType |
-    ModelOptionsType<T extends Model ? T : this> | typeof Model[] | string | string[] | boolean | Function;
+    ModelOptionsType<T extends Model ? T : this> | Model[] | string | string[] | boolean | Function;
   fields: ModelFieldsType = {
     id: new fields.AutoField()
   };
@@ -110,7 +110,7 @@ export class Model<T = any> {
   _isState: boolean = false;
   _dependentOnModels: string[] = [];
   options!: ModelOptionsType<T extends Model ? T : this>;
-  abstracts: typeof Model[] = [];
+  abstracts: Model[] = [];
   name!: string;
   originalName!: string;
   domainName!: string;
@@ -169,12 +169,12 @@ export class Model<T = any> {
    * @param composedAbstracts - We can have an abstract with an abstract and so on, for that a recursive approach
    * seems a good solution, this is an array with all of the abstracts that were already loaded for the current model.
    */
-  async #loadAbstract(abstractKls: typeof Model, composedAbstracts: string[]): Promise<void> {
-    if (composedAbstracts.includes(abstractKls.name)) {
-      throw new ModelCircularAbstractError(this.constructor.name, abstractKls.name);
+  async #loadAbstract(abstractInstance: Model, composedAbstracts: string[]): Promise<void> {
+    const abstractInstanceName = abstractInstance.constructor.name;
+    if (composedAbstracts.includes(abstractInstanceName)) {
+      throw new ModelCircularAbstractError(this.constructor.name, abstractInstanceName);
     }
 
-    const abstractInstance = new abstractKls();
     const abstractManagers: [string, Manager][] = Object.entries(this.#getManagers(abstractInstance));
     const abstractFieldEntries = Object.entries(abstractInstance.fields);
     const loadAbstractPromises = abstractInstance.abstracts.map(
@@ -183,7 +183,7 @@ export class Model<T = any> {
 
     for (const [fieldName, field] of abstractFieldEntries) {
       if (this.fields[fieldName]) {
-        throw new ModelInvalidAbstractFieldError(this.constructor.name, abstractKls.name, fieldName);
+        throw new ModelInvalidAbstractFieldError(this.constructor.name, abstractInstanceName, fieldName);
       }
       this.fields[fieldName] = field;
     }
@@ -197,7 +197,7 @@ export class Model<T = any> {
     for (const [managerName, managerInstance] of abstractManagers) {
       if (this[managerName]) {
         throw new ModelInvalidAbstractManagerError(
-          this.constructor.name, abstractKls.name, managerName
+          this.constructor.name, abstractInstanceName, managerName
         );
       }
       this[managerName] = managerInstance;
@@ -362,6 +362,6 @@ export class Model<T = any> {
  */
 export default function model<M>() {
   return class DefaultModel extends Model<M> {
-    static default = new DefaultManager< M extends Model ? M : Model>()
+    static default = new DefaultManager<M extends Model ? M : Model>()
   }
 }

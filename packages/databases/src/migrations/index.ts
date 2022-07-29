@@ -33,7 +33,6 @@ export default class Migrations {
 
   async migrate(
     initializedEngineInstances: InitializedEngineInstancesType,
-    optionalArgs: OptionalMakemigrationsArgsType
   ) {
     const migrations = await this.#getMigrations();
     await Migrate.buildAndRun(this.settings, migrations, initializedEngineInstances);

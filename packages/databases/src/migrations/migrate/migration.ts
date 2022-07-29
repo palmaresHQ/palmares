@@ -10,16 +10,23 @@ export default class Migration {
   dependsOn: string;
   engineInstance: Engine;
   operations: Operation[] = [];
+  allMigrations: FoundMigrationsFileType[];
 
   transaction: any = null;
 
-  constructor(engineInstance: Engine, migrationFile: MigrationFileType, domainName: string) {
+  constructor(
+    engineInstance: Engine,
+    migrationFile: MigrationFileType,
+    domainName: string,
+    allMigrations: FoundMigrationsFileType[],
+  ) {
     this.engineInstance = engineInstance;
     this.name = migrationFile.name;
     this.databaseName = migrationFile.database;
     this.dependsOn = migrationFile.dependsOn;
     this.operations = migrationFile.operations;
     this.domainName = domainName;
+    this.allMigrations = allMigrations;
   }
 
   async runOnTransaction(transaction: any, allMigrations: FoundMigrationsFileType[]) {
@@ -53,9 +60,14 @@ export default class Migration {
   static async buildFromFile(
     engineInstance: Engine,
     migrationFile: FoundMigrationsFileType,
-    allMigrations: FoundMigrationsFileType[]
+    allMigrations: FoundMigrationsFileType[],
   ) {
-    const migration = new this(engineInstance, migrationFile.migration, migrationFile.domainName);
+    const migration = new this(
+      engineInstance,
+      migrationFile.migration,
+      migrationFile.domainName,
+      allMigrations
+    );
     await migration.run(allMigrations);
   }
 }

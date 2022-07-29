@@ -27,7 +27,53 @@ export default class SequelizeMigrations extends EngineMigrations {
   async init(): Promise<void> {
     this.#queryInterface = this.engine.instance?.getQueryInterface() as QueryInterface;
   }
-
+  /**
+   * When the model references itself we need to evaluate it lazily. What this does is: First check if it has a circular dependency,
+   * all circular dependencies will add a new column.
+   *
+   * For example:
+   * ```
+   * class CircularDependency extends models.Model<CircularDependency>() {
+   *      fields = {
+   *          circular: new models.fields.ForeignKeyField({
+   *              relatedTo:'Circular',
+   *              onDelete: models.fields.ON_DELETE.CASCADE
+   *          })
+   *      }
+   *      options = {
+   *          tableName: 'circular_dependency',
+   *      }
+   * }
+   *
+   * class Circular extends models.Model<CircularDependency>() {
+   *      fields = {
+   *          circularFromHere: new models.fields.ForeignKeyField({
+   *          relatedTo:'CircularDependency',
+   *          onDelete: models.fields.ON_DELETE.CASCADE
+   *      })
+   * }
+   *     options = {
+   *          tableName: 'circular',
+   *      }
+   * }
+   * ```
+   *
+   * Look that CircularDependency is dependant on Circular and Circular is dependant on CircularDependency.
+   *
+   * So what this does is that, on the creation of `Circular` or `CircularDependency` one of the columns will not yet be created.
+   * So it won't create the column by default, you can remove this function, and create this simple model, make a migration and then
+   * run this, you will see that `circular` table will be created but WILL NOT contain the `circularFromHere` column.
+   *
+   * So what we do is handle this and enforce it's creation.
+   *
+   * For doing that we will transverse the attributes defined in the model and we check if the 'relatedTo' attribute is already defined or not.
+   * If it's not then we will append it to .circularDependenciesInMigration variable. The next time we run this function on the next operation we
+   * enter on this function again, and then we will check if the model that is pending has been created or not. If it is then we will create the column.
+   * Really simple stuff.
+   *
+   * @param migration - The migration that is currently running.
+   * @param options - The models of how it was before and how it will be after this migration operation runs.
+   */
   async #handleCircularDependencies(
     migration: Migration,
     {
@@ -64,6 +110,12 @@ export default class SequelizeMigrations extends EngineMigrations {
     }
   }
 
+  /**
+   * Responsible for adding the indexes in the migration, it is not called directly from every operation
+   * but instead this is handled by sequelizeEngine itself.
+   *
+   * This creates all of the indexes in all of the tables so no index is missing.
+   */
   async #handleIndexes(
     migration: Migration,
     {
@@ -179,10 +231,6 @@ export default class SequelizeMigrations extends EngineMigrations {
    * Changes the model options. Here we only change the table name, most of the other actions will already be handled
    * by the other methods. Even custom options impact on the fields itself so it might be overkill to just do
    * more than that here.
-   *
-   * @param toModel
-   * @param fromModel
-   * @param migration
    */
   async changeModel(
     toModel: InitializedModelsType<ModelCtor<Model>>,
@@ -258,6 +306,16 @@ export default class SequelizeMigrations extends EngineMigrations {
     await this.#handleIndexes(migration, {toModel, fromModel});
   }
 
+  /**
+   * Responsible for changing the fields of the model. This does many stuff, from creating indexes, to removing constraints and so on.
+   * The idea is that this renames the table, this adds indexes, this changes the model attribute definition and so on.
+   *
+   * @param toModel - How the model will be after this operation.
+   * @param fromModel - How the model was before this operation.
+   * @param fieldBefore - How the field was before this operation.
+   * @param fieldAfter - How the field will be after this operation
+   * @param migration - The migration instance.
+   */
   async changeField(
     toModel: InitializedModelsType<ModelCtor<Model>>,
     fromModel: InitializedModelsType<ModelCtor<Model>>,

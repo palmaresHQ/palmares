@@ -109,7 +109,7 @@ export class DeleteModel extends Operation {
     migration: Migration,
     engineInstance: Engine,
     fromState: OriginalOrStateModelsByNameType,
-    _: OriginalOrStateModelsByNameType
+    toState: OriginalOrStateModelsByNameType
   ): Promise<void> {
     const fromModel = fromState[this.modelName];
     await engineInstance.migrations.removeModel(fromModel, migration)

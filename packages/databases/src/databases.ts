@@ -44,16 +44,29 @@ class Databases {
     }
   }
 
+  /**
+   * Responsible for handling the `makemigrations` command. For this command we must initialize the database first.
+   * The user can pass --empty to create a new empty migration file.
+   *
+   * @param settings - The settings defined by the user in settings.js/ts file.
+   * @param domains - The domains defined by the user so we can fetch all of the models and migrations.
+   */
   async makeMigrations(settings: DatabaseSettingsType, domains: DatabaseDomain[], optionalArgs: OptionalMakemigrationsArgsType) {
     await this.init(settings, domains);
     const migrations = new Migrations(settings, domains);
     await migrations.makeMigrations(this.initializedEngineInstances, optionalArgs);
   }
 
-  async migrate(settings: DatabaseSettingsType, domains: DatabaseDomain[], optionalArgs: OptionalMakemigrationsArgsType) {
+  /**
+   * Responsible for handling the `migrate` command. For this command we must initialize the database first.
+   *
+   * @param settings - The settings defined by the user in settings.js/ts file.
+   * @param domains - The domains defined by the user so we can fetch all of the models and migrations.
+   */
+  async migrate(settings: DatabaseSettingsType, domains: DatabaseDomain[]) {
     await this.init(settings, domains);
     const migrations = new Migrations(settings, domains);
-    await migrations.migrate(this.initializedEngineInstances, optionalArgs);
+    await migrations.migrate(this.initializedEngineInstances);
   }
 
   /**
