@@ -8,10 +8,11 @@ export const ENV = typeof process.env.NODE_ENV === 'string' ? process.env.NODE_E
 export const DEBUG = ENV === 'development';
 export const SECRET_KEY = 'example-secret';
 export const APP_NAME = 'example';
-export const SERVER = ExpressServer;
-
 export const BASE_PATH = dirname(resolve(__dirname));
 export const USE_TS = true;
+
+export const SERVER = ExpressServer;
+export const ROOT_ROUTER = import('./core/routes');
 
 export const INSTALLED_DOMAINS = [
   import('@palmares/server'),

@@ -1,7 +1,7 @@
-import { SettingsType } from "@palmares/core";
-import { Server } from '@palmares/server';
-
 import express, { Express } from "express";
+
+import { HandlersOfRouterType, Server } from '@palmares/server';
+
 
 export default class ExpressServer extends Server {
   serverInstance!: Express;
@@ -17,6 +17,19 @@ export default class ExpressServer extends Server {
     });
   }
 
-  async configureRoutes(rootUrlconf: string): Promise<void> {
+  async initializeRouters(routes: [string, HandlersOfRouterType[]][]): Promise<void> {
+    for (const [path, handlers] of routes) {
+      for (const { methodType, handler} of handlers) {
+        if (methodType === 'GET') {
+          this.serverInstance.get(path, async (req, res) => {
+            console.log(req);
+            await handler();
+            console.log('------')
+            console.log(res);
+            res.send('passou');
+          });
+        }
+      }
+    }
   }
 }
