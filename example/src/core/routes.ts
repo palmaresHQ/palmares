@@ -11,7 +11,7 @@ export default [
     }),
     path("", [
       path('/alou', {
-        GET: {
+        POST: {
           handler: (request) => {
             return "Hello world"
           }

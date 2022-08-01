@@ -17,3 +17,15 @@ export type MultipleServerSettings = {
 }
 
 export interface ServerSettingsType extends SettingsType, OnlyServerSettingsType {}
+
+export type HeadersType = {
+  [key: string]: string
+}
+
+export type QueryParamsType = {
+  [key: string]: string
+}
+
+export type PathParamsType = {
+  [key: string]: string
+}
