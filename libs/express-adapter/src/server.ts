@@ -1,12 +1,16 @@
-import express, { Express } from "express";
+import express, { Express } from 'express';
 
-import { HandlersOfRouterType, Server } from '@palmares/server';
-
+import { HandlersOfRouterType, Server, ServerSettingsType } from '@palmares/server';
+import ExpressRoutes from './routes';
 
 export default class ExpressServer extends Server {
   serverInstance!: Express;
+  routes!: ExpressRoutes;
   _app!: Express;
 
+  constructor(settings: ServerSettingsType) {
+    super(settings, ExpressRoutes);
+  }
   async load(): Promise<void> {
     this.serverInstance = express();
   }

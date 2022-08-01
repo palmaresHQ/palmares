@@ -1,6 +1,6 @@
 import ServerDomain from "./domain";
 
-export { default as Server } from './server';
+export { default as Server, ServerRoutes } from './server';
 export * from './types';
 export * as status from './status';
 export * from './controllers/enums';

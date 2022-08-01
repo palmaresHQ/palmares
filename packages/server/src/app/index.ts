@@ -1,10 +1,18 @@
 import { Domain, SettingsType, logging } from "@palmares/core";
 import { Router } from "../routers";
+import { BaseRoutesType } from "../routers/types";
 
 import Server from "../server";
 import { RootRouterTypes, ServerSettingsType } from "../types";
 import { LOGGING_APP_STOP_SERVER } from "../utils";
 
+/**
+ * This is the app, the app instance is responsible for loading the http server.
+ * An http server is a server that can handle multiple http requests.
+ *
+ * By default this overrides many of the things defined on the core, like the `domains`.
+ * It's on here that we call the `ready` and `close` methods of the domains.
+ */
 export default class App {
   domains!: Domain[]
   settings!: ServerSettingsType;
@@ -56,7 +64,16 @@ export default class App {
     else return [rootRouter];
   }
 
-  async initialize(settings: ServerSettingsType, domains: Domain[]) {
+  /**
+   * Initialize the app, this will load the settings, initialize the server and call `ready` function
+   * inside of the domains. This ready function is called when the application starts. Although we define
+   * it in the `core` we call it here because we are initializing the app.
+   *
+   * @param settings - The settings of the application. Those are the server settings with the data needed
+   * for this application.
+   * @param domains - All of the domains of the application, including the domain of the server.
+   */
+  async initialize(settings: ServerSettingsType, domains: Domain[]): Promise<void> {
     this.settings = settings;
     this.domains = domains;
 
@@ -70,17 +87,23 @@ export default class App {
     }
   }
 
-  async getRoutes() {
+  async getRoutes(): Promise<BaseRoutesType[]> {
     const promisedRouters = await this.#getRootRouter();
     const routers = await Promise.all(promisedRouters);
     const routes = await Promise.all([...routers.map(async (router) => await router.getBaseRoutes())]);
     return routes.flat();
   }
 
+  async startRoutes() {
+    const routes = await this.getRoutes();
+    await this.server.routes.initialize(routes);
+  }
+
   async start() {
-    const routers = await this.getRoutes();
-    await this.server.initializeRouters(routers);
+    await this.startRoutes();
+
     await this.server.init();
+
     await this.#configureCleanup();
   }
 

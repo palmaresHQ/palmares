@@ -18,6 +18,6 @@
 		"forceConsistentCasingInFileNames": true,
 		"noFallthroughCasesInSwitch": false,
 	},
-  "include": ["packages/**/*", "integration/**/*", "lib/**/*"],
+  "include": ["packages/**/*", "integration/**/*", "libs/**/*", "example"],
   "exclude": ["node_modules", "**/*.spec.ts"]
 }

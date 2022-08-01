@@ -19,13 +19,71 @@ export default class EngineMigrations {
     this.engineFields = engineFields;
   }
 
-  async init() {}
-  async addModel(toModel: InitializedModelsType, migration: Migration) {}
-  async removeModel(fromModel: InitializedModelsType, migration: Migration){}
-  async changeModel(toModel: InitializedModelsType, fromModel: InitializedModelsType, migration: Migration){}
-  async addField(toModel: InitializedModelsType, fromModel: InitializedModelsType, fieldName: string, migration: Migration){}
-  async changeField(toModel: InitializedModelsType, fromModel: InitializedModelsType, fieldBefore: Field, fieldAfter: Field, migration: Migration){}
-  async renameField(toModel: InitializedModelsType, fromModel: InitializedModelsType, fieldNameBefore: string, fieldNameAfter: string, migration: Migration){}
-  async removeField(toModel: InitializedModelsType, fromModel: InitializedModelsType, fieldName: string, migration: Migration){}
-  async finish() {}
+  async init(): Promise<void> {
+    return;
+  }
+
+  async addModel(
+    toModel: InitializedModelsType,
+    migration: Migration
+  ) {
+    return;
+  }
+
+  async removeModel(
+    fromModel: InitializedModelsType,
+    migration: Migration
+  ): Promise<void> {
+    return;
+  }
+
+  async changeModel(
+    toModel: InitializedModelsType,
+    fromModel: InitializedModelsType,
+    migration: Migration
+  ): Promise<void> {
+    return;
+  }
+
+  async addField(
+    toModel: InitializedModelsType,
+    fromModel: InitializedModelsType,
+    fieldName: string,
+    migration: Migration
+  ): Promise<void> {
+    return;
+  }
+
+  async changeField(
+    toModel: InitializedModelsType,
+    fromModel: InitializedModelsType,
+    fieldBefore: Field,
+    fieldAfter: Field,
+    migration: Migration
+  ): Promise<void> {
+    return;
+  }
+
+  async renameField(
+    toModel: InitializedModelsType,
+    fromModel: InitializedModelsType,
+    fieldNameBefore: string,
+    fieldNameAfter: string,
+    migration: Migration
+  ): Promise<void> {
+    return;
+  }
+
+  async removeField(
+    toModel: InitializedModelsType,
+    fromModel: InitializedModelsType,
+    fieldName: string,
+    migration: Migration
+  ): Promise<void> {
+    return;
+  }
+
+  async finish(): Promise<void> {
+    return;
+  }
 }

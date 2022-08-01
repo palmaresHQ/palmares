@@ -1,23 +1,22 @@
 import { logging, LOGGING_APP_START_SERVER } from "@palmares/core";
 
 import { NotImplementedServerException } from "./exceptions";
-import { OnlyServerSettingsType, ServerSettingsType } from "../types";
+import { ServerSettingsType } from "../types";
 import { HandlersOfRouterType } from "../routers/types";
+import ServerRoutes from "./routes";
 
 export default class Server {
   serverInstance!: any;
   settings: ServerSettingsType;
+  routes: ServerRoutes;
 
-  constructor(settings: ServerSettingsType) {
+  constructor(settings: ServerSettingsType, routes?: typeof ServerRoutes) {
     this.settings = settings;
+    this.routes = new (routes as typeof ServerRoutes)(this);
   }
 
   async load() {
     throw new NotImplementedServerException('load');
-  }
-
-  async initializeRouters(routes: [string, HandlersOfRouterType[]][]) {
-    throw new NotImplementedServerException('initializeRouters');
   }
 
   async init() {
@@ -31,3 +30,5 @@ export default class Server {
     return;
   }
 }
+
+export { ServerRoutes };
