@@ -1,17 +1,16 @@
 import { HTTPMethodEnum } from "./enums"
+import Request from "../request";
+import Middleware from "../middlewares";
 
-export type FunctionControllerType = (request?: Request) => any;//Response | Promise<Response>
+export type FunctionControllerType = (request: Request) => any;//Response | Promise<Response>
 
 export type ControllerHandlerType<C extends object = {}> = {
   path?: string;
   custom?: C;
-  handler: FunctionControllerType
+  handler: FunctionControllerType;
+  middlewares?: typeof Middleware[];
 }
 
 export type VariableControllerType<C extends object = {}> = {
-  [key in HTTPMethodEnum]?: {
-    path?: string;
-    custom?: C;
-    handler: FunctionControllerType
-  }
+  [key in HTTPMethodEnum]?: ControllerHandlerType<C> | FunctionControllerType;
 }

@@ -90,7 +90,9 @@ export default class App {
   async getRoutes(): Promise<BaseRoutesType[]> {
     const promisedRouters = await this.#getRootRouter();
     const routers = await Promise.all(promisedRouters);
-    const routes = await Promise.all([...routers.map(async (router) => await router.getBaseRoutes())]);
+    const routes = await Promise.all([...routers.map(async (router) => {
+      return await router.getBaseRoutes()
+    })]);
     return routes.flat();
   }
 

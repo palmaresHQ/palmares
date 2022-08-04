@@ -42,7 +42,6 @@ export default class SequelizeEngineQuery extends EngineQuery {
       return await instance.create(data as CreationAttributes<SequelizeModel>) as unknown as S extends undefined | null ?
         AllRequiredModelFields<M> | undefined  : boolean;
     } catch(e) {
-      console.log(e);
       if (search) {
         return false as S extends undefined | null ? AllRequiredModelFields<M> | undefined : boolean;
       }

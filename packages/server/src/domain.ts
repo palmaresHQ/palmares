@@ -38,7 +38,7 @@ export default class ServerDomain extends Domain {
    * ```
    * import express from 'express';
    *
-   * const app = express(); // Here, by default it's not running the server right now, this is what we save.
+   * const app = express(); // --> Here, by default it's not running the server right now, this is what we save.
    * const port = 3000;
    *
    * app.get('/', (req, res) => {
@@ -74,7 +74,8 @@ export default class ServerDomain extends Domain {
 }
 
 /**
- * Adds support to add multiple servers on the same domain. You just need to make sure that
+ * Adds support to add multiple servers on the same domain. You just need to make sure that you setup different ports
+ * for each server.
  */
 export function multiple(config: MultipleServerSettings) {
   const serversEntries = Object.entries(config);

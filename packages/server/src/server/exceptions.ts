@@ -7,7 +7,7 @@ export class NotImplementedServerException extends Error {
 
 export class CannotParsePathParameterException extends Error {
   constructor(path: string, parameter: string) {
-    super(`Could not parse path parameter ${parameter} in path ${path}, it should be of the form <label: string>, or <label: number> or <label: a_regex>`);
+    super(`Could not parse path parameter ${parameter} in path ${path}, it should be of the form <label>, <label: string>, or <label: number> or <label: a_regex>`);
     this.name = CannotParsePathParameterException.name;
   }
 }

@@ -13,10 +13,14 @@
     "migrate": "ts-node manage.ts migrate"
   },
   "dependencies": {
-    "@palmares/databases": "*",
     "@palmares/core": "*",
+    "@palmares/databases": "*",
     "@palmares/express-adapter": "*",
     "@palmares/sequelize-engine": "*",
+    "cors": "^2.8.5",
     "pg": "^8.7.3"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.12"
   }
 }

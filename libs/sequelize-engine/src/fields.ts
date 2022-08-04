@@ -339,7 +339,7 @@ export default class SequelizeEngineFields extends EngineFields {
   }
 
   async #translateField(field: models.fields.Field): Promise<ModelAttributeColumnOptions> {
-    let fieldAttributes = {} as ModelAttributeColumnOptions;
+    const fieldAttributes = {} as ModelAttributeColumnOptions;
     await this.handleDefaultAttributes(fieldAttributes, field);
     await this.#translateFieldType(fieldAttributes, field);
     return fieldAttributes;

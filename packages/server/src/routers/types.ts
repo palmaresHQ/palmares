@@ -3,10 +3,11 @@ import { HTTPMethodEnum } from "../controllers/enums";
 import { VariableControllerType, ControllerHandlerType } from "../controllers/types";
 import Middleware from "../middlewares";
 
-export type RouterParametersType = VariableControllerType | Array<Promise<Router>>;
+export type RouterParametersType = VariableControllerType | typeof Middleware | Array<Promise<Router>> | Router;
 
-export type HandlersOfRouterType = {
+export type HandlersOfRouterType = ControllerHandlerType & {
   methodType: HTTPMethodEnum;
-} & ControllerHandlerType;
+  middlewares: typeof Middleware[];
+};
 
 export type BaseRoutesType = [string, HandlersOfRouterType[]];
