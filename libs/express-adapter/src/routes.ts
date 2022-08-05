@@ -20,7 +20,7 @@ export default class ExpressRoutes extends ServerRoutes {
 
   async initialize(routes: BaseRoutesType[]): Promise<void> {
     for (const [path, handlers] of routes) {
-      for (const { methodType, handler, middlewares } of handlers) {
+      for (const { methodType, ...handler } of handlers) {
         const loweredMethodType = methodType.toLowerCase() as HTTPMethodTypes;
         const {
           path: translatedPath,
@@ -29,7 +29,6 @@ export default class ExpressRoutes extends ServerRoutes {
         } = await this.getPathHandlerAndMiddlewares(
           path,
           handler,
-          middlewares
         );
 
         this.server.serverInstance.use(translatedPath, ...translatedMiddlewares);

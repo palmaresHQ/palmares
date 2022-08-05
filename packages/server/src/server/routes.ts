@@ -1,7 +1,7 @@
 import { logging } from "@palmares/core";
 
 import Server from ".";
-import { FunctionControllerType } from "../controllers/types";
+import { ControllerHandlerType, FunctionControllerType, VariableControllerType } from "../controllers/types";
 import Middleware from "../middlewares";
 import { BaseRoutesType } from "../routers/types";
 import { PathParamsType } from "../types";
@@ -122,8 +122,7 @@ export default class ServerRoutes {
    */
   async getPathHandlerAndMiddlewares<R = undefined>(
     path: string,
-    handler: FunctionControllerType,
-    middlewares: typeof Middleware[]
+    handler: ControllerHandlerType,
   ){
     let formattedPath = path;
     const pathParameters = await this.#getPathParameters(path);
@@ -138,9 +137,9 @@ export default class ServerRoutes {
     await Promise.all(promises);
 
     // This returns the loaded data from the
-    const loadedMiddlewareData = await this.#getLoadedMiddlewares(middlewares);
+    const loadedMiddlewareData = await this.#getLoadedMiddlewares(handler.middlewares || []);
 
-    const formattedHandler = await this.#getHandlerForPath(handler, pathParamsParser, middlewares);
+    const formattedHandler = await this.#getHandlerForPath(handler, pathParamsParser);
     return {
       path: formattedPath,
       handler: formattedHandler,
@@ -225,16 +224,16 @@ export default class ServerRoutes {
    * inside of the functions.
    *
    * @param handler - The handler that is going to be called after the middlewares are attached.
-   * @param middlewares - The middlewares that are going to be attached to the handler.
    *
    * @returns - A promise that resolves to the root middleware that is going to be called or the
    * handler if there are no middlewares.
    */
   async #getHandlerWithMiddlewaresAttached(
-    handler: FunctionControllerType,
-    middlewares: typeof Middleware[]
+    handler: ControllerHandlerType,
   ): Promise<FunctionControllerType> {
-    let requestHandler = handler;
+    const middlewares = (handler.middlewares || []);
+    let requestHandler = handler.handler;
+
     const previousMiddleware = middlewares[0];
     if (previousMiddleware) {
       let initializedPreviousMiddleware = new previousMiddleware();
@@ -243,10 +242,13 @@ export default class ServerRoutes {
       for (let i = 1; i < middlewares.length; i++) {
         const nextMiddleware = middlewares[i];
         const initializedNextMiddleware = new nextMiddleware();
-        await initializedPreviousMiddleware.init(initializedNextMiddleware.run.bind(initializedNextMiddleware));
+        await initializedPreviousMiddleware.init(
+          initializedNextMiddleware.run.bind(initializedNextMiddleware),
+          handler.options
+        );
         initializedPreviousMiddleware = initializedNextMiddleware;
       }
-      await initializedPreviousMiddleware.init(handler.bind(handler));
+      await initializedPreviousMiddleware.init(handler.handler.bind(handler.handler), handler.options);
     }
     return requestHandler
   }
@@ -261,12 +263,10 @@ export default class ServerRoutes {
    *
    * @param handler - The handler that is going to be called after the middlewares are attached.
    * @param pathParamsParser - The path params parser that is going to be used to parse the path parameters.
-   * @param middlewares - The middlewares that are going to be attached to the handler.
    */
   async #getHandlerForPath(
-    handler: FunctionControllerType,
-    pathParamsParser: PathParamsParser,
-    middlewares: typeof Middleware[]
+    handler: ControllerHandlerType,
+    pathParamsParser: PathParamsParser
   ) {
     return async (req: any) => {
       const elapsedStartTime = performance.now();
@@ -274,8 +274,8 @@ export default class ServerRoutes {
       const request = await this.server.requests.translate(req);
       await request._appendPathParamsParser(pathParamsParser);
 
-      const requestHandler = await this.#getHandlerWithMiddlewaresAttached(handler, middlewares);
-      const response = await Promise.resolve(requestHandler(request));
+      const requestHandler = await this.#getHandlerWithMiddlewaresAttached(handler);
+      const response = await Promise.resolve(requestHandler(request, handler));
 
       const elapsedEndTime = performance.now();
       const elapsedTime = elapsedEndTime - elapsedStartTime;

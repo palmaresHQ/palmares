@@ -42,6 +42,7 @@ import Server from "../server";
  */
 export default class Middleware {
   #next!: FunctionControllerType;
+  #options!: any;
 
   /**
    * This is called when we load the application, if you want to add custom functions to the framework that is being used.
@@ -81,8 +82,9 @@ export default class Middleware {
    *
    * @param next - The next handler to be called when we call `.getResponse()`.
    */
-  async init(next: FunctionControllerType) {
+  async init(next: FunctionControllerType, options: any) {
     this.#next = next;
+    this.#options = options;
   }
 
   /**
@@ -92,7 +94,7 @@ export default class Middleware {
    * @param request - The request that is being handled.
    */
   async getResponse(request: Request) {
-    return await Promise.resolve(this.#next(request));
+    return await Promise.resolve(this.#next(request, this.#options));
   }
 
   /**
