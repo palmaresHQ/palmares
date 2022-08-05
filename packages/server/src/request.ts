@@ -5,7 +5,7 @@ import { snakeCaseToCamelCase } from "./utils";
 /**
  * Should follow this api: https://developer.mozilla.org/en-US/docs/Web/API/Request
  */
-export default class Request<R = any, AD = any, D = any> {
+export default class Request<R = any, O = any, D = any> {
   readonly method!: string;
   readonly host!: string;
   readonly path!: string;
@@ -20,7 +20,7 @@ export default class Request<R = any, AD = any, D = any> {
   #query: QueryParamsType = {};
   #cachedPathParams?: PathParamsType;
   #pathParams: RawParamsType = {};
-  additionalData = {} as AD;
+  options = {} as O;
 
   constructor(
     method: string,

@@ -1,4 +1,3 @@
-import Controller from "../controllers";
 import { HTTPMethodEnum } from "../controllers/enums";
 import { VariableControllerType } from "../controllers/types";
 import { MoreThanOneHandlerForSamePathError } from "./exceptions";
@@ -10,15 +9,15 @@ import Middleware from "../middlewares";
  * the custom server instance.
  */
 export class Router {
-  path: string;
+  path!: string;
   handlers: HandlersOfRouterType[] = [];
   middlewares: typeof Middleware[] = [];
   nestedPaths: { [key: string]: HandlersOfRouterType[]; } = {};
   #wasHandlersFoundForRouter = false;
-  #indexToAddMiddleware = 0;
 
-  constructor(path: string) {
-    this.path = path;
+  constructor(path?: string) {
+    const isPathAString = typeof path === 'string';
+    if (isPathAString) this.path = path as string;
   }
 
   static async new(path: string, ...args: RouterParametersType[]) {
@@ -32,16 +31,19 @@ export class Router {
       const isOfTypeRouter = argument instanceof Router;
       const isOfTypeMiddleware = (argument as typeof Middleware).prototype instanceof Middleware;
 
-      if (Array.isArray(argument)) {
-        for (const router of argument) {
-          await this.#formatRouter(await router);
+      if (argument instanceof Promise) {
+        const router = await argument;
+        if (router instanceof Router) {
+          await this.#formatRouter(router);
+        } else {
+          await this.#formatRouter(router.default);
         }
       } else if (isOfTypeRouter) {
         await this.#formatRouter(argument);
       } else if (isOfTypeMiddleware) {
         await this.#formatMiddleware(argument as typeof Middleware);
       } else {
-        await this.#formatHandler(argument as VariableControllerType);
+        await this._formatHandler(argument as VariableControllerType);
       }
     }
   }
@@ -74,8 +76,8 @@ export class Router {
    *
    * @param handler - The handler to attach to the handlers and that was defined in the router itself.
    */
-  async #formatHandler(handler: VariableControllerType): Promise<void> {
-    if (this.#wasHandlersFoundForRouter === false) {
+  async _formatHandler(handler: VariableControllerType, addMultiple = false): Promise<void> {
+    if (this.#wasHandlersFoundForRouter === false || addMultiple) {
       // Reverse the middlewares so that the last middleware is the first one.
       // (We append the middlewares always on the first index, look for `#formatMiddleware` method)
       const middlewares = this.middlewares.reverse();
@@ -88,7 +90,7 @@ export class Router {
             handler: controller,
             middlewares,
             path: '',
-            custom: {}
+            options: {}
           })
         } else {
           const isControllerMiddlewaresDefined = Array.isArray(controller.middlewares);
@@ -101,7 +103,7 @@ export class Router {
             handler: controller.handler,
             middlewares: middlewaresOfTheController,
             path: controller.path,
-            custom: controller.custom
+            options: controller.options
           })
         }
       }
@@ -227,7 +229,7 @@ export class Router {
    */
   async getBaseRoutes() {
     const nestedPaths = Object.entries(this.nestedPaths);
-    const allRoutes: BaseRoutesType[] = [[this.path, this.handlers], ...nestedPaths];
+    const allRoutes: BaseRoutesType[] = [[this.path as string, this.handlers], ...nestedPaths];
     const baseRoutes: BaseRoutesType[] = allRoutes.filter(([_, handlers]) => {
       const hasAnyHandlerForPath: boolean = handlers.length > 0;
       return hasAnyHandlerForPath
@@ -236,6 +238,10 @@ export class Router {
   }
 }
 
-export default async function path<A extends Array<RouterParametersType>>(path: string, ...args: A): Promise<Router> {
+export async function includes<A extends Array<RouterParametersType>>(...args: A): Promise<Router> {
+  return Router.new('', ...args)
+}
+
+export async function path<A extends Array<RouterParametersType>>(path: string, ...args: A): Promise<Router> {
   return Router.new(path, ...args)
 }

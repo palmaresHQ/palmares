@@ -1,6 +1,5 @@
 import Server from '.';
 import Request from '../request';
-import { PathParamsType } from '../types';
 import { NotImplementedServerException } from './exceptions';
 import ServerRoutes from './routes';
 

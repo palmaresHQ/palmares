@@ -4,7 +4,7 @@
   "description": "The server from palmares, this is what you will use generally to make HTTP requests",
   "main": "src/index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "ts-node src/controllers/index.ts"
   },
   "repository": {
     "type": "git",

@@ -43,18 +43,65 @@ import Server from "../server";
 export default class Middleware {
   #next!: FunctionControllerType;
 
-  static async load<R = unknown>(server: Server): Promise<R | any> {
+  /**
+   * This is called when we load the application, if you want to add custom functions to the framework that is being used.
+   * This is where you are going to define them.
+   *
+   * For example, to use Express `cors` middleware we should create like the following:
+   * ```
+   * import cors from 'cors';
+   *
+   * export class ExpressCorsMiddleware extends ExpressMiddleware {
+   *    static async load(server: ExpressServer): Promise<ExpressMiddlewareHandlerType> {
+   *      return cors();
+   *    }
+   * }
+   * ```
+   *
+   * This enables us to use the default middleware in the application. This api might change depending
+   * on the framework, we recommend that your framework create a new class that extends `Middleware` and
+   * defines how the `load()` method should be implemented.
+   *
+   * @param server - The server that is being used. Many frameworks might not need this parameter, but some of them
+   * can, so we recommend that you always pass it.
+   *
+   * @returns - A promise that resolves to anything so custom middlewares can be created.
+   */
+  static async load<R>(server: Server): Promise<R | any> {
     return undefined as unknown as R;
   }
 
+  /**
+   * DO NOT OVERRIDE THIS FUNCTION.
+   *
+   * @deprecated - DO NOT OVERRIDE THIS FUNCTION.
+   *
+   * This is called when we are converting the middlewares array to a linked list. This is where we are going
+   * to pass the handler to be called when we call `getResponse()`.
+   *
+   * @param next - The next handler to be called when we call `.getResponse()`.
+   */
   async init(next: FunctionControllerType) {
     this.#next = next;
   }
 
+  /**
+   * This function can be overridden. This function is used to get the response
+   * of the request so we can modify the response before it is sent to the client.
+   *
+   * @param request - The request that is being handled.
+   */
   async getResponse(request: Request) {
     return await Promise.resolve(this.#next(request));
   }
 
+  /**
+   * Generally speaking, this is the function that should be called when we want to execute the middleware
+   * this is where we are going to call the `getResponse()` function and where you should implement your logic
+   * for the middleware.
+   *
+   * @param request - The request that is being handled.
+   */
   async run(request: Request): Promise<any> {
     return this.getResponse(request);
   }

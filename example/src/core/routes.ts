@@ -1,20 +1,15 @@
 import { path } from "@palmares/server"
+import { ExampleController } from "./controllers";
 
 import { ExpressCorsMiddleware } from "./middlewares";
 
 export default [
-  path("/teste", ExpressCorsMiddleware, [
-    path("/<hello>", {
-      GET: {
-        handler: (request) => {
-          return "Hello world"
-        }
-      }
-    }),
-    path("", [
+  path("/teste", ExpressCorsMiddleware,
+    path("/<hello>", ExampleController.new()),
+    path("",
       path('/alou', {
         POST: {
-          handler: (request) => {
+          handler: (request, options) => {
             return "Hello world"
           }
         }
@@ -26,6 +21,6 @@ export default [
           }
         }
       }),
-    ]),
-  ]),
+    ),
+  ),
 ]

@@ -14,6 +14,7 @@ export default class ExpressServer extends Server {
   constructor(settings: ServerSettingsType) {
     super(settings, ExpressRoutes, ExpressRequests);
   }
+
   async load(): Promise<void> {
     this.serverInstance = express();
     this.serverInstance.use(express.json(this.settings?.CUSTOM_SERVER_SETTINGS?.JSON_OPTIONS));
