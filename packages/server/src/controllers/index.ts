@@ -1,5 +1,5 @@
 import { Router } from "../routers";
-import { ClassHandler } from "./types";
+import { ClassHandler, VariableControllerType } from "./types";
 import { HTTPMethodEnum } from "./enums";
 
 const enumsAsString = Object.keys(HTTPMethodEnum);
@@ -31,7 +31,7 @@ export default class Controller extends Router {
       if (isProbablyAKeyHandler) {
         const keysOfHandler = Object.keys(value as object);
         const isDefinitelyAKeyHandler = keysOfHandler
-          .every(keyOfHandler => [...enumsAsString, 'path', 'middlewares', 'custom'].includes(keyOfHandler));
+          .every(keyOfHandler => [...enumsAsString, 'path', 'middlewares', 'options'].includes(keyOfHandler));
         if (isDefinitelyAKeyHandler) {
           handlers.push(value as ClassHandler)
         }
@@ -55,8 +55,18 @@ export default class Controller extends Router {
     const router = new this();
     for (const handler of await router.getHandlersOfController()) {
       const { path, middlewares, options, ...handlers } = handler;
-      Object.values(handlers).forEach(handler => {
-        if (typeof handler !== 'function') {
+      const handlerEntries = Object.entries(handlers);
+      handlerEntries.forEach(([key, handler]) => {
+        const isHandlerOfTypeFunctionController = typeof handler === 'function';
+        if (isHandlerOfTypeFunctionController) {
+          const handlersAsVariableController = handlers as VariableControllerType
+          handlersAsVariableController[key as HTTPMethodEnum]= {
+            path: '',
+            options: options,
+            middlewares: middlewares,
+            handler: handler,
+          }
+        } else {
           if (path) handler.path = `${path}${handler.path || ''}`;
           if (middlewares) handler.middlewares = (handler.middlewares || []).concat(middlewares);
           if (options) handler.options = { ...handler.options, ...options as object };

@@ -1,7 +1,7 @@
 import { logging } from "@palmares/core";
 
 import Server from ".";
-import { ControllerHandlerType, FunctionControllerType, VariableControllerType } from "../controllers/types";
+import { ControllerHandlerType, FunctionControllerType } from "../controllers/types";
 import Middleware from "../middlewares";
 import { BaseRoutesType } from "../routers/types";
 import { PathParamsType } from "../types";
@@ -275,11 +275,21 @@ export default class ServerRoutes {
       await request._appendPathParamsParser(pathParamsParser);
 
       const requestHandler = await this.#getHandlerWithMiddlewaresAttached(handler);
-      const response = await Promise.resolve(requestHandler(request, handler));
+      const response = await Promise.resolve(
+        requestHandler(
+          request,
+          handler.options as object
+        )
+      );
 
       const elapsedEndTime = performance.now();
       const elapsedTime = elapsedEndTime - elapsedStartTime;
-      logging.logMessage(LOGGING_REQUEST, { method: request.method, path: request.path, elapsedTime: elapsedTime });
+      logging.logMessage(LOGGING_REQUEST, {
+        method: request.method,
+        path: request.path,
+        elapsedTime: elapsedTime,
+        userAgent: request.userAgent
+      });
       return 'TESTE';
     }
   }

@@ -17,6 +17,6 @@ export default async function buildLogging() {
   logging.appendMessage(
     LOGGING_REQUEST,
     MessageCategories.Info,
-    async ({method, path, elapsedTime}) =>  defaultLoggingForServers(`${method} ${path} ${elapsedTime}`)
+    async ({method, path, elapsedTime, userAgent}) =>  defaultLoggingForServers(`${method} - ${path} - ${userAgent} - ${elapsedTime}`)
   )
 }

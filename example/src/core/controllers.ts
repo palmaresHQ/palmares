@@ -1,13 +1,15 @@
-import { Controller, ClassHandler, Request } from "@palmares/server";
+import { Controller, ClassHandler, Request, Response } from "@palmares/server";
 import { ExpressRequest } from "@palmares/express-adapter";
-import { request } from "http";
 
 export class ExampleController extends Controller {
   path = "/example";
 
-  helloWorld: ClassHandler = {
-    GET: (request: Request) => {
-      return "Hello World";
+  helloWorld: ClassHandler<{teste: string}> = {
+    options: {
+      teste: '1'
+    },
+    GET: async (request: Request, {teste}) => {
+      return Response.new({ status: 200, body: "Hello World" });
     }
   }
 

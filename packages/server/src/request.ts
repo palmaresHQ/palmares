@@ -9,6 +9,7 @@ export default class Request<R = any, O = any, D = any> {
   readonly method!: string;
   readonly host!: string;
   readonly path!: string;
+  readonly userAgent!: string;
   readonly contentType!: string;
   readonly body!: D;
   readonly originalRequest!: R;
@@ -30,6 +31,7 @@ export default class Request<R = any, O = any, D = any> {
     query: QueryParamsType,
     headers: HeadersType,
     contentType: string,
+    userAgent: string,
     body: D,
     originalRequest: R
   ) {
@@ -40,6 +42,7 @@ export default class Request<R = any, O = any, D = any> {
     this.#query = query;
     this.#headers = headers;
     this.contentType = contentType;
+    this.userAgent = userAgent;
     this.body = body;
     this.originalRequest = originalRequest;
   }
@@ -144,6 +147,7 @@ export default class Request<R = any, O = any, D = any> {
     query: QueryParamsType,
     headers: HeadersType,
     contentType: string,
+    userAgent: string,
     body: any,
     originalRequest: R
   ) {
@@ -155,6 +159,7 @@ export default class Request<R = any, O = any, D = any> {
       query,
       headers,
       contentType,
+      userAgent,
       body,
       originalRequest
     );

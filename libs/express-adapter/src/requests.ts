@@ -17,6 +17,7 @@ export default class ExpressRequests extends ServerRequests {
       request.query as QueryParamsType,
       request.headers as HeadersType,
       request.headers['content-type'] as string,
+      request.headers['user-agent'] as string,
       undefined,
       request
     );

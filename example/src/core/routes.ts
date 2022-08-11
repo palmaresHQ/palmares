@@ -1,10 +1,10 @@
 import { path } from "@palmares/server"
 import { ExampleController } from "./controllers";
 
-import { ExpressCorsMiddleware } from "./middlewares";
+import { CorsMiddleware, ExpressCorsMiddleware } from "./middlewares";
 
 export default [
-  path("/teste", ExpressCorsMiddleware,
+  path("/teste", ExpressCorsMiddleware, CorsMiddleware,
     path("/<hello>", ExampleController.new()),
     path("",
       path('/alou', {

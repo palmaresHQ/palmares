@@ -60,7 +60,7 @@ class Logging {
   }
 
   async log(category: MessageCategories, message: string) {
-    const logMessage: string = `${this.defaultLogInfo()} ${this.stringByMessageType[category]} ${message}`;
+    const logMessage = `${this.defaultLogInfo()} ${this.stringByMessageType[category]} ${message}`;
 
     switch (category) {
       case MessageCategories.Debug:

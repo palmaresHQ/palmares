@@ -2,7 +2,10 @@ import { HTTPMethodEnum } from "./enums"
 import Request from "../request";
 import Middleware from "../middlewares";
 
-export type FunctionControllerType<O extends object = {}> = (request: Request, options: O) => any | Promise<any>;//Response | Promise<Response>
+export type FunctionControllerType<O extends object | undefined = {}> =
+  O extends undefined ?
+  (request: Request, options?: O) => any | Promise<any> :
+  (request: Request, options: O) => any | Promise<any>;//Response | Promise<Response>
 
 export type ControllerHandlerType<O extends object = {}> = {
   path?: string;
