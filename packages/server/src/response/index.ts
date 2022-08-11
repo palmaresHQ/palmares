@@ -1,8 +1,8 @@
-import { isSuccess } from "../status";
+import { isSuccess, HTTP_204_NO_CONTENT, HTTP_304_NOT_MODIFIED, HTTP_205_RESET_CONTENT } from "../status";
 import { snakeCaseToCamelCase } from "../utils";
 import { InvalidCookie, UseSetCookieInstead } from "./exceptions";
 import { CookiesType, CookieOptionsType } from "./types";
-import mimes from "../mimes";
+import Mimes from "../mimes";
 
 /**
  * Should follow this api: https://developer.mozilla.org/en-US/docs/Web/API/Response
@@ -12,8 +12,8 @@ export default class Response {
   readonly cookies: CookiesType = {};
   readonly headers: any = {};
   readonly status!: number;
-  readonly body!: any;
   readonly contentType!: string;
+  #body!: any;
 
   constructor(
     status: number,
@@ -130,12 +130,20 @@ export default class Response {
    * Adds a new header key and value if does not exist on the response or changes the existing
    * header value for the existing key.
    *
+   * If we are setting the `contentType` we automatically update the `setType` in the response.
+   *
    * @param key - The key to update in the headers of the response.
    * @param value - The value to update in the headers of the response
    */
   async setHeader(key: string, value: string) {
     const formattedKey = snakeCaseToCamelCase(key);
+    const isContentType = key === 'contentType';
     const isSetCookie = key === 'setCookie';
+
+    if (isContentType) {
+      const contentTypeWithStrippedBoundingAndEncoding = value.split(';')[0];
+      await this.setType(contentTypeWithStrippedBoundingAndEncoding);
+    }
     if (isSetCookie) throw new UseSetCookieInstead();
     this.headers[formattedKey] = value;
   }
@@ -172,41 +180,78 @@ export default class Response {
     await Promise.all(headers.map(async (header) => this.removeHeader(header)));
   }
 
+  /**
+   * Sets the content type of the response. By default it accept stuff like `text/plain` or
+   * `application/json`.
+   *
+   * But you can also set stuff like `json`, or `txt`. Be aware that the second approach might have
+   * some performance penalties on the first request.
+   *
+   * @param contentType - The content type of the response.
+   */
   async setType(contentType: string) {
-    const mimeType = await (await mimes).getMime(contentType);
-    if (mimeType) await this.setHeader('contentType', mimeType);
-    else await this.setHeader('contentType', contentType);
+    const isAnActualMimeType = contentType.split('/').length > 1;
+    if (isAnActualMimeType) await this.setHeader('contentType', contentType);
+    else {
+      const mimeType = await (await Mimes.new()).getMime(contentType);
+      this.setHeader('contentType', mimeType);
+    }
+  }
+
+  async parseJson(value: object) {
+    const json = JSON.stringify(value);
+    const isJsonAString = typeof json === 'string';
+    if (isJsonAString) {
+      return json.replace(/[<>&]/g, function (c) {
+        switch (c.charCodeAt(0)) {
+          case 0x3c:
+            return '\\u003c'
+          case 0x3e:
+            return '\\u003e'
+          case 0x26:
+            return '\\u0026'
+          default:
+            return c
+        }
+      });
+    }
+    return json;
   }
 
   /**
-   * Taken from here with some small tweaks and changes:
+   * Taken from here with some small tweaks and changes (we do not care for Etag here, let
+   * middlewares take care of it):
    * https://github.com/expressjs/express/blob/master/lib/response.js#L111
+   *
+   * For more reference on Etags and why we bypass them: https://stackoverflow.com/a/67929691/13158385
    */
   async parseBody(body: string | number | boolean | object | Buffer) {
     let contentLength = 0;
     let encoding: string | undefined = undefined;
     let bodyChunk = body;
-    let type;
 
     const hasContentTypeHeader = () => typeof this.headers.contentType === 'string';
 
     switch (typeof bodyChunk) {
       case 'number':
-        if (!hasContentTypeHeader()) await this.setType('txt');
+        if (!hasContentTypeHeader()) await this.setType('text/plain');
         break;
       case 'boolean':
-        if (!hasContentTypeHeader()) await this.setType('txt');
+        if (!hasContentTypeHeader()) await this.setType('text/plain');
         break;
       case 'string':
-        if (!hasContentTypeHeader()) await this.setType('html');
+        if (!hasContentTypeHeader()) await this.setType('text/html');
         break;
       case 'object':
         const isBodyNull = bodyChunk === null;
+        const isBodyABuffer = Buffer.isBuffer(bodyChunk);
         if (isBodyNull) bodyChunk = ''
-        else if (Buffer.isBuffer(bodyChunk)) {
-          if (!hasContentTypeHeader()) await this.setType('bin');
+        else if (isBodyABuffer) {
+          if (!hasContentTypeHeader()) await this.setType('application/octet-stream');
         } else {
-          // send json;
+          if (!hasContentTypeHeader()) await this.setType('application/json');
+          const newBody = await this.parseJson(bodyChunk);
+          await this.parseBody(newBody);
         }
         break;
     }
@@ -214,9 +259,9 @@ export default class Response {
     const bodyIsAString = typeof bodyChunk === 'string';
     if (bodyIsAString) {
       encoding = 'utf8';
-      const contentType = this.headers.contentType;
-      const typeIsAString = typeof type === 'string';
-      if (typeIsAString) await this.setHeader('contentType', `${contentType}; charset=UTF-8`);
+      const contentType = this.contentType;
+      const contentTypeIsAString = typeof contentType === 'string';
+      if (contentTypeIsAString) await this.setHeader('contentType', `${contentType}; charset=UTF-8`);
     }
 
     const chunkIsNotEmpty = bodyChunk !== undefined;
@@ -233,39 +278,29 @@ export default class Response {
       await this.setHeader('contentLength', contentLength.toString());
     }
 
-    /*
-    // freshness
-    if (req.fresh) this.statusCode = 304;
-
-    // strip irrelevant headers
-    if (204 === this.statusCode || 304 === this.statusCode) {
-      this.removeHeader('Content-Type');
-      this.removeHeader('Content-Length');
-      this.removeHeader('Transfer-Encoding');
-      chunk = '';
+    const isNoContentOrNotModified = [HTTP_204_NO_CONTENT, HTTP_304_NOT_MODIFIED].includes(this.status);
+    if (isNoContentOrNotModified) {
+      await this.removeManyHeaders([
+        'contentType', 'contentLength', 'transferEncoding'
+      ]);
+      bodyChunk = '';
     }
 
-    // alter headers for 205
-    if (this.statusCode === 205) {
-      this.set('Content-Length', '0')
-      this.removeHeader('Transfer-Encoding')
-      chunk = ''
+    const isResetContent = this.status === HTTP_205_RESET_CONTENT;
+    if (isResetContent) {
+      await Promise.all([
+        this.setHeader('contentLength', '0'),
+        this.removeHeader('transferEncoding')
+      ]);
+      bodyChunk = '';
     }
-
-    if (req.method === 'HEAD') {
-      // skip body for HEAD
-      this.end();
-    } else {
-      // respond
-      this.end(chunk, encoding);
-    }*/
+    this.#body = bodyChunk;
   }
 
-  static async new({ status, headers, body, cookies }: { status: number, headers?: any, body: any, cookies?: string[]}) {
+  static async new({ status, headers, body, cookies }: { status: number, headers?: any, body?: any, cookies?: string[]}) {
     const response = new this(status);
     if (body) await response.parseBody(body);
     if (cookies) await response.parseCookies(cookies);
-    console.log(response.body)
     return response;
   }
 }

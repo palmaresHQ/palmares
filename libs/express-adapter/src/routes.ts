@@ -37,7 +37,6 @@ export default class ExpressRoutes extends ServerRoutes {
           translatedPath,
           async (req, res) => {
             await translatedHandler(req);
-            res.type
             res.send('hello world');
           }
         );
