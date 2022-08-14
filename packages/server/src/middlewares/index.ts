@@ -1,4 +1,5 @@
 import { FunctionControllerType } from "../controllers/types";
+import Response from "../response";
 import Request from "../request";
 import Server from "../server";
 
@@ -73,6 +74,8 @@ export default class Middleware {
   }
 
   /**
+   * @private
+   *
    * DO NOT OVERRIDE THIS FUNCTION.
    *
    * @deprecated - DO NOT OVERRIDE THIS FUNCTION.
@@ -82,7 +85,7 @@ export default class Middleware {
    *
    * @param next - The next handler to be called when we call `.getResponse()`.
    */
-  async init(next: FunctionControllerType, options: any) {
+  async __init(next: FunctionControllerType, options: any) {
     this.#next = next;
     this.#options = options;
   }
@@ -93,7 +96,7 @@ export default class Middleware {
    *
    * @param request - The request that is being handled.
    */
-  async getResponse(request: Request) {
+  async getResponse(request: Request): Promise<Response> {
     return await Promise.resolve(this.#next(request, this.#options));
   }
 
@@ -104,7 +107,8 @@ export default class Middleware {
    *
    * @param request - The request that is being handled.
    */
-  async run(request: Request): Promise<any> {
+  async run(request: Request): Promise<Response> {
     return this.getResponse(request);
+
   }
 }

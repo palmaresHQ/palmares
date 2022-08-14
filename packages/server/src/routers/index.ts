@@ -15,13 +15,12 @@ export class Router {
   nestedPaths: { [key: string]: HandlersOfRouterType[]; } = {};
   #wasHandlersFoundForRouter = false;
 
-  constructor(path?: string) {
-    const isPathAString = typeof path === 'string';
-    if (isPathAString) this.path = path as string;
-  }
-
   static async new(path: string, ...args: RouterParametersType[]) {
-    const routerInstance = new Router(path);
+    const routerInstance = new Router();
+
+    const isPathAString = typeof path === 'string';
+    if (isPathAString) routerInstance.path = path as string;
+
     await routerInstance.formatArguments(args);
     return routerInstance;
   }

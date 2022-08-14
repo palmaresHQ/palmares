@@ -1,16 +1,20 @@
 import { Router } from "../routers";
-import { ClassHandler, VariableControllerType } from "./types";
+import { ClassHandler, FunctionControllerType, VariableControllerType } from "./types";
 import { HTTPMethodEnum } from "./enums";
 
 const enumsAsString = Object.keys(HTTPMethodEnum);
+
 
 /**
  * Controllers are just an specialized router. It offers the same functionality
  * as a Router but also offers the ability to set other custom properties.
  */
 export default class Controller extends Router {
-  [key: string]: ClassHandler | unknown;
+  [key: string]: ClassHandler<this, undefined> | unknown;
 
+  constructor(...args: any[]) {
+    super();
+  }
   /**
    * This is used for retrieving all of the handlers of the controller so it can be either used
    * to create a router from the controller or to loop through the handlers to extend them in a
@@ -21,9 +25,9 @@ export default class Controller extends Router {
    *
    * @returns - An array of the handlers of the controller.
    */
-  async getHandlersOfController(): Promise<ClassHandler[]> {
+  async getHandlersOfController(): Promise<ClassHandler<this>[]> {
     const namesOfRouterProperties = Object.getOwnPropertyNames(this);
-    const handlers: ClassHandler[] = [];
+    const handlers: ClassHandler<this>[] = [];
 
     for (const key of namesOfRouterProperties) {
       const value = this[key];
@@ -33,7 +37,7 @@ export default class Controller extends Router {
         const isDefinitelyAKeyHandler = keysOfHandler
           .every(keyOfHandler => [...enumsAsString, 'path', 'middlewares', 'options'].includes(keyOfHandler));
         if (isDefinitelyAKeyHandler) {
-          handlers.push(value as ClassHandler)
+          handlers.push(value as ClassHandler<this>)
         }
       }
     }
@@ -51,28 +55,29 @@ export default class Controller extends Router {
    *
    * @returns - A promise that resolves to the controller which is the router.
    */
-  static async new(): Promise<Router> {
-    const router = new this();
+  static async new(...args:any[]): Promise<Router> {
+    const router = new this(...args);
     for (const handler of await router.getHandlersOfController()) {
-      const { path, middlewares, options, ...handlers } = handler;
-      const handlerEntries = Object.entries(handlers);
+      const { path, middlewares, options, ...handlersOfKey } = handler;
+      const handlerEntries = Object.entries(handlersOfKey);
       handlerEntries.forEach(([key, handler]) => {
         const isHandlerOfTypeFunctionController = typeof handler === 'function';
         if (isHandlerOfTypeFunctionController) {
-          const handlersAsVariableController = handlers as VariableControllerType
+          const handlersAsVariableController = handlersOfKey as VariableControllerType;
           handlersAsVariableController[key as HTTPMethodEnum]= {
-            path: '',
+            path,
             options: options,
             middlewares: middlewares,
-            handler: handler,
+            handler: handler.bind(router) as FunctionControllerType,
           }
         } else {
           if (path) handler.path = `${path}${handler.path || ''}`;
           if (middlewares) handler.middlewares = (handler.middlewares || []).concat(middlewares);
           if (options) handler.options = { ...handler.options, ...options as object };
+          handler.handler = handler.handler.bind(router);
         }
       });
-      await router._formatHandler(handlers, true);
+      await router._formatHandler(handlersOfKey as VariableControllerType, true);
     }
     return router;
   }

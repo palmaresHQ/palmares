@@ -11,3 +11,5 @@ export type PathParams = {
   paramName: string;
   paramType: PathParamsTypes;
 }
+
+export type HandlersType<REQ = any, RES = unknown> = (req: REQ, options?: {}) => Promise<RES>

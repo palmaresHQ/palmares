@@ -1,4 +1,4 @@
-import { logging } from "@palmares/core";
+import { logging, MessageCategories } from "@palmares/core";
 
 import Server from ".";
 import { ControllerHandlerType, FunctionControllerType } from "../controllers/types";
@@ -14,8 +14,11 @@ import {
   PathParamsTypes,
   PathParams,
   RawParamsType,
-  PathParamsParser
+  PathParamsParser,
+  HandlersType
 } from "./types";
+import HttpException from "../handler-exceptions";
+import { HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR } from "../status";
 
 /**
  * This class is responsible for translating the routes to something that the lib can understand.
@@ -139,7 +142,7 @@ export default class ServerRoutes {
     // This returns the loaded data from the
     const loadedMiddlewareData = await this.#getLoadedMiddlewares(handler.middlewares || []);
 
-    const formattedHandler = await this.#getHandlerForPath(handler, pathParamsParser);
+    const formattedHandler = await this.getHandlerForPath(handler, { pathParamsParser });
     return {
       path: formattedPath,
       handler: formattedHandler,
@@ -186,6 +189,7 @@ export default class ServerRoutes {
    * that enables us to still use middlewares from the framework that we are using instead of using
    * the palmares middleware system.
    *
+   * @example
    * For example, if you want to use Express's `cors` middleware, you would need to use it like this:
    * ```
    * class ExpressCorsMiddleware extends Middleware {
@@ -231,24 +235,25 @@ export default class ServerRoutes {
   async #getHandlerWithMiddlewaresAttached(
     handler: ControllerHandlerType,
   ): Promise<FunctionControllerType> {
-    const middlewares = (handler.middlewares || []);
+    const rootMiddlewares = await this.server.getRootMiddlewares();
+    const middlewareClasses = rootMiddlewares.concat((handler.middlewares || []));
     let requestHandler = handler.handler;
 
-    const previousMiddleware = middlewares[0];
+    const previousMiddleware = middlewareClasses[0];
     if (previousMiddleware) {
       let initializedPreviousMiddleware = new previousMiddleware();
       requestHandler = initializedPreviousMiddleware.run.bind(initializedPreviousMiddleware);
 
-      for (let i = 1; i < middlewares.length; i++) {
-        const nextMiddleware = middlewares[i];
+      for (let i = 1; i < middlewareClasses.length; i++) {
+        const nextMiddleware = middlewareClasses[i];
         const initializedNextMiddleware = new nextMiddleware();
-        await initializedPreviousMiddleware.init(
+        await initializedPreviousMiddleware.__init(
           initializedNextMiddleware.run.bind(initializedNextMiddleware),
           handler.options
         );
         initializedPreviousMiddleware = initializedNextMiddleware;
       }
-      await initializedPreviousMiddleware.init(handler.handler.bind(handler.handler), handler.options);
+      await initializedPreviousMiddleware.__init(handler.handler.bind(handler.handler), handler.options);
     }
     return requestHandler
   }
@@ -264,33 +269,69 @@ export default class ServerRoutes {
    * @param handler - The handler that is going to be called after the middlewares are attached.
    * @param pathParamsParser - The path params parser that is going to be used to parse the path parameters.
    */
-  async #getHandlerForPath(
+  async getHandlerForPath(
     handler: ControllerHandlerType,
-    pathParamsParser: PathParamsParser
-  ) {
-    return async (req: any) => {
+    {
+      is404Handler,
+      pathParamsParser,
+    }: {
+      is404Handler?: boolean;
+      pathParamsParser?: PathParamsParser;
+    } = {}
+  ): Promise<HandlersType> {
+    return async (req: any, options = {}) => {
       const elapsedStartTime = performance.now();
 
       const request = await this.server.requests.translate(req);
-      await request._appendPathParamsParser(pathParamsParser);
-
+      if (pathParamsParser) await request._appendPathParamsParser(pathParamsParser);
+      request.values = options;
       const requestHandler = await this.#getHandlerWithMiddlewaresAttached(handler);
-      const response = await Promise.resolve(
-        requestHandler(
-          request,
-          handler.options as object
-        )
-      );
+
+      let response;
+      try {
+        response = await Promise.resolve(
+          requestHandler(
+            request,
+            handler.options as object
+          )
+        );
+      } catch (e) {
+        const isHttpError = e instanceof HttpException;
+        const error = e as Error;
+        if (isHttpError) response = await e.getResponse();
+        else if (this.server.settings.DEBUG) {
+          const exception = new HttpException({
+            status: HTTP_500_INTERNAL_SERVER_ERROR,
+            body: error.stack
+          });
+          response = await exception.getResponse();
+        }
+        else {
+          const exception = new HttpException({ status: HTTP_500_INTERNAL_SERVER_ERROR });
+          logging.error(error.stack as string);
+          response = await exception.getResponse();
+        };
+      }
+      if (is404Handler) response.status = HTTP_404_NOT_FOUND;
+      const translatedResponse = await this.server.responses.translateResponse(response, options);
 
       const elapsedEndTime = performance.now();
       const elapsedTime = elapsedEndTime - elapsedStartTime;
+
+      const loggingCategory =
+        response.ok ? MessageCategories.Info :
+        response.warn ? MessageCategories.Warn :
+        MessageCategories.Error;
       logging.logMessage(LOGGING_REQUEST, {
         method: request.method,
         path: request.path,
         elapsedTime: elapsedTime,
-        userAgent: request.userAgent
-      });
-      return 'TESTE';
+        userAgent: request.userAgent,
+        loggerType: loggingCategory,
+        statusCode: response.status
+      }, loggingCategory);
+
+      return translatedResponse;
     }
   }
 
@@ -305,10 +346,10 @@ export default class ServerRoutes {
    * @returns - A string that is going to be used to translate the route to the framework.
    */
   async translatePathParameter(name: string, type: PathParamsTypes): Promise<string> {
-    throw new NotImplementedServerException('translatePathParameter');
+    throw new NotImplementedServerException(this.server.constructor.name, 'translatePathParameter');
   }
 
   async initialize(routes: BaseRoutesType[]): Promise<void> {
-    throw new NotImplementedServerException('initialize');
+    throw new NotImplementedServerException(this.server.constructor.name, 'initialize');
   }
 }

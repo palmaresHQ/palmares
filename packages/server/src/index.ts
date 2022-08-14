@@ -9,6 +9,7 @@ export { path, includes } from './routers';
 export * from './routers/types';
 export { default as Request } from './request';
 export { default as Response } from './response';
+export { default as HttpException } from './handler-exceptions';
 export { default as Middleware } from './middlewares';
 export { default as Controller } from './controllers';
 export * from './controllers/types';

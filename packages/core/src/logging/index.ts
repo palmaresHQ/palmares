@@ -50,13 +50,13 @@ class Logging {
     }
   }
 
-  async logMessage(messageName: string, customData={}) {
+  async logMessage(messageName: string, customData={}, customCategory?: MessageCategories) {
     const message = this.messages[messageName];
     const isMessageNotDefined = message === undefined;
     if (isMessageNotDefined) throw new MessageDoesNotExistException(messageName);
 
     const customMessage = await Promise.resolve(message.callback(customData))
-    await this.log(message.category, customMessage)
+    await this.log(customCategory || message.category, customMessage)
   }
 
   async log(category: MessageCategories, message: string) {
@@ -77,6 +77,23 @@ class Logging {
         break;
     }
   }
+
+  async debug(message: string) {
+    return this.log(MessageCategories.Debug, message);
+  }
+
+  async info(message: string) {
+    return this.log(MessageCategories.Info, message);
+  }
+
+  async warn(message: string) {
+    return this.log(MessageCategories.Warn, message);
+  }
+
+  async error(message: string) {
+    return this.log(MessageCategories.Error, message);
+  }
+
 
   createLogger(name: string) {
     return new Logger(name, this)

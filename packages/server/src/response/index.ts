@@ -1,25 +1,33 @@
-import { isSuccess, HTTP_204_NO_CONTENT, HTTP_304_NOT_MODIFIED, HTTP_205_RESET_CONTENT } from "../status";
-import { snakeCaseToCamelCase } from "../utils";
-import { InvalidCookie, UseSetCookieInstead } from "./exceptions";
-import { CookiesType, CookieOptionsType } from "./types";
+import {
+  isSuccess,
+  isServerError,
+  isClientError,
+  HTTP_204_NO_CONTENT,
+  HTTP_304_NOT_MODIFIED,
+  HTTP_205_RESET_CONTENT
+} from "../status";
+import { camelCaseToHyphenOrSnakeCase, snakeCaseToCamelCase } from "../utils";
+import { InvalidCookie, UseSetBodyInstead, UseSetCookieInstead, DoNotCallResponseDirectly } from "./exceptions";
+import { CookiesType, CookieOptionsType, BodyTypes } from "./types";
 import Mimes from "../mimes";
 
-/**
- * Should follow this api: https://developer.mozilla.org/en-US/docs/Web/API/Response
- */
-export default class Response {
-  readonly ok!: boolean;
+export default class Response<O = any> {
   readonly cookies: CookiesType = {};
   readonly headers: any = {};
-  readonly status!: number;
   readonly contentType!: string;
-  #body!: any;
+  options = {} as O; // This is how you pass custom params on the response lifecycle
+  #toDecodeStatus = 321;
+  #ok!: boolean;
+  #error!: boolean;
+  #warn!: boolean;
+  #status!: number;
+  #body!: BodyTypes;
 
-  constructor(
-    status: number,
-  ) {
-    this.ok = isSuccess(status);
-    this.status = status;
+  constructor(status: number) {
+    const isInvalidStatusCode = status <= 599;
+    if (isInvalidStatusCode) throw new DoNotCallResponseDirectly();
+    const statusCode = status / this.#toDecodeStatus;
+    this.status = statusCode;
   }
 
   /**
@@ -36,6 +44,9 @@ export default class Response {
    * send it as raw as possible so we are able to parse it inside of the req/res lifecycle.
    *
    * You might prefer to use the `setCookie` method.
+   *
+   * @param rawCookies - The cookies in the `['cookieName1=cookieName1Value; Path=/; Secure', 'cookieName2=cookieName2Value']`
+   * format.
    */
   async parseCookies(rawCookies: string[]) {
     for (const rawCookie of rawCookies) {
@@ -61,7 +72,7 @@ export default class Response {
         else if (isDomain) cookieData.domain = splittedCookie[1];
         else if (isSecure) cookieData.secure = true;
         else if (isHTTPOnly) cookieData.httpOnly = true;
-        else if (isSameSite) cookieData.sameSite = splittedCookie[1];
+        else if (isSameSite) cookieData.sameSite = splittedCookie[1] as boolean | 'lax' | 'strict' | 'none';
         else {
           const formattedKey = key.replace(/^(__Secure-)/, '').replace(/^(__Host-)/, '');
           cookieKey = formattedKey;
@@ -89,11 +100,33 @@ export default class Response {
    * @param options - (optional) Custom options for the cookie like it's max age, the expiration date
    * and so on.
    */
-  async setCookie(key: string, value: string, options?: CookieOptionsType) {
+  async setCookie(key: string, value: string, options: CookieOptionsType = {path: '/'}) {
     this.cookies[key] = {
       value,
       ...options
     };
+  }
+
+  get ok() {
+    return this.#ok;
+  }
+
+  get warn() {
+    return this.#warn;
+  }
+
+  get error() {
+    return this.#error;
+  }
+
+  get status() {
+    return this.#status;
+  }
+  set status(code: number) {
+    this.#ok = isSuccess(code);
+    this.#error = isServerError(code);
+    this.#warn = isClientError(code);
+    this.#status = code;
   }
 
   /**
@@ -127,6 +160,17 @@ export default class Response {
   }
 
   /**
+   * Parses the headers object to something that palmares is able to understand and know.
+   *
+   * @param headers - The headers object which should be a NON-Nested object.
+   */
+  async parseHeaders(headers: object) {
+    const headerEntries = Object.entries(headers);
+    const formattedHeaders = headerEntries.map(([key, value]) => ({ key, value }));
+    await this.setManyHeaders(formattedHeaders);
+  }
+
+  /**
    * Adds a new header key and value if does not exist on the response or changes the existing
    * header value for the existing key.
    *
@@ -137,15 +181,16 @@ export default class Response {
    */
   async setHeader(key: string, value: string) {
     const formattedKey = snakeCaseToCamelCase(key);
-    const isContentType = key === 'contentType';
+    const isADifferentContentType = key === 'contentType' && this.headers.contentType !== value;
     const isSetCookie = key === 'setCookie';
 
-    if (isContentType) {
+    if (isSetCookie) throw new UseSetCookieInstead();
+
+    this.headers[formattedKey] = value;
+    if (isADifferentContentType) {
       const contentTypeWithStrippedBoundingAndEncoding = value.split(';')[0];
       await this.setType(contentTypeWithStrippedBoundingAndEncoding);
     }
-    if (isSetCookie) throw new UseSetCookieInstead();
-    this.headers[formattedKey] = value;
   }
 
   /**
@@ -198,7 +243,14 @@ export default class Response {
     }
   }
 
-  async parseJson(value: object) {
+  /**
+   * Inspired by this: https://github.com/expressjs/express/blob/master/lib/response.js#L1145
+   *
+   * @param value - The object to parse as json.
+   *
+   * @returns - returns the json object stringified.
+   */
+  async #parseJson(value: object) {
     const json = JSON.stringify(value);
     const isJsonAString = typeof json === 'string';
     if (isJsonAString) {
@@ -225,11 +277,10 @@ export default class Response {
    *
    * For more reference on Etags and why we bypass them: https://stackoverflow.com/a/67929691/13158385
    */
-  async parseBody(body: string | number | boolean | object | Buffer) {
+  async parseBody(body: BodyTypes): Promise<void> {
     let contentLength = 0;
     let encoding: string | undefined = undefined;
     let bodyChunk = body;
-
     const hasContentTypeHeader = () => typeof this.headers.contentType === 'string';
 
     switch (typeof bodyChunk) {
@@ -250,8 +301,8 @@ export default class Response {
           if (!hasContentTypeHeader()) await this.setType('application/octet-stream');
         } else {
           if (!hasContentTypeHeader()) await this.setType('application/json');
-          const newBody = await this.parseJson(bodyChunk);
-          await this.parseBody(newBody);
+          const newBody = await this.#parseJson(bodyChunk);
+          return await this.parseBody(newBody);
         }
         break;
     }
@@ -297,10 +348,74 @@ export default class Response {
     this.#body = bodyChunk;
   }
 
-  static async new({ status, headers, body, cookies }: { status: number, headers?: any, body?: any, cookies?: string[]}) {
-    const response = new this(status);
-    if (body) await response.parseBody(body);
-    if (cookies) await response.parseCookies(cookies);
+  get body() {
+    return this.#body;
+  }
+
+  /**
+   * This is here just to teach the programmer on how he should use the library.
+   */
+  set body(val: any) {
+    throw new UseSetBodyInstead();
+  }
+
+  async setBody(body: BodyTypes) {
+    await this.parseBody(body);
+  }
+
+  /**
+   * Same as `getFormattedHeaders` generator function but for cookies instead of the headers.
+   * We must retrieve all of them and append to the framework of choice one by one.
+   *
+   * To not need to loop twice we've just added to this generator function.
+   *
+   * @yields - An object with the values of the cookie.
+   */
+  async *getFormattedCookies() {
+    const cookiesAsEntries = Object.entries(this.cookies);
+    let index = 0;
+    while (index < cookiesAsEntries.length) {
+      const [cookieName, cookieValues] = cookiesAsEntries[index];
+      index ++;
+      yield {
+        name: cookieName,
+        ...cookieValues
+      }
+    }
+  }
+
+  /**
+   * Generators reference: https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/Generator
+   *
+   * This retrieves the headers with a generator.
+   *
+   * You might ask why retrieve this in a generator instead of a normal array.
+   * The problem is that most frameworks, like express, you need to add the header
+   * with a function like `setHeader` or just `set`.
+   * This means that we would need to loop twice, one time for converting the headers
+   * and the other for appending to the headers of the framework.
+   *
+   * By retrieving a generator we are able to loop just once. It's the same stuff
+   * that we do to set cookies.
+   *
+   * Don't know what them are?
+   *
+   * @yields - Returns an array of 2 elements where the first one is the key and the second is the value
+   */
+  async *getFormattedHeaders(): AsyncGenerator<[string, string]> {
+    const headers = Object.entries(this.headers);
+    let index = 0;
+    while (index < headers.length) {
+      const [key, value] = headers[index];
+      index ++;
+      yield [camelCaseToHyphenOrSnakeCase(key, false), value as string]
+    }
+  }
+
+  static async new(status: number, options?: { headers?: any, body?: any }) {
+    const response = new this(status * 321);
+    if (options && options.body) await response.parseBody(options.body);
+    if (options && options.headers) await response.parseHeaders(options.headers);
     return response;
   }
 }

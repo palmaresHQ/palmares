@@ -1,4 +1,7 @@
 import { Domain, SettingsType, logging } from "@palmares/core";
+import { ControllerHandlerType, FunctionControllerType } from "../controllers/types";
+import { default404handler } from "../defaults";
+import Response from "../response";
 import { Router } from "../routers";
 import { BaseRoutesType } from "../routers/types";
 
@@ -101,9 +104,28 @@ export default class App {
     await this.server.routes.initialize(routes);
   }
 
+  async load404() {
+    const handler = {
+      options: undefined,
+      handler: default404handler,
+      middlewares: await this.server.getRootMiddlewares(),
+    } as ControllerHandlerType;
+
+    if(this.settings.HANDLER_404) {
+      const isHandlerAFunction = typeof this.settings.HANDLER_404 === 'function';
+      const handlerAsObject = this.settings.HANDLER_404 as { options?: undefined, handler: FunctionControllerType};
+      if (!isHandlerAFunction) handler.options = handlerAsObject?.options;
+      handler.handler = isHandlerAFunction ? this.settings.HANDLER_404 as FunctionControllerType : handlerAsObject.handler;
+    }
+
+    const formattedHandler = await this.server.routes.getHandlerForPath(handler, { is404Handler: true })
+    await this.server.load404(formattedHandler);
+  }
+
   async start() {
     await this.startRoutes();
 
+    await this.load404();
     await this.server.init();
 
     await this.#configureCleanup();

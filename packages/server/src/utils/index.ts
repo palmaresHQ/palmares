@@ -7,3 +7,7 @@ export function snakeCaseToCamelCase(str: string) {
       .replace('_', '');
   });
 }
+
+export function camelCaseToHyphenOrSnakeCase(string: string, isSnake = true) {
+  return string.replace(/[A-Z]+/g, letter => `${isSnake ? '_' : '-'}${letter.toLowerCase()}`)
+}

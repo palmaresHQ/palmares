@@ -13,4 +13,13 @@ export type ExpressSettingsType = {
 
 export type ExpressMiddlewareHandlerType = (req: ERequest, res: Response, next: NextFunction) => Promise<void> | void;
 
-export type ExpressRequest<O = unknown, D= any> = Request<ERequest, { res: Response } & O, D>
+type RequestType = {
+  R?: any,
+  O?: any,
+  P?: any,
+  Q?: any,
+  D?: any
+}
+
+export type ExpressRequest<R extends RequestType = { R: ERequest, V: any, P: any, Q: any, D: any}> =
+Request<{R: ERequest, V: { res: Response } & R["O"], P: R["P"], Q: R["Q"], D: R["D"]}>

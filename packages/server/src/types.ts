@@ -1,15 +1,18 @@
 import { SettingsType } from "@palmares/core";
 import Server from "./server";
 import { Router } from "./routers";
+import Middleware from "./middlewares";
+import { FunctionControllerType } from "./controllers/types";
 
 export type RootRouterTypes = Router | Router[];
 
-export type OnlyServerSettingsType<CSS = any> = {
+export type OnlyServerSettingsType<CSS = unknown, O404 = unknown> = {
   SERVER: typeof Server;
   PORT: number,
-  ROOT_ROUTER: RootRouterTypes | Promise<{default: RootRouterTypes}>;
+  ROOT_ROUTER: RootRouterTypes | Promise<{ default: RootRouterTypes }>;
   CUSTOM_SERVER_SETTINGS?: CSS;
-  MIDDLEWARES?: string[];
+  HANDLER_404?: FunctionControllerType | { options?: O404, handler: FunctionControllerType };
+  MIDDLEWARES?: (typeof Middleware | Promise<{ default: typeof Middleware }>)[];
 }
 
 export type MultipleServerSettings = {
@@ -26,10 +29,15 @@ export type QueryParamsType = {
   [key: string]: string | undefined;
 }
 
-export type FormattedQueryParamsType<T = never> = {
-  [key: string]: string | number | boolean | T;
-}
 
 export type PathParamsType = {
   [key: string]: string | number
+}
+
+export type RequestType = {
+  R: any,
+  V: any,
+  P: any,
+  Q: any,
+  D: any
 }

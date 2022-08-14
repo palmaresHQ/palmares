@@ -33,11 +33,11 @@ export default class ExpressRoutes extends ServerRoutes {
 
         if (translatedMiddlewares.length > 0)
           this.server.serverInstance.use(translatedPath, ...translatedMiddlewares);
+
         this.server.serverInstance[loweredMethodType](
           translatedPath,
           async (req, res) => {
-            await translatedHandler(req);
-            res.send('hello world');
+            return await translatedHandler(req, { res });
           }
         );
       }

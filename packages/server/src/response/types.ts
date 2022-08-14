@@ -5,8 +5,10 @@ export type CookieOptionsType = {
   domain?: string;
   secure?: boolean;
   httpOnly?: boolean;
-  sameSite?: string;
+  sameSite?: boolean | 'lax' | 'strict' | 'none' | undefined;
 }
+
+export type BodyTypes = string | number | boolean | object | Buffer;
 
 export type CookiesType = {
   [cookieKey: string]: { value: string } & CookieOptionsType

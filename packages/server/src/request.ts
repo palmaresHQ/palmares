@@ -1,27 +1,29 @@
 import { PathParamsParser, RawParamsType } from "./server/types";
-import { FormattedQueryParamsType, HeadersType, PathParamsType, QueryParamsType } from "./types";
+import { HeadersType, RequestType, QueryParamsType } from "./types";
 import { snakeCaseToCamelCase } from "./utils";
 
 /**
  * Should follow this api: https://developer.mozilla.org/en-US/docs/Web/API/Request
  */
-export default class Request<R = any, O = any, D = any> {
+export default class Request<R extends RequestType = {
+  R: any, V:any, P: any, Q: any, D: any
+}> {
   readonly method!: string;
   readonly host!: string;
   readonly path!: string;
   readonly userAgent!: string;
   readonly contentType!: string;
-  readonly body!: D;
-  readonly originalRequest!: R;
+  readonly body!: R["D"];
+  readonly originalRequest!: R["R"];
   #pathParamsParser?: PathParamsParser;
   #hasTranslatedHeaders = false;
   #cachedHeaders?: HeadersType;
   #headers: HeadersType = {};
-  #cachedQuery?: FormattedQueryParamsType;
+  #cachedQuery?: R["Q"];
   #query: QueryParamsType = {};
-  #cachedPathParams?: PathParamsType;
+  #cachedPathParams?: R["P"];
   #pathParams: RawParamsType = {};
-  options = {} as O;
+  values = {} as R["V"]; // Use this to set custom values to the request.
 
   constructor(
     method: string,
@@ -32,8 +34,8 @@ export default class Request<R = any, O = any, D = any> {
     headers: HeadersType,
     contentType: string,
     userAgent: string,
-    body: D,
-    originalRequest: R
+    body: R["D"],
+    originalRequest: R["R"]
   ) {
     this.method = method;
     this.path = path;
@@ -92,7 +94,7 @@ export default class Request<R = any, O = any, D = any> {
    *
    * @returns - The query parameters of the request JSON parsed.
    */
-  get query() {
+  get query(): R["Q"] {
     if (!this.#cachedQuery) {
       this.#cachedQuery = {};
       const queryParamsEntries: [string, string | undefined][] = Object.entries(this.#query);
@@ -103,7 +105,7 @@ export default class Request<R = any, O = any, D = any> {
         }
       }
     }
-    return this.#cachedQuery as FormattedQueryParamsType;
+    return this.#cachedQuery as R["Q"];
   }
 
   /**
@@ -120,11 +122,11 @@ export default class Request<R = any, O = any, D = any> {
    *
    * @returns - The path parameters of the request.
    */
-  get params() {
+  get params(): R["P"] {
     if (!this.#cachedPathParams && this.#pathParamsParser) {
       this.#cachedPathParams = this.#pathParamsParser(this.#pathParams);
     }
-    return (this.#cachedPathParams ? this.#cachedPathParams : this.#pathParams) as PathParamsType;
+    return (this.#cachedPathParams ? this.#cachedPathParams : this.#pathParams) as R["P"];
   }
 
   /**
@@ -151,7 +153,7 @@ export default class Request<R = any, O = any, D = any> {
     body: any,
     originalRequest: R
   ) {
-    return new Request<R>(
+    return new Request<{R: R, V: any, P: any, Q: any, D: any}>(
       method.toUpperCase(),
       host,
       path,
