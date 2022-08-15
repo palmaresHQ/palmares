@@ -1,7 +1,7 @@
-import { FunctionControllerType } from "../controllers/types";
-import Response from "../response";
-import Request from "../request";
-import Server from "../server";
+import { FunctionControllerType } from "./controllers/types";
+import Response from "./response";
+import Request from "./request";
+import Server from "./server";
 
 /**
  * A middleware is a simple class that is responsible for being executed before and after a request is handled.

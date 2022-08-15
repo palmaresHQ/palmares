@@ -7,5 +7,6 @@ export enum HTTPMethodEnum {
   HEAD = "HEAD",
   OPTIONS = "OPTIONS",
   CONNECT = "CONNECT",
-  TRACE = "TRACE"
+  TRACE = "TRACE",
+  ALL = "ALL"
 }

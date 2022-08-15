@@ -1,13 +1,12 @@
 import { Domain, SettingsType, logging } from "@palmares/core";
-import { ControllerHandlerType, FunctionControllerType } from "../controllers/types";
-import { default404handler } from "../defaults";
-import Response from "../response";
-import { Router } from "../routers";
-import { BaseRoutesType } from "../routers/types";
 
-import Server from "../server";
-import { RootRouterTypes, ServerSettingsType } from "../types";
-import { LOGGING_APP_STOP_SERVER } from "../utils";
+import { ControllerHandlerType, FunctionControllerType } from "./controllers/types";
+import { default404handler } from "./defaults";
+import { Router } from "./routers";
+import { BaseRoutesType } from "./routers/types";
+import Server from "./server";
+import { RootRouterTypes, ServerSettingsType } from "./types";
+import { LOGGING_APP_STOP_SERVER } from "./utils";
 
 /**
  * This is the app, the app instance is responsible for loading the http server.

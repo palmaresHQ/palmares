@@ -27,7 +27,6 @@ export default class Controller extends Router {
    */
   async getHandlersOfController(): Promise<ClassHandler<this>[]> {
     const prototypeOfName = Object.getOwnPropertyNames(Object.getPrototypeOf(this));
-    console.log(Object.getPrototypeOf(this).testDecorator);
     const namesOfRouterProperties = prototypeOfName.concat(Object.getOwnPropertyNames(this));
     const handlers: ClassHandler<this>[] = [];
 
