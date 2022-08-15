@@ -1,5 +1,5 @@
 import { Router } from "../routers";
-import { ClassHandler, FunctionControllerType, VariableControllerType } from "./types";
+import { ClassHandler, FunctionControllerType, VariableControllerType, This } from "./types";
 import { HTTPMethodEnum } from "./enums";
 
 const enumsAsString = Object.keys(HTTPMethodEnum);
@@ -9,7 +9,7 @@ const enumsAsString = Object.keys(HTTPMethodEnum);
  * as a Router but also offers the ability to set other custom properties.
  */
 export default class Controller extends Router {
-  [key: string]: ClassHandler<Controller, undefined> | unknown;
+  [key: string]: ClassHandler<Controller> | unknown;
 
   constructor(...args: any[]) {
     super();
@@ -23,12 +23,14 @@ export default class Controller extends Router {
    * By creating this method you are able to add custom functionality to the handlers of the controller
    * you can add custom middleware automatically, add custom parameters and so on...
    *
+   * @private
+   *
    * @returns - An array of the handlers of the controller.
    */
-  async getHandlersOfController(): Promise<ClassHandler<this>[]> {
+  private async _getHandlersOfController(): Promise<ClassHandler<this | Controller>[]> {
     const prototypeOfName = Object.getOwnPropertyNames(Object.getPrototypeOf(this));
     const namesOfRouterProperties = prototypeOfName.concat(Object.getOwnPropertyNames(this));
-    const handlers: ClassHandler<this>[] = [];
+    const handlers: ClassHandler<this | Controller>[] = [];
 
     for (const key of namesOfRouterProperties) {
       const value = this[key];
@@ -38,7 +40,7 @@ export default class Controller extends Router {
         const isDefinitelyAKeyHandler = keysOfHandler
           .every(keyOfHandler => [...enumsAsString, 'path', 'middlewares', 'options'].includes(keyOfHandler));
         if (isDefinitelyAKeyHandler) {
-          handlers.push(value as ClassHandler<this>)
+          handlers.push(value as ClassHandler<this | Controller>)
         }
       }
     }
@@ -54,12 +56,14 @@ export default class Controller extends Router {
    * This serves as a constructor for the controller because we bypass the "only one"
    * handler by router and instead enable to create multiple handlers on the Router.
    *
+   * Important: The typing for this function was retrieved from here: https://github.com/microsoft/TypeScript/issues/5863#issuecomment-869055809
+   *
    * @returns - A promise that resolves to the controller which is the router.
    */
-  static async new(...args: any[]): Promise<Router> {
+  static async new<T extends This<typeof Controller>>(this: T, ...args: ConstructorParameters<T>): Promise<InstanceType<T>> {
     const router = new this(...args);
-    for (const handler of await router.getHandlersOfController()) {
-      const { path, middlewares, options, ...handlersOfKey } = handler;
+    for (const handler of await router._getHandlersOfController()) {
+      const { path, middlewares, options, ...handlersOfKey } = handler as ClassHandler<Controller>;
       const handlerEntries = Object.entries(handlersOfKey);
       handlerEntries.forEach(([key, handler]) => {
         const isHandlerOfTypeFunctionController = typeof handler === 'function';

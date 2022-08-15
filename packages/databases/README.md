@@ -32,6 +32,7 @@ export const DATABASES = {
 
 ## TODOs:
  - [X] Add support for multiple databases.
+ - [ ] Dependency injection on models for testing managers without needing a database connection.
  - [ ] 80% test coverage.
  - [ ] Better typescript support for abstract models.
  - [ ] Model to instance and instance to Model (translates a raw object to something that the orm/database can understand and vice versa).

@@ -3,12 +3,10 @@ import {
   DefaultCommandType,
   DomainReadyFunctionArgs,
   DomainHandlerFunctionArgs,
-  SettingsType
 } from "@palmares/core"
 
 import { Model } from "./models";
 import buildLogging from "./logging";
-import databases from "./databases";
 import { DatabaseSettingsType } from "./types";
 import { MigrationFileType } from "./migrations/types";
 import { makeMigrations, migrate } from "./commands";

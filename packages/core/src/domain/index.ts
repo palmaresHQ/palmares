@@ -13,8 +13,8 @@ export default class Domain {
   commands: DefaultCommandType = {} as DefaultCommandType;
   name: string;
   path: string;
-  isReady: boolean = false;
-  isClosed: boolean = false;
+  isReady = false;
+  isClosed = false;
 
   constructor(name?: string, path?: string) {
     const isAppNameAndAppPathDefined = typeof name === 'string' &&
@@ -46,6 +46,7 @@ export default class Domain {
   /**
    * Runs when the domain is loaded.
    */
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   async load<S extends SettingsType = SettingsType>(settings: S): Promise<void> {}
 
   /**
@@ -56,6 +57,7 @@ export default class Domain {
   async ready(options: DomainReadyFunctionArgs): Promise<void> {
     this.isReady = true;
   }
+
   async close(): Promise<void> {
     this.isClosed = true;
   }

@@ -3,7 +3,7 @@ import ServerDomain from "./domain";
 export { default as Server, ServerRoutes, ServerResponses, ServerRequests } from './server';
 export * from './server/types';
 export * from './types';
-export * as status from './status';
+export * from './status';
 export * from './controllers/enums';
 export { path, includes } from './routers';
 export * from './routers/types';

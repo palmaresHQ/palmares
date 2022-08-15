@@ -16,7 +16,8 @@ export default class Response<O = any> {
   readonly headers: any = {};
   readonly contentType!: string;
   options = {} as O; // This is how you pass custom params on the response lifecycle
-  #toDecodeStatus = 321;
+  #toDecodeStatus = 321; // This is kinda dumb but a way we got to "force" the user into using '.new'
+  // instead of creating a new response directly.
   #ok!: boolean;
   #error!: boolean;
   #warn!: boolean;
@@ -107,14 +108,29 @@ export default class Response<O = any> {
     };
   }
 
+  /**
+   * If the response is okay this will be true, a response okay is something that is not an `4xx` or `5xx` errors.
+   *
+   * @returns true if the response is okay, false otherwise.
+   */
   get ok() {
     return this.#ok;
   }
 
+  /**
+   * If the response is a client response this will be true, a response warn is a `4xx` status code error.
+   *
+   * @returns true if the response should be warned, false otherwise.
+   */
   get warn() {
     return this.#warn;
   }
 
+  /**
+   * This is true if an `5xx` error occurred.
+   *
+   * @returns true if and error occurred, false otherwise.
+   */
   get error() {
     return this.#error;
   }
@@ -122,6 +138,7 @@ export default class Response<O = any> {
   get status() {
     return this.#status;
   }
+
   set status(code: number) {
     this.#ok = isSuccess(code);
     this.#error = isServerError(code);

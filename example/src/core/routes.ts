@@ -5,6 +5,6 @@ import { ExpressCorsMiddleware } from "./middlewares";
 
 export default [
   path("/teste", ExpressCorsMiddleware,
-    path("/<hello>", ExampleController.new())
+    path("/<hello>", ExampleController.new(1))
   ),
 ]

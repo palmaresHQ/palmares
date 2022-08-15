@@ -21,11 +21,11 @@ export class Router {
     const isPathAString = typeof path === 'string';
     if (isPathAString) routerInstance.path = path as string;
 
-    await routerInstance.formatArguments(args);
+    await routerInstance._formatArguments(args);
     return routerInstance;
   }
 
-  async formatArguments(args: RouterParametersType[]) {
+  private async _formatArguments(args: RouterParametersType[]) {
     for (const argument of args) {
       const isOfTypeRouter = argument instanceof Router;
       const isOfTypeMiddleware = (argument as typeof Middleware).prototype instanceof Middleware;
@@ -75,7 +75,7 @@ export class Router {
    *
    * @param handler - The handler to attach to the handlers and that was defined in the router itself.
    */
-  async _formatHandler(handler: VariableControllerType, addMultiple = false): Promise<void> {
+  private async _formatHandler(handler: VariableControllerType, addMultiple = false): Promise<void> {
     if (this.#wasHandlersFoundForRouter === false || addMultiple) {
       // Reverse the middlewares so that the last middleware is the first one.
       // (We append the middlewares always on the first index, look for `#formatMiddleware` method)

@@ -24,3 +24,7 @@ export type ClassHandler<T = unknown, O = any> =
     path?: string;
     middlewares?: (typeof Middleware)[];
   }
+
+export type This<T extends new(...args: any) => any> = {
+  new(...args: ConstructorParameters<T>): any
+} & Pick<T, keyof T>

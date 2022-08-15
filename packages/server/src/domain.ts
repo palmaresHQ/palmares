@@ -17,10 +17,6 @@ export default class ServerDomain extends Domain {
       description: 'runs the application in development mode',
       example: 'asdasd',
       handler: async (options: DomainHandlerFunctionArgs) => {
-        await buildLogging();
-
-        this.app = new App(this.server);
-
         await dev(this.app, options);
       },
     }
@@ -50,14 +46,22 @@ export default class ServerDomain extends Domain {
    * })
    * ```
    *
+   * Important: We can't use the this.app here because here domains will not be initialized yet.
+   *
    * @param settings - The settings of the application defined by the user in `settings.(js/ts)`.
    */
   async load<S extends SettingsType = ServerSettingsType>(settings: S): Promise<void> {
-    let appSettings = settings as unknown as ServerSettingsType; // ew, need to make this better
-    if (this.serverSettings) appSettings = { ...settings, ...this.serverSettings } as unknown as ServerSettingsType; // ew, and this
+    await buildLogging();
 
-    this.server = new appSettings.SERVER(appSettings);
-    await this.server.load();
+    let appSettings = settings as unknown as ServerSettingsType; // ew, need to make this better
+    if (this.serverSettings) {
+      appSettings = { ...settings, ...this.serverSettings } as unknown as ServerSettingsType; // ew, and this
+    }
+
+    const server = new appSettings.SERVER(appSettings);
+    this.app = new App(server);
+
+    await this.app.load();
   }
 
   async ready() {
@@ -67,6 +71,7 @@ export default class ServerDomain extends Domain {
   async close(): Promise<void> {
     await this.app.close();
   }
+
   // Just to suppress the warning on `@palmares/database` package if it exists in the application.
   async getModels() {
     return []

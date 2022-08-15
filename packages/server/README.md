@@ -6,10 +6,10 @@
  - [X] Add class controllers
  - [X] Add custom data to the request
  - [X] Add Response class.
- - [X] Add a ServerResponse class to translate the response in the framework of choice.
+ - [/] Add a ServerResponse class to translate the response in the framework of choice. (Need to work on a way to translate the response more automatically without needing to call methods directly)
  - [ ] Redirect constructor for response.
  - [ ] Parse cookies from request.
- - [ ] Better typescript support for controller for dependency injection.
+ - [X] Better typescript support for controller for dependency injection.
  - [ ] Better document the HOLE server code.
 
  - [ ] 80% test coverage.

@@ -82,9 +82,10 @@ export default class App {
     const customOptions = {
       app: this
     };
+
     for (const domain of domains) {
       if (domain.isReady === false) {
-        await domain.ready({ settings: settings as SettingsType, domains, customOptions} );
+        await domain.ready({ settings: settings as SettingsType, domains, customOptions });
       }
     }
   }
@@ -119,6 +120,10 @@ export default class App {
 
     const formattedHandler = await this.server.routes.getHandlerForPath(handler, { is404Handler: true })
     await this.server.load404(formattedHandler);
+  }
+
+  async load() {
+    await this.server.load();
   }
 
   async start() {
