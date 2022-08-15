@@ -4,17 +4,17 @@ import { HTTPMethodEnum } from "./enums";
 
 const enumsAsString = Object.keys(HTTPMethodEnum);
 
-
 /**
  * Controllers are just an specialized router. It offers the same functionality
  * as a Router but also offers the ability to set other custom properties.
  */
 export default class Controller extends Router {
-  [key: string]: ClassHandler<this, undefined> | unknown;
+  [key: string]: ClassHandler<Controller, undefined> | unknown;
 
   constructor(...args: any[]) {
     super();
   }
+
   /**
    * This is used for retrieving all of the handlers of the controller so it can be either used
    * to create a router from the controller or to loop through the handlers to extend them in a
@@ -26,7 +26,9 @@ export default class Controller extends Router {
    * @returns - An array of the handlers of the controller.
    */
   async getHandlersOfController(): Promise<ClassHandler<this>[]> {
-    const namesOfRouterProperties = Object.getOwnPropertyNames(this);
+    const prototypeOfName = Object.getOwnPropertyNames(Object.getPrototypeOf(this));
+    console.log(Object.getPrototypeOf(this).testDecorator);
+    const namesOfRouterProperties = prototypeOfName.concat(Object.getOwnPropertyNames(this));
     const handlers: ClassHandler<this>[] = [];
 
     for (const key of namesOfRouterProperties) {
@@ -55,7 +57,7 @@ export default class Controller extends Router {
    *
    * @returns - A promise that resolves to the controller which is the router.
    */
-  static async new(...args:any[]): Promise<Router> {
+  static async new(...args: any[]): Promise<Router> {
     const router = new this(...args);
     for (const handler of await router.getHandlersOfController()) {
       const { path, middlewares, options, ...handlersOfKey } = handler;

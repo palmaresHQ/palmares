@@ -26,7 +26,7 @@ export default class SeverRequests {
    *
    * @returns - The request object that we can use in the controllers inside of palmares.
    */
-  async translate(request: any): Promise<Request> {
+  async translate(request: any, options: any): Promise<Request> {
     throw new NotImplementedServerException(this.constructor.name, 'translate');
   }
 }

@@ -12,6 +12,7 @@ export { default as Response } from './response';
 export { default as HttpException } from './handler-exceptions';
 export { default as Middleware } from './middlewares';
 export { default as Controller } from './controllers';
+export * from './decorators';
 export * from './controllers/types';
 
 export default ServerDomain;

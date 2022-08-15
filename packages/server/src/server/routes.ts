@@ -247,13 +247,10 @@ export default class ServerRoutes {
       for (let i = 1; i < middlewareClasses.length; i++) {
         const nextMiddleware = middlewareClasses[i];
         const initializedNextMiddleware = new nextMiddleware();
-        await initializedPreviousMiddleware.__init(
-          initializedNextMiddleware.run.bind(initializedNextMiddleware),
-          handler.options
-        );
+        await initializedPreviousMiddleware.__init(initializedNextMiddleware.run.bind(initializedNextMiddleware));
         initializedPreviousMiddleware = initializedNextMiddleware;
       }
-      await initializedPreviousMiddleware.__init(handler.handler.bind(handler.handler), handler.options);
+      await initializedPreviousMiddleware.__init(handler.handler.bind(handler.handler));
     }
     return requestHandler
   }
@@ -282,7 +279,7 @@ export default class ServerRoutes {
     return async (req: any, options = {}) => {
       const elapsedStartTime = performance.now();
 
-      const request = await this.server.requests.translate(req);
+      const request = await this.server.requests.translate(req, handler.options);
       if (pathParamsParser) await request._appendPathParamsParser(pathParamsParser);
       request.values = options;
       const requestHandler = await this.#getHandlerWithMiddlewaresAttached(handler);
@@ -291,8 +288,7 @@ export default class ServerRoutes {
       try {
         response = await Promise.resolve(
           requestHandler(
-            request,
-            handler.options as object
+            request
           )
         );
       } catch (e) {

@@ -15,11 +15,12 @@ export type ExpressMiddlewareHandlerType = (req: ERequest, res: Response, next: 
 
 type RequestType = {
   R?: any,
-  O?: any,
+  V?: any,
   P?: any,
   Q?: any,
-  D?: any
+  D?: any,
+  O?: any
 }
 
 export type ExpressRequest<R extends RequestType = { R: ERequest, V: any, P: any, Q: any, D: any}> =
-Request<{R: ERequest, V: { res: Response } & R["O"], P: R["P"], Q: R["Q"], D: R["D"]}>
+Request<{R: ERequest, V: { res: Response } & R["V"], P: R["P"], Q: R["Q"], D: R["D"], O: R["O"]}>

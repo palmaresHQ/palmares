@@ -39,5 +39,6 @@ export type RequestType = {
   V: any,
   P: any,
   Q: any,
-  D: any
+  D: any,
+  O: any
 }

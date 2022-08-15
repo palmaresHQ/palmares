@@ -8,7 +8,7 @@ import {
 } from "@palmares/server";
 
 export default class ExpressRequests extends ServerRequests {
-  async translate(request: Request): Promise<PalmaresRequest> {
+  async translate(request: Request, options: any): Promise<PalmaresRequest> {
     return await PalmaresRequest.new<Request>(
       request.method,
       request.hostname,
@@ -19,7 +19,8 @@ export default class ExpressRequests extends ServerRequests {
       request.headers['content-type'] as string,
       request.headers['user-agent'] as string,
       undefined,
-      request
+      request,
+      options
     );
   }
 }

@@ -6,7 +6,7 @@ import { snakeCaseToCamelCase } from "./utils";
  * Should follow this api: https://developer.mozilla.org/en-US/docs/Web/API/Request
  */
 export default class Request<R extends RequestType = {
-  R: any, V:any, P: any, Q: any, D: any
+  R: any, V:any, P: any, Q: any, D: any, O: any
 }> {
   readonly method!: string;
   readonly host!: string;
@@ -24,6 +24,7 @@ export default class Request<R extends RequestType = {
   #cachedPathParams?: R["P"];
   #pathParams: RawParamsType = {};
   values = {} as R["V"]; // Use this to set custom values to the request.
+  readonly options!: R["O"];
 
   constructor(
     method: string,
@@ -35,7 +36,8 @@ export default class Request<R extends RequestType = {
     contentType: string,
     userAgent: string,
     body: R["D"],
-    originalRequest: R["R"]
+    originalRequest: R["R"],
+    options: R["O"]
   ) {
     this.method = method;
     this.path = path;
@@ -45,6 +47,7 @@ export default class Request<R extends RequestType = {
     this.#headers = headers;
     this.contentType = contentType;
     this.userAgent = userAgent;
+    this.options = Object.freeze(options);
     this.body = body;
     this.originalRequest = originalRequest;
   }
@@ -151,9 +154,10 @@ export default class Request<R extends RequestType = {
     contentType: string,
     userAgent: string,
     body: any,
-    originalRequest: R
+    originalRequest: R,
+    options: any,
   ) {
-    return new Request<{R: R, V: any, P: any, Q: any, D: any}>(
+    return new Request<{R: R, V: any, P: any, Q: any, D: any, O: any}>(
       method.toUpperCase(),
       host,
       path,
@@ -163,7 +167,8 @@ export default class Request<R extends RequestType = {
       contentType,
       userAgent,
       body,
-      originalRequest
+      originalRequest,
+      options
     );
   }
 }
