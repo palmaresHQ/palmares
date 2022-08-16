@@ -13,8 +13,8 @@ export default class Domain {
   commands: DefaultCommandType = {} as DefaultCommandType;
   name: string;
   path: string;
-  isReady = false;
-  isClosed = false;
+  #isReady = false;
+  #isClosed = false;
 
   constructor(name?: string, path?: string) {
     const isAppNameAndAppPathDefined = typeof name === 'string' &&
@@ -25,6 +25,14 @@ export default class Domain {
     } else {
       throw new DomainObligatoryParamsUndefinedError();
     }
+  }
+
+  get isReady() {
+    return this.#isReady;
+  }
+
+  get isClosed() {
+    return this.#isClosed;
   }
 
   static async retrieveDomains(settings: SettingsType): Promise<typeof Domain[]> {
@@ -55,10 +63,10 @@ export default class Domain {
    * file.
    */
   async ready(options: DomainReadyFunctionArgs): Promise<void> {
-    this.isReady = true;
+    this.#isReady = true;
   }
 
   async close(): Promise<void> {
-    this.isClosed = true;
+    this.#isClosed = true;
   }
 }

@@ -61,9 +61,13 @@ class Commands {
   }
 
 	async handleCommands(settingsOrSettingsPath: Promise<SettingsType> | SettingsType | string, args: string[]): Promise<void> {
-		const commandType = args[0];
-    const otherArgs = await this.#formatArgs(args.slice(1, args.length));
-		const settings = await Configuration.loadConfiguration(settingsOrSettingsPath);
+		const elapsedStartTime = performance.now();
+    console.log('1', performance.now() - elapsedStartTime);
+    const commandType = args[0];
+    const [otherArgs, settings] = await Promise.all([
+      this.#formatArgs(args.slice(1, args.length)),
+      Configuration.loadConfiguration(settingsOrSettingsPath)
+    ]);
     const domains = await this.#initializeDomains(settings);
 		const isCommandDefined: boolean = typeof this.#defaultCommands[commandType] === 'object' &&
 			this.#defaultCommands[commandType] !== undefined;

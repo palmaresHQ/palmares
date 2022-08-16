@@ -309,7 +309,7 @@ export default class ServerRoutes {
         };
       }
       if (is404Handler) response.status = HTTP_404_NOT_FOUND;
-      const translatedResponse = await this.server.responses.translateResponse(response, options);
+      const translatedResponse = await this.server.responses.initialize(response, options);
 
       const elapsedEndTime = performance.now();
       const elapsedTime = elapsedEndTime - elapsedStartTime;

@@ -6,7 +6,6 @@ import ServerRoutes from "./routes";
 import ServerResponses from "./responses";
 import ServerRequests from "./requests";
 import Middleware from "../middlewares";
-import { FunctionControllerType } from "../controllers/types";
 import { HandlersType } from "./types";
 
 export default class Server {

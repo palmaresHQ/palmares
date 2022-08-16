@@ -21,15 +21,28 @@ export default class ServerResponses {
     this.routes = routes;
   }
 
-  async translateCookies(response: Response<any>, ...args: any[]) {
+  async translateCookies(response: Response, args: unknown) {
     throw new NotImplementedServerException(this.server.constructor.name, 'translateCookies');
   }
 
-  async translateHeaders(response: Response<any>, ...args: any[]) {
+  async translateHeaders(response: Response, args: unknown) {
     throw new NotImplementedServerException(this.server.constructor.name, 'translateHeaders');
   }
 
   async translateResponse(response: Response, options?: unknown): Promise<unknown> {
     throw new NotImplementedServerException(this.server.constructor.name, 'translateResponse');
+  }
+
+  async sendResponse(response: Response, args?: unknown): Promise<void> {
+    throw new NotImplementedServerException(this.server.constructor.name, 'sendResponse');
+  }
+
+  async initialize(response: Response, options?: unknown) {
+    const data = await this.translateResponse(response, options);
+    await Promise.all([
+      this.translateHeaders(response, data),
+      this.translateCookies(response, data),
+    ]);
+    await this.sendResponse(response, data);
   }
 }
