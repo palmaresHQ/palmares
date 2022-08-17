@@ -107,6 +107,5 @@ export default class Middleware {
    */
   async run(request: Request): Promise<Response> {
     return this.getResponse(request);
-
   }
 }

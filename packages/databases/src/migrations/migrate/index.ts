@@ -16,7 +16,7 @@ export default class Migrate {
   settings: DatabaseSettingsType;
   migrationsToAddAfterIteration: MigrationsToAddAfterIterationType[] = []
 
-  constructor(settings: DatabaseSettingsType) {
+  private constructor(settings: DatabaseSettingsType) {
     this.settings = settings;
   }
 
@@ -66,7 +66,15 @@ export default class Migrate {
     return null;
   }
 
-  async _run(
+  /**
+   * This is the main method that is used to run the migrations in the specific database.
+   *
+   * @param engineInstance - The engine instance that is being used to run all of the migrations
+   * in the database.
+   * @param allMigrationsOfDatabase - All of the migration files that are available to be used inside of
+   * this database.
+   */
+  private async _run(
     engineInstance: Engine,
     allMigrationsOfDatabase: FoundMigrationsFileType[]
   ) {
@@ -92,6 +100,14 @@ export default class Migrate {
     }
   }
 
+  /**
+   * This is a factory method that MUST be called to create a new instance of the `Migrate` class.
+   *
+   * @param settings - The settings that is being used.
+   * @param migrations - All of the migrations that are available to be used for this database.
+   * @param initializedEngineInstances - The engine instances that were initialized so we can run the migrations
+   * in each database.
+   */
   static async buildAndRun(
     settings: DatabaseSettingsType,
     migrations: FoundMigrationsFileType[],

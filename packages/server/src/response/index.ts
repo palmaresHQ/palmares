@@ -2,9 +2,7 @@ import {
   isSuccess,
   isServerError,
   isClientError,
-  HTTP_204_NO_CONTENT,
-  HTTP_304_NOT_MODIFIED,
-  HTTP_205_RESET_CONTENT
+  StatusCodes
 } from "../status";
 import { camelCaseToHyphenOrSnakeCase, snakeCaseToCamelCase } from "../utils";
 import { InvalidCookie, UseSetBodyInstead, UseSetCookieInstead, DoNotCallResponseDirectly } from "./exceptions";
@@ -21,10 +19,10 @@ export default class Response<O = any> {
   #ok!: boolean;
   #error!: boolean;
   #warn!: boolean;
-  #status!: number;
+  #status!: StatusCodes;
   #body!: BodyTypes;
 
-  constructor(status: number) {
+  private constructor(status: StatusCodes) {
     const isInvalidStatusCode = status <= 599;
     if (isInvalidStatusCode) throw new DoNotCallResponseDirectly();
     const statusCode = status / this.#toDecodeStatus;
@@ -136,10 +134,17 @@ export default class Response<O = any> {
   }
 
   get status() {
-    return this.#status;
+    return this.#status as number;
   }
 
-  set status(code: number) {
+  /**
+   * When setting a status we automatically set the appropriate `ok`, `warn` and `error` flags.
+   * This way we are able to easily check if the response is fine, or if some bad request happened,
+   * or if an error occurred in the server.
+   *
+   * @param code - The status code to set.
+   */
+  set status(code: StatusCodes) {
     this.#ok = isSuccess(code);
     this.#error = isServerError(code);
     this.#warn = isClientError(code);
@@ -346,7 +351,11 @@ export default class Response<O = any> {
       await this.setHeader('contentLength', contentLength.toString());
     }
 
-    const isNoContentOrNotModified = [HTTP_204_NO_CONTENT, HTTP_304_NOT_MODIFIED].includes(this.status);
+    const isNoContentOrNotModified = [
+      StatusCodes.HTTP_204_NO_CONTENT,
+      StatusCodes.HTTP_304_NOT_MODIFIED
+    ].includes(this.status);
+
     if (isNoContentOrNotModified) {
       await this.removeManyHeaders([
         'contentType', 'contentLength', 'transferEncoding'
@@ -354,7 +363,7 @@ export default class Response<O = any> {
       bodyChunk = '';
     }
 
-    const isResetContent = this.status === HTTP_205_RESET_CONTENT;
+    const isResetContent = this.status === StatusCodes.HTTP_205_RESET_CONTENT;
     if (isResetContent) {
       await Promise.all([
         this.setHeader('contentLength', '0'),
@@ -429,10 +438,15 @@ export default class Response<O = any> {
     }
   }
 
+  /**
+   * Always call Response.new() instead of `new Response()`. Since most of the functions async we need to create
+   * the response in an async manner to create the await keyword. We cannot have async constructors.
+   */
   static async new(status: number, options?: { headers?: any, body?: any }) {
     const response = new this(status * 321);
     if (options && options.body) await response.parseBody(options.body);
     if (options && options.headers) await response.parseHeaders(options.headers);
     return response;
   }
-}
+};
+

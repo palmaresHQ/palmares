@@ -118,8 +118,8 @@ export default class MakeMigrations {
     const originalModelOrFieldEntries: [string, Field | InitializedModelsType][] = Object.entries(originalModelsByNameOrFields);
     const stateModelOrFieldEntries: [string, Field | InitializedModelsType][] = Object.entries(stateModelsByNameOrFields);
 
-    let modelsOrFieldsInOriginalButNotDefinedInState = [];
-    let modelsOrFieldsInStateButNotDefinedInOriginal = [];
+    const modelsOrFieldsInOriginalButNotDefinedInState = [];
+    const modelsOrFieldsInStateButNotDefinedInOriginal = [];
 
     // Check if something is in state that is not on original. In other words, check if any field or model was removed
     for (const [stateFieldOrModelName, stateFieldOrModelObject] of stateModelOrFieldEntries) {
@@ -230,7 +230,7 @@ export default class MakeMigrations {
         );
       }
     } else {
-      let nonRenamedFieldsOrModels = [...modelsOrFieldsInOriginalButNotDefinedInState]
+      const nonRenamedFieldsOrModels = [...modelsOrFieldsInOriginalButNotDefinedInState]
       // same as before, first we loop through state objects and then we loop through newly defined models
 
       for (const fieldOrModelNameInState of modelsOrFieldsInStateButNotDefinedInOriginal) {
@@ -484,7 +484,7 @@ export default class MakeMigrations {
     let pendingOperations = operations;
     let previousNumberOfReorderedOperations = -1;
     while (pendingOperations.length > 0) {
-      let newPendingOperations = [];
+      const newPendingOperations = [];
       for (const operationToProcess of pendingOperations) {
         const modelOfOperationToProcess = this.#originalModelsByName[operationToProcess.modelName] !== undefined ?
           this.#originalModelsByName[operationToProcess.modelName] : this.#stateModelsByName[operationToProcess.modelName];
@@ -540,11 +540,11 @@ export default class MakeMigrations {
   async #generateMigrationFile(
     operationsOfFile: ActionToGenerateType<any>[],
     domainPath: string,
-    numberOfMigrations: number = 0,
-    lastMigrationName: string = '',
-    lastDomainPath: string = ''
+    numberOfMigrations = 0,
+    lastMigrationName = '',
+    lastDomainPath = ''
   ) {
-    let customImportsOfCustomData: CustomImportsForFieldType[] = [];
+    const customImportsOfCustomData: CustomImportsForFieldType[] = [];
     const operationsAsString: string[] = [];
     const currentDate = new Date();
     const migrationNumber = numberOfMigrations + 1;
@@ -652,7 +652,7 @@ export default class MakeMigrations {
   ) {
     const lastMigrationIndex = this.filteredMigrationsOfDatabase.length - 1;
     const hasALastMigration = this.filteredMigrationsOfDatabase[lastMigrationIndex] !== undefined;
-    let previousDomainPath = operations[0] ? operations[0].domainPath : '';
+    const previousDomainPath = operations[0] ? operations[0].domainPath : '';
     let lastDomainPath = hasALastMigration?
       this.filteredMigrationsOfDatabase[lastMigrationIndex].domainPath : '';
     let lastMigrationName = hasALastMigration ?

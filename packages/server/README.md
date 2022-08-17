@@ -6,7 +6,7 @@
  - [X] Add class controllers
  - [X] Add custom data to the request
  - [X] Add Response class.
- - [/] Add a ServerResponse class to translate the response in the framework of choice. (Need to work on a way to translate the response more automatically without needing to call methods directly)
+ - [X] Add a ServerResponse class to translate the response in the framework of choice. (Need to work on a way to translate the response more automatically without needing to call methods directly)
  - [ ] Redirect constructor for response.
  - [ ] Parse cookies from request.
  - [X] Better typescript support for controller for dependency injection.
