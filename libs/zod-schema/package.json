@@ -1,0 +1,25 @@
+{
+  "name": "@palmares/zod-schema",
+  "version": "0.0.0",
+  "description": "Zod as the validation schema for palmares so we are able to validate through zod instead of using serializers",
+  "main": "src/index.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/palmaresHQ/palmares.git"
+  },
+  "keywords": [
+    "zod",
+    "zod-schema",
+    "palmares"
+  ],
+  "author": "Nicolas Melo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/palmaresHQ/palmares/issues"
+  },
+  "homepage": "https://github.com/palmaresHQ/palmares#readme",
+  "dependencies": {
+    "@palmares/serializers": "*",
+    "zod": "^3.18.0"
+  }
+}

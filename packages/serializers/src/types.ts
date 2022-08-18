@@ -1,3 +1,13 @@
+import { SettingsType } from "@palmares/core";
+import ValidationError from "./exceptions";
+
+export type SerializersSettingsType = SettingsType & {
+  ERROR_CLASS?: typeof ValidationError,
+  ERROR_MESSAGES?: {
+    [key: string]: ErrorMessagesType;
+  }
+}
+
 export type ErrorMessagesType = string | (() => string | Promise<string>);
 
 export type FieldErrorMessagesType = {
