@@ -1,5 +1,6 @@
 import { SettingsType } from "@palmares/core";
 import ValidationError from "./exceptions";
+import Field from "./fields";
 
 export type SerializersSettingsType = SettingsType & {
   ERROR_CLASS?: typeof ValidationError,
