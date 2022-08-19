@@ -1,8 +1,8 @@
 import SequelizeEngine from '@palmares/sequelize-engine';
 import ExpressServer from '@palmares/express-adapter';
 import { ExpressCorsMiddleware } from './core/middlewares';
+
 import { dirname, resolve } from 'path';
-import { Request, Response } from '@palmares/server';
 
 export const ENV = typeof process.env.NODE_ENV === 'string' ? process.env.NODE_ENV :
   'development';

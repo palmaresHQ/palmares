@@ -7,5 +7,6 @@ export * from './logging/types';
 export { default as conf } from './conf';
 export * as utils from './utils';
 export * from './utils/constants';
+export { imports } from './utils';
 
 export * from './conf/types';

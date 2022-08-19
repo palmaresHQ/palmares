@@ -1,10 +1,11 @@
+import { utils } from '@palmares/core';
+
 import {
   isSuccess,
   isServerError,
   isClientError,
   StatusCodes
 } from "../status";
-import { camelCaseToHyphenOrSnakeCase, snakeCaseToCamelCase } from "../utils";
 import { InvalidCookie, UseSetBodyInstead, UseSetCookieInstead, DoNotCallResponseDirectly } from "./exceptions";
 import { CookiesType, CookieOptionsType, BodyTypes } from "./types";
 import Mimes from "../mimes";
@@ -202,7 +203,7 @@ export default class Response<O = any> {
    * @param value - The value to update in the headers of the response
    */
   async setHeader(key: string, value: string) {
-    const formattedKey = snakeCaseToCamelCase(key);
+    const formattedKey = utils.snakeCaseToCamelCase(key);
     const isADifferentContentType = key === 'contentType' && this.headers.contentType !== value;
     const isSetCookie = key === 'setCookie';
 
@@ -234,7 +235,7 @@ export default class Response<O = any> {
    * @param header - The header key you want to remove.
    */
   async removeHeader(header: string) {
-    const formattedHeader = snakeCaseToCamelCase(header);
+    const formattedHeader = utils.snakeCaseToCamelCase(header);
     delete this.headers[formattedHeader]
   }
 
@@ -434,7 +435,7 @@ export default class Response<O = any> {
     while (index < headers.length) {
       const [key, value] = headers[index];
       index ++;
-      yield [camelCaseToHyphenOrSnakeCase(key, false), value as string]
+      yield [utils.camelCaseToHyphenOrSnakeCase(key, false), value as string]
     }
   }
 

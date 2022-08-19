@@ -81,7 +81,7 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
    * @return - The instance of the the model inside that engine instance
    */
   getInstance<T extends Engine = Engine>(engineName?: string): EI extends Engine ? EI["ModelType"] : T["ModelType"] {
-    let engineInstanceName: string = engineName || this.defaultEngineInstanceName;
+    const engineInstanceName = engineName || this.defaultEngineInstanceName;
     const doesInstanceExists = this.instances[engineInstanceName] !== undefined;
     if (doesInstanceExists) return this.instances[engineInstanceName];
 
@@ -96,7 +96,7 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
   }
 
   getEngineInstance<T extends Engine = Engine>(engineName?: string): EI extends Engine ? EI : T {
-    let engineInstanceName: string = engineName || this.defaultEngineInstanceName;
+    const engineInstanceName: string = engineName || this.defaultEngineInstanceName;
     const doesInstanceExists = this.engineInstances[engineInstanceName] !== undefined;
     if (doesInstanceExists) return this.engineInstances[engineInstanceName];
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);

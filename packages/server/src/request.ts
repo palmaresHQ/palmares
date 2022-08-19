@@ -1,6 +1,7 @@
+import { utils } from '@palmares/core';
+
 import { PathParamsParser, RawParamsType } from "./server/types";
 import { HeadersType, RequestType, QueryParamsType } from "./types";
-import { snakeCaseToCamelCase } from "./utils";
 
 /**
  * Should follow this api: https://developer.mozilla.org/en-US/docs/Web/API/Request
@@ -84,7 +85,7 @@ export default class Request<R extends RequestType = {
     if (!this.#cachedHeaders) this.#cachedHeaders = {};
     const headerEntries: [string, string][] = Object.entries(headers);
     for (const [key, value] of headerEntries) {
-      const newKey = `${key.charAt(0).toLowerCase()}${snakeCaseToCamelCase(key).slice(1)}`;
+      const newKey = `${key.charAt(0).toLowerCase()}${utils.snakeCaseToCamelCase(key).slice(1)}`;
       this.#cachedHeaders[newKey] = value;
     }
   }
@@ -103,7 +104,7 @@ export default class Request<R extends RequestType = {
       const queryParamsEntries: [string, string | undefined][] = Object.entries(this.#query);
       for (const [key, value] of queryParamsEntries) {
         if (value) {
-          const newKey = `${key.charAt(0).toLowerCase()}${snakeCaseToCamelCase(key).slice(1)}`;
+          const newKey = `${key.charAt(0).toLowerCase()}${utils.snakeCaseToCamelCase(key).slice(1)}`;
           this.#cachedQuery[newKey] = JSON.parse(value);
         }
       }

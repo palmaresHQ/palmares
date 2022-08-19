@@ -1,14 +1,13 @@
-import { ERR_MODULE_NOT_FOUND, logging } from "@palmares/core";
+import { ERR_MODULE_NOT_FOUND, logging, imports } from "@palmares/core";
 
 import { DatabaseDomain } from "../domain";
 import { DatabaseSettingsType, InitializedEngineInstancesType, OptionalMakemigrationsArgsType } from "../types";
 import { FoundMigrationsFileType, MigrationFileType } from './types';
 import { LOGGING_MIGRATIONS_NOT_FOUND } from "../utils";
 import MakeMigrations from "./makemigrations";
-
-import { join } from "path";
-import { Dirent, readdir } from "fs";
 import Migrate from "./migrate";
+
+import { Dirent } from "fs";
 
 /**
  * Used for working with anything related to migrations inside of the project, from the automatic creation of migrations
@@ -57,6 +56,11 @@ export default class Migrations {
   }
 
   async #getMigrations(): Promise<FoundMigrationsFileType[]> {
+    const [join, readdir] = await Promise.all([
+      imports<typeof import('path')['join']>('path', 'join'),
+      imports<typeof import('fs')['readdir']>('fs', 'readdir')
+    ])
+
     const foundMigrations: FoundMigrationsFileType[] = [];
     const promises: Promise<void>[] = this.domains.map(async (domain) => {
       const hasGetMigrationsMethodDefined = typeof domain.getMigrations === 'function';
@@ -69,7 +73,7 @@ export default class Migrations {
             migration: domainMigration,
           });
         }
-      } else {
+      } else if (join && readdir) {
         const fullPath = join(domain.path, 'migrations');
         try {
           const directoryFiles = await (new Promise<string[] | Buffer[] | Dirent[]>((resolve, reject) => {

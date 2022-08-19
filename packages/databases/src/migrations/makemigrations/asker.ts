@@ -1,5 +1,6 @@
-import { createInterface, Interface } from 'readline';
-import { stdin as input, stdout as output } from 'process';
+import { imports } from '@palmares/core';
+
+import type { Interface } from 'readline';
 
 class Asker {
   #readlineInterface: Interface | null = null;
@@ -10,12 +11,19 @@ class Asker {
    *
    * @returns - Returns the readline interface.
    */
-  #getReadlineInterface(): Interface {
-    const interfaceIsNotClosed = this.#readlineInterface !== null && this.#readlineInterface !== undefined;
-    if (interfaceIsNotClosed) return this.#readlineInterface as Interface;
-    else {
-      this.#readlineInterface = createInterface({ input, output });
-      return this.#readlineInterface;
+  async #getReadlineInterface(): Promise<Interface | undefined> {
+    const [createInterface, input, output] = await Promise.all([
+      imports<typeof import('readline').createInterface>('readline', 'createInterface'),
+      imports<typeof import('process').stdin>('process', 'stdin'),
+      imports<typeof import('process').stdout>('process', 'stdout'),
+    ]);
+    if (createInterface && input && output) {
+      const interfaceIsNotClosed = this.#readlineInterface !== null && this.#readlineInterface !== undefined;
+      if (interfaceIsNotClosed) return this.#readlineInterface as Interface;
+      else {
+        this.#readlineInterface = createInterface({ input, output });
+        return this.#readlineInterface;
+      }
     }
   }
 
@@ -31,53 +39,61 @@ class Asker {
     `set to \x1b[33mfalse\x1b[0m. \n`+
     `You can safely ignore this message if you didn't add any data to the table. \n\n` +
     `Press any key to continue or 'CTRL+C' to stop and define the attributes yourself.\n`
-    return new Promise((resolve, reject) => {
-      this.#getReadlineInterface().question(question, (answer: string) => {
-        if (answer.toLowerCase() === 'n') {
-          resolve(false);
-        } else {
-          resolve(true);
-        }
-        this.#closeReadlineInterface();
+    const readlineInterface = await this.#getReadlineInterface();
+    if (readlineInterface) {
+      return new Promise((resolve, reject) => {
+        readlineInterface.question(question, (answer: string) => {
+          if (answer.toLowerCase() === 'n') {
+            resolve(false);
+          } else {
+            resolve(true);
+          }
+          this.#closeReadlineInterface();
+        });
       });
-    });
+    } else return false;
   }
 
   async didUserRename(modelOrFieldThatWasRenamed: string, renamedTo: string): Promise<boolean> {
     const question = `\nDid you rename '${modelOrFieldThatWasRenamed}' to '${renamedTo}'? [y/n]\n`;
-    return new Promise((resolve, reject) => {
-      this.#getReadlineInterface().question(question, (answer: string) => {
-        if (['y', 'n'].includes(answer)) {
-          this.#closeReadlineInterface();
-          resolve(answer === 'y');
-        } else {
-          this.didUserRename(modelOrFieldThatWasRenamed, renamedTo)
-            .then(response => resolve(response))
-            .catch(error => reject(error));
-        }
+    const readlineInterface = await this.#getReadlineInterface();
+    if (readlineInterface) {
+      return new Promise((resolve, reject) => {
+        readlineInterface.question(question, (answer: string) => {
+          if (['y', 'n'].includes(answer)) {
+            this.#closeReadlineInterface();
+            resolve(answer === 'y');
+          } else {
+            this.didUserRename(modelOrFieldThatWasRenamed, renamedTo)
+              .then(response => resolve(response))
+              .catch(error => reject(error));
+          }
+        });
       });
-    });
+    } else return false;
   }
 
   async didUserRenameToOneOption(valueThatWasRenamed: string, renamedToOptions: string[]): Promise<string | null> {
     const toOptions = renamedToOptions.map((renamedTo, index) => `${index+1}. ${renamedTo}`)
     const explanation = '\nPlease type the corresponding number or leave blank if you have not renamed'
     const question = `\nDid you rename '${valueThatWasRenamed}' to one of the following options? \n${toOptions.join('\n')} \n\n${explanation}\n`
-
-    return new Promise((resolve, reject) => {
-      this.#getReadlineInterface().question(question, (answer: string) => {
-        if (answer === '') {
-          resolve(null);
-        } else {
-          try {
-            resolve(renamedToOptions[parseInt(answer) - 1]);
-          } catch {
+    const readlineInterface = await this.#getReadlineInterface();
+    if (readlineInterface) {
+      return new Promise((resolve, reject) => {
+        readlineInterface.question(question, (answer: string) => {
+          if (answer === '') {
             resolve(null);
+          } else {
+            try {
+              resolve(renamedToOptions[parseInt(answer) - 1]);
+            } catch {
+              resolve(null);
+            }
           }
-        }
-        this.#closeReadlineInterface();
-      })
-    })
+          this.#closeReadlineInterface();
+        });
+      });
+    } else return null;
   }
 }
 

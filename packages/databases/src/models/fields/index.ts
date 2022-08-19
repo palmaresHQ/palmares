@@ -62,13 +62,13 @@ export class Field<D = any, N extends boolean = boolean> {
     this.fieldName = fieldName;
     this.model = model;
 
-    if (isUnderscored) this.databaseName = utils.camelToSnakeCase(this.fieldName);
+    if (isUnderscored) this.databaseName = utils.camelCaseToHyphenOrSnakeCase(this.fieldName);
     else this.databaseName = this.fieldName;
 
     await engineInstance.fields.set(this as Field);
   }
 
-  async toString(indentation: number = 0, customParams: string | undefined = undefined): Promise<string> {
+  async toString(indentation = 0, customParams: string | undefined = undefined): Promise<string> {
     const ident = '  '.repeat(indentation);
     const fieldParamsIdent = '  '.repeat(indentation + 1);
     return `${ident}new models.fields.${this.constructor.name}({`+
@@ -215,7 +215,7 @@ export class DecimalField<
     this.decimalPlaces = decimalPlaces;
   }
 
-  async toString(indentation=0, _: string = '') {
+  async toString(indentation=0, _ = '') {
     const ident = '  '.repeat(indentation + 1);
     return super.toString(
       indentation,
@@ -254,7 +254,7 @@ export class TextField<
     this.allowBlank = allowBlank;
   }
 
-  async toString(indentation: number = 0, customParams: string | undefined = undefined) {
+  async toString(indentation = 0, customParams: string | undefined = undefined) {
     const ident = '  '.repeat(indentation + 1);
     const customParamsString = customParams ? `\n${customParams}`: '';
     return super.toString(
@@ -298,7 +298,7 @@ export class CharField<
     this.maxLength = maxLength;
   }
 
-  async toString(indentation: number = 0, customParams: string | undefined = undefined) {
+  async toString(indentation = 0, customParams: string | undefined = undefined) {
     const ident = '  '.repeat(indentation + 1);
     const customParamsString = customParams ? `\n${customParams}`: '';
     return super.toString(
@@ -339,7 +339,7 @@ export class UUIDField<
     this.autoGenerate = autoGenerate;
   }
 
-  async toString(indentation: number = 0, customParams: string | undefined = undefined) {
+  async toString(indentation = 0, customParams: string | undefined = undefined) {
     const ident = '  '.repeat(indentation + 1);
     const customParamsString = customParams ? `\n${customParams}`: '';
     return super.toString(
@@ -375,7 +375,7 @@ export class DateField<
       this.autoNowAdd = autoNowAdd
   }
 
-  async toString(indentation: number = 0, customParams: string | undefined = undefined) {
+  async toString(indentation = 0, customParams: string | undefined = undefined) {
     const ident = '  '.repeat(indentation + 1);
     return super.toString(
       indentation,
@@ -473,7 +473,7 @@ export class ForeignKeyField<
     else return this._originalRelatedName;
   }
 
-  async toString(indentation: number = 0, customParams: string | undefined = undefined) {
+  async toString(indentation = 0, customParams: string | undefined = undefined) {
     const ident = '  '.repeat(indentation + 1);
     return super.toString(
       indentation,

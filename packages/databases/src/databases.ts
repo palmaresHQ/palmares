@@ -1,6 +1,7 @@
 import {
     logging,
     ERR_MODULE_NOT_FOUND,
+    imports,
 } from "@palmares/core";
 
 import {
@@ -17,8 +18,6 @@ import Engine from "./engine";
 import { Model, BaseModel } from "./models";
 import { LOGGING_DATABASE_MODELS_NOT_FOUND } from './utils';
 import Migrations from "./migrations";
-
-import { join } from "path";
 
 export default class Databases {
   availableEngines = ['@palmares/sequelize-engine'];
@@ -151,6 +150,7 @@ export default class Databases {
    * @returns - Returns an array of models.
    */
   async getModels(domains: DatabaseDomain[]) {
+    const join = await imports<typeof import('path')['join']>('path', 'join');
     const foundModels: FoundModelType[] = [];
     const promises: Promise<void>[] = domains.map(async (domain) => {
       const hasGetModelsMethodDefined = typeof domain.getModels === 'function';
@@ -166,7 +166,7 @@ export default class Databases {
             });
           }
         });
-      } else {
+      } else if (join) {
         const fullPath = join(domain.path, 'models');
         try {
           const models = await import(fullPath);

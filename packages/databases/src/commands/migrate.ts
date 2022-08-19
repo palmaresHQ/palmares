@@ -1,6 +1,6 @@
 import { DomainHandlerFunctionArgs } from "@palmares/core";
+
 import Databases from "../databases";
-import databases from "../databases";
 import { DatabaseDomain } from "../domain";
 import defaultSettings from "../settings";
 import { DatabaseSettingsType } from "../types";
