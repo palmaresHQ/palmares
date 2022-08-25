@@ -1,12 +1,11 @@
 import {
   Engine,
   DatabaseConfigurationType,
-  models,
   ModelFields,
   TModel,
   EngineInitializedModels
 } from "@palmares/databases";
-import { Sequelize, Dialect, Options, Op, Model, ModelCtor, Optional, Transaction } from 'sequelize';
+import { Sequelize, Dialect, Options, Op, Model, ModelCtor, Transaction } from 'sequelize';
 
 import SequelizeEngineQuery from "./query";
 import SequelizeEngineFields from "./fields";

@@ -2,7 +2,7 @@ import log from "./logging";
 import { LOGGING_NOT_FOUND_WARN_MESSAGE } from "./utils";
 import ValidationError, { FieldSourcesError } from "./exceptions";
 import { settings } from "./settings";
-import { FieldErrorMessagesType, ErrorMessagesType, FieldParamsType } from "./types"
+import { FieldErrorMessagesType, ErrorMessagesType, FieldParamsType, CharFieldParamsType } from "./types"
 
 class Empty {}
 
@@ -58,11 +58,11 @@ class Empty {}
  *
  * This works similarly the other way around, when we want to convert data received from the user.
  */
-export default class Field {
-  private _fieldName: string;
+export class Field<C = any> {
+  #fieldName!: string;
 
   type!: any;
-  context = {};
+  context = {} as C;
   source: string | undefined;
   required: boolean;
   defaultValue: any;
@@ -72,10 +72,7 @@ export default class Field {
   errorMessages: {
     [key: string | symbol]: ErrorMessagesType;
   }
-  #defaultErrorMessages: FieldErrorMessagesType = {
-    required: 'This field is required.',
-    null: 'The field cannot be null'
-  }
+
   #defaultParams: FieldParamsType = {
     source: undefined,
     required: true,
@@ -86,10 +83,11 @@ export default class Field {
     errorMessages: {}
   }
 
-  constructor(params: FieldParamsType) {
-    this._fieldName = '';
+  constructor(params: FieldParamsType = {}) {
     this.errorMessages = {
-      ...this.#defaultErrorMessages
+      required: 'This field is required.',
+      null: 'The field cannot be null',
+      ...params.errorMessages,
     };
 
     const isRequiredDefined = typeof params.required === 'boolean';
@@ -106,7 +104,12 @@ export default class Field {
   }
 
   get fieldName() {
-    return this._fieldName;
+    return this.#fieldName;
+  }
+
+  set fieldName(name: string) {
+    const isFieldNameNotDefined = typeof this.#fieldName !== 'string';
+    if (isFieldNameNotDefined) this.#fieldName = name;
   }
 
   /**
@@ -125,7 +128,16 @@ export default class Field {
       const isErrorMessageAFunction = typeof message === 'function';
       const errorMessage = isErrorMessageAFunction ? await Promise.resolve(message()) : message;
       const ValidationErrorClass = settings?.ERROR_CLASS as typeof ValidationError;
-      throw new ValidationErrorClass(errorMessage);
+      const isFieldNameDefined = typeof this.fieldName === 'string';
+      const meta = isFieldNameDefined ? {
+        fieldName: this.fieldName
+      } : undefined;
+
+      throw new ValidationErrorClass({
+        reason: errorKey,
+        description: errorMessage,
+        meta
+      });
     } else {
       log(LOGGING_NOT_FOUND_WARN_MESSAGE, { errorKey });
     }
@@ -152,27 +164,90 @@ export default class Field {
     const dataIsNotDefined = data === undefined;
     const defaultValueIsNotEmpty = this.defaultValue !== Empty;
     if (dataIsNotDefined && defaultValueIsNotEmpty) data = this.defaultValue;
-    return data;
+    return data as any;
   }
 
-  async toRepresentation(data?: any, ...args: any[]) {
-    const isDataDefined = data !== undefined;
-    const isRequiredAndNotWriteOnly = this.required && this.writeOnly === false;
-    if (isDataDefined && isRequiredAndNotWriteOnly) await this.fail('required');
+  async toRepresentation(
+    data?: this['type'],
+    callbackIfDefined?: (data: this['type']) => Promise<this['type']> | this['type']
+  ) : Promise<this['type'] | undefined | null>{
+    const isWriteOnly = this.writeOnly;
+    if (isWriteOnly) return undefined;
+
+    const sourceData = await this._getSource(data);
+    const formattedData = await this._getDefaultValue(sourceData);
+    const isDataNotNullNorUndefined = ![null, undefined].includes(formattedData);
+    if (this.writeOnly) return undefined;
+    if (callbackIfDefined && isDataNotNullNorUndefined) return callbackIfDefined(formattedData);
     return data;
   }
 
   async validate(data: any) {
     const isDataDefined = data !== undefined;
     const isDataNullAndDoesNotAllowNull = data === null && this.allowNull === false;
-    const isRequiredAndNotReadOnly = this.required && this.readOnly === false;
-    if (isDataDefined && isRequiredAndNotReadOnly) await this.fail('required');
+    const isRequiredAndNotReadOnly = this.required === true && this.readOnly === false;
+    if (!isDataDefined && isRequiredAndNotReadOnly) await this.fail('required');
     if (isDataNullAndDoesNotAllowNull) await this.fail('null');
   }
 
-  async toInternal(data?: any, ...args: any[]) {
-    await this.validate(data);
-    return data;
+  async toInternal(data?: any) {
+    const formattedData = await this._getDefaultValue(data);
+    return formattedData
   }
 }
 
+export class CharField extends Field {
+  type!: string;
+  minLength?: number;
+  maxLength?: number;
+  allowBlank: boolean;
+
+  constructor(params: CharFieldParamsType = {}) {
+    super(params);
+
+    const isAllowBlankABoolean = typeof params.allowBlank === 'boolean';
+    const isMinLengthDefined = typeof params.minLength === 'number';
+    const isMaxLengthDefined = typeof params.maxLength === 'number';
+
+    this.allowBlank = isAllowBlankABoolean ? params.allowBlank as boolean : false;
+    if (isMaxLengthDefined) this.maxLength = params.maxLength;
+    if (isMinLengthDefined) this.minLength = params.minLength;
+
+    this.errorMessages = {
+      invalid: 'Not a valid string',
+      maxLength: `Make sure this field is not logger than ${params.maxLength} character(s) long.`,
+      minLength: `Make sure this field is at least ${params.minLength} character(s) long.`,
+      blank: 'The field cannot be blank',
+      ...this.errorMessages,
+    }
+  }
+
+  async validate(data: any) {
+    await super.validate(data);
+
+    const isDataNull = data === null;
+    if (isDataNull) return;
+
+    const isDataNotAString = typeof data !== 'string';
+    if (isDataNotAString) await this.fail('invalid');
+
+    const isLengthAboveMaxLength = this.maxLength && data.length > this.maxLength;
+    if (isLengthAboveMaxLength) await this.fail('maxLength');
+
+    const isLengthBelowMinLength = this.minLength && data.length < this.minLength;
+    if (isLengthBelowMinLength) await this.fail('maxLength');
+
+    const isBlank = this.allowBlank === false && data === '';
+    if (isBlank) await this.fail('blank')
+  }
+
+  async toInternal(data: string | null) {
+    const formattedData = await super.toInternal(data);
+    if (formattedData === null) return null;
+    return formattedData.toString();
+  }
+
+  async toRepresentation(data: string): Promise<string | null | undefined> {
+    return super.toRepresentation(data, (data: string) => data.toString());
+  }
+}

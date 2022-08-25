@@ -61,7 +61,7 @@ export class CreateModel extends Operation {
   }
 
   static async toString(
-    indentation: number = 0,
+    indentation = 0,
     data: ActionToGenerateType<CreateModelToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
@@ -124,7 +124,7 @@ export class DeleteModel extends Operation {
   }
 
   static async toString(
-    indentation: number = 0,
+    indentation = 0,
     data: ActionToGenerateType<null>
   ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
@@ -182,7 +182,7 @@ export class ChangeModel extends Operation {
   }
 
   static async toString(
-    indentation: number = 0,
+    indentation = 0,
     data: ActionToGenerateType<ChangeModelToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
@@ -233,7 +233,7 @@ export class RenameModel extends Operation {
   }
 
   static async toString(
-    indentation: number = 0,
+    indentation = 0,
     data: ActionToGenerateType<RenameModelToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);

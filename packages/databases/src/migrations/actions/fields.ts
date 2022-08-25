@@ -53,7 +53,7 @@ export class CreateField extends Operation {
   }
 
   static async toString(
-    indentation: number = 0,
+    indentation = 0,
     data: ActionToGenerateType<CreateFieldToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
@@ -120,7 +120,7 @@ export class ChangeField extends Operation {
   }
 
   static async toString(
-    indentation: number = 0,
+    indentation = 0,
     data: ActionToGenerateType<ChangeFieldToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
@@ -203,7 +203,7 @@ export class RenameField extends Operation {
   }
 
   static async toString(
-    indentation: number = 0,
+    indentation = 0,
     data: ActionToGenerateType<RenameFieldToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
@@ -265,7 +265,7 @@ export class DeleteField extends Operation {
   }
 
   static async toString(
-    indentation: number = 0,
+    indentation = 0,
     data: ActionToGenerateType<DeleteFieldToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
