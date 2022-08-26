@@ -1,31 +1,35 @@
 import { Serializer } from './src/serializers';
-import { CharField } from './src/fields';
+import { CharField, Field } from './src/fields';
 import ValidationError from './src/exceptions';
+import v8 from 'node:v8'
 
-
+// Exemplo de um serializer
 class ExampleSerializer extends Serializer {
   fields = {
-    firstName: new CharField({ defaultValue: 'hey' }),
-    lastName: new CharField({ readOnly: true })
+    firstName: CharField.new({ defaultValue: 'teste', allowNull: true }),
+    lastName: CharField.new({ readOnly: true, allowNull: true}),
   }
 }
 
+
+
+// uso
 const main = async () => {
   const data = {
     firstName: 'launchcode',
-    lastName: 'hey'
+    lastName: 'hey',
   }
   const serializer = ExampleSerializer.new({
     data,
-    many: true
+    many: false
   });
 
-
   if (await serializer.isValid()) {
-    console.log(serializer.validatedData)
+    serializer.validatedData
   } else {
     console.log(serializer.errors);
   }
 }
 
 main();
+

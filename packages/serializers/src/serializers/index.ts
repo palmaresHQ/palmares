@@ -1,22 +1,35 @@
-import ValidationError, { SerializerManyAndNotArrayError, SerializerShouldCallIsValidBeforeAccessingData } from './exceptions';
-import { Field } from './fields';
-import { FieldParamsType, SerializerFieldsType, SerializerParamsType } from './types';
+import ValidationError, { SerializerManyAndNotArrayError, SerializerShouldCallIsValidBeforeAccessingData } from '../exceptions';
+import { Empty, Field } from '../fields';
+import { SerializerFieldsType, SerializerParamsType } from './types';
+import { This } from '../types';
+import { FieldType } from '../fields/types';
 
-type This<T extends new(...args: any) => any> = {
-  new(...args: ConstructorParameters<T>): any
-} & Pick<T, keyof T>
+export class Serializer<
+  I extends Serializer = any,
+  M extends boolean = boolean,
+  C = any,
+  D extends { [K in keyof I["fields"]] : I["fields"][K]["type"] } | typeof Empty = typeof Empty,
+  N extends boolean = boolean,
+  R extends boolean = boolean,
+  RO extends boolean = boolean,
+  WO extends boolean = boolean
+> extends Field<
+  I, D, N, R, RO, WO, C
+> {
+  type!: FieldType<{ [K in keyof I["fields"]] : I["fields"][K]["type"] }, N, R, RO, WO>;
 
-
-export class Serializer<I extends Serializer = any, M extends boolean = boolean, C = any> extends Field<C> {
   protected _errors: ValidationError[] = [];
   fields: SerializerFieldsType = {};
-  type!:{ [K in keyof I["fields"]] : I["fields"][K]["type"] };
   #validatedData!: M extends false ? this["type"] : this["type"][];
   #instance: any;
   many!: M;
   #data: any;
 
-  /*constructor(params: SerializerParamsType<I extends Serializer ? I : never, M extends boolean ? M : boolean, C>) {
+  constructor(params: SerializerParamsType<
+    I extends Serializer ? I : never,
+    M extends boolean ? M : boolean,
+    C, D, N, R, RO, WO
+    > = {}) {
     super(
       {
         ...params,
@@ -33,7 +46,23 @@ export class Serializer<I extends Serializer = any, M extends boolean = boolean,
     this.#data = params.data;
     this.many = (isManyDefined ? params.many : false) as M;
     this.context = params.context ? params.context : {} as C;
-  }*/
+  }
+
+  static new<
+    I extends This<typeof Serializer>,
+    M extends boolean = boolean,
+    C = any,
+    D extends { [K in keyof InstanceType<I>["fields"]] : InstanceType<I>["fields"][K]["type"] } | typeof Empty = typeof Empty,
+    N extends boolean = boolean,
+    R extends boolean = true,
+    RO extends boolean = boolean,
+    WO extends boolean = boolean
+  >(
+    this: I,
+    params: SerializerParamsType<InstanceType<I>, M extends boolean ? M : boolean, C, D, N, R, RO, WO> = {}
+  ) {
+    return new this(params) as Serializer<InstanceType<I>, M, C, D, N, R, RO, WO>;
+  }
 
   async instanceToRepresentation(instance: this["type"]) {
     const isInstanceAnObject = typeof instance === 'object' && instance !== null;
@@ -63,7 +92,7 @@ export class Serializer<I extends Serializer = any, M extends boolean = boolean,
    *
    * You must ALWAYS call `super.toRepresentation()` if you want to override this function. For
    */
-  async toRepresentation(data: this["type"] = this.#instance): Promise<any> {
+  async toRepresentation(data: this["type"] = this.#instance) {
     const instanceOrDataNotDefined = data === undefined;
     const isManyAndIsNotArray = !Array.isArray(data) && this.many === true;
     let dataForRepresentation = isManyAndIsNotArray ? [data] : data;
@@ -75,8 +104,8 @@ export class Serializer<I extends Serializer = any, M extends boolean = boolean,
     if (isManyAndIsArray) {
       return Promise.all(
         (dataForRepresentation as []).map(async (data: this["type"]) => this.instanceToRepresentation(data))
-      );
-    } else if (isNotManyAndIsNotArray) return this.instanceToRepresentation(dataForRepresentation as this["type"]);
+      ) as Promise<M extends false ? this["type"] : this["type"][]>;
+    } else if (isNotManyAndIsNotArray) return this.instanceToRepresentation(dataForRepresentation as this["type"]) as Promise<M extends false ? this["type"] : this["type"][]>;
     else throw new SerializerManyAndNotArrayError(this.constructor.name);
   }
 
@@ -253,20 +282,5 @@ export class Serializer<I extends Serializer = any, M extends boolean = boolean,
    */
   get errors() {
     return this._errors.map(error => error.json)
-  }
-
-  static new<T extends This<typeof Serializer>, M extends boolean = boolean, C = any>(this: T, params: {
-    instance?: { [K in keyof InstanceType<T>["fields"]] : InstanceType<T>["fields"][K]["type"] };
-    data?: { [K in keyof InstanceType<T>["fields"]] : InstanceType<T>["fields"][K]["type"] };
-    many?: M;
-    context?: C
-  } & FieldParamsType): Serializer<InstanceType<T>, M, C> {
-    const serializer = new this(params);
-    const isManyDefined = typeof params.many === 'boolean';
-    serializer.#instance = params.instance;
-    serializer.#data = params.data;
-    serializer.many = (isManyDefined ? params.many : false) as M;
-    serializer.context = params.context ? params.context : {} as C;
-    return serializer as Serializer<InstanceType<T>, M, C>;
   }
 }

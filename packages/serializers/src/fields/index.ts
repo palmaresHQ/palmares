@@ -1,10 +1,11 @@
-import log from "./logging";
-import { LOGGING_NOT_FOUND_WARN_MESSAGE } from "./utils";
-import ValidationError, { FieldSourcesError } from "./exceptions";
-import { settings } from "./settings";
-import { FieldErrorMessagesType, ErrorMessagesType, FieldParamsType, CharFieldParamsType } from "./types"
+import log from "../logging";
+import { LOGGING_NOT_FOUND_WARN_MESSAGE } from "../utils";
+import ValidationError, { FieldSourcesError } from "../exceptions";
+import { settings } from "../settings";
+import { FieldParamsType, CharFieldParamsType, FieldType } from './types';
+import { ErrorMessagesType, This } from "../types"
 
-class Empty {}
+export class Empty {}
 
 /**
  * A field represents all fields in Palmares serializers even a serializer itself. This is tightly based on Django Rest Framework, you will view
@@ -58,14 +59,22 @@ class Empty {}
  *
  * This works similarly the other way around, when we want to convert data received from the user.
  */
-export class Field<C = any> {
+export class Field<
+  I extends Field = any,
+  D extends any | typeof Empty = any,
+  N extends boolean = boolean,
+  R extends boolean = boolean,
+  RO extends boolean = boolean,
+  WO extends boolean = boolean,
+  C = any
+> {
   #fieldName!: string;
 
-  type!: any;
+  type!: FieldType<any, N, R, RO, WO>;
   context = {} as C;
   source: string | undefined;
   required: boolean;
-  defaultValue: any;
+  defaultValue: this["type"] | typeof Empty;
   allowNull: boolean;
   readOnly: boolean;
   writeOnly: boolean;
@@ -73,17 +82,17 @@ export class Field<C = any> {
     [key: string | symbol]: ErrorMessagesType;
   }
 
-  #defaultParams: FieldParamsType = {
+  #defaultParams: FieldParamsType<I, D, N, R, RO, WO> = {
     source: undefined,
-    required: true,
-    defaultValue: Empty,
-    allowNull: false,
-    readOnly: false,
-    writeOnly: false,
+    required: true as R,
+    defaultValue: Empty as D,
+    allowNull: false as N,
+    readOnly: false as RO,
+    writeOnly: false as WO,
     errorMessages: {}
   }
 
-  constructor(params: FieldParamsType = {}) {
+  constructor(params: FieldParamsType<I, D, N, R, RO, WO> = {}) {
     this.errorMessages = {
       required: 'This field is required.',
       null: 'The field cannot be null',
@@ -101,6 +110,20 @@ export class Field<C = any> {
     this.allowNull = (isAllowNullDefined ? params.allowNull : this.#defaultParams.allowNull) as boolean;
     this.readOnly = (isReadOnlyDefined ? params.readOnly : this.#defaultParams.readOnly) as boolean;
     this.writeOnly = (isWriteOnlyDefined ? params.writeOnly : this.#defaultParams.writeOnly) as boolean;
+  }
+
+  static new<
+    I extends This<typeof Field>,
+    D extends InstanceType<I>["type"] | typeof Empty = typeof Empty,
+    N extends boolean = false,
+    R extends boolean = true,
+    RO extends boolean = boolean,
+    WO extends boolean = boolean,
+    C = any
+  >(
+    params: FieldParamsType<InstanceType<I>,D, N, R, RO, WO> = {}
+  ) {
+    return new this(params) as Field<InstanceType<I>, D, N, R, RO, WO, C>;
   }
 
   get fieldName() {
@@ -143,7 +166,7 @@ export class Field<C = any> {
     }
   }
 
-  protected async _getSource(instance: any): Promise<any> {
+  async _getSource(instance: any): Promise<any> {
     const sourceAsString = this.source as string;
     const isSourceToRetrieveHoleObject = sourceAsString === '*';
     const isSourceDefinedAndNotWriteOnly = typeof sourceAsString === 'string' &&
@@ -160,7 +183,7 @@ export class Field<C = any> {
     return newInstance;
   }
 
-  protected async _getDefaultValue(data: this['type']) {
+  async _getDefaultValue(data: this['type']) {
     const dataIsNotDefined = data === undefined;
     const defaultValueIsNotEmpty = this.defaultValue !== Empty;
     if (dataIsNotDefined && defaultValueIsNotEmpty) data = this.defaultValue;
@@ -169,8 +192,8 @@ export class Field<C = any> {
 
   async toRepresentation(
     data?: this['type'],
-    callbackIfDefined?: (data: this['type']) => Promise<this['type']> | this['type']
-  ) : Promise<this['type'] | undefined | null>{
+    callbackIfDefined?: (data: Exclude<this['type'], null | undefined> ) => Promise<this["type"]> | this["type"]
+  ) : Promise<this['type'] | Array<this["type"]> | undefined | null>{
     const isWriteOnly = this.writeOnly;
     if (isWriteOnly) return undefined;
 
@@ -196,13 +219,22 @@ export class Field<C = any> {
   }
 }
 
-export class CharField extends Field {
-  type!: string;
+export class CharField<
+  I extends CharField = any,
+  D extends I["type"] | typeof Empty = typeof Empty,
+  N extends boolean = false,
+  R extends boolean = true,
+  RO extends boolean = boolean,
+  WO extends boolean = boolean,
+  C = any
+> extends Field<I, D, N, R, RO, WO, C> {
+
+  type!: FieldType<string, N, R, RO, WO>;
   minLength?: number;
   maxLength?: number;
   allowBlank: boolean;
 
-  constructor(params: CharFieldParamsType = {}) {
+  constructor(params: CharFieldParamsType<I, D, N, R, RO, WO> = {}) {
     super(params);
 
     const isAllowBlankABoolean = typeof params.allowBlank === 'boolean';
@@ -220,6 +252,20 @@ export class CharField extends Field {
       blank: 'The field cannot be blank',
       ...this.errorMessages,
     }
+  }
+
+  static new<
+    I extends This<typeof CharField>,
+    D extends string | typeof Empty = typeof Empty,
+    N extends boolean = false,
+    R extends boolean = true,
+    RO extends boolean = boolean,
+    WO extends boolean = boolean,
+    C = any
+  >(
+    params: CharFieldParamsType<InstanceType<I>, D, N, R, RO, WO> = {}
+  ) {
+    return new this(params) as CharField<InstanceType<I>,D, N, R, RO, WO, C>;
   }
 
   async validate(data: any) {
@@ -247,7 +293,7 @@ export class CharField extends Field {
     return formattedData.toString();
   }
 
-  async toRepresentation(data: string): Promise<string | null | undefined> {
-    return super.toRepresentation(data, (data: string) => data.toString());
+  async toRepresentation(data: this["type"]) {
+    return super.toRepresentation(data, (data) => data.toString()) ;
   }
 }
