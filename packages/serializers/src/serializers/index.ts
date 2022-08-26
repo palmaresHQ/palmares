@@ -1,35 +1,33 @@
 import ValidationError, { SerializerManyAndNotArrayError, SerializerShouldCallIsValidBeforeAccessingData } from '../exceptions';
-import { Empty, Field } from '../fields';
-import { SerializerFieldsType, SerializerParamsType } from './types';
+import { Field } from '../fields';
+import { SerializerFieldsType, SerializerParamsType, SerializerType, SerializerParamsTypeForConstructor, OutSerializerType, InSerializerType } from './types';
 import { This } from '../types';
-import { FieldType } from '../fields/types';
+import { FieldType, InFieldType, OutFieldType } from '../fields/types';
 
 export class Serializer<
   I extends Serializer = any,
   M extends boolean = boolean,
   C = any,
-  D extends { [K in keyof I["fields"]] : I["fields"][K]["type"] } | typeof Empty = typeof Empty,
+  D extends SerializerType<I> | undefined = undefined,
   N extends boolean = boolean,
   R extends boolean = boolean,
   RO extends boolean = boolean,
-  WO extends boolean = boolean
+  WO extends boolean = boolean,
 > extends Field<
   I, D, N, R, RO, WO, C
 > {
-  type!: FieldType<{ [K in keyof I["fields"]] : I["fields"][K]["type"] }, N, R, RO, WO>;
+  type!: FieldType<SerializerType<I>, N, R>;
+  inType!: M extends true ? InFieldType<FieldType<InSerializerType<I>, N, R>, RO>[] : InFieldType<FieldType<InSerializerType<I>, N, R>, RO>;
+  outType!: M extends true ? OutFieldType<FieldType<OutSerializerType<I>, N, R>, WO>[] : OutFieldType<FieldType<OutSerializerType<I>, N, R>, WO>;
 
   protected _errors: ValidationError[] = [];
   fields: SerializerFieldsType = {};
-  #validatedData!: M extends false ? this["type"] : this["type"][];
+  #validatedData!: this['inType'];
   #instance: any;
-  many!: M;
+  #many!: M;
   #data: any;
 
-  constructor(params: SerializerParamsType<
-    I extends Serializer ? I : never,
-    M extends boolean ? M : boolean,
-    C, D, N, R, RO, WO
-    > = {}) {
+  constructor(params: SerializerParamsTypeForConstructor<I, M, C, N, R, RO, WO> = {}) {
     super(
       {
         ...params,
@@ -44,19 +42,19 @@ export class Serializer<
     const isManyDefined = typeof params.many === 'boolean';
     this.#instance = params.instance;
     this.#data = params.data;
-    this.many = (isManyDefined ? params.many : false) as M;
+    this.#many = (isManyDefined ? params.many : false) as M;
     this.context = params.context ? params.context : {} as C;
   }
 
   static new<
     I extends This<typeof Serializer>,
-    M extends boolean = boolean,
+    M extends boolean = false,
     C = any,
-    D extends { [K in keyof InstanceType<I>["fields"]] : InstanceType<I>["fields"][K]["type"] } | typeof Empty = typeof Empty,
-    N extends boolean = boolean,
+    D extends SerializerType<InstanceType<I>> | undefined = undefined,
+    N extends boolean = false,
     R extends boolean = true,
-    RO extends boolean = boolean,
-    WO extends boolean = boolean
+    RO extends boolean = false,
+    WO extends boolean = false,
   >(
     this: I,
     params: SerializerParamsType<InstanceType<I>, M extends boolean ? M : boolean, C, D, N, R, RO, WO> = {}
@@ -64,14 +62,14 @@ export class Serializer<
     return new this(params) as Serializer<InstanceType<I>, M, C, D, N, R, RO, WO>;
   }
 
-  async instanceToRepresentation(instance: this["type"]) {
+  async instanceToRepresentation(instance: InFieldType<FieldType<InSerializerType<I>, N, R>, RO>) {
     const isInstanceAnObject = typeof instance === 'object' && instance !== null;
     const newInstance: {
-      [key: string]: Field["type"];
+      [key: string]: Field["outType"];
     } = {};
     const fieldEntries = Object.entries(this.fields);
     for (const [fieldName, field] of fieldEntries) {
-      const value = isInstanceAnObject ? instance[fieldName] : undefined;
+      const value = isInstanceAnObject ? (instance as any)[fieldName] : undefined;
       field.fieldName = fieldName;
       field.context = this.context;
       const representationValue = await field.toRepresentation(value);
@@ -92,27 +90,33 @@ export class Serializer<
    *
    * You must ALWAYS call `super.toRepresentation()` if you want to override this function. For
    */
-  async toRepresentation(data: this["type"] = this.#instance) {
+  async toRepresentation(
+    data: M extends true ? OutFieldType<FieldType<OutSerializerType<I>, N, R>, WO>[] : OutFieldType<FieldType<OutSerializerType<I>, N, R>, WO> = this.#instance
+  ): Promise<this["outType"]> {
     const instanceOrDataNotDefined = data === undefined;
-    const isManyAndIsNotArray = !Array.isArray(data) && this.many === true;
+    const isManyAndIsNotArray = !Array.isArray(data) && this.#many === true;
     let dataForRepresentation = isManyAndIsNotArray ? [data] : data;
     if (instanceOrDataNotDefined && isManyAndIsNotArray) dataForRepresentation = [];
 
-    const isManyAndIsArray = Array.isArray(dataForRepresentation) && this.many === true;
-    const isNotManyAndIsNotArray = !Array.isArray(dataForRepresentation) && this.many === false;
+    const isManyAndIsArray = Array.isArray(dataForRepresentation) && this.#many === true;
+    const isNotManyAndIsNotArray = !Array.isArray(dataForRepresentation) && this.#many === false;
 
     if (isManyAndIsArray) {
-      return Promise.all(
-        (dataForRepresentation as []).map(async (data: this["type"]) => this.instanceToRepresentation(data))
-      ) as Promise<M extends false ? this["type"] : this["type"][]>;
-    } else if (isNotManyAndIsNotArray) return this.instanceToRepresentation(dataForRepresentation as this["type"]) as Promise<M extends false ? this["type"] : this["type"][]>;
-    else throw new SerializerManyAndNotArrayError(this.constructor.name);
+      return await Promise.all(
+        (dataForRepresentation as []).map(async (data: this["type"]) => this.instanceToRepresentation(data as InFieldType<FieldType<InSerializerType<I>, N, R>, RO>))
+      ) as this["outType"];
+    } else if (isNotManyAndIsNotArray) {
+      return await this.instanceToRepresentation(dataForRepresentation as never as InFieldType<FieldType<InSerializerType<I>, N, R>, RO>) as this["outType"];
+    } else throw new SerializerManyAndNotArrayError(this.constructor.name);
   }
 
-  async #validateAndAppendError<F extends Field | Serializer = this>(data: F['type'] | F['type'][] | undefined, field?: F) {
+  async data() {
+    return await this.toRepresentation(this.#data);
+  }
+  async #validateAndAppendError<F extends Field | Serializer = this>(data: F['inType'] | F['inType'][] | undefined, field?: F) {
     const fieldInstance = field ? field : this;
     try {
-      await fieldInstance.validate(data);
+      await fieldInstance.validate(data as this["inType"]);
     } catch (error) {
       if (error instanceof ValidationError) {
         this._errors.push(error);
@@ -217,9 +221,9 @@ export class Serializer<
    *
    * @returns - Returns the data of the serializer validated and formatted.
    */
-  async toInternal(validatedData: this["type"] | this["type"][] | undefined = undefined) {
-    const isManyAndIsArray = Array.isArray(validatedData) && this.many === true;
-    const isNotManyAndIsNotArray = !Array.isArray(validatedData) && this.many === false;
+  async toInternal(validatedData: this["inType"] | undefined = undefined) {
+    const isManyAndIsArray = Array.isArray(validatedData) && this.#many === true;
+    const isNotManyAndIsNotArray = !Array.isArray(validatedData) && this.#many === false;
 
     await this.#validateAndAppendError(validatedData);
 
@@ -227,7 +231,7 @@ export class Serializer<
     if (isDataAnObject) {
       if (isManyAndIsArray) {
         return Promise.all(
-          validatedData.map(async (data: Field["type"]) => this.instanceToInternal(data))
+          validatedData.map(async (data: Field["inType"]) => this.instanceToInternal(data))
         );
       } else if (isNotManyAndIsNotArray) return this.instanceToInternal(validatedData);
       else throw new SerializerManyAndNotArrayError(this.constructor.name);
@@ -241,9 +245,9 @@ export class Serializer<
    *
    * @returns - Returns the validated data with the default values and the values converted.
    */
-  get validatedData(): M extends false ? this["type"] : this["type"][] {
+  get validatedData(): this["inType"] {
     const isValidatedDataDefined = typeof this.#validatedData !== 'undefined'
-    if (isValidatedDataDefined) return this.#validatedData;
+    if (isValidatedDataDefined) return this.#validatedData as this["inType"];
     else throw new SerializerShouldCallIsValidBeforeAccessingData(this.constructor.name);
   }
 
@@ -254,15 +258,15 @@ export class Serializer<
    *
    * @returns - Returns true if the data sent is valid to the serializer and doesn't contain any errors or false otherwise.
    */
-  async isValid(data: this["type"] | undefined = undefined) {
+  async isValid(data: this["inType"] | undefined = undefined) {
     const isInstanceDefinedAndDataUndefined = this.#data !== undefined && data === undefined;
     const instanceOrData = isInstanceDefinedAndDataUndefined ? this.#data : data;
 
     const instanceOrDataNotDefined = instanceOrData === undefined;
-    const isManyAndIsNotArray = !Array.isArray(instanceOrData) && this.many === true;
-    let dataForInternal: this["type"] | this["type"][] = isManyAndIsNotArray ? [instanceOrData] : instanceOrData;
+    const isManyAndIsNotArray = !Array.isArray(instanceOrData) && this.#many === true;
+    let dataForInternal: this["inType"] | this["inType"][] = isManyAndIsNotArray ? [instanceOrData] : instanceOrData;
     if (instanceOrDataNotDefined && isManyAndIsNotArray) dataForInternal = [];
-    dataForInternal = (await super.toInternal(dataForInternal));
+    dataForInternal = (await super.toInternal(dataForInternal as this["inType"])) as this["inType"];
 
     const isSerializerValid = await this.#validateAndAppendError(dataForInternal);
     if (!isSerializerValid) return false;
