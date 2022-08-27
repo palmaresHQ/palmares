@@ -41,7 +41,6 @@ export type SerializerFieldsType = {
   [key: string]: Field ;
 }
 
-
 type Required<I> = {
   [K in keyof I as undefined extends I[K] ? never : K]: I[K]
 }

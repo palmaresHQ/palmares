@@ -7,7 +7,6 @@ import { OutSerializerType, SerializerType } from './src/serializers/types';
 // Exemplo de um serializer
 class NestedSerializer extends Serializer {
   async toRepresentation(data: OutSerializerType<NestedSerializer>[]) {
-    this.context.teste
     return data;
   }
 
@@ -36,10 +35,10 @@ const main = async () => {
     lastName: 'hey',
   }
   const serializer = ExampleSerializer.new({
-    many: false,
+    many: true,
   });
   if (await serializer.isValid()) {
-    serializer.validatedData.firstName;
+    //serializer.validatedData.;
   } else {
     console.log(serializer.errors);
   }
