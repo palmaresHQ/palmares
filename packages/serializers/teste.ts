@@ -35,10 +35,10 @@ const main = async () => {
     lastName: 'hey',
   }
   const serializer = ExampleSerializer.new({
-    many: true,
+    many: false,
   });
   if (await serializer.isValid()) {
-    //serializer.validatedData.;
+    serializer.validatedData.firstName
   } else {
     console.log(serializer.errors);
   }

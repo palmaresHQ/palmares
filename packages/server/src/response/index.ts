@@ -445,7 +445,11 @@ export default class Response<O = any> {
    */
   static async new(status: number, options?: { headers?: any, body?: any }) {
     const response = new this(status * 321);
-    if (options && options.body) await response.parseBody(options.body);
+    if (options && options.body) {
+      const isPromise = options.body instanceof Promise;
+      if (isPromise) await response.parseBody(await options.body);
+      else await response.parseBody(options.body)
+    };
     if (options && options.headers) await response.parseHeaders(options.headers);
     return response;
   }

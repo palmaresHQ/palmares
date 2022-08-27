@@ -62,7 +62,7 @@ export class Serializer<
     return new this(params) as Serializer<InstanceType<I>, M, C, D, N, R, RO, WO>;
   }
 
-  async instanceToRepresentation(instance: InFieldType<FieldType<InSerializerType<I>, N, R>, RO>) {
+  async instanceToRepresentation(instance: OutFieldType<FieldType<OutSerializerType<I>, N, R>, WO>) {
     const isInstanceAnObject = typeof instance === 'object' && instance !== null;
     const newInstance: {
       [key: string]: Field["outType"];
@@ -88,7 +88,7 @@ export class Serializer<
    * Same as the `toInternal`. If you need to convert the data of a specific field, try to use the field's toRepresentation
    * instead of overriding the `toRepresentation` method of the serializer.
    *
-   * You must ALWAYS call `super.toRepresentation()` if you want to override this function. For
+   * You must ALWAYS call `super.toRepresentation()` if you want to override this function.
    */
   async toRepresentation(
     data: M extends true ? OutFieldType<FieldType<OutSerializerType<I>, N, R>, WO>[] : OutFieldType<FieldType<OutSerializerType<I>, N, R>, WO> = this.#instance
@@ -103,17 +103,38 @@ export class Serializer<
 
     if (isManyAndIsArray) {
       return await Promise.all(
-        (dataForRepresentation as []).map(async (data: this["type"]) => this.instanceToRepresentation(data as InFieldType<FieldType<InSerializerType<I>, N, R>, RO>))
+        (dataForRepresentation as []).map(async (data: this["type"]) => this.instanceToRepresentation(data as OutFieldType<FieldType<OutSerializerType<I>, N, R>, WO>))
       ) as this["outType"];
     } else if (isNotManyAndIsNotArray) {
-      return await this.instanceToRepresentation(dataForRepresentation as never as InFieldType<FieldType<InSerializerType<I>, N, R>, RO>) as this["outType"];
+      return await this.instanceToRepresentation(dataForRepresentation as OutFieldType<FieldType<OutSerializerType<I>, N, R>, WO>) as this["outType"];
     } else throw new SerializerManyAndNotArrayError(this.constructor.name);
   }
 
+  /**
+   * Just a simple wrapper around `toRepresentation` so it'll be a lot easier to retrieve the data of the serializer.
+   *
+   * @returns - Returns the outSerializerType of the serializer, it will be all of the fields THAT ARE NOT `writeOnly: true`.
+   */
   async data() {
     return await this.toRepresentation(this.#data);
   }
-  async #validateAndAppendError<F extends Field | Serializer = this>(data: F['inType'] | F['inType'][] | undefined, field?: F) {
+
+  /**
+   * This function is used to validate the serializer and append the errors inside of the `_errors` array.
+   * After we finish validating we can retrieve the errors by calling the `serializer.errors`.
+   *
+   * We validate the serializer itself as well as it fields.
+   *
+   * @param data - The data of the serializer or of the field to validate.
+   * @param field - If not `this`, this is a custom field instance to validate.
+   *
+   * @returns - Returns true if there are no validation errors otherwise returns false. We do not return the error
+   * itself because it is appended in an array and this array will be sent to the client.
+   */
+  async #validateAndAppendError<F extends Field | Serializer = this>(
+    data: (M extends true ? InFieldType<FieldType<InSerializerType<I>, N, R>, RO>[] : InFieldType<FieldType<InSerializerType<I>, N, R>, RO>) | undefined,
+    field?: F
+  ) {
     const fieldInstance = field ? field : this;
     try {
       await fieldInstance.validate(data as this["inType"]);
@@ -135,8 +156,8 @@ export class Serializer<
    *
    * @returns - Returns the instance formatted for the object or the each element of the array that the serializer receives.
    */
-  async instanceToInternal(instance: any) {
-    const isInstanceUndefinedOrNull = [undefined, null].includes(instance);
+  async instanceToInternal(instance: InFieldType<FieldType<InSerializerType<I>, N, R>, RO>) {
+    const isInstanceUndefinedOrNull = instance === null || instance === undefined;
     if (isInstanceUndefinedOrNull) return instance;
 
     const isInstanceAnObject = typeof instance === 'object';
@@ -147,7 +168,7 @@ export class Serializer<
     const fieldEntries = Object.entries(this.fields);
     for (const [fieldName, field] of fieldEntries) {
       if (!field.readOnly) {
-        const value = isInstanceAnObject ? instance[fieldName] : undefined;
+        const value = isInstanceAnObject ? (instance as any)[fieldName] : undefined;
         field.fieldName = fieldName;
         field.context = this.context;
         const isFieldASerializer = field instanceof Serializer;
@@ -221,7 +242,11 @@ export class Serializer<
    *
    * @returns - Returns the data of the serializer validated and formatted.
    */
-  async toInternal(validatedData: this["inType"] | undefined = undefined) {
+  async toInternal(
+    validatedData: (
+      M extends true ? InFieldType<FieldType<InSerializerType<I>, N, R>, RO>[] : InFieldType<FieldType<InSerializerType<I>, N, R>, RO>
+    ) | undefined = undefined
+  ): Promise<this["inType"] | undefined> {
     const isManyAndIsArray = Array.isArray(validatedData) && this.#many === true;
     const isNotManyAndIsNotArray = !Array.isArray(validatedData) && this.#many === false;
 
@@ -232,8 +257,8 @@ export class Serializer<
       if (isManyAndIsArray) {
         return Promise.all(
           validatedData.map(async (data: Field["inType"]) => this.instanceToInternal(data))
-        );
-      } else if (isNotManyAndIsNotArray) return this.instanceToInternal(validatedData);
+        ) as Promise<this["inType"]>;
+      } else if (isNotManyAndIsNotArray) return this.instanceToInternal(validatedData as InFieldType<FieldType<InSerializerType<I>, N, R>, RO>) as Promise<this["inType"]>;
       else throw new SerializerManyAndNotArrayError(this.constructor.name);
     }
   }
@@ -274,7 +299,7 @@ export class Serializer<
     const validatedData = await this.toInternal(dataForInternal);
     const isValid = this._errors.length === 0;
     if (isValid) {
-      this.#validatedData = validatedData;
+      this.#validatedData = validatedData as this["inType"];
       return true;
     }
 

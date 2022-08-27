@@ -1,5 +1,5 @@
 import { ErrorMessagesType } from "../types";
-import { Field } from ".";
+import Field from "./field";
 
 export type FieldErrorMessagesType = {
   required?: ErrorMessagesType,
