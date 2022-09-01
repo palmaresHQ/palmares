@@ -1,5 +1,6 @@
 import SequelizeEngine from '@palmares/sequelize-engine';
 import ExpressServer from '@palmares/express-adapter';
+import ZodSchema from '@palmares/zod-schema';
 import { ExpressCorsMiddleware } from './core/middlewares';
 
 import { dirname, resolve } from 'path';
@@ -45,3 +46,5 @@ export const DATABASES = {
 };
 
 export const DATABASES_DISMISS_NO_MIGRATIONS_LOG = true;
+
+export const SERIALIZER_SCHEMA = ZodSchema;

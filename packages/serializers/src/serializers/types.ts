@@ -37,8 +37,8 @@ export type SerializerParamsType<
   context?: C;
 } & FieldParamsType<I, D, N, R, RO, WO>
 
-export type SerializerFieldsType = {
-  [key: string]: Field ;
+export type SerializerFieldsType<F extends Field = Field> = {
+  [key: string]: F ;
 }
 
 type Required<I> = {

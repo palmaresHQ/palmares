@@ -1,9 +1,10 @@
 import log from "../logging";
 import { LOGGING_NOT_FOUND_WARN_MESSAGE } from "../utils";
-import ValidationError, { FieldSourcesError } from "../exceptions";
-import { settings } from "../settings";
+import ValidationError, { FieldSourcesError, InvalidSerializerSchemaError } from "../exceptions";
+import getSettings from "../settings";
 import { FieldParamsType, InFieldType, OutFieldType, FieldType, CallbackIfDefinedToInternal, CallbackIfDefinedToRepresentation } from './types';
 import { ErrorMessagesType, This } from "../types"
+import Schema from "../schema";
 
 /**
  * A field represents all fields in Palmares serializers even a serializer itself. This is tightly based on Django Rest Framework, you will view
@@ -67,10 +68,11 @@ export default class Field<
   C = any
 > {
   #fieldName!: string;
+  protected _schema!: Schema;
 
-  type!: FieldType<any, N, R>;
-  inType!: InFieldType<FieldType<any, N, R>, RO> | InFieldType<FieldType<any, N, R>, RO>[];
-  outType!: OutFieldType<FieldType<any, N, R>, WO> | OutFieldType<FieldType<any, N, R>, WO>[];
+  type!: FieldType<any, N, R, D>;
+  inType!: InFieldType<FieldType<any, N, R, D>, RO> | InFieldType<FieldType<any, N, R, D>, RO>[];
+  outType!: OutFieldType<FieldType<any, N, R, D>, WO> | OutFieldType<FieldType<any, N, R, D>, WO>[];
 
   context = {} as C;
   source: string | undefined;
@@ -136,6 +138,14 @@ export default class Field<
     if (isFieldNameNotDefined) this.#fieldName = name;
   }
 
+  async schema<S extends Schema, R = ReturnType<S['getField']>>(isIn = true, schema?: S): Promise<R | any> {
+    const settings = getSettings()
+    if (!this._schema) {
+      if (schema) this._schema = schema;
+      if (settings.SERIALIZER_SCHEMA) this._schema = new settings.SERIALIZER_SCHEMA();
+      else throw new InvalidSerializerSchemaError();
+    }
+  }
   /**
    * Method to throw validation errors when something happen inside of the application.
    *
@@ -145,6 +155,7 @@ export default class Field<
    * @param errorKey - The key of the error message to be thrown.
    */
   async fail(errorKey: string) {
+    const settings = getSettings()
     const defaultRootErrorMessage = settings?.ERROR_MESSAGES ? settings.ERROR_MESSAGES[errorKey] : null
     const message = defaultRootErrorMessage || this.errorMessages[errorKey];
 

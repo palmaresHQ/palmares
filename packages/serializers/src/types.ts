@@ -1,9 +1,9 @@
 import { SettingsType } from "@palmares/core";
 import ValidationError from "./exceptions";
-import { Field, Empty } from "./fields";
-import { Serializer } from "./serializers";
+import Schema from "./schema";
 
 export type SerializersSettingsType = SettingsType & {
+  SERIALIZER_SCHEMA?: typeof Schema;
   ERROR_CLASS?: typeof ValidationError,
   ERROR_MESSAGES?: {
     [key: string]: ErrorMessagesType;

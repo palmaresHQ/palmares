@@ -14,8 +14,10 @@
   },
   "dependencies": {
     "@palmares/core": "*",
+    "@palmares/serializers": "*",
     "@palmares/databases": "*",
     "@palmares/express-adapter": "*",
+    "@palmares/zod-schema": "*",
     "@palmares/sequelize-engine": "*",
     "cors": "^2.8.5",
     "pg": "^8.7.3"

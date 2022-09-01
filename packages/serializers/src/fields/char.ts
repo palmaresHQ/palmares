@@ -1,6 +1,7 @@
 import Field from './field';
 import { CharFieldParamsType, InFieldType, OutFieldType, FieldType } from './types';
 import { This } from "../types"
+import { Schema } from '..';
 
 export default class CharField<
   I extends CharField = any,
@@ -12,7 +13,7 @@ export default class CharField<
   C = any
 > extends Field<I, D, N, R, RO, WO, C> {
 
-  type!: FieldType<string, N, R>;
+  type!: FieldType<string, N, R, D>;
   inType!: InFieldType<this["type"], RO>;
   outType!: OutFieldType<this["type"], WO>;
 
@@ -55,6 +56,12 @@ export default class CharField<
     return new this(params) as CharField<InstanceType<I>,D, N, R, RO, WO, C>;
   }
 
+  async schema<S extends Schema>(isIn = true, schema?: S): Promise<ReturnType<S["getChar"]>> {
+    await super.schema(isIn, schema);
+    const schemaToUse = this._schema as S;
+    return schemaToUse.getChar(this);
+  }
+
   async validate(data: any) {
     await super.validate(data);
 
@@ -81,4 +88,5 @@ export default class CharField<
   async toRepresentation(data: this["outType"]) {
     return super.toRepresentation(data, (data) => data.toString()) ;
   }
+
 }

@@ -17,12 +17,13 @@ export type CallbackIfDefinedToRepresentation<
 > = (data: D) => Promise<F["outType"]> | F["outType"]
 
 type AllowNull<T, N extends boolean = false> = N extends false ? T : T | null;
-type Required<T, R extends boolean = true> = R extends false ? T | undefined : T;
+type Required<T, R extends boolean = true, D = any> = D extends undefined ? R extends false ? T | undefined : T : T;
 export type FieldType<
 T,
 N extends boolean = false,
 R extends boolean = true,
-> = Required<AllowNull<T, N>, R>
+D = any
+> = Required<AllowNull<T, N>, R, D>
 
 type ReadOnly<T, RO extends boolean = false> = RO extends false ? T : never;
 export type InFieldType<

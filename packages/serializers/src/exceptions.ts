@@ -20,6 +20,13 @@ export default class ValidationError<M = any> extends Error {
   }
 }
 
+export class InvalidSerializerSchemaError extends Error {
+  constructor() {
+    super(`'SERIALIZER_SCHEMA' must be defined in your settings file`);
+    this.name = InvalidSerializerSchemaError.name;
+  }
+}
+
 export class FieldSourcesError extends Error {
   constructor(className: string, source: string, instance: any) {
     super(`The source '${source}' defined in '${className}' does not exist in instance: ${JSON.stringify(instance)}`);
@@ -42,5 +49,11 @@ export class SerializerShouldCallIsValidBeforeAccessingData extends Error {
       `if (await serializer.isValid()) await serializer.save();`
     );
     this.name = SerializerShouldCallIsValidBeforeAccessingData.name;
+  }
+}
+
+export class SchemaNotImplementedError extends Error {
+  constructor(methodName: string, schemaName: string) {
+    super(`Method '${methodName}' was not implemented in '${schemaName}' and it should be implemented in order to fully work.`)
   }
 }

@@ -1,7 +1,6 @@
 import { Serializer } from './src/serializers';
 import { CharField, Field } from './src/fields';
 import ValidationError from './src/exceptions';
-import v8 from 'node:v8'
 import { OutSerializerType, SerializerType } from './src/serializers/types';
 
 // Exemplo de um serializer
@@ -21,12 +20,11 @@ class ExampleSerializer extends Serializer {
   }
 
   fields = {
-    firstName: CharField.new({ defaultValue: 'string', allowNull: false, required: false, writeOnly: true}),
+    firstName: CharField.new({ defaultValue: 'string', allowNull: false, writeOnly: true, required: false}),
     lastName: CharField.new({ readOnly: true, allowNull: true}),
-    nested: NestedSerializer.new({ allowNull: true })
+    nested: NestedSerializer.new({ allowNull: false })
   }
 }
-
 
 // uso
 const main = async () => {
@@ -37,12 +35,7 @@ const main = async () => {
   const serializer = ExampleSerializer.new({
     many: false,
   });
-  if (await serializer.isValid()) {
-    serializer.validatedData.firstName
-  } else {
-    console.log(serializer.errors);
-  }
+  console.log(await serializer.fields.firstName.schema())
 }
-
 main();
 
