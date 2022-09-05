@@ -28,14 +28,20 @@ class ExampleSerializer extends Serializer {
 
 // uso
 const main = async () => {
-  const data = {
+  /*const data = {
     firstName: 'launchcode',
     lastName: 'hey',
   }
   const serializer = ExampleSerializer.new({
     many: false,
-  });
-  console.log(await serializer.fields.firstName.schema())
+  });*/
+  //console.log(await serializer.fields.firstName.schema())
+  try {
+    new URL('asdasd')
+  } catch (e) {
+    const error = e as any;
+    console.log(error.code)
+  }
 }
 main();
 

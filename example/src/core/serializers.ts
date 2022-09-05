@@ -1,4 +1,4 @@
-import { Serializer, OutSerializerType, CharField, SerializerFieldsType } from '@palmares/serializers';
+import { Serializer, OutSerializerType, StringField, SerializerFieldsType } from '@palmares/serializers';
 
 
 
@@ -8,7 +8,7 @@ class NestedSerializer extends Serializer {
   }
 
   fields = {
-    phoneNumber: CharField.new()
+    phoneNumber: StringField.new()
   }
 }
 
@@ -18,8 +18,8 @@ export class ExampleSerializer extends Serializer {
   }
 
   fields = {
-    firstName: CharField.new({ defaultValue: 'string', allowNull: false, writeOnly: true, required: false}),
-    lastName: CharField.new({ readOnly: true, allowNull: true}),
+    firstName: StringField.new({ defaultValue: 'string', allowNull: false, writeOnly: true, required: false}),
+    lastName: StringField.new({ readOnly: true, allowNull: true}),
     nested: NestedSerializer.new({ allowNull: false })
   }
 }

@@ -64,5 +64,41 @@ export type CharFieldParamsType<
 > = {
   allowBlank?: boolean;
   maxLength?: number;
-  minLength?: number,
-} & FieldParamsType<I, D, N, R, RO, WO>
+  minLength?: number;
+  isUUID?: boolean;
+  isEmail?: boolean;
+  isUrl?: boolean;
+  regex?: RegExp
+} & FieldParamsType<I, D, N, R, RO, WO>;
+
+export type NumberFieldParamsType<
+  I extends Field,
+  D extends I["type"] | undefined = undefined,
+  N extends boolean = false,
+  R extends boolean = true,
+  RO extends boolean = boolean,
+  WO extends boolean = boolean
+> = {
+  allowNegative?: boolean;
+  allowPositive?: boolean;
+  allowZero?: boolean;
+  isInteger?: boolean;
+  max?: number;
+  min?: number;
+  maxDigits?: number;
+  decimalPlaces?: number;
+} & FieldParamsType<I, D, N, R, RO, WO>;
+
+export type BooleanFieldParamsType<
+  I extends Field,
+  T extends readonly any[] = [],
+  F extends readonly any[] = [],
+  D extends I["type"] | undefined = undefined,
+  N extends boolean = false,
+  R extends boolean = true,
+  RO extends boolean = boolean,
+  WO extends boolean = boolean
+> = {
+  truthy?: T;
+  falsy?: F;
+} & FieldParamsType<I, D, N, R, RO, WO>;

@@ -1,12 +1,8 @@
 import { Controller, ClassHandler, Response, Get, HTTP_200_OK } from "@palmares/server";
 import { ExpressRequest } from "@palmares/express-adapter";
 
-import { z } from 'zod';
-
 import { User } from "./models";
 import { ExampleSerializer } from "./serializers";
-import ZodSchema from "@palmares/zod-schema";
-import { CharField } from "@palmares/serializers";
 
 export class ExampleController extends Controller {
   path = "/example";

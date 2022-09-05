@@ -118,6 +118,7 @@ export default class SequelizeEngineFields extends EngineFields {
       const dateFieldsToUpdate = this.#dateFieldsAsAutoNowToAddHooks.get(modelName) as string[];
       modelToAddHook.beforeSave((instance: Model) => {
         for (const updateDateHook of dateFieldsToUpdate) {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           instance[updateDateHook] = new Date();
         }

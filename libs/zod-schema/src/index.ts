@@ -1,7 +1,6 @@
-import { Schema, Field, CharField, Serializer, SerializerType } from '@palmares/serializers';
+import { Schema, Field, StringField, BooleanField, Serializer, SerializerType } from '@palmares/serializers';
 
 import { z } from 'zod';
-
 
 type Null<T extends z.ZodTypeAny, N extends boolean> = N extends true ? z.ZodNullable<T> : T;
 type Undefined<T extends z.ZodTypeAny, R extends boolean> = R extends false ? z.ZodOptional<T> : T;
@@ -23,20 +22,36 @@ export default class ZodSchema extends Schema {
   }
 
   async getChar<
-    I extends CharField,
+    I extends StringField,
     D extends I["type"] | undefined,
     N extends boolean,
     R extends boolean,
     RO extends boolean,
     WO extends boolean,
     C = any
-  >(field: CharField<I, D, N, R, RO, WO, C>, isIn = true) {
+  >(field: StringField<I, D, N, R, RO, WO, C>, isIn = true) {
     const stringConstructor = z.string();
     if (field.minLength) stringConstructor.min(field.minLength);
     if (field.maxLength) stringConstructor.max(field.maxLength);
     if (field.allowBlank) stringConstructor.min(1);
     await this.getField(field, isIn, stringConstructor);
     return stringConstructor as Null<Undefined<z.ZodString, R>, N>;
+  }
+
+  async getBool<
+    I extends BooleanField,
+    D extends I['type'] | undefined,
+    N extends boolean,
+    R extends boolean,
+    RO extends boolean,
+    WO extends boolean,
+    T extends readonly any[],
+    F extends readonly any[],
+    C = any,
+  >(field: BooleanField<I, D, N, R, RO, WO, C, T, F>, isIn?: boolean, ...custom: any[]): Promise<any> {
+    const booleanConstructor = z.boolean();
+    await this.getField(field, isIn, booleanConstructor);
+    return booleanConstructor as Null<Undefined<z.ZodBoolean, R>, N>;
   }
 
   async getObject<
