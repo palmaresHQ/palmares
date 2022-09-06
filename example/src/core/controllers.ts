@@ -2,7 +2,7 @@ import { Controller, ClassHandler, Response, Get, HTTP_200_OK } from "@palmares/
 import { ExpressRequest } from "@palmares/express-adapter";
 
 import { User } from "./models";
-import { ExampleSerializer } from "./serializers";
+import { ExampleSerializer, UserSerializer } from "./serializers";
 
 export class ExampleController extends Controller {
   path = "/example";
@@ -15,14 +15,17 @@ export class ExampleController extends Controller {
   // Escreve uma rota com decorators
   @Get('/test')
   async testDecorator(request: ExpressRequest) {
-    const serializer = ExampleSerializer.new({
+    const serializer = UserSerializer.new();
+    const data = await serializer.data;
+
+    /*const serializer = ExampleSerializer.new({
       data: {
         firstName: 'launchcode',
         nested: {
           phoneNumber: '+55 11 99999-9999',
         }
       }
-    });
+    });*/
     return Response.new(HTTP_200_OK, { body: serializer.data });
   }
 

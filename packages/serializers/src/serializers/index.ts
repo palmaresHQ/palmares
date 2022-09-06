@@ -1,6 +1,6 @@
 import ValidationError, { SerializerManyAndNotArrayError, SerializerShouldCallIsValidBeforeAccessingData } from '../exceptions';
 import { Field } from '../fields';
-import {
+import type {
   SerializerFieldsType,
   SerializerParamsType,
   SerializerType,
@@ -8,9 +8,10 @@ import {
   OutSerializerType,
   InSerializerType
 } from './types';
-import { This } from '../types';
-import { FieldType, InFieldType, OutFieldType } from '../fields/types';
+import type { This } from '../types';
+import type { FieldType, InFieldType, OutFieldType } from '../fields/types';
 import Schema from '../schema';
+import ModelSerializer from './model';
 
 /**
  * The serializer itself is treated as a field since we can have nested objects one inside of each other. But the idea is a lot different in serializers because
@@ -34,10 +35,10 @@ export class Serializer<
 
   protected _errors: ValidationError[] = [];
   fields = {} as SerializerFieldsType;
-  #validatedData!: this['inType'];
-  #instance: any;
+  protected _validatedData!: this['inType'];
+  protected _instance: this['outType'];
   #many!: M;
-  #data: any;
+  protected _data: this['inType'];
 
   constructor(params: SerializerParamsTypeForConstructor<I, M, C, N, R, RO, WO> = {}) {
     super(
@@ -52,8 +53,8 @@ export class Serializer<
     );
 
     const isManyDefined = typeof params.many === 'boolean';
-    this.#instance = params.instance;
-    this.#data = params.data;
+    this._instance = params.instance as this['outType'];
+    this._data = params.data as this['inType'];
     this.#many = (isManyDefined ? params.many : false) as M;
     this.context = params.context ? params.context : {} as C;
   }
@@ -108,7 +109,7 @@ export class Serializer<
    * You must ALWAYS call `super.toRepresentation()` if you want to override this function.
    */
   async toRepresentation(
-    data: M extends true ? OutFieldType<FieldType<OutSerializerType<I>, N, R>, WO>[] : OutFieldType<FieldType<OutSerializerType<I>, N, R, D>, WO> = this.#instance
+    data: M extends true ? OutFieldType<FieldType<OutSerializerType<I>, N, R>, WO>[] : OutFieldType<FieldType<OutSerializerType<I>, N, R, D>, WO> = this._instance
   ): Promise<this["outType"]> {
     const instanceOrDataNotDefined = data === undefined;
     const isManyAndIsNotArray = !Array.isArray(data) && this.#many === true;
@@ -133,7 +134,7 @@ export class Serializer<
    * @returns - Returns the outSerializerType of the serializer, it will be all of the fields THAT ARE NOT `writeOnly: true`.
    */
   get data() {
-    return this.toRepresentation(this.#data);
+    return this.toRepresentation(this._instance as this["outType"]);
   }
 
   /**
@@ -288,8 +289,8 @@ export class Serializer<
    * @returns - Returns the validated data with the default values and the values converted.
    */
   get validatedData(): this["inType"] {
-    const isValidatedDataDefined = typeof this.#validatedData !== 'undefined'
-    if (isValidatedDataDefined) return this.#validatedData as this["inType"];
+    const isValidatedDataDefined = typeof this._validatedData !== 'undefined'
+    if (isValidatedDataDefined) return this._validatedData as this["inType"];
     else throw new SerializerShouldCallIsValidBeforeAccessingData(this.constructor.name);
   }
 
@@ -301,12 +302,12 @@ export class Serializer<
    * @returns - Returns true if the data sent is valid to the serializer and doesn't contain any errors or false otherwise.
    */
   async isValid(data: this["inType"] | undefined = undefined) {
-    const isInstanceDefinedAndDataUndefined = this.#data !== undefined && data === undefined;
-    const instanceOrData = isInstanceDefinedAndDataUndefined ? this.#data : data;
+    const isInstanceDefinedAndDataUndefined = this._data !== undefined && data === undefined;
+    const instanceOrData = isInstanceDefinedAndDataUndefined ? this._data : data;
 
     const instanceOrDataNotDefined = instanceOrData === undefined;
     const isManyAndIsNotArray = !Array.isArray(instanceOrData) && this.#many === true;
-    let dataForInternal: this["inType"] | this["inType"][] = isManyAndIsNotArray ? [instanceOrData] : instanceOrData;
+    let dataForInternal: any = isManyAndIsNotArray ? [instanceOrData] : instanceOrData;
     if (instanceOrDataNotDefined && isManyAndIsNotArray) dataForInternal = [];
     dataForInternal = (await super.toInternal(dataForInternal as this["inType"])) as this["inType"];
 
@@ -316,7 +317,7 @@ export class Serializer<
     const validatedData = await this.toInternal(dataForInternal);
     const isValid = this._errors.length === 0;
     if (isValid) {
-      this.#validatedData = validatedData as this["inType"];
+      this._validatedData = validatedData as this["inType"];
       return true;
     }
 
@@ -330,3 +331,5 @@ export class Serializer<
     return this._errors.map(error => error.json)
   }
 }
+
+export { ModelSerializer };

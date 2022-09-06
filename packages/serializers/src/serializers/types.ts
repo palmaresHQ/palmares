@@ -1,3 +1,5 @@
+import { models, ModelFields } from '@palmares/databases';
+
 import { Field } from "../fields";
 import { FieldParamsType } from "../fields/types";
 import { Serializer } from ".";
@@ -67,4 +69,12 @@ export type InSerializerType<I extends Serializer> = {
 }
 export type OutSerializerType<I extends Serializer> = {
   [K in keyof OutFieldsType<I> as OutFieldsType<I>[K] extends never ? never : K] : OutFieldsType<I>[K]
+}
+
+export type ModelSerializerOptions<
+  M extends ReturnType<typeof models.Model> = ReturnType<typeof models.Model>,
+> = {
+  model: M;
+  fields?: readonly (keyof ModelFields<InstanceType<M>>)[];
+  excludes?: readonly (keyof ModelFields<InstanceType<M>>)[];
 }

@@ -27,6 +27,13 @@ export class InvalidSerializerSchemaError extends Error {
   }
 }
 
+export class InvalidModelOnModelSerializerError extends Error {
+  constructor(serializerName: string, instance: any) {
+    super(`The serializer '${serializerName}' does not contain a valid model. Received: ${instance}`);
+    this.name = InvalidModelOnModelSerializerError.name;
+  }
+}
+
 export class FieldSourcesError extends Error {
   constructor(className: string, source: string, instance: any) {
     super(`The source '${source}' defined in '${className}' does not exist in instance: ${JSON.stringify(instance)}`);

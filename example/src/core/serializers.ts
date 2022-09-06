@@ -1,6 +1,23 @@
-import { Serializer, OutSerializerType, StringField, SerializerFieldsType } from '@palmares/serializers';
+import {
+  Serializer,
+  OutSerializerType,
+  StringField,
+  SerializerFieldsType,
+  ModelSerializer,
+  ModelSerializerOptions
+} from '@palmares/serializers';
+import { User } from './models';
+import { ModelFields } from '@palmares/databases';
 
-
+export class UserSerializer extends ModelSerializer {
+  fields = {
+    teste: StringField.new({ readOnly: true, allowNull: true}),
+  }
+  options = {
+    model: User,
+    fields: ["id", 'uuid'] as const
+  }
+}
 
 class NestedSerializer extends Serializer {
   async toRepresentation(data: OutSerializerType<NestedSerializer>[]) {

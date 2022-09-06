@@ -107,7 +107,7 @@ export class Model<T = any> {
     id: new fields.AutoField()
   };
   _fields!: ModelFields<T extends Model ? T : this>;
-  _isState: boolean = false;
+  _isState = false;
   _dependentOnModels: string[] = [];
   options!: ModelOptionsType<T extends Model ? T : this>;
   abstracts: Model[] = [];
@@ -140,7 +140,7 @@ export class Model<T = any> {
    * pass another one.
    */
   async #getManagers(instance: Model = this): Promise<ManagersOfInstanceType> {
-    let managers: ManagersOfInstanceType = {};
+    const managers: ManagersOfInstanceType = {};
     let prototype = instance.constructor;
     while (prototype) {
       if (!(prototype.prototype instanceof Model)) break;
@@ -295,7 +295,7 @@ export class Model<T = any> {
   }
 
   static async _fieldsToString(
-    indentation: number = 0,
+    indentation = 0,
     fields: ModelFieldsType
   ): Promise<{ asString: string, customImports: CustomImportsForFieldType[] }> {
     const customImportsOfModel: CustomImportsForFieldType[] = [];
@@ -324,7 +324,7 @@ export class Model<T = any> {
     };
   }
 
-  static async _optionsToString(indentation: number = 0, options: ModelOptionsType) {
+  static async _optionsToString(indentation = 0, options: ModelOptionsType) {
     const ident = '  '.repeat(indentation);
     const optionsIndent = '  '.repeat(indentation + 1);
     const newOptions = {
