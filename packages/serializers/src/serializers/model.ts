@@ -1,4 +1,5 @@
 import { ModelFields, models } from '@palmares/databases';
+
 import { Serializer } from ".";
 import type {
   SerializerType,
@@ -27,13 +28,15 @@ export default class ModelSerializer<
   EX extends keyof ModelFields<InstanceType<MO>> = any,
 
 > extends Serializer<I, M, C, D, N, R, RO, WO> {
-  type!: FieldType<SerializerType<I>, N, R, D>;
-  inType!: M extends true ? InFieldType<FieldType<InSerializerType<I>, N, R, D>, RO>[] : InFieldType<FieldType<InSerializerType<I>, N, R, D>, RO>;
+  type!: FieldType<SerializerType<I>, N, R, D> & Pick<ModelFields<InstanceType<MO>>, IN> & Omit<ModelFields<InstanceType<MO>>, EX>;
+  inSerializerType!: InFieldType<FieldType<InSerializerType<I>, N, R, D> & Pick<ModelFields<InstanceType<MO>>, IN> & Omit<ModelFields<InstanceType<MO>>, EX>, RO>
+  inType!: M extends true ? this["inSerializerType"][] : this["inSerializerType"];
   outSerializerType!: OutFieldType<FieldType<OutSerializerType<I>, N, R, D> & Pick<ModelFields<InstanceType<MO>>, IN> & Omit<ModelFields<InstanceType<MO>>, EX>, WO>;
   outType!: M extends true ? this["outSerializerType"][] : this["outSerializerType"];
 
   fields = {} as SerializerFieldsType;
   options = {} as ModelSerializerOptions<MO>;
+  static _fieldsInstances = {} as SerializerFieldsType;
 
   constructor(params: SerializerParamsTypeForConstructor<I, M, C, N, R, RO, WO> = {}) {
     super(params);
@@ -60,6 +63,16 @@ export default class ModelSerializer<
       InstanceType<I>["options"]["model"],
       InstanceType<I>["options"]["fields"][number],
       InstanceType<I>["options"]["excludes"][number]
-      >;
+    >;
+  }
+
+  async #serializerFieldByModelField() {
+    const modelInstance = new this.options.model();
+    await modelInstance.loadAbstractsInInstance();
+    const fieldEntries = Object.entries(modelInstance.fields);
+    const serializerClass = this.constructor as typeof ModelSerializer<I, M, C, D, N, R, RO, WO, MO, IN, EX>;
+    for (const [fieldName, field] of fieldEntries) {
+      //serializerClass._fieldsInstances[fieldName] =
+    }
   }
 }

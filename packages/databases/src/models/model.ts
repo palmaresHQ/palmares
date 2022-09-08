@@ -12,7 +12,6 @@ import {
   ModelNoUniqueFieldsError
 } from "./exceptions";
 import Manager, { DefaultManager } from "./manager";
-import { fields } from ".";
 import { getUniqueCustomImports } from "../utils";
 import { CustomImportsForFieldType } from "./fields/types";
 
@@ -102,15 +101,14 @@ import { CustomImportsForFieldType } from "./fields/types";
 
 export class Model<T = any> {
   [managers: string]: Manager | ModelFieldsType |
-    ModelOptionsType<T extends Model ? T : this> | Model[] | string | string[] | boolean | Function;
-  fields: ModelFieldsType = {
-    id: new fields.AutoField()
-  };
-  _fields!: ModelFields<T extends Model ? T : this>;
+    ModelOptionsType<T extends Model ? T : this> | readonly Model[] | string | string[] | boolean | Function;
+  fields: ModelFieldsType = {};
+  type!: ModelFields<T extends Model ? T : this>;
   _isState = false;
   _dependentOnModels: string[] = [];
+
   options!: ModelOptionsType<T extends Model ? T : this>;
-  abstracts: Model[] = [];
+  abstracts: readonly Model[] = [];
   name!: string;
   originalName!: string;
   domainName!: string;
@@ -165,7 +163,7 @@ export class Model<T = any> {
    * For options, we will only add them if the options are not already defined for the model.
    * Managers are similar to fields, we will not accept clashing managers with the same manager name.
    *
-   * @param abstractKls - The model class that we are instantiating.
+   * @param abstractInstance - The model class that we are instantiating.
    * @param composedAbstracts - We can have an abstract with an abstract and so on, for that a recursive approach
    * seems a good solution, this is an array with all of the abstracts that were already loaded for the current model.
    */
@@ -178,7 +176,9 @@ export class Model<T = any> {
     const abstractManagers: [string, Manager][] = Object.entries(this.#getManagers(abstractInstance));
     const abstractFieldEntries = Object.entries(abstractInstance.fields);
     const loadAbstractPromises = abstractInstance.abstracts.map(
-      (abstractKlsFromAbstract) => this.#loadAbstract(abstractKlsFromAbstract, composedAbstracts)
+      (abstractKlsFromAbstract) => {
+        return this.#loadAbstract(abstractKlsFromAbstract, composedAbstracts)
+      }
     );
 
     for (const [fieldName, field] of abstractFieldEntries) {
@@ -204,6 +204,10 @@ export class Model<T = any> {
     }
 
     await Promise.all(loadAbstractPromises);
+  }
+
+  async loadAbstractsInInstance() {
+    await this.#initializeAbstracts();
   }
 
   /**

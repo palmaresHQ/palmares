@@ -24,8 +24,8 @@ export type ModelIndexType = {
   fields: string[];
 }
 
-type OrderingOfModelOptions<M extends Model = Model> = keyof M["_fields"] |
-  keyof { [F in keyof M["_fields"] as F extends string ? `-${F}` : never] : 1} | string;
+type OrderingOfModelOptions<M extends Model = Model> = keyof M["type"] |
+  keyof { [F in keyof M["type"] as F extends string ? `-${F}` : never] : 1} | string;
 
 
 export type ModelOptionsType<M extends Model = Model> = {
@@ -76,7 +76,14 @@ type AllRequiredFields<M extends Model> = {
 type AddNull<F extends Field<any, boolean>> = F['allowNull'] extends true ?
   F['type'] | null : F['type']
 
-export type ModelFields<M extends Model> = RequiredFields<M> & OptionalFields<M>
+type AbstractsAsFields2<U> =
+  (U extends Model ? (k: U) => void : never) extends ((k: infer I) => void) ? I extends Model ? OptionalFields<I> & RequiredFields<I>: never : never
+type AbstractsAsFields1<U> =
+  (U extends Model ? (k: U) => void : never) extends ((k: infer I) => void) ? I extends Model ? OptionalFields<I> & RequiredFields<I> & AbstractsAsFields2<I["abstracts"][number]>: never : never
+type AbstractsAsFields<U> =
+    (U extends Model ? (k: U) => void : never) extends ((k: infer I) => void) ? I extends Model ? OptionalFields<I> & RequiredFields<I> & AbstractsAsFields1<I["abstracts"][number]>: never : never
+
+export type ModelFields<M extends Model> = OptionalFields<M> & RequiredFields<M> & AbstractsAsFields<M["abstracts"][number]>
 
 export type AllRequiredModelFields<M extends Model> = AllRequiredFields<M>;
 

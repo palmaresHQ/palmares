@@ -1,4 +1,4 @@
-import { models } from '@palmares/databases';
+import { ModelOptionsType, models } from '@palmares/databases';
 
 export class Post extends models.Model<Post>() {
   fields = {
@@ -36,3 +36,4 @@ export class User extends models.Model<User>() {
     tableName: 'user',
   }
 }
+

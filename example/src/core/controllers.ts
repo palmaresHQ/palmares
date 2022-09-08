@@ -17,7 +17,6 @@ export class ExampleController extends Controller {
   async testDecorator(request: ExpressRequest) {
     const serializer = UserSerializer.new();
     const data = await serializer.data;
-
     /*const serializer = ExampleSerializer.new({
       data: {
         firstName: 'launchcode',

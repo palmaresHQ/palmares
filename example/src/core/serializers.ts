@@ -15,7 +15,7 @@ export class UserSerializer extends ModelSerializer {
   }
   options = {
     model: User,
-    fields: ["id", 'uuid'] as const
+    excludes: ["id", 'uuid'] as const
   }
 }
 
