@@ -1,7 +1,8 @@
 
 
 export { default as Schema } from './schema';
-export * from './serializers';
+export { default as Serializer } from './serializers';
+export { default as ModelSerializer } from './serializers/model';
 export * from './fields';
 
 export type {

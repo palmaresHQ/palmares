@@ -197,13 +197,13 @@ export class BigIntegerField<
 export class DecimalField<
   D extends number | undefined = undefined,
   N extends boolean = false
-  > extends Field<D, N> {
+> extends Field<D, N> {
   type!: number
   typeName: string = DecimalField.name;
-  maxDigits: number | null;
-  decimalPlaces: number | null;
+  maxDigits?: number;
+  decimalPlaces?: number;
 
-  constructor({ maxDigits=null, decimalPlaces=null, ...rest }: {
+  constructor({ maxDigits=undefined, decimalPlaces=undefined, ...rest }: {
     defaultValue?: D;
     allowNull?: N;
   } & DecimalFieldParamsType = {}) {
@@ -401,7 +401,7 @@ export class ForeignKeyField<
   F extends string = any,
   D extends M["fields"][F]["type"] | undefined = undefined,
   N extends boolean = false
-  > extends Field<D, N> {
+> extends Field<D, N> {
   type!: M["fields"][F]["type"];
   typeName: string = ForeignKeyField.name;
   relatedTo!: string;

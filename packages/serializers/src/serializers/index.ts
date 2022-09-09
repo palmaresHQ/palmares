@@ -11,13 +11,12 @@ import type {
 import type { This } from '../types';
 import type { FieldType, InFieldType, OutFieldType } from '../fields/types';
 import Schema from '../schema';
-import ModelSerializer from './model';
 
 /**
  * The serializer itself is treated as a field since we can have nested objects one inside of each other. But the idea is a lot different in serializers because
  * they hold other fields inside of it. Usually this will be the class you will be extending to create your schemas.
  */
-export class Serializer<
+export default class Serializer<
   I extends Serializer = any,
   M extends boolean = boolean,
   C = any,
@@ -331,5 +330,3 @@ export class Serializer<
     return this._errors.map(error => error.json)
   }
 }
-
-export { ModelSerializer };

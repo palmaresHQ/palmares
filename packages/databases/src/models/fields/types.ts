@@ -44,8 +44,8 @@ export interface FieldDefaultParamsType {
 };
 
 export type DecimalFieldParamsType = {
-  maxDigits?: number | null;
-  decimalPlaces?: number | null;
+  maxDigits?: number;
+  decimalPlaces?: number;
 } & FieldDefaultParamsType;
 
 export interface TextFieldParamsType extends FieldDefaultParamsType {

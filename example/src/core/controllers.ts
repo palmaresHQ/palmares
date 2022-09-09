@@ -1,8 +1,12 @@
 import { Controller, ClassHandler, Response, Get, HTTP_200_OK } from "@palmares/server";
 import { ExpressRequest } from "@palmares/express-adapter";
 
-import { User } from "./models";
-import { ExampleSerializer, UserSerializer } from "./serializers";
+import { Post, User } from "./models";
+import { ExampleSerializer, PostSerializer } from "./serializers";
+import { ModelFields } from "@palmares/databases";
+
+type Exclude2<T, U> = U extends T ? never : T;
+type Omit2<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
 export class ExampleController extends Controller {
   path = "/example";
@@ -15,8 +19,14 @@ export class ExampleController extends Controller {
   // Escreve uma rota com decorators
   @Get('/test')
   async testDecorator(request: ExpressRequest) {
-    const serializer = UserSerializer.new();
+    const serializer = PostSerializer.new({
+      instance: {
+        teste: '123123',
+        userUuid: '123123'
+      }
+    });
     const data = await serializer.data;
+
     /*const serializer = ExampleSerializer.new({
       data: {
         firstName: 'launchcode',
@@ -25,7 +35,7 @@ export class ExampleController extends Controller {
         }
       }
     });*/
-    return Response.new(HTTP_200_OK, { body: serializer.data });
+    return Response.new(HTTP_200_OK, { body: data });
   }
 
   // Ou com objetos diretamente

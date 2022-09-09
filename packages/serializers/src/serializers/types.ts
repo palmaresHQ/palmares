@@ -1,8 +1,9 @@
 import { models, ModelFields } from '@palmares/databases';
 
 import { Field } from "../fields";
-import { FieldParamsType } from "../fields/types";
-import { Serializer } from ".";
+import type { FieldParamsType, FieldType, InFieldType, OutFieldType } from "../fields/types";
+import Serializer from ".";
+import ModelSerializer from './model';
 
 // We pass the default value as any here because otherwise we would have an issue in the `new` factory method with the value of `this`. This is because
 // By default the default type for the serializer will be `{[x: string]: Field}` but when we create a serializer it will be something
@@ -38,6 +39,27 @@ export type SerializerParamsType<
   many?: M;
   context?: C;
 } & FieldParamsType<I, D, N, R, RO, WO>
+
+export type ModelSerializerParamsType<
+  I extends ModelSerializer,
+  M extends boolean = boolean,
+  C = any,
+  D extends SerializerType<I> | undefined = undefined,
+  N extends boolean = boolean,
+  R extends boolean = boolean,
+  RO extends boolean = boolean,
+  WO extends boolean = boolean,
+  MO extends ReturnType<typeof models.Model<MO>> = ReturnType<typeof models.Model>,
+  IN extends keyof ModelFields<InstanceType<MO>> = any,
+  EX extends keyof ModelFields<InstanceType<MO>> = any
+> = {
+  instance?: M extends false ?
+    OutFieldType<FieldType<OutSerializerType<I>, N, R, D> & Pick<ModelFields<InstanceType<MO>>, Exclude<keyof InstanceType<MO>["fields"], EX>> & Pick<ModelFields<InstanceType<MO>>, IN>, WO> :
+    OutFieldType<FieldType<OutSerializerType<I>, N, R, D> & Pick<ModelFields<InstanceType<MO>>, Exclude<keyof InstanceType<MO>["fields"], EX>> & Pick<ModelFields<InstanceType<MO>>, IN>, WO>[];
+  data?: M extends false ?
+    InFieldType<FieldType<InSerializerType<I>, N, R, D> & Pick<ModelFields<InstanceType<MO>>, Exclude<keyof InstanceType<MO>["fields"], EX>> & Pick<ModelFields<InstanceType<MO>>, IN>, RO> :
+    InFieldType<FieldType<InSerializerType<I>, N, R, D> & Pick<ModelFields<InstanceType<MO>>, Exclude<keyof InstanceType<MO>["fields"], EX>> & Pick<ModelFields<InstanceType<MO>>, IN>, RO>[];
+} & SerializerParamsType<I, M, C, D, N, R, RO, WO>
 
 export type SerializerFieldsType<F extends Field = Field> = {
   [key: string]: F ;
@@ -77,4 +99,5 @@ export type ModelSerializerOptions<
   model: M;
   fields?: readonly (keyof ModelFields<InstanceType<M>>)[];
   excludes?: readonly (keyof ModelFields<InstanceType<M>>)[];
+  dependsOn?: readonly ReturnType<typeof models.Model>[]
 }

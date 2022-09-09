@@ -6,16 +6,17 @@ import {
   ModelSerializer,
   ModelSerializerOptions
 } from '@palmares/serializers';
-import { User } from './models';
+import { Post } from './models';
 import { ModelFields } from '@palmares/databases';
 
-export class UserSerializer extends ModelSerializer {
+export class PostSerializer extends ModelSerializer {
   fields = {
     teste: StringField.new({ readOnly: true, allowNull: true}),
   }
+
   options = {
-    model: User,
-    excludes: ["id", 'uuid'] as const
+    model: Post,
+    excludes: [] as const
   }
 }
 

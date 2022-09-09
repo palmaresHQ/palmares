@@ -2,13 +2,14 @@ import { Field } from "./fields";
 import model, { Model }  from './model';
 import Manager from './manager';
 import { DatabaseSettingsType } from "../types";
+import Engine from "../engine";
 
 export type ManagerInstancesType = {
   [engineName: string]: any;
 }
 
 export type ManagerEngineInstancesType = {
-  [engineName: string]: any;
+  [engineName: string]: Engine;
 }
 
 export type ModelFieldsType = {

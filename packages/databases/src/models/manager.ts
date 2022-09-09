@@ -71,7 +71,7 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
 
   /**
    * Retrieves the instance of the model defined in the database. Although you can define the engine instance on
-   * the manager itself, the engine instance in this method can be overriden to retrieve the model of another different
+   * the manager itself, the engine instance in this method can be overridden to retrieve the model of another different
    * engine instance.
    *
    * @throws {ManagerEngineInstanceNotFoundError} - When we cannot find a engine instance for this name.
@@ -98,7 +98,7 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
   getEngineInstance<T extends Engine = Engine>(engineName?: string): EI extends Engine ? EI : T {
     const engineInstanceName: string = engineName || this.defaultEngineInstanceName;
     const doesInstanceExists = this.engineInstances[engineInstanceName] !== undefined;
-    if (doesInstanceExists) return this.engineInstances[engineInstanceName];
+    if (doesInstanceExists) return this.engineInstances[engineInstanceName] as EI extends Engine ? EI : T;
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }
 
@@ -147,7 +147,11 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
     search?: S,
     engineName?: string
   ): Promise<S extends undefined | null ? AllRequiredModelFields<M> | undefined  : boolean> {
-    return this.getEngineInstance().query.set<M, S>(this.getInstance(engineName), data, search);
+    return this.getEngineInstance().query.set<M, S>(
+      this.getInstance(engineName),
+      data as S extends undefined ? ModelFields<M> : AllOptionalModelFields<M>,
+      search
+    );
   }
 
   /**

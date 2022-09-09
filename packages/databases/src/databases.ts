@@ -2,6 +2,7 @@ import {
     logging,
     ERR_MODULE_NOT_FOUND,
     imports,
+    conf,
 } from "@palmares/core";
 
 import {
@@ -20,10 +21,12 @@ import { LOGGING_DATABASE_MODELS_NOT_FOUND } from './utils';
 import Migrations from "./migrations";
 
 export default class Databases {
-  availableEngines = ['@palmares/sequelize-engine'];
   settings!: DatabaseSettingsType;
   initializedEngineInstances: InitializedEngineInstancesType = {};
   obligatoryModels: ReturnType<typeof Model>[] = []
+  #cachedModelsByModelName: {
+    [modelName: string]: FoundModelType
+  } = {};
 
   /**
    * Initializes the database connection and load the models to their respective engines.
@@ -91,11 +94,15 @@ export default class Databases {
     domains: DatabaseDomain[]
   ) {
     const engine = databaseSettings.engine;
-    const models: FoundModelType[] = await this.getModels(domains);
+    const models: FoundModelType[] = Object.values(await this.getModels(domains));
+    const managedModels = models.filter(foundModel => {
+      const modelInstance = new foundModel.model();
+      return modelInstance.options?.managed;
+    });
     const engineInstance: Engine = await engine.new(engineName, databaseSettings);
 
     if (await engineInstance.isConnected()) {
-      this.initializedEngineInstances[engineName] = await this.initializeModels(engineInstance, models);
+      this.initializedEngineInstances[engineName] = await this.initializeModels(engineInstance, managedModels);
     }
   }
 
@@ -115,7 +122,6 @@ export default class Databases {
     projectModels: FoundModelType[]
   ): Promise<InitializedEngineInstanceWithModelsType> {
     const initializedProjectModels: InitializedModelsType[] = [];
-    //const initializedInternalModels: InitializedModelsType[] = [];
 
     for (const { domainPath, domainName, model } of projectModels) {
       const modelInstance = new model();
@@ -149,49 +155,51 @@ export default class Databases {
    *
    * @returns - Returns an array of models.
    */
-  async getModels(domains: DatabaseDomain[]) {
-    const join = await imports<typeof import('path')['join']>('path', 'join');
-    const foundModels: FoundModelType[] = [];
-    const promises: Promise<void>[] = domains.map(async (domain) => {
-      const hasGetModelsMethodDefined = typeof domain.getModels === 'function';
-      if (hasGetModelsMethodDefined) {
-        const models = await Promise.resolve(domain.getModels());
-        models.forEach((model) => {
-          const modelInstance = new model();
-          if (modelInstance.options?.managed !== false) {
-            foundModels.push({
+  async getModels(domains?: DatabaseDomain[]) {
+    if (domains === undefined) domains = (await DatabaseDomain.retrieveDomains(conf.settings))
+      .map(domainClass => new domainClass() as DatabaseDomain);
+    const cachedFoundModels = Object.values(this.#cachedModelsByModelName);
+    const existsCachedFoundModels = cachedFoundModels.length > 0;
+    if (existsCachedFoundModels ===  false) {
+      const join = await imports<typeof import('path')['join']>('path', 'join');
+      const promises: Promise<void>[] = domains.map(async (domain) => {
+        const hasGetModelsMethodDefined = typeof domain.getModels === 'function';
+        if (hasGetModelsMethodDefined) {
+          const models = await Promise.resolve(domain.getModels());
+          models.forEach((model) => {
+            this.#cachedModelsByModelName[model.name] = {
               domainPath: domain.path,
               domainName: domain.name,
               model
-            });
-          }
-        });
-      } else if (join) {
-        const fullPath = join(domain.path, 'models');
-        try {
-          const models = await import(fullPath);
-          const modelsArray: ReturnType<typeof Model>[] = Object.values(models);
+            };
+          });
+        } else if (join) {
+          const fullPath = join(domain.path, 'models');
+          try {
+            const models = await import(fullPath);
+            const modelsArray: ReturnType<typeof Model>[] = Object.values(models);
 
-          for (const model of modelsArray) {
-            if (model.prototype instanceof BaseModel) {
-              foundModels.push({
-                model,
-                domainName: domain.name,
-                domainPath: domain.path,
-              })
+            for (const model of modelsArray) {
+              if (model.prototype instanceof BaseModel) {
+                this.#cachedModelsByModelName[model.name] = {
+                  domainPath: domain.path,
+                  domainName: domain.name,
+                  model
+                };
+              }
+            }
+          } catch (e) {
+            const error: any = e;
+            if (error.code === ERR_MODULE_NOT_FOUND) {
+              await logging.logMessage(LOGGING_DATABASE_MODELS_NOT_FOUND, { domainName: fullPath });
+            } else {
+              throw e;
             }
           }
-        } catch (e) {
-          const error: any = e;
-          if (error.code === ERR_MODULE_NOT_FOUND) {
-            await logging.logMessage(LOGGING_DATABASE_MODELS_NOT_FOUND, { domainName: fullPath });
-          } else {
-            throw e;
-          }
         }
-      }
-    });
-    await Promise.all(promises);
-    return foundModels;
+      });
+      await Promise.all(promises);
+    }
+    return this.#cachedModelsByModelName;
   }
 }

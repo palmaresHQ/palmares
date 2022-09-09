@@ -1,6 +1,6 @@
 import { SchemaNotImplementedError } from './exceptions';
 import { Field, StringField, NumberField, BooleanField } from './fields';
-import { Serializer } from './serializers';
+import Serializer from './serializers';
 
 /**
  * This is the Base schema class. It is used to translate a serializer into a schema. A schema is something like
