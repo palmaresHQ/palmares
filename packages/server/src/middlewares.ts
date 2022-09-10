@@ -1,7 +1,7 @@
-import { FunctionControllerType } from "./controllers/types";
-import Response from "./response";
-import Request from "./request";
-import Server from "./server";
+import { FunctionControllerType } from './controllers/types';
+import Response from './response';
+import Request from './request';
+import Server from './server';
 
 /**
  * A middleware is a simple class that is responsible for being executed before and after a request is handled.
@@ -68,6 +68,7 @@ export default class Middleware {
    *
    * @returns - A promise that resolves to anything so custom middlewares can be created.
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   static async load<R>(server: Server): Promise<R | any> {
     return undefined as unknown as R;
   }

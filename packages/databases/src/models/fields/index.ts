@@ -1,4 +1,4 @@
-import { utils } from "@palmares/core";
+import { utils } from '@palmares/core';
 
 import {
   ON_DELETE,
@@ -10,12 +10,12 @@ import {
   TextFieldParamsType,
   ForeignKeyFieldParamsType,
   UUIDFieldParamsType,
-  CustomImportsForFieldType
-} from "./types";
-import Engine, { EngineFields } from "../../engine";
-import { ForeignKeyFieldRequiredParamsMissingError } from "./exceptions";
-import { TModel } from "../types";
-import { generateUUID } from "../../utils";
+  CustomImportsForFieldType,
+} from './types';
+import Engine, { EngineFields } from '../../engine';
+import { ForeignKeyFieldRequiredParamsMissingError } from './exceptions';
+import { TModel } from '../types';
+import { generateUUID } from '../../utils';
 
 export { ON_DELETE as ON_DELETE };
 
@@ -35,17 +35,17 @@ export class Field<D = any, N extends boolean = boolean> {
   fieldName!: string;
 
   constructor({
-    primaryKey=false,
-    defaultValue=undefined,
-    allowNull=false,
-    unique=false,
-    dbIndex=false,
-    databaseName=null,
-    underscored=true,
-    customAttributes={}
+    primaryKey = false,
+    defaultValue = undefined,
+    allowNull = false,
+    unique = false,
+    dbIndex = false,
+    databaseName = null,
+    underscored = true,
+    customAttributes = {},
   }: {
     defaultValue?: D;
-    allowNull?: N extends true ? boolean: boolean;
+    allowNull?: N extends true ? boolean : boolean;
   } & FieldDefaultParamsType = {}) {
     this.primaryKey = primaryKey;
     this.defaultValue = defaultValue;
@@ -57,31 +57,42 @@ export class Field<D = any, N extends boolean = boolean> {
     this.customAttributes = customAttributes;
   }
 
-  async init(engineInstance: Engine, fieldName: string, model: TModel) {
-    const isUnderscored: boolean = (this.underscored || model.options.underscored) === true;
+  async init(fieldName: string, model: TModel, engineInstance?: Engine) {
+    const isUnderscored: boolean =
+      (this.underscored || model.options.underscored) === true;
     this.fieldName = fieldName;
     this.model = model;
 
-    if (isUnderscored) this.databaseName = utils.camelCaseToHyphenOrSnakeCase(this.fieldName);
+    if (isUnderscored)
+      this.databaseName = utils.camelCaseToHyphenOrSnakeCase(this.fieldName);
     else this.databaseName = this.fieldName;
 
-    await engineInstance.fields.set(this as Field);
+    if (engineInstance) await engineInstance.fields.set(this as Field);
   }
 
-  async toString(indentation = 0, customParams: string | undefined = undefined): Promise<string> {
+  async toString(
+    indentation = 0,
+    customParams: string | undefined = undefined
+  ): Promise<string> {
     const ident = '  '.repeat(indentation);
     const fieldParamsIdent = '  '.repeat(indentation + 1);
-    return `${ident}new models.fields.${this.constructor.name}({`+
-      `${customParams ? `\n${customParams}` : ''}\n`+
-      `${fieldParamsIdent}primaryKey: ${this.primaryKey},\n`+
-      `${fieldParamsIdent}defaultValue: ${JSON.stringify(this.defaultValue)},\n`+
-      `${fieldParamsIdent}allowNull: ${this.allowNull},\n`+
+    return (
+      `${ident}new models.fields.${this.constructor.name}({` +
+      `${customParams ? `\n${customParams}` : ''}\n` +
+      `${fieldParamsIdent}primaryKey: ${this.primaryKey},\n` +
+      `${fieldParamsIdent}defaultValue: ${JSON.stringify(
+        this.defaultValue
+      )},\n` +
+      `${fieldParamsIdent}allowNull: ${this.allowNull},\n` +
       `${fieldParamsIdent}unique: ${this.unique},\n` +
       `${fieldParamsIdent}dbIndex: ${this.dbIndex},\n` +
       `${fieldParamsIdent}databaseName: "${this.databaseName}",\n` +
       `${fieldParamsIdent}underscored: ${this.underscored},\n` +
-      `${fieldParamsIdent}customAttributes: ${JSON.stringify(this.customAttributes)}\n` +
-      `${ident}})`;
+      `${fieldParamsIdent}customAttributes: ${JSON.stringify(
+        this.customAttributes
+      )}\n` +
+      `${ident}})`
+    );
   }
 
   /**
@@ -107,18 +118,20 @@ export class Field<D = any, N extends boolean = boolean> {
    * @return - Returns true if the fields are equal and false otherwise
    */
   async compare(field: Field): Promise<boolean> {
-    return field.typeName === this.typeName &&
+    return (
+      field.typeName === this.typeName &&
       field.allowNull === this.allowNull &&
-      JSON.stringify(field.customAttributes) === JSON.stringify(this.customAttributes) &&
+      JSON.stringify(field.customAttributes) ===
+        JSON.stringify(this.customAttributes) &&
       field.primaryKey === this.primaryKey &&
       field.defaultValue === this.defaultValue &&
       field.unique === this.unique &&
       field.dbIndex === this.dbIndex &&
       field.databaseName === this.databaseName &&
       field.underscored === this.underscored
+    );
   }
 }
-
 
 /**
  * This is similar to an Integer Field except that it is the `id` of the database.
@@ -127,15 +140,23 @@ export class Field<D = any, N extends boolean = boolean> {
 export class AutoField<
   D extends number = 1,
   N extends boolean = false
-  > extends Field<D, N> {
+> extends Field<D, N> {
   type!: number;
   typeName: string = AutoField.name;
 
-  constructor({...rest}: {
-    defaultValue?: D,
-    allowNull?: N,
+  constructor({
+    ...rest
+  }: {
+    defaultValue?: D;
+    allowNull?: N;
   } & FieldDefaultParamsType = {}) {
-    super({...rest, primaryKey: true, allowNull: false, unique: true, dbIndex: true});
+    super({
+      ...rest,
+      primaryKey: true,
+      allowNull: false,
+      unique: true,
+      dbIndex: true,
+    });
   }
 }
 
@@ -146,51 +167,69 @@ export class AutoField<
 export class BigAutoField<
   D extends number = 1,
   N extends boolean = false
-  > extends Field<D, N> {
+> extends Field<D, N> {
   type!: number;
   typeName: string = BigAutoField.name;
 
-  constructor({...rest}: {
-    defaultValue?: D,
-    allowNull?: N,
+  constructor({
+    ...rest
+  }: {
+    defaultValue?: D;
+    allowNull?: N;
   } & FieldDefaultParamsType = {}) {
-    super({...rest, primaryKey: true, allowNull: false, unique: true, dbIndex: true});
+    super({
+      ...rest,
+      primaryKey: true,
+      allowNull: false,
+      unique: true,
+      dbIndex: true,
+    });
   }
 }
 
 export class IntegerField<
   D extends number | undefined = undefined,
   N extends boolean = false
-  > extends Field<D, N> {
+> extends Field<D, N> {
   type!: number;
   typeName: string = IntegerField.name;
 
-  constructor(integerFieldParams: {
-    defaultValue?: D;
-    allowNull?: N;
-  } & FieldDefaultParamsType = {}) {
-    super({...integerFieldParams});
-    const isDefaultValueDefined: boolean = typeof integerFieldParams.defaultValue === 'number' ||
+  constructor(
+    integerFieldParams: {
+      defaultValue?: D;
+      allowNull?: N;
+    } & FieldDefaultParamsType = {}
+  ) {
+    super({ ...integerFieldParams });
+    const isDefaultValueDefined: boolean =
+      typeof integerFieldParams.defaultValue === 'number' ||
       integerFieldParams.defaultValue === null;
-    this.defaultValue = isDefaultValueDefined ? integerFieldParams.defaultValue: undefined;
+    this.defaultValue = isDefaultValueDefined
+      ? integerFieldParams.defaultValue
+      : undefined;
   }
 }
 
 export class BigIntegerField<
   D extends number | undefined = undefined,
   N extends boolean = false
-  > extends Field<D, N> {
+> extends Field<D, N> {
   type!: number;
   typeName: string = BigIntegerField.name;
 
-  constructor(bigIntegerFieldParams: {
-    defaultValue?: D;
-    allowNull?: N;
-  } & FieldDefaultParamsType = {}) {
-    super({...bigIntegerFieldParams});
-    const isDefaultValueDefined: boolean = typeof bigIntegerFieldParams.defaultValue === 'number' ||
+  constructor(
+    bigIntegerFieldParams: {
+      defaultValue?: D;
+      allowNull?: N;
+    } & FieldDefaultParamsType = {}
+  ) {
+    super({ ...bigIntegerFieldParams });
+    const isDefaultValueDefined: boolean =
+      typeof bigIntegerFieldParams.defaultValue === 'number' ||
       bigIntegerFieldParams.defaultValue === null;
-    this.defaultValue = isDefaultValueDefined ? bigIntegerFieldParams.defaultValue: undefined;
+    this.defaultValue = isDefaultValueDefined
+      ? bigIntegerFieldParams.defaultValue
+      : undefined;
   }
 }
 
@@ -198,150 +237,182 @@ export class DecimalField<
   D extends number | undefined = undefined,
   N extends boolean = false
 > extends Field<D, N> {
-  type!: number
+  type!: number;
   typeName: string = DecimalField.name;
   maxDigits?: number;
   decimalPlaces?: number;
 
-  constructor({ maxDigits=undefined, decimalPlaces=undefined, ...rest }: {
+  constructor({
+    maxDigits = undefined,
+    decimalPlaces = undefined,
+    ...rest
+  }: {
     defaultValue?: D;
     allowNull?: N;
   } & DecimalFieldParamsType = {}) {
-    super({...rest});
-    const isDefaultValueDefined: boolean = typeof rest.defaultValue === 'number' ||
-      rest.defaultValue === null;
-    this.defaultValue = isDefaultValueDefined ? rest.defaultValue: undefined;
+    super({ ...rest });
+    const isDefaultValueDefined: boolean =
+      typeof rest.defaultValue === 'number' || rest.defaultValue === null;
+    this.defaultValue = isDefaultValueDefined ? rest.defaultValue : undefined;
     this.maxDigits = maxDigits;
     this.decimalPlaces = decimalPlaces;
   }
 
-  async toString(indentation=0, _ = '') {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async toString(indentation = 0, _ = '') {
     const ident = '  '.repeat(indentation + 1);
     return super.toString(
       indentation,
-      `${ident}maxDigits: ${this.maxDigits},\n`+
-      `${ident}decimalPlaces: ${this.decimalPlaces}`
+      `${ident}maxDigits: ${this.maxDigits},\n` +
+        `${ident}decimalPlaces: ${this.decimalPlaces}`
     );
   }
 
   async compare(field: Field): Promise<boolean> {
     const fieldAsDecimal = field as DecimalField;
-    return (await super.compare(field)) &&
+    return (
+      (await super.compare(field)) &&
       fieldAsDecimal.maxDigits === this.maxDigits &&
-      fieldAsDecimal.decimalPlaces === this.decimalPlaces;
+      fieldAsDecimal.decimalPlaces === this.decimalPlaces
+    );
   }
 }
 
 export class TextField<
-  D extends string | undefined = undefined,
-  N extends boolean = false
-> extends Field<D, N> implements TextFieldParamsType {
+    D extends string | undefined = undefined,
+    N extends boolean = false
+  >
+  extends Field<D, N>
+  implements TextFieldParamsType
+{
   type!: string;
   typeName: string = TextField.name;
   allowBlank: boolean;
 
   constructor({
-    allowBlank=true,
+    allowBlank = true,
     ...rest
   }: {
     defaultValue?: D;
     allowNull?: N;
   } & TextFieldParamsType = {}) {
-    super({...rest});
-    const isDefaultValueDefined: boolean = rest.defaultValue === 'string' ||
-      rest.defaultValue === null;
-    this.defaultValue = isDefaultValueDefined ? rest.defaultValue: undefined;
+    super({ ...rest });
+    const isDefaultValueDefined: boolean =
+      rest.defaultValue === 'string' || rest.defaultValue === null;
+    this.defaultValue = isDefaultValueDefined ? rest.defaultValue : undefined;
     this.allowBlank = allowBlank;
   }
 
-  async toString(indentation = 0, customParams: string | undefined = undefined) {
+  async toString(
+    indentation = 0,
+    customParams: string | undefined = undefined
+  ) {
     const ident = '  '.repeat(indentation + 1);
-    const customParamsString = customParams ? `\n${customParams}`: '';
+    const customParamsString = customParams ? `\n${customParams}` : '';
     return super.toString(
       indentation,
-      `${ident}allowBlank: ${this.allowBlank},` + customParamsString);
+      `${ident}allowBlank: ${this.allowBlank},` + customParamsString
+    );
   }
 
   async compare(field: Field): Promise<boolean> {
     const fieldAsText = field as TextField;
-    return (await super.compare(field)) &&
-      fieldAsText.allowBlank === this.allowBlank;
+    return (
+      (await super.compare(field)) && fieldAsText.allowBlank === this.allowBlank
+    );
   }
 }
 
 export class CharField<
-  D extends string | undefined = undefined,
-  N extends boolean = false
-  > extends TextField<D, N> implements CharFieldParamsType {
+    D extends string | undefined = undefined,
+    N extends boolean = false
+  >
+  extends TextField<D, N>
+  implements CharFieldParamsType
+{
   hasDefaultValue!: D extends undefined ? false : true;
   type!: string;
   typeName: string = CharField.name;
   maxLength: number;
 
-  constructor({
-    maxLength=255,
-    allowBlank=true,
-    ...rest
-  }: {
-    defaultValue?: D;
-    allowNull?: N;
-  } & CharFieldParamsType = {} as any) {
+  constructor(
+    {
+      maxLength = 255,
+      allowBlank = true,
+      ...rest
+    }: {
+      defaultValue?: D;
+      allowNull?: N;
+    } & CharFieldParamsType = {} as any
+  ) {
     super({
       allowBlank: typeof allowBlank === 'boolean' ? allowBlank : true,
-      ...rest});
+      ...rest,
+    });
     const defaultValueAsString = rest?.defaultValue as string;
-    const isDefaultValueDefined: boolean = (
-      defaultValueAsString === 'string' &&
-      defaultValueAsString.length <= maxLength
-    ) || defaultValueAsString === null;
-    this.defaultValue = isDefaultValueDefined ? rest.defaultValue: undefined
+    const isDefaultValueDefined: boolean =
+      (defaultValueAsString === 'string' &&
+        defaultValueAsString.length <= maxLength) ||
+      defaultValueAsString === null;
+    this.defaultValue = isDefaultValueDefined ? rest.defaultValue : undefined;
     this.maxLength = maxLength;
   }
 
-  async toString(indentation = 0, customParams: string | undefined = undefined) {
+  async toString(
+    indentation = 0,
+    customParams: string | undefined = undefined
+  ) {
     const ident = '  '.repeat(indentation + 1);
-    const customParamsString = customParams ? `\n${customParams}`: '';
+    const customParamsString = customParams ? `\n${customParams}` : '';
     return super.toString(
       indentation,
-      `${ident}maxLength: ${this.maxLength},`+
-      `${customParamsString}`
+      `${ident}maxLength: ${this.maxLength},` + `${customParamsString}`
     );
   }
 
   async compare(field: Field): Promise<boolean> {
     const fieldAsText = field as CharField;
-    return (await super.compare(field)) &&
-      fieldAsText.maxLength === this.maxLength;
+    return (
+      (await super.compare(field)) && fieldAsText.maxLength === this.maxLength
+    );
   }
 }
 
 export class UUIDField<
-  D extends string | undefined = undefined,
-  N extends boolean = false
-  > extends CharField<D, N> implements UUIDFieldParamsType {
+    D extends string | undefined = undefined,
+    N extends boolean = false
+  >
+  extends CharField<D, N>
+  implements UUIDFieldParamsType
+{
   type!: string;
   typeName: string = UUIDField.name;
   autoGenerate: boolean;
 
-  constructor({
-    autoGenerate = false,
-    maxLength = 36,
-    ...rest
-  } : {
-    defaultValue?: D;
-    allowNull?: N;
-  } & UUIDFieldParamsType = {} as any) {
+  constructor(
+    {
+      autoGenerate = false,
+      maxLength = 36,
+      ...rest
+    }: {
+      defaultValue?: D;
+      allowNull?: N;
+    } & UUIDFieldParamsType = {} as any
+  ) {
     super({
       maxLength: typeof maxLength === 'number' ? maxLength : 36,
       defaultValue: (autoGenerate ? '' : rest.defaultValue) as D,
-      ...rest
+      ...rest,
     });
     this.autoGenerate = autoGenerate;
   }
 
-  async toString(indentation = 0, customParams: string | undefined = undefined) {
+  async toString(
+    indentation = 0,
+    customParams: string | undefined = undefined
+  ) {
     const ident = '  '.repeat(indentation + 1);
-    const customParamsString = customParams ? `\n${customParams}`: '';
+    const customParamsString = customParams ? `\n${customParams}` : '';
     return super.toString(
       indentation,
       `${ident}autoGenerate: ${this.autoGenerate},${customParamsString}`
@@ -350,7 +421,10 @@ export class UUIDField<
 
   async compare(field: Field): Promise<boolean> {
     const fieldAsUUID = field as UUIDField;
-    return (await super.compare(field)) && fieldAsUUID.autoGenerate === this.autoGenerate;
+    return (
+      (await super.compare(field)) &&
+      fieldAsUUID.autoGenerate === this.autoGenerate
+    );
   }
 }
 
@@ -358,24 +432,35 @@ export class UUIDField<
  * This field is used to hold only date values, not time, just dates.
  */
 export class DateField<
-  D extends string | Date | undefined = undefined,
-  N extends boolean = false
-  > extends Field<D, N> implements DateFieldParamsType {
+    D extends string | Date | undefined = undefined,
+    N extends boolean = false
+  >
+  extends Field<D, N>
+  implements DateFieldParamsType
+{
   type!: Date;
   typeName: string = DateField.name;
   autoNow: boolean;
   autoNowAdd: boolean;
 
-  constructor({autoNow=false, autoNowAdd=false, ...rest} : {
+  constructor({
+    autoNow = false,
+    autoNowAdd = false,
+    ...rest
+  }: {
     defaultValue?: D;
     allowNull?: N;
-  } & DateFieldParamsType ={}) {
-      super({...rest})
-      this.autoNow = autoNow
-      this.autoNowAdd = autoNowAdd
+  } & DateFieldParamsType = {}) {
+    super({ ...rest });
+    this.autoNow = autoNow;
+    this.autoNowAdd = autoNowAdd;
   }
 
-  async toString(indentation = 0, customParams: string | undefined = undefined) {
+  async toString(
+    indentation = 0,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    customParams: string | undefined = undefined
+  ) {
     const ident = '  '.repeat(indentation + 1);
     return super.toString(
       indentation,
@@ -385,8 +470,11 @@ export class DateField<
 
   async compare(field: Field<any, boolean>): Promise<boolean> {
     const fieldAsDate = field as DateField;
-    return (await super.compare(field)) && fieldAsDate.autoNow === this.autoNow &&
-      fieldAsDate.autoNowAdd === this.autoNowAdd;
+    return (
+      (await super.compare(field)) &&
+      fieldAsDate.autoNow === this.autoNow &&
+      fieldAsDate.autoNowAdd === this.autoNowAdd
+    );
   }
 }
 
@@ -399,10 +487,10 @@ export class DateField<
 export class ForeignKeyField<
   M extends TModel = TModel,
   F extends string = any,
-  D extends M["fields"][F]["type"] | undefined = undefined,
+  D extends M['fields'][F]['type'] | undefined = undefined,
   N extends boolean = false
 > extends Field<D, N> {
-  type!: M["fields"][F]["type"];
+  type!: M['fields'][F]['type'];
   typeName: string = ForeignKeyField.name;
   relatedTo!: string;
   onDelete!: ON_DELETE;
@@ -421,7 +509,7 @@ export class ForeignKeyField<
     relatedTo: ClassConstructor<M> | string;
     toField: F;
     defaultValue?: D;
-    allowNull?: N,
+    allowNull?: N;
   } & ForeignKeyFieldParamsType) {
     super(rest);
 
@@ -438,9 +526,13 @@ export class ForeignKeyField<
     this.toField = toField;
   }
 
-  async init(engineInstance: Engine, fieldName: string, model: TModel): Promise<void> {
-    const isRelatedToAndOnDeleteNotDefined = typeof this.relatedTo !== 'string' &&
-      typeof this.onDelete !== 'string';
+  async init(
+    fieldName: string,
+    model: TModel,
+    engineInstance?: Engine
+  ): Promise<void> {
+    const isRelatedToAndOnDeleteNotDefined =
+      typeof this.relatedTo !== 'string' && typeof this.onDelete !== 'string';
 
     if (isRelatedToAndOnDeleteNotDefined)
       throw new ForeignKeyFieldRequiredParamsMissingError(this.fieldName);
@@ -448,12 +540,16 @@ export class ForeignKeyField<
     // Appends to the model the other models this model is related to.
     model._dependentOnModels.push(this.relatedTo);
 
-    await super.init(engineInstance, fieldName, model);
+    await super.init(fieldName, model, engineInstance);
+
     const wasRelatedNameDefined: boolean = typeof this.relatedName === 'string';
 
     if (wasRelatedNameDefined === false) {
-      const relatedToWithFirstStringLower: string = this.relatedTo.charAt(0).toLowerCase() + this.relatedTo.slice(1);
-      const originalModelNameWithFirstStringUpper: string = this.model.originalName.charAt(0).toUpperCase() + this.model.originalName.slice(1);
+      const relatedToWithFirstStringLower: string =
+        this.relatedTo.charAt(0).toLowerCase() + this.relatedTo.slice(1);
+      const originalModelNameWithFirstStringUpper: string =
+        model.originalName.charAt(0).toUpperCase() +
+        model.originalName.slice(1);
       this._originalRelatedName = `${relatedToWithFirstStringLower}${originalModelNameWithFirstStringUpper}s`;
     }
   }
@@ -469,30 +565,47 @@ export class ForeignKeyField<
    * @return - Returns a random relatedName if it is a state model, otherwise returns the normal related name.
    */
   get relatedName() {
-    if (this.model._isState) return `${generateUUID()}-${this._originalRelatedName}`;
+    const isModelDefined = this.model !== undefined;
+    const isModelAStateModel = isModelDefined && this.model._isState === true;
+    if (isModelAStateModel)
+      return `${generateUUID()}-${this._originalRelatedName}`;
     else return this._originalRelatedName;
   }
 
-  async toString(indentation = 0, customParams: string | undefined = undefined) {
+  async toString(
+    indentation = 0,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    customParams: string | undefined = undefined
+  ) {
     const ident = '  '.repeat(indentation + 1);
     return super.toString(
       indentation,
       `${ident}relatedTo: "${this.relatedTo}",\n` +
-      `${ident}toField: "${this.toField}",\n` +
-      `${ident}onDelete: models.fields.ON_DELETE.${this.onDelete.toUpperCase()},\n` +
-      `${ident}customName: ${typeof this.customName === 'string' ? `"${this.customName}"` : this.customName},\n` +
-      `${ident}relatedName: ${typeof this._originalRelatedName === 'string' ? `"${this._originalRelatedName}",` : this._originalRelatedName}`
+        `${ident}toField: "${this.toField}",\n` +
+        `${ident}onDelete: models.fields.ON_DELETE.${this.onDelete.toUpperCase()},\n` +
+        `${ident}customName: ${
+          typeof this.customName === 'string'
+            ? `"${this.customName}"`
+            : this.customName
+        },\n` +
+        `${ident}relatedName: ${
+          typeof this._originalRelatedName === 'string'
+            ? `"${this._originalRelatedName}",`
+            : this._originalRelatedName
+        }`
     );
   }
 
   async compare(field: Field): Promise<boolean> {
     const fieldAsForeignKey = field as ForeignKeyField;
-    return (await super.compare(field)) &&
+    return (
+      (await super.compare(field)) &&
       fieldAsForeignKey._originalRelatedName === this._originalRelatedName &&
       fieldAsForeignKey.relatedTo === this.relatedTo &&
       fieldAsForeignKey.toField === this.toField &&
       fieldAsForeignKey.onDelete === this.onDelete &&
-      fieldAsForeignKey.customName === this.customName;
+      fieldAsForeignKey.customName === this.customName
+    );
   }
 }
 
@@ -502,6 +615,7 @@ export class ForeignKeyField<
  * to support the field you are looking to.
  */
 export class TranslatableField extends Field {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async translate(engine: Engine, engineFields: EngineFields): Promise<any> {
     return undefined;
   }

@@ -1,21 +1,25 @@
-import Field from "./field";
-import { FieldType, InFieldType, NumberFieldParamsType, OutFieldType } from "./types";
-import { This } from "../types";
-import Schema from "../schema";
+import Field from './field';
+import {
+  FieldType,
+  InFieldType,
+  NumberFieldParamsType,
+  OutFieldType,
+} from './types';
+import { This } from '../types';
+import Schema from '../schema';
 
 export default class NumberField<
   I extends NumberField = any,
-  D extends I["type"] | undefined = undefined,
+  D extends I['type'] | undefined = undefined,
   N extends boolean = false,
   R extends boolean = true,
   RO extends boolean = boolean,
   WO extends boolean = boolean,
   C = any
 > extends Field<I, D, N, R, RO, WO, C> {
-
   type!: FieldType<number, N, R, D>;
-  inType!: InFieldType<this["type"], RO>;
-  outType!: OutFieldType<this["type"], WO>;
+  inType!: InFieldType<this['type'], RO>;
+  outType!: OutFieldType<this['type'], WO>;
 
   allowNegative = true;
   allowPositive = true;
@@ -38,8 +42,10 @@ export default class NumberField<
     const isAllowZeroDefined = typeof params.allowZero === 'boolean';
     const isIntegerDefined = typeof params.isInteger === 'boolean';
 
-    if (isAllowNegativeDefined) this.allowNegative = params.allowNegative as boolean;
-    if (isAllowPositiveDefined) this.allowPositive = params.allowPositive as boolean;
+    if (isAllowNegativeDefined)
+      this.allowNegative = params.allowNegative as boolean;
+    if (isAllowPositiveDefined)
+      this.allowPositive = params.allowPositive as boolean;
     if (isAllowZeroDefined) this.allowZero = params.allowZero as boolean;
     if (isMaxLengthDefined) this.max = params.max;
     if (isMinLengthDefined) this.min = params.min;
@@ -52,14 +58,15 @@ export default class NumberField<
       maxValue: `Ensure this value is less than or equal to ${this.max}.`,
       minValue: `Ensure this value is less than or equal to ${this.min}.`,
       maxDigits: `The number should not contain more than ${this.maxDigits} digits.`,
-      decimalPlaces: `Ensure that there are no more than ${this.decimalPlaces} decimal `+
-                    ` places (maximum of ${this.decimalPlaces} values after the '.').`,
+      decimalPlaces:
+        `Ensure that there are no more than ${this.decimalPlaces} decimal ` +
+        ` places (maximum of ${this.decimalPlaces} values after the '.').`,
       zero: 'The value cannot be 0 (zero).',
       negative: 'The value cannot be negative.',
       positive: 'The value cannot be positive.',
       integer: 'The value must be an integer.',
       ...this.errorMessages,
-    }
+    };
   }
 
   static new<
@@ -74,10 +81,13 @@ export default class NumberField<
     this: I,
     params: NumberFieldParamsType<InstanceType<I>, D, N, R, RO, WO> = {}
   ) {
-    return new this(params) as NumberField<InstanceType<I>,D, N, R, RO, WO, C>;
+    return new this(params) as NumberField<InstanceType<I>, D, N, R, RO, WO, C>;
   }
 
-  async schema<S extends Schema>(isIn = true, schema?: S): Promise<ReturnType<S["getNumber"]>> {
+  async schema<S extends Schema>(
+    isIn = true,
+    schema?: S
+  ): Promise<ReturnType<S['getNumber']>> {
     await super.schema(isIn, schema);
     const schemaToUse = this._schema as S;
     return schemaToUse.getNumber(this);
@@ -110,20 +120,22 @@ export default class NumberField<
     const isInteger = this.isInteger === true && !Number.isInteger(data);
     if (isInteger) await this.fail('integer');
 
-    const isMaxDigitsExceeded = typeof this.maxDigits === 'number' &&
+    const isMaxDigitsExceeded =
+      typeof this.maxDigits === 'number' &&
       data.toString().length > this.maxDigits;
     if (isMaxDigitsExceeded) await this.fail('maxDigits');
 
-    const isDecimalPlacesExceeded = typeof this.decimalPlaces === 'number' &&
+    const isDecimalPlacesExceeded =
+      typeof this.decimalPlaces === 'number' &&
       data.toString().split('.')[1]?.length > this.decimalPlaces;
     if (isDecimalPlacesExceeded) await this.fail('decimalPlaces');
   }
 
-  async toInternal(data: this["inType"])  {
+  async toInternal(data: this['inType']) {
     return super.toInternal(data, (data) => Number(data));
   }
 
-  async toRepresentation(data: this["outType"]) {
-    return super.toRepresentation(data, (data) => Number(data)) ;
+  async toRepresentation(data: this['outType']) {
+    return super.toRepresentation(data, (data) => Number(data));
   }
 }

@@ -1,9 +1,4 @@
-import {
-    logging,
-    ERR_MODULE_NOT_FOUND,
-    imports,
-    conf,
-} from "@palmares/core";
+import { logging, ERR_MODULE_NOT_FOUND, imports, conf } from '@palmares/core';
 
 import {
   DatabaseSettingsType,
@@ -13,19 +8,19 @@ import {
   InitializedEngineInstancesType,
   InitializedEngineInstanceWithModelsType,
   OptionalMakemigrationsArgsType,
-} from "./types";
-import { DatabaseDomain } from "./domain";
-import Engine from "./engine";
-import { Model, BaseModel } from "./models";
+} from './types';
+import { DatabaseDomain } from './domain';
+import Engine from './engine';
+import { Model, BaseModel } from './models';
 import { LOGGING_DATABASE_MODELS_NOT_FOUND } from './utils';
-import Migrations from "./migrations";
+import Migrations from './migrations';
 
 export default class Databases {
   settings!: DatabaseSettingsType;
   initializedEngineInstances: InitializedEngineInstancesType = {};
-  obligatoryModels: ReturnType<typeof Model>[] = []
+  obligatoryModels: ReturnType<typeof Model>[] = [];
   #cachedModelsByModelName: {
-    [modelName: string]: FoundModelType
+    [modelName: string]: FoundModelType;
   } = {};
 
   /**
@@ -36,9 +31,14 @@ export default class Databases {
   async init(settings: DatabaseSettingsType, domains: DatabaseDomain[]) {
     this.settings = settings;
 
-    const isDatabaseDefined: boolean = this.settings.DATABASES !== undefined && typeof settings.DATABASES === "object";
+    const isDatabaseDefined: boolean =
+      this.settings.DATABASES !== undefined &&
+      typeof settings.DATABASES === 'object';
     if (isDatabaseDefined) {
-      const databaseEntries: [string, DatabaseConfigurationType<string, {}>][] = Object.entries(settings.DATABASES);
+      const databaseEntries: [
+        string,
+        DatabaseConfigurationType<string, object>
+      ][] = Object.entries(settings.DATABASES);
       for (const [databaseName, databaseSettings] of databaseEntries) {
         await this.initializeDatabase(databaseName, databaseSettings, domains);
       }
@@ -52,10 +52,17 @@ export default class Databases {
    * @param settings - The settings defined by the user in settings.js/ts file.
    * @param domains - The domains defined by the user so we can fetch all of the models and migrations.
    */
-  async makeMigrations(settings: DatabaseSettingsType, domains: DatabaseDomain[], optionalArgs: OptionalMakemigrationsArgsType) {
+  async makeMigrations(
+    settings: DatabaseSettingsType,
+    domains: DatabaseDomain[],
+    optionalArgs: OptionalMakemigrationsArgsType
+  ) {
     await this.init(settings, domains);
     const migrations = new Migrations(settings, domains);
-    await migrations.makeMigrations(this.initializedEngineInstances, optionalArgs);
+    await migrations.makeMigrations(
+      this.initializedEngineInstances,
+      optionalArgs
+    );
   }
 
   /**
@@ -74,10 +81,14 @@ export default class Databases {
    * Closes the database connection on all of the initialized engine instances.
    */
   async close(): Promise<void> {
-    const initializedEngineEntries = Object.values(this.initializedEngineInstances);
-    const promises = initializedEngineEntries.map(async ({ engineInstance }) => {
-      await engineInstance.close();
-    });
+    const initializedEngineEntries = Object.values(
+      this.initializedEngineInstances
+    );
+    const promises = initializedEngineEntries.map(
+      async ({ engineInstance }) => {
+        await engineInstance.close();
+      }
+    );
 
     await Promise.all(promises);
   }
@@ -90,19 +101,27 @@ export default class Databases {
    */
   async initializeDatabase(
     engineName: string,
-    databaseSettings: DatabaseConfigurationType<string, {}>,
+    databaseSettings: DatabaseConfigurationType<string, object>,
     domains: DatabaseDomain[]
   ) {
     const engine = databaseSettings.engine;
-    const models: FoundModelType[] = Object.values(await this.getModels(domains));
-    const managedModels = models.filter(foundModel => {
+    const models: FoundModelType[] = Object.values(
+      await this.getModels(domains)
+    );
+    const managedModels = models.filter((foundModel) => {
       const modelInstance = new foundModel.model();
       return modelInstance.options?.managed;
     });
-    const engineInstance: Engine = await engine.new(engineName, databaseSettings);
+    const engineInstance: Engine = await engine.new(
+      engineName,
+      databaseSettings
+    );
 
     if (await engineInstance.isConnected()) {
-      this.initializedEngineInstances[engineName] = await this.initializeModels(engineInstance, managedModels);
+      this.initializedEngineInstances[engineName] = await this.initializeModels(
+        engineInstance,
+        managedModels
+      );
     }
   }
 
@@ -125,14 +144,20 @@ export default class Databases {
 
     for (const { domainPath, domainName, model } of projectModels) {
       const modelInstance = new model();
-      const initializedModel = await modelInstance._init(model, engineInstance, domainName, domainPath);
-      if (modelInstance.options.databases?.includes(engineInstance.databaseName)) {
+      const initializedModel = await modelInstance._init(
+        engineInstance,
+        domainName,
+        domainPath
+      );
+      if (
+        modelInstance.options.databases?.includes(engineInstance.databaseName)
+      ) {
         initializedProjectModels.push({
           domainName,
           domainPath,
           class: model,
           initialized: initializedModel,
-          original: modelInstance
+          original: modelInstance,
         });
       }
     }
@@ -140,7 +165,7 @@ export default class Databases {
     return {
       engineInstance,
       projectModels: initializedProjectModels,
-    }
+    };
   }
 
   /**
@@ -156,42 +181,48 @@ export default class Databases {
    * @returns - Returns an array of models.
    */
   async getModels(domains?: DatabaseDomain[]) {
-    if (domains === undefined) domains = (await DatabaseDomain.retrieveDomains(conf.settings))
-      .map(domainClass => new domainClass() as DatabaseDomain);
+    if (domains === undefined)
+      domains = (await DatabaseDomain.retrieveDomains(conf.settings)).map(
+        (domainClass) => new domainClass() as DatabaseDomain
+      );
     const cachedFoundModels = Object.values(this.#cachedModelsByModelName);
     const existsCachedFoundModels = cachedFoundModels.length > 0;
-    if (existsCachedFoundModels ===  false) {
+    if (existsCachedFoundModels === false) {
       const join = await imports<typeof import('path')['join']>('path', 'join');
       const promises: Promise<void>[] = domains.map(async (domain) => {
-        const hasGetModelsMethodDefined = typeof domain.getModels === 'function';
+        const hasGetModelsMethodDefined =
+          typeof domain.getModels === 'function';
         if (hasGetModelsMethodDefined) {
           const models = await Promise.resolve(domain.getModels());
           models.forEach((model) => {
             this.#cachedModelsByModelName[model.name] = {
               domainPath: domain.path,
               domainName: domain.name,
-              model
+              model,
             };
           });
         } else if (join) {
           const fullPath = join(domain.path, 'models');
           try {
             const models = await import(fullPath);
-            const modelsArray: ReturnType<typeof Model>[] = Object.values(models);
+            const modelsArray: ReturnType<typeof Model>[] =
+              Object.values(models);
 
             for (const model of modelsArray) {
               if (model.prototype instanceof BaseModel) {
                 this.#cachedModelsByModelName[model.name] = {
                   domainPath: domain.path,
                   domainName: domain.name,
-                  model
+                  model,
                 };
               }
             }
           } catch (e) {
             const error: any = e;
             if (error.code === ERR_MODULE_NOT_FOUND) {
-              await logging.logMessage(LOGGING_DATABASE_MODELS_NOT_FOUND, { domainName: fullPath });
+              await logging.logMessage(LOGGING_DATABASE_MODELS_NOT_FOUND, {
+                domainName: fullPath,
+              });
             } else {
               throw e;
             }

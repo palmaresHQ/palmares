@@ -1,24 +1,27 @@
-import { logging, MessageCategories } from "@palmares/core";
+import { logging, MessageCategories } from '@palmares/core';
 
-import Server from ".";
-import { ControllerHandlerType, FunctionControllerType } from "../controllers/types";
-import Middleware from "../middlewares";
-import { BaseRoutesType } from "../routers/types";
-import { PathParamsType } from "../types";
-import { LOGGING_REQUEST } from "../utils";
+import Server from '.';
+import {
+  ControllerHandlerType,
+  FunctionControllerType,
+} from '../controllers/types';
+import Middleware from '../middlewares';
+import { BaseRoutesType } from '../routers/types';
+import { PathParamsType } from '../types';
+import { LOGGING_REQUEST } from '../utils';
 import {
   CannotParsePathParameterException,
-  NotImplementedServerException
-} from "./exceptions";
+  NotImplementedServerException,
+} from './exceptions';
 import {
   PathParamsTypes,
   PathParams,
   RawParamsType,
   PathParamsParser,
-  HandlersType
-} from "./types";
-import HttpException from "../handler-exceptions";
-import { HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR } from "../status";
+  HandlersType,
+} from './types';
+import HttpException from '../handler-exceptions';
+import { HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR } from '../status';
 
 /**
  * This class is responsible for translating the routes to something that the lib can understand.
@@ -54,28 +57,31 @@ export default class ServerRoutes {
     const isRegexPath = regexPath.test(path);
     if (isNonRegexPath) {
       const allMatches = path.match(nonRegexPath) || [];
-      return allMatches.map(match => {
+      return allMatches.map((match) => {
         const withoutTypeRegex = /^<\w+>$/;
         const isMatchWithoutType = withoutTypeRegex.test(match);
         if (isMatchWithoutType) {
           return {
             value: match,
             paramName: match.replace(/(<|>)/g, ''),
-            paramType: 'string'
+            paramType: 'string',
           };
         }
 
         const valueOfMatch = match.match(valueRegex);
         if (valueOfMatch) {
           const paramName = valueOfMatch[0].replace(/(\s|:|^<)/g, '');
-          const paramType = match.replace(valueOfMatch[0], '').replace(/\s|>$/g, '');
-          const isOfTypeStringOrNumber = paramType === 'string' || paramType === 'number';
+          const paramType = match
+            .replace(valueOfMatch[0], '')
+            .replace(/\s|>$/g, '');
+          const isOfTypeStringOrNumber =
+            paramType === 'string' || paramType === 'number';
           if (isOfTypeStringOrNumber) {
             return {
               value: match,
               paramName,
-              paramType: paramType as "string" | "number"
-            }
+              paramType: paramType as 'string' | 'number',
+            };
           }
         }
         throw new CannotParsePathParameterException(path, match);
@@ -83,16 +89,18 @@ export default class ServerRoutes {
     }
     if (isRegexPath) {
       const allMatches = path.match(regexPath) || [];
-      return allMatches.map(match => {
+      return allMatches.map((match) => {
         const valueOfMatch = match.match(valueRegex);
         if (valueOfMatch) {
           const paramName = valueOfMatch[0].replace(/(\s|:|^<)/g, '');
-          const paramType = new RegExp(match.replace(valueOfMatch[0], '').replace(/\s|>$/g, ''));
+          const paramType = new RegExp(
+            match.replace(valueOfMatch[0], '').replace(/\s|>$/g, '')
+          );
           return {
             value: match,
             paramName,
-            paramType
-          }
+            paramType,
+          };
         }
         throw new CannotParsePathParameterException(path, match);
       });
@@ -123,10 +131,10 @@ export default class ServerRoutes {
    *
    * @returns - A promise that resolves to the path translated to the framework that is being used.
    */
-  async getPathHandlerAndMiddlewares<R = undefined>(
+  async getPathHandlerAndMiddlewares(
     path: string,
-    handler: ControllerHandlerType,
-  ){
+    handler: ControllerHandlerType
+  ) {
     let formattedPath = path;
     const pathParameters = await this.#getPathParameters(path);
     const pathParamsParser = await this.#getPathParamsParser(pathParameters);
@@ -135,18 +143,25 @@ export default class ServerRoutes {
         pathParameter.paramName,
         pathParameter.paramType
       );
-      formattedPath = formattedPath.replace(pathParameter.value, translatedParameter);
+      formattedPath = formattedPath.replace(
+        pathParameter.value,
+        translatedParameter
+      );
     });
     await Promise.all(promises);
 
     // This returns the loaded data from the
-    const loadedMiddlewareData = await this.#getLoadedMiddlewares(handler.middlewares || []);
+    const loadedMiddlewareData = await this.#getLoadedMiddlewares(
+      handler.middlewares || []
+    );
 
-    const formattedHandler = await this.getHandlerForPath(handler, { pathParamsParser });
+    const formattedHandler = await this.getHandlerForPath(handler, {
+      pathParamsParser,
+    });
     return {
       path: formattedPath,
       handler: formattedHandler,
-      middlewares: loadedMiddlewareData
+      middlewares: loadedMiddlewareData,
     };
   }
 
@@ -162,7 +177,9 @@ export default class ServerRoutes {
    * @returns - A promise that resolves to the path params parser function that receives the path parameters
    * and parses them.
    */
-  async #getPathParamsParser(pathParams: PathParams[]): Promise<PathParamsParser> {
+  async #getPathParamsParser(
+    pathParams: PathParams[]
+  ): Promise<PathParamsParser> {
     return (rawParams: RawParamsType) => {
       const params: PathParamsType = {};
       for (const pathParam of pathParams) {
@@ -175,7 +192,10 @@ export default class ServerRoutes {
             params[pathParam.paramName] = paramValue;
           } else if (isNumberParamType) {
             params[pathParam.paramName] = parseInt(paramValue);
-          } else if (isRegexParamType && (pathParam.paramType as RegExp).test(paramValue)) {
+          } else if (
+            isRegexParamType &&
+            (pathParam.paramType as RegExp).test(paramValue)
+          ) {
             params[pathParam.paramName] = paramValue;
           }
         }
@@ -213,9 +233,13 @@ export default class ServerRoutes {
    * @returns - A promise that resolves to the data returned from the `load()` method of the middleware.
    */
   async #getLoadedMiddlewares(middlewares: typeof Middleware[]) {
-    return (await Promise.all(middlewares.map(async middleware =>
-      (await middleware.load<undefined>(this.server))
-    ))).filter(data => data !== undefined);
+    return (
+      await Promise.all(
+        middlewares.map(
+          async (middleware) => await middleware.load<undefined>(this.server)
+        )
+      )
+    ).filter((data) => data !== undefined);
   }
 
   /**
@@ -233,26 +257,32 @@ export default class ServerRoutes {
    * handler if there are no middlewares.
    */
   async #getHandlerWithMiddlewaresAttached(
-    handler: ControllerHandlerType,
+    handler: ControllerHandlerType
   ): Promise<FunctionControllerType> {
     const rootMiddlewares = await this.server.getRootMiddlewares();
-    const middlewareClasses = rootMiddlewares.concat((handler.middlewares || []));
+    const middlewareClasses = rootMiddlewares.concat(handler.middlewares || []);
     let requestHandler = handler.handler;
 
     const previousMiddleware = middlewareClasses[0];
     if (previousMiddleware) {
       let initializedPreviousMiddleware = new previousMiddleware();
-      requestHandler = initializedPreviousMiddleware.run.bind(initializedPreviousMiddleware);
+      requestHandler = initializedPreviousMiddleware.run.bind(
+        initializedPreviousMiddleware
+      );
 
       for (let i = 1; i < middlewareClasses.length; i++) {
         const nextMiddleware = middlewareClasses[i];
         const initializedNextMiddleware = new nextMiddleware();
-        await initializedPreviousMiddleware.__init(initializedNextMiddleware.run.bind(initializedNextMiddleware));
+        await initializedPreviousMiddleware.__init(
+          initializedNextMiddleware.run.bind(initializedNextMiddleware)
+        );
         initializedPreviousMiddleware = initializedNextMiddleware;
       }
-      await initializedPreviousMiddleware.__init(handler.handler.bind(handler.handler));
+      await initializedPreviousMiddleware.__init(
+        handler.handler.bind(handler.handler)
+      );
     }
-    return requestHandler
+    return requestHandler;
   }
 
   /**
@@ -279,18 +309,20 @@ export default class ServerRoutes {
     return async (req: any, options = {}) => {
       const elapsedStartTime = performance.now();
 
-      const request = await this.server.requests.translate(req, handler.options);
-      if (pathParamsParser) await request._appendPathParamsParser(pathParamsParser);
+      const request = await this.server.requests.translate(
+        req,
+        handler.options
+      );
+      if (pathParamsParser)
+        await request._appendPathParamsParser(pathParamsParser);
       request.values = options;
-      const requestHandler = await this.#getHandlerWithMiddlewaresAttached(handler);
+      const requestHandler = await this.#getHandlerWithMiddlewaresAttached(
+        handler
+      );
 
       let response;
       try {
-        response = await Promise.resolve(
-          requestHandler(
-            request
-          )
-        );
+        response = await Promise.resolve(requestHandler(request));
       } catch (e) {
         const isHttpError = e instanceof HttpException;
         const error = e as Error;
@@ -298,37 +330,46 @@ export default class ServerRoutes {
         else if (this.server.settings.DEBUG) {
           const exception = new HttpException({
             status: HTTP_500_INTERNAL_SERVER_ERROR,
-            body: error.stack
+            body: error.stack,
           });
           response = await exception.getResponse();
-        }
-        else {
-          const exception = new HttpException({ status: HTTP_500_INTERNAL_SERVER_ERROR });
+        } else {
+          const exception = new HttpException({
+            status: HTTP_500_INTERNAL_SERVER_ERROR,
+          });
           logging.error(error.stack as string);
           response = await exception.getResponse();
-        };
+        }
       }
       if (is404Handler) response.status = HTTP_404_NOT_FOUND;
-      const translatedResponse = await this.server.responses.initialize(response, options);
+      const translatedResponse = await this.server.responses.initialize(
+        response,
+        options
+      );
 
       const elapsedEndTime = performance.now();
       const elapsedTime = elapsedEndTime - elapsedStartTime;
 
-      const loggingCategory =
-        response.ok ? MessageCategories.Info :
-        response.warn ? MessageCategories.Warn :
-        MessageCategories.Error;
-      logging.logMessage(LOGGING_REQUEST, {
-        method: request.method,
-        path: request.path,
-        elapsedTime: elapsedTime,
-        userAgent: request.userAgent,
-        loggerType: loggingCategory,
-        statusCode: response.status
-      }, loggingCategory);
+      const loggingCategory = response.ok
+        ? MessageCategories.Info
+        : response.warn
+        ? MessageCategories.Warn
+        : MessageCategories.Error;
+      logging.logMessage(
+        LOGGING_REQUEST,
+        {
+          method: request.method,
+          path: request.path,
+          elapsedTime: elapsedTime,
+          userAgent: request.userAgent,
+          loggerType: loggingCategory,
+          statusCode: response.status,
+        },
+        loggingCategory
+      );
 
       return translatedResponse;
-    }
+    };
   }
 
   /**
@@ -341,11 +382,23 @@ export default class ServerRoutes {
    *
    * @returns - A string that is going to be used to translate the route to the framework.
    */
-  async translatePathParameter(name: string, type: PathParamsTypes): Promise<string> {
-    throw new NotImplementedServerException(this.server.constructor.name, 'translatePathParameter');
+  async translatePathParameter(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    name: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    type: PathParamsTypes
+  ): Promise<string> {
+    throw new NotImplementedServerException(
+      this.server.constructor.name,
+      'translatePathParameter'
+    );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async initialize(routes: BaseRoutesType[]): Promise<void> {
-    throw new NotImplementedServerException(this.server.constructor.name, 'initialize');
+    throw new NotImplementedServerException(
+      this.server.constructor.name,
+      'initialize'
+    );
   }
 }

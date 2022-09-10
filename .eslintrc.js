@@ -3,8 +3,12 @@ module.exports = {
   env: {
     node: true,
   },
-  plugins: ['@typescript-eslint/eslint-plugin'],
+  plugins: ['@typescript-eslint/eslint-plugin', 'import', 'file-progress'],
   extends: [
+    'eslint:recommended',
+    'plugin:prettier/recommended',
+    'plugin:import/recommended',
+    'plugin:import/typescript',
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
     'prettier',
@@ -14,34 +18,61 @@ module.exports = {
       files: ['**/*.ts'],
       parser: '@typescript-eslint/parser',
       parserOptions: {
+        tsconfigRootDir: __dirname,
         project: 'tsconfig.json',
         sourceType: 'module',
       },
       rules: {
         '@typescript-eslint/interface-name-prefix': 'off',
         '@typescript-eslint/explicit-function-return-type': 'off',
-        '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/explicit-module-boundary-types': 'off',
-        '@typescript-eslint/no-unused-vars': 'off',
-        '@typescript-eslint/ban-types': 'off',
+        '@typescript-eslint/no-explicit-any': 'off',
+        '@typescript-eslint/no-namespace': 'off',
+        '@typescript-eslint/no-unused-vars': 'error',
+        '@typescript-eslint/no-floating-promises': 'off',
+        'import/no-unresolved': 'error',
+        'import/no-extraneous-dependencies': [
+          'warn',
+          { devDependencies: ['**/*.test.*', '**/*.spec.*', '**/*.*-spec.*'] },
+        ],
+        'file-progress/activate': 1,
+        'prettier/prettier': [
+          'error',
+          {
+            endOfLine: 'auto',
+          },
+        ],
       },
     },
     {
       files: ['**/*.spec.ts', 'integration/**/*.ts'],
       parser: '@typescript-eslint/parser',
       parserOptions: {
+        tsconfigRootDir: __dirname,
         project: 'tsconfig.spec.json',
         sourceType: 'module',
       },
       rules: {
         '@typescript-eslint/interface-name-prefix': 'off',
         '@typescript-eslint/explicit-function-return-type': 'off',
-        '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/explicit-module-boundary-types': 'off',
-        '@typescript-eslint/no-unused-vars': 'off',
-        '@typescript-eslint/ban-types': 'off',
-        '@typescript-eslint/no-empty-function': 'off',
+        '@typescript-eslint/no-explicit-any': 'warn',
+        '@typescript-eslint/no-namespace': 'off',
+        '@typescript-eslint/no-unused-vars': 'error',
+        '@typescript-eslint/no-floating-promises': 'error',
+        'import/no-unresolved': 'error',
+        'import/no-extraneous-dependencies': [
+          'warn',
+          { devDependencies: ['**/*.test.*', '**/*.spec.*', '**/*.*-spec.*'] },
+        ],
+        'file-progress/activate': 1,
+        'prettier/prettier': [
+          'error',
+          {
+            endOfLine: 'auto',
+          },
+        ],
       },
-    }
-  ]
+    },
+  ],
 };

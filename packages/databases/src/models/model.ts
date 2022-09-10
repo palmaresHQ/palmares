@@ -1,19 +1,20 @@
-import Engine from "../engine";
+/* eslint-disable @typescript-eslint/ban-types */
+import Engine from '../engine';
 import {
   ModelFieldsType,
   ModelOptionsType,
   ModelFields,
   ManagersOfInstanceType,
-} from "./types";
+} from './types';
 import {
   ModelCircularAbstractError,
   ModelInvalidAbstractFieldError,
   ModelInvalidAbstractManagerError,
-  ModelNoUniqueFieldsError
-} from "./exceptions";
-import Manager, { DefaultManager } from "./manager";
-import { getUniqueCustomImports } from "../utils";
-import { CustomImportsForFieldType } from "./fields/types";
+  ModelNoUniqueFieldsError,
+} from './exceptions';
+import Manager, { DefaultManager } from './manager';
+import { getUniqueCustomImports } from '../utils';
+import { CustomImportsForFieldType } from './fields/types';
 
 /**
  * This class is used for initializing a model. This will work similar to django except that instead of
@@ -100,8 +101,15 @@ import { CustomImportsForFieldType } from "./fields/types";
  */
 
 export class Model<T = any> {
-  [managers: string]: Manager | ModelFieldsType |
-    ModelOptionsType<T extends Model ? T : this> | readonly Model[] | string | string[] | boolean | Function;
+  [managers: string]:
+    | Manager
+    | ModelFieldsType
+    | ModelOptionsType<T extends Model ? T : this>
+    | readonly Model[]
+    | string
+    | string[]
+    | boolean
+    | Function;
   fields: ModelFieldsType = {};
   type!: ModelFields<T extends Model ? T : this>;
   _isState = false;
@@ -122,8 +130,8 @@ export class Model<T = any> {
     ordering: [],
     indexes: [],
     databases: ['default'],
-    customOptions: {}
-  }
+    customOptions: {},
+  };
 
   constructor() {
     if (this.options?.abstract) this.options.managed = false;
@@ -167,37 +175,52 @@ export class Model<T = any> {
    * @param composedAbstracts - We can have an abstract with an abstract and so on, for that a recursive approach
    * seems a good solution, this is an array with all of the abstracts that were already loaded for the current model.
    */
-  async #loadAbstract(abstractInstance: Model, composedAbstracts: string[]): Promise<void> {
+  async #loadAbstract(
+    abstractInstance: Model,
+    composedAbstracts: string[]
+  ): Promise<void> {
     const abstractInstanceName = abstractInstance.constructor.name;
     if (composedAbstracts.includes(abstractInstanceName)) {
-      throw new ModelCircularAbstractError(this.constructor.name, abstractInstanceName);
+      throw new ModelCircularAbstractError(
+        this.constructor.name,
+        abstractInstanceName
+      );
     }
 
-    const abstractManagers: [string, Manager][] = Object.entries(this.#getManagers(abstractInstance));
+    const abstractManagers: [string, Manager][] = Object.entries(
+      this.#getManagers(abstractInstance)
+    );
     const abstractFieldEntries = Object.entries(abstractInstance.fields);
     const loadAbstractPromises = abstractInstance.abstracts.map(
       (abstractKlsFromAbstract) => {
-        return this.#loadAbstract(abstractKlsFromAbstract, composedAbstracts)
+        return this.#loadAbstract(abstractKlsFromAbstract, composedAbstracts);
       }
     );
 
     for (const [fieldName, field] of abstractFieldEntries) {
       if (this.fields[fieldName]) {
-        throw new ModelInvalidAbstractFieldError(this.constructor.name, abstractInstanceName, fieldName);
+        throw new ModelInvalidAbstractFieldError(
+          this.constructor.name,
+          abstractInstanceName,
+          fieldName
+        );
       }
       this.fields[fieldName] = field;
     }
 
-    const areAbstractInstanceOptionsDefined = Object.keys(abstractInstance.options).length > 1;
+    const areAbstractInstanceOptionsDefined =
+      Object.keys(abstractInstance.options).length > 1;
     if (this.options === undefined && areAbstractInstanceOptionsDefined) {
-      this.options = abstractInstance.options
+      this.options = abstractInstance.options;
       this.options.abstract = false;
     }
 
     for (const [managerName, managerInstance] of abstractManagers) {
       if (this[managerName]) {
         throw new ModelInvalidAbstractManagerError(
-          this.constructor.name, abstractInstanceName, managerName
+          this.constructor.name,
+          abstractInstanceName,
+          managerName
         );
       }
       this[managerName] = managerInstance;
@@ -222,13 +245,13 @@ export class Model<T = any> {
     }
   }
 
-  async #initializeFields(engineInstance: Engine): Promise<void> {
+  async #initializeFields(engineInstance?: Engine): Promise<void> {
     let modelHasNoUniqueFields = true;
     const allFields = Object.entries(this.fields);
     const promises = allFields.map(([fieldName, field]) => {
       if (field.unique) modelHasNoUniqueFields = false;
-      return field.init(engineInstance, fieldName, this);
-    })
+      return field.init(fieldName, this, engineInstance);
+    });
     await Promise.all(promises);
     if (modelHasNoUniqueFields) {
       throw new ModelNoUniqueFieldsError(this.constructor.name);
@@ -238,7 +261,7 @@ export class Model<T = any> {
   async #initializeOptions() {
     this.options = {
       ...Model.defaultOptions,
-      ...this.options
+      ...this.options,
     };
   }
 
@@ -253,12 +276,21 @@ export class Model<T = any> {
     }
   }
 
-  async _init(
-    modelKls: typeof Model | Function,
-    engineInstance: Engine,
-    domainName: string,
-    domainPath: string
-  ) {
+  async initializeBasic(engineInstance?: Engine) {
+    if (this._isState) {
+      this.originalName = this.name;
+      this.name = `State${this.name}`;
+    } else {
+      this.originalName = this.constructor.name;
+      this.name = this.constructor.name;
+    }
+
+    await this.#initializeAbstracts();
+    await this.#initializeOptions();
+    await this.#initializeFields(engineInstance);
+  }
+
+  async _init(engineInstance: Engine, domainName: string, domainPath: string) {
     this.domainName = domainName;
     this.domainPath = domainPath;
 
@@ -266,17 +298,17 @@ export class Model<T = any> {
       this.originalName = this.name;
       this.name = `State${this.name}`;
     } else {
-      this.originalName = modelKls.name;
-      this.name = modelKls.name;
+      this.originalName = this.constructor.name;
+      this.name = this.constructor.name;
     }
 
     await this.#initializeAbstracts();
     await this.#initializeOptions();
     await this.#initializeFields(engineInstance);
 
-    const modelInstance = await engineInstance.initializeModel(this);
+    const modelInstance = (await engineInstance.initializeModel(this)) as any;
     await this.#initializeManagers(engineInstance, modelInstance);
-    return modelInstance
+    return modelInstance;
   }
 
   /**
@@ -289,42 +321,48 @@ export class Model<T = any> {
    * @returns - Returns true if the models are equal and false otherwise.
    */
   async _compareModels(model: Model): Promise<boolean> {
-    return this.options.abstract === model.options.abstract &&
+    return (
+      this.options.abstract === model.options.abstract &&
       this.options.underscored === model.options.underscored &&
       this.options.tableName === model.options.tableName &&
-      JSON.stringify(this.options.ordering) === JSON.stringify(model.options.ordering) &&
-      JSON.stringify(this.options.indexes) === JSON.stringify(model.options.indexes) &&
-      JSON.stringify(this.options.databases) === JSON.stringify(model.options.databases) &&
-      JSON.stringify(this.options.customOptions) === JSON.stringify(model.options.customOptions)
+      JSON.stringify(this.options.ordering) ===
+        JSON.stringify(model.options.ordering) &&
+      JSON.stringify(this.options.indexes) ===
+        JSON.stringify(model.options.indexes) &&
+      JSON.stringify(this.options.databases) ===
+        JSON.stringify(model.options.databases) &&
+      JSON.stringify(this.options.customOptions) ===
+        JSON.stringify(model.options.customOptions)
+    );
   }
 
   static async _fieldsToString(
     indentation = 0,
     fields: ModelFieldsType
-  ): Promise<{ asString: string, customImports: CustomImportsForFieldType[] }> {
+  ): Promise<{ asString: string; customImports: CustomImportsForFieldType[] }> {
     const customImportsOfModel: CustomImportsForFieldType[] = [];
     const allFields = Object.entries(fields);
     const ident = '  '.repeat(indentation);
-    const fieldsIdent = '  '.repeat(indentation+1);
+    const fieldsIdent = '  '.repeat(indentation + 1);
 
     const stringifiedFields = [];
     for (let i = 0; i < allFields.length; i++) {
-      const fieldName = allFields[i][0]
-      const field = allFields[i][1]
+      const fieldName = allFields[i][0];
+      const field = allFields[i][1];
       const isLastField = i === allFields.length - 1;
       const customImportsOfField = await field.customImports();
       stringifiedFields.push(
-        `${fieldsIdent}${fieldName}: ${
-          (await field.toString(indentation + 1)).replace(new RegExp(`^${fieldsIdent}`), '')
-        },${isLastField ? '' : '\n'}`
+        `${fieldsIdent}${fieldName}: ${(
+          await field.toString(indentation + 1)
+        ).replace(new RegExp(`^${fieldsIdent}`), '')},${
+          isLastField ? '' : '\n'
+        }`
       );
       getUniqueCustomImports(customImportsOfField, customImportsOfModel);
     }
     return {
-      asString: `${ident}{\n` +
-      `${stringifiedFields.join('')}` +
-      `\n${ident}}`,
-      customImports: customImportsOfModel
+      asString: `${ident}{\n` + `${stringifiedFields.join('')}` + `\n${ident}}`,
+      customImports: customImportsOfModel,
     };
   }
 
@@ -333,30 +371,44 @@ export class Model<T = any> {
     const optionsIndent = '  '.repeat(indentation + 1);
     const newOptions = {
       ...this.defaultOptions,
-      ...options
-    }
-    return `${ident}{\n` +
+      ...options,
+    };
+    return (
+      `${ident}{\n` +
       `${optionsIndent}abstract: ${newOptions.abstract},\n` +
       `${optionsIndent}underscored: ${newOptions.underscored},\n` +
-      `${optionsIndent}tableName: ${typeof newOptions.tableName === 'string' ?
-        `"${newOptions.tableName}"` :
-        newOptions.tableName
+      `${optionsIndent}tableName: ${
+        typeof newOptions.tableName === 'string'
+          ? `"${newOptions.tableName}"`
+          : newOptions.tableName
       },\n` +
       `${optionsIndent}managed: ${newOptions.managed},\n` +
-      `${optionsIndent}ordering: [${newOptions.ordering ?
-        newOptions.ordering?.map(field => `"${field as string}"`) :
-          ''
-        }],\n` +
-      `${optionsIndent}indexes: [${newOptions.indexes ?
-        newOptions.indexes?.map((dbIndex, i) =>
-          `{ unique: ${dbIndex.unique}, fields: ${dbIndex.fields.map(field => `"${field}"`)} }` +
-          `${i === (newOptions.indexes?.length || 1) - 1 ? '' : ',' }`) :
-        ''}],\n` +
-      `${optionsIndent}databases: [${newOptions.databases ?
-        newOptions.databases?.map(database => `"${database}"`) :
-        ''}],\n` +
-      `${optionsIndent}customOptions: ${JSON.stringify(newOptions.customOptions)}\n` +
-      `${ident}}`;
+      `${optionsIndent}ordering: [${
+        newOptions.ordering
+          ? newOptions.ordering?.map((field) => `"${field as string}"`)
+          : ''
+      }],\n` +
+      `${optionsIndent}indexes: [${
+        newOptions.indexes
+          ? newOptions.indexes?.map(
+              (dbIndex, i) =>
+                `{ unique: ${dbIndex.unique}, fields: ${dbIndex.fields.map(
+                  (field) => `"${field}"`
+                )} }` +
+                `${i === (newOptions.indexes?.length || 1) - 1 ? '' : ','}`
+            )
+          : ''
+      }],\n` +
+      `${optionsIndent}databases: [${
+        newOptions.databases
+          ? newOptions.databases?.map((database) => `"${database}"`)
+          : ''
+      }],\n` +
+      `${optionsIndent}customOptions: ${JSON.stringify(
+        newOptions.customOptions
+      )}\n` +
+      `${ident}}`
+    );
   }
 }
 
@@ -366,6 +418,6 @@ export class Model<T = any> {
  */
 export default function model<M>() {
   return class DefaultModel extends Model<M> {
-    static default = new DefaultManager<M extends Model ? M : Model>()
-  }
+    static default = new DefaultManager<M extends Model ? M : Model>();
+  };
 }

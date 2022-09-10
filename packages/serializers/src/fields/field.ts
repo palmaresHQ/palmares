@@ -1,10 +1,20 @@
-import log from "../logging";
-import { LOGGING_NOT_FOUND_WARN_MESSAGE } from "../utils";
-import ValidationError, { FieldSourcesError, InvalidSerializerSchemaError } from "../exceptions";
-import getSettings from "../settings";
-import { FieldParamsType, InFieldType, OutFieldType, FieldType, CallbackIfDefinedToInternal, CallbackIfDefinedToRepresentation } from './types';
-import { ErrorMessagesType, This } from "../types"
-import Schema from "../schema";
+import log from '../logging';
+import { LOGGING_NOT_FOUND_WARN_MESSAGE } from '../utils';
+import ValidationError, {
+  FieldSourcesError,
+  InvalidSerializerSchemaError,
+} from '../exceptions';
+import getSettings from '../settings';
+import {
+  FieldParamsType,
+  InFieldType,
+  OutFieldType,
+  FieldType,
+  CallbackIfDefinedToInternal,
+  CallbackIfDefinedToRepresentation,
+} from './types';
+import { ErrorMessagesType, This } from '../types';
+import Schema from '../schema';
 
 /**
  * A field represents all fields in Palmares serializers even a serializer itself. This is tightly based on Django Rest Framework, you will view
@@ -71,8 +81,12 @@ export default class Field<
   protected _schema!: Schema;
 
   type!: FieldType<any, N, R, D>;
-  inType!: InFieldType<FieldType<any, N, R, D>, RO> | InFieldType<FieldType<any, N, R, D>, RO>[];
-  outType!: OutFieldType<FieldType<any, N, R, D>, WO> | OutFieldType<FieldType<any, N, R, D>, WO>[];
+  inType!:
+    | InFieldType<FieldType<any, N, R, D>, RO>
+    | InFieldType<FieldType<any, N, R, D>, RO>[];
+  outType!:
+    | OutFieldType<FieldType<any, N, R, D>, WO>
+    | OutFieldType<FieldType<any, N, R, D>, WO>[];
 
   context = {} as C;
   source: string | undefined;
@@ -83,7 +97,7 @@ export default class Field<
   writeOnly: WO;
   errorMessages: {
     [key: string | symbol]: ErrorMessagesType;
-  }
+  };
 
   #defaultParams: FieldParamsType<I, D, N, R, RO, WO> = {
     source: undefined,
@@ -92,8 +106,8 @@ export default class Field<
     allowNull: false as N,
     readOnly: false as RO,
     writeOnly: false as WO,
-    errorMessages: {}
-  }
+    errorMessages: {},
+  };
 
   constructor(params: FieldParamsType<I, D, N, R, RO, WO> = {}) {
     this.errorMessages = {
@@ -108,24 +122,31 @@ export default class Field<
     const isWriteOnlyDefined = typeof params.writeOnly === 'boolean';
 
     this.source = params.source || this.#defaultParams.source;
-    this.required = (isRequiredDefined ? params.required : this.#defaultParams.required) as R;
-    this.defaultValue = params.defaultValue || this.#defaultParams.defaultValue as D;
-    this.allowNull = (isAllowNullDefined ? params.allowNull : this.#defaultParams.allowNull) as N;
-    this.readOnly = (isReadOnlyDefined ? params.readOnly : this.#defaultParams.readOnly) as RO;
-    this.writeOnly = (isWriteOnlyDefined ? params.writeOnly : this.#defaultParams.writeOnly) as WO;
+    this.required = (
+      isRequiredDefined ? params.required : this.#defaultParams.required
+    ) as R;
+    this.defaultValue =
+      params.defaultValue || (this.#defaultParams.defaultValue as D);
+    this.allowNull = (
+      isAllowNullDefined ? params.allowNull : this.#defaultParams.allowNull
+    ) as N;
+    this.readOnly = (
+      isReadOnlyDefined ? params.readOnly : this.#defaultParams.readOnly
+    ) as RO;
+    this.writeOnly = (
+      isWriteOnlyDefined ? params.writeOnly : this.#defaultParams.writeOnly
+    ) as WO;
   }
 
   static new<
     I extends This<typeof Field>,
-    D extends InstanceType<I>["inType"] | undefined = undefined,
+    D extends InstanceType<I>['inType'] | undefined = undefined,
     N extends boolean = false,
     R extends boolean = true,
     RO extends boolean = false,
     WO extends boolean = false,
     C = any
-  >(
-    params: FieldParamsType<InstanceType<I>,D, N, R, RO, WO> = {}
-  ) {
+  >(params: FieldParamsType<InstanceType<I>, D, N, R, RO, WO> = {}) {
     return new this(params) as Field<InstanceType<I>, D, N, R, RO, WO, C>;
   }
 
@@ -138,11 +159,16 @@ export default class Field<
     if (isFieldNameNotDefined) this.#fieldName = name;
   }
 
-  async schema<S extends Schema, R = ReturnType<S['getField']>>(isIn = true, schema?: S): Promise<R | any> {
-    const settings = getSettings()
+  async schema<S extends Schema, R = ReturnType<S['getField']>>(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    isIn = true,
+    schema?: S
+  ): Promise<R | any> {
+    const settings = getSettings();
     if (!this._schema) {
       if (schema) this._schema = schema;
-      if (settings.SERIALIZER_SCHEMA) this._schema = new settings.SERIALIZER_SCHEMA();
+      if (settings.SERIALIZER_SCHEMA)
+        this._schema = new settings.SERIALIZER_SCHEMA();
       else throw new InvalidSerializerSchemaError();
     }
   }
@@ -155,23 +181,30 @@ export default class Field<
    * @param errorKey - The key of the error message to be thrown.
    */
   async fail(errorKey: string) {
-    const settings = getSettings()
-    const defaultRootErrorMessage = settings?.ERROR_MESSAGES ? settings.ERROR_MESSAGES[errorKey] : null
+    const settings = getSettings();
+    const defaultRootErrorMessage = settings?.ERROR_MESSAGES
+      ? settings.ERROR_MESSAGES[errorKey]
+      : null;
     const message = defaultRootErrorMessage || this.errorMessages[errorKey];
 
     if (message) {
       const isErrorMessageAFunction = typeof message === 'function';
-      const errorMessage = isErrorMessageAFunction ? await Promise.resolve(message()) : message;
-      const ValidationErrorClass = settings?.ERROR_CLASS as typeof ValidationError;
+      const errorMessage = isErrorMessageAFunction
+        ? await Promise.resolve(message())
+        : message;
+      const ValidationErrorClass =
+        settings?.ERROR_CLASS as typeof ValidationError;
       const isFieldNameDefined = typeof this.fieldName === 'string';
-      const meta = isFieldNameDefined ? {
-        fieldName: this.fieldName
-      } : undefined;
+      const meta = isFieldNameDefined
+        ? {
+            fieldName: this.fieldName,
+          }
+        : undefined;
 
       throw new ValidationErrorClass({
         reason: errorKey,
         description: errorMessage,
-        meta
+        meta,
       });
     } else {
       log(LOGGING_NOT_FOUND_WARN_MESSAGE, { errorKey });
@@ -181,16 +214,22 @@ export default class Field<
   async _getSource(instance: any): Promise<any> {
     const sourceAsString = this.source as string;
     const isSourceToRetrieveHoleObject = sourceAsString === '*';
-    const isSourceDefinedAndNotWriteOnly = typeof sourceAsString === 'string' &&
-      this.writeOnly === false;
-    if (!isSourceDefinedAndNotWriteOnly || isSourceToRetrieveHoleObject) return instance;
+    const isSourceDefinedAndNotWriteOnly =
+      typeof sourceAsString === 'string' && this.writeOnly === false;
+    if (!isSourceDefinedAndNotWriteOnly || isSourceToRetrieveHoleObject)
+      return instance;
 
     let newInstance = undefined;
     const splittedSource = sourceAsString.split('.');
     for (const key of splittedSource) {
       const isValueDefined = instance[key] !== undefined;
       if (isValueDefined) newInstance = instance[key];
-      else throw new FieldSourcesError(this.constructor.name, sourceAsString, instance);
+      else
+        throw new FieldSourcesError(
+          this.constructor.name,
+          sourceAsString,
+          instance
+        );
     }
     return newInstance;
   }
@@ -198,40 +237,56 @@ export default class Field<
   protected async _getDefaultValue(data: undefined): Promise<D> {
     const dataIsNotDefined = data === undefined;
     const defaultValueIsNotUndefined = this.defaultValue !== undefined;
-    let dataWithDefaultValue: any  = data;
-    if (dataIsNotDefined && defaultValueIsNotUndefined) dataWithDefaultValue = this.defaultValue;
+    let dataWithDefaultValue: any = data;
+    if (dataIsNotDefined && defaultValueIsNotUndefined)
+      dataWithDefaultValue = this.defaultValue;
     return dataWithDefaultValue;
   }
 
   async toRepresentation(
-    data?: this["outType"],
+    data?: this['outType'],
     callbackIfDefined?: CallbackIfDefinedToRepresentation<I>
-  ): Promise<this["outType"] | Array<this["outType"]> | undefined | null> {
+  ): Promise<this['outType'] | Array<this['outType']> | undefined | null> {
     const isWriteOnly = this.writeOnly;
     if (isWriteOnly) return undefined;
     const sourceData = await this._getSource(data);
-    const formattedData: this["type"] | null | undefined = await this._getDefaultValue(sourceData);
-    const isDataNotNullNorUndefined = ![null, undefined].includes(formattedData);
+    const formattedData: this['type'] | null | undefined =
+      await this._getDefaultValue(sourceData);
+    const isDataNotNullNorUndefined = ![null, undefined].includes(
+      formattedData
+    );
     if (this.writeOnly) return undefined;
-    if (callbackIfDefined && isDataNotNullNorUndefined) return callbackIfDefined(formattedData as Exclude<this["type"], null | undefined>);
+    if (callbackIfDefined && isDataNotNullNorUndefined)
+      return callbackIfDefined(
+        formattedData as Exclude<this['type'], null | undefined>
+      );
     return data;
   }
 
-  async validate(data: this["inType"]) {
+  async validate(data: this['inType']) {
     const isDataDefined = data !== undefined;
-    const isDataNullAndDoesNotAllowNull = data === null && this.allowNull === false;
-    const isRequiredAndNotReadOnly = this.required === true && this.readOnly === false;
+    const isDataNullAndDoesNotAllowNull =
+      data === null && this.allowNull === false;
+    const isRequiredAndNotReadOnly =
+      this.required === true && this.readOnly === false;
     if (!isDataDefined && isRequiredAndNotReadOnly) await this.fail('required');
     if (isDataNullAndDoesNotAllowNull) await this.fail('null');
   }
 
   async toInternal(
-    data?: this["inType"],
+    data?: this['inType'],
     callbackIfDefined?: CallbackIfDefinedToInternal<I>
-  ): Promise<this["inType"] | Array<this["inType"]> | undefined | null> {
+  ): Promise<this['inType'] | Array<this['inType']> | undefined | null> {
     const isDataNotNullNorUndefined = data !== null && data !== undefined;
 
-    if (!isDataNotNullNorUndefined) return await this._getDefaultValue(data as undefined) as InFieldType<this["type"], RO>;
-    else if (callbackIfDefined) return callbackIfDefined(data as Exclude<this["inType"], null | undefined>);
+    if (!isDataNotNullNorUndefined)
+      return (await this._getDefaultValue(data as undefined)) as InFieldType<
+        this['type'],
+        RO
+      >;
+    else if (callbackIfDefined)
+      return callbackIfDefined(
+        data as Exclude<this['inType'], null | undefined>
+      );
   }
 }

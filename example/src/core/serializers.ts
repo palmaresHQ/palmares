@@ -2,22 +2,26 @@ import {
   Serializer,
   OutSerializerType,
   StringField,
-  SerializerFieldsType,
   ModelSerializer,
-  ModelSerializerOptions
 } from '@palmares/serializers';
-import { Post } from './models';
-import { ModelFields } from '@palmares/databases';
+import { Post, User } from './models';
+
+class UserSerializer extends ModelSerializer {
+  options = {
+    model: User,
+    excludes: ['password'] as const,
+  };
+}
 
 export class PostSerializer extends ModelSerializer {
   fields = {
-    teste: StringField.new({ readOnly: true, allowNull: true}),
-  }
+    userPosts: UserSerializer.new({ required: false }),
+  };
 
   options = {
     model: Post,
-    excludes: [] as const
-  }
+    excludes: [] as const,
+  };
 }
 
 class NestedSerializer extends Serializer {
@@ -26,8 +30,8 @@ class NestedSerializer extends Serializer {
   }
 
   fields = {
-    phoneNumber: StringField.new()
-  }
+    phoneNumber: StringField.new(),
+  };
 }
 
 export class ExampleSerializer extends Serializer {
@@ -36,8 +40,13 @@ export class ExampleSerializer extends Serializer {
   }
 
   fields = {
-    firstName: StringField.new({ defaultValue: 'string', allowNull: false, writeOnly: true, required: false}),
-    lastName: StringField.new({ readOnly: true, allowNull: true}),
-    nested: NestedSerializer.new({ allowNull: false })
-  }
+    firstName: StringField.new({
+      defaultValue: 'string',
+      allowNull: false,
+      writeOnly: true,
+      required: false,
+    }),
+    lastName: StringField.new({ readOnly: true, allowNull: true }),
+    nested: NestedSerializer.new({ allowNull: false }),
+  };
 }

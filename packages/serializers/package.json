@@ -21,5 +21,8 @@
   "bugs": {
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
-  "homepage": "https://github.com/palmaresHQ/palmares#readme"
+  "homepage": "https://github.com/palmaresHQ/palmares#readme",
+  "peerDependencies": {
+    "@palmares/databases": "*"
+  }
 }

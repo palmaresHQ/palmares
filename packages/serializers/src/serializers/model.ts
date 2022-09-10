@@ -1,20 +1,19 @@
 import { Database, ModelFields, models } from '@palmares/databases';
 
-import Serializer from ".";
+import Serializer from '.';
 import type {
   SerializerType,
   SerializerFieldsType,
   InSerializerType,
   OutSerializerType,
   SerializerParamsTypeForConstructor,
-  SerializerParamsType,
   ModelSerializerOptions,
-  ModelSerializerParamsType
-} from "./types";
+  ModelSerializerParamsType,
+} from './types';
 import type { This } from '../types';
 import type { FieldType, InFieldType, OutFieldType } from '../fields/types';
 import { InvalidModelOnModelSerializerError } from '../exceptions';
-import { Field, NumberField, StringField } from '../fields';
+import { NumberField, StringField } from '../fields';
 
 export default class ModelSerializer<
   I extends ModelSerializer = any,
@@ -25,17 +24,52 @@ export default class ModelSerializer<
   R extends boolean = boolean,
   RO extends boolean = boolean,
   WO extends boolean = boolean,
-  MO extends ReturnType<typeof models.Model<MO>> = ReturnType<typeof models.Model>,
+  MO extends ReturnType<typeof models.Model> = ReturnType<typeof models.Model>,
   IN extends keyof ModelFields<InstanceType<MO>> = any,
-  EX extends keyof ModelFields<InstanceType<MO>> = any>
-extends Serializer<I, M, C, D, N, R, RO, WO> {
-  type!: FieldType<SerializerType<I>, N, R, D> & Pick<ModelFields<InstanceType<MO>>, Exclude<keyof InstanceType<MO>["fields"], EX>> & Pick<ModelFields<InstanceType<MO>>, IN>;
-  inSerializerType!: InFieldType<FieldType<InSerializerType<I>, N, R, D> & Pick<ModelFields<InstanceType<MO>>, Exclude<keyof InstanceType<MO>["fields"], EX>> & Pick<ModelFields<InstanceType<MO>>, IN>, RO>
-  inType!: M extends true ? this["inSerializerType"][] : this["inSerializerType"];
-  outSerializerType!: OutFieldType<FieldType<OutSerializerType<I>, N, R, D> & Pick<ModelFields<InstanceType<MO>>, Exclude<keyof InstanceType<MO>["fields"], EX>> & Pick<ModelFields<InstanceType<MO>>, IN>, WO>;
-  outType!: M extends true ? this["outSerializerType"][] : this["outSerializerType"];
+  EX extends keyof ModelFields<InstanceType<MO>> = any
+> extends Serializer<I, M, C, D, N, R, RO, WO> {
+  type!: FieldType<SerializerType<I>, N, R, D> &
+    Pick<
+      ModelFields<InstanceType<MO>>,
+      Exclude<keyof InstanceType<MO>['fields'], EX>
+    > &
+    Pick<ModelFields<InstanceType<MO>>, IN>;
+  inSerializerType!: InFieldType<
+    FieldType<
+      InSerializerType<I> &
+        Pick<
+          ModelFields<InstanceType<MO>>,
+          Exclude<keyof InstanceType<MO>['fields'], EX>
+        > &
+        Pick<ModelFields<InstanceType<MO>>, IN>,
+      N,
+      R,
+      D
+    >,
+    RO
+  >;
+  inType!: M extends true
+    ? this['inSerializerType'][]
+    : this['inSerializerType'];
+  outSerializerType!: OutFieldType<
+    FieldType<
+      OutSerializerType<I> &
+        Pick<
+          ModelFields<InstanceType<MO>>,
+          Exclude<keyof InstanceType<MO>['fields'], EX>
+        > &
+        Pick<ModelFields<InstanceType<MO>>, IN>,
+      N,
+      R,
+      D
+    >,
+    WO
+  >;
+  outType!: M extends true
+    ? this['outSerializerType'][]
+    : this['outSerializerType'];
   #serializerFieldByModelField: {
-    [fieldName: string]: typeof StringField | typeof NumberField
+    [fieldName: string]: typeof StringField | typeof NumberField;
   } = {
     [models.fields.AutoField.name]: NumberField,
     [models.fields.BigAutoField.name]: NumberField,
@@ -45,12 +79,14 @@ extends Serializer<I, M, C, D, N, R, RO, WO> {
     [models.fields.CharField.name]: StringField,
     [models.fields.TextField.name]: StringField,
     [models.fields.UUIDField.name]: StringField,
-  }
+  };
 
   fields = {} as SerializerFieldsType;
   options = {} as ModelSerializerOptions<MO>;
 
-  constructor(params: SerializerParamsTypeForConstructor<I, M, C, N, R, RO, WO> = {}) {
+  constructor(
+    params: SerializerParamsTypeForConstructor<I, M, C, N, R, RO, WO> = {}
+  ) {
     super(params);
     //const isModelNotDefined = !(this.options.model instanceof models.BaseModel);
     //console.log(this);
@@ -65,25 +101,43 @@ extends Serializer<I, M, C, D, N, R, RO, WO> {
     N extends boolean = false,
     R extends boolean = true,
     RO extends boolean = false,
-    WO extends boolean = false,
+    WO extends boolean = false
   >(
     this: I,
     params: ModelSerializerParamsType<
-      InstanceType<I>, M extends boolean ? M : boolean, C, D, N, R, RO, WO,
-      InstanceType<I>["options"]["model"],
-      InstanceType<I>["options"]["fields"][number],
-      InstanceType<I>["options"]["excludes"][number]
-      > = {}
+      InstanceType<I>,
+      M extends boolean ? M : boolean,
+      C,
+      D,
+      N,
+      R,
+      RO,
+      WO,
+      InstanceType<I>['options']['model'],
+      InstanceType<I>['options']['fields'][number],
+      InstanceType<I>['options']['excludes'][number]
+    > = {}
   ) {
     const instance = new this(params) as ModelSerializer<
       InstanceType<I>,
-      M, C, D, N, R, RO, WO,
-      InstanceType<I>["options"]["model"],
-      InstanceType<I>["options"]["fields"][number],
-      InstanceType<I>["options"]["excludes"][number]
+      M,
+      C,
+      D,
+      N,
+      R,
+      RO,
+      WO,
+      InstanceType<I>['options']['model'],
+      InstanceType<I>['options']['fields'][number],
+      InstanceType<I>['options']['excludes'][number]
     >;
-    const isModelNotDefined = instance.options.model.prototype instanceof models.BaseModel === false;
-    if (isModelNotDefined) throw new InvalidModelOnModelSerializerError(this.constructor.name, instance.options.model);
+    const isModelNotDefined =
+      instance.options.model.prototype instanceof models.BaseModel === false;
+    if (isModelNotDefined)
+      throw new InvalidModelOnModelSerializerError(
+        this.constructor.name,
+        instance.options.model
+      );
     return instance;
   }
 
@@ -103,18 +157,19 @@ extends Serializer<I, M, C, D, N, R, RO, WO> {
     field: models.fields.ForeignKeyField
   ) {
     if (field instanceof models.fields.ForeignKeyField) {
-      console.log
       const isARecursiveRelation = model.constructor.name === field.relatedTo;
       if (isARecursiveRelation) {
-        if (model.fields[field.toField]) return model.fields[field.toField]
+        if (model.fields[field.toField]) return model.fields[field.toField];
       }
 
-      for (const dependentModel of (this.options?.dependsOn || [])) {
-        const isTheDependentModelTheOneRelatedToTheField = dependentModel.name === field.relatedTo;
+      for (const dependentModel of this.options?.dependsOn || []) {
+        const isTheDependentModelTheOneRelatedToTheField =
+          dependentModel.name === field.relatedTo;
         if (isTheDependentModelTheOneRelatedToTheField) {
           const relatedModelInstance = new this.options.model();
-          await relatedModelInstance.loadAbstractsInInstance();
-          if (relatedModelInstance.fields[field.toField]) return relatedModelInstance.fields[field.toField];
+          await relatedModelInstance.initializeBasic();
+          if (relatedModelInstance.fields[field.toField])
+            return relatedModelInstance.fields[field.toField];
         }
       }
 
@@ -122,38 +177,53 @@ extends Serializer<I, M, C, D, N, R, RO, WO> {
       const modelInApplication = modelsInApplication[field.relatedTo];
       if (modelInApplication) {
         const relatedModelInstance = new modelInApplication.model();
-        await relatedModelInstance.loadAbstractsInInstance();
-        if (relatedModelInstance.fields[field.toField]) return relatedModelInstance.fields[field.toField];
+        await relatedModelInstance.initializeBasic();
+        if (relatedModelInstance.fields[field.toField])
+          return relatedModelInstance.fields[field.toField];
       }
-      throw new Error('no related model found for the field')
+      throw new Error('no related model found for the field');
     }
     return field;
   }
 
   async toRepresentation(
-    data: M extends true ? OutFieldType<FieldType<OutSerializerType<I>, N, R>, WO>[] : OutFieldType<FieldType<OutSerializerType<I>, N, R, D>, WO> = this._instance
-  ): Promise<this["outType"]> {
+    data: M extends true
+      ? OutFieldType<FieldType<OutSerializerType<I>, N, R>, WO>[]
+      : OutFieldType<FieldType<OutSerializerType<I>, N, R, D>, WO> = this
+      ._instance
+  ): Promise<this['outType']> {
     await this.#getSerializerModelFields();
     return super.toRepresentation(data);
   }
 
   async #getSerializerModelFields() {
+    const database = new Database();
     const areFieldsDefined = Array.isArray(this.options.fields);
     const areExcludesDefined = Array.isArray(this.options.excludes);
     const modelInstance = new this.options.model();
-    await modelInstance.loadAbstractsInInstance();
-    let fieldEntries = Object.entries(modelInstance.fields);
-    if (areFieldsDefined) fieldEntries = fieldEntries.filter(([fieldName, _]) => this.options.fields?.includes(fieldName));
-    if (areExcludesDefined) fieldEntries = fieldEntries.filter(([fieldName, _]) => this.options.excludes?.includes(fieldName) === false);
+    await modelInstance.initializeBasic();
 
-    const database = new Database();
+    let fieldEntries = Object.entries(modelInstance.fields);
+    if (areFieldsDefined)
+      fieldEntries = fieldEntries.filter(([fieldName]) =>
+        this.options.fields?.includes(fieldName)
+      );
+    if (areExcludesDefined)
+      fieldEntries = fieldEntries.filter(
+        ([fieldName]) => this.options.excludes?.includes(fieldName) === false
+      );
 
     for (const [fieldName, field] of fieldEntries) {
-      const relatedOrNonRelatedField = await this.#getRelatedField(database, modelInstance, field as models.fields.ForeignKeyField);
-      const relatedOrNonRelatedFieldTypeName = relatedOrNonRelatedField.constructor.name;
-      if ((fieldName in this.fields) === false) {
-        const SerializerFieldClass = this.#serializerFieldByModelField[relatedOrNonRelatedFieldTypeName];
-        console.log(SerializerFieldClass === NumberField);
+      const relatedOrNonRelatedField = await this.#getRelatedField(
+        database,
+        modelInstance,
+        field as models.fields.ForeignKeyField
+      );
+      const relatedOrNonRelatedFieldTypeName =
+        relatedOrNonRelatedField.constructor.name;
+      if (fieldName in this.fields === false) {
+        const SerializerFieldClass =
+          this.#serializerFieldByModelField[relatedOrNonRelatedFieldTypeName];
         if (SerializerFieldClass === NumberField) {
           const NumberFieldClass = SerializerFieldClass as typeof NumberField;
           this.fields[fieldName] = NumberFieldClass.new({
@@ -162,8 +232,11 @@ extends Serializer<I, M, C, D, N, R, RO, WO> {
             defaultValue: field.defaultValue,
             maxDigits: (field as models.fields.DecimalField).maxDigits,
             decimalPlaces: (field as models.fields.DecimalField).decimalPlaces,
-            isInteger: relatedOrNonRelatedFieldTypeName === models.fields.IntegerField.name ||
-              relatedOrNonRelatedFieldTypeName === models.fields.BigIntegerField.name
+            isInteger:
+              relatedOrNonRelatedFieldTypeName ===
+                models.fields.IntegerField.name ||
+              relatedOrNonRelatedFieldTypeName ===
+                models.fields.BigIntegerField.name,
           });
         } else if (SerializerFieldClass === StringField) {
           const StringFieldClass = SerializerFieldClass as typeof StringField;
@@ -171,8 +244,9 @@ extends Serializer<I, M, C, D, N, R, RO, WO> {
             required: field.allowNull,
             allowNull: field.allowNull,
             allowBlank: (field as models.fields.CharField).allowBlank,
-            isUUID: relatedOrNonRelatedFieldTypeName === models.fields.UUIDField.name
-          })
+            isUUID:
+              relatedOrNonRelatedFieldTypeName === models.fields.UUIDField.name,
+          });
         }
       }
     }
