@@ -3,11 +3,11 @@ import {
   ManagerEngineInstancesType,
   AllOptionalModelFields,
   AllRequiredModelFields,
-  ModelFields
-} from "./types";
-import { ManagerEngineInstanceNotFoundError } from "./exceptions";
-import Engine from "../engine";
-import { Model, default as model } from "./model";
+  ModelFields,
+} from './types';
+import { ManagerEngineInstanceNotFoundError } from './exceptions';
+import Engine from '../engine';
+import { Model, default as model } from './model';
 
 /**
  * Managers define how you make queries on the database. Instead of making queries everywhere in your application
@@ -53,11 +53,14 @@ import { Model, default as model } from "./model";
  * For example: one could create a framework that enables `bull.js` tasks to be defined on the database instead
  * of the code. This way we could update the tasks dynamically.
  */
-export default class Manager<M extends Model = Model, EI extends Engine<M> | null = null> {
+export default class Manager<
+  M extends Model = Model,
+  EI extends Engine<M> | null = null
+> {
   instances: ManagerInstancesType;
   engineInstances: ManagerEngineInstancesType;
   defaultEngineInstanceName: string;
-  model!: ReturnType<typeof model<M>>;
+  model!: ReturnType<typeof model>;
 
   constructor() {
     this.instances = {};
@@ -80,7 +83,9 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
    *
    * @return - The instance of the the model inside that engine instance
    */
-  getInstance<T extends Engine = Engine>(engineName?: string): EI extends Engine ? EI["ModelType"] : T["ModelType"] {
+  getInstance<T extends Engine = Engine>(
+    engineName?: string
+  ): EI extends Engine ? EI['ModelType'] : T['ModelType'] {
     const engineInstanceName = engineName || this.defaultEngineInstanceName;
     const doesInstanceExists = this.instances[engineInstanceName] !== undefined;
     if (doesInstanceExists) return this.instances[engineInstanceName];
@@ -89,22 +94,33 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
   }
 
   _setInstance(engineName: string, instance: any) {
-    const isDefaultEngineInstanceNameEmpty = this.defaultEngineInstanceName === '';
-    if (isDefaultEngineInstanceNameEmpty) this.defaultEngineInstanceName = engineName;
+    const isDefaultEngineInstanceNameEmpty =
+      this.defaultEngineInstanceName === '';
+    if (isDefaultEngineInstanceNameEmpty)
+      this.defaultEngineInstanceName = engineName;
 
     this.instances[engineName] = instance;
   }
 
-  getEngineInstance<T extends Engine = Engine>(engineName?: string): EI extends Engine ? EI : T {
-    const engineInstanceName: string = engineName || this.defaultEngineInstanceName;
-    const doesInstanceExists = this.engineInstances[engineInstanceName] !== undefined;
-    if (doesInstanceExists) return this.engineInstances[engineInstanceName] as EI extends Engine ? EI : T;
+  getEngineInstance<T extends Engine = Engine>(
+    engineName?: string
+  ): EI extends Engine ? EI : T {
+    const engineInstanceName: string =
+      engineName || this.defaultEngineInstanceName;
+    const doesInstanceExists =
+      this.engineInstances[engineInstanceName] !== undefined;
+    if (doesInstanceExists)
+      return this.engineInstances[engineInstanceName] as EI extends Engine
+        ? EI
+        : T;
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }
 
   _setEngineInstance(engineName: string, instance: Engine) {
-    const isDefaultEngineInstanceNameEmpty = this.defaultEngineInstanceName === '';
-    if (isDefaultEngineInstanceNameEmpty) this.defaultEngineInstanceName = engineName;
+    const isDefaultEngineInstanceNameEmpty =
+      this.defaultEngineInstanceName === '';
+    if (isDefaultEngineInstanceNameEmpty)
+      this.defaultEngineInstanceName = engineName;
     this.engineInstances[engineName] = instance;
   }
 
@@ -117,8 +133,14 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
    *
    * @return - An array of instances retrieved by this query.
    */
-  async get(search?: AllOptionalModelFields<M>, engineName?: string): Promise<AllRequiredModelFields<M>[]> {
-    return this.getEngineInstance().query.get<M>(this.getInstance(engineName), search);
+  async get(
+    search?: AllOptionalModelFields<M>,
+    engineName?: string
+  ): Promise<AllRequiredModelFields<M>[]> {
+    return this.getEngineInstance().query.get<M>(
+      this.getInstance(engineName),
+      search
+    );
   }
 
   /**
@@ -143,10 +165,14 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
    * @return - Return the created instance or undefined if something went wrong, or boolean if it's an update.
    */
   async set<S extends AllOptionalModelFields<M> | undefined | null = undefined>(
-    data: S extends undefined | null ? ModelFields<M> : AllOptionalModelFields<M>,
+    data: S extends undefined | null
+      ? ModelFields<M>
+      : AllOptionalModelFields<M>,
     search?: S,
     engineName?: string
-  ): Promise<S extends undefined | null ? AllRequiredModelFields<M> | undefined  : boolean> {
+  ): Promise<
+    S extends undefined | null ? AllRequiredModelFields<M> | undefined : boolean
+  > {
     return this.getEngineInstance().query.set<M, S>(
       this.getInstance(engineName),
       data as S extends undefined ? ModelFields<M> : AllOptionalModelFields<M>,
@@ -163,8 +189,14 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
    *
    * @return - Returns true if everything went fine and false otherwise.
    */
-  async remove(search: AllOptionalModelFields<M>, engineName?: string): Promise<boolean> {
-    return this.getEngineInstance().query.remove<M>(this.getInstance(engineName), search);
+  async remove(
+    search: AllOptionalModelFields<M>,
+    engineName?: string
+  ): Promise<boolean> {
+    return this.getEngineInstance().query.remove<M>(
+      this.getInstance(engineName),
+      search
+    );
   }
 }
 

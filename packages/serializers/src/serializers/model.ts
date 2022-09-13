@@ -1,20 +1,27 @@
 import { Database, ModelFields, models } from '@palmares/databases';
 
+import { Field, NumberField, StringField } from '../fields';
 import Serializer from '.';
 import type {
   SerializerType,
   SerializerFieldsType,
-  InSerializerType,
-  OutSerializerType,
-  SerializerParamsTypeForConstructor,
   ModelSerializerOptions,
   ModelSerializerParamsType,
+  ModelSerializerOutType,
+  ModelSerializerInType,
+  ModelSerializerParamsTypeForConstructor,
 } from './types';
 import type { This } from '../types';
-import type { FieldType, InFieldType, OutFieldType } from '../fields/types';
+import type { FieldType } from '../fields/types';
 import { InvalidModelOnModelSerializerError } from '../exceptions';
-import { NumberField, StringField } from '../fields';
 
+/**
+ * This is used to convert a Palmares model to a serializer so you don't need to repeat the same fields of your model again.
+ * Everything here, as in the other fields/serializer is dynamically typed so we just guarantee to you that stuff will work as
+ * expected even though you will not write any type directly.
+ *
+ * The hole idea here is to make your code more DRY and less error prone. The model is always obligatory here.
+ */
 export default class ModelSerializer<
   I extends ModelSerializer = any,
   M extends boolean = boolean,
@@ -24,50 +31,24 @@ export default class ModelSerializer<
   R extends boolean = boolean,
   RO extends boolean = boolean,
   WO extends boolean = boolean,
+  DR extends boolean = boolean, // Dynamic Representation (we will fetch the data from the nested serializer automatically)
   MO extends ReturnType<typeof models.Model> = ReturnType<typeof models.Model>,
-  IN extends keyof ModelFields<InstanceType<MO>> = any,
-  EX extends keyof ModelFields<InstanceType<MO>> = any
-> extends Serializer<I, M, C, D, N, R, RO, WO> {
+  IN extends keyof ModelFields<InstanceType<MO>> = any, // Includes (fields from the model in the model serializer representation)
+  EX extends keyof ModelFields<InstanceType<MO>> = any, // Excludes (fields from the model that should not be inside the model serializer representation)
+  IR extends boolean = DR extends true ? false : R // IsRequired (because of dynamic representation, the required fields will not be required ONLY WHEN REPRESENTING the data)
+> extends Serializer<I, M, C, D, N, R, RO, WO, DR, IR> {
   type!: FieldType<SerializerType<I>, N, R, D> &
     Pick<
       ModelFields<InstanceType<MO>>,
       Exclude<keyof InstanceType<MO>['fields'], EX>
     > &
     Pick<ModelFields<InstanceType<MO>>, IN>;
-  inSerializerType!: InFieldType<
-    FieldType<
-      InSerializerType<I> &
-        Pick<
-          ModelFields<InstanceType<MO>>,
-          Exclude<keyof InstanceType<MO>['fields'], EX>
-        > &
-        Pick<ModelFields<InstanceType<MO>>, IN>,
-      N,
-      R,
-      D
-    >,
-    RO
-  >;
   inType!: M extends true
-    ? this['inSerializerType'][]
-    : this['inSerializerType'];
-  outSerializerType!: OutFieldType<
-    FieldType<
-      OutSerializerType<I> &
-        Pick<
-          ModelFields<InstanceType<MO>>,
-          Exclude<keyof InstanceType<MO>['fields'], EX>
-        > &
-        Pick<ModelFields<InstanceType<MO>>, IN>,
-      N,
-      R,
-      D
-    >,
-    WO
-  >;
+    ? ModelSerializerInType<I, D, N, R, RO, MO, IN, EX>[]
+    : ModelSerializerInType<I, D, N, R, RO, MO, IN, EX>;
   outType!: M extends true
-    ? this['outSerializerType'][]
-    : this['outSerializerType'];
+    ? ModelSerializerOutType<I, D, N, IR, WO, MO, IN, EX>[]
+    : ModelSerializerOutType<I, D, N, IR, WO, MO, IN, EX>;
   #serializerFieldByModelField: {
     [fieldName: string]: typeof StringField | typeof NumberField;
   } = {
@@ -81,16 +62,28 @@ export default class ModelSerializer<
     [models.fields.UUIDField.name]: StringField,
   };
 
+  engineName?: string;
   fields = {} as SerializerFieldsType;
   options = {} as ModelSerializerOptions<MO>;
+  static _modelInstance: InstanceType<ReturnType<typeof models.Model>>;
 
   constructor(
-    params: SerializerParamsTypeForConstructor<I, M, C, N, R, RO, WO> = {}
+    params: ModelSerializerParamsTypeForConstructor<
+      I,
+      M,
+      C,
+      N,
+      R,
+      RO,
+      WO,
+      DR,
+      MO,
+      IN,
+      EX
+    > = {}
   ) {
     super(params);
-    //const isModelNotDefined = !(this.options.model instanceof models.BaseModel);
-    //console.log(this);
-    //if (isModelNotDefined) throw new InvalidModelOnModelSerializerError(this.constructor.name, this.options.model);
+    this.engineName = params.engineName;
   }
 
   static new<
@@ -101,7 +94,8 @@ export default class ModelSerializer<
     N extends boolean = false,
     R extends boolean = true,
     RO extends boolean = false,
-    WO extends boolean = false
+    WO extends boolean = false,
+    DR extends boolean = false
   >(
     this: I,
     params: ModelSerializerParamsType<
@@ -113,6 +107,7 @@ export default class ModelSerializer<
       R,
       RO,
       WO,
+      DR,
       InstanceType<I>['options']['model'],
       InstanceType<I>['options']['fields'][number],
       InstanceType<I>['options']['excludes'][number]
@@ -127,6 +122,7 @@ export default class ModelSerializer<
       R,
       RO,
       WO,
+      DR,
       InstanceType<I>['options']['model'],
       InstanceType<I>['options']['fields'][number],
       InstanceType<I>['options']['excludes'][number]
@@ -186,11 +182,49 @@ export default class ModelSerializer<
     return field;
   }
 
+  async fieldToRepresentation(field: Field, value: any, instance: any) {
+    const isInstanceAnObject =
+      typeof instance === 'object' && instance !== null;
+    const isFieldOfTypeModelSerializer = field instanceof ModelSerializer;
+    const modelInstance = (this.constructor as typeof ModelSerializer)
+      ._modelInstance;
+    const fieldEntries = Object.entries(modelInstance.fields);
+    for (const [fieldName, instanceField] of fieldEntries) {
+      const instanceFieldAsForeignField =
+        instanceField as models.fields.ForeignKeyField;
+      const isFieldNameTheSameAsTheRelatedName =
+        field.fieldName === instanceFieldAsForeignField.relatedName;
+      if (
+        isFieldOfTypeModelSerializer &&
+        isFieldNameTheSameAsTheRelatedName &&
+        isInstanceAnObject
+      ) {
+        const data = await (
+          field.options.model as ReturnType<typeof models.Model>
+        ).default.get(
+          {
+            [instanceFieldAsForeignField.toField]: instance[fieldName],
+          },
+          this.engineName
+        );
+        const hasDataForField = data.length > 0;
+        if (hasDataForField) {
+          const isUnique = instanceField.unique;
+          if (isUnique)
+            return super.fieldToRepresentation(field, data[0], instance);
+          else return super.fieldToRepresentation(field, data, instance);
+        } else {
+          break;
+        }
+      }
+    }
+    return super.fieldToRepresentation(field, value, instance);
+  }
+
   async toRepresentation(
     data: M extends true
-      ? OutFieldType<FieldType<OutSerializerType<I>, N, R>, WO>[]
-      : OutFieldType<FieldType<OutSerializerType<I>, N, R, D>, WO> = this
-      ._instance
+      ? ModelSerializerOutType<I, D, N, IR, WO, MO, IN, EX>[]
+      : ModelSerializerOutType<I, D, N, IR, WO, MO, IN, EX> = this._instance
   ): Promise<this['outType']> {
     await this.#getSerializerModelFields();
     return super.toRepresentation(data);
@@ -200,8 +234,17 @@ export default class ModelSerializer<
     const database = new Database();
     const areFieldsDefined = Array.isArray(this.options.fields);
     const areExcludesDefined = Array.isArray(this.options.excludes);
-    const modelInstance = new this.options.model();
-    await modelInstance.initializeBasic();
+    const constructorOfModelSerializer = this
+      .constructor as typeof ModelSerializer;
+
+    let modelInstance: InstanceType<ReturnType<typeof models.Model>>;
+    if (constructorOfModelSerializer._modelInstance)
+      modelInstance = constructorOfModelSerializer._modelInstance;
+    else {
+      modelInstance = new this.options.model();
+      await modelInstance.initializeBasic();
+      constructorOfModelSerializer._modelInstance = modelInstance;
+    }
 
     let fieldEntries = Object.entries(modelInstance.fields);
     if (areFieldsDefined)

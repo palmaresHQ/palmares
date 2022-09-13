@@ -27,15 +27,17 @@ export default class Serializer<
   N extends boolean = boolean,
   R extends boolean = boolean,
   RO extends boolean = boolean,
-  WO extends boolean = boolean
-> extends Field<I, D, N, R, RO, WO, C> {
+  WO extends boolean = boolean,
+  DR extends boolean = boolean,
+  IR extends boolean = DR extends true ? false : R
+> extends Field<I, D, N, R, RO, WO, C, IR> {
   type!: FieldType<SerializerType<I>, N, R, D>;
   inType!: M extends true
     ? InFieldType<FieldType<InSerializerType<I>, N, R, D>, RO>[]
     : InFieldType<FieldType<InSerializerType<I>, N, R, D>, RO>;
   outType!: M extends true
-    ? OutFieldType<FieldType<OutSerializerType<I>, N, R, D>, WO>[]
-    : OutFieldType<FieldType<OutSerializerType<I>, N, R, D>, WO>;
+    ? OutFieldType<FieldType<OutSerializerType<I>, N, IR, D>, WO>[]
+    : OutFieldType<FieldType<OutSerializerType<I>, N, IR, D>, WO>;
 
   protected _errors: ValidationError[] = [];
   fields = {} as SerializerFieldsType;
@@ -105,8 +107,13 @@ export default class Serializer<
     return this._schema.getObject(this as Serializer, isIn);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async fieldToRepresentation(field: Field, value: any, instance: any) {
+    return await field.toRepresentation(value);
+  }
+
   async instanceToRepresentation(
-    instance: OutFieldType<FieldType<OutSerializerType<I>, N, R, D>, WO>
+    instance: OutFieldType<FieldType<OutSerializerType<I>, N, IR, D>, WO>
   ) {
     const isInstanceAnObject =
       typeof instance === 'object' && instance !== null;
@@ -120,7 +127,11 @@ export default class Serializer<
         : undefined;
       field.fieldName = fieldName;
       field.context = this.context;
-      const representationValue = await field.toRepresentation(value);
+      const representationValue = await this.fieldToRepresentation(
+        field,
+        value,
+        instance
+      );
       if (representationValue) newInstance[fieldName] = representationValue;
     }
     return newInstance;
@@ -140,8 +151,8 @@ export default class Serializer<
    */
   async toRepresentation(
     data: M extends true
-      ? OutFieldType<FieldType<OutSerializerType<I>, N, R>, WO>[]
-      : OutFieldType<FieldType<OutSerializerType<I>, N, R, D>, WO> = this
+      ? OutFieldType<FieldType<OutSerializerType<I>, N, IR>, WO>[]
+      : OutFieldType<FieldType<OutSerializerType<I>, N, IR, D>, WO> = this
       ._instance
   ): Promise<this['outType']> {
     const instanceOrDataNotDefined = data === undefined;
@@ -159,14 +170,14 @@ export default class Serializer<
       return (await Promise.all(
         (dataForRepresentation as []).map(async (data: this['type']) =>
           this.instanceToRepresentation(
-            data as OutFieldType<FieldType<OutSerializerType<I>, N, R, D>, WO>
+            data as OutFieldType<FieldType<OutSerializerType<I>, N, IR, D>, WO>
           )
         )
       )) as this['outType'];
     } else if (isNotManyAndIsNotArray) {
       return (await this.instanceToRepresentation(
         dataForRepresentation as OutFieldType<
-          FieldType<OutSerializerType<I>, N, R, D>,
+          FieldType<OutSerializerType<I>, N, IR, D>,
           WO
         >
       )) as this['outType'];
@@ -194,7 +205,7 @@ export default class Serializer<
    * @returns - Returns true if there are no validation errors otherwise returns false. We do not return the error
    * itself because it is appended in an array and this array will be sent to the client.
    */
-  async #validateAndAppendError<F extends Field | Serializer = this>(
+  protected async _validateAndAppendError<F extends Field | Serializer = this>(
     data:
       | (M extends true
           ? InFieldType<FieldType<InSerializerType<I>, N, R, D>, RO>[]
@@ -246,7 +257,7 @@ export default class Serializer<
         const isFieldASerializer = field instanceof Serializer;
         if (isFieldASerializer) field._errors = this._errors;
 
-        const isValid = await this.#validateAndAppendError(value, field);
+        const isValid = await this._validateAndAppendError(value, field);
 
         if (isValid) {
           const internalValue = await field.toInternal(value);
@@ -326,7 +337,7 @@ export default class Serializer<
     const isNotManyAndIsNotArray =
       !Array.isArray(validatedData) && this.#many === false;
 
-    await this.#validateAndAppendError(validatedData);
+    await this._validateAndAppendError(validatedData);
 
     const isDataAnObject =
       typeof validatedData === 'object' && validatedData !== null;
@@ -389,7 +400,7 @@ export default class Serializer<
       dataForInternal as this['inType']
     )) as this['inType'];
 
-    const isSerializerValid = await this.#validateAndAppendError(
+    const isSerializerValid = await this._validateAndAppendError(
       dataForInternal
     );
     if (!isSerializerValid) return false;

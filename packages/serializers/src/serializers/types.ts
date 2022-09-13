@@ -22,8 +22,8 @@ export type SerializerParamsTypeForConstructor<
   RO extends boolean = boolean,
   WO extends boolean = boolean
 > = {
-  instance?: OutSerializerType<I>;
-  data?: InSerializerType<I>;
+  instance?: M extends false ? OutSerializerType<I> : OutSerializerType<I>;
+  data?: M extends false ? InSerializerType<I> : InSerializerType<I>[];
   many?: M;
   context?: C;
 } & FieldParamsType<I, any, N, R, RO, WO>;
@@ -44,7 +44,7 @@ export type SerializerParamsType<
   context?: C;
 } & FieldParamsType<I, D, N, R, RO, WO>;
 
-type ModelSerializerOutType<
+export type ModelSerializerOutType<
   I extends ModelSerializer,
   D extends SerializerType<I> | undefined,
   N extends boolean,
@@ -68,7 +68,7 @@ type ModelSerializerOutType<
   WO
 >;
 
-type ModelSerializerInType<
+export type ModelSerializerInType<
   I extends ModelSerializer,
   D extends SerializerType<I> | undefined,
   N extends boolean,
@@ -100,6 +100,7 @@ export type ModelSerializerParamsType<
   R extends boolean = boolean,
   RO extends boolean = boolean,
   WO extends boolean = boolean,
+  DR extends boolean = boolean,
   MO extends ReturnType<typeof models.Model> = ReturnType<typeof models.Model>,
   IN extends keyof ModelFields<InstanceType<MO>> = any,
   EX extends keyof ModelFields<InstanceType<MO>> = any
@@ -110,17 +111,50 @@ export type ModelSerializerParamsType<
   data?: M extends false
     ? ModelSerializerInType<I, D, N, R, RO, MO, IN, EX>
     : ModelSerializerInType<I, D, N, R, RO, MO, IN, EX>[];
+  isDynamicRepresentation?: DR;
+  engineName?: string;
 } & SerializerParamsType<I, M, C, D, N, R, RO, WO>;
+
+export type ModelSerializerParamsTypeForConstructor<
+  I extends ModelSerializer,
+  M extends boolean = boolean,
+  C = any,
+  N extends boolean = boolean,
+  R extends boolean = boolean,
+  RO extends boolean = boolean,
+  WO extends boolean = boolean,
+  DR extends boolean = boolean,
+  MO extends ReturnType<typeof models.Model> = ReturnType<typeof models.Model>,
+  IN extends keyof ModelFields<InstanceType<MO>> = any,
+  EX extends keyof ModelFields<InstanceType<MO>> = any
+> = {
+  instance?: M extends false
+    ? ModelSerializerOutType<I, any, N, R, WO, MO, IN, EX>
+    : ModelSerializerOutType<I, any, N, R, WO, MO, IN, EX>[];
+  data?: M extends false
+    ? ModelSerializerInType<I, any, N, R, RO, MO, IN, EX>
+    : ModelSerializerInType<I, any, N, R, RO, MO, IN, EX>[];
+  isDynamicRepresentation?: DR;
+  engineName?: string;
+} & SerializerParamsTypeForConstructor<I, M, C, N, R, RO, WO>;
 
 export type SerializerFieldsType<F extends Field = Field> = {
   [key: string]: F;
 };
 
 type Required<I> = {
-  [K in keyof I as undefined extends I[K] ? never : K]: I[K];
+  [K in keyof I as undefined[] extends I[K]
+    ? never
+    : undefined extends I[K]
+    ? never
+    : K]: I[K];
 };
 type Optional<I> = {
-  [K in keyof I as undefined extends I[K] ? K : never]?: I[K];
+  [K in keyof I as undefined[] extends I[K]
+    ? undefined extends I[K]
+      ? K
+      : never
+    : never]?: I[K];
 };
 
 type FieldTypesOfSerializer<I extends Serializer> = {

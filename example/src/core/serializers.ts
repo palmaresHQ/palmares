@@ -15,12 +15,15 @@ class UserSerializer extends ModelSerializer {
 
 export class PostSerializer extends ModelSerializer {
   fields = {
-    userPosts: UserSerializer.new({ required: false }),
+    userPosts: UserSerializer.new({
+      isDynamicRepresentation: true,
+      many: true,
+    }),
   };
 
   options = {
     model: Post,
-    excludes: [] as const,
+    excludes: ['id'] as const,
   };
 }
 

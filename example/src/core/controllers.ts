@@ -8,27 +8,21 @@ import {
 import { ExpressRequest } from '@palmares/express-adapter';
 
 import { Post, User } from './models';
-import { ExampleSerializer, PostSerializer } from './serializers';
-import { ModelFields } from '@palmares/databases';
-
-type Exclude2<T, U> = U extends T ? never : T;
-type Omit2<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-
+import { PostSerializer } from './serializers';
 export class ExampleController extends Controller {
   path = '/example';
 
-  // Aqui estou injetando uma dependência no controller
   constructor(dependencyInjection: number) {
     super();
+    console.log(dependencyInjection);
   }
 
   // Escreve uma rota com decorators
   @Get('/test')
-  async testDecorator(request: ExpressRequest) {
+  async testDecorator() {
+    const instance = (await Post.default.get({ id: 1 }))[0];
     const serializer = PostSerializer.new({
-      instance: {
-        userUuid: '123',
-      },
+      instance: instance,
     });
     const data = await serializer.data;
 

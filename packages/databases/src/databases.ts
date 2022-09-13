@@ -110,13 +110,12 @@ export default class Databases {
     );
     const managedModels = models.filter((foundModel) => {
       const modelInstance = new foundModel.model();
-      return modelInstance.options?.managed;
+      return modelInstance.options?.managed !== false;
     });
     const engineInstance: Engine = await engine.new(
       engineName,
       databaseSettings
     );
-
     if (await engineInstance.isConnected()) {
       this.initializedEngineInstances[engineName] = await this.initializeModels(
         engineInstance,
@@ -141,7 +140,6 @@ export default class Databases {
     projectModels: FoundModelType[]
   ): Promise<InitializedEngineInstanceWithModelsType> {
     const initializedProjectModels: InitializedModelsType[] = [];
-
     for (const { domainPath, domainName, model } of projectModels) {
       const modelInstance = new model();
       const initializedModel = await modelInstance._init(

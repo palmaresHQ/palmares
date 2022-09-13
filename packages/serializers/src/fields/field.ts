@@ -75,7 +75,8 @@ export default class Field<
   R extends boolean = boolean,
   RO extends boolean = boolean,
   WO extends boolean = boolean,
-  C = any
+  C = any,
+  IR extends boolean = R
 > {
   #fieldName!: string;
   protected _schema!: Schema;
@@ -85,8 +86,8 @@ export default class Field<
     | InFieldType<FieldType<any, N, R, D>, RO>
     | InFieldType<FieldType<any, N, R, D>, RO>[];
   outType!:
-    | OutFieldType<FieldType<any, N, R, D>, WO>
-    | OutFieldType<FieldType<any, N, R, D>, WO>[];
+    | OutFieldType<FieldType<any, N, IR, D>, WO>
+    | OutFieldType<FieldType<any, N, IR, D>, WO>[];
 
   context = {} as C;
   source: string | undefined;
