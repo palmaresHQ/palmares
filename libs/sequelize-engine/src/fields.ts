@@ -1,18 +1,26 @@
-import { EngineFields, models } from "@palmares/databases";
+import { EngineFields, models } from '@palmares/databases';
 
 import {
   DataTypes,
   ModelAttributeColumnOptions,
   Model,
-  ModelCtor, HasManyOptions, BelongsToOptions, HasOneOptions, ForeignKeyOptions, IndexesOptions
-} from "sequelize";
+  ModelCtor,
+  HasManyOptions,
+  BelongsToOptions,
+  HasOneOptions,
+  ForeignKeyOptions,
+  IndexesOptions,
+} from 'sequelize';
 
-import SequelizeEngine from "./engine";
-import { UnsupportedFieldTypeError, PreventForeignKeyError } from "./exceptions";
+import SequelizeEngine from './engine';
+import {
+  UnsupportedFieldTypeError,
+  PreventForeignKeyError,
+} from './exceptions';
 import {
   ModelTranslatorIndexesType,
-  RelatedModelToEvaluateAfterType
-} from "./types";
+  RelatedModelToEvaluateAfterType,
+} from './types';
 
 /**
  * This class is used to translate the fields of a model to the attributes of a sequelize model.
@@ -22,7 +30,7 @@ import {
  */
 export default class SequelizeEngineFields extends EngineFields {
   engineInstance!: SequelizeEngine;
-  #dateFieldsAsAutoNowToAddHooks = new Map<string, string[]>()
+  #dateFieldsAsAutoNowToAddHooks = new Map<string, string[]>();
   #indexes: ModelTranslatorIndexesType = {};
   #relatedFieldsToEvaluate: RelatedModelToEvaluateAfterType = {};
   #onDeleteOperations = {
@@ -30,8 +38,8 @@ export default class SequelizeEngineFields extends EngineFields {
     [models.fields.ON_DELETE.SET_NULL]: 'SET NULL',
     [models.fields.ON_DELETE.SET_DEFAULT]: 'SET DEFAULT',
     [models.fields.ON_DELETE.RESTRICT]: 'RESTRICT',
-    [models.fields.ON_DELETE.DO_NOTHING]: 'DO NOTHING'
-  }
+    [models.fields.ON_DELETE.DO_NOTHING]: 'DO NOTHING',
+  };
 
   constructor(engineInstance: SequelizeEngine<any>) {
     super(engineInstance);
@@ -67,13 +75,18 @@ export default class SequelizeEngineFields extends EngineFields {
     field: models.fields.ForeignKeyField,
     fieldAttributes: ModelAttributeColumnOptions
   ) {
-    const isModelAlreadyInitialized = this.engineInstance.initializedModels[field.relatedTo] !== undefined;
-    const modelNameToHandleRelation = isModelAlreadyInitialized ? field.model.name : field.relatedTo;
-    const isModelAlreadyInObject = this.#relatedFieldsToEvaluate[modelNameToHandleRelation] !== undefined;
-    if (isModelAlreadyInObject === false) this.#relatedFieldsToEvaluate[modelNameToHandleRelation] = [];
+    const isModelAlreadyInitialized =
+      this.engineInstance.initializedModels[field.relatedTo] !== undefined;
+    const modelNameToHandleRelation = isModelAlreadyInitialized
+      ? field.model.name
+      : field.relatedTo;
+    const isModelAlreadyInObject =
+      this.#relatedFieldsToEvaluate[modelNameToHandleRelation] !== undefined;
+    if (isModelAlreadyInObject === false)
+      this.#relatedFieldsToEvaluate[modelNameToHandleRelation] = [];
     this.#relatedFieldsToEvaluate[modelNameToHandleRelation].push({
       field: field,
-      fieldAttributes: fieldAttributes
+      fieldAttributes: fieldAttributes,
     });
     throw new PreventForeignKeyError();
   }
@@ -86,9 +99,11 @@ export default class SequelizeEngineFields extends EngineFields {
   async #appendIndexes(field: models.fields.Field) {
     const index = {
       unique: field.unique === true,
-      fields: [field.databaseName]
-    }
-    const doesFieldIndexForModelNameExists = Array.isArray(this.#indexes[field.model.name]);
+      fields: [field.databaseName],
+    };
+    const doesFieldIndexForModelNameExists = Array.isArray(
+      this.#indexes[field.model.name]
+    );
     if (doesFieldIndexForModelNameExists) {
       this.#indexes[field.model.name].push(index);
     } else {
@@ -107,15 +122,19 @@ export default class SequelizeEngineFields extends EngineFields {
   async afterModelCreation(modelName: string) {
     await Promise.all([
       this.#handleHooksToUpdateDateFieldsAfterModelCreation(modelName),
-      this.#handleRelatedFieldsAfterModelCreation(modelName)
+      this.#handleRelatedFieldsAfterModelCreation(modelName),
     ]);
   }
 
   async #handleHooksToUpdateDateFieldsAfterModelCreation(modelName: string) {
-    const hasDateFieldToUpdateForModelName = this.#dateFieldsAsAutoNowToAddHooks.has(modelName);
+    const hasDateFieldToUpdateForModelName =
+      this.#dateFieldsAsAutoNowToAddHooks.has(modelName);
     if (hasDateFieldToUpdateForModelName) {
-      const modelToAddHook: ModelCtor<Model> = this.engineInstance.initializedModels[modelName] as ModelCtor<Model>;
-      const dateFieldsToUpdate = this.#dateFieldsAsAutoNowToAddHooks.get(modelName) as string[];
+      const modelToAddHook: ModelCtor<Model> = this.engineInstance
+        .initializedModels[modelName] as ModelCtor<Model>;
+      const dateFieldsToUpdate = this.#dateFieldsAsAutoNowToAddHooks.get(
+        modelName
+      ) as string[];
       modelToAddHook.beforeSave((instance: Model) => {
         for (const updateDateHook of dateFieldsToUpdate) {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -127,14 +146,17 @@ export default class SequelizeEngineFields extends EngineFields {
   }
 
   async #handleRelatedFieldsAfterModelCreation(modelName: string) {
-    const hasRelatedFieldsToEvaluateForModelName = Array.isArray(this.#relatedFieldsToEvaluate[modelName]);
+    const hasRelatedFieldsToEvaluateForModelName = Array.isArray(
+      this.#relatedFieldsToEvaluate[modelName]
+    );
 
     if (hasRelatedFieldsToEvaluateForModelName) {
       this.#relatedFieldsToEvaluate[modelName] = await Promise.all(
         this.#relatedFieldsToEvaluate[modelName].filter(
-          async ({ field, fieldAttributes }) => await this.#handleRelatedField(field, fieldAttributes)
+          async ({ field, fieldAttributes }) =>
+            await this.#handleRelatedField(field, fieldAttributes)
         )
-      )
+      );
     }
   }
 
@@ -142,28 +164,31 @@ export default class SequelizeEngineFields extends EngineFields {
     field: models.fields.ForeignKeyField,
     fieldAttributes: ModelAttributeColumnOptions & ForeignKeyOptions
   ) {
-    const modelWithForeignKeyField: ModelCtor<Model> = this.engineInstance.initializedModels[field.model.name] as ModelCtor<Model>;
-    const relatedToModel: ModelCtor<Model> = this.engineInstance.initializedModels[field.relatedTo] as ModelCtor<Model>;
-    const isRelatedModelAndModelOfForeignDefined = relatedToModel !== undefined &&
-      modelWithForeignKeyField !== undefined;
+    const modelWithForeignKeyField: ModelCtor<Model> = this.engineInstance
+      .initializedModels[field.model.name] as ModelCtor<Model>;
+    const relatedToModel: ModelCtor<Model> = this.engineInstance
+      .initializedModels[field.relatedTo] as ModelCtor<Model>;
+    const isRelatedModelAndModelOfForeignDefined =
+      relatedToModel !== undefined && modelWithForeignKeyField !== undefined;
 
     if (isRelatedModelAndModelOfForeignDefined) {
-      const translatedOnDelete: string = this.#onDeleteOperations[field.onDelete];
+      const translatedOnDelete: string =
+        this.#onDeleteOperations[field.onDelete];
 
       fieldAttributes.name = field.fieldName;
-      const relationOptions: HasManyOptions | BelongsToOptions | HasOneOptions = {
-        foreignKey: fieldAttributes,
-        hooks: true,
-        onDelete: translatedOnDelete,
-        sourceKey: field.toField
-      };
-      const relatedToLowerCased = field.relatedTo.charAt(0).toLowerCase() + field.relatedTo.slice(1);
+      const relationOptions: HasManyOptions | BelongsToOptions | HasOneOptions =
+        {
+          foreignKey: fieldAttributes,
+          hooks: true,
+          onDelete: translatedOnDelete,
+          sourceKey: field.toField,
+        };
       switch (field.typeName) {
         case models.fields.ForeignKeyField.name:
           relationOptions.as = field.relatedName as string;
           relatedToModel.hasMany(modelWithForeignKeyField, relationOptions);
 
-          relationOptions.as = relatedToLowerCased;
+          relationOptions.as = field.relationName as string;
           modelWithForeignKeyField.belongsTo(relatedToModel, relationOptions);
           return false;
       }
@@ -175,7 +200,8 @@ export default class SequelizeEngineFields extends EngineFields {
     modelAttributes: ModelAttributeColumnOptions,
     field: models.fields.Field
   ): Promise<void> {
-    const isFieldAIndexOrIsFieldUnique = field.dbIndex === true || field.unique === true;
+    const isFieldAIndexOrIsFieldUnique =
+      field.dbIndex === true || field.unique === true;
     if (isFieldAIndexOrIsFieldUnique) await this.#appendIndexes(field);
     if (modelAttributes.defaultValue === undefined)
       modelAttributes.defaultValue = field.defaultValue;
@@ -187,21 +213,26 @@ export default class SequelizeEngineFields extends EngineFields {
 
     const customAttributesEntries = Object.entries(field.customAttributes);
     for (const [key, value] of customAttributesEntries) {
-      const keyAsTypeofModelColumnOption = key as keyof ModelAttributeColumnOptions;
+      const keyAsTypeofModelColumnOption =
+        key as keyof ModelAttributeColumnOptions;
       modelAttributes[keyAsTypeofModelColumnOption] = value as never;
     }
   }
 
-  async #handleTextFieldValidations(field: models.fields.TextField, fieldAttributes: ModelAttributeColumnOptions) {
-    if (field.allowBlank === false) fieldAttributes.validate = {
-      ...fieldAttributes.validate,
-      notEmpty: !field.allowBlank
-    };
+  async #handleTextFieldValidations(
+    field: models.fields.TextField,
+    fieldAttributes: ModelAttributeColumnOptions
+  ) {
+    if (field.allowBlank === false)
+      fieldAttributes.validate = {
+        ...fieldAttributes.validate,
+        notEmpty: !field.allowBlank,
+      };
   }
 
   async #translateTextField(
     field: models.fields.TextField,
-    fieldAttributes: ModelAttributeColumnOptions,
+    fieldAttributes: ModelAttributeColumnOptions
   ) {
     fieldAttributes.type = DataTypes.STRING;
     await this.#handleTextFieldValidations(field, fieldAttributes);
@@ -209,7 +240,7 @@ export default class SequelizeEngineFields extends EngineFields {
 
   async #translateCharField(
     field: models.fields.CharField,
-    fieldAttributes: ModelAttributeColumnOptions,
+    fieldAttributes: ModelAttributeColumnOptions
   ): Promise<void> {
     fieldAttributes.type = DataTypes.STRING(field.maxLength);
     await this.#handleTextFieldValidations(field, fieldAttributes);
@@ -217,26 +248,28 @@ export default class SequelizeEngineFields extends EngineFields {
 
   async #translateUUIDField(
     field: models.fields.UUIDField,
-    fieldAttributes: ModelAttributeColumnOptions,
+    fieldAttributes: ModelAttributeColumnOptions
   ): Promise<void> {
     fieldAttributes.type = DataTypes.UUID;
-    if (field.autoGenerate === true) fieldAttributes.defaultValue = DataTypes.UUIDV4;
+    if (field.autoGenerate === true)
+      fieldAttributes.defaultValue = DataTypes.UUIDV4;
     fieldAttributes.validate = {
       ...fieldAttributes.validate,
-      isUUID: 4
-    }
+      isUUID: 4,
+    };
     await this.#handleTextFieldValidations(field, fieldAttributes);
   }
 
   async #translateDateField(
     field: models.fields.DateField,
-    fieldAttributes: ModelAttributeColumnOptions,
+    fieldAttributes: ModelAttributeColumnOptions
   ): Promise<void> {
     fieldAttributes.type = DataTypes.DATEONLY;
     const isAutoNow = field.autoNow === true;
     const hasAutoNowOrAutoNowAdd = field.autoNowAdd === true || isAutoNow;
     if (hasAutoNowOrAutoNowAdd) fieldAttributes.defaultValue = DataTypes.NOW;
-    if (isAutoNow) await this.#addHooksToUpdateDateFields(field.model.name, field.fieldName);
+    if (isAutoNow)
+      await this.#addHooksToUpdateDateFields(field.model.name, field.fieldName);
   }
 
   async #translateAutoField(
@@ -249,7 +282,7 @@ export default class SequelizeEngineFields extends EngineFields {
     fieldAttributes.validate = {
       ...fieldAttributes.validate,
       isNumeric: true,
-      isInt: true
+      isInt: true,
     };
   }
 
@@ -263,7 +296,7 @@ export default class SequelizeEngineFields extends EngineFields {
     fieldAttributes.validate = {
       ...fieldAttributes.validate,
       isNumeric: true,
-      isInt: true
+      isInt: true,
     };
   }
 
@@ -275,20 +308,20 @@ export default class SequelizeEngineFields extends EngineFields {
     fieldAttributes.validate = {
       ...fieldAttributes.validate,
       isNumeric: true,
-      isInt: true
+      isInt: true,
     };
   }
 
   async #translateForeignKeyField(
     field: models.fields.ForeignKeyField,
-    fieldAttributes: ModelAttributeColumnOptions,
+    fieldAttributes: ModelAttributeColumnOptions
   ): Promise<void> {
     await this.#addRelatedFieldToEvaluateAfter(field, fieldAttributes);
   }
 
   async #translateFieldType(
     fieldAttributes: ModelAttributeColumnOptions,
-    field: models.fields.Field,
+    field: models.fields.Field
   ): Promise<void> {
     // Yes we can definitely simplify it by not making the translate functions private
     // but the problem is that this will make it harder to read and know what types of fields
@@ -339,7 +372,9 @@ export default class SequelizeEngineFields extends EngineFields {
     }
   }
 
-  async #translateField(field: models.fields.Field): Promise<ModelAttributeColumnOptions> {
+  async #translateField(
+    field: models.fields.Field
+  ): Promise<ModelAttributeColumnOptions> {
     const fieldAttributes = {} as ModelAttributeColumnOptions;
     await this.handleDefaultAttributes(fieldAttributes, field);
     await this.#translateFieldType(fieldAttributes, field);
@@ -352,7 +387,9 @@ export default class SequelizeEngineFields extends EngineFields {
     return [];
   }
 
-  async getTranslated(fieldName: string): Promise<ModelAttributeColumnOptions | null> {
+  async getTranslated(
+    fieldName: string
+  ): Promise<ModelAttributeColumnOptions | null> {
     const { value, wasTranslated } = await super.get(fieldName);
     if (!wasTranslated) {
       const field = this.fields.get(fieldName) as models.fields.Field;

@@ -19,13 +19,17 @@ import { generateUUID } from '../../utils';
 
 export { ON_DELETE as ON_DELETE };
 
-export class Field<D = any, N extends boolean = boolean> {
+export class Field<
+  D = any,
+  N extends boolean = boolean,
+  U extends boolean = boolean
+> {
   hasDefaultValue!: D extends undefined ? false : true;
   type!: any;
   primaryKey: boolean;
   defaultValue?: D;
   allowNull: N;
-  unique: boolean;
+  unique: U;
   dbIndex: boolean;
   databaseName: string;
   underscored: boolean;
@@ -50,7 +54,7 @@ export class Field<D = any, N extends boolean = boolean> {
     this.primaryKey = primaryKey;
     this.defaultValue = defaultValue;
     this.allowNull = allowNull as N;
-    this.unique = unique;
+    this.unique = unique as U;
     this.dbIndex = dbIndex;
     this.databaseName = databaseName || '';
     this.underscored = underscored;
@@ -485,17 +489,24 @@ export class DateField<
  * can use this value to join them together.
  */
 export class ForeignKeyField<
+  T = undefined,
   M extends TModel = TModel,
   F extends string = any,
-  D extends M['fields'][F]['type'] | undefined = undefined,
-  N extends boolean = false
-> extends Field<D, N> {
-  type!: M['fields'][F]['type'];
+  D extends
+    | (T extends undefined ? M['fields'][F]['type'] : T)
+    | undefined = undefined,
+  N extends boolean = false,
+  U extends boolean = false,
+  RN extends string = any,
+  RNN extends string = any
+> extends Field<D, N, U> {
+  type!: T extends undefined ? M['fields'][F]['type'] : T;
   typeName: string = ForeignKeyField.name;
   relatedTo!: string;
   onDelete!: ON_DELETE;
   customName?: string;
   toField: F;
+  relationName: RNN;
   _originalRelatedName?: string;
 
   constructor({
@@ -504,10 +515,14 @@ export class ForeignKeyField<
     onDelete,
     customName,
     relatedName,
+    relationName,
     ...rest
   }: {
     relatedTo: ClassConstructor<M> | string;
     toField: F;
+    relatedName: RN;
+    relationName: RNN;
+    unique?: U;
     defaultValue?: D;
     allowNull?: N;
   } & ForeignKeyFieldParamsType) {
@@ -519,6 +534,13 @@ export class ForeignKeyField<
       relatedToAsString = (relatedTo as ClassConstructor<TModel>).name;
     }
 
+    const isRelationNameDefined = typeof relationName === 'string';
+    if (isRelationNameDefined) {
+      this.relationName = relationName as RNN;
+    } else {
+      this.relationName = (relatedToAsString.charAt(0).toLowerCase() +
+        relatedToAsString.slice(1)) as RNN;
+    }
     this.relatedTo = relatedToAsString;
     this.customName = customName;
     this._originalRelatedName = relatedName;

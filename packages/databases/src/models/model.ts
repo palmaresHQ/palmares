@@ -99,12 +99,12 @@ import { CustomImportsForFieldType } from './fields/types';
  * This way we can keep queries more concise and representative by just making functions. Also
  * you can have the hole power of linting VSCode and other IDEs give you.
  */
-
 export class Model<T = any> {
   [managers: string]:
     | Manager
     | ModelFieldsType
     | ModelOptionsType<T extends Model ? T : this>
+    | readonly typeof Model[]
     | readonly Model[]
     | string
     | string[]
@@ -115,7 +115,9 @@ export class Model<T = any> {
   _isState = false;
   _dependentOnModels: string[] = [];
 
+  className!: typeof this['constructor']['name'];
   options!: ModelOptionsType<T extends Model ? T : this>;
+  relatedTo: readonly typeof Model[] = [];
   abstracts: readonly Model[] = [];
   name!: string;
   originalName!: string;

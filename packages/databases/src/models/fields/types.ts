@@ -1,11 +1,11 @@
-import Engine, { EngineFields } from "../../engine";
+import Engine, { EngineFields } from '../../engine';
 
 export enum ON_DELETE {
   CASCADE = 'cascade',
   SET_NULL = 'set_null',
   SET_DEFAULT = 'set_default',
   DO_NOTHING = 'do_nothing',
-  RESTRICT = 'restrict'
+  RESTRICT = 'restrict',
 }
 
 export enum FieldTypes {
@@ -17,7 +17,7 @@ export enum FieldTypes {
   DecimalField = 'Decimal',
   CharField = 'Char',
   TextField = 'Text',
-  ForeignKeyField = 'ForeignKey'
+  ForeignKeyField = 'ForeignKey',
 }
 
 export type CustomImportsForFieldType = {
@@ -26,8 +26,11 @@ export type CustomImportsForFieldType = {
 };
 
 export interface TranslatableFieldType {
-  translate?(engine: Engine, engineFields: EngineFields): Promise<any>,
-  toString(indentation: number, customParams: string | undefined): Promise<string>;
+  translate?(engine: Engine, engineFields: EngineFields): Promise<any>;
+  toString(
+    indentation: number,
+    customParams: string | undefined
+  ): Promise<string>;
 }
 
 export type ClassConstructor<T> = {
@@ -41,7 +44,7 @@ export interface FieldDefaultParamsType {
   underscored?: boolean;
   databaseName?: string | null;
   customAttributes?: any;
-};
+}
 
 export type DecimalFieldParamsType = {
   maxDigits?: number;
@@ -50,25 +53,27 @@ export type DecimalFieldParamsType = {
 
 export interface TextFieldParamsType extends FieldDefaultParamsType {
   allowBlank?: boolean;
-};
+}
 
-export interface CharFieldParamsType extends FieldDefaultParamsType, TextFieldParamsType {
+export interface CharFieldParamsType
+  extends FieldDefaultParamsType,
+    TextFieldParamsType {
   maxLength: number;
-};
+}
 
-export interface UUIDFieldParamsType extends FieldDefaultParamsType, TextFieldParamsType {
+export interface UUIDFieldParamsType
+  extends FieldDefaultParamsType,
+    TextFieldParamsType {
   autoGenerate?: boolean;
   maxLength?: number;
 }
 
-export type DateFieldParamsType= {
+export type DateFieldParamsType = {
   autoNow?: boolean;
   autoNowAdd?: boolean;
-} & FieldDefaultParamsType
-
+} & FieldDefaultParamsType;
 
 export type ForeignKeyFieldParamsType = {
   onDelete: ON_DELETE;
   customName?: string;
-  relatedName?: string;
-} & FieldDefaultParamsType
+} & FieldDefaultParamsType;

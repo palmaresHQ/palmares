@@ -1,31 +1,38 @@
 import { utils } from '@palmares/core';
 
-import { PathParamsParser, RawParamsType } from "./server/types";
-import { HeadersType, RequestType, QueryParamsType } from "./types";
+import { PathParamsParser, RawParamsType } from './server/types';
+import { HeadersType, RequestType, QueryParamsType } from './types';
 
 /**
  * Should follow this api: https://developer.mozilla.org/en-US/docs/Web/API/Request
  */
-export default class Request<R extends RequestType = {
-  R: any, V:any, P: any, Q: any, D: any, O: any
-}> {
+export default class Request<
+  R extends RequestType = {
+    R: any;
+    V: any;
+    P: any;
+    Q: any;
+    D: any;
+    O: any;
+  }
+> {
   readonly method!: string;
   readonly host!: string;
   readonly path!: string;
   readonly userAgent!: string;
   readonly contentType!: string;
-  readonly body!: R["D"];
-  readonly originalRequest!: R["R"];
+  readonly body!: R['D'];
+  readonly originalRequest!: R['R'];
   #pathParamsParser?: PathParamsParser;
   #hasTranslatedHeaders = false;
   #cachedHeaders?: HeadersType;
   #headers: HeadersType = {};
-  #cachedQuery?: R["Q"];
+  #cachedQuery?: R['Q'];
   #query: QueryParamsType = {};
-  #cachedPathParams?: R["P"];
+  #cachedPathParams?: R['P'];
   #pathParams: RawParamsType = {};
-  values = {} as R["V"]; // Use this to set custom values to the request.
-  readonly options!: R["O"];
+  values = {} as R['V']; // Use this to set custom values to the request.
+  readonly options!: R['O'];
 
   constructor(
     method: string,
@@ -36,9 +43,9 @@ export default class Request<R extends RequestType = {
     headers: HeadersType,
     contentType: string,
     userAgent: string,
-    body: R["D"],
-    originalRequest: R["R"],
-    options: R["O"]
+    body: R['D'],
+    originalRequest: R['R'],
+    options: R['O']
   ) {
     this.method = method;
     this.path = path;
@@ -85,7 +92,9 @@ export default class Request<R extends RequestType = {
     if (!this.#cachedHeaders) this.#cachedHeaders = {};
     const headerEntries: [string, string][] = Object.entries(headers);
     for (const [key, value] of headerEntries) {
-      const newKey = `${key.charAt(0).toLowerCase()}${utils.snakeCaseToCamelCase(key).slice(1)}`;
+      const newKey = `${key.charAt(0).toLowerCase()}${utils
+        .snakeCaseToCamelCase(key)
+        .slice(1)}`;
       this.#cachedHeaders[newKey] = value;
     }
   }
@@ -98,18 +107,22 @@ export default class Request<R extends RequestType = {
    *
    * @returns - The query parameters of the request JSON parsed.
    */
-  get query(): R["Q"] {
+  get query(): R['Q'] {
     if (!this.#cachedQuery) {
       this.#cachedQuery = {};
-      const queryParamsEntries: [string, string | undefined][] = Object.entries(this.#query);
+      const queryParamsEntries: [string, string | undefined][] = Object.entries(
+        this.#query
+      );
       for (const [key, value] of queryParamsEntries) {
         if (value) {
-          const newKey = `${key.charAt(0).toLowerCase()}${utils.snakeCaseToCamelCase(key).slice(1)}`;
+          const newKey = `${key.charAt(0).toLowerCase()}${utils
+            .snakeCaseToCamelCase(key)
+            .slice(1)}`;
           this.#cachedQuery[newKey] = JSON.parse(value);
         }
       }
     }
-    return this.#cachedQuery as R["Q"];
+    return this.#cachedQuery as R['Q'];
   }
 
   /**
@@ -126,11 +139,13 @@ export default class Request<R extends RequestType = {
    *
    * @returns - The path parameters of the request.
    */
-  get params(): R["P"] {
+  get params(): R['P'] {
     if (!this.#cachedPathParams && this.#pathParamsParser) {
       this.#cachedPathParams = this.#pathParamsParser(this.#pathParams);
     }
-    return (this.#cachedPathParams ? this.#cachedPathParams : this.#pathParams) as R["P"];
+    return (
+      this.#cachedPathParams ? this.#cachedPathParams : this.#pathParams
+    ) as R['P'];
   }
 
   /**
@@ -146,7 +161,7 @@ export default class Request<R extends RequestType = {
   }
 
   static async new<R = any>(
-    method:string,
+    method: string,
     host: string,
     path: string,
     pathParams: RawParamsType,
@@ -156,9 +171,9 @@ export default class Request<R extends RequestType = {
     userAgent: string,
     body: any,
     originalRequest: R,
-    options: any,
+    options: any
   ) {
-    return new Request<{R: R, V: any, P: any, Q: any, D: any, O: any}>(
+    return new Request<{ R: R; V: any; P: any; Q: any; D: any; O: any }>(
       method.toUpperCase(),
       host,
       path,

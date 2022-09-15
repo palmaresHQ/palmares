@@ -5,8 +5,10 @@ import { ExpressCorsMiddleware } from './core/middlewares';
 
 import { dirname, resolve } from 'path';
 
-export const ENV = typeof process.env.NODE_ENV === 'string' ? process.env.NODE_ENV :
-  'development';
+export const ENV =
+  typeof process.env.NODE_ENV === 'string'
+    ? process.env.NODE_ENV
+    : 'development';
 export const DEBUG = false;
 export const SECRET_KEY = 'example-secret';
 export const APP_NAME = 'example';
@@ -18,14 +20,14 @@ export const ROOT_ROUTER = import('./core/routes');
 
 export const MIDDLEWARES = [
   ExpressCorsMiddleware,
-  import('./core/middlewares')
-]
+  import('./core/middlewares'),
+];
 
 export const INSTALLED_DOMAINS = [
   import('@palmares/server'),
   import('@palmares/databases'),
   import('./core'),
-]
+];
 
 export const DATABASES = {
   default: {
@@ -39,9 +41,9 @@ export const DATABASES = {
     extraOptions: {
       logging: false,
       query: {
-        raw: true
-      }
-    }
+        raw: true,
+      },
+    },
   },
 };
 

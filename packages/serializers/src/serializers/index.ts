@@ -107,11 +107,30 @@ export default class Serializer<
     return this._schema.getObject(this as Serializer, isIn);
   }
 
+  /**
+   * Responsible for retrieving the representation for each field of the serializer. So with this you can do some custom logic
+   * BEFORE passing the value to the field `toRepresentation` method. This is useful for model serializers but can be
+   * used for other custom serializers as well.
+   *
+   * @param field - The field that we are retrieving the representation for.
+   * @param value - The value that will be passed to this field. This is the value like `instance['lastName']` for an instance like
+   * `{ firstName: 'John', lastName: 'Doe' }`. So in this case the value would be `Doe`.
+   * @param instance - The data instance of the serializer. This is the data with all of the fields. So in the example above this
+   * would be `{ firstName: 'John', lastName: 'Doe' }`.
+   *
+   * @returns - The value that will be passed to the field `toRepresentation` method.
+   */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async fieldToRepresentation(field: Field, value: any, instance: any) {
     return await field.toRepresentation(value);
   }
 
+  /**
+   * Responsible for retrieving the representation for each field of the serializer. So if you need to do some custom logic
+   * or conversion this is exactly where you should do it.
+   *
+   * @param instance - The data instance of the serializer.
+   */
   async instanceToRepresentation(
     instance: OutFieldType<FieldType<OutSerializerType<I>, N, IR, D>, WO>
   ) {

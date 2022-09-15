@@ -13,7 +13,10 @@ import type {
 } from './types';
 import type { This } from '../types';
 import type { FieldType } from '../fields/types';
-import { InvalidModelOnModelSerializerError } from '../exceptions';
+import {
+  InvalidModelOnModelSerializerError,
+  NoRelatedModelFoundForRelatedFieldError,
+} from '../exceptions';
 
 /**
  * This is used to convert a Palmares model to a serializer so you don't need to repeat the same fields of your model again.
@@ -139,13 +142,18 @@ export default class ModelSerializer<
 
   /**
    * This is responsible for retrieving the actual field type if the field is a related field. Since we can be related to a uuid
-   * instead of an integer and so on we need to retrieve the actual field type that this field needs to be. If this field is related to a uuid
-   * don't you agree that the type of the field should be an StringField instead of a NumberField? That's exactly what this does.
+   * instead of an integer and so on we need to retrieve the actual field type that this field needs to be.
+   * If this field is related to a uuid don't you agree that the type of the field should be an StringField
+   * instead of a NumberField? That's exactly what this does.
    *
-   * @param database
-   * @param model
-   * @param field
-   * @returns
+   * IMPORTANT: We will always try to look for `dependsOn` option before looking in the models initialized by the database.
+   * Sometimes you won't want to initialize the database (like on monorepo setups or even a REPL setup) just for this,
+   * so for that use cases we recommend that you always use the `dependsOn` option.
+   *
+   * @param database - The database instance from @palmares/databases
+   * @param model - The model instance from the model serializer.
+   * @param field - The field instance that should be a ForeignKeyField or could also be a OneToOneField.
+   * @returns - Returns the field type.
    */
   async #getRelatedField(
     database: Database,
@@ -177,11 +185,16 @@ export default class ModelSerializer<
         if (relatedModelInstance.fields[field.toField])
           return relatedModelInstance.fields[field.toField];
       }
-      throw new Error('no related model found for the field');
+      throw new NoRelatedModelFoundForRelatedFieldError(field.fieldName);
     }
     return field;
   }
 
+  /**
+   * If the user define a field with the relatedName or a relationName we retrieve the values of this field dynamically.
+   *
+   * TIP: A related name is the name of the
+   */
   async fieldToRepresentation(field: Field, value: any, instance: any) {
     const isInstanceAnObject =
       typeof instance === 'object' && instance !== null;
@@ -190,14 +203,18 @@ export default class ModelSerializer<
       ._modelInstance;
     const fieldEntries = Object.entries(modelInstance.fields);
     for (const [fieldName, instanceField] of fieldEntries) {
+      // TODO: this is wrong
       const instanceFieldAsForeignField =
         instanceField as models.fields.ForeignKeyField;
       const isFieldNameTheSameAsTheRelatedName =
         field.fieldName === instanceFieldAsForeignField.relatedName;
+      const isFieldNameTheSameAsTheRelationName =
+        field.fieldName === instanceFieldAsForeignField.relationName;
       if (
         isFieldOfTypeModelSerializer &&
-        isFieldNameTheSameAsTheRelatedName &&
-        isInstanceAnObject
+        isInstanceAnObject &&
+        (isFieldNameTheSameAsTheRelatedName ||
+          isFieldNameTheSameAsTheRelationName)
       ) {
         const data = await (
           field.options.model as ReturnType<typeof models.Model>
