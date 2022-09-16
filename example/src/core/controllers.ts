@@ -7,8 +7,8 @@ import {
 } from '@palmares/server';
 import { ExpressRequest } from '@palmares/express-adapter';
 
-import { Post, User } from './models';
-import { PostSerializer } from './serializers';
+import { User, Post } from './models';
+import { UserSerializer, PostSerializer } from './serializers';
 export class ExampleController extends Controller {
   path = '/example';
 
@@ -20,8 +20,8 @@ export class ExampleController extends Controller {
   // Escreve uma rota com decorators
   @Get('/test')
   async testDecorator() {
-    const instance = (await Post.default.get({ id: 1 }))[0];
-    const serializer = PostSerializer.new({
+    const instance = (await User.default.get({ id: 1 }))[0];
+    const serializer = UserSerializer.new({
       instance: instance,
     });
     const data = await serializer.data;

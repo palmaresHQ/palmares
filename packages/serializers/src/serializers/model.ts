@@ -65,10 +65,17 @@ export default class ModelSerializer<
     [models.fields.UUIDField.name]: StringField,
   };
 
+  isDynamicRepresentation = false as DR;
   engineName?: string;
   fields = {} as SerializerFieldsType;
   options = {} as ModelSerializerOptions<MO>;
   static _modelInstance: InstanceType<ReturnType<typeof models.Model>>;
+  static _foreignKeyFieldsOfModel: {
+    [fieldName: string]: models.fields.ForeignKeyField;
+  } = {};
+  static _foreignKeyFieldsOfOtherModelsRelatedToModel: {
+    [fieldName: string]: models.fields.ForeignKeyField;
+  } = {};
 
   constructor(
     params: ModelSerializerParamsTypeForConstructor<
@@ -86,6 +93,7 @@ export default class ModelSerializer<
     > = {}
   ) {
     super(params);
+    this.isDynamicRepresentation = params.isDynamicRepresentation as DR;
     this.engineName = params.engineName;
   }
 
@@ -140,6 +148,25 @@ export default class ModelSerializer<
     return instance;
   }
 
+  async #appendForeignKeyFieldsOfModel(
+    fieldName: string,
+    field: models.fields.ForeignKeyField
+  ) {
+    const constructorAsSerializer = this.constructor as typeof ModelSerializer;
+    if (constructorAsSerializer._foreignKeyFieldsOfModel[fieldName]) return;
+    constructorAsSerializer._foreignKeyFieldsOfModel[fieldName] = field;
+  }
+
+  async #appendForeignKeyFieldsOfOtherModelsRelatedToModel(
+    fieldName: string,
+    field: models.fields.ForeignKeyField
+  ) {
+    const constructorAsSerializer = this.constructor as typeof ModelSerializer;
+    constructorAsSerializer._foreignKeyFieldsOfOtherModelsRelatedToModel[
+      fieldName
+    ] = field;
+  }
+
   /**
    * This is responsible for retrieving the actual field type if the field is a related field. Since we can be related to a uuid
    * instead of an integer and so on we need to retrieve the actual field type that this field needs to be.
@@ -161,31 +188,55 @@ export default class ModelSerializer<
     field: models.fields.ForeignKeyField
   ) {
     if (field instanceof models.fields.ForeignKeyField) {
+      let foundRelatedField: models.fields.ForeignKeyField | undefined =
+        undefined;
       const isARecursiveRelation = model.constructor.name === field.relatedTo;
       if (isARecursiveRelation) {
-        if (model.fields[field.toField]) return model.fields[field.toField];
+        if (model.fields[field.toField])
+          foundRelatedField = model.fields[
+            field.toField
+          ] as models.fields.ForeignKeyField;
       }
 
-      for (const dependentModel of this.options?.dependsOn || []) {
-        const isTheDependentModelTheOneRelatedToTheField =
-          dependentModel.name === field.relatedTo;
-        if (isTheDependentModelTheOneRelatedToTheField) {
-          const relatedModelInstance = new this.options.model();
-          await relatedModelInstance.initializeBasic();
-          if (relatedModelInstance.fields[field.toField])
-            return relatedModelInstance.fields[field.toField];
+      if (foundRelatedField === undefined) {
+        for (const dependentModel of this.options?.dependsOn || []) {
+          const isTheDependentModelTheOneRelatedToTheField =
+            dependentModel.name === field.relatedTo;
+          if (isTheDependentModelTheOneRelatedToTheField) {
+            const relatedModelInstance = new this.options.model();
+            await relatedModelInstance.initializeBasic();
+            if (relatedModelInstance.fields[field.toField]) {
+              foundRelatedField = relatedModelInstance.fields[
+                field.toField
+              ] as models.fields.ForeignKeyField;
+            }
+          }
         }
       }
 
-      const modelsInApplication = await database.getModels();
-      const modelInApplication = modelsInApplication[field.relatedTo];
-      if (modelInApplication) {
-        const relatedModelInstance = new modelInApplication.model();
-        await relatedModelInstance.initializeBasic();
-        if (relatedModelInstance.fields[field.toField])
-          return relatedModelInstance.fields[field.toField];
+      if (foundRelatedField === undefined) {
+        const modelsInApplication = await database.getModels();
+        const modelInApplication = modelsInApplication[field.relatedTo];
+        if (modelInApplication) {
+          const relatedModelInstance = new modelInApplication.model();
+          await relatedModelInstance.initializeBasic();
+          if (relatedModelInstance.fields[field.toField]) {
+            foundRelatedField = relatedModelInstance.fields[
+              field.toField
+            ] as models.fields.ForeignKeyField;
+          }
+        }
       }
-      throw new NoRelatedModelFoundForRelatedFieldError(field.fieldName);
+
+      if (foundRelatedField === undefined)
+        throw new NoRelatedModelFoundForRelatedFieldError(field.fieldName);
+      else {
+        await this.#appendForeignKeyFieldsOfOtherModelsRelatedToModel(
+          foundRelatedField.fieldName as string,
+          foundRelatedField
+        );
+        return foundRelatedField;
+      }
     }
     return field;
   }
@@ -198,10 +249,72 @@ export default class ModelSerializer<
   async fieldToRepresentation(field: Field, value: any, instance: any) {
     const isInstanceAnObject =
       typeof instance === 'object' && instance !== null;
+    const constructorAsModelSerializer = this
+      .constructor as typeof ModelSerializer;
     const isFieldOfTypeModelSerializer = field instanceof ModelSerializer;
-    const modelInstance = (this.constructor as typeof ModelSerializer)
-      ._modelInstance;
-    const fieldEntries = Object.entries(modelInstance.fields);
+    const fieldAsModelSerializer = field as ModelSerializer;
+
+    if (
+      isFieldOfTypeModelSerializer &&
+      isInstanceAnObject &&
+      fieldAsModelSerializer.isDynamicRepresentation
+    ) {
+      // Find if the field is a relation field, this means it should match directly the model it relates to.
+      const modelInstance = (this.constructor as typeof ModelSerializer)
+        ._modelInstance;
+
+      let fieldEntries = Object.entries(
+        constructorAsModelSerializer._foreignKeyFieldsOfModel
+      );
+      if (fieldEntries.length === 0) {
+        fieldEntries = Object.entries(modelInstance.fields).filter(
+          ([fieldName, field]) => {
+            if (field instanceof models.fields.ForeignKeyField) {
+              this.#appendForeignKeyFieldsOfModel(
+                fieldName,
+                field as models.fields.ForeignKeyField
+              );
+              return true;
+            } else {
+              return false;
+            }
+          }
+        ) as [string, models.fields.ForeignKeyField][];
+      }
+
+      for (const [fieldName, instanceField] of fieldEntries) {
+        const isFieldNameTheSameAsTheRelationName =
+          field.fieldName === instanceField.relationName;
+        if (isFieldNameTheSameAsTheRelationName) {
+          const data = await (
+            field.options.model as ReturnType<typeof models.Model>
+          ).default.get(
+            {
+              [instanceField.toField]: instance[fieldName],
+            },
+            this.engineName
+          );
+          return super.fieldToRepresentation(field, data[0], instance);
+        }
+      }
+      console.log(field.fieldName);
+      console.log(fieldEntries);
+    }
+    /*
+    if (
+      isFieldOfTypeModelSerializer &&
+      fieldAsModelSerializer.isDynamicRepresentation
+    ) {
+      const fieldEntries = Object.entries(modelInstance.fields);
+      for (const [fieldName, instanceField] of fieldEntries) {
+        // TODO: this is wrong
+        const instanceFieldAsForeignField =
+          instanceField as models.fields.ForeignKeyField;
+        const isFieldNameTheSameAsTheRelationName =
+          field.fieldName === instanceFieldAsForeignField.relationName;
+      }
+    }
+
     for (const [fieldName, instanceField] of fieldEntries) {
       // TODO: this is wrong
       const instanceFieldAsForeignField =
@@ -234,7 +347,8 @@ export default class ModelSerializer<
           break;
         }
       }
-    }
+    }*/
+    console.log(value);
     return super.fieldToRepresentation(field, value, instance);
   }
 

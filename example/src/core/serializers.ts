@@ -6,7 +6,14 @@ import {
 } from '@palmares/serializers';
 import { Post, User } from './models';
 
-class UserSerializer extends ModelSerializer {
+export class UserSerializer extends ModelSerializer {
+  /*fields = {
+    userPosts: PostSerializer.new({
+      isDynamicRepresentation: true,
+      many: true,
+    }),
+  };*/
+
   options = {
     model: User,
     excludes: ['password'] as const,
@@ -15,15 +22,14 @@ class UserSerializer extends ModelSerializer {
 
 export class PostSerializer extends ModelSerializer {
   fields = {
-    userPosts: UserSerializer.new({
+    user: UserSerializer.new({
       isDynamicRepresentation: true,
-      many: true,
     }),
   };
 
   options = {
     model: Post,
-    excludes: ['id'] as const,
+    excludes: ['id', 'userUuid'] as const,
   };
 }
 

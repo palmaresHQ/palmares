@@ -146,12 +146,15 @@ export default class Serializer<
         : undefined;
       field.fieldName = fieldName;
       field.context = this.context;
+      console.log('instanceToRepresentation', this.constructor.name, fieldName);
       const representationValue = await this.fieldToRepresentation(
         field,
         value,
         instance
       );
-      if (representationValue) newInstance[fieldName] = representationValue;
+      const isRepresentationValueDefined = representationValue !== undefined;
+      if (isRepresentationValueDefined)
+        newInstance[fieldName] = representationValue;
     }
     return newInstance;
   }
@@ -280,7 +283,8 @@ export default class Serializer<
 
         if (isValid) {
           const internalValue = await field.toInternal(value);
-          if (internalValue) newInstance[fieldName] = internalValue;
+          const isInternalValueDefined = internalValue !== undefined;
+          if (isInternalValueDefined) newInstance[fieldName] = internalValue;
         }
       }
     }

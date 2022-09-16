@@ -251,13 +251,20 @@ export default class Field<
     const isWriteOnly = this.writeOnly;
     if (isWriteOnly) return undefined;
     const sourceData = await this._getSource(data);
-    const formattedData: this['type'] | null | undefined =
-      await this._getDefaultValue(sourceData);
-    const isDataNotNullNorUndefined = ![null, undefined].includes(
-      formattedData
-    );
-    if (this.writeOnly) return undefined;
-    if (callbackIfDefined && isDataNotNullNorUndefined)
+    let formattedData:
+      | this['outType']
+      | Array<this['outType']>
+      | undefined
+      | null = sourceData;
+    const isDataUndefined = sourceData === undefined;
+    if (isDataUndefined)
+      formattedData = (await this._getDefaultValue(sourceData)) as
+        | this['outType']
+        | Array<this['outType']>
+        | undefined
+        | null;
+    const isDataNull = formattedData === null;
+    if (callbackIfDefined && isDataUndefined === false && isDataNull === false)
       return callbackIfDefined(
         formattedData as Exclude<this['type'], null | undefined>
       );
@@ -278,7 +285,7 @@ export default class Field<
     data?: this['inType'],
     callbackIfDefined?: CallbackIfDefinedToInternal<I>
   ): Promise<this['inType'] | Array<this['inType']> | undefined | null> {
-    const isDataNotNullNorUndefined = data !== null && data !== undefined;
+    const isDataNotNullNorUndefined = data === undefined;
 
     if (!isDataNotNullNorUndefined)
       return (await this._getDefaultValue(data as undefined)) as InFieldType<

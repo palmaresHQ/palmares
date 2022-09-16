@@ -86,7 +86,7 @@ type RelatedFieldToModel<M extends BaseModel, RM extends BaseModel> = {
     : ModelFields<RM>[];
 };
 
-type Teste1 = RelatedFieldOfModel<User>;
+type Teste1 = RelatedFieldOfModel<Post>;
 type Teste = RelatedFieldToModel<User, Post>;
 const teste: Teste = {
   userPosts: [
