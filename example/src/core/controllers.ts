@@ -22,7 +22,7 @@ export class ExampleController extends Controller {
   async testDecorator() {
     const instance = (await User.default.get({ id: 1 }))[0];
     const serializer = UserSerializer.new({
-      instance: instance,
+      instance,
     });
     const data = await serializer.data;
 

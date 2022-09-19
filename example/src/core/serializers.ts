@@ -7,12 +7,12 @@ import {
 import { Post, User } from './models';
 
 export class UserSerializer extends ModelSerializer {
-  /*fields = {
+  fields = {
     userPosts: PostSerializer.new({
       isDynamicRepresentation: true,
       many: true,
     }),
-  };*/
+  };
 
   options = {
     model: User,
@@ -21,12 +21,6 @@ export class UserSerializer extends ModelSerializer {
 }
 
 export class PostSerializer extends ModelSerializer {
-  fields = {
-    user: UserSerializer.new({
-      isDynamicRepresentation: true,
-    }),
-  };
-
   options = {
     model: Post,
     excludes: ['id', 'userUuid'] as const,

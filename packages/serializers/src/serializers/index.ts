@@ -146,7 +146,6 @@ export default class Serializer<
         : undefined;
       field.fieldName = fieldName;
       field.context = this.context;
-      console.log('instanceToRepresentation', this.constructor.name, fieldName);
       const representationValue = await this.fieldToRepresentation(
         field,
         value,

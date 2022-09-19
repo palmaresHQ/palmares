@@ -1,14 +1,23 @@
-import { DefaultCommandType, Domain, DomainHandlerFunctionArgs, SettingsType } from "@palmares/core";
+import {
+  DefaultCommandType,
+  Domain,
+  DomainHandlerFunctionArgs,
+  SettingsType,
+} from '@palmares/core';
 
-import { dev } from "./commands";
-import buildLogging from "./logging";
-import { OnlyServerSettingsType, MultipleServerSettings, ServerSettingsType } from "./types";
+import { dev } from './commands';
+import buildLogging from './logging';
+import {
+  OnlyServerSettingsType,
+  MultipleServerSettings,
+  ServerSettingsType,
+} from './types';
 import App from './app';
-import Server from "./server";
+import Server from './server';
 
 export default class ServerDomain extends Domain {
   serverName!: string;
-  serverSettings!: OnlyServerSettingsType
+  serverSettings!: OnlyServerSettingsType;
   server!: Server;
   app!: App;
 
@@ -19,8 +28,8 @@ export default class ServerDomain extends Domain {
       handler: async (options: DomainHandlerFunctionArgs) => {
         await dev(this.app, options);
       },
-    }
-  }
+    },
+  };
 
   constructor(customDomainName?: string) {
     super(customDomainName ? customDomainName : ServerDomain.name, __dirname);
@@ -50,12 +59,17 @@ export default class ServerDomain extends Domain {
    *
    * @param settings - The settings of the application defined by the user in `settings.(js/ts)`.
    */
-  async load<S extends SettingsType = ServerSettingsType>(settings: S): Promise<void> {
+  async load<S extends SettingsType = ServerSettingsType>(
+    settings: S
+  ): Promise<void> {
     await buildLogging();
 
     let appSettings = settings as unknown as ServerSettingsType; // ew, need to make this better
     if (this.serverSettings) {
-      appSettings = { ...settings, ...this.serverSettings } as unknown as ServerSettingsType; // ew, and this
+      appSettings = {
+        ...settings,
+        ...this.serverSettings,
+      } as unknown as ServerSettingsType; // ew, and this
     }
 
     const server = new appSettings.SERVER(appSettings);
@@ -74,7 +88,7 @@ export default class ServerDomain extends Domain {
 
   // Just to suppress the warning on `@palmares/database` package if it exists in the application.
   async getModels() {
-    return []
+    return [];
   }
 }
 
@@ -91,6 +105,6 @@ export function multiple(config: MultipleServerSettings) {
         this.serverName = serverName;
         this.serverSettings = serverSettings;
       }
-    }
+    };
   });
 }

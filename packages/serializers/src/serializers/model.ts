@@ -70,9 +70,6 @@ export default class ModelSerializer<
   fields = {} as SerializerFieldsType;
   options = {} as ModelSerializerOptions<MO>;
   static _modelInstance: InstanceType<ReturnType<typeof models.Model>>;
-  static _foreignKeyFieldsOfModel: {
-    [fieldName: string]: models.fields.ForeignKeyField;
-  } = {};
   static _foreignKeyFieldsOfOtherModelsRelatedToModel: {
     [fieldName: string]: models.fields.ForeignKeyField;
   } = {};
@@ -148,16 +145,17 @@ export default class ModelSerializer<
     return instance;
   }
 
-  async #appendForeignKeyFieldsOfModel(
-    fieldName: string,
-    field: models.fields.ForeignKeyField
-  ) {
-    const constructorAsSerializer = this.constructor as typeof ModelSerializer;
-    if (constructorAsSerializer._foreignKeyFieldsOfModel[fieldName]) return;
-    constructorAsSerializer._foreignKeyFieldsOfModel[fieldName] = field;
-  }
-
-  async #appendForeignKeyFieldsOfOtherModelsRelatedToModel(
+  /**
+   * This will append the foreign key fields of the model to the serializer fields.
+   *
+   * This way we do not need to retrieve and search for them every time we need to use them.
+   *
+   * This makes it not really performant on the first run but it becomes performant after the first one.
+   *
+   * @param fieldName - Te name of the field that this foreign key field is related to. (the toField param).
+   * @param field - The foreign key field that is related to the field name.
+   */
+  #appendForeignKeyFieldsOfOtherModelsRelatedToModel(
     fieldName: string,
     field: models.fields.ForeignKeyField
   ) {
@@ -172,6 +170,11 @@ export default class ModelSerializer<
    * instead of an integer and so on we need to retrieve the actual field type that this field needs to be.
    * If this field is related to a uuid don't you agree that the type of the field should be an StringField
    * instead of a NumberField? That's exactly what this does.
+   *
+   * This can be kinda strange because when you are using the ForeignKeyField you sometimes will be passing the actual model instead
+   * of the string. But on the field itself we will always be storing the relatedTo as a string instead of the actual model. If we stored
+   * the actual model we would have a circular dependency and it would not work. So because of this relatedTo is ALWAYS a string. This is
+   * why we need to search for this string on the dependencies and if not found on the actual database.
    *
    * IMPORTANT: We will always try to look for `dependsOn` option before looking in the models initialized by the database.
    * Sometimes you won't want to initialize the database (like on monorepo setups or even a REPL setup) just for this,
@@ -231,7 +234,7 @@ export default class ModelSerializer<
       if (foundRelatedField === undefined)
         throw new NoRelatedModelFoundForRelatedFieldError(field.fieldName);
       else {
-        await this.#appendForeignKeyFieldsOfOtherModelsRelatedToModel(
+        this.#appendForeignKeyFieldsOfOtherModelsRelatedToModel(
           foundRelatedField.fieldName as string,
           foundRelatedField
         );
@@ -242,46 +245,45 @@ export default class ModelSerializer<
   }
 
   /**
-   * If the user define a field with the relatedName or a relationName we retrieve the values of this field dynamically.
+   * To retrieve the value dynamically, first the instance received should be an object and not null since we will be using the
+   * values from this object. The type of the serializer should be a model serializer and isDynamicRepresentation should be true.
    *
-   * TIP: A related name is the name of the
+   * @param field - The field instance that should be a ModelSerializer.
+   * @param instance - The instance to retrieve the data for.
+   *
+   * @returns - Returns true if it is to get the value dynamically and false otherwise.
    */
-  async fieldToRepresentation(field: Field, value: any, instance: any) {
+  async #isToGetValueDynamically(field: Field, instance: any) {
     const isInstanceAnObject =
       typeof instance === 'object' && instance !== null;
-    const constructorAsModelSerializer = this
-      .constructor as typeof ModelSerializer;
     const isFieldOfTypeModelSerializer = field instanceof ModelSerializer;
-    const fieldAsModelSerializer = field as ModelSerializer;
-
-    if (
-      isFieldOfTypeModelSerializer &&
+    return (
       isInstanceAnObject &&
-      fieldAsModelSerializer.isDynamicRepresentation
-    ) {
-      // Find if the field is a relation field, this means it should match directly the model it relates to.
-      const modelInstance = (this.constructor as typeof ModelSerializer)
-        ._modelInstance;
+      isFieldOfTypeModelSerializer &&
+      field.isDynamicRepresentation
+    );
+  }
 
-      let fieldEntries = Object.entries(
-        constructorAsModelSerializer._foreignKeyFieldsOfModel
-      );
-      if (fieldEntries.length === 0) {
-        fieldEntries = Object.entries(modelInstance.fields).filter(
-          ([fieldName, field]) => {
-            if (field instanceof models.fields.ForeignKeyField) {
-              this.#appendForeignKeyFieldsOfModel(
-                fieldName,
-                field as models.fields.ForeignKeyField
-              );
-              return true;
-            } else {
-              return false;
-            }
-          }
-        ) as [string, models.fields.ForeignKeyField][];
-      }
-
+  /**
+   * This is better explained in `fieldToRepresentation` method. This will be used to retrieve the values of the direct relation. One thing to notice
+   * is that the retrieved value is always unique.
+   *
+   * @param field - The field instance that should be a ModelSerializer.
+   * @param instance - The instance to retrieve the data for.
+   *
+   * @returns - Returns and object with the value of the model serializer.
+   */
+  async #getDirectRelationData(field: ModelSerializer, instance: any) {
+    if (await this.#isToGetValueDynamically(field, instance)) {
+      const constructorAsModelSerializer = this
+        .constructor as typeof ModelSerializer;
+      const modelInstance = constructorAsModelSerializer._modelInstance;
+      const fieldEntries = Object.entries(modelInstance.fields).filter(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        ([_, field]) => {
+          return field instanceof models.fields.ForeignKeyField;
+        }
+      ) as [string, models.fields.ForeignKeyField][];
       for (const [fieldName, instanceField] of fieldEntries) {
         const isFieldNameTheSameAsTheRelationName =
           field.fieldName === instanceField.relationName;
@@ -294,61 +296,123 @@ export default class ModelSerializer<
             },
             this.engineName
           );
-          return super.fieldToRepresentation(field, data[0], instance);
+          return data[0];
         }
       }
-      console.log(field.fieldName);
-      console.log(fieldEntries);
     }
-    /*
-    if (
-      isFieldOfTypeModelSerializer &&
-      fieldAsModelSerializer.isDynamicRepresentation
-    ) {
-      const fieldEntries = Object.entries(modelInstance.fields);
-      for (const [fieldName, instanceField] of fieldEntries) {
-        // TODO: this is wrong
-        const instanceFieldAsForeignField =
-          instanceField as models.fields.ForeignKeyField;
-        const isFieldNameTheSameAsTheRelationName =
-          field.fieldName === instanceFieldAsForeignField.relationName;
-      }
-    }
+  }
 
-    for (const [fieldName, instanceField] of fieldEntries) {
-      // TODO: this is wrong
-      const instanceFieldAsForeignField =
-        instanceField as models.fields.ForeignKeyField;
-      const isFieldNameTheSameAsTheRelatedName =
-        field.fieldName === instanceFieldAsForeignField.relatedName;
-      const isFieldNameTheSameAsTheRelationName =
-        field.fieldName === instanceFieldAsForeignField.relationName;
-      if (
-        isFieldOfTypeModelSerializer &&
-        isInstanceAnObject &&
-        (isFieldNameTheSameAsTheRelatedName ||
-          isFieldNameTheSameAsTheRelationName)
-      ) {
-        const data = await (
-          field.options.model as ReturnType<typeof models.Model>
-        ).default.get(
-          {
-            [instanceFieldAsForeignField.toField]: instance[fieldName],
-          },
-          this.engineName
-        );
-        const hasDataForField = data.length > 0;
-        if (hasDataForField) {
-          const isUnique = instanceField.unique;
-          if (isUnique)
-            return super.fieldToRepresentation(field, data[0], instance);
-          else return super.fieldToRepresentation(field, data, instance);
-        } else {
-          break;
+  /**
+   * This is more tricky and is better explained in the `fieldToRepresentation` method.
+   */
+  async #getRelatedData(field: ModelSerializer, instance: any) {
+    if (await this.#isToGetValueDynamically(field, instance)) {
+      const fieldConstructorAsModelSerializer =
+        field.constructor as typeof ModelSerializer;
+      let modelInstanceOfField =
+        fieldConstructorAsModelSerializer._modelInstance;
+      const modelInstanceOfFieldIsNotDefined =
+        modelInstanceOfField === undefined;
+      if (modelInstanceOfFieldIsNotDefined) {
+        modelInstanceOfField = new field.options.model();
+        await modelInstanceOfField.initializeBasic();
+        fieldConstructorAsModelSerializer._modelInstance = modelInstanceOfField;
+      }
+
+      const fieldEntriesOfFieldModel = Object.entries(
+        modelInstanceOfField.fields
+      ).filter(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        ([_, field]) => {
+          return field instanceof models.fields.ForeignKeyField;
+        }
+      ) as [string, models.fields.ForeignKeyField][];
+
+      // RECURSIVE RELATIONS
+      for (const [fieldName, instanceField] of fieldEntriesOfFieldModel) {
+        const isFieldNameTheSameAsTheRelatedName =
+          field.fieldName === instanceField.relatedName &&
+          this.options.model.name === instanceField.relatedTo;
+        if (isFieldNameTheSameAsTheRelatedName) {
+          const data = await (
+            field.options.model as ReturnType<typeof models.Model>
+          ).default.get(
+            {
+              [fieldName]: instance[instanceField.toField],
+            },
+            this.engineName
+          );
+          if (instanceField.unique) return data[0];
+          else return data;
         }
       }
-    }*/
-    console.log(value);
+    }
+  }
+
+  /**
+   * If the user define a field with the relatedName or a relationName and isDynamicRepresentation is set to true we
+   * retrieve the values of this field dynamically. We have two ways of relating data: the relationName and the relatedName.
+   * The difference of both is that relatedName is the relation on the model that this field relates to and the relationName defines
+   * the name of the relation in the model. The related name is the name of the relation on the model it relates to. This can be
+   * better explained with an example:
+   *
+   * @example
+   * ```
+   * export class Post extends models.Model<Post>() {
+   *    fields = {
+   *      id: new models.fields.AutoField(),
+   *      description: new models.fields.TextField(),
+   *      userUuid: new models.fields.ForeignKeyField({
+   *        relatedTo: User,
+   *        onDelete: models.fields.ON_DELETE.CASCADE,
+   *        toField: 'uuid',
+   *        relatedName: 'userPosts',
+   *        relationName: 'user',
+   *      }),
+   *    };
+   *
+   *    options = {
+   *      tableName: 'post',
+   *    };
+   * }
+   *
+   * export class User extends models.Model<User>() {
+   *    fields = {
+   *      id: new models.fields.AutoField(),
+   *      firstName: new models.fields.CharField({ maxLength: 255, dbIndex: true }),
+   *      lastName: new models.fields.CharField({ maxLength: 255, allowNull: true }),
+   *      uuid: new models.fields.UUIDField({ autoGenerate: true, unique: true }),
+   *   };
+   *
+   *    options = {
+   *      tableName: 'user',
+   *    };
+   * }
+   * ```
+   *
+   * On the example above we have a relation between the User and the Post model. The relationName of userUuid Post model is the name of the relation on the Post model.
+   * This means that if every Post is tied to the user, what is the user? It's the userUuid field. The relatedName is more complicated. A User can be tied to N Posts.
+   * What are those posts the user is tied to? It usually is a list, but if userUuid is unique, this means each post should be tied to only one user, so it does not
+   * return an array but a single object.
+   *
+   * That's exactly the idea.
+   *
+   * @param field -
+   */
+  async fieldToRepresentation(field: Field, value: any, instance: any) {
+    if (await this.#isToGetValueDynamically(field, instance)) {
+      let newValue = await this.#getDirectRelationData(
+        field as ModelSerializer,
+        instance
+      );
+      if (newValue === undefined)
+        newValue = await this.#getRelatedData(
+          field as ModelSerializer,
+          instance
+        );
+      if (newValue !== undefined)
+        return super.fieldToRepresentation(field, newValue, instance);
+    }
     return super.fieldToRepresentation(field, value, instance);
   }
 
@@ -359,6 +423,17 @@ export default class ModelSerializer<
   ): Promise<this['outType']> {
     await this.#getSerializerModelFields();
     return super.toRepresentation(data);
+  }
+
+  async toInternal(
+    validatedData:
+      | (M extends true
+          ? ModelSerializerInType<I, D, N, R, RO, MO, IN, EX>[]
+          : ModelSerializerInType<I, D, N, R, RO, MO, IN, EX>)
+      | undefined = undefined
+  ): Promise<this['inType'] | undefined> {
+    await this.#getSerializerModelFields();
+    return super.toInternal(validatedData);
   }
 
   async #getSerializerModelFields() {
@@ -387,14 +462,18 @@ export default class ModelSerializer<
         ([fieldName]) => this.options.excludes?.includes(fieldName) === false
       );
 
-    for (const [fieldName, field] of fieldEntries) {
-      const relatedOrNonRelatedField = await this.#getRelatedField(
-        database,
-        modelInstance,
-        field as models.fields.ForeignKeyField
-      );
-      const relatedOrNonRelatedFieldTypeName =
-        relatedOrNonRelatedField.constructor.name;
+    // eslint-disable-next-line prefer-const
+    for (let [fieldName, field] of fieldEntries) {
+      const isFieldAForeignKeyField =
+        field instanceof models.fields.ForeignKeyField;
+      if (isFieldAForeignKeyField) {
+        field = await this.#getRelatedField(
+          database,
+          modelInstance,
+          field as models.fields.ForeignKeyField
+        );
+      }
+      const relatedOrNonRelatedFieldTypeName = field.constructor.name;
       if (fieldName in this.fields === false) {
         const SerializerFieldClass =
           this.#serializerFieldByModelField[relatedOrNonRelatedFieldTypeName];
