@@ -3,12 +3,15 @@ import {
   ClassHandler,
   Response,
   Get,
+  Post,
   HTTP_200_OK,
+  HTTP_201_CREATED,
 } from '@palmares/server';
 import { ExpressRequest } from '@palmares/express-adapter';
 
-import { User, Post } from './models';
+import { User } from './models';
 import { UserSerializer, PostSerializer } from './serializers';
+import { ModelSerializerInType } from '@palmares/serializers/src/serializers/types';
 export class ExampleController extends Controller {
   path = '/example';
 
@@ -25,16 +28,23 @@ export class ExampleController extends Controller {
       instance,
     });
     const data = await serializer.data;
-
-    /*const serializer = ExampleSerializer.new({
-      data: {
-        firstName: 'launchcode',
-        nested: {
-          phoneNumber: '+55 11 99999-9999',
-        }
-      }
-    });*/
     return Response.new(HTTP_200_OK, { body: data });
+  }
+
+  @Post('/test')
+  async testPostDecorator({
+    body,
+  }: ExpressRequest<{ D: ModelSerializerInType<UserSerializer> }>) {
+    const serializer = UserSerializer.new({
+      data: body,
+    });
+    const isValid = await serializer.isValid();
+    console.log(isValid);
+    console.log(serializer.errors);
+    if (isValid) {
+      console.log(isValid, serializer.validatedData);
+    }
+    return Response.new(HTTP_201_CREATED);
   }
 
   // Ou com objetos diretamente

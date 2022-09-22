@@ -495,7 +495,7 @@ export class ForeignKeyField<
   D extends
     | (T extends undefined ? M['fields'][F]['type'] : T)
     | undefined = undefined,
-  N extends boolean = false,
+  N extends boolean = boolean,
   U extends boolean = boolean,
   RN extends string = any,
   RNN extends string = any

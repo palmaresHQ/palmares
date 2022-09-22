@@ -303,7 +303,25 @@ export default class ModelSerializer<
   }
 
   /**
-   * This is more tricky and is better explained in the `fieldToRepresentation` method.
+   * This is more tricky and is better explained in the `fieldToRepresentation` method but the idea is that
+   * for `relatedNames` we get the representation of the other model. if we have the following field:
+   *
+   * ```
+   * new models.fields.ForeignKeyField({
+   *    relatedTo: User,
+   *    onDelete: models.fields.ON_DELETE.CASCADE,
+   *    toField: 'uuid',
+   *    relatedName: 'userPosts',
+   *    relationName: 'user',
+   * }),
+   * ```
+   *
+   * When we retrieve the data for the `User` model we can add the `userPosts` so it will retrieve the posts of the user.
+   *
+   * @param field - The field instance that should be a ModelSerializer.
+   * @param instance - The instance to retrieve the data for so we can traverse the data it relates to.
+   *
+   * @returns - Returns an array of objects with the value of the model serializer.
    */
   async #getRelatedData(field: ModelSerializer, instance: any) {
     if (await this.#isToGetValueDynamically(field, instance)) {
@@ -397,7 +415,11 @@ export default class ModelSerializer<
    *
    * That's exactly the idea.
    *
-   * @param field -
+   * @param field - The field to retrieve the representation for.
+   * @param value - The value of the field, can be undefined on some cases.
+   * @param instance - The instance of the model.
+   *
+   * @returns - The representation of the field by calling the field's `.toRepresentation` method.
    */
   async fieldToRepresentation(field: Field, value: any, instance: any) {
     if (await this.#isToGetValueDynamically(field, instance)) {
@@ -463,17 +485,19 @@ export default class ModelSerializer<
       );
 
     // eslint-disable-next-line prefer-const
-    for (let [fieldName, field] of fieldEntries) {
+    for (const [fieldName, field] of fieldEntries) {
       const isFieldAForeignKeyField =
         field instanceof models.fields.ForeignKeyField;
+      let relatedOrNonRelatedField = field;
       if (isFieldAForeignKeyField) {
-        field = await this.#getRelatedField(
+        relatedOrNonRelatedField = await this.#getRelatedField(
           database,
           modelInstance,
           field as models.fields.ForeignKeyField
         );
       }
-      const relatedOrNonRelatedFieldTypeName = field.constructor.name;
+      const relatedOrNonRelatedFieldTypeName =
+        relatedOrNonRelatedField.constructor.name;
       if (fieldName in this.fields === false) {
         const SerializerFieldClass =
           this.#serializerFieldByModelField[relatedOrNonRelatedFieldTypeName];
@@ -482,9 +506,12 @@ export default class ModelSerializer<
           this.fields[fieldName] = NumberFieldClass.new({
             required: field.allowNull,
             allowNull: field.allowNull,
-            defaultValue: field.defaultValue,
-            maxDigits: (field as models.fields.DecimalField).maxDigits,
-            decimalPlaces: (field as models.fields.DecimalField).decimalPlaces,
+            defaultValue: relatedOrNonRelatedField.defaultValue,
+            maxDigits: (relatedOrNonRelatedField as models.fields.DecimalField)
+              .maxDigits,
+            decimalPlaces: (
+              relatedOrNonRelatedField as models.fields.DecimalField
+            ).decimalPlaces,
             isInteger:
               relatedOrNonRelatedFieldTypeName ===
                 models.fields.IntegerField.name ||
@@ -496,7 +523,8 @@ export default class ModelSerializer<
           this.fields[fieldName] = StringFieldClass.new({
             required: field.allowNull,
             allowNull: field.allowNull,
-            allowBlank: (field as models.fields.CharField).allowBlank,
+            allowBlank: (relatedOrNonRelatedField as models.fields.CharField)
+              .allowBlank,
             isUUID:
               relatedOrNonRelatedFieldTypeName === models.fields.UUIDField.name,
           });

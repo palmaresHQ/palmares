@@ -1,6 +1,5 @@
 import { models, ModelFields } from '@palmares/databases';
 import { BaseModel } from '@palmares/databases/src/models';
-import { ClassConstructor } from '@palmares/databases/src/models/fields/types';
 
 export class Post extends models.Model<Post>() {
   fields = {
@@ -29,6 +28,7 @@ export class User extends models.Model<User>() {
     firstName: new models.fields.CharField({ maxLength: 255, dbIndex: true }),
     lastName: new models.fields.CharField({ maxLength: 255, allowNull: true }),
     dependsOn: new models.fields.ForeignKeyField<string>({
+      allowNull: true,
       relatedTo: 'User',
       onDelete: models.fields.ON_DELETE.CASCADE,
       toField: 'uuid',

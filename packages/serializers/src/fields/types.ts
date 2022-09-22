@@ -22,7 +22,7 @@ export type CallbackIfDefinedToRepresentation<
   >
 > = (data: D) => Promise<F['outType']> | F['outType'];
 
-type AllowNull<T, N extends boolean = false> = N extends false ? T : T | null;
+type AllowNull<T, N extends boolean = false> = N extends true ? T | null : T;
 type Required<T, R extends boolean = true, D = any> = D extends undefined
   ? R extends false
     ? T | undefined

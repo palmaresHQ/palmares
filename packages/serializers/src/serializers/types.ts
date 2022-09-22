@@ -70,13 +70,25 @@ export type ModelSerializerOutType<
 
 export type ModelSerializerInType<
   I extends ModelSerializer,
-  D extends SerializerType<I> | undefined,
-  N extends boolean,
-  R extends boolean,
-  RO extends boolean,
-  MO extends ReturnType<typeof models.Model>,
-  IN extends keyof ModelFields<InstanceType<MO>>,
-  EX extends keyof ModelFields<InstanceType<MO>>
+  D extends SerializerType<I> | undefined = undefined,
+  N extends boolean = false,
+  R extends boolean = true,
+  RO extends boolean = false,
+  MO extends ReturnType<typeof models.Model> = I['options']['model'],
+  IN extends keyof ModelFields<
+    InstanceType<MO>
+  > = I['options']['fields'] extends readonly (keyof ModelFields<
+    InstanceType<I['options']['model']>
+  >)[]
+    ? I['options']['fields'][number]
+    : any,
+  EX extends keyof ModelFields<
+    InstanceType<MO>
+  > = I['options']['excludes'] extends readonly (keyof ModelFields<
+    InstanceType<I['options']['model']>
+  >)[]
+    ? I['options']['excludes'][number]
+    : any
 > = InFieldType<
   FieldType<
     InSerializerType<I> &
@@ -197,3 +209,8 @@ export type ModelSerializerOptions<
   excludes?: readonly (keyof ModelFields<InstanceType<M>>)[];
   dependsOn?: readonly ReturnType<typeof models.Model>[];
 };
+
+export type SerializerIn<S extends Serializer['inType']> = Exclude<
+  S,
+  undefined | null
+>;

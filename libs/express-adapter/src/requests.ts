@@ -1,11 +1,11 @@
-import { Request } from "express";
+import { Request } from 'express';
 
 import {
   ServerRequests,
   Request as PalmaresRequest,
   QueryParamsType,
   HeadersType,
-} from "@palmares/server";
+} from '@palmares/server';
 
 export default class ExpressRequests extends ServerRequests {
   async translate(request: Request, options: any): Promise<PalmaresRequest> {
@@ -18,7 +18,7 @@ export default class ExpressRequests extends ServerRequests {
       request.headers as HeadersType,
       request.headers['content-type'] as string,
       request.headers['user-agent'] as string,
-      undefined,
+      request.body,
       request,
       options
     );
