@@ -35,14 +35,14 @@ export class ExampleController extends Controller {
   async testPostDecorator({
     body,
   }: ExpressRequest<{ D: ModelSerializerInType<UserSerializer> }>) {
+    const instance = (await User.default.get({ id: 1 }))[0];
     const serializer = UserSerializer.new({
       data: body,
+      instance,
     });
     const isValid = await serializer.isValid();
-    console.log(isValid);
-    console.log(serializer.errors);
     if (isValid) {
-      console.log(isValid, serializer.validatedData);
+      const savedInstance = await serializer.save();
     }
     return Response.new(HTTP_201_CREATED);
   }

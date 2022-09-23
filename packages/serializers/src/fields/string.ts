@@ -75,10 +75,10 @@ export default class StringField<
   async schema<S extends Schema>(
     isIn = true,
     schema?: S
-  ): Promise<ReturnType<S['getChar']>> {
+  ): Promise<ReturnType<S['getString']>> {
     await super.schema(isIn, schema);
     const schemaToUse = this._schema as S;
-    return schemaToUse.getChar(this);
+    return schemaToUse.getString(this);
   }
 
   async validate(data: any) {

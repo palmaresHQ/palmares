@@ -151,10 +151,31 @@ export default class Field<
     return new this(params) as Field<InstanceType<I>, D, N, R, RO, WO, C>;
   }
 
+  /**
+   * Retrieves the field name of the field inside of the serializer.
+   *
+   * For example, if we have a serializer like this:
+   * ```
+   * class ExampleSerializer extends serializers.Serializer {
+   *     fields = {
+   *        name: new serializers.CharField()
+   *    }
+   * }
+   * ```
+   *
+   * The field name of the name field will be `name`.
+   *
+   * @returns - The field name.
+   */
   get fieldName() {
     return this.#fieldName;
   }
 
+  /**
+   * Sets the field name of the field inside of the serializer if it was not already defined.
+   *
+   * @param name - The field name.
+   */
   set fieldName(name: string) {
     const isFieldNameNotDefined = typeof this.#fieldName !== 'string';
     if (isFieldNameNotDefined) this.#fieldName = name;
@@ -173,6 +194,7 @@ export default class Field<
       else throw new InvalidSerializerSchemaError();
     }
   }
+
   /**
    * Method to throw validation errors when something happen inside of the application.
    *

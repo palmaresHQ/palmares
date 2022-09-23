@@ -17,6 +17,7 @@ import {
   InvalidModelOnModelSerializerError,
   NoRelatedModelFoundForRelatedFieldError,
 } from '../exceptions';
+import Schema from '../schema';
 
 /**
  * This is used to convert a Palmares model to a serializer so you don't need to repeat the same fields of your model again.
@@ -143,6 +144,26 @@ export default class ModelSerializer<
         instance.options.model
       );
     return instance;
+  }
+
+  /**
+   * Before retrieving the schema we need to get the fields from the model and add them to the serializer fields this way we are able
+   * to convert it to any schema library.
+   *
+   * @param isIn - If we are inserting data we need to get the fields that are required and not null.
+   * @param schema - The schema to use to retrieve this serializer schema.
+   *
+   * @returns - The schema of the serializer.
+   */
+  async schema<S extends Schema, R = ReturnType<S['getObject']>>(
+    isIn = true,
+    schema?: S
+  ): Promise<R> {
+    await Promise.all([
+      this.#getSerializerModelFields(),
+      super.schema(isIn, schema),
+    ]);
+    return this._schema.getObject(this as Serializer, isIn);
   }
 
   /**
@@ -352,9 +373,8 @@ export default class ModelSerializer<
           field.fieldName === instanceField.relatedName &&
           this.options.model.name === instanceField.relatedTo;
         if (isFieldNameTheSameAsTheRelatedName) {
-          const data = await (
-            field.options.model as ReturnType<typeof models.Model>
-          ).default.get(
+          const Model = field.options.model as ReturnType<typeof models.Model>;
+          const data = await Model.default.get(
             {
               [fieldName]: instance[instanceField.toField],
             },
@@ -438,6 +458,12 @@ export default class ModelSerializer<
     return super.fieldToRepresentation(field, value, instance);
   }
 
+  /**
+   * Same as the `toInternal` function, we just override this function to retrieve the fields of the model dynamically before trying
+   * to serializer the data in order to show to the user.
+   *
+   * @param data - The data to serialize.
+   */
   async toRepresentation(
     data: M extends true
       ? ModelSerializerOutType<I, D, N, IR, WO, MO, IN, EX>[]
@@ -447,6 +473,96 @@ export default class ModelSerializer<
     return super.toRepresentation(data);
   }
 
+  /**
+   * Function to automatically create or update an instance of the model based on the data passed without needing to pass it by hand.
+   * This function will use the `data` and `instance` parameters passed to the `.new` constructor on the serializer.
+   *
+   * For example:
+   * ```
+   * const instance = (await User.default.get({ id: 1 }))[0];
+   * const serializer = UserSerializer.new({
+   *    data: body,
+   *    instance: instance,
+   * });
+   * ```
+   * This will call the `.update` function to update the instance passed.
+   *
+   * If the instance is not passed, it will call the `.create` function to create a new instance of the model.
+   */
+  async save() {
+    const isInstanceDefined = typeof this._instance !== 'undefined';
+
+    if (isInstanceDefined)
+      return await this.update(this._instance, this.validatedData);
+    return await this.create(this.validatedData);
+  }
+
+  /**
+   * Automatically creates an instance for you based on the data passed to the serializer without needing to define
+   * anything directly.
+   *
+   * @param validatedData - The data to pass to the `set` method to create a new instance/row.
+   */
+  async create(validatedData: this['inType']) {
+    if (validatedData) {
+      const Model = this.options.model as ReturnType<typeof models.Model>;
+      if (this._many) {
+        const validatedDatas = this.validatedData as this['inType'][];
+        const promises = validatedDatas.map((validatedData) =>
+          Model.default.set(
+            validatedData as Exclude<this['inType'], null | undefined>,
+            undefined,
+            this.engineName
+          )
+        );
+        return Promise.all(promises);
+      }
+      return Model.default.set(validatedData, undefined, this.engineName);
+    }
+  }
+
+  /**
+   * This will automatically update the value of the model instance without needing to define the `.save` method.
+   * This is a LOT easier for the user that just needs to define the models and everything else is handled for him
+   * in the model serializer.
+   *
+   * It also should work when `many` is equal to true. So we save all of the instances of the array.
+   *
+   * @param instance - The instance of the model to update we will use it to filter the data that should be updated.
+   * @param validatedData - The validated data to update the instance with.
+   *
+   * @returns - Returns the same thing it would return if you called the `Model.default.set` method update directly.
+   */
+  async update(instance: this['outType'], validatedData: this['inType']) {
+    if (validatedData && instance) {
+      const Model = this.options.model as ReturnType<typeof models.Model>;
+      if (this._many) {
+        const instances = instance as this['outType'][];
+        const validatedDatas = this.validatedData as this['inType'][];
+        const promises = validatedDatas.map((validatedData, index) =>
+          Model.default.set(
+            validatedData as Exclude<this['inType'], null | undefined>,
+            instances[index] as ModelFields<InstanceType<MO>>,
+            this.engineName
+          )
+        );
+        return Promise.all(promises);
+      }
+      return Model.default.set(
+        validatedData as Exclude<this['inType'], null | undefined>,
+        instance as ModelFields<InstanceType<MO>>,
+        this.engineName
+      );
+    }
+  }
+
+  /**
+   * Overrides the toInternal method to automatically retrieve the fields of the model so we are able to parse and validate the data.
+   *
+   * @param validatedData - The data to parse and validate.
+   *
+   * @returns - The parsed and validated data.
+   */
   async toInternal(
     validatedData:
       | (M extends true
@@ -460,6 +576,7 @@ export default class ModelSerializer<
 
   async #getSerializerModelFields() {
     const database = new Database();
+    const newFields: SerializerFieldsType = {};
     const areFieldsDefined = Array.isArray(this.options.fields);
     const areExcludesDefined = Array.isArray(this.options.excludes);
     const constructorOfModelSerializer = this
@@ -503,7 +620,7 @@ export default class ModelSerializer<
           this.#serializerFieldByModelField[relatedOrNonRelatedFieldTypeName];
         if (SerializerFieldClass === NumberField) {
           const NumberFieldClass = SerializerFieldClass as typeof NumberField;
-          this.fields[fieldName] = NumberFieldClass.new({
+          newFields[fieldName] = NumberFieldClass.new({
             required: field.allowNull,
             allowNull: field.allowNull,
             defaultValue: relatedOrNonRelatedField.defaultValue,
@@ -520,7 +637,7 @@ export default class ModelSerializer<
           });
         } else if (SerializerFieldClass === StringField) {
           const StringFieldClass = SerializerFieldClass as typeof StringField;
-          this.fields[fieldName] = StringFieldClass.new({
+          newFields[fieldName] = StringFieldClass.new({
             required: field.allowNull,
             allowNull: field.allowNull,
             allowBlank: (relatedOrNonRelatedField as models.fields.CharField)
@@ -531,5 +648,6 @@ export default class ModelSerializer<
         }
       }
     }
+    this.fields = { ...newFields, ...this.fields };
   }
 }

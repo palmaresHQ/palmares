@@ -1,3 +1,4 @@
+import SequelizeEngine from '@palmares/sequelize-engine';
 import {
   Serializer,
   OutSerializerType,
@@ -18,6 +19,13 @@ export class UserSerializer extends ModelSerializer {
     model: User,
     excludes: ['password'] as const,
   };
+
+  async save() {
+    const data = this.validatedData;
+    const modelInstance = User.default.getInstance<SequelizeEngine<User>>();
+
+    if (data) return modelInstance.create(data);
+  }
 }
 
 export class PostSerializer extends ModelSerializer {

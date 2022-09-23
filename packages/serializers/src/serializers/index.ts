@@ -43,7 +43,7 @@ export default class Serializer<
   fields = {} as SerializerFieldsType;
   protected _validatedData!: this['inType'];
   protected _instance: this['outType'];
-  #many!: M;
+  protected _many!: M;
   protected _data: this['inType'];
 
   constructor(
@@ -61,7 +61,7 @@ export default class Serializer<
     const isManyDefined = typeof params.many === 'boolean';
     this._instance = params.instance as this['outType'];
     this._data = params.data as this['inType'];
-    this.#many = (isManyDefined ? params.many : false) as M;
+    this._many = (isManyDefined ? params.many : false) as M;
     this.context = params.context ? params.context : ({} as C);
   }
 
@@ -169,6 +169,8 @@ export default class Serializer<
    * instead of overriding the `toRepresentation` method of the serializer.
    *
    * You must ALWAYS call `super.toRepresentation()` if you want to override this function.
+   *
+   * @data - The data that will be converted and validated.
    */
   async toRepresentation(
     data: M extends true
@@ -177,15 +179,15 @@ export default class Serializer<
       ._instance
   ): Promise<this['outType']> {
     const instanceOrDataNotDefined = data === undefined;
-    const isManyAndIsNotArray = !Array.isArray(data) && this.#many === true;
+    const isManyAndIsNotArray = !Array.isArray(data) && this._many === true;
     let dataForRepresentation = isManyAndIsNotArray ? [data] : data;
     if (instanceOrDataNotDefined && isManyAndIsNotArray)
       dataForRepresentation = [];
 
     const isManyAndIsArray =
-      Array.isArray(dataForRepresentation) && this.#many === true;
+      Array.isArray(dataForRepresentation) && this._many === true;
     const isNotManyAndIsNotArray =
-      !Array.isArray(dataForRepresentation) && this.#many === false;
+      !Array.isArray(dataForRepresentation) && this._many === false;
 
     if (isManyAndIsArray) {
       return (await Promise.all(
@@ -355,9 +357,9 @@ export default class Serializer<
       | undefined = undefined
   ): Promise<this['inType'] | undefined> {
     const isManyAndIsArray =
-      Array.isArray(validatedData) && this.#many === true;
+      Array.isArray(validatedData) && this._many === true;
     const isNotManyAndIsNotArray =
-      !Array.isArray(validatedData) && this.#many === false;
+      !Array.isArray(validatedData) && this._many === false;
 
     await this._validateAndAppendError(validatedData);
 
@@ -413,7 +415,7 @@ export default class Serializer<
 
     const instanceOrDataNotDefined = instanceOrData === undefined;
     const isManyAndIsNotArray =
-      !Array.isArray(instanceOrData) && this.#many === true;
+      !Array.isArray(instanceOrData) && this._many === true;
     let dataForInternal: any = isManyAndIsNotArray
       ? [instanceOrData]
       : instanceOrData;
