@@ -4,6 +4,7 @@ import {
   AllOptionalModelFields,
   AllRequiredModelFields,
   ModelFields,
+  IncludesRelatedModels,
 } from './types';
 import { ManagerEngineInstanceNotFoundError } from './exceptions';
 import Engine from '../engine';
@@ -133,13 +134,18 @@ export default class Manager<
    *
    * @return - An array of instances retrieved by this query.
    */
-  async get(
-    search?: AllOptionalModelFields<M>,
+  async get<I extends ReturnType<typeof model>>(
+    args?: {
+      includes?: I;
+      search?: AllOptionalModelFields<M>;
+    },
     engineName?: string
-  ): Promise<AllRequiredModelFields<M>[]> {
-    return this.getEngineInstance().query.get<M>(
+  ): Promise<
+    AllRequiredModelFields<M> & IncludesRelatedModels<M, InstanceType<I>>[]
+  > {
+    return this.getEngineInstance().query.get<M, I>(
       this.getInstance(engineName),
-      search
+      args
     );
   }
 

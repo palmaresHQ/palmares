@@ -1,5 +1,12 @@
-import Engine from ".";
-import { AllOptionalModelFields, AllRequiredModelFields, ModelFields, TModel } from "../models/types";
+import Engine from '.';
+import model from '../models/model';
+import {
+  IncludesRelatedModels,
+  AllOptionalModelFields,
+  AllRequiredModelFields,
+  ModelFields,
+  TModel,
+} from '../models/types';
 
 /**
  * Offers >>>>BASIC<<<< querying functionalities, this enables us to create libs that works well on every
@@ -23,7 +30,9 @@ export default class EngineQuery {
   }
 
   getModelInstance(model: TModel) {
-    return (model.constructor as any).default.getInstance(this.engineInstance.databaseName);
+    return (model.constructor as any).default.getInstance(
+      this.engineInstance.databaseName
+    );
   }
 
   /**
@@ -35,11 +44,19 @@ export default class EngineQuery {
    *
    * @return - An array of instances retrieved by this query.
    */
-  async get<M extends TModel>(
+  async get<M extends TModel, I extends ReturnType<typeof model>>(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     instance: any,
-    search?: AllOptionalModelFields<M>
-  ): Promise<AllRequiredModelFields<M>[]> {
-    return [];
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    args?: {
+      includes?: I;
+      search?: AllOptionalModelFields<M>;
+    }
+  ): Promise<
+    AllRequiredModelFields<M> & IncludesRelatedModels<M, InstanceType<I>>[]
+  > {
+    return [] as AllRequiredModelFields<M> &
+      IncludesRelatedModels<M, InstanceType<I>>[];
   }
 
   /**
@@ -68,16 +85,27 @@ export default class EngineQuery {
    *
    * @return - Return the created instance or undefined if something went wrong, or boolean if it's an update.
    */
-  async set<M extends TModel, S extends AllOptionalModelFields<M> | undefined | null = undefined>(
+  async set<
+    M extends TModel,
+    S extends AllOptionalModelFields<M> | undefined | null = undefined
+  >(
     instance: any,
     data: S extends undefined ? ModelFields<M> : AllOptionalModelFields<M>,
     search?: S
-  ): Promise<S extends undefined | null ? AllRequiredModelFields<M> | undefined : boolean> {
-    const isSearchNotDefined = [null, undefined].includes(search as null | undefined);
+  ): Promise<
+    S extends undefined | null ? AllRequiredModelFields<M> | undefined : boolean
+  > {
+    const isSearchNotDefined = [null, undefined].includes(
+      search as null | undefined
+    );
     if (isSearchNotDefined) {
-      return {} as S extends undefined | null ? AllRequiredModelFields<M> | undefined : boolean;
+      return {} as S extends undefined | null
+        ? AllRequiredModelFields<M> | undefined
+        : boolean;
     }
-    return false as S extends undefined | null ? AllRequiredModelFields<M> | undefined : boolean;
+    return false as S extends undefined | null
+      ? AllRequiredModelFields<M> | undefined
+      : boolean;
   }
 
   /**
@@ -90,7 +118,9 @@ export default class EngineQuery {
    * @return - Returns true if everything went fine and false otherwise.
    */
   async remove<M extends TModel>(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     instance: any,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     search?: AllOptionalModelFields<M>
   ): Promise<boolean> {
     return false;

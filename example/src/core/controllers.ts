@@ -9,7 +9,7 @@ import {
 } from '@palmares/server';
 import { ExpressRequest } from '@palmares/express-adapter';
 
-import { User } from './models';
+import { User, Post as PostModel } from './models';
 import { UserSerializer, PostSerializer } from './serializers';
 import { ModelSerializerInType } from '@palmares/serializers/src/serializers/types';
 export class ExampleController extends Controller {
@@ -23,6 +23,10 @@ export class ExampleController extends Controller {
   // Escreve uma rota com decorators
   @Get('/test')
   async testDecorator() {
+    const user = await User.default.get({
+      includes: PostModel,
+    });
+    user[0].userPosts;
     const instance = (await User.default.get({ id: 1 }))[0];
     const serializer = UserSerializer.new({
       instance,

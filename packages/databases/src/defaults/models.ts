@@ -1,5 +1,5 @@
-import * as models from "../models";
-import { ModelOptionsType } from "../models/types";
+import * as models from '../models';
+import { ModelOptionsType } from '../models/types';
 import PalmaresMigrationsManager from './managers';
 
 /**
@@ -11,13 +11,13 @@ export class PalmaresMigrations extends models.Model<PalmaresMigrations>() {
   fields = {
     id: new models.fields.BigAutoField(),
     migrationName: new models.fields.CharField({ maxLength: 150 }),
-    engineName: new models.fields.CharField({ maxLength: 150 })
-  }
+    engineName: new models.fields.CharField({ maxLength: 150 }),
+  };
 
   options: ModelOptionsType<PalmaresMigrations> = {
     tableName: 'palmares_migrations',
-    ordering: ['-id']
-  }
+    ordering: ['-id'],
+  };
 
-  static migrations = new PalmaresMigrationsManager()
+  static migrations = new PalmaresMigrationsManager();
 }

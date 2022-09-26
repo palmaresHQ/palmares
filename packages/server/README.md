@@ -14,3 +14,4 @@
 
  - [ ] 80% test coverage.
  - [ ] Better typescript support.
+ - [ ] Better translation of the request body.

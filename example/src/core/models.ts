@@ -1,4 +1,4 @@
-import { models, ModelFields } from '@palmares/databases';
+import { models, ModelFields, AllOptionalModelFields } from '@palmares/databases';
 import { BaseModel } from '@palmares/databases/src/models';
 
 export class Post extends models.Model<Post>() {
@@ -68,26 +68,32 @@ type RelatedFieldOfModel<M extends BaseModel> = {
     : never;
 };
 
-type RelatedFieldToModel<M extends BaseModel, RM extends BaseModel> = {
-  [K in keyof RM['fields'] as RM['fields'][K] extends models.fields.ForeignKeyField<
-    any,
-    infer RMIFF,
-    any,
-    any,
-    any,
-    any,
-    infer RN
-  >
-    ? RMIFF extends M
-      ? RN
-      : never
-    : never]: RM['fields'][K]['unique'] extends true
-    ? ModelFields<RM>
-    : ModelFields<RM>[];
-};
+type RelatedFieldToModel<
+  M extends BaseModel,
+  RM extends ReturnType<typeof models.Model>[]
+> = RM extends [infer RMI, ...infer RMR extends (ReturnType<typeof models.Model>)[]]
+  ? RMI extends ReturnType<typeof models.Model>
+    ? {
+        [K in keyof InstanceType<RMI>['fields'] as InstanceType<RMI>['fields'][K] extends models.fields.ForeignKeyField<
+          any,
+          infer RMIFF,
+          any,
+          any,
+          any,
+          any,
+          infer RN
+        >
+          ? RMIFF extends M
+            ? RN
+            : never
+          : never]: InstanceType<RMI>['fields'][K]['unique'] extends true
+          ? ModelFields<InstanceType<RMI>>
+          : ModelFields<InstanceType<RMI>>[];
+      } & RelatedFieldToModel<M, RMR>
+    : unknown
+  : unknown;
 
-type Teste1 = RelatedFieldOfModel<Post>;
-type Teste = RelatedFieldToModel<User, Post>;
+type Teste = RelatedFieldToModel<User, [typeof Post]>;
 const teste: Teste = {
   userPosts: [
     {

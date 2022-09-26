@@ -1,4 +1,4 @@
-import { Field } from './fields';
+import { Field, ForeignKeyField } from './fields';
 import model, { Model } from './model';
 import Manager from './manager';
 import { DatabaseSettingsType } from '../types';
@@ -114,5 +114,53 @@ export type ModelFields<M extends Model> = OptionalFields<M> &
   AbstractsAsFields<M['abstracts'][number]>;
 
 export type AllRequiredModelFields<M extends Model> = AllRequiredFields<M>;
+
+type RelatedFieldOfModel<M extends Model> = {
+  [K in keyof M['fields'] as M['fields'][K] extends ForeignKeyField<
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    infer RNN
+  >
+    ? RNN
+    : never]: M['fields'][K] extends ForeignKeyField<
+    any,
+    infer RMIFF,
+    any,
+    any,
+    any,
+    any,
+    any
+  >
+    ? AllOptionalFields<RMIFF>
+    : never;
+};
+
+type RelatedFieldToModel<M extends Model, RM extends Model> = {
+  [K in keyof RM['fields'] as RM['fields'][K] extends ForeignKeyField<
+    any,
+    infer RMIFF,
+    any,
+    any,
+    any,
+    any,
+    infer RN
+  >
+    ? RMIFF extends M
+      ? RN
+      : never
+    : never]: RM['fields'][K]['unique'] extends true
+    ? AllOptionalFields<RM>
+    : AllOptionalFields<RM>[];
+};
+
+export type IncludesRelatedModels<
+  M extends Model,
+  I extends Model
+> = RelatedFieldToModel<M, I> & RelatedFieldOfModel<M>;
 
 export type AllOptionalModelFields<M extends Model> = AllOptionalFields<M>;
