@@ -115,7 +115,10 @@ export type ModelFields<M extends Model> = OptionalFields<M> &
 
 export type AllRequiredModelFields<M extends Model> = AllRequiredFields<M>;
 
-type RelatedFieldOfModel<M extends Model> = {
+type RelatedFieldOfModel<
+  M extends Model,
+  I extends readonly ReturnType<typeof model>[]
+> = {
   [K in keyof M['fields'] as M['fields'][K] extends ForeignKeyField<
     any,
     any,
@@ -136,31 +139,55 @@ type RelatedFieldOfModel<M extends Model> = {
     any,
     any
   >
-    ? AllOptionalFields<RMIFF>
+    ? RMIFF extends Model
+      ? IncludesRelatedModels<AllRequiredModelFields<RMIFF>, RMIFF, I>
+      : never
     : never;
 };
 
-type RelatedFieldToModel<M extends Model, RM extends Model> = {
+type RelatedFieldToModel<
+  M extends Model,
+  RM extends Model,
+  I extends readonly ReturnType<typeof model>[]
+> = {
   [K in keyof RM['fields'] as RM['fields'][K] extends ForeignKeyField<
     any,
-    infer RMIFF,
+    infer RMIFKF, // Related model in foreign key field
     any,
     any,
     any,
     any,
     infer RN
   >
-    ? RMIFF extends M
+    ? RMIFKF extends M
       ? RN
       : never
     : never]: RM['fields'][K]['unique'] extends true
-    ? AllOptionalFields<RM>
-    : AllOptionalFields<RM>[];
+    ? IncludesRelatedModels<AllRequiredModelFields<RM>, RM, I>
+    : IncludesRelatedModels<AllRequiredModelFields<RM>, RM, I>[];
 };
 
-export type IncludesRelatedModels<
+type RelatedFieldsType<
+  T,
   M extends Model,
-  I extends Model
-> = RelatedFieldToModel<M, I> & RelatedFieldOfModel<M>;
+  I extends ReturnType<typeof model>,
+  Includes extends readonly ReturnType<typeof model>[]
+> = I extends ReturnType<typeof model>
+  ? T &
+      RelatedFieldToModel<M, InstanceType<I>, Includes> &
+      RelatedFieldOfModel<M, Includes>
+  : T;
+
+export type IncludesRelatedModels<
+  T,
+  M extends Model,
+  I extends readonly ReturnType<typeof model>[] | undefined
+> = I extends readonly [infer FI, ...infer RI]
+  ? FI extends ReturnType<typeof model>
+    ? RI extends ReturnType<typeof model>[]
+      ? RelatedFieldsType<T, M, FI, I> & IncludesRelatedModels<T, M, RI>
+      : RelatedFieldsType<T, M, FI, I>
+    : T
+  : T;
 
 export type AllOptionalModelFields<M extends Model> = AllOptionalFields<M>;

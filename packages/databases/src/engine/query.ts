@@ -44,7 +44,10 @@ export default class EngineQuery {
    *
    * @return - An array of instances retrieved by this query.
    */
-  async get<M extends TModel, I extends ReturnType<typeof model>>(
+  async get<
+    M extends TModel,
+    I extends readonly ReturnType<typeof model>[] | undefined
+  >(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     instance: any,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -52,11 +55,8 @@ export default class EngineQuery {
       includes?: I;
       search?: AllOptionalModelFields<M>;
     }
-  ): Promise<
-    AllRequiredModelFields<M> & IncludesRelatedModels<M, InstanceType<I>>[]
-  > {
-    return [] as AllRequiredModelFields<M> &
-      IncludesRelatedModels<M, InstanceType<I>>[];
+  ): Promise<IncludesRelatedModels<AllRequiredModelFields<M>, M, I>[]> {
+    return [] as IncludesRelatedModels<AllRequiredModelFields<M>, M, I>[];
   }
 
   /**

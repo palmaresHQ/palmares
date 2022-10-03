@@ -134,19 +134,17 @@ export default class Manager<
    *
    * @return - An array of instances retrieved by this query.
    */
-  async get<I extends ReturnType<typeof model>>(
+  async get<I extends readonly ReturnType<typeof model>[] | undefined>(
     args?: {
       includes?: I;
       search?: AllOptionalModelFields<M>;
     },
     engineName?: string
-  ): Promise<
-    AllRequiredModelFields<M> & IncludesRelatedModels<M, InstanceType<I>>[]
-  > {
+  ): Promise<IncludesRelatedModels<AllRequiredModelFields<M>, M, I>[]> {
     return this.getEngineInstance().query.get<M, I>(
       this.getInstance(engineName),
       args
-    );
+    ) as Promise<IncludesRelatedModels<AllRequiredModelFields<M>, M, I>[]>;
   }
 
   /**
