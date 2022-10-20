@@ -420,6 +420,6 @@ export class Model<T = any> {
  */
 export default function model<M>() {
   return class DefaultModel extends Model<M> {
-    static default = new DefaultManager<M extends Model ? M : Model>();
+    static default = new DefaultManager<M extends DefaultModel ? M : any>();
   };
 }

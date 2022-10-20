@@ -17,6 +17,7 @@ export class Photo extends models.Model<Photo>() {
     tableName: 'photo',
   };
 }
+
 export class Post extends models.Model<Post>() {
   fields = {
     id: new models.fields.AutoField(),
@@ -59,3 +60,7 @@ export class User extends models.Model<User>() {
     tableName: 'user',
   };
 }
+
+User.default.get({
+  includes: [Post] as const,
+});

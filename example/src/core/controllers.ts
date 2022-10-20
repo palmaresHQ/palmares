@@ -23,16 +23,14 @@ export class ExampleController extends Controller {
   // Escreve uma rota com decorators
   @Get('/test')
   async testDecorator() {
-    const user = await User.default.get();
     const instance = (
       await User.default.get({
         search: { id: 1 },
-        includes: [PostModel] as const,
+        includes: [PostModel, Photo] as const,
       })
     )[0];
-    instance.userPosts;
     const serializer = UserSerializer.new({
-      instance,
+      instance: instance,
     });
     const data = await serializer.data;
     return Response.new(HTTP_200_OK, { body: data });
@@ -42,7 +40,12 @@ export class ExampleController extends Controller {
   async testPostDecorator({
     body,
   }: ExpressRequest<{ D: ModelSerializerInType<UserSerializer> }>) {
-    const instance = (await User.default.get({ id: 1 }))[0];
+    const instance = (
+      await User.default.get({
+        search: { id: 1 },
+        includes: [PostModel] as const,
+      })
+    )[0];
     const serializer = UserSerializer.new({
       data: body,
       instance,

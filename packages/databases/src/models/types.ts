@@ -139,10 +139,10 @@ type RelatedFieldOfModel<
     any,
     any
   >
-    ? RMIFF extends Model
+    ? RMIFF extends InstanceType<ReturnType<typeof model>>
       ? IncludesRelatedModels<AllRequiredModelFields<RMIFF>, RMIFF, I>
-      : never
-    : never;
+      : RMIFF
+    : unknown;
 };
 
 type RelatedFieldToModel<

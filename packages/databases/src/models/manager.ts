@@ -9,6 +9,7 @@ import {
 import { ManagerEngineInstanceNotFoundError } from './exceptions';
 import Engine from '../engine';
 import { Model, default as model } from './model';
+import { ClassConstructor } from './fields/types';
 
 /**
  * Managers define how you make queries on the database. Instead of making queries everywhere in your application
@@ -61,7 +62,7 @@ export default class Manager<
   instances: ManagerInstancesType;
   engineInstances: ManagerEngineInstancesType;
   defaultEngineInstanceName: string;
-  model!: ReturnType<typeof model>;
+  model!: ClassConstructor<Model>;
 
   constructor() {
     this.instances = {};
@@ -134,17 +135,20 @@ export default class Manager<
    *
    * @return - An array of instances retrieved by this query.
    */
-  async get<I extends readonly ReturnType<typeof model>[] | undefined>(
+  async get<
+    I extends readonly ReturnType<typeof model>[] | undefined,
+    MDL extends Model = M
+  >(
     args?: {
       includes?: I;
-      search?: AllOptionalModelFields<M>;
+      search?: AllOptionalModelFields<MDL>;
     },
     engineName?: string
-  ): Promise<IncludesRelatedModels<AllRequiredModelFields<M>, M, I>[]> {
-    return this.getEngineInstance().query.get<M, I>(
+  ): Promise<IncludesRelatedModels<AllRequiredModelFields<MDL>, MDL, I>[]> {
+    return this.getEngineInstance().query.get<MDL, I>(
       this.getInstance(engineName),
       args
-    ) as Promise<IncludesRelatedModels<AllRequiredModelFields<M>, M, I>[]>;
+    ) as Promise<IncludesRelatedModels<AllRequiredModelFields<MDL>, MDL, I>[]>;
   }
 
   /**

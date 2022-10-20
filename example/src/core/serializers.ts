@@ -10,7 +10,6 @@ import { Post, User } from './models';
 export class UserSerializer extends ModelSerializer {
   fields = {
     userPosts: PostSerializer.new({
-      isDynamicRepresentation: true,
       many: true,
     }),
   };
