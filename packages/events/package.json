@@ -4,7 +4,8 @@
   "description": "This is the events framework for palmares, it's responsible for handling everything that is Pub/Sub like websockets, pub/sub like redis, and other types of asynchronous background tasks",
   "main": "src/index.ts",
   "scripts": {
-    "start": "ts-node src/index.ts"
+    "start": "ts-node src/events/index.ts",
+    "test": "ts-node src/test.ts"
   },
   "repository": {
     "type": "git",
@@ -20,5 +21,9 @@
   "bugs": {
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
-  "homepage": "https://github.com/palmaresHQ/palmares#readme"
+  "homepage": "https://github.com/palmaresHQ/palmares#readme",
+  "devDependencies": {
+    "@types/benchmark": "^2.1.2",
+    "benchmark": "^2.1.4"
+  }
 }
