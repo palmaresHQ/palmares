@@ -27,9 +27,10 @@ async function main() {
     );
   });
   // Retorna create.user[2]
-  await emitter.addEventListener('create.user', () => 'create.user[2]');
-
-  emitter.
+  await emitter.addEventListener('create.user', () => {
+    console.log('teste');
+    return 'create.user[2]';
+  });
 
   // Imagina em sistemas distribuidos, vc consegue comunicar facilmente entre seus sistemas.
   const result = await emitter.emitToChannel(['users', 'birds'], 'create.*');

@@ -155,6 +155,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
   private resultsEventName!: string;
   #channels!: string[];
   #unsubscribeByChannel: Record<string, (...args: any) => any> = {};
+  #pendingForResultKey: Set<string> = new Set();
   #pendingResults: Record<
     string,
     Record<string, { status: 'completed' | 'failed' | 'pending'; result: any }>
@@ -353,22 +354,38 @@ export default class EventEmitter<E extends Emitter = Emitter> {
       channelLayer,
       ...data
     ) => {
-      this.emitResult(resultsEventName, handlerId, resultKey, channelLayer, {
-        status: 'pending',
-      });
-      try {
-        const result = await Promise.resolve(callback(...data));
+      if (!this.#pendingForResultKey.has(resultKey)) {
+        this.#pendingForResultKey.add(resultKey);
         this.emitResult(resultsEventName, handlerId, resultKey, channelLayer, {
-          status: 'completed',
-          result,
+          status: 'pending',
         });
-        // Emit the result back to the caller.
-      } catch (e) {
-        this.emitResult(resultsEventName, handlerId, resultKey, channelLayer, {
-          status: 'failed',
-        });
-        throw e;
-        // Emit an empty result back to the caller
+        try {
+          const result = await Promise.resolve(callback(...data));
+          this.emitResult(
+            resultsEventName,
+            handlerId,
+            resultKey,
+            channelLayer,
+            {
+              status: 'completed',
+              result,
+            }
+          );
+          // Emit the result back to the caller.
+        } catch (e) {
+          this.emitResult(
+            resultsEventName,
+            handlerId,
+            resultKey,
+            channelLayer,
+            {
+              status: 'failed',
+            }
+          );
+          throw e;
+          // Emit an empty result back to the caller
+        }
+        this.#pendingForResultKey.delete(resultKey);
       }
     };
     return resultWrappedCallback.bind(this);
