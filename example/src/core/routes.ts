@@ -1,10 +1,12 @@
-import { path } from "@palmares/server"
-import { ExampleController } from "./controllers";
+import { path } from '@palmares/server';
+import { ExampleController } from './controllers';
 
-import { ExpressCorsMiddleware } from "./middlewares";
+import { ExpressCorsMiddleware } from './middlewares';
 
 export default [
-  path("/teste", ExpressCorsMiddleware,
-    path("/<hello>", ExampleController.new(1))
+  path(
+    '/teste',
+    ExpressCorsMiddleware,
+    path('/<hello>', ExampleController.new(1))
   ),
-]
+];

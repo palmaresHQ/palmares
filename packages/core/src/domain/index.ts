@@ -1,10 +1,10 @@
 import {
   DomainObligatoryParamsUndefinedError,
-  NotAValidDomainDefaultExportedError
-} from "./exceptions";
-import { SettingsType } from "../conf/types";
-import { DefaultCommandType } from "../commands/types";
-import { DomainReadyFunctionArgs } from "./types";
+  NotAValidDomainDefaultExportedError,
+} from './exceptions';
+import { SettingsType } from '../conf/types';
+import { DefaultCommandType } from '../commands/types';
+import { DomainReadyFunctionArgs } from './types';
 
 /**
  * The domain defines one of the domains of your application
@@ -17,8 +17,8 @@ export default class Domain {
   #isClosed = false;
 
   constructor(name?: string, path?: string) {
-    const isAppNameAndAppPathDefined = typeof name === 'string' &&
-      typeof path === 'string'
+    const isAppNameAndAppPathDefined =
+      typeof name === 'string' && typeof path === 'string';
     if (isAppNameAndAppPathDefined) {
       this.name = name as string;
       this.path = path as string;
@@ -35,10 +35,13 @@ export default class Domain {
     return this.#isClosed;
   }
 
-  static async retrieveDomains(settings: SettingsType): Promise<typeof Domain[]> {
-    const domainClasses: typeof Domain[] = []
+  static async retrieveDomains(
+    settings: SettingsType
+  ): Promise<typeof Domain[]> {
+    const domainClasses: typeof Domain[] = [];
     for (const domain of settings.INSTALLED_DOMAINS) {
-      let domainKls: Promise<{default: typeof Domain}> | typeof Domain = domain;
+      let domainKls: Promise<{ default: typeof Domain }> | typeof Domain =
+        domain;
       if (domainKls instanceof Promise) {
         domainKls = (await domainKls).default;
       }
@@ -48,14 +51,16 @@ export default class Domain {
         throw new NotAValidDomainDefaultExportedError();
       }
     }
-    return domainClasses
+    return domainClasses;
   }
 
   /**
    * Runs when the domain is loaded.
    */
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  async load<S extends SettingsType = SettingsType>(settings: S): Promise<void> {}
+  async load<S extends SettingsType = SettingsType>(
+    settings: S
+  ): Promise<void> {}
 
   /**
    * Code to run when the app runs. This is sequentially executed one after another so you can

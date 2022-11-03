@@ -1,13 +1,20 @@
-import { logging, LOGGING_APP_START_SERVER } from "@palmares/core";
+import { logging, LOGGING_APP_START_SERVER } from '@palmares/core';
 
-import { NotImplementedServerException } from "./exceptions";
-import { ServerSettingsType } from "../types";
-import ServerRoutes from "./routes";
-import ServerResponses from "./responses";
-import ServerRequests from "./requests";
-import Middleware from "../middlewares";
-import { HandlersType } from "./types";
+import { NotImplementedServerException } from './exceptions';
+import { ServerSettingsType } from '../types';
+import ServerRoutes from './routes';
+import ServerResponses from './responses';
+import ServerRequests from './requests';
+import Middleware from '../middlewares';
+import { HandlersType } from './types';
 
+/**
+ * This server class should be overridden in order to work. This class is responsible for handling everything from the server.
+ * Requests, responses and how to define routes.
+ *
+ * We try to extract most of the logic as we can from the package that is trying to override this so most of the work with
+ * the package is simplified.
+ */
 export default class Server {
   serverInstance!: any;
   settings: ServerSettingsType;
@@ -25,7 +32,10 @@ export default class Server {
     this.settings = settings;
     this.routes = new (routes as typeof ServerRoutes)(this);
     this.requests = new (requests as typeof ServerRequests)(this, this.routes);
-    this.responses = new (responses as typeof ServerResponses)(this, this.routes);
+    this.responses = new (responses as typeof ServerResponses)(
+      this,
+      this.routes
+    );
   }
 
   /**
@@ -38,8 +48,9 @@ export default class Server {
    * @returns - An array of all of the root middleware classes of the application.
    */
   async getRootMiddlewares() {
-    const rootMiddlewares = (this.settings.MIDDLEWARES || []);
-    const wasDefaultMiddlewaresInitialized = rootMiddlewares.length === this.#rootMiddlewares.length;
+    const rootMiddlewares = this.settings.MIDDLEWARES || [];
+    const wasDefaultMiddlewaresInitialized =
+      rootMiddlewares.length === this.#rootMiddlewares.length;
     if (!wasDefaultMiddlewaresInitialized) {
       for (const middleware of rootMiddlewares) {
         let middlewareKls = middleware as typeof Middleware;
@@ -72,6 +83,7 @@ export default class Server {
     throw new NotImplementedServerException(this.constructor.name, 'load');
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async load404(handler: HandlersType) {
     throw new NotImplementedServerException(this.constructor.name, 'load404');
   }
@@ -79,8 +91,8 @@ export default class Server {
   async init() {
     logging.logMessage(LOGGING_APP_START_SERVER, {
       appName: this.settings.APP_NAME,
-      port: this.settings.PORT
-    })
+      port: this.settings.PORT,
+    });
   }
 
   async close(): Promise<void> {

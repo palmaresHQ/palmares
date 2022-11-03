@@ -1,12 +1,15 @@
-import { Domain, SettingsType, logging } from "@palmares/core";
+import { Domain, SettingsType, logging } from '@palmares/core';
 
-import { ControllerHandlerType, FunctionControllerType } from "./controllers/types";
-import { default404handler } from "./defaults";
-import { Router } from "./routers";
-import { BaseRoutesType } from "./routers/types";
-import Server from "./server";
-import { RootRouterTypes, ServerSettingsType } from "./types";
-import { LOGGING_APP_STOP_SERVER } from "./utils";
+import {
+  ControllerHandlerType,
+  FunctionControllerType,
+} from './controllers/types';
+import { default404handler } from './defaults';
+import { Router } from './routers';
+import { BaseRoutesType } from './routers/types';
+import Server from './server';
+import { RootRouterTypes, ServerSettingsType } from './types';
+import { LOGGING_APP_STOP_SERVER } from './utils';
 
 /**
  * This is the app, the app instance is responsible for loading the http server.
@@ -22,7 +25,7 @@ import { LOGGING_APP_STOP_SERVER } from "./utils";
  * - `close`: Stops the webserver.
  */
 export default class App {
-  domains!: Domain[]
+  domains!: Domain[];
   settings!: ServerSettingsType;
   server: Server;
   isClosingServer = false;
@@ -54,7 +57,7 @@ export default class App {
     if (this.isClosingServer === false) {
       this.isClosingServer = true;
       await logging.logMessage(LOGGING_APP_STOP_SERVER, {
-        appName: this.settings.APP_NAME
+        appName: this.settings.APP_NAME,
       });
       const promises = this.domains.map(async (domain) => {
         if (domain.isClosed === false) await domain.close();
@@ -104,17 +107,24 @@ export default class App {
    * for this application.
    * @param domains - All of the domains of the application, including the domain of the server.
    */
-  async initialize(settings: ServerSettingsType, domains: Domain[]): Promise<void> {
+  async initialize(
+    settings: ServerSettingsType,
+    domains: Domain[]
+  ): Promise<void> {
     this.settings = settings;
     this.domains = domains;
 
     const customOptions = {
-      app: this
+      app: this,
     };
 
     for (const domain of domains) {
       if (domain.isReady === false) {
-        await domain.ready({ settings: settings as SettingsType, domains, customOptions });
+        await domain.ready({
+          settings: settings as SettingsType,
+          domains,
+          customOptions,
+        });
       }
     }
   }
@@ -141,9 +151,11 @@ export default class App {
     if (!this.#cachedRoutes) {
       const promisedRouters = await this.#getRootRouter();
       const routers = await Promise.all(promisedRouters);
-      const routes = await Promise.all([...routers.map(async (router) => {
-        return await router.getBaseRoutes()
-      })]);
+      const routes = await Promise.all([
+        ...routers.map(async (router) => {
+          return await router.getBaseRoutes();
+        }),
+      ]);
       this.#cachedRoutes = routes.flat();
     }
     return this.#cachedRoutes;
@@ -170,14 +182,23 @@ export default class App {
       middlewares: await this.server.getRootMiddlewares(),
     } as ControllerHandlerType;
 
-    if(this.settings.HANDLER_404) {
-      const isHandlerAFunction = typeof this.settings.HANDLER_404 === 'function';
-      const handlerAsObject = this.settings.HANDLER_404 as { options?: undefined, handler: FunctionControllerType};
+    if (this.settings.HANDLER_404) {
+      const isHandlerAFunction =
+        typeof this.settings.HANDLER_404 === 'function';
+      const handlerAsObject = this.settings.HANDLER_404 as {
+        options?: undefined;
+        handler: FunctionControllerType;
+      };
       if (!isHandlerAFunction) handler.options = handlerAsObject?.options;
-      handler.handler = isHandlerAFunction ? this.settings.HANDLER_404 as FunctionControllerType : handlerAsObject.handler;
+      handler.handler = isHandlerAFunction
+        ? (this.settings.HANDLER_404 as FunctionControllerType)
+        : handlerAsObject.handler;
     }
 
-    const formattedHandler = await this.server.routes.getHandlerForPath(handler, { is404Handler: true })
+    const formattedHandler = await this.server.routes.getHandlerForPath(
+      handler,
+      { is404Handler: true }
+    );
     await this.server.load404(formattedHandler);
   }
 

@@ -1,6 +1,6 @@
-import { PathParamsType } from "../types";
+import { PathParamsType } from '../types';
 
-export type PathParamsTypes = "string" | "number" | RegExp;
+export type PathParamsTypes = 'string' | 'number' | RegExp;
 
 export type RawParamsType = { [paramName: string]: string };
 
@@ -10,6 +10,9 @@ export type PathParams = {
   value: string;
   paramName: string;
   paramType: PathParamsTypes;
-}
+};
 
-export type HandlersType<REQ = any, RES = unknown> = (req: REQ, options?: {}) => Promise<RES>
+export type HandlersType<REQ = any, RES = unknown> = (
+  req: REQ,
+  options?: Record<string, unknown>
+) => Promise<RES>;

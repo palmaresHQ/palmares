@@ -1,0 +1,27 @@
+{
+  "name": "@palmares/eventemitter2-emitter",
+  "version": "0.0.1",
+  "description": "EventEmitter2 as the event emitter to palmares. With this we are able to send events inside and between servers really fast.",
+  "main": "src/index.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/palmaresHQ/palmares.git"
+  },
+  "keywords": [
+    "eventemitter2",
+    "emitter",
+    "palmares"
+  ],
+  "author": "Nicolas Melo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/palmaresHQ/palmares/issues"
+  },
+  "homepage": "https://github.com/palmaresHQ/palmares#readme",
+  "dependencies": {
+    "eventemitter2": "^6.4.9"
+  },
+  "peerDependencies": {
+    "@palmares/events": "*"
+  }
+}

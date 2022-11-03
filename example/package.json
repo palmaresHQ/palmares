@@ -9,6 +9,7 @@
     "start": "ts-node dist/manage.js dev",
     "dev": "ts-node manage.ts dev",
     "test": "ts-node teste.ts",
+    "events": "ts-node src/events.ts",
     "makemigrations": "ts-node manage.ts makemigrations",
     "migrate": "ts-node manage.ts migrate"
   },
@@ -20,6 +21,8 @@
     "@palmares/express-adapter": "*",
     "@palmares/zod-schema": "*",
     "@palmares/sequelize-engine": "*",
+    "@palmares/eventemitter2-emitter": "*",
+    "@palmares/events": "*",
     "cors": "^2.8.5",
     "pg": "^8.7.3"
   },
