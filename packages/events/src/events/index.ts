@@ -155,7 +155,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
   private resultsEventName!: string;
   #channels!: string[];
   #unsubscribeByChannel: Record<string, (...args: any) => any> = {};
-  #pendingForResultKey: Set<string> = new Set();
+  #pendingHandlerIdForResultKey: Map<string, string> = new Map();
   #pendingResults: Record<
     string,
     Record<string, { status: 'completed' | 'failed' | 'pending'; result: any }>
@@ -354,8 +354,14 @@ export default class EventEmitter<E extends Emitter = Emitter> {
       channelLayer,
       ...data
     ) => {
-      if (!this.#pendingForResultKey.has(resultKey)) {
-        this.#pendingForResultKey.add(resultKey);
+      // Guarantee that we will only call the handler once, this is useful for layers we might send multiple times
+      // because the same emitter might be attached to the same layer.
+      const isThisHandlerAlreadyWorkingForAResponse =
+        this.#pendingHandlerIdForResultKey.has(handlerId) &&
+        this.#pendingHandlerIdForResultKey.get(handlerId) === resultKey;
+
+      if (isThisHandlerAlreadyWorkingForAResponse === false) {
+        this.#pendingHandlerIdForResultKey.set(handlerId, resultKey);
         this.emitResult(resultsEventName, handlerId, resultKey, channelLayer, {
           status: 'pending',
         });
@@ -385,7 +391,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
           throw e;
           // Emit an empty result back to the caller
         }
-        this.#pendingForResultKey.delete(resultKey);
+        this.#pendingHandlerIdForResultKey.delete(handlerId);
       }
     };
     return resultWrappedCallback.bind(this);
