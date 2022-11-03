@@ -109,7 +109,7 @@ import type {
  * Generally speaking a layer will be using `RedisEmitter` or `KafkaEmitter` or basically any type of Pub/Sub or messaging service.
  *
  * A layer works by channels, channels enables the user to separate the logic between each of them, for example: if we have
- * have a chat, we might end up having multiple room, `room1` would be the first channel and `room2` would be the second channel.
+ * have a chat, we might end up having multiple rooms, `room1` would be the first channel and `room2` would be the second channel.
  * If we want to broadcast an event to `room1` layer we can do that by just emitting the event to it. If we want `room2` to be broadcasted
  * we can send an event directly to it.
  * You will see that when layers are defined, emitting events are done inside of the layer, and not inside of the EventEmitter instance.

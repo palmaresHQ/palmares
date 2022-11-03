@@ -21,7 +21,7 @@ async function main() {
     wildcards: { use: true },
   });
   // retorna create.user[1]
-  await emitter.addEventListener('create.delete', () => {
+  await emitter2.addEventListener('create.user', () => {
     return new Promise((resolve) =>
       setTimeout(() => resolve('create.user[1]'), 200)
     );
@@ -29,12 +29,10 @@ async function main() {
   // Retorna create.user[2]
   await emitter.addEventListener('create.user', () => 'create.user[2]');
 
+  emitter.
+
   // Imagina em sistemas distribuidos, vc consegue comunicar facilmente entre seus sistemas.
-  //const result = await emitter.emitToChannel(['users', 'birds'], 'create.*');
-  //console.log(result);
-  //await emitter.unsubscribeFromChannel('users');
-  //const result2 = await emitter.emitToChannel(['users', 'birds'], 'create.*');
-  //console.log(result2);
-  emitter.unsubscribeAll({ key: 'create.user' });
+  const result = await emitter.emitToChannel(['users', 'birds'], 'create.*');
+  console.log(result);
 }
 main();
