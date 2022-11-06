@@ -5,7 +5,7 @@ import { CommandNotFoundException } from './exceptions';
 import { DefaultCommandType } from './types';
 
 class Commands {
-	#defaultCommands: DefaultCommandType = {}
+  #defaultCommands: DefaultCommandType = {};
 
   async #initializeDomains(settings: SettingsType) {
     const initializedDomains: Domain[] = [];
@@ -16,7 +16,7 @@ class Commands {
       this.#defaultCommands = {
         ...this.#defaultCommands,
         ...initializedDomain.commands,
-      }
+      };
       initializedDomains.push(initializedDomain);
     }
     return initializedDomains;
@@ -25,10 +25,10 @@ class Commands {
   async #formatArgs(args: string[]) {
     const isArgAParameter = (arg: string) => arg.startsWith('--');
     const positionalArgs: string[] = [];
-    const keywordArgs: { [key: string]: any} = {};
+    const keywordArgs: { [key: string]: any } = {};
     let canBePositional = true;
 
-    for (let i=0; i<args.length; i++) {
+    for (let i = 0; i < args.length; i++) {
       const arg = args[i];
       if (isArgAParameter(arg)) {
         const initialIndex = i + 1;
@@ -36,7 +36,7 @@ class Commands {
         keywordArgs[argKey] = true;
         canBePositional = false;
 
-        for (let argIndex = initialIndex; argIndex<args.length; argIndex++) {
+        for (let argIndex = initialIndex; argIndex < args.length; argIndex++) {
           const argValue = args[argIndex];
 
           if (isArgAParameter(argValue)) break;
@@ -44,7 +44,8 @@ class Commands {
           const isKeywordArgsAnArray = Array.isArray(keywordArgs[argKey]);
 
           if (!isFirstArgument) {
-            if (!isKeywordArgsAnArray) keywordArgs[argKey] = [keywordArgs[argKey]];
+            if (!isKeywordArgsAnArray)
+              keywordArgs[argKey] = [keywordArgs[argKey]];
             keywordArgs[argKey].push(argValue);
           } else keywordArgs[argKey] = argValue;
           i = argIndex;
@@ -56,29 +57,35 @@ class Commands {
 
     return {
       positionalArgs,
-      keywordArgs
-    }
+      keywordArgs,
+    };
   }
 
-	async handleCommands(settingsOrSettingsPath: Promise<SettingsType> | SettingsType | string, args: string[]): Promise<void> {
+  async handleCommands(
+    settingsOrSettingsPath: Promise<SettingsType> | SettingsType | string,
+    args: string[]
+  ): Promise<void> {
     const commandType = args[0];
     const [otherArgs, settings] = await Promise.all([
       this.#formatArgs(args.slice(1, args.length)),
-      Configuration.loadConfiguration(settingsOrSettingsPath)
+      Configuration.loadConfiguration(settingsOrSettingsPath),
     ]);
     const domains = await this.#initializeDomains(settings);
-		const isCommandDefined: boolean = typeof this.#defaultCommands[commandType] === 'object' &&
-			this.#defaultCommands[commandType] !== undefined;
-		if (isCommandDefined) {
-			await Promise.resolve(
+    const isCommandDefined: boolean =
+      typeof this.#defaultCommands[commandType] === 'object' &&
+      this.#defaultCommands[commandType] !== undefined;
+    if (isCommandDefined) {
+      await Promise.resolve(
         this.#defaultCommands[commandType].handler({
-          settings, domains, args: otherArgs
+          settings,
+          domains,
+          args: otherArgs,
         })
       );
-		} else {
-			throw new CommandNotFoundException(commandType);
-		}
-	}
+    } else {
+      throw new CommandNotFoundException(commandType);
+    }
+  }
 }
 
 export default new Commands();

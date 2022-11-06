@@ -3,7 +3,12 @@ services:
   example_db:
     tty: true
     image: postgres
-    environment: 
+    environment:
       - POSTGRES_HOST_AUTH_METHOD=trust
     ports:
       - "5435:5432"
+  example_redis:
+    tty: true
+    image: redis
+    ports:
+      - "6379:6379"

@@ -1,0 +1,31 @@
+{
+  "name": "@palmares/redis-emitter",
+  "version": "0.0.0",
+  "description": "The default implementation for redis to act as pub/sub for palmares. It's specially useful as a layer.",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/palmaresHQ/palmares.git"
+  },
+  "keywords": [
+    "palmares",
+    "emitter",
+    "events",
+    "redis"
+  ],
+  "author": "Nicolas Leal",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/palmaresHQ/palmares/issues"
+  },
+  "homepage": "https://github.com/palmaresHQ/palmares#readme",
+  "peerDependencies": {
+    "@palmares/events": "*"
+  },
+  "dependencies": {
+    "redis": "^4.4.0"
+  }
+}

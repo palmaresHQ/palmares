@@ -3,16 +3,16 @@ import {
   DefaultCommandType,
   DomainReadyFunctionArgs,
   DomainHandlerFunctionArgs,
-} from "@palmares/core"
+} from '@palmares/core';
 
-import { Model } from "./models";
-import buildLogging from "./logging";
-import { DatabaseSettingsType } from "./types";
-import { MigrationFileType } from "./migrations/types";
-import { makeMigrations, migrate } from "./commands";
-import defaultSettings from "./settings";
-import { defaultMigrations, defaultModels } from "./defaults";
-import Databases from "./databases";
+import { Model } from './models';
+import buildLogging from './logging';
+import { DatabaseSettingsType } from './types';
+import { MigrationFileType } from './migrations/types';
+import { makeMigrations, migrate } from './commands';
+import defaultSettings from './settings';
+import { defaultMigrations, defaultModels } from './defaults';
+import Databases from './databases';
 
 export class DatabaseDomain extends Domain {
   async getModels(): Promise<ReturnType<typeof Model>[]> {
@@ -29,7 +29,8 @@ export default class DatabasesDomain extends DatabaseDomain {
 
   commands: DefaultCommandType = {
     makemigrations: {
-      description: 'Create the migrations automatically based on your created models',
+      description:
+        'Create the migrations automatically based on your created models',
       example: '',
       handler: async (options: DomainHandlerFunctionArgs) => {
         await buildLogging();
@@ -42,9 +43,9 @@ export default class DatabasesDomain extends DatabaseDomain {
       handler: async (options: DomainHandlerFunctionArgs) => {
         await buildLogging();
         await migrate(await this.loadDatabases(), options);
-      }
-    }
-  }
+      },
+    },
+  };
 
   constructor() {
     super(DatabasesDomain.name, __dirname);
@@ -55,21 +56,20 @@ export default class DatabasesDomain extends DatabaseDomain {
     return this.databases;
   }
 
-  async ready(options: DomainReadyFunctionArgs<DatabaseSettingsType>): Promise<void> {
+  async ready(
+    options: DomainReadyFunctionArgs<DatabaseSettingsType>
+  ): Promise<void> {
     const { settings, domains } = options;
     await buildLogging();
     const settingsWithDefault = defaultSettings(settings);
     const databaseDomains = domains as DatabaseDomain[];
     await Promise.all([
       (await this.loadDatabases()).init(settingsWithDefault, databaseDomains),
-      super.ready(options)
+      super.ready(options),
     ]);
   }
 
   async close(): Promise<void> {
-    await Promise.all([
-      this.databases.close(),
-      super.close()
-    ]);
+    await Promise.all([this.databases.close(), super.close()]);
   }
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NotImplementedServerException } from './exceptions';
 
 /**
@@ -6,8 +7,15 @@ import { NotImplementedServerException } from './exceptions';
  * It could be an implementation using node.js, or by using the default browser behaviour and so on.
  */
 export default class Emitter {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async addEventListener(eventName: string, callback: (...args: any) => any) {
+  static async new(...args: any[]): Promise<Emitter> {
+    throw new NotImplementedServerException(this.name, 'new');
+  }
+
+  async addEventListener(
+    groupId: string,
+    eventName: string,
+    callback: (...args: any) => any
+  ) {
     throw new NotImplementedServerException(
       this.constructor.name,
       'addEventListener'
@@ -15,9 +23,8 @@ export default class Emitter {
   }
 
   async removeEventListener(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    groupId: string,
     eventName: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     callback: (...args: any) => any
   ) {
     throw new NotImplementedServerException(
@@ -26,12 +33,7 @@ export default class Emitter {
     );
   }
 
-  async emit(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    eventName: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ...data: any
-  ) {
+  async emit(groupId: string, eventName: string, ...data: any) {
     throw new NotImplementedServerException(this.constructor.name, 'emit');
   }
 }

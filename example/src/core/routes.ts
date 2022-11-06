@@ -7,6 +7,6 @@ export default [
   path(
     '/teste',
     ExpressCorsMiddleware,
-    path('/<hello>', ExampleController.new(1))
+    path('/<hello>', ExampleController.new())
   ),
 ];

@@ -419,7 +419,19 @@ export class Model<T = any> {
  * end user without complicating too much stuff.
  */
 export default function model<M>() {
+  let defaultManagerInstance: any = null;
+
   return class DefaultModel extends Model<M> {
-    static default = new DefaultManager<M extends DefaultModel ? M : any>();
+    static get default() {
+      if (defaultManagerInstance === null) {
+        defaultManagerInstance = new DefaultManager<
+          M extends DefaultModel ? M : any
+        >();
+        defaultManagerInstance.modelKls = this;
+      }
+      return defaultManagerInstance as DefaultManager<
+        M extends DefaultModel ? M : any
+      >;
+    }
   };
 }

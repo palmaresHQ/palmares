@@ -83,8 +83,9 @@ import type {
  * on distributed systems.
  *
  * That's not really magic it's really simple actually.
- * When we add a new listener you see that we wrap the function (callback) to another function (see #wrapCallback). What this function
- * do is that it has a lifecycle, similar to a promise in javascript: `pending`, `completed`, `failed`. What's the idea?
+ * When we add a new listener you see that we wrap the function (callback) to another function (see #wrapInResultCallback).
+ * What this function do is that it has a lifecycle, similar to a promise in javascript: `pending`, `completed`, `failed`.
+ * What's the idea?
  * When we call the for example `emitter.emit('create.user', 1)` we will call this function after
  * creating a resultKey, the emitter by itself, when we initialize the class, will also hold a `resultsEventName`.
  * Why both? The second one is a listener, a listener that will only listen for results of this emitter. The second one
@@ -186,7 +187,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
   static async new<E extends typeof Emitter = typeof Emitter>(
     emitter: Promise<{ default: E }> | E,
     options?: EventEmitterOptionsType & {
-      emitterParams?: ConstructorParameters<E>;
+      emitterParams?: Parameters<E['new']>;
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ...custom: any[]
@@ -194,7 +195,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     const { emitterParams, ...optionsForConstructor } = options || {};
     if (emitter instanceof Promise) emitter = (await emitter).default;
     const emitterCustomParams = emitterParams || [];
-    const emitterInstance = new emitter(...emitterCustomParams);
+    const emitterInstance = await emitter.new(...emitterCustomParams);
 
     const eventEmitterInstance = new this(
       emitterInstance,
@@ -347,7 +348,68 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     }
   }
 
-  async #wrapCallback(handlerId: string, callback: (...args: any) => any) {
+  /**
+   * This will prevent that we call the same function for the same handler twice, it'll also nicely organize the data.
+   * stuff like `resultsEventName`, `resultKey` and `channelLayer` should not be passed to the user defined callback.
+   * It's for internal usage only, so you see that if `isResultWrapped` is false we will just pass the data to the
+   * callback and nothing else.
+   *
+   * @param handlerId - The id of the handler that is being called.
+   * @param callback - The function (wrapped or not) that will be called when we fire the event.
+   * @param isResultWrapped - Boolean value, if it's result wrapped we will send the `resultsEventName`,
+   * `resultKey`, `channelLayer` to the callback, otherwise we will just send the data. We try to not send unnecessary
+   * data to the callback, all of the values should be used by the handler itself.
+   *
+   * @returns - Return the callback wrapped, so we can notify the class that we are working on a result for a particular
+   * resultKey, this is nice so if the system receives multiple requests it won't do nothing.
+   */
+  async #wrapInPendingHandlerToPreventMultipleCalls(
+    handlerId: string,
+    callback: ResultWrappedCallbackType | ((...args: any) => any),
+    isResultWrapped = true
+  ) {
+    const preventMultipleCallsWrappedCallback: ResultWrappedCallbackType =
+      async (resultsEventName, resultKey, channelLayer, ...data) => {
+        // Guarantee that we will only call the handler once, this is useful for layers we might send multiple times
+        // because the same emitter might be attached to the same layer.
+        const isThisHandlerAlreadyWorkingForAResponse =
+          this.#pendingHandlerIdForResultKey.has(handlerId) &&
+          this.#pendingHandlerIdForResultKey.get(handlerId) === resultKey;
+
+        if (isThisHandlerAlreadyWorkingForAResponse === false) {
+          this.#pendingHandlerIdForResultKey.set(handlerId, resultKey);
+          if (isResultWrapped)
+            await Promise.resolve(
+              (callback as ResultWrappedCallbackType)(
+                resultsEventName,
+                resultKey,
+                channelLayer,
+                ...data
+              )
+            );
+          else
+            await Promise.resolve((callback as (...args: any) => any)(...data));
+          this.#pendingHandlerIdForResultKey.delete(handlerId);
+        }
+      };
+    return preventMultipleCallsWrappedCallback.bind(this);
+  }
+
+  /**
+   * This works similar to a promise in javascript, what we do is that we send the emitter
+   * that we are working on a response.
+   *
+   * When we work on a response we notify with `pending`, after the result is finished we notify
+   * the result with `completed`. This is why we use the `resultsEventName` and `resultKey` for.
+   * This way we are able to notify the emitter that we are working on a response for it.
+   *
+   * @param handlerId - We need the handlerId so we know that exactly that this handler that is
+   * working on a response.
+   */
+  async #wrapInResultCallback(
+    handlerId: string,
+    callback: (...args: any) => any
+  ) {
     const resultWrappedCallback: ResultWrappedCallbackType = async (
       resultsEventName,
       resultKey,
@@ -356,70 +418,126 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     ) => {
       // Guarantee that we will only call the handler once, this is useful for layers we might send multiple times
       // because the same emitter might be attached to the same layer.
-      const isThisHandlerAlreadyWorkingForAResponse =
-        this.#pendingHandlerIdForResultKey.has(handlerId) &&
-        this.#pendingHandlerIdForResultKey.get(handlerId) === resultKey;
-
-      if (isThisHandlerAlreadyWorkingForAResponse === false) {
-        this.#pendingHandlerIdForResultKey.set(handlerId, resultKey);
+      this.emitResult(resultsEventName, handlerId, resultKey, channelLayer, {
+        status: 'pending',
+      });
+      try {
+        const result = await Promise.resolve(callback(...data));
         this.emitResult(resultsEventName, handlerId, resultKey, channelLayer, {
-          status: 'pending',
+          status: 'completed',
+          result,
         });
-        try {
-          const result = await Promise.resolve(callback(...data));
-          this.emitResult(
-            resultsEventName,
-            handlerId,
-            resultKey,
-            channelLayer,
-            {
-              status: 'completed',
-              result,
-            }
-          );
-          // Emit the result back to the caller.
-        } catch (e) {
-          this.emitResult(
-            resultsEventName,
-            handlerId,
-            resultKey,
-            channelLayer,
-            {
-              status: 'failed',
-            }
-          );
-          throw e;
-          // Emit an empty result back to the caller
-        }
-        this.#pendingHandlerIdForResultKey.delete(handlerId);
+        // Emit the result back to the caller.
+      } catch (e) {
+        this.emitResult(resultsEventName, handlerId, resultKey, channelLayer, {
+          status: 'failed',
+        });
+        throw e;
+        // Emit an empty result back to the caller
       }
     };
-    return resultWrappedCallback.bind(this);
+
+    return this.#wrapInPendingHandlerToPreventMultipleCalls(
+      handlerId,
+      resultWrappedCallback.bind(this),
+      true
+    );
   }
 
+  /**
+   * This will subscribe a listener (function) to an specific event (key). When this key is emitted, either from a channel
+   * or from the emitter itself, the listener (function) will be called.
+   *
+   * Returning a value from the function will emit a result back to the caller.
+   *
+   * IMPORTANT: The data received and the return value must be JSON serializable values. This means you cannot expect
+   * to receive a callback or function in your listener. As well as this, you can't return a function, can't return
+   * a class. It needs to be JSON serializable.
+   *
+   * @param key - The key that will be used to emit the event.
+   * @param callback - The function that will be called when the event is emitted.
+   *
+   * @returns - A unsubscribe function that if called, will remove the listener from the emitter.
+   */
   async addEventListener(key: string, callback: (...args: any) => any) {
     return this.#addEventListenerWithOptions(
       key,
-      { useResult: true, wildcards: this.#wildcards },
+      {
+        useResult: true,
+        wildcards: this.#wildcards,
+        usePreventMultipleCalls: true,
+      },
       callback
     );
   }
 
+  /**
+   * This method will subscribe a listener that will not emit a result back to the caller. So it might
+   * be useful for listeners where performance does matter and needs to be taken aware of.
+   *
+   * @param key - The key that will be used to emit the event.
+   * @param callback - The function that will be called when the event is emitted.
+   *
+   * @returns - A unsubscribe function that if called, will remove the listener from the emitter.
+   */
+  async addEventListenerWithoutResult(
+    key: string,
+    callback: (...args: any) => any
+  ) {
+    return this.#addEventListenerWithOptions(
+      key,
+      {
+        useResult: false,
+        wildcards: this.#wildcards,
+        usePreventMultipleCalls: true,
+      },
+      callback
+    );
+  }
+
+  /**
+   * [INTERNAL] This will subscribe a listener (function) to an specific event (key) without worrying about the result.
+   * This is mostly used for internal usage, we do not need to wrap the `results` listener and
+   * `layerListener` to send the results. Actually if we did this we might would end up in a loop.
+   *
+   * So in other words, this adds the key and the listener `raw`, so not wrapped in anything and without
+   * the wildcards.
+   *
+   * @param key - The key that will be used to emit the event.
+   * @param callback - The function that will be called when the event is emitted.
+   *
+   * @returns - Returns the unsubscribe function that should be called to unsubscribe the listener.
+   */
   protected async addRawEventListenerWithoutResult(
     key: string,
     callback: (...args: any) => any
   ) {
     return this.#addEventListenerWithOptions(
       key,
-      { useResult: false, wildcards: false },
+      { useResult: false, wildcards: false, usePreventMultipleCalls: false },
       callback
     );
   }
 
+  /**
+   * Adds the event listeners with custom options, as you see this function is 100% private, we do not want to
+   * expose this to the user because we want to keep the api as simple as possible, and this might bring more
+   * confusion than making it simple. We created this function so we can reuse it if you are adding an event
+   * listener with the `addEventListener` or with the `addRawEventListenerWithoutResult`.
+   *
+   * @param key - The key that will be used to fire the event.
+   * @param options - The options that will be used to fire the event.
+   * @param options.useResult - If the event listener will be wrapped with the result emitter.
+   * @param options.wildcards - If the event listener accepts wildcards or not.
+   * @param callback - The function (not wrapped) that will be fired when we emit an event.
+   *
+   * @returns - Returns the unsubscribe function that should be called to unsubscribe the listener.
+   */
   async #addEventListenerWithOptions(
     key: string,
     options: {
       useResult?: boolean;
+      usePreventMultipleCalls?: boolean;
       wildcards: boolean;
     },
     callback: (...args: any) => any
@@ -434,8 +552,14 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     const handlerId = `handler-${uuid()}`;
 
     if (options.useResult)
-      callback = await this.#wrapCallback(handlerId, callback);
-
+      callback = await this.#wrapInResultCallback(handlerId, callback);
+    else if (options.usePreventMultipleCalls) {
+      callback = await this.#wrapInPendingHandlerToPreventMultipleCalls(
+        handlerId,
+        callback,
+        false
+      );
+    }
     if (options.wildcards) {
       if (key in this.#groupByKeys)
         this.#addListenerThatAlreadyExistsWithWildcards(
@@ -460,9 +584,9 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     }
 
     // Adds the event listener to the emitter class so that we will be able to emit events.
-    await this.emitter.addEventListener(handlerGroupId, callback);
+    await this.emitter.addEventListener(handlerGroupId, key, callback);
 
-    return this.#unsubscribe(handlerGroupId, handlerId);
+    return this.#unsubscribe(handlerGroupId, key, handlerId);
   }
 
   /**
@@ -489,7 +613,11 @@ export default class EventEmitter<E extends Emitter = Emitter> {
               const listeners = Object.values(groupKeysAndListeners.listeners);
               const listenerRemovalPromises = listeners.map(
                 async (listener) => {
-                  await this.emitter.removeEventListener(groupId, listener);
+                  await this.emitter.removeEventListener(
+                    groupId,
+                    options.key,
+                    listener
+                  );
                 }
               );
 
@@ -506,14 +634,38 @@ export default class EventEmitter<E extends Emitter = Emitter> {
         );
       }
       await Promise.all(promises);
+    } else if (isToRemoveAll) {
+      if (this.#wildcards) await this.unsubscribeAll({ key: '**' });
+      else {
+        const promises = [] as Promise<void>[];
+        const keysToRemove = Object.keys(this.#groupByKeys);
+        // we don't want to remove the results listener we keep it open.
+        for (const key of keysToRemove) {
+          if (this.resultsEventName !== key)
+            promises.push(this.unsubscribeAll({ key }));
+        }
+        await Promise.all(promises);
+      }
     }
   }
 
+  /**
+   * Unsubscribes this emitter from a specific channel inside of the layer. If it doesn't exist it will do nothing.
+   *
+   * @param channel - The channel that you want to unsubscribe from.
+   */
   async unsubscribeFromChannel(channel: string) {
     if (channel in this.#unsubscribeByChannel)
       await this.#unsubscribeByChannel[channel]();
   }
 
+  /**
+   * When unsubscribing we need to remove the listener from the groups array. This is exactly what this do.
+   * We remove all of the keys from the groupKeys. Also if the #groupByKeys becomes empty we make sure to remove
+   * it from the #groupByKeys object.
+   *
+   * @param handlerGroupId - The group id that we want to remove from the #groups and #groupByKeys.
+   */
   #unsubscribeGroup(handlerGroupId: string) {
     for (const keyToRemoveIdFrom of this.#groups[handlerGroupId].keys) {
       this.#groupByKeys[keyToRemoveIdFrom].delete(handlerGroupId);
@@ -524,7 +676,29 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     delete this.#groups[handlerGroupId];
   }
 
-  async #unsubscribe(handlerGroupId: string, handlerId: string) {
+  /**
+   * This function is called when we append a new listener using the `addEventListeners` functions.
+   *
+   * @example
+   * ```ts
+   * const unsubscribe = await emitter.addEventListener('customEventName', () => { console.log('hello world') });
+   *
+   * await unsubscribe();
+   * ```
+   *
+   * You see that on addEventListener what we return a function to unsubscribe the listener. The unsubscribe function
+   * is returned from this method.
+   *
+   * To unsubscribe the listener we need to remove it from the emitter and from the #groups and #groupByKeys objects.
+   * But all of this logic is handled here. You see that we bind the function we return to the `this` context of the
+   * emitter instance. So that the `this` context will always be the emitter instance.
+   *
+   * @param handlerGroupId - The group id that we want to remove from the emitter (remember, groupIds are like the
+   * 'eventName')
+   * @param key - The original key that we used to add the listener.
+   * @param handlerId - The id of the handler that we want to remove from the emitter.
+   */
+  async #unsubscribe(handlerGroupId: string, key: string, handlerId: string) {
     const unsubscribeHandlerFunction = async () => {
       const doesGroupStillExists = handlerGroupId in this.#groups;
       const doesHandlerStillExists =
@@ -538,7 +712,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
         const listener = this.#groups[handlerGroupId].listeners[handlerId];
 
         // Call the emitter instance to remove the actual handler
-        await this.emitter.removeEventListener(handlerGroupId, listener);
+        await this.emitter.removeEventListener(handlerGroupId, key, listener);
 
         delete this.#groups[handlerGroupId].listeners[handlerId];
 
@@ -548,6 +722,16 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     return unsubscribeHandlerFunction.bind(this);
   }
 
+  #getOriginalKeyFromGroup(key: string, groupId: string) {
+    if (groupId in this.#groups) {
+      const groupKeys = this.#groups[groupId].keys;
+      // Reference: https://stackoverflow.com/a/34583715/13158385
+      let originalKey;
+      for (originalKey of groupKeys);
+      return originalKey as string;
+    }
+    return key;
+  }
   /**
    * Emits the event to the `this.emitter.emit`
    *
@@ -556,7 +740,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
    * @param resultKey - This is the key of the result, when you all `.emit()` we will create a key
    * meaning that we will populate the contents of this key with the results.
    */
-  protected emitEventToEmitter(
+  protected async emitEventToEmitter(
     key: string,
     resultsEventName: string,
     resultKey: string,
@@ -566,17 +750,45 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     const groupIdsToEmitEventTo = (
       this.#groupByKeys[key] || new Set()
     ).values();
+
     for (const groupId of groupIdsToEmitEventTo) {
-      this.emitter.emit(
-        groupId,
-        resultsEventName,
-        resultKey,
-        channelLayer,
-        ...data
+      const groupListenersIds = Object.keys(
+        this.#groups[groupId]?.listeners || {}
       );
+      // This will prevent that we will emit the event multiple times to the same handler.
+      const areAllListenersBeingHandled = groupListenersIds.every(
+        (handlerId) =>
+          this.#pendingHandlerIdForResultKey.get(handlerId) === resultKey
+      );
+
+      if (areAllListenersBeingHandled === false) {
+        const originalKey = this.#getOriginalKeyFromGroup(key, groupId);
+        this.emitter.emit(
+          groupId,
+          originalKey,
+          resultsEventName,
+          resultKey,
+          channelLayer,
+          ...data
+        );
+      }
     }
   }
 
+  /**
+   * This is responsible to wait for the result of the fired event. First we fire the event, then we will iterate
+   * over and over again over `this.#pendingResults` until we receive the result of the event that we fired.
+   *
+   * We will loop until we receive the result of the event, or we can timeout with both `#resultsTimeout` or
+   * `#pingTimeout`. The first one is how long we will wait to retrieve a response. The second one is how long we will
+   * wait until we receive that a listener is working on a response. The second one is useful when the event fired does
+   * not have any handlers.
+   *
+   * @param resultKey - In other words, the key of the event that was fired. But generally speaking this is the id
+   * that we will append the results to.
+   *
+   * @returns - A Promise that resolves to an array of the results of the event that was fired.
+   */
   async #fetchResultForEmit(resultKey: string) {
     return new Promise((resolve, reject) => {
       function keepAlive(this: EventEmitter, startTimer: number) {
@@ -584,18 +796,22 @@ export default class EventEmitter<E extends Emitter = Emitter> {
           const hasReachedTimeout =
             Date.now() - startTimer > this.#resultsTimeout;
           const hasResultForKey =
-            typeof this.#pendingResults[resultKey] === 'object';
+            Object.keys(this.#pendingResults[resultKey]).length > 0;
           const resultsAsArray = Object.values(
             this.#pendingResults[resultKey] || {}
           );
           const allResultsConcluded =
             hasResultForKey &&
             resultsAsArray.every(({ status }) => status !== 'pending');
-          const hasReachedPingTimeout =
-            hasResultForKey === false &&
+          const isPingTimeoutPassed =
             Date.now() - startTimer > this.#pingTimeout;
+          const hasReachedPingTimeout =
+            hasResultForKey === false && isPingTimeoutPassed;
 
-          if (allResultsConcluded || hasReachedTimeout) {
+          if (
+            (allResultsConcluded && isPingTimeoutPassed) ||
+            hasReachedTimeout
+          ) {
             delete this.#pendingResults[resultKey];
             return resolve(
               resultsAsArray
@@ -615,7 +831,18 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     });
   }
 
-  async emitToChannel(
+  /**
+   * Emits some data to a channel, a channel is something that should be defined in the layer, This will fire the event
+   * in the layer calling all subscribed listeners. By doing this you can call the `emit` method on multiple machines
+   * inside of the server.
+   *
+   * @param channel - The channel to emit the event to.
+   * @param key - The key to send events to.
+   * @param data - The data to send over to the listeners. (IT SHOULD BE JSON SERIALIZABLE)
+   *
+   * @return - A promise that will wait for a return of the emitters.
+   */
+  async emitToChannel<R = unknown>(
     channels: string[] | string,
     key: string,
     ...data: any[]
@@ -637,7 +864,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
           { key, data }
         );
       }
-      return this.#fetchResultForEmit(resultKey);
+      return this.#fetchResultForEmit(resultKey) as Promise<R>;
     } else {
       throw new Error(
         'Your emitter does not have a layer. You should add a layer before trying to emit an event to the layer'
@@ -651,7 +878,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
    * we are able to retrieve the results of the connected listeners.
    *
    * @param key - The key to send events to.
-   * @param data - The data to send over to the listeners.
+   * @param data - The data to send over to the listeners. (IT SHOULD BE JSON SERIALIZABLE)
    *
    * @return - A promise that will wait for a return of the emitters.
    */
@@ -691,7 +918,26 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     }
   }
 
-  async #getLayerListener() {
+  /**
+   * This is used to append listener functions to the layer, you see that the layer calls the emitter.
+   *
+   * So what we are doing is: We are appending the callback to the layer, from the emitter, when this function
+   * is called we will call the `this.emitEventToEmitter` from the emitter itself AND NOT the layer.
+   *
+   * @returns - Returns the callback that will be called when we fire the emitter.
+   */
+  async #getLayerListener(): Promise<
+    (
+      this: EventEmitter,
+      resultsEventName: string,
+      resultKey: string,
+      channel: string,
+      data: {
+        key: string;
+        data: any[];
+      }
+    ) => void
+  > {
     function layerListener(
       this: EventEmitter,
       resultsEventName: string,
@@ -713,6 +959,14 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     return layerListener.bind(this);
   }
 
+  /**
+   * Appends the listeners to the layer, this way we will be able to connect two different emitters together.
+   * Those 2 different emitters might be on the same machine or a completely different machine (if we are using
+   * RedisEmitter)
+   *
+   * @param channels - The channels that your emitter will listen to. This means that when we receive an event on
+   * a specific channel and this emitter has handlers for this event, we will emit the event.
+   */
   private async addChannelListeners(channels: string[]) {
     const promises = channels.map(async (channel) => {
       if (this.layer) {

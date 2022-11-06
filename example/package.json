@@ -9,7 +9,9 @@
     "start": "ts-node dist/manage.js dev",
     "dev": "ts-node manage.ts dev",
     "test": "ts-node teste.ts",
-    "events": "ts-node src/events.ts",
+    "events1": "ts-node src/events1.ts",
+    "events2": "ts-node src/events2.ts",
+
     "makemigrations": "ts-node manage.ts makemigrations",
     "migrate": "ts-node manage.ts migrate"
   },
@@ -22,6 +24,7 @@
     "@palmares/zod-schema": "*",
     "@palmares/sequelize-engine": "*",
     "@palmares/eventemitter2-emitter": "*",
+    "@palmares/redis-emitter": "*",
     "@palmares/events": "*",
     "cors": "^2.8.5",
     "pg": "^8.7.3"

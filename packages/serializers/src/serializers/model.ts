@@ -601,7 +601,6 @@ export default class ModelSerializer<
         ([fieldName]) => this.options.excludes?.includes(fieldName) === false
       );
 
-    // eslint-disable-next-line prefer-const
     for (const [fieldName, field] of fieldEntries) {
       const isFieldAForeignKeyField =
         field instanceof models.fields.ForeignKeyField;

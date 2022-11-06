@@ -4,6 +4,8 @@ import {
   EngineQuery,
   ModelFields,
   TModel,
+  models,
+  IncludesRelatedModels,
 } from '@palmares/databases';
 
 import {
@@ -12,19 +14,31 @@ import {
   Attributes,
   WhereOptions,
   CreationAttributes,
+  // eslint-disable-next-line import/no-unresolved
 } from 'sequelize/types';
+// eslint-disable-next-line import/no-unresolved
 import { Col, Fn, Literal } from 'sequelize/types/utils';
 
 export default class SequelizeEngineQuery extends EngineQuery {
-  async get<M extends TModel>(
+  async get<
+    M extends TModel,
+    I extends readonly ReturnType<typeof models.Model>[] | undefined
+  >(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     instance: ModelCtor<Model<ModelFields<M>>>,
-    search?: AllOptionalModelFields<M>
-  ): Promise<AllRequiredModelFields<M>[]> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    args?: {
+      includes?: I;
+      search?: AllOptionalModelFields<M>;
+    }
+  ): Promise<IncludesRelatedModels<AllRequiredModelFields<M>, M, I>[]> {
     try {
-      return (await instance.findAll({
-        where: search,
+      return instance.findAll({
+        where: args?.search,
         raw: true,
-      })) as AllRequiredModelFields<M>[];
+      }) as unknown as Promise<
+        IncludesRelatedModels<AllRequiredModelFields<M>, M, I>[]
+      >;
     } catch {
       return [];
     }

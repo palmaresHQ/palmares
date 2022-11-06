@@ -1,17 +1,17 @@
-import Engine from "../../engine";
-import { Operation } from "./operation";
-import { Field } from "../../models/fields";
+import Engine from '../../engine';
+import { Operation } from './operation';
+import { Field } from '../../models/fields';
 import {
   ActionToGenerateType,
   CreateFieldToGenerateData,
   ChangeFieldToGenerateData,
   RenameFieldToGenerateData,
   DeleteFieldToGenerateData,
-  ToStringFunctionReturnType
-} from "./types";
-import { OriginalOrStateModelsByNameType } from "../types";
-import Migration from "../migrate/migration";
-import State from "../state";
+  ToStringFunctionReturnType,
+} from './types';
+import { OriginalOrStateModelsByNameType } from '../types';
+import Migration from '../migrate/migration';
+import State from '../state';
 
 /**
  * This operation is used when a new field is created on a specific model. If the hole model is created
@@ -29,7 +29,11 @@ export class CreateField extends Operation {
     this.fieldDefinition = fieldDefinition;
   }
 
-  async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {
+  async stateForwards(
+    state: State,
+    domainName: string,
+    domainPath: string
+  ): Promise<void> {
     const model = await state.get(this.modelName);
     model.domainName = domainName;
     model.domainPath = domainPath;
@@ -45,10 +49,20 @@ export class CreateField extends Operation {
   ) {
     const toModel = toState[this.modelName];
     const fromModel = fromState[this.modelName];
-    await engineInstance.migrations.addField(toModel, fromModel, this.fieldName, migration);
+    await engineInstance.migrations.addField(
+      toModel,
+      fromModel,
+      this.fieldName,
+      migration
+    );
   }
 
-  static async toGenerate(domainName: string, domainPath: string, modelName: string, data: CreateFieldToGenerateData) {
+  static async toGenerate(
+    domainName: string,
+    domainPath: string,
+    modelName: string,
+    data: CreateFieldToGenerateData
+  ) {
     return super.defaultToGenerate(domainName, domainPath, modelName, data);
   }
 
@@ -59,12 +73,12 @@ export class CreateField extends Operation {
     const ident = '  '.repeat(indentation);
     return {
       asString: await super.defaultToString(
-        indentation-1,
+        indentation - 1,
         `${ident}"${data.modelName}",\n` +
-        `${ident}"${data.data.fieldName}",\n` +
-        `${await data.data.fieldDefinition.toString(indentation)}`
+          `${ident}"${data.data.fieldName}",\n` +
+          `${await data.data.fieldDefinition.toString(indentation)}`
       ),
-      customImports: await data.data.fieldDefinition.customImports()
+      customImports: await data.data.fieldDefinition.customImports(),
     };
   }
 
@@ -111,12 +125,21 @@ export class ChangeField extends Operation {
     const fromModel = fromState[this.modelName];
     const toModel = toState[this.modelName];
     await engineInstance.migrations.changeField(
-      toModel, fromModel, this.fieldDefinitionBefore, this.fieldDefinitionAfter, migration
+      toModel,
+      fromModel,
+      this.fieldDefinitionBefore,
+      this.fieldDefinitionAfter,
+      migration
     );
   }
 
-  static async toGenerate(domainName: string, domainPath: string, modelName: string, data: ChangeFieldToGenerateData) {
-    return super.defaultToGenerate(domainName, domainPath, modelName, data)
+  static async toGenerate(
+    domainName: string,
+    domainPath: string,
+    modelName: string,
+    data: ChangeFieldToGenerateData
+  ) {
+    return super.defaultToGenerate(domainName, domainPath, modelName, data);
   }
 
   static async toString(
@@ -126,18 +149,16 @@ export class ChangeField extends Operation {
     const ident = '  '.repeat(indentation);
     return {
       asString: await super.defaultToString(
-        indentation-1,
+        indentation - 1,
         `${ident}"${data.modelName}",\n` +
-        `${ident}"${data.data.fieldName}",\n` +
-        `${await data.data.fieldDefinitionBefore.toString(indentation)},\n` +
-        `${await data.data.fieldDefinitionAfter.toString(indentation)}`
+          `${ident}"${data.data.fieldName}",\n` +
+          `${await data.data.fieldDefinitionBefore.toString(indentation)},\n` +
+          `${await data.data.fieldDefinitionAfter.toString(indentation)}`
       ),
       customImports: (
         await data.data.fieldDefinitionBefore.customImports()
-      ).concat(
-        await data.data.fieldDefinitionAfter.customImports()
-      )
-    }
+      ).concat(await data.data.fieldDefinitionAfter.customImports()),
+    };
   }
 
   static async describe(
@@ -157,7 +178,7 @@ export class RenameField extends Operation {
     modelName: string,
     fieldNameBefore: string,
     fieldNameAfter: string,
-    fieldDefinition: Field,
+    fieldDefinition: Field
   ) {
     super();
     this.modelName = modelName;
@@ -189,8 +210,12 @@ export class RenameField extends Operation {
     const fromModel = fromState[this.modelName];
     const toModel = toState[this.modelName];
     await engineInstance.migrations.renameField(
-      toModel, fromModel, this.fieldNameBefore, this.fieldNameAfter, migration
-    )
+      toModel,
+      fromModel,
+      this.fieldNameBefore,
+      this.fieldNameAfter,
+      migration
+    );
   }
 
   static async toGenerate(
@@ -209,13 +234,13 @@ export class RenameField extends Operation {
     const ident = '  '.repeat(indentation);
     return {
       asString: await super.defaultToString(
-        indentation-1,
+        indentation - 1,
         `${ident}"${data.modelName}",\n` +
-        `${ident}"${data.data.fieldNameBefore}",\n` +
-        `${ident}"${data.data.fieldNameAfter}",\n` +
-        `${await data.data.fieldDefinition.toString(indentation)}`
+          `${ident}"${data.data.fieldNameBefore}",\n` +
+          `${ident}"${data.data.fieldNameAfter}",\n` +
+          `${await data.data.fieldDefinition.toString(indentation)}`
       ),
-      customImports: await data.data.fieldDefinition.customImports()
+      customImports: await data.data.fieldDefinition.customImports(),
     };
   }
 
@@ -236,7 +261,11 @@ export class DeleteField extends Operation {
     this.fieldName = fieldName;
   }
 
-  async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {
+  async stateForwards(
+    state: State,
+    domainName: string,
+    domainPath: string
+  ): Promise<void> {
     const model = await state.get(this.modelName);
     model.domainName = domainName;
     model.domainPath = domainPath;
@@ -252,7 +281,12 @@ export class DeleteField extends Operation {
   ) {
     const fromModel = fromState[this.modelName];
     const toModel = toState[this.modelName];
-    await engineInstance.migrations.removeField(toModel, fromModel, this.fieldName, migration);
+    await engineInstance.migrations.removeField(
+      toModel,
+      fromModel,
+      this.fieldName,
+      migration
+    );
   }
 
   static async toGenerate(
@@ -271,10 +305,9 @@ export class DeleteField extends Operation {
     const ident = '  '.repeat(indentation);
     return {
       asString: await super.defaultToString(
-        indentation-1,
-        `${ident}"${data.modelName}",\n` +
-        `${ident}"${data.data.fieldName}"`
-      )
+        indentation - 1,
+        `${ident}"${data.modelName}",\n` + `${ident}"${data.data.fieldName}"`
+      ),
     };
   }
 

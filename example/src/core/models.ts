@@ -42,7 +42,11 @@ export class Post extends models.Model<Post>() {
 export class User extends models.Model<User>() {
   fields = {
     id: new models.fields.AutoField(),
-    firstName: new models.fields.CharField({ maxLength: 255, dbIndex: true }),
+    firstName: new models.fields.CharField({
+      maxLength: 255,
+      dbIndex: true,
+      allowNull: true,
+    }),
     lastName: new models.fields.CharField({ maxLength: 255, allowNull: true }),
     /*
     dependsOn: new models.fields.ForeignKeyField<string>({

@@ -25,5 +25,8 @@
   "devDependencies": {
     "@types/benchmark": "^2.1.2",
     "benchmark": "^2.1.4"
+  },
+  "peerDependencies": {
+    "@palmares/core": "*"
   }
 }

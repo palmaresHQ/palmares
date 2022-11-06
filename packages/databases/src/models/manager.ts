@@ -63,8 +63,10 @@ export default class Manager<
   engineInstances: ManagerEngineInstancesType;
   defaultEngineInstanceName: string;
   model!: ClassConstructor<Model>;
+  modelKls!: { new (...args: unknown[]): any };
 
   constructor() {
+    //this.modelKls = modelKls;
     this.instances = {};
     this.engineInstances = {};
     this.defaultEngineInstanceName = '';
@@ -115,6 +117,7 @@ export default class Manager<
       return this.engineInstances[engineInstanceName] as EI extends Engine
         ? EI
         : T;
+    console.log(this.modelKls);
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }
 
@@ -181,6 +184,7 @@ export default class Manager<
   ): Promise<
     S extends undefined | null ? AllRequiredModelFields<M> | undefined : boolean
   > {
+    console.log('get', data, engineName);
     return this.getEngineInstance().query.set<M, S>(
       this.getInstance(engineName),
       data as S extends undefined ? ModelFields<M> : AllOptionalModelFields<M>,

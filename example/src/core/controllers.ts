@@ -15,9 +15,9 @@ import { ModelSerializerInType } from '@palmares/serializers/src/serializers/typ
 export class ExampleController extends Controller {
   path = '/example';
 
-  constructor(dependencyInjection: number) {
+  constructor() {
     super();
-    console.log(dependencyInjection);
+    //console.log(dependencyInjection);
   }
 
   // Escreve uma rota com decorators
@@ -47,9 +47,12 @@ export class ExampleController extends Controller {
       })
     )[0];
     const serializer = UserSerializer.new({
+      many: false,
       data: body,
       instance,
     });
+    //const data = await serializer.data;
+    //data. // Check why id is optional here
     const isValid = await serializer.isValid();
     if (isValid) {
       const savedInstance = await serializer.save();
@@ -61,7 +64,7 @@ export class ExampleController extends Controller {
   edit: ClassHandler<this> = {
     path: '/<id: number>',
     async POST({ params: { id } }: ExpressRequest<{ P: { id: number } }>) {
-      const user = await User.default.get({ id });
+      const user = await User.default.get({ search: { id } });
       return Response.new(HTTP_200_OK, { body: user });
     },
   };

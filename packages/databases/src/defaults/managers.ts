@@ -24,7 +24,10 @@ export default class PalmaresMigrationsManager extends models.Manager<
    * @return - An empty '' string or the name of the last migration.
    */
   async getLastMigrationName(engineName: string) {
-    const allMigrations = await this.get({ engineName }, engineName);
+    const allMigrations = await this.get(
+      { search: { engineName } },
+      engineName
+    );
     return allMigrations.length > 0 ? allMigrations[0].migrationName : '';
   }
 }

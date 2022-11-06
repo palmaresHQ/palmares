@@ -1,9 +1,12 @@
-import { EventEmitter } from '@palmares/events';
+import { EventEmitter, eventsServer } from '@palmares/events';
 import EventEmitter2Emitter from '@palmares/eventemitter2-emitter';
+import RedisEmitter from '@palmares/redis-emitter';
 
 async function main() {
   // Layer Vai ser tipo o Redis ou o RabbitMQ.
-  const layer = await EventEmitter.new(EventEmitter2Emitter);
+  const layer = await EventEmitter.new(RedisEmitter, {
+    emitterParams: ['redis://localhost:6379'],
+  });
 
   // Esses dois aqui usam o EventEmitter2 pq a ideia é funcionar localmente.
   const emitter2 = await EventEmitter.new(EventEmitter2Emitter, {
@@ -11,29 +14,22 @@ async function main() {
       use: layer,
       channels: ['users'],
     },
-    wildcards: { use: true },
-  });
-  const emitter = await EventEmitter.new(EventEmitter2Emitter, {
-    layer: {
-      use: layer,
-      channels: ['birds', 'users'],
+    results: {
+      pingTimeout: 500,
+      timeout: 5000,
     },
     wildcards: { use: true },
   });
-  // retorna create.user[1]
-  await emitter2.addEventListener('create.user', () => {
+
+  await emitter2.addEventListener('create.users', () => {
     return new Promise((resolve) =>
       setTimeout(() => resolve('create.user[1]'), 200)
     );
   });
-  // Retorna create.user[2]
-  await emitter.addEventListener('create.user', () => {
-    console.log('teste');
-    return 'create.user[2]';
-  });
 
+  //await emitter.unsubscribeAll();
   // Imagina em sistemas distribuidos, vc consegue comunicar facilmente entre seus sistemas.
-  const result = await emitter.emitToChannel(['users', 'birds'], 'create.*');
+  const result = await emitter2.emitToChannel(['users'], 'create.users');
   console.log(result);
 }
 main();
