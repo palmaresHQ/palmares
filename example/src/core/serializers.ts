@@ -21,7 +21,9 @@ export class UserSerializer extends ModelSerializer {
 
   async save() {
     const data = this.validatedData;
-    const modelInstance = User.default.getInstance<SequelizeEngine<User>>();
+    const modelInstance = await User.default.getInstance<
+      SequelizeEngine<User>
+    >();
 
     if (data) return modelInstance.create(data);
   }

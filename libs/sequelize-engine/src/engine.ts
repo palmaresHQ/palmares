@@ -91,7 +91,6 @@ export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
       );
       return new this(databaseName, databaseSettings, sequelizeInstance);
     }
-
     const sequelizeInstance = new Sequelize(
       databaseSettings.databaseName,
       databaseSettings.username,
@@ -109,10 +108,9 @@ export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
   async isConnected(): Promise<boolean> {
     const isConnectedDefined: boolean = typeof this.#isConnected === 'boolean';
     if (isConnectedDefined) return this.#isConnected ? true : false;
-
     const isSequelizeInstanceDefined = this.instance instanceof Sequelize;
+
     if (isSequelizeInstanceDefined) {
-      await this.instance?.authenticate();
       try {
         await this.instance?.authenticate();
         this.#isConnected = true;
@@ -122,7 +120,6 @@ export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
 
       if (this.#isConnected) return this.#isConnected;
     }
-
     this.instance = null;
     return await super.isConnected();
   }

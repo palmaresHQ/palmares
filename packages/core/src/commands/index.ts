@@ -3,24 +3,8 @@ import Configuration from '../conf';
 import { SettingsType } from '../conf/types';
 import { CommandNotFoundException } from './exceptions';
 import { DefaultCommandType } from './types';
-
 class Commands {
-  #defaultCommands: DefaultCommandType = {};
-
-  async #initializeDomains(settings: SettingsType) {
-    const initializedDomains: Domain[] = [];
-    const domainClasses = await Domain.retrieveDomains(settings);
-    for (const domainClass of domainClasses) {
-      const initializedDomain = new domainClass();
-      await initializedDomain.load(settings);
-      this.#defaultCommands = {
-        ...this.#defaultCommands,
-        ...initializedDomain.commands,
-      };
-      initializedDomains.push(initializedDomain);
-    }
-    return initializedDomains;
-  }
+  commands = {} as DefaultCommandType;
 
   async #formatArgs(args: string[]) {
     const isArgAParameter = (arg: string) => arg.startsWith('--');
@@ -70,13 +54,14 @@ class Commands {
       this.#formatArgs(args.slice(1, args.length)),
       Configuration.loadConfiguration(settingsOrSettingsPath),
     ]);
-    const domains = await this.#initializeDomains(settings);
+    const { domains, commands } = await Domain.initializeDomains(settings);
     const isCommandDefined: boolean =
-      typeof this.#defaultCommands[commandType] === 'object' &&
-      this.#defaultCommands[commandType] !== undefined;
+      typeof commands[commandType] === 'object' &&
+      commands[commandType] !== undefined;
+
     if (isCommandDefined) {
       await Promise.resolve(
-        this.#defaultCommands[commandType].handler({
+        commands[commandType].handler({
           settings,
           domains,
           args: otherArgs,

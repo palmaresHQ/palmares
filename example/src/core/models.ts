@@ -48,15 +48,6 @@ export class User extends models.Model<User>() {
       allowNull: true,
     }),
     lastName: new models.fields.CharField({ maxLength: 255, allowNull: true }),
-    /*
-    dependsOn: new models.fields.ForeignKeyField<string>({
-      allowNull: true,
-      relatedTo: 'User',
-      onDelete: models.fields.ON_DELETE.CASCADE,
-      toField: 'uuid',
-      relatedName: 'dependents',
-      relationName: 'user',
-    }),*/
     uuid: new models.fields.UUIDField({ autoGenerate: true, unique: true }),
   };
 
@@ -65,6 +56,8 @@ export class User extends models.Model<User>() {
   };
 }
 
-User.default.get({
-  includes: [Post] as const,
-});
+const main = async () => {
+  const values = await User.default.get();
+  console.log(values);
+};
+main();

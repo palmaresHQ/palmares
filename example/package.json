@@ -8,6 +8,7 @@
   "scripts": {
     "start": "ts-node dist/manage.js dev",
     "dev": "ts-node manage.ts dev",
+    "models": "ts-node src/core/models.ts",
     "test": "ts-node teste.ts",
     "events1": "ts-node src/events1.ts",
     "events2": "ts-node src/events2.ts",

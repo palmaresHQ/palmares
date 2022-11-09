@@ -21,9 +21,9 @@ import { CustomImportsForFieldType } from './fields/types';
  * `objects` we use `instance` to make queries. So in other words, if you want to make queries directly
  * you will need to use. Also the instance will hold the actual instance of the model.
  *
- * >>> ModelName.getInstance().findOne()
+ * >>> (await ModelName.getInstance()).findOne()
  * or
- * >>> ModelName.getInstance().create()
+ * >>> (await ModelName.getInstance()).create()
  *
  * and so on.
  *
@@ -124,6 +124,7 @@ export class Model<T = any> {
   domainName!: string;
   domainPath!: string;
 
+  static _isInitialized = false;
   static readonly defaultOptions = {
     abstract: false,
     underscored: true,
@@ -310,6 +311,8 @@ export class Model<T = any> {
 
     const modelInstance = (await engineInstance.initializeModel(this)) as any;
     await this.#initializeManagers(engineInstance, modelInstance);
+
+    (this.constructor as typeof Model)._isInitialized = true;
     return modelInstance;
   }
 

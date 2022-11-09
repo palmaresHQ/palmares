@@ -1,4 +1,4 @@
-import { logging, LOGGING_APP_START_SERVER } from '@palmares/core';
+import { logging } from '@palmares/core';
 
 import { NotImplementedServerException } from './exceptions';
 import { ServerSettingsType } from '../types';
@@ -7,6 +7,7 @@ import ServerResponses from './responses';
 import ServerRequests from './requests';
 import Middleware from '../middlewares';
 import { HandlersType } from './types';
+import { LOGGING_APP_START_SERVER } from '../utils';
 
 /**
  * This server class should be overridden in order to work. This class is responsible for handling everything from the server.

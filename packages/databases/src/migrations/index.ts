@@ -1,13 +1,17 @@
-import { ERR_MODULE_NOT_FOUND, logging, imports } from "@palmares/core";
+import { ERR_MODULE_NOT_FOUND, logging, imports } from '@palmares/core';
 
-import { DatabaseDomain } from "../domain";
-import { DatabaseSettingsType, InitializedEngineInstancesType, OptionalMakemigrationsArgsType } from "../types";
+import { DatabaseDomain } from '../domain';
+import {
+  DatabaseSettingsType,
+  InitializedEngineInstancesType,
+  OptionalMakemigrationsArgsType,
+} from '../types';
 import { FoundMigrationsFileType, MigrationFileType } from './types';
-import { LOGGING_MIGRATIONS_NOT_FOUND } from "../utils";
-import MakeMigrations from "./makemigrations";
-import Migrate from "./migrate";
+import { LOGGING_MIGRATIONS_NOT_FOUND } from '../utils';
+import MakeMigrations from './makemigrations';
+import Migrate from './migrate';
 
-import { Dirent } from "fs";
+import { Dirent } from 'fs';
 
 /**
  * Used for working with anything related to migrations inside of the project, from the automatic creation of migrations
@@ -27,23 +31,34 @@ export default class Migrations {
     optionalArgs: OptionalMakemigrationsArgsType
   ) {
     const migrations = await this.#getMigrations();
-    await MakeMigrations.buildAndRun(this.settings, migrations, initializedEngineInstances, optionalArgs);
+    await MakeMigrations.buildAndRun(
+      this.settings,
+      migrations,
+      initializedEngineInstances,
+      optionalArgs
+    );
   }
 
-  async migrate(
-    initializedEngineInstances: InitializedEngineInstancesType,
-  ) {
+  async migrate(initializedEngineInstances: InitializedEngineInstancesType) {
     const migrations = await this.#getMigrations();
-    await Migrate.buildAndRun(this.settings, migrations, initializedEngineInstances);
+    await Migrate.buildAndRun(
+      this.settings,
+      migrations,
+      initializedEngineInstances
+    );
   }
 
-  async #reorderMigrations(migrations: FoundMigrationsFileType[]): Promise<FoundMigrationsFileType[]> {
+  async #reorderMigrations(
+    migrations: FoundMigrationsFileType[]
+  ): Promise<FoundMigrationsFileType[]> {
     const reorderedMigrations = [];
     const reference: { [key: string]: number } = {};
     for (const migration of migrations) {
       const dependsOn = migration.migration.dependsOn;
       const migrationName = migration.migration.name;
-      const indexToAddValue = reference[dependsOn] ? reference[dependsOn] + 1 : reorderedMigrations.length;
+      const indexToAddValue = reference[dependsOn]
+        ? reference[dependsOn] + 1
+        : reorderedMigrations.length;
 
       if (reference[dependsOn]) {
         reorderedMigrations.splice(indexToAddValue, 0, migration);
@@ -58,12 +73,13 @@ export default class Migrations {
   async #getMigrations(): Promise<FoundMigrationsFileType[]> {
     const [join, readdir] = await Promise.all([
       imports<typeof import('path')['join']>('path', 'join'),
-      imports<typeof import('fs')['readdir']>('fs', 'readdir')
-    ])
+      imports<typeof import('fs')['readdir']>('fs', 'readdir'),
+    ]);
 
     const foundMigrations: FoundMigrationsFileType[] = [];
     const promises: Promise<void>[] = this.domains.map(async (domain) => {
-      const hasGetMigrationsMethodDefined = typeof domain.getMigrations === 'function';
+      const hasGetMigrationsMethodDefined =
+        typeof domain.getMigrations === 'function';
       if (hasGetMigrationsMethodDefined) {
         const domainMigrations = await Promise.resolve(domain.getMigrations());
         for (const domainMigration of domainMigrations) {
@@ -76,33 +92,46 @@ export default class Migrations {
       } else if (join && readdir) {
         const fullPath = join(domain.path, 'migrations');
         try {
-          const directoryFiles = await (new Promise<string[] | Buffer[] | Dirent[]>((resolve, reject) => {
+          const directoryFiles = await new Promise<
+            string[] | Buffer[] | Dirent[]
+          >((resolve, reject) => {
             readdir(fullPath, (error, data) => {
-              if (error) reject (error);
+              if (error) reject(error);
               resolve(data);
             });
-          }));
+          });
           const promises = directoryFiles.map(async (element) => {
             const file = element as string;
-            const migrationFile = (await import(join(fullPath, file))).default as MigrationFileType;
-            const isAValidMigrationFile = typeof migrationFile === 'object' && migrationFile !== undefined &&
-              typeof migrationFile.database === 'string' && Array.isArray(migrationFile.operations) &&
+            const migrationFile = (await import(join(fullPath, file)))
+              .default as MigrationFileType;
+            const isAValidMigrationFile =
+              typeof migrationFile === 'object' &&
+              migrationFile !== undefined &&
+              typeof migrationFile.database === 'string' &&
+              Array.isArray(migrationFile.operations) &&
               typeof migrationFile.name === 'string';
             if (isAValidMigrationFile) {
               foundMigrations.push({
                 domainName: domain.name,
                 domainPath: domain.path,
-                migration: migrationFile
+                migration: migrationFile,
               });
             }
           });
-          await Promise.all(promises)
+          await Promise.all(promises);
         } catch (e) {
           const error: any = e;
-          const couldNotFindFileOrDirectory = error.message.startsWith('ENOENT: no such file or directory, scandir');
-          if (error.code === ERR_MODULE_NOT_FOUND || couldNotFindFileOrDirectory) {
+          const couldNotFindFileOrDirectory = error.message.startsWith(
+            'ENOENT: no such file or directory, scandir'
+          );
+          if (
+            error.code === ERR_MODULE_NOT_FOUND ||
+            couldNotFindFileOrDirectory
+          ) {
             if (this.settings.DATABASES_DISMISS_NO_MIGRATIONS_LOG !== true)
-              await logging.logMessage(LOGGING_MIGRATIONS_NOT_FOUND, { domainName: domain.name });
+              await logging.logMessage(LOGGING_MIGRATIONS_NOT_FOUND, {
+                domainName: domain.name,
+              });
           } else {
             throw e;
           }

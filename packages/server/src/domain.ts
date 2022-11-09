@@ -12,14 +12,14 @@ import {
   MultipleServerSettings,
   ServerSettingsType,
 } from './types';
-import App from './app';
+import HttpAppServer from './app';
 import Server from './server';
 
 export default class ServerDomain extends Domain {
   serverName!: string;
   serverSettings!: OnlyServerSettingsType;
   server!: Server;
-  app!: App;
+  app!: HttpAppServer;
 
   commands: DefaultCommandType = {
     dev: {
@@ -59,7 +59,7 @@ export default class ServerDomain extends Domain {
    *
    * @param settings - The settings of the application defined by the user in `settings.(js/ts)`.
    */
-  async load<S extends SettingsType = ServerSettingsType>(
+  override async load<S extends SettingsType = ServerSettingsType>(
     settings: S
   ): Promise<void> {
     await buildLogging();
@@ -73,16 +73,16 @@ export default class ServerDomain extends Domain {
     }
 
     const server = new appSettings.SERVER(appSettings);
-    this.app = new App(server);
+    this.app = new HttpAppServer(server);
 
     await this.app.load();
   }
 
-  async ready() {
+  override async ready() {
     await this.app.start();
   }
 
-  async close(): Promise<void> {
+  override async close(): Promise<void> {
     await this.app.close();
   }
 

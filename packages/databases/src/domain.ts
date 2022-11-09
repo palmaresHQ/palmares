@@ -56,7 +56,7 @@ export default class DatabasesDomain extends DatabaseDomain {
     return this.databases;
   }
 
-  async ready(
+  override async ready(
     options: DomainReadyFunctionArgs<DatabaseSettingsType>
   ): Promise<void> {
     const { settings, domains } = options;
@@ -69,7 +69,7 @@ export default class DatabasesDomain extends DatabaseDomain {
     ]);
   }
 
-  async close(): Promise<void> {
+  override async close(): Promise<void> {
     await Promise.all([this.databases.close(), super.close()]);
   }
 }

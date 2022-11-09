@@ -1,4 +1,4 @@
-class EventsServer {
+export class EventsServer {
   async listen(callback: () => void) {
     callback();
     setInterval(() => {

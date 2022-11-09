@@ -1,4 +1,4 @@
-import { Domain, SettingsType, logging } from '@palmares/core';
+import { Domain, AppServer } from '@palmares/core';
 
 import {
   ControllerHandlerType,
@@ -9,22 +9,8 @@ import { Router } from './routers';
 import { BaseRoutesType } from './routers/types';
 import Server from './server';
 import { RootRouterTypes, ServerSettingsType } from './types';
-import { LOGGING_APP_STOP_SERVER } from './utils';
 
-/**
- * This is the app, the app instance is responsible for loading the http server.
- * An http server is a server that can handle multiple http requests.
- *
- * By default this overrides many of the things defined on the core, like the `domains`.
- * It's on here that we call the `ready` and `close` methods of each domain so we are able to
- * start the server.
- *
- * The life cycle of the app is:
- * - `load`: Loads the constructor.
- * - `start`: Starts the webserver.
- * - `close`: Stops the webserver.
- */
-export default class App {
+export default class HttpAppServer extends AppServer {
   domains!: Domain[];
   settings!: ServerSettingsType;
   server: Server;
@@ -32,38 +18,8 @@ export default class App {
   #cachedRoutes!: BaseRoutesType[];
 
   constructor(server: Server) {
+    super();
     this.server = server;
-  }
-
-  /**
-   * @private
-   * Configure the cleanup of the server, this will run when the user press Ctrl+C and the server stops running.
-   * This will stop the server gracefully instead of hard kill the process so we are able to do some cleanup.
-   */
-  async #configureCleanup() {
-    process.on('SIGINT', async () => {
-      await this.#cleanup();
-      process.exit(0);
-    });
-  }
-
-  /**
-   * This is the cleanup phase, we will call `close` method on all of the domains so
-   * they shut down gracefully.
-   *
-   * By default what this does is simply calling all of the `close` methods of the domains.
-   */
-  async #cleanup() {
-    if (this.isClosingServer === false) {
-      this.isClosingServer = true;
-      await logging.logMessage(LOGGING_APP_STOP_SERVER, {
-        appName: this.settings.APP_NAME,
-      });
-      const promises = this.domains.map(async (domain) => {
-        if (domain.isClosed === false) await domain.close();
-      });
-      await Promise.all(promises);
-    }
   }
 
   /**
@@ -96,37 +52,6 @@ export default class App {
 
     if (Array.isArray(rootRouter)) return rootRouter;
     else return [rootRouter];
-  }
-
-  /**
-   * Initialize the app, this will load the settings, initialize the server and call `ready` function
-   * inside of the domains. This ready function is called when the application starts. Although we define
-   * it in the `core` we call it here because we are initializing the app.
-   *
-   * @param settings - The settings of the application. Those are the server settings with the data needed
-   * for this application.
-   * @param domains - All of the domains of the application, including the domain of the server.
-   */
-  async initialize(
-    settings: ServerSettingsType,
-    domains: Domain[]
-  ): Promise<void> {
-    this.settings = settings;
-    this.domains = domains;
-
-    const customOptions = {
-      app: this,
-    };
-
-    for (const domain of domains) {
-      if (domain.isReady === false) {
-        await domain.ready({
-          settings: settings as SettingsType,
-          domains,
-          customOptions,
-        });
-      }
-    }
   }
 
   /**
@@ -243,7 +168,7 @@ export default class App {
     await this.#load404();
     await this.server.init();
 
-    await this.#configureCleanup();
+    await super.start();
   }
 
   /**

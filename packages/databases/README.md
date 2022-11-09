@@ -37,6 +37,6 @@ export const DATABASES = {
  - [X] Better typescript support for abstract models.
  - [ ] Model to instance and instance to Model (translates a raw object to something that the orm/database can understand and vice versa).
  - [ ] Dynamic imports for models (similar with the `customImports` function on fields)
- - [ ] Lazy load the models, so we can tackle environments like serverless or the edge with the framework. (For that we need to just load the basic part of the models, without translating, we will only translate when we need it. When we translate we must be sure the dependencies are translated first.) It won't be the fastest solution but it will work.
+ - [/] Lazy load the models, so we can tackle environments like serverless or the edge with the framework. (For that we need to just load the basic part of the models, without translating, we will only translate when we need it. When we translate we must be sure the dependencies are translated first.) It won't be the fastest solution but it will work. __(HALF DONE, WE ARE ABLE TO TRANSLATE THE ENGINE LAZILY BUT NOT THE MODELS AND ITS DEPENDENCIES (THE PROBLEM RELIES ON INDIRECT RELATIONS)__)
  - [ ] Better support for self referencing relations.
  - [ ] `Set` and `get` and even `delete` should have a better API for deleting, creating, updating, and retrieving related data. Also we should change the default functions api for an object. This way we can make it more flexible and easier to use. (instead of `set(dataToSet, search, engineName)` we can do `set({ dataToSet, search, engineName })`)

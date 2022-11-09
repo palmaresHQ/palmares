@@ -1,10 +1,13 @@
 import { logging } from '@palmares/core';
 
-import { NotImplementedEngineException } from "./exceptions";
-import { DatabaseConfigurationType } from "../types";
-import { LOGGING_DATABASE_IS_NOT_CONNECTED, LOGGING_DATABASE_CLOSING } from "../utils";
-import { EngineType, EngineInitializedModels } from "./types";
-import EngineFields from "./fields";
+import { NotImplementedEngineException } from './exceptions';
+import { DatabaseConfigurationType } from '../types';
+import {
+  LOGGING_DATABASE_IS_NOT_CONNECTED,
+  LOGGING_DATABASE_CLOSING,
+} from '../utils';
+import { EngineType, EngineInitializedModels } from './types';
+import EngineFields from './fields';
 import EngineMigrations from './migrations';
 import EngineQuery from './query';
 import { Model } from '../models/model';
@@ -26,7 +29,7 @@ import { Model } from '../models/model';
  */
 export default class Engine<M extends Model = Model> implements EngineType {
   databaseName: string;
-  databaseSettings: DatabaseConfigurationType<any, any>
+  databaseSettings: DatabaseConfigurationType<any, any>;
   initializedModels: EngineInitializedModels = {};
   fields: EngineFields;
   query: EngineQuery;
@@ -34,7 +37,7 @@ export default class Engine<M extends Model = Model> implements EngineType {
   ModelType: any;
   instance: any;
 
-	constructor(
+  constructor(
     databaseName: string,
     databaseSettings: DatabaseConfigurationType<any, any>,
     fields: typeof EngineFields,
@@ -46,18 +49,18 @@ export default class Engine<M extends Model = Model> implements EngineType {
     this.fields = new fields(this);
     this.query = new query(this);
     this.migrations = new migration(this, this.fields);
-	}
+  }
 
-	/**
-	 * Factory function for creating a new Engine instance. Your engine should always implement this function
-	 * as static and return a new instance of your engine.
-	 */
-	static async new(
-		databaseName: string,
-		databaseSettings: DatabaseConfigurationType<string, {}>
-	): Promise<Engine> {
-		throw new NotImplementedEngineException('new');
-	}
+  /**
+   * Factory function for creating a new Engine instance. Your engine should always implement this function
+   * as static and return a new instance of your engine.
+   */
+  static async new(
+    databaseName: string,
+    databaseSettings: DatabaseConfigurationType<string, {}>
+  ): Promise<Engine> {
+    throw new NotImplementedEngineException('new');
+  }
 
   /**
    * Duplicates this instance to a new instance so we can work on it instead of the default one. Generally
@@ -67,9 +70,12 @@ export default class Engine<M extends Model = Model> implements EngineType {
    * @returns - A new engine instance after calling `.new` static method.
    */
   async duplicate(): Promise<Engine> {
-    const newInstance = await (this.constructor as typeof Engine).new(this.databaseName, this.databaseSettings);
-    newInstance.initializedModels = {...this.initializedModels};
-    return newInstance
+    const newInstance = await (this.constructor as typeof Engine).new(
+      this.databaseName,
+      this.databaseSettings
+    );
+    newInstance.initializedModels = { ...this.initializedModels };
+    return newInstance;
   }
 
   /**
@@ -79,10 +85,12 @@ export default class Engine<M extends Model = Model> implements EngineType {
    *
    * @return - Return true if the database is connected or false otherwise.
    */
-	async isConnected(): Promise<boolean> {
-		await logging.logMessage(LOGGING_DATABASE_IS_NOT_CONNECTED, { databaseName: this.databaseName });
-		return false;
-	}
+  async isConnected(): Promise<boolean> {
+    await logging.logMessage(LOGGING_DATABASE_IS_NOT_CONNECTED, {
+      databaseName: this.databaseName,
+    });
+    return false;
+  }
 
   /**
    * Called when we want to close all of the connections to the database, if your engine can close the connection automatically
@@ -90,9 +98,11 @@ export default class Engine<M extends Model = Model> implements EngineType {
    *
    * Please, call the this with `super.close()`, so we can log to the user that we are closing the database connection.
    */
-	async close(): Promise<void> {
-		await logging.logMessage(LOGGING_DATABASE_CLOSING, { databaseName: this.databaseName });
-	}
+  async close(): Promise<void> {
+    await logging.logMessage(LOGGING_DATABASE_CLOSING, {
+      databaseName: this.databaseName,
+    });
+  }
 
   /**
    * `initializeModel` will be called to translate the model to a instance of something that your engine can understand.
@@ -136,12 +146,9 @@ export default class Engine<M extends Model = Model> implements EngineType {
    *
    * @returns - The instance of the translated model.
    */
-	async initializeModel(
-    model: Model,
-    modelInstance?: any
-	): Promise<any> {
+  async initializeModel(model: Model, modelInstance?: any): Promise<any> {
     this.initializedModels[model.name] = modelInstance;
-		return modelInstance;
+    return modelInstance;
   }
 
   /**
@@ -173,7 +180,7 @@ export default class Engine<M extends Model = Model> implements EngineType {
     ...args: P
   ): Promise<R> {
     const transact = undefined;
-    return await Promise.resolve(callback(transact, ...args))
+    return await Promise.resolve(callback(transact, ...args));
   }
 }
 

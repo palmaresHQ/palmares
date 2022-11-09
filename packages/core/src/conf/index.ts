@@ -1,14 +1,18 @@
 import { SettingsType } from './types';
 import defaultSettings from './defaults';
 import {
-    ERR_MODULE_NOT_FOUND,
-    LOGGING_SETTINGS_MODULE_NOT_FOUND,
-    LOGGING_USING_SETTINGS_FROM_PATH
+  imports,
+  ERR_MODULE_NOT_FOUND,
+  LOGGING_SETTINGS_MODULE_NOT_FOUND,
+  LOGGING_USING_SETTINGS_FROM_PATH,
+  LOGGING_USING_SETTINGS_FROM_IMPORT,
 } from '../utils';
 import logging from '../logging';
+import { SettingsNotFoundException } from './exceptions';
+import type Domain from '../domain';
 
 /**
- * This is responsible for handling the configuration of the app. Usully all of the configuration of a palmares
+ * This is responsible for handling the configuration of the app. Usually all of the configuration of a palmares
  * app will live inside of 'settings.ts' or 'settings.js' files.
  *
  * 'settings.js' or 'settings.js' usually live inside the `src` folder but sometimes you can change, or sometimes
@@ -19,39 +23,84 @@ import logging from '../logging';
  */
 class Configuration {
   settings = defaultSettings;
+  hasInitializedDomains = false;
+  domains: Domain[] = [];
 
-  async #loadFromPathOrEnv(settingsPath: string): Promise<SettingsType> {
-    const isEnvDefined: boolean =
-      typeof process.env.PALMARES_SETTINGS_MODULE === 'string';
-    const settingsModulePath: string = isEnvDefined ?
-      process.env.PALMARES_SETTINGS_MODULE || '' : settingsPath;
-    try {
-      await logging.logMessage(LOGGING_USING_SETTINGS_FROM_PATH, { pathOfSettings: settingsModulePath });
-      return await import(settingsModulePath);
-    } catch (e) {
-      const error: any = e;
-      if (error.code === ERR_MODULE_NOT_FOUND) {
-        await logging.logMessage(LOGGING_SETTINGS_MODULE_NOT_FOUND, { pathOfModule: settingsModulePath });
+  async #loadFromPathsOrEnv(
+    settingsPaths: string[] = []
+  ): Promise<SettingsType> {
+    const possibleModulePaths = [
+      process.env.PALMARES_SETTINGS_MODULE,
+      ...settingsPaths,
+    ];
+
+    for (const settingsModulePath of possibleModulePaths) {
+      if (settingsModulePath) {
+        try {
+          await logging.logMessage(LOGGING_USING_SETTINGS_FROM_PATH, {
+            pathOfSettings: settingsModulePath,
+          });
+          return await import(settingsModulePath);
+        } catch (e) {
+          const error: any = e;
+          if (error.code === ERR_MODULE_NOT_FOUND) {
+            await logging.logMessage(LOGGING_SETTINGS_MODULE_NOT_FOUND, {
+              pathOfModule: settingsModulePath,
+            });
+          }
+        }
       }
     }
-    return defaultSettings;
+    throw new SettingsNotFoundException();
   }
 
   async mergeWithDefault(settings: SettingsType) {
     this.settings = {
       ...defaultSettings,
-      ...settings
+      ...settings,
     };
   }
 
-  async loadConfiguration(settingsOrSettingsPath: Promise<SettingsType> | SettingsType | string) {
+  async loadConfiguration(
+    settingsOrSettingsPath?: Promise<SettingsType> | SettingsType | string
+  ) {
+    const settingsNotDefined = typeof settingsOrSettingsPath === 'undefined';
     const isSettingsAPath = typeof settingsOrSettingsPath === 'string';
+    const join = await imports<typeof import('path')['join']>('path', 'join');
     let settingsModule = undefined;
 
-    if (isSettingsAPath) settingsModule = await this.#loadFromPathOrEnv(settingsOrSettingsPath as string);
-    else settingsModule = await Promise.resolve(settingsOrSettingsPath);
+    if (settingsNotDefined && join) {
+      const doesProcessExistInRuntime =
+        process && typeof process.cwd === 'function';
+      const whereSettingsIsLocated = doesProcessExistInRuntime
+        ? process.cwd()
+        : '';
+      const tsFile = join(whereSettingsIsLocated, 'src', 'settings.ts');
+      const jsFile = join(whereSettingsIsLocated, 'src', 'settings.js');
+      try {
+        settingsModule = await this.#loadFromPathsOrEnv([tsFile, jsFile]);
+      } catch (e) {
+        await logging.logMessage(LOGGING_SETTINGS_MODULE_NOT_FOUND, {
+          pathOfModule: tsFile,
+        });
+        await logging.logMessage(LOGGING_SETTINGS_MODULE_NOT_FOUND, {
+          pathOfModule: jsFile,
+        });
+      }
+    }
 
-    if (settingsModule) this.mergeWithDefault(settingsModule);
+    const settingsModuleIsStillUndefined =
+      typeof settingsModule === 'undefined';
+    if (isSettingsAPath)
+      settingsModule = await this.#loadFromPathsOrEnv([
+        settingsOrSettingsPath as string,
+      ]);
+    else if (settingsModuleIsStillUndefined) {
+      await logging.logMessage(LOGGING_USING_SETTINGS_FROM_IMPORT);
+      settingsModule = await Promise.resolve(settingsOrSettingsPath);
+    }
+
+    if (settingsModule) await this.mergeWithDefault(settingsModule);
     return this.settings;
   }
 }

@@ -1,3 +1,5 @@
+import { conf, Domain } from '@palmares/core';
+
 import {
   ManagerInstancesType,
   ManagerEngineInstancesType,
@@ -10,6 +12,9 @@ import { ManagerEngineInstanceNotFoundError } from './exceptions';
 import Engine from '../engine';
 import { Model, default as model } from './model';
 import { ClassConstructor } from './fields/types';
+import Databases from '../databases';
+import { DatabaseSettingsType } from '../types';
+import { DatabaseDomain } from '../domain';
 
 /**
  * Managers define how you make queries on the database. Instead of making queries everywhere in your application
@@ -17,14 +22,14 @@ import { ClassConstructor } from './fields/types';
  *
  * So instead of:
  * ```
- * User.default.getInstance().findAll({ where: { firstName: 'Jane' } });
+ * (await User.default.getInstance()).findAll({ where: { firstName: 'Jane' } });
  * ```
  *
  * You should make queries like
  * ```
  * class UserManager extends models.Manager<User, SequelizeEngine> {
  *    async getJaneDoe() {
- *      return await this.getInstance().findAll({ where: { firstName: 'Jane' } });
+ *      return await (await User.default.getInstance()).findAll({ where: { firstName: 'Jane' } });
  *    }
  * }
  *
@@ -64,6 +69,7 @@ export default class Manager<
   defaultEngineInstanceName: string;
   model!: ClassConstructor<Model>;
   modelKls!: { new (...args: unknown[]): any };
+  isLazyInitializing = false;
 
   constructor() {
     //this.modelKls = modelKls;
@@ -77,6 +83,34 @@ export default class Manager<
   }
 
   /**
+   * This function is used to initialize the models outside of the default Domain lifecycle. Sometimes we might define
+   * the model outside of the domain, because of that we need to initialize the models manually. Usually it's a lot better
+   * to just use the models after they've been initialized but sometimes it might happen that you need to initialize them
+   * before the app is ready. For that we will use this. This will create a new Database instance if it doesn't exist,
+   * load the settings from where we can find them and initialize the domains. After that we are able to retrieve
+   */
+  async verifyIfNotInitializedAndInitializeModels(engineName: string) {
+    const database = new Databases();
+    const canInitializeTheModels =
+      this.isLazyInitializing === false &&
+      database.isInitialized === false &&
+      database.isInitializing === false;
+    this.isLazyInitializing = true;
+    if (canInitializeTheModels) {
+      const settings =
+        (await conf.loadConfiguration()) as unknown as DatabaseSettingsType;
+      const { domains } = await Domain.initializeDomains(settings);
+      await database.lazyInitializeEngine(
+        engineName,
+        settings,
+        domains as DatabaseDomain[]
+      );
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Retrieves the instance of the model defined in the database. Although you can define the engine instance on
    * the manager itself, the engine instance in this method can be overridden to retrieve the model of another different
    * engine instance.
@@ -87,12 +121,16 @@ export default class Manager<
    *
    * @return - The instance of the the model inside that engine instance
    */
-  getInstance<T extends Engine = Engine>(
+  async getInstance<T extends Engine = Engine>(
     engineName?: string
-  ): EI extends Engine ? EI['ModelType'] : T['ModelType'] {
+  ): Promise<EI extends Engine ? EI['ModelType'] : T['ModelType']> {
     const engineInstanceName = engineName || this.defaultEngineInstanceName;
     const doesInstanceExists = this.instances[engineInstanceName] !== undefined;
     if (doesInstanceExists) return this.instances[engineInstanceName];
+
+    const hasLazilyInitialized =
+      await this.verifyIfNotInitializedAndInitializeModels(engineInstanceName);
+    if (hasLazilyInitialized) return this.getInstance(engineName);
 
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }
@@ -106,9 +144,9 @@ export default class Manager<
     this.instances[engineName] = instance;
   }
 
-  getEngineInstance<T extends Engine = Engine>(
+  async getEngineInstance<T extends Engine = Engine>(
     engineName?: string
-  ): EI extends Engine ? EI : T {
+  ): Promise<EI extends Engine ? EI : T> {
     const engineInstanceName: string =
       engineName || this.defaultEngineInstanceName;
     const doesInstanceExists =
@@ -117,7 +155,9 @@ export default class Manager<
       return this.engineInstances[engineInstanceName] as EI extends Engine
         ? EI
         : T;
-    console.log(this.modelKls);
+    const hasLazilyInitialized =
+      await this.verifyIfNotInitializedAndInitializeModels(engineInstanceName);
+    if (hasLazilyInitialized) return this.getEngineInstance(engineName);
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }
 
@@ -148,8 +188,11 @@ export default class Manager<
     },
     engineName?: string
   ): Promise<IncludesRelatedModels<AllRequiredModelFields<MDL>, MDL, I>[]> {
-    return this.getEngineInstance().query.get<MDL, I>(
-      this.getInstance(engineName),
+    // Promise.all here will not work, we need to do this sequentially.
+    const engineInstance = await this.getEngineInstance(engineName);
+
+    return engineInstance.query.get<MDL, I>(
+      await this.getInstance(engineName),
       args
     ) as Promise<IncludesRelatedModels<AllRequiredModelFields<MDL>, MDL, I>[]>;
   }
@@ -184,9 +227,12 @@ export default class Manager<
   ): Promise<
     S extends undefined | null ? AllRequiredModelFields<M> | undefined : boolean
   > {
-    console.log('get', data, engineName);
-    return this.getEngineInstance().query.set<M, S>(
-      this.getInstance(engineName),
+    // Promise.all here will not work, we need to do this sequentially.
+
+    const engineInstance = await this.getEngineInstance(engineName);
+
+    return engineInstance.query.set<M, S>(
+      await this.getInstance(engineName),
       data as S extends undefined ? ModelFields<M> : AllOptionalModelFields<M>,
       search
     );
@@ -205,10 +251,11 @@ export default class Manager<
     search: AllOptionalModelFields<M>,
     engineName?: string
   ): Promise<boolean> {
-    return this.getEngineInstance().query.remove<M>(
+    const [engineInstance, instance] = await Promise.all([
+      this.getEngineInstance(),
       this.getInstance(engineName),
-      search
-    );
+    ]);
+    return engineInstance.query.remove<M>(instance, search);
   }
 }
 

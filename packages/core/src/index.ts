@@ -8,5 +8,6 @@ export { default as conf } from './conf';
 export * as utils from './utils';
 export * from './utils/constants';
 export { imports } from './utils';
+export { default as AppServer } from './app';
 
 export * from './conf/types';

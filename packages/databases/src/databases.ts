@@ -17,11 +17,61 @@ import Migrations from './migrations';
 
 export default class Databases {
   settings!: DatabaseSettingsType;
+  isInitializing = false;
+  isInitialized = false;
   initializedEngineInstances: InitializedEngineInstancesType = {};
   obligatoryModels: ReturnType<typeof Model>[] = [];
   #cachedModelsByModelName: {
     [modelName: string]: FoundModelType;
   } = {};
+  private static __instance: Databases;
+
+  constructor() {
+    if (Databases.__instance) return Databases.__instance;
+    Databases.__instance = this;
+  }
+
+  /**
+   * This will lazy initialize the hole engine instance with all of the models before using it. Generally this is not needed but for example
+   * on cases like serverless. We need to guarantee that the database will work without the need of the default domain lifecycle. That's because
+   * on certain environments we can't guarantee that the hole domain lifecycle will be called and executed, this is why we need to lazy initialize
+   * it.
+   *
+   * We initialize the hole engine AND NOT JUST THE MODELS because there is no way to know before hand about relations. Yeah we can guarantee direct
+   * relations, for example `Post` that are related to a `User`. But we cannot guarantee indirect relations, for example, that `User` is related to
+   * `Post`. This is because of the architecture that we choose to keep all relations in the models themselves. If we change this architecture we are
+   * able to lazy load just certain models as well as their relations so it can be even more efficient. Right now we thinks that this is efficient
+   * enough.
+   *
+   * @param engineName - The name of the engine that we want to lazy initialize.
+   * @param settings - The settings that we want to use.
+   * @param domains - The domains of the application.
+   */
+  async lazyInitializeEngine(
+    engineName: string,
+    settings: DatabaseSettingsType,
+    domains: DatabaseDomain[]
+  ) {
+    if (this.isInitialized === false && this.isInitializing === false) {
+      const isDatabaseDefined: boolean =
+        settings.DATABASES !== undefined &&
+        typeof settings.DATABASES === 'object';
+
+      const engineNameToUse: string | undefined =
+        engineName === ''
+          ? Object.keys(settings.DATABASES || {})[0]
+          : engineName;
+      const isEngineNameDefined = engineNameToUse in (settings.DATABASES || {});
+      if (isDatabaseDefined && isEngineNameDefined) {
+        const databaseSettings = settings.DATABASES[engineNameToUse];
+        await this.initializeDatabase(
+          engineNameToUse,
+          databaseSettings,
+          domains
+        );
+      }
+    }
+  }
 
   /**
    * Initializes the database connection and load the models to their respective engines.
@@ -29,19 +79,27 @@ export default class Databases {
    * @param settings - The settings object from the file itself.
    */
   async init(settings: DatabaseSettingsType, domains: DatabaseDomain[]) {
-    this.settings = settings;
-
-    const isDatabaseDefined: boolean =
-      this.settings.DATABASES !== undefined &&
-      typeof settings.DATABASES === 'object';
-    if (isDatabaseDefined) {
-      const databaseEntries: [
-        string,
-        DatabaseConfigurationType<string, object>
-      ][] = Object.entries(settings.DATABASES);
-      for (const [databaseName, databaseSettings] of databaseEntries) {
-        await this.initializeDatabase(databaseName, databaseSettings, domains);
+    if (this.isInitialized === false && this.isInitializing === false) {
+      this.settings = settings;
+      this.isInitializing = true;
+      const isDatabaseDefined: boolean =
+        this.settings.DATABASES !== undefined &&
+        typeof settings.DATABASES === 'object';
+      if (isDatabaseDefined) {
+        const databaseEntries: [
+          string,
+          DatabaseConfigurationType<string, object>
+        ][] = Object.entries(settings.DATABASES);
+        for (const [databaseName, databaseSettings] of databaseEntries) {
+          await this.initializeDatabase(
+            databaseName,
+            databaseSettings,
+            domains
+          );
+        }
+        this.isInitialized = true;
       }
+      this.isInitializing = false;
     }
   }
 
@@ -104,22 +162,47 @@ export default class Databases {
     databaseSettings: DatabaseConfigurationType<string, object>,
     domains: DatabaseDomain[]
   ) {
-    const engine = databaseSettings.engine;
     const models: FoundModelType[] = Object.values(
       await this.getModels(domains)
     );
-    const managedModels = models.filter((foundModel) => {
+    const initializedManagedInPartialModels = models.filter((foundModel) => {
       const modelInstance = new foundModel.model();
-      return modelInstance.options?.managed !== false;
+      return (
+        modelInstance.options?.managed !== false &&
+        foundModel.model._isInitialized === false
+      );
     });
-    const engineInstance: Engine = await engine.new(
-      engineName,
-      databaseSettings
+
+    let engineInstance: Engine;
+    const doesAnEngineInstanceExist =
+      engineName in this.initializedEngineInstances &&
+      this.initializedEngineInstances[engineName].engineInstance !== undefined;
+    if (doesAnEngineInstanceExist) {
+      engineInstance =
+        this.initializedEngineInstances[engineName].engineInstance;
+    } else {
+      const engine = databaseSettings.engine;
+      engineInstance = await engine.new(engineName, databaseSettings);
+    }
+    const isDatabaseConnected = await Promise.resolve(
+      engineInstance.isConnected()
     );
-    if (await engineInstance.isConnected()) {
-      this.initializedEngineInstances[engineName] = await this.initializeModels(
+    if (isDatabaseConnected) {
+      const { projectModels } = await this.initializeModels(
         engineInstance,
-        managedModels
+        initializedManagedInPartialModels
+      );
+      const mergedProjectModels = (
+        this.initializedEngineInstances[engineName]?.projectModels || []
+      ).concat(projectModels);
+
+      this.initializedEngineInstances[engineName] = {
+        engineInstance,
+        projectModels: mergedProjectModels,
+      };
+    } else {
+      throw new Error(
+        `The database engine ${engineName} was not able to connect to the database.`
       );
     }
   }

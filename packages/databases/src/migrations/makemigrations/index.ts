@@ -1,15 +1,19 @@
+/* eslint-disable no-case-declarations */
 import { FRAMEWORK_NAME, logging, Domain, imports } from '@palmares/core';
 
 import {
   EmptyOptionsOnGenerateFilesType,
-  FieldOrModelParamType
+  FieldOrModelParamType,
 } from './types';
-import { FoundMigrationsFileType, OriginalOrStateModelsByNameType } from '../types';
+import {
+  FoundMigrationsFileType,
+  OriginalOrStateModelsByNameType,
+} from '../types';
 import {
   DatabaseSettingsType,
   InitializedEngineInstancesType,
   InitializedModelsType,
-  OptionalMakemigrationsArgsType
+  OptionalMakemigrationsArgsType,
 } from '../../types';
 import State from '../state';
 import Asker from './asker';
@@ -22,14 +26,13 @@ import {
   LOGGING_MIGRATIONS_FILE_DESCRIPTION,
   LOGGING_MIGRATIONS_FILE_TITLE,
   LOGGING_NO_CHANGES_MADE_FOR_MIGRATIONS,
-  PACKAGE_NAME
+  PACKAGE_NAME,
 } from '../../utils';
 import * as actions from '../actions';
 
 //import { join } from 'path';
 //import { existsSync, mkdir, writeFile } from 'fs';
 import { CustomImportsForFieldType } from '../../models/fields/types';
-
 
 /**
  * Class used for creating migrations, right now we keep everything in a single file. But we might separate it after.
@@ -72,12 +75,16 @@ export default class MakeMigrations {
    * @param stateModels - The models built by the state, we run each migration in order and retrieve the state
    * of it, one after the other.
    */
-  modelsArrayToObjectByName(originalModels: InitializedModelsType[], stateModels: InitializedModelsType[]): void {
+  modelsArrayToObjectByName(
+    originalModels: InitializedModelsType[],
+    stateModels: InitializedModelsType[]
+  ): void {
     this.#originalModelsByName = {};
     this.#stateModelsByName = {};
 
     for (const originalModel of originalModels) {
-      this.#originalModelsByName[originalModel.original.originalName] = originalModel;
+      this.#originalModelsByName[originalModel.original.originalName] =
+        originalModel;
     }
 
     for (const stateModel of stateModels) {
@@ -109,38 +116,56 @@ export default class MakeMigrations {
    * @param operations - The array where we will hold all of the operations that we need to do in our migration.
    */
   async #getOperationsFromModelsOrFields(
-    originalModelsByNameOrFields: OriginalOrStateModelsByNameType | ModelFieldsType,
-    stateModelsByNameOrFields: OriginalOrStateModelsByNameType | ModelFieldsType,
+    originalModelsByNameOrFields:
+      | OriginalOrStateModelsByNameType
+      | ModelFieldsType,
+    stateModelsByNameOrFields:
+      | OriginalOrStateModelsByNameType
+      | ModelFieldsType,
     fieldOrModel: FieldOrModelParamType = 'model',
     operations: ActionToGenerateType<any>[] = []
   ): Promise<void> {
-    const appendOperation = (operation: undefined | ActionToGenerateType<any>) => operation ? operations.push(operation) : null;
-    const originalModelOrFieldEntries: [string, Field | InitializedModelsType][] = Object.entries(originalModelsByNameOrFields);
-    const stateModelOrFieldEntries: [string, Field | InitializedModelsType][] = Object.entries(stateModelsByNameOrFields);
+    const appendOperation = (
+      operation: undefined | ActionToGenerateType<any>
+    ) => (operation ? operations.push(operation) : null);
+    const originalModelOrFieldEntries: [
+      string,
+      Field | InitializedModelsType
+    ][] = Object.entries(originalModelsByNameOrFields);
+    const stateModelOrFieldEntries: [string, Field | InitializedModelsType][] =
+      Object.entries(stateModelsByNameOrFields);
 
     const modelsOrFieldsInOriginalButNotDefinedInState = [];
     const modelsOrFieldsInStateButNotDefinedInOriginal = [];
 
     // Check if something is in state that is not on original. In other words, check if any field or model was removed
-    for (const [stateFieldOrModelName, stateFieldOrModelObject] of stateModelOrFieldEntries) {
-      const didRenamedFieldNameOrModelName = originalModelsByNameOrFields[stateFieldOrModelName] === undefined;
+    for (const [
+      stateFieldOrModelName,
+      stateFieldOrModelObject,
+    ] of stateModelOrFieldEntries) {
+      const didRenamedFieldNameOrModelName =
+        originalModelsByNameOrFields[stateFieldOrModelName] === undefined;
 
       if (didRenamedFieldNameOrModelName) {
-        if (originalModelOrFieldEntries.length === stateModelOrFieldEntries.length) {
+        if (
+          originalModelOrFieldEntries.length === stateModelOrFieldEntries.length
+        ) {
           // ask if user renamed
           let renamedTo = '';
-          for (let i=0; i<originalModelOrFieldEntries.length; i++) {
+          for (let i = 0; i < originalModelOrFieldEntries.length; i++) {
             const originalModelOrFieldName = originalModelOrFieldEntries[i][0];
-            const hasTheUserRenamedTheModel = stateModelsByNameOrFields[originalModelOrFieldName] === undefined;
+            const hasTheUserRenamedTheModel =
+              stateModelsByNameOrFields[originalModelOrFieldName] === undefined;
 
-            if(hasTheUserRenamedTheModel) {
+            if (hasTheUserRenamedTheModel) {
               renamedTo = originalModelOrFieldName;
               break;
             }
           }
 
           if (await Asker.didUserRename(stateFieldOrModelName, renamedTo)) {
-            const originalModelOrField = originalModelsByNameOrFields[renamedTo];
+            const originalModelOrField =
+              originalModelsByNameOrFields[renamedTo];
 
             appendOperation(
               await this.#callbackIfRenamed(
@@ -157,7 +182,11 @@ export default class MakeMigrations {
             delete stateModelsByNameOrFields[stateFieldOrModelName];
           } else {
             appendOperation(
-              await this.#callbackIfDeleted(fieldOrModel, stateFieldOrModelName, stateFieldOrModelObject)
+              await this.#callbackIfDeleted(
+                fieldOrModel,
+                stateFieldOrModelName,
+                stateFieldOrModelObject
+              )
             );
           }
         } else {
@@ -169,21 +198,33 @@ export default class MakeMigrations {
           // For cases like originalFields = {parameterName, name} and stateFields={}, it's clear that both was added.
           // Or if originalFields={} and stateFields={createdAt} it's clear that one was removed so we
           // can make safe guesses
-          modelsOrFieldsInStateButNotDefinedInOriginal.push(stateFieldOrModelName);
+          modelsOrFieldsInStateButNotDefinedInOriginal.push(
+            stateFieldOrModelName
+          );
         }
       }
     }
 
-    for (const [originalFieldOrModelName, originalFieldOrModelObject] of originalModelOrFieldEntries) {
-      const stateFieldOrModelObject = stateModelsByNameOrFields[originalFieldOrModelName];
-      const hasCreatedANewFieldOrModel =  stateFieldOrModelObject === undefined;
+    for (const [
+      originalFieldOrModelName,
+      originalFieldOrModelObject,
+    ] of originalModelOrFieldEntries) {
+      const stateFieldOrModelObject =
+        stateModelsByNameOrFields[originalFieldOrModelName];
+      const hasCreatedANewFieldOrModel = stateFieldOrModelObject === undefined;
       // created
       if (hasCreatedANewFieldOrModel) {
         // we already asked and changed the state so a new was definitely created
-        const wereAModelOrFieldCreated = originalModelOrFieldEntries.length === stateModelOrFieldEntries.length;
+        const wereAModelOrFieldCreated =
+          originalModelOrFieldEntries.length ===
+          stateModelOrFieldEntries.length;
         if (wereAModelOrFieldCreated) {
           appendOperation(
-            await this.#callbackIfCreated(fieldOrModel, originalFieldOrModelName, originalFieldOrModelObject)
+            await this.#callbackIfCreated(
+              fieldOrModel,
+              originalFieldOrModelName,
+              originalFieldOrModelObject
+            )
           );
         } else {
           // we cannot make guesses, for example in case like originalFields = {parameterName, name},
@@ -193,7 +234,9 @@ export default class MakeMigrations {
 
           // For cases like originalFields = {parameterName, name} stateFields={}, it's clear that both was added. Or if {} {createdAt} it's clear that
           // one was removed so we can make safe guesses
-          modelsOrFieldsInOriginalButNotDefinedInState.push(originalFieldOrModelName);
+          modelsOrFieldsInOriginalButNotDefinedInState.push(
+            originalFieldOrModelName
+          );
         }
       } else {
         appendOperation(
@@ -209,49 +252,73 @@ export default class MakeMigrations {
     }
 
     // on this case we can safely guess it was added
-    const wereModelsOrFieldsCreated = modelsOrFieldsInOriginalButNotDefinedInState.length > 0 &&
+    const wereModelsOrFieldsCreated =
+      modelsOrFieldsInOriginalButNotDefinedInState.length > 0 &&
       modelsOrFieldsInStateButNotDefinedInOriginal.length === 0;
 
-    const wereModelsOrFieldsDeleted = modelsOrFieldsInStateButNotDefinedInOriginal.length > 0 &&
-    modelsOrFieldsInOriginalButNotDefinedInState.length === 0;
+    const wereModelsOrFieldsDeleted =
+      modelsOrFieldsInStateButNotDefinedInOriginal.length > 0 &&
+      modelsOrFieldsInOriginalButNotDefinedInState.length === 0;
     if (wereModelsOrFieldsCreated) {
       for (const originalFieldOrModelNameToAdd of modelsOrFieldsInOriginalButNotDefinedInState) {
-        const originalFieldOrModelObject = originalModelsByNameOrFields[originalFieldOrModelNameToAdd];
+        const originalFieldOrModelObject =
+          originalModelsByNameOrFields[originalFieldOrModelNameToAdd];
         appendOperation(
-          await this.#callbackIfCreated(fieldOrModel, originalFieldOrModelNameToAdd, originalFieldOrModelObject)
+          await this.#callbackIfCreated(
+            fieldOrModel,
+            originalFieldOrModelNameToAdd,
+            originalFieldOrModelObject
+          )
         );
       }
     } else if (wereModelsOrFieldsDeleted) {
       // we can safely guess it was removed
       for (const stateFieldOrModelNameToRemove of modelsOrFieldsInStateButNotDefinedInOriginal) {
-        const stateFieldOrModelObject = stateModelsByNameOrFields[stateFieldOrModelNameToRemove];
+        const stateFieldOrModelObject =
+          stateModelsByNameOrFields[stateFieldOrModelNameToRemove];
         appendOperation(
-          await this.#callbackIfDeleted(fieldOrModel, stateFieldOrModelNameToRemove, stateFieldOrModelObject)
+          await this.#callbackIfDeleted(
+            fieldOrModel,
+            stateFieldOrModelNameToRemove,
+            stateFieldOrModelObject
+          )
         );
       }
     } else {
-      const nonRenamedFieldsOrModels = [...modelsOrFieldsInOriginalButNotDefinedInState]
+      const nonRenamedFieldsOrModels = [
+        ...modelsOrFieldsInOriginalButNotDefinedInState,
+      ];
       // same as before, first we loop through state objects and then we loop through newly defined models
 
       for (const fieldOrModelNameInState of modelsOrFieldsInStateButNotDefinedInOriginal) {
         let answer: null | string = null;
-        const didTheUserRenamedToOneOfTheOptions = nonRenamedFieldsOrModels.length !== 0;
+        const didTheUserRenamedToOneOfTheOptions =
+          nonRenamedFieldsOrModels.length !== 0;
 
         if (didTheUserRenamedToOneOfTheOptions) {
-          answer = await Asker.didUserRenameToOneOption(fieldOrModelNameInState, nonRenamedFieldsOrModels);
+          answer = await Asker.didUserRenameToOneOption(
+            fieldOrModelNameInState,
+            nonRenamedFieldsOrModels
+          );
         }
 
-        const stateFieldOrModelObject = stateModelsByNameOrFields[fieldOrModelNameInState];
+        const stateFieldOrModelObject =
+          stateModelsByNameOrFields[fieldOrModelNameInState];
         const didTheUserDeletedTheFieldOrTheModel = answer === null;
         if (didTheUserDeletedTheFieldOrTheModel) {
           // was deleted
           appendOperation(
-            await this.#callbackIfDeleted(fieldOrModel, fieldOrModelNameInState, stateFieldOrModelObject)
-          )
+            await this.#callbackIfDeleted(
+              fieldOrModel,
+              fieldOrModelNameInState,
+              stateFieldOrModelObject
+            )
+          );
         } else {
           const answerAsString = answer as string;
           // was renamed
-          const originalModelOrFieldObject = originalModelsByNameOrFields[answerAsString];
+          const originalModelOrFieldObject =
+            originalModelsByNameOrFields[answerAsString];
           appendOperation(
             await this.#callbackIfRenamed(
               fieldOrModel,
@@ -259,26 +326,33 @@ export default class MakeMigrations {
               answerAsString,
               originalModelOrFieldObject
             )
-          )
+          );
 
-          const indexOfSelectedAnswer = nonRenamedFieldsOrModels.indexOf(answerAsString);
+          const indexOfSelectedAnswer =
+            nonRenamedFieldsOrModels.indexOf(answerAsString);
           nonRenamedFieldsOrModels.splice(indexOfSelectedAnswer, 1);
 
           // We change the name of the state model to the actual name, so we can compare other stuff
           // also now when we loop though the original models it will not catch as it was renamed
           stateModelsByNameOrFields[answerAsString] = stateFieldOrModelObject;
-          delete stateModelsByNameOrFields[fieldOrModelNameInState]
+          delete stateModelsByNameOrFields[fieldOrModelNameInState];
         }
       }
 
       for (const fieldOrModelNameInOriginal of modelsOrFieldsInOriginalButNotDefinedInState) {
-        const originalFieldOrModelObject = originalModelsByNameOrFields[fieldOrModelNameInOriginal];
-        const stateFieldOrModelObject = stateModelsByNameOrFields[fieldOrModelNameInOriginal];
+        const originalFieldOrModelObject =
+          originalModelsByNameOrFields[fieldOrModelNameInOriginal];
+        const stateFieldOrModelObject =
+          stateModelsByNameOrFields[fieldOrModelNameInOriginal];
 
         if (stateFieldOrModelObject === undefined) {
           // we already asked and changed the state so a new was definitely created
           appendOperation(
-            await this.#callbackIfCreated(fieldOrModel, fieldOrModelNameInOriginal, originalFieldOrModelObject)
+            await this.#callbackIfCreated(
+              fieldOrModel,
+              fieldOrModelNameInOriginal,
+              originalFieldOrModelObject
+            )
           );
         } else {
           appendOperation(
@@ -311,18 +385,19 @@ export default class MakeMigrations {
           {
             fieldDefinition: originalField,
             fieldNameAfter: renamedTo,
-            fieldNameBefore: fieldOrModelName
+            fieldNameBefore: fieldOrModelName,
           }
         );
       case 'model':
-        const originalInitializedModel = originalModelOrField as InitializedModelsType;
+        const originalInitializedModel =
+          originalModelOrField as InitializedModelsType;
         return actions.RenameModel.toGenerate(
           originalInitializedModel.domainName,
           originalInitializedModel.domainPath,
           renamedTo,
           {
             modelNameAfter: renamedTo,
-            modelNameBefore: fieldOrModelName
+            modelNameBefore: fieldOrModelName,
           }
         );
     }
@@ -332,7 +407,7 @@ export default class MakeMigrations {
     fieldOrModel: FieldOrModelParamType,
     fieldOrModelName: string,
     stateFieldOrModel: Field | InitializedModelsType
-  ): Promise<ActionToGenerateType<any>>  {
+  ): Promise<ActionToGenerateType<any>> {
     switch (fieldOrModel) {
       case 'field':
         const stateField = stateFieldOrModel as Field;
@@ -341,11 +416,12 @@ export default class MakeMigrations {
           stateField.model.domainPath,
           stateField.model.originalName,
           {
-            fieldName: fieldOrModelName
+            fieldName: fieldOrModelName,
           }
         );
       case 'model':
-        const stateInitializedModel = stateFieldOrModel as InitializedModelsType;
+        const stateInitializedModel =
+          stateFieldOrModel as InitializedModelsType;
         return actions.DeleteModel.toGenerate(
           stateInitializedModel.domainName,
           stateInitializedModel.domainPath,
@@ -360,17 +436,20 @@ export default class MakeMigrations {
     fieldOrModelName: string,
     stateFieldOrModel: Field | InitializedModelsType,
     originalFieldOrModel: Field | InitializedModelsType
-  ): Promise<ActionToGenerateType<any> | undefined>  {
+  ): Promise<ActionToGenerateType<any> | undefined> {
     switch (fieldOrModel) {
       case 'field':
         return await this.#fieldWasUpdated(
-          fieldOrModelName, stateFieldOrModel as Field, originalFieldOrModel as Field
+          fieldOrModelName,
+          stateFieldOrModel as Field,
+          originalFieldOrModel as Field
         );
       case 'model':
         return await this.#modelWasUpdated(
           operations,
           fieldOrModelName,
-          stateFieldOrModel as InitializedModelsType, originalFieldOrModel as InitializedModelsType
+          stateFieldOrModel as InitializedModelsType,
+          originalFieldOrModel as InitializedModelsType
         );
     }
   }
@@ -379,18 +458,20 @@ export default class MakeMigrations {
     fieldOrModel: FieldOrModelParamType,
     fieldOrModelName: string,
     originalFieldOrModel: Field | InitializedModelsType
-  ): Promise<ActionToGenerateType<any>>  {
+  ): Promise<ActionToGenerateType<any>> {
     switch (fieldOrModel) {
       case 'field':
         const originalField = originalFieldOrModel as Field;
         const fieldName = fieldOrModelName;
-        const isDefaultValueNotDefinedAndFieldDoesNotAllowNull = originalField.defaultValue === undefined &&
-        originalField.allowNull === false;
+        const isDefaultValueNotDefinedAndFieldDoesNotAllowNull =
+          originalField.defaultValue === undefined &&
+          originalField.allowNull === false;
         if (isDefaultValueNotDefinedAndFieldDoesNotAllowNull) {
-          const answer = await Asker.theNewAttributeCantHaveNullDoYouWishToContinue(
-            originalField.model.originalName,
-            fieldName
-          );
+          const answer =
+            await Asker.theNewAttributeCantHaveNullDoYouWishToContinue(
+              originalField.model.originalName,
+              fieldName
+            );
           if (answer === false) {
             return process.exit(1);
           }
@@ -401,18 +482,20 @@ export default class MakeMigrations {
           originalField.model.originalName,
           {
             fieldDefinition: originalField,
-            fieldName: fieldName
+            fieldName: fieldName,
           }
         );
       case 'model':
-        const originalInitializedModel = originalFieldOrModel as InitializedModelsType;
+        // eslint-disable-next-line no-case-declarations
+        const originalInitializedModel =
+          originalFieldOrModel as InitializedModelsType;
         return actions.CreateModel.toGenerate(
           originalInitializedModel.domainName,
           originalInitializedModel.domainPath,
           fieldOrModelName,
           {
             fields: originalInitializedModel.original.fields,
-            options: originalInitializedModel.original.options
+            options: originalInitializedModel.original.options,
           }
         );
     }
@@ -425,7 +508,10 @@ export default class MakeMigrations {
     originalInitializedModel: InitializedModelsType
   ) {
     let response = undefined;
-    const areModelsEqual = await originalInitializedModel.original._compareModels(stateInitializedModel.original);
+    const areModelsEqual =
+      await originalInitializedModel.original._compareModels(
+        stateInitializedModel.original
+      );
     if (!areModelsEqual) {
       response = actions.ChangeModel.toGenerate(
         originalInitializedModel.domainName,
@@ -433,9 +519,9 @@ export default class MakeMigrations {
         modelName,
         {
           optionsAfter: originalInitializedModel.original.options,
-          optionsBefore: stateInitializedModel.original.options
+          optionsBefore: stateInitializedModel.original.options,
         }
-      )
+      );
     }
     await this.#getOperationsFromModelsOrFields(
       originalInitializedModel.original.fields,
@@ -446,7 +532,11 @@ export default class MakeMigrations {
     return response;
   }
 
-  async #fieldWasUpdated(fieldName: string, stateField: Field, originalField: Field) {
+  async #fieldWasUpdated(
+    fieldName: string,
+    stateField: Field,
+    originalField: Field
+  ) {
     const areFieldsEqual = await originalField.compare(stateField);
     if (!areFieldsEqual) {
       return actions.ChangeField.toGenerate(
@@ -456,9 +546,9 @@ export default class MakeMigrations {
         {
           fieldDefinitionAfter: originalField,
           fieldDefinitionBefore: stateField,
-          fieldName: fieldName
+          fieldName: fieldName,
         }
-      )
+      );
     }
   }
 
@@ -479,26 +569,39 @@ export default class MakeMigrations {
    *
    * @returns - The operations but ordered, respecting the dependencies of the models.
    */
-  async #reorderOperations(operations: ActionToGenerateType<any>[]): Promise<ActionToGenerateType<any>[]> {
+  async #reorderOperations(
+    operations: ActionToGenerateType<any>[]
+  ): Promise<ActionToGenerateType<any>[]> {
     const reorderedOperations = [];
     let pendingOperations = operations;
     let previousNumberOfReorderedOperations = -1;
     while (pendingOperations.length > 0) {
       const newPendingOperations = [];
       for (const operationToProcess of pendingOperations) {
-        const modelOfOperationToProcess = this.#originalModelsByName[operationToProcess.modelName] !== undefined ?
-          this.#originalModelsByName[operationToProcess.modelName] : this.#stateModelsByName[operationToProcess.modelName];
-        const hasNoDependencies = modelOfOperationToProcess.original._dependentOnModels.length === 0;
-        const addedModels = new Set(reorderedOperations.map(operation => operation.modelName));
-        const dependenciesAlreadyAdded = modelOfOperationToProcess.original._dependentOnModels
-          .every(dependencyOfModel =>
-            addedModels.has(dependencyOfModel) ||
-            dependencyOfModel === modelOfOperationToProcess.original.originalName // For circular relations.
+        const modelOfOperationToProcess =
+          this.#originalModelsByName[operationToProcess.modelName] !== undefined
+            ? this.#originalModelsByName[operationToProcess.modelName]
+            : this.#stateModelsByName[operationToProcess.modelName];
+        const hasNoDependencies =
+          modelOfOperationToProcess.original._dependentOnModels.length === 0;
+        const addedModels = new Set(
+          reorderedOperations.map((operation) => operation.modelName)
+        );
+        const dependenciesAlreadyAdded =
+          modelOfOperationToProcess.original._dependentOnModels.every(
+            (dependencyOfModel) =>
+              addedModels.has(dependencyOfModel) ||
+              dependencyOfModel ===
+                modelOfOperationToProcess.original.originalName // For circular relations.
           );
         // this means it is the last run so we must add any pending migrations.
         const didNotAddAnyPendingOperationInThePreviousRun =
           previousNumberOfReorderedOperations === reorderedOperations.length;
-        if (hasNoDependencies || dependenciesAlreadyAdded || didNotAddAnyPendingOperationInThePreviousRun) {
+        if (
+          hasNoDependencies ||
+          dependenciesAlreadyAdded ||
+          didNotAddAnyPendingOperationInThePreviousRun
+        ) {
           operationToProcess.order = reorderedOperations.length;
           reorderedOperations.push(operationToProcess);
         } else {
@@ -548,29 +651,40 @@ export default class MakeMigrations {
       imports<typeof import('path')['join']>('path', 'join'),
       imports<typeof import('fs')['existsSync']>('fs', 'existsSync'),
       imports<typeof import('fs')['mkdir']>('fs', 'mkdir'),
-      imports<typeof import('fs')['writeFile']>('fs', 'writeFile')
+      imports<typeof import('fs')['writeFile']>('fs', 'writeFile'),
     ]);
     const customImportsOfCustomData: CustomImportsForFieldType[] = [];
     const operationsAsString: string[] = [];
     const currentDate = new Date();
     const migrationNumber = numberOfMigrations + 1;
-    const migrationNumberToString = migrationNumber < 10 ? `00${migrationNumber}` :
-      migrationNumber < 100 ? `0${migrationNumber}` : migrationNumber;
-    const migrationName = `${migrationNumberToString}_${this.database}_auto_migration_${Date.now().toString()}`;
+    const migrationNumberToString =
+      migrationNumber < 10
+        ? `00${migrationNumber}`
+        : migrationNumber < 100
+        ? `0${migrationNumber}`
+        : migrationNumber;
+    const migrationName = `${migrationNumberToString}_${
+      this.database
+    }_auto_migration_${Date.now().toString()}`;
 
     if (join && existsSync && mkdir && writeFile) {
-      logging.logMessage(LOGGING_MIGRATIONS_FILE_TITLE, { title: migrationName });
+      logging.logMessage(LOGGING_MIGRATIONS_FILE_TITLE, {
+        title: migrationName,
+      });
       logging.logMessage(LOGGING_MIGRATIONS_FILE_DESCRIPTION, {
         database: this.database,
         lastMigrationName,
-        lastDomainPath
+        lastDomainPath,
       });
 
       for (const operation of operationsOfFile) {
         logging.logMessage(LOGGING_MIGRATIONS_ACTION_DESCRIPTION, {
-          description: await operation.operation.describe(operation)
+          description: await operation.operation.describe(operation),
         });
-        const { asString, customImports } = await operation.operation.toString(3, operation);
+        const { asString, customImports } = await operation.operation.toString(
+          3,
+          operation
+        );
         operationsAsString.push(asString);
 
         if (Array.isArray(customImports)) {
@@ -578,24 +692,38 @@ export default class MakeMigrations {
         }
       }
       const operationsToString = operationsAsString.join(',\n');
-      const customImportsAsString = customImportsOfCustomData.map(({value, packageName}) => {
-        if (this.settings?.USE_TS) return `import ${value} from "${packageName}";`;
+      const customImportsAsString =
+        customImportsOfCustomData
+          .map(({ value, packageName }) => {
+            if (this.settings?.USE_TS)
+              return `import ${value} from "${packageName}";`;
 
-        if (value.startsWith('* as ')) return `const ${value.replace('* as ', '')} = require("${packageName}");`;
-        if (value.startsWith('{ default as ')) {
-          return `const ${value.replace('{ default as ', '').replace(' }', '')} = require("${packageName}");`;
-        }
-        return `const { ${value} } = require(${packageName});`;
-      }).join('\n') + `\n`;
+            if (value.startsWith('* as '))
+              return `const ${value.replace(
+                '* as ',
+                ''
+              )} = require("${packageName}");`;
+            if (value.startsWith('{ default as ')) {
+              return `const ${value
+                .replace('{ default as ', '')
+                .replace(' }', '')} = require("${packageName}");`;
+            }
+            return `const { ${value} } = require(${packageName});`;
+          })
+          .join('\n') + `\n`;
 
-      const file = `/**\n * Automatically generated by ${FRAMEWORK_NAME} on ${currentDate.toISOString()}\n */\n\n`+
-      (this.settings?.USE_TS ? `import { models, actions } from "${PACKAGE_NAME}";` :
-      `const { models, actions } = require("${PACKAGE_NAME}");`) +
-      `\n${customImportsAsString}\n` +
-      (this.settings?.USE_TS ? `export default {\n` : `module.exports = {\n`) +
-      `  name: '${migrationName}',\n  database: "${this.database}",\n` +
-      `  dependsOn: "${lastMigrationName}",\n` +
-      `  operations: [\n${operationsToString}\n  ]\n};\n`;
+      const file =
+        `/**\n * Automatically generated by ${FRAMEWORK_NAME} on ${currentDate.toISOString()}\n */\n\n` +
+        (this.settings?.USE_TS
+          ? `import { models, actions } from "${PACKAGE_NAME}";`
+          : `const { models, actions } = require("${PACKAGE_NAME}");`) +
+        `\n${customImportsAsString}\n` +
+        (this.settings?.USE_TS
+          ? `export default {\n`
+          : `module.exports = {\n`) +
+        `  name: '${migrationName}',\n  database: "${this.database}",\n` +
+        `  dependsOn: "${lastMigrationName}",\n` +
+        `  operations: [\n${operationsToString}\n  ]\n};\n`;
 
       const pathToWriteMigrations = join(domainPath, 'migrations');
       if (!existsSync(pathToWriteMigrations)) {
@@ -609,16 +737,26 @@ export default class MakeMigrations {
           }
         });
         await new Promise((resolve, reject) => {
-          writeFile(join(pathToWriteMigrations, `index.${this.settings?.USE_TS ? 'ts' : 'js'}`), '', (error) => {
-            if (error) reject(error);
-            resolve(undefined);
-          });
+          writeFile(
+            join(
+              pathToWriteMigrations,
+              `index.${this.settings?.USE_TS ? 'ts' : 'js'}`
+            ),
+            '',
+            (error) => {
+              if (error) reject(error);
+              resolve(undefined);
+            }
+          );
         });
       }
 
       await new Promise((resolve, reject) => {
         writeFile(
-          join(pathToWriteMigrations, `${migrationName}.${this.settings?.USE_TS ? 'ts' : 'js'}`),
+          join(
+            pathToWriteMigrations,
+            `${migrationName}.${this.settings?.USE_TS ? 'ts' : 'js'}`
+          ),
           file,
           (error) => {
             if (error) reject(error);
@@ -658,24 +796,30 @@ export default class MakeMigrations {
     emptyOptions?: EmptyOptionsOnGenerateFilesType
   ) {
     const lastMigrationIndex = this.filteredMigrationsOfDatabase.length - 1;
-    const hasALastMigration = this.filteredMigrationsOfDatabase[lastMigrationIndex] !== undefined;
+    const hasALastMigration =
+      this.filteredMigrationsOfDatabase[lastMigrationIndex] !== undefined;
     const previousDomainPath = operations[0] ? operations[0].domainPath : '';
-    let lastDomainPath = hasALastMigration?
-      this.filteredMigrationsOfDatabase[lastMigrationIndex].domainPath : '';
-    let lastMigrationName = hasALastMigration ?
-      this.filteredMigrationsOfDatabase[lastMigrationIndex].migration.name :
-      '';
+    let lastDomainPath = hasALastMigration
+      ? this.filteredMigrationsOfDatabase[lastMigrationIndex].domainPath
+      : '';
+    let lastMigrationName = hasALastMigration
+      ? this.filteredMigrationsOfDatabase[lastMigrationIndex].migration.name
+      : '';
     let numberOfMigrationFilesCreated = 0;
     let operationsOnFile: ActionToGenerateType<any>[] = [];
 
-    for (let i=0; i<operations.length + 1; i++) {
+    for (let i = 0; i < operations.length + 1; i++) {
       const operation = operations[i];
-      const isLastOperationOrFromADifferentDomain = i >= operations.length ||
-        operation.domainPath !== previousDomainPath;
+      const isLastOperationOrFromADifferentDomain =
+        i >= operations.length || operation.domainPath !== previousDomainPath;
 
       if (isLastOperationOrFromADifferentDomain) {
-        const domainPath = operationsOnFile[0] ? operationsOnFile[0].domainPath : previousDomainPath;
-        const totalNumberOfMigrations = this.filteredMigrationsOfDatabase.length + numberOfMigrationFilesCreated;
+        const domainPath = operationsOnFile[0]
+          ? operationsOnFile[0].domainPath
+          : previousDomainPath;
+        const totalNumberOfMigrations =
+          this.filteredMigrationsOfDatabase.length +
+          numberOfMigrationFilesCreated;
         const migrationName = await this.#generateMigrationFile(
           operationsOnFile,
           emptyOptions?.onDomain || domainPath,
@@ -705,28 +849,24 @@ export default class MakeMigrations {
    *
    * @param previousMigrationName - The last run migration so we can add the dependencies accordingly.
    */
-  async #handleGenerateEmptyMigration(
-    previousMigrationName?: string
-  ) {
+  async #handleGenerateEmptyMigration(previousMigrationName?: string) {
     const isArgsAString = typeof this.optionalArgs?.empty === 'string';
     const isToGenerateMigration = (domain: string) => {
       const separatedArg = (this.optionalArgs.empty as string).split(':');
       if (separatedArg.length > 1) {
-        return this.database === separatedArg[0] && domain === separatedArg[1]
+        return this.database === separatedArg[0] && domain === separatedArg[1];
       }
-      return domain === this.optionalArgs.empty
-    }
+      return domain === this.optionalArgs.empty;
+    };
     if (isArgsAString) {
       const domainClasses = await Domain.retrieveDomains(this.settings);
       for (const domainClass of domainClasses) {
         const domain = new domainClass();
         if (isToGenerateMigration(domain.name)) {
-          await this.generateFiles(
-            [], {
-              onDomain: domain.path,
-              previousMigrationName
-            }
-          );
+          await this.generateFiles([], {
+            onDomain: domain.path,
+            previousMigrationName,
+          });
           break;
         }
       }
@@ -747,18 +887,23 @@ export default class MakeMigrations {
     let previousMigrationName: string | undefined = undefined;
     const operations: ActionToGenerateType<any>[] = [];
     await this.#getOperationsFromModelsOrFields(
-      this.#originalModelsByName, this.#stateModelsByName, 'model', operations
+      this.#originalModelsByName,
+      this.#stateModelsByName,
+      'model',
+      operations
     );
     const didNotChangeAnythingInTheModels = operations.length === 0;
     if (didNotChangeAnythingInTheModels) {
-      if (!this.optionalArgs?.empty) logging.logMessage(LOGGING_NO_CHANGES_MADE_FOR_MIGRATIONS);
+      if (!this.optionalArgs?.empty)
+        logging.logMessage(LOGGING_NO_CHANGES_MADE_FOR_MIGRATIONS);
     } else {
       const reorderedMigrations = await this.#reorderOperations(operations);
       previousMigrationName = await this.generateFiles(reorderedMigrations);
     }
 
     // Optional empty
-    if (this.optionalArgs?.empty) await this.#handleGenerateEmptyMigration(previousMigrationName);
+    if (this.optionalArgs?.empty)
+      await this.#handleGenerateEmptyMigration(previousMigrationName);
   }
 
   static async buildAndRun(
@@ -767,9 +912,14 @@ export default class MakeMigrations {
     initializedEngineInstances: InitializedEngineInstancesType,
     optionalArgs: OptionalMakemigrationsArgsType
   ) {
-    const initializedEngineInstancesEntries = Object.entries(initializedEngineInstances);
-    for (const [database, { engineInstance, projectModels }] of initializedEngineInstancesEntries) {
-      const filteredMigrationsOfDatabase = migrations.filter(migration =>
+    const initializedEngineInstancesEntries = Object.entries(
+      initializedEngineInstances
+    );
+    for (const [
+      database,
+      { engineInstance, projectModels },
+    ] of initializedEngineInstancesEntries) {
+      const filteredMigrationsOfDatabase = migrations.filter((migration) =>
         [database, '*'].includes(migration.migration.database)
       );
       const state = await State.buildState(filteredMigrationsOfDatabase);

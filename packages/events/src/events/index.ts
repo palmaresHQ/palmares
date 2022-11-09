@@ -1,5 +1,6 @@
 import Emitter from '../emitter';
 import { uuid } from '../utils';
+import { NoLayerError } from './exceptions';
 import type {
   EventEmitterOptionsType,
   ResultWrappedCallbackType,
@@ -732,6 +733,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     }
     return key;
   }
+
   /**
    * Emits the event to the `this.emitter.emit`
    *
@@ -864,11 +866,9 @@ export default class EventEmitter<E extends Emitter = Emitter> {
           { key, data }
         );
       }
-      return this.#fetchResultForEmit(resultKey) as Promise<R>;
+      return this.#fetchResultForEmit(resultKey) as Promise<R[]>;
     } else {
-      throw new Error(
-        'Your emitter does not have a layer. You should add a layer before trying to emit an event to the layer'
-      );
+      throw new NoLayerError();
     }
   }
 
@@ -894,13 +894,33 @@ export default class EventEmitter<E extends Emitter = Emitter> {
       ...data
     );
 
-    return this.#fetchResultForEmit(resultKey) as Promise<R>;
+    return this.#fetchResultForEmit(resultKey) as Promise<R[]>;
   }
 
+  /**
+   * Function that is used to emit the result back to the caller this way we can distribute the callers
+   * and send the response back to the caller as it was on the same system / machine.
+   *
+   * If it is in an emitter we will send this response through the layer, otherwise it'll send normally
+   * in the event emitter.
+   *
+   * @param resultsEventName - The results event name is a listener that exists for all emitters inside
+   * of the application. This is a unique ID. Each EventEmitter instance has it's own. So what we do is that
+   * we send this over the network and guarantee that only who sent the event will receive this response back.
+   * @param handlerId - An id of the function (listener) that is working for the result of this event.
+   * @param resultKey - The id of the result. When you emit an event it'll generate a key. This is the key
+   * that we use to guarantee that the value received is from this event.
+   * @param channelLayer - Only needed when using `layers`, but this is the channel that we should broadcast
+   * this response to. For example if we emitted the event for every listener in the `users` channel, we should
+   * guarantee that we are sending the response back to the `users` channel so that the `resultEventName` can
+   * catch this value and do something with it.
+   * @param data - This is the actual data that you are sending over the network, generally speaking it'll be,
+   * most of the times, an array since we are spreading it over.
+   */
   protected emitResult(
-    key: string,
+    resultsEventName: string,
     handlerId: string,
-    pendingResultId: string,
+    resultKey: string,
     channelLayer: string | null,
     ...data: any[]
   ) {
@@ -909,12 +929,18 @@ export default class EventEmitter<E extends Emitter = Emitter> {
       this.layer.emitEventToEmitter(
         channelLayer,
         handlerId,
-        pendingResultId,
+        resultKey,
         channelLayer,
-        { key, data }
+        { key: resultsEventName, data }
       );
     } else if (channelLayer === null) {
-      this.emitEventToEmitter(key, handlerId, pendingResultId, null, ...data);
+      this.emitEventToEmitter(
+        resultsEventName,
+        handlerId,
+        resultKey,
+        null,
+        ...data
+      );
     }
   }
 

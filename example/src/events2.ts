@@ -5,7 +5,7 @@ import RedisEmitter from '@palmares/redis-emitter';
 async function main() {
   // Layer Vai ser tipo o Redis ou o RabbitMQ.
   const layer = await EventEmitter.new(RedisEmitter, {
-    emitterParams: ['redis://localhost:6379'],
+    emitterParams: [{ url: 'redis://localhost:6379' }],
   });
 
   // Esses dois aqui usam o EventEmitter2 pq a ideia é funcionar localmente.
