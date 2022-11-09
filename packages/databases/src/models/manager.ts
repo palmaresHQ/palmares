@@ -98,7 +98,7 @@ export default class Manager<
     this.isLazyInitializing = true;
     if (canInitializeTheModels) {
       const settings =
-        (await conf.loadConfiguration()) as unknown as DatabaseSettingsType;
+        (await conf.getSettings()) as unknown as DatabaseSettingsType;
       const { domains } = await Domain.initializeDomains(settings);
       await database.lazyInitializeEngine(
         engineName,

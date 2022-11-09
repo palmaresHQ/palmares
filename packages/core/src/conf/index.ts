@@ -23,6 +23,7 @@ import type Domain from '../domain';
  */
 class Configuration {
   settings = defaultSettings;
+  hasInitializedSettings = false;
   hasInitializedDomains = false;
   domains: Domain[] = [];
 
@@ -61,9 +62,10 @@ class Configuration {
     };
   }
 
-  async loadConfiguration(
+  async getSettings(
     settingsOrSettingsPath?: Promise<SettingsType> | SettingsType | string
   ) {
+    if (this.hasInitializedSettings) return this.settings;
     const settingsNotDefined = typeof settingsOrSettingsPath === 'undefined';
     const isSettingsAPath = typeof settingsOrSettingsPath === 'string';
     const join = await imports<typeof import('path')['join']>('path', 'join');
@@ -101,6 +103,7 @@ class Configuration {
     }
 
     if (settingsModule) await this.mergeWithDefault(settingsModule);
+    this.hasInitializedSettings = true;
     return this.settings;
   }
 }

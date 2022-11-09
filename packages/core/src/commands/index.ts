@@ -52,7 +52,7 @@ class Commands {
     const commandType = args[0];
     const [otherArgs, settings] = await Promise.all([
       this.#formatArgs(args.slice(1, args.length)),
-      Configuration.loadConfiguration(settingsOrSettingsPath),
+      Configuration.getSettings(settingsOrSettingsPath),
     ]);
     const { domains, commands } = await Domain.initializeDomains(settings);
     const isCommandDefined: boolean =
