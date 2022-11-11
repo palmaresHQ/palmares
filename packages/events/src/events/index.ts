@@ -153,7 +153,7 @@ import type {
  */
 export default class EventEmitter<E extends Emitter = Emitter> {
   emitter: E;
-  private layer?: EventEmitter;
+  protected layer?: EventEmitter;
   private resultsEventName!: string;
   #channels!: string[];
   #unsubscribeByChannel: Record<string, (...args: any) => any> = {};
@@ -189,9 +189,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     emitter: Promise<{ default: E }> | E,
     options?: EventEmitterOptionsType & {
       emitterParams?: Parameters<E['new']>;
-    },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ...custom: any[]
+    }
   ) {
     const { emitterParams, ...optionsForConstructor } = options || {};
     if (emitter instanceof Promise) emitter = (await emitter).default;

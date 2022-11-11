@@ -13,18 +13,12 @@ import { makeMigrations, migrate } from './commands';
 import defaultSettings from './settings';
 import { defaultMigrations, defaultModels } from './defaults';
 import Databases from './databases';
+import { DatabaseDomainInterface } from './interfaces';
 
-export class DatabaseDomain extends Domain {
-  async getModels(): Promise<ReturnType<typeof Model>[]> {
-    return defaultModels;
-  }
-
-  async getMigrations(): Promise<MigrationFileType[]> {
-    return defaultMigrations;
-  }
-}
-
-export default class DatabasesDomain extends DatabaseDomain {
+export default class DatabasesDomain
+  extends Domain
+  implements DatabaseDomainInterface
+{
   databases!: Databases;
 
   commands: DefaultCommandType = {
@@ -51,6 +45,14 @@ export default class DatabasesDomain extends DatabaseDomain {
     super(DatabasesDomain.name, __dirname);
   }
 
+  async getModels(): Promise<ReturnType<typeof Model>[]> {
+    return defaultModels;
+  }
+
+  async getMigrations(): Promise<MigrationFileType[]> {
+    return defaultMigrations;
+  }
+
   async loadDatabases() {
     this.databases = new Databases();
     return this.databases;
@@ -62,7 +64,7 @@ export default class DatabasesDomain extends DatabaseDomain {
     const { settings, domains } = options;
     await buildLogging();
     const settingsWithDefault = defaultSettings(settings);
-    const databaseDomains = domains as DatabaseDomain[];
+    const databaseDomains = domains as DatabaseDomainInterface[];
     await Promise.all([
       (await this.loadDatabases()).init(settingsWithDefault, databaseDomains),
       super.ready(options),

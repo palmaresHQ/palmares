@@ -1,6 +1,6 @@
-import { ERR_MODULE_NOT_FOUND, logging, imports } from '@palmares/core';
+import { ERR_MODULE_NOT_FOUND, logging } from '@palmares/core';
 
-import { DatabaseDomain } from '../domain';
+import { DatabaseDomainInterface } from '../interfaces';
 import {
   DatabaseSettingsType,
   InitializedEngineInstancesType,
@@ -19,9 +19,12 @@ import { Dirent } from 'fs';
  */
 export default class Migrations {
   settings: DatabaseSettingsType;
-  domains: DatabaseDomain[];
+  domains: DatabaseDomainInterface[];
 
-  constructor(settings: DatabaseSettingsType, domains: DatabaseDomain[]) {
+  constructor(
+    settings: DatabaseSettingsType,
+    domains: DatabaseDomainInterface[]
+  ) {
     this.settings = settings;
     this.domains = domains;
   }
@@ -71,11 +74,6 @@ export default class Migrations {
   }
 
   async #getMigrations(): Promise<FoundMigrationsFileType[]> {
-    const [join, readdir] = await Promise.all([
-      imports<typeof import('path')['join']>('path', 'join'),
-      imports<typeof import('fs')['readdir']>('fs', 'readdir'),
-    ]);
-
     const foundMigrations: FoundMigrationsFileType[] = [];
     const promises: Promise<void>[] = this.domains.map(async (domain) => {
       const hasGetMigrationsMethodDefined =

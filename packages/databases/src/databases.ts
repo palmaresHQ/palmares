@@ -1,4 +1,4 @@
-import { logging, ERR_MODULE_NOT_FOUND, imports, conf } from '@palmares/core';
+import { conf } from '@palmares/core';
 
 import {
   DatabaseSettingsType,
@@ -9,11 +9,11 @@ import {
   InitializedEngineInstanceWithModelsType,
   OptionalMakemigrationsArgsType,
 } from './types';
-import { DatabaseDomain } from './domain';
+import { DatabaseDomainInterface } from './interfaces';
 import Engine from './engine';
-import { Model, BaseModel } from './models';
-import { LOGGING_DATABASE_MODELS_NOT_FOUND } from './utils';
+import { Model } from './models';
 import Migrations from './migrations';
+import DatabasesDomain from './domain';
 
 export default class Databases {
   settings!: DatabaseSettingsType;
@@ -50,7 +50,7 @@ export default class Databases {
   async lazyInitializeEngine(
     engineName: string,
     settings: DatabaseSettingsType,
-    domains: DatabaseDomain[]
+    domains: DatabaseDomainInterface[]
   ) {
     if (this.isInitialized === false && this.isInitializing === false) {
       const isDatabaseDefined: boolean =
@@ -78,7 +78,10 @@ export default class Databases {
    *
    * @param settings - The settings object from the file itself.
    */
-  async init(settings: DatabaseSettingsType, domains: DatabaseDomain[]) {
+  async init(
+    settings: DatabaseSettingsType,
+    domains: DatabaseDomainInterface[]
+  ) {
     if (this.isInitialized === false && this.isInitializing === false) {
       this.settings = settings;
       this.isInitializing = true;
@@ -112,7 +115,7 @@ export default class Databases {
    */
   async makeMigrations(
     settings: DatabaseSettingsType,
-    domains: DatabaseDomain[],
+    domains: DatabaseDomainInterface[],
     optionalArgs: OptionalMakemigrationsArgsType
   ) {
     await this.init(settings, domains);
@@ -129,7 +132,10 @@ export default class Databases {
    * @param settings - The settings defined by the user in settings.js/ts file.
    * @param domains - The domains defined by the user so we can fetch all of the models and migrations.
    */
-  async migrate(settings: DatabaseSettingsType, domains: DatabaseDomain[]) {
+  async migrate(
+    settings: DatabaseSettingsType,
+    domains: DatabaseDomainInterface[]
+  ) {
     await this.init(settings, domains);
     const migrations = new Migrations(settings, domains);
     await migrations.migrate(this.initializedEngineInstances);
@@ -160,7 +166,7 @@ export default class Databases {
   async initializeDatabase(
     engineName: string,
     databaseSettings: DatabaseConfigurationType<string, object>,
-    domains: DatabaseDomain[]
+    domains: DatabaseDomainInterface[]
   ) {
     const models: FoundModelType[] = Object.values(
       await this.getModels(domains)
@@ -251,8 +257,8 @@ export default class Databases {
 
   /**
    * Retrieves the models on all of the installed domains. By default we will look for the models
-   * in the `models` file in the path of the domain. You can also define your domain app extending
-   * the `DatabaseDomain` class. With this type of domain you are able to export your models by defining
+   * in the `models` file in the path of the domain. You can also define your domain app implementing
+   * the `DatabaseDomainInterface` interface. With this type of domain you are able to export your models by defining
    * the `getModels` method. When this method is defined we bypass the lookup of the models in the `models`
    * file or folder, for complex projects you might want to use this method.
    *
@@ -261,51 +267,35 @@ export default class Databases {
    *
    * @returns - Returns an array of models.
    */
-  async getModels(domains?: DatabaseDomain[]) {
+  async getModels(domains?: DatabaseDomainInterface[]) {
     if (domains === undefined)
-      domains = (await DatabaseDomain.retrieveDomains(conf.settings)).map(
-        (domainClass) => new domainClass() as DatabaseDomain
+      domains = (await DatabasesDomain.retrieveDomains(conf.settings)).map(
+        (domainClass) => new domainClass() as DatabaseDomainInterface
       );
     const cachedFoundModels = Object.values(this.#cachedModelsByModelName);
     const existsCachedFoundModels = cachedFoundModels.length > 0;
     if (existsCachedFoundModels === false) {
-      const join = await imports<typeof import('path')['join']>('path', 'join');
       const promises: Promise<void>[] = domains.map(async (domain) => {
         const hasGetModelsMethodDefined =
           typeof domain.getModels === 'function';
         if (hasGetModelsMethodDefined) {
           const models = await Promise.resolve(domain.getModels());
-          models.forEach((model) => {
-            this.#cachedModelsByModelName[model.name] = {
-              domainPath: domain.path,
-              domainName: domain.name,
-              model,
-            };
-          });
-        } else if (join) {
-          const fullPath = join(domain.path, 'models');
-          try {
-            const models = await import(fullPath);
-            const modelsArray: ReturnType<typeof Model>[] =
-              Object.values(models);
-
-            for (const model of modelsArray) {
-              if (model.prototype instanceof BaseModel) {
-                this.#cachedModelsByModelName[model.name] = {
-                  domainPath: domain.path,
-                  domainName: domain.name,
-                  model,
-                };
-              }
+          if (Array.isArray(models)) {
+            for (const model of models) {
+              this.#cachedModelsByModelName[model.name] = {
+                domainPath: domain.path,
+                domainName: domain.name,
+                model,
+              };
             }
-          } catch (e) {
-            const error: any = e;
-            if (error.code === ERR_MODULE_NOT_FOUND) {
-              await logging.logMessage(LOGGING_DATABASE_MODELS_NOT_FOUND, {
-                domainName: fullPath,
-              });
-            } else {
-              throw e;
+          } else {
+            const modelEntries = Object.entries(models);
+            for (const [modelName, modelKls] of modelEntries) {
+              this.#cachedModelsByModelName[modelName] = {
+                domainName: domain.path,
+                domainPath: domain.path,
+                model: modelKls,
+              };
             }
           }
         }

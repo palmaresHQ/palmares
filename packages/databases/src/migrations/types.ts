@@ -1,22 +1,22 @@
-import Model from "../models/model"
-import { TModel } from "../models/types";
-import { InitializedModelsType } from "../types";
-import { Operation } from "./actions";
+import model from '../models/model';
+import { TModel } from '../models/types';
+import { InitializedModelsType } from '../types';
+import { Operation } from './actions';
 
 export type StateModelsType = {
   [modelName: string]: {
-    class: ReturnType<typeof Model>;
+    class: ReturnType<typeof model>;
     instance: TModel;
-  }
-}
+  };
+};
 
 export type OriginalOrStateModelsByNameType = {
   [modelName: string]: InitializedModelsType;
 };
 
 export type StateModelsConstructorType = {
-  [modelName: string]: ReturnType<typeof Model>;
-}
+  [modelName: string]: ReturnType<typeof model>;
+};
 
 export type MigrationFileType = {
   name: string;
@@ -25,11 +25,11 @@ export type MigrationFileType = {
   customData?: {
     [key: string]: any;
   };
-  operations: Operation[]
-}
+  operations: Operation[];
+};
 
 export type FoundMigrationsFileType = {
   domainName: string;
   domainPath: string;
   migration: MigrationFileType;
-}
+};

@@ -14,7 +14,7 @@ import { Model, default as model } from './model';
 import { ClassConstructor } from './fields/types';
 import Databases from '../databases';
 import { DatabaseSettingsType } from '../types';
-import { DatabaseDomain } from '../domain';
+import { DatabaseDomainInterface } from '../interfaces';
 
 /**
  * Managers define how you make queries on the database. Instead of making queries everywhere in your application
@@ -103,7 +103,7 @@ export default class Manager<
       await database.lazyInitializeEngine(
         engineName,
         settings,
-        domains as DatabaseDomain[]
+        domains as DatabaseDomainInterface[]
       );
       return true;
     }

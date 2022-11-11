@@ -1,12 +1,8 @@
-import { SettingsType, Domain } from '@palmares/core';
+import { SettingsType } from '@palmares/core';
 
 import { Model } from './models';
 import Engine from './engine';
 import { TModel } from './models/types';
-
-export interface DatabaseDomain extends Domain {
-  getModels(): Promise<TModel[]> | TModel[];
-}
 
 export interface DatabaseConfigurationType<DialectOptions, ExtraOptions> {
   engine: typeof Engine;
