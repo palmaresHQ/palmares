@@ -21,5 +21,8 @@
   "dependencies": {
     "@palmares/serializers": "*",
     "zod": "^3.18.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.9.3"
   }
 }

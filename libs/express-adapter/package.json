@@ -29,6 +29,7 @@
     "multer": "^1.4.5-lts.1"
   },
   "devDependencies": {
+    "typescript": "^4.9.3",
     "@types/express": "^4.17.13",
     "@types/multer": "^1.4.7"
   }

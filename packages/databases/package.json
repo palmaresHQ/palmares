@@ -22,5 +22,8 @@
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "peerDependencies": {
     "@palmares/core": "*"
+  },
+  "devDependencies": {
+    "typescript": "^4.9.3"
   }
 }

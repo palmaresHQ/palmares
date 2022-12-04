@@ -24,5 +24,8 @@
   "dependencies": {
     "@palmares/express-adapter": "*",
     "@palmares/sequelize-engine": "*"
+  },
+  "devDependencies": {
+    "typescript": "^4.9.3"
   }
 }

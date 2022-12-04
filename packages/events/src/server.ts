@@ -1,6 +1,6 @@
-import Emitter from '../emitter';
-import EventEmitter from '../events';
-import { EventEmitterOptionsType } from '../events/types';
+import Emitter from './emitter';
+import EventEmitter from './events';
+import { EventEmitterOptionsType } from './events/types';
 
 /**
  * The idea of an event server is to keep the application running so that it can receive requests from other servers

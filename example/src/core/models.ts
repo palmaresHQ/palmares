@@ -55,9 +55,3 @@ export class User extends models.Model<User>() {
     tableName: 'user',
   };
 }
-
-const main = async () => {
-  const values = await User.default.get();
-  console.log(values);
-};
-main();
