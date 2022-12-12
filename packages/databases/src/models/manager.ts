@@ -193,7 +193,15 @@ export default class Manager<
 
     return engineInstance.query.get<MDL, I>(
       await this.getInstance(engineName),
-      args
+      {
+        includes: await Promise.all(
+          (args?.includes || []).map(
+            async (includeModel) =>
+              await includeModel.default.getInstance(engineName)
+          )
+        ),
+        search: args?.search,
+      }
     ) as Promise<IncludesRelatedModels<AllRequiredModelFields<MDL>, MDL, I>[]>;
   }
 

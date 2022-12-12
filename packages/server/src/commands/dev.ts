@@ -1,4 +1,5 @@
 import { DomainHandlerFunctionArgs } from '@palmares/core';
+
 import type HttpAppServer from '../app';
 import { ServerSettingsType } from '../types';
 

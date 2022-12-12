@@ -2,10 +2,11 @@ import {
   DefaultCommandType,
   Domain,
   DomainHandlerFunctionArgs,
+  DomainReadyFunctionArgs,
   SettingsType,
 } from '@palmares/core';
 
-import { dev } from './commands';
+import { dev as devCommand } from './commands';
 import buildLogging from './logging';
 import {
   OnlyServerSettingsType,
@@ -26,7 +27,7 @@ export default class ServerDomain extends Domain {
       description: 'runs the application in development mode',
       example: 'asdasd',
       handler: async (options: DomainHandlerFunctionArgs) => {
-        await dev(this.app, options);
+        await devCommand(this.app, options);
       },
     },
   };
@@ -78,8 +79,8 @@ export default class ServerDomain extends Domain {
     await this.app.load();
   }
 
-  override async ready() {
-    await this.app.start();
+  override async ready(options: DomainReadyFunctionArgs<ServerSettingsType>) {
+    if (options.app instanceof HttpAppServer) await this.app.start();
   }
 
   override async close(): Promise<void> {

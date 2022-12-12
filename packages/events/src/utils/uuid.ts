@@ -1,5 +1,5 @@
 /**
- * Generates a random uuid for
+ * Generates a random uuid for each event so we change the actual name of the event with uuids.
  */
 export default function uuid() {
   let date = new Date().getTime();

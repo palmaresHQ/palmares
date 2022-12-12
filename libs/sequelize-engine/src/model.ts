@@ -1,9 +1,17 @@
-import { models, TModel } from "@palmares/databases";
-import { Sequelize, ModelOptions, ModelAttributeColumnOptions, Model, ModelStatic, ModelCtor, OrderItem } from "sequelize";
+import { models, TModel } from '@palmares/databases';
+import {
+  Sequelize,
+  ModelOptions,
+  ModelAttributeColumnOptions,
+  Model,
+  ModelStatic,
+  ModelCtor,
+  OrderItem,
+} from 'sequelize';
 
-import SequelizeEngine from "./engine";
-import SequelizeEngineFields from "./fields";
-import { ModelTranslatorIndexesType } from "./types";
+import SequelizeEngine from './engine';
+import SequelizeEngineFields from './fields';
+import { ModelTranslatorIndexesType } from './types';
 
 /**
  * This class is used to create a sequelize model from the default model definition.
@@ -29,21 +37,32 @@ export default class ModelTranslator {
       indexes: indexes,
       timestamps: false,
       tableName: options.tableName,
-      ...options.customOptions
+      ...options.customOptions,
     };
   }
 
-  async #translateOrdering(originalModel: TModel, translatedModel: ModelCtor<Model>) {
-    const translatedOrdering: OrderItem[] = (originalModel.options.ordering || [])?.map(order => {
+  async #translateOrdering(
+    originalModel: TModel,
+    translatedModel: ModelCtor<Model>
+  ) {
+    const translatedOrdering: OrderItem[] = (
+      originalModel.options.ordering || []
+    )?.map((order) => {
       const orderAsString = order as string;
       const isDescending = orderAsString.startsWith('-');
-      return isDescending ? [orderAsString.substring(1), 'DESC'] : [orderAsString, 'ASC'];
+      return isDescending
+        ? [orderAsString.substring(1), 'DESC']
+        : [orderAsString, 'ASC'];
     });
 
     if (translatedOrdering.length > 0) {
-      translatedModel.addScope('defaultScope', {
-        order: translatedOrdering || []
-      }, { override: true });
+      translatedModel.addScope(
+        'defaultScope',
+        {
+          order: translatedOrdering || [],
+        },
+        { override: true }
+      );
     }
   }
 
@@ -52,9 +71,11 @@ export default class ModelTranslator {
     const fieldsEntries = Object.keys(model.fields);
     for (const fieldName of fieldsEntries) {
       const translatedAttributes = await this.fields.getTranslated(fieldName);
-      const isTranslatedAttributeDefined = translatedAttributes !== null &&
-        typeof translatedAttributes === "object";
-      if (isTranslatedAttributeDefined) fieldAttributes[fieldName] = translatedAttributes;
+      const isTranslatedAttributeDefined =
+        translatedAttributes !== null &&
+        typeof translatedAttributes === 'object';
+      if (isTranslatedAttributeDefined)
+        fieldAttributes[fieldName] = translatedAttributes;
     }
     return fieldAttributes;
   }
@@ -64,9 +85,14 @@ export default class ModelTranslator {
     const translatedAttributes = await this.#translateFields(model);
     translatedOptions.indexes = await this.fields.getIndexes(model.name);
 
-    const translatedModel = this.engine.instance?.define(model.name, translatedAttributes, translatedOptions);
+    const translatedModel = this.engine.instance?.define(
+      model.name,
+      translatedAttributes,
+      translatedOptions
+    );
 
-    if (translatedModel !== undefined) await this.#translateOrdering(model, translatedModel);
+    if (translatedModel !== undefined)
+      await this.#translateOrdering(model, translatedModel);
     return translatedModel;
   }
 }

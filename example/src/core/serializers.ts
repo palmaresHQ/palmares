@@ -5,7 +5,7 @@ import {
   StringField,
   ModelSerializer,
 } from '@palmares/serializers';
-import { Post, User } from './models';
+import { Photo, Post, User } from './models';
 
 export class UserSerializer extends ModelSerializer {
   fields = {
@@ -28,11 +28,16 @@ export class UserSerializer extends ModelSerializer {
     if (data) return modelInstance.create(data);
   }
 }
-
+export class PhotoSerializer extends ModelSerializer {
+  options = {
+    model: Photo,
+    excludes: ['id'] as const,
+  };
+}
 export class PostSerializer extends ModelSerializer {
   options = {
     model: Post,
-    excludes: ['id', 'userUuid'] as const,
+    excludes: ['id'] as const,
   };
 }
 

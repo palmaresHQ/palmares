@@ -77,7 +77,6 @@ export default class Domain {
         commands: Commands.commands,
       };
 
-    //const defaultDomainInstance = new this(this.name, __dirname);
     let commands = {} as DefaultCommandType;
     const initializedDomains: Domain[] = [];
     const domainClasses = await Domain.retrieveDomains(settings);

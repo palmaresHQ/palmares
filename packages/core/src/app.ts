@@ -65,15 +65,14 @@ export default class AppServer {
     this.settings = settings;
     this.domains = domains;
 
-    const customOptions = {
-      app: this,
-    };
+    const customOptions = {};
 
     for (const domain of domains) {
       if (domain.isReady === false) {
         await domain.ready({
           settings: settings,
           domains,
+          app: this,
           customOptions,
         });
       }

@@ -1,4 +1,4 @@
-import { DatabaseSettingsType } from "./types";
+import { DatabaseSettingsType } from './types';
 
 export default function defaultSettings(settings: DatabaseSettingsType) {
   if (settings.DATABASES === undefined) settings.DATABASES = {};

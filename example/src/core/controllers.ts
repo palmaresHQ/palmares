@@ -8,6 +8,7 @@ import {
   HTTP_201_CREATED,
 } from '@palmares/server';
 import { ExpressRequest } from '@palmares/express-adapter';
+import { getEventsServer } from '@palmares/events';
 
 import { User, Post as PostModel, Photo } from './models';
 import { UserSerializer, PostSerializer } from './serializers';
@@ -26,14 +27,14 @@ export class ExampleController extends Controller {
     const instance = (
       await User.default.get({
         search: { id: 1 },
-        includes: [PostModel, Photo] as const,
+        includes: [PostModel] as const,
       })
     )[0];
     const serializer = UserSerializer.new({
       instance: instance,
     });
     const data = await serializer.data;
-    return Response.new(HTTP_200_OK, { body: data });
+    return Response.new(HTTP_200_OK);
   }
 
   @Post('/test')
@@ -43,7 +44,7 @@ export class ExampleController extends Controller {
     const instance = (
       await User.default.get({
         search: { id: 1 },
-        includes: [PostModel] as const,
+        includes: [PostModel, Photo] as const,
       })
     )[0];
     const serializer = UserSerializer.new({

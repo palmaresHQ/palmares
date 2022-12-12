@@ -1,4 +1,8 @@
-import express, { Express, Request as ERequest, Response as EResponse } from 'express';
+import express, {
+  Express,
+  Request as ERequest,
+  Response as EResponse,
+} from 'express';
 
 import { HandlersType, Server, ServerSettingsType } from '@palmares/server';
 
@@ -20,16 +24,22 @@ export default class ExpressServer extends Server {
 
   async load(): Promise<void> {
     this.serverInstance = express();
-    this.serverInstance.use(express.json(this.settings?.CUSTOM_SERVER_SETTINGS?.JSON_OPTIONS));
+    this.serverInstance.use(
+      express.json(this.settings?.CUSTOM_SERVER_SETTINGS?.JSON_OPTIONS)
+    );
     this.serverInstance.use(
       express.urlencoded(
-        this.settings?.CUSTOM_SERVER_SETTINGS?.URLENCODED_OPTIONS ?
-        this.settings?.CUSTOM_SERVER_SETTINGS?.URLENCODED_OPTIONS :
-        {extended: true}
+        this.settings?.CUSTOM_SERVER_SETTINGS?.URLENCODED_OPTIONS
+          ? this.settings?.CUSTOM_SERVER_SETTINGS?.URLENCODED_OPTIONS
+          : { extended: true }
       )
     );
-    this.serverInstance.use(express.raw(this.settings?.CUSTOM_SERVER_SETTINGS?.RAW_OPTIONS));
-    this.serverInstance.use(express.text(this.settings?.CUSTOM_SERVER_SETTINGS?.TEXT_OPTIONS));
+    this.serverInstance.use(
+      express.raw(this.settings?.CUSTOM_SERVER_SETTINGS?.RAW_OPTIONS)
+    );
+    this.serverInstance.use(
+      express.text(this.settings?.CUSTOM_SERVER_SETTINGS?.TEXT_OPTIONS)
+    );
     for await (const loadedMiddleware of this.getLoadedRootMiddlewares<ExpressMiddlewareHandlerType>()) {
       this.serverInstance.use(loadedMiddleware);
     }
@@ -37,13 +47,13 @@ export default class ExpressServer extends Server {
 
   async load404(handler: HandlersType<ERequest, EResponse>): Promise<void> {
     this.serverInstance.use(async (req, res) => {
-      handler(req, { res })
-    })
+      handler(req, { res });
+    });
   }
 
   async init() {
     this.serverInstance.listen(this.settings.PORT, () => {
-      super.init()
+      super.init();
     });
   }
 }

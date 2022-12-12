@@ -52,7 +52,7 @@ export default class EngineQuery {
     instance: any,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     args?: {
-      includes?: I;
+      includes?: any[];
       search?: AllOptionalModelFields<M>;
     }
   ): Promise<IncludesRelatedModels<AllRequiredModelFields<M>, M, I>[]> {

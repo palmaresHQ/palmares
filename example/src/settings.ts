@@ -4,6 +4,7 @@ import ZodSchema from '@palmares/zod-schema';
 import { ExpressCorsMiddleware } from './core/middlewares';
 
 import { dirname, resolve } from 'path';
+import { EventEmitter } from '@palmares/events';
 
 export const ENV =
   typeof process.env.NODE_ENV === 'string'
@@ -23,9 +24,20 @@ export const MIDDLEWARES = [
   import('./core/middlewares'),
 ];
 
+export const EVENTS_EMITTER = import('@palmares/eventemitter2-emitter');
+export const EVENTS_OPTIONS = {
+  layer: {
+    use: EventEmitter.new(import('@palmares/redis-emitter'), {
+      emitterParams: [{ url: 'redis://localhost:6379' }],
+    }),
+    channels: ['all'],
+  },
+};
+
 export const INSTALLED_DOMAINS = [
   import('@palmares/server'),
   import('@palmares/databases'),
+  import('@palmares/events'),
   import('./core'),
 ];
 
@@ -40,9 +52,6 @@ export const DATABASES = {
     port: 5435,
     extraOptions: {
       logging: false,
-      query: {
-        raw: true,
-      },
     },
   },
 };

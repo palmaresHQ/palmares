@@ -4,7 +4,7 @@ export type EventEmitterOptionsType = {
     delimiter?: string;
   };
   layer?: {
-    use: import('./index').default;
+    use: import('./index').default | Promise<import('./index').default>;
     channels: string[];
   };
   results?: {

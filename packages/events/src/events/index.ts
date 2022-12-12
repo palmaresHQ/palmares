@@ -209,7 +209,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     );
 
     if (options?.layer?.use) {
-      eventEmitterInstance.layer = options.layer.use;
+      eventEmitterInstance.layer = await Promise.resolve(options.layer.use);
       await eventEmitterInstance.addChannelListeners(
         options?.layer.channels || ['all']
       );
@@ -281,14 +281,25 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     }
   }
 
-  #addListenerThatAlreadyExistsWithWildcards(
-    handlerGroupId: string,
-    handlerId: string,
-    callback: ResultWrappedCallbackType
-  ) {
-    this.#groups[handlerGroupId].listeners[handlerId] = callback;
-  }
-
+  /**
+   * This will add the listener with the wildcards, what we do in order to be able to save the list with the wildcards is that
+   * we save all of the events tied to the same group.
+   *
+   * Think that we are appending the event with the keyword: `create.users`. The group id refers to all of the handlers that will
+   * listen for this particular event.
+   *
+   * What we do is that we append the same groupId to multiple keys like for example:
+   *
+   * `create.user`: new Set(`group-h123-huasd1-123890-1023098`),
+   * `create.*`: new Set(`group-h123-huasd1-123890-1023098`),
+   * `create.**`: new Set(`group-h123-huasd1-123890-1023098`),
+   * `**`: new Set(`group-h123-huasd1-123890-1023098`)
+   *
+   * @param handlerGroupId - The groupId is the actual event that will be fired in the actual emitter.
+   * @param handlerId - The id of the handler that is the actual function that will fire the event.
+   * @param key - This will be like `create.user` in the example above.
+   * @param callback - The function appended to the handlerId.
+   */
   #addListenerWithWildcards(
     handlerGroupId: string,
     handlerId: string,
@@ -560,19 +571,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
       );
     }
     if (options.wildcards) {
-      if (key in this.#groupByKeys)
-        this.#addListenerThatAlreadyExistsWithWildcards(
-          handlerGroupId,
-          handlerId,
-          callback
-        );
-      else
-        this.#addListenerWithWildcards(
-          handlerGroupId,
-          handlerId,
-          key,
-          callback
-        );
+      this.#addListenerWithWildcards(handlerGroupId, handlerId, key, callback);
     } else {
       this.#addListenerWithoutWildcards(
         handlerGroupId,

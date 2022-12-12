@@ -2,6 +2,8 @@ import Emitter from './emitter';
 import EventEmitter from './events';
 import { EventEmitterOptionsType } from './events/types';
 
+let runningEventsServer: EventsServer<Emitter>;
+
 /**
  * The idea of an event server is to keep the application running so that it can receive requests from other servers
  * and vice versa.
@@ -71,7 +73,9 @@ export class EventsServer<E extends Emitter> extends EventEmitter<E> {
   }
 }
 
-export default function eventsServer<E extends typeof Emitter = typeof Emitter>(
+export default async function eventsServer<
+  E extends typeof Emitter = typeof Emitter
+>(
   emitter: Promise<{ default: E }> | E,
   options?: EventEmitterOptionsType & {
     emitterParams?: Parameters<E['new']>;
@@ -80,4 +84,12 @@ export default function eventsServer<E extends typeof Emitter = typeof Emitter>(
   return EventsServer.new<E>(emitter, options) as Promise<
     EventsServer<InstanceType<E>>
   >;
+}
+
+export function setEventsServer(server: EventsServer<Emitter>) {
+  runningEventsServer = server;
+}
+
+export function getEventsServer<E extends typeof Emitter = typeof Emitter>() {
+  return runningEventsServer as EventsServer<InstanceType<E>>;
 }

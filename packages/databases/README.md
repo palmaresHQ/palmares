@@ -40,3 +40,8 @@ export const DATABASES = {
  - [/] Lazy load the models, so we can tackle environments like serverless or the edge with the framework. (For that we need to just load the basic part of the models, without translating, we will only translate when we need it. When we translate we must be sure the dependencies are translated first.) It won't be the fastest solution but it will work. __(HALF DONE, WE ARE ABLE TO TRANSLATE THE ENGINE LAZILY BUT NOT THE MODELS AND ITS DEPENDENCIES (THE PROBLEM RELIES ON INDIRECT RELATIONS)__)
  - [ ] Better support for self referencing relations.
  - [ ] `Set` and `get` and even `delete` should have a better API for deleting, creating, updating, and retrieving related data. Also we should change the default functions api for an object. This way we can make it more flexible and easier to use. (instead of `set(dataToSet, search, engineName)` we can do `set({ dataToSet, search, engineName })`)
+ - [/] Better Support for relations on queries:
+  - [X] .get
+  - [ ] .set
+  - [ ] .delete
+ - [ ] Support for seeding data into the database (useful for testing).
