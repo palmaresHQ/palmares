@@ -15,6 +15,7 @@ import {
 } from './types';
 import HttpAppServer from './app';
 import Server from './server';
+import { ServerDomainInterface } from './interfaces';
 
 export default class ServerDomain extends Domain {
   serverName!: string;
@@ -80,7 +81,17 @@ export default class ServerDomain extends Domain {
   }
 
   override async ready(options: DomainReadyFunctionArgs<ServerSettingsType>) {
-    if (options.app instanceof HttpAppServer) await this.app.start();
+    const domainsAsServerDomains = (options.domains ||
+      []) as ServerDomainInterface[];
+
+    if (options.app instanceof HttpAppServer) {
+      await this.app.startRoutes(
+        domainsAsServerDomains.filter(
+          (domain) => typeof domain.getRoutes === 'function'
+        )
+      );
+      await this.app.start();
+    }
   }
 
   override async close(): Promise<void> {

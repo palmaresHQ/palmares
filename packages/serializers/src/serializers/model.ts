@@ -510,14 +510,15 @@ export default class ModelSerializer<
         const validatedDatas = this.validatedData as this['inType'][];
         const promises = validatedDatas.map((validatedData) =>
           Model.default.set(
-            validatedData as Exclude<this['inType'], null | undefined>,
-            undefined,
+            {
+              data: validatedData as Exclude<this['inType'], null | undefined>,
+            },
             this.engineName
           )
         );
         return Promise.all(promises);
       }
-      return Model.default.set(validatedData, undefined, this.engineName);
+      return Model.default.set({ data: validatedData }, this.engineName);
     }
   }
 
@@ -541,16 +542,20 @@ export default class ModelSerializer<
         const validatedDatas = this.validatedData as this['inType'][];
         const promises = validatedDatas.map((validatedData, index) =>
           Model.default.set(
-            validatedData as Exclude<this['inType'], null | undefined>,
-            instances[index] as ModelFields<InstanceType<MO>>,
+            {
+              data: validatedData as Exclude<this['inType'], null | undefined>,
+              search: instances[index] as ModelFields<InstanceType<MO>>,
+            },
             this.engineName
           )
         );
         return Promise.all(promises);
       }
       return Model.default.set(
-        validatedData as Exclude<this['inType'], null | undefined>,
-        instance as ModelFields<InstanceType<MO>>,
+        {
+          data: validatedData as Exclude<this['inType'], null | undefined>,
+          search: instance as ModelFields<InstanceType<MO>>,
+        },
         this.engineName
       );
     }

@@ -1,8 +1,8 @@
-import { Field, ForeignKeyField } from './fields';
-import model, { Model } from './model';
-import Manager from './manager';
-import { DatabaseSettingsType } from '../types';
-import Engine from '../engine';
+import { Field, ForeignKeyField } from '../fields';
+import model, { Model } from '../model';
+import Manager from '../manager';
+import { DatabaseSettingsType } from '../../types';
+import Engine from '../../engine';
 
 export type ManagerInstancesType = {
   [engineName: string]: any;
@@ -13,7 +13,7 @@ export type ManagerEngineInstancesType = {
 };
 
 export type ModelFieldsType = {
-  [key: string | symbol]: Field<any, boolean>;
+  [key: string | symbol]: Field<any, any, any, any, any, any>;
 };
 
 export type ManagersOfInstanceType = {
@@ -127,14 +127,20 @@ type RelatedFieldOfModel<
     any,
     any,
     any,
+    any,
+    any,
+    any,
     infer RNN
   >
     ? RNN
     : never]: M['fields'][K] extends ForeignKeyField<
     any,
+    any,
+    any,
+    any,
+    any,
+    undefined,
     infer RMIFF,
-    any,
-    any,
     any,
     any,
     any
@@ -152,12 +158,15 @@ type RelatedFieldToModel<
 > = {
   [K in keyof RM['fields'] as RM['fields'][K] extends ForeignKeyField<
     any,
+    any,
+    any,
+    any,
+    any,
+    undefined,
     infer RMIFKF, // Related model in foreign key field
     any,
-    any,
-    any,
-    any,
-    infer RN
+    infer RN,
+    any
   >
     ? RMIFKF extends M
       ? RN
@@ -187,6 +196,129 @@ export type IncludesRelatedModels<
     ? RI extends ReturnType<typeof model>[]
       ? RelatedFieldsType<T, M, FI, I> & IncludesRelatedModels<T, M, RI>
       : RelatedFieldsType<T, M, FI, I>
+    : T
+  : T;
+
+export type RequiredFieldsIgnoringRelations<M extends Model> = {
+  [F in keyof M['fields'] as M['fields'][F] extends ForeignKeyField<
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any
+  >
+    ? never
+    : F]: AddNull<M['fields'][F extends string ? F : never]>;
+};
+export type AllRequiredFieldsIgnoringRelations<M extends Model> =
+  RequiredFieldsIgnoringRelations<M>;
+
+type RelatedFieldOfModelOnCreateOrUpdate<
+  M extends Model,
+  RM extends Model,
+  I extends readonly ReturnType<typeof model>[]
+> = {
+  [K in keyof M['fields'] as M['fields'][K] extends ForeignKeyField<
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    infer RNN
+  >
+    ? RNN
+    : never]: M['fields'][K] extends ForeignKeyField<
+    any,
+    any,
+    any,
+    any,
+    any,
+    undefined,
+    infer RMIFF,
+    any,
+    any,
+    any
+  >
+    ? RMIFF extends RM
+      ? IncludesRelatedModelsForCreateOrUpdate<
+          AllRequiredFieldsIgnoringRelations<RMIFF>,
+          RMIFF,
+          I
+        >
+      : never
+    : never;
+};
+
+type RelatedFieldToModelOnCreateOrUpdate<
+  M extends Model,
+  RM extends Model,
+  I extends readonly ReturnType<typeof model>[]
+> = {
+  [K in keyof RM['fields'] as RM['fields'][K] extends ForeignKeyField<
+    any,
+    any,
+    any,
+    any,
+    any,
+    undefined,
+    infer RMIFKF, // Related model in foreign key field
+    any,
+    infer RN,
+    any
+  >
+    ? RMIFKF extends M
+      ? RN
+      : never
+    : never]: RM['fields'][K]['unique'] extends true
+    ? IncludesRelatedModelsForCreateOrUpdate<
+        AllRequiredFieldsIgnoringRelations<RM>,
+        RM,
+        I
+      >
+    : IncludesRelatedModelsForCreateOrUpdate<
+        AllRequiredFieldsIgnoringRelations<RM>,
+        RM,
+        I
+      >[];
+};
+
+type ExcludesNeverFromFields<F> = {
+  [K in keyof F as F[K] extends never ? never : K]: F[K];
+};
+
+export type RelatedFieldsTypeWithoutModelRelation<
+  T,
+  M extends Model,
+  I extends ReturnType<typeof model>,
+  Includes extends readonly ReturnType<typeof model>[]
+> = I extends ReturnType<typeof model>
+  ? T &
+      ExcludesNeverFromFields<
+        RelatedFieldToModelOnCreateOrUpdate<M, InstanceType<I>, Includes>
+      > &
+      ExcludesNeverFromFields<
+        RelatedFieldOfModelOnCreateOrUpdate<M, InstanceType<I>, Includes>
+      >
+  : T;
+
+export type IncludesRelatedModelsForCreateOrUpdate<
+  T,
+  M extends Model,
+  I extends readonly ReturnType<typeof model>[] | undefined
+> = I extends readonly [infer FI, ...infer RI]
+  ? FI extends ReturnType<typeof model>
+    ? RI extends ReturnType<typeof model>[]
+      ? RelatedFieldsTypeWithoutModelRelation<T, M, FI, RI> &
+          IncludesRelatedModelsForCreateOrUpdate<T, M, RI>
+      : RelatedFieldsTypeWithoutModelRelation<T, M, FI, I>
     : T
   : T;
 

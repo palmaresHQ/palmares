@@ -25,7 +25,7 @@ export class UserSerializer extends ModelSerializer {
       SequelizeEngine<User>
     >();
 
-    if (data) return modelInstance.create(data);
+    if (data) return modelInstance.create(data) as any;
   }
 }
 export class PhotoSerializer extends ModelSerializer {

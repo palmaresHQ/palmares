@@ -1,13 +1,13 @@
 import { logging, MessageCategories } from '@palmares/core';
 
-import { LOGGING_APP_START_SERVER } from './utils';
+import { LOGGING_APP_START_EVENTS_SERVER } from './utils';
 
 export const defaultLoggingForEvents = (message: string) =>
   `\x1b[1m[events]\x1b[0m ${message}`;
 
 export default async function buildLogging() {
   logging.appendMessage(
-    LOGGING_APP_START_SERVER,
+    LOGGING_APP_START_EVENTS_SERVER,
     MessageCategories.Info,
     async ({ appName }) =>
       defaultLoggingForEvents(

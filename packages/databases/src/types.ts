@@ -2,7 +2,6 @@ import { SettingsType } from '@palmares/core';
 
 import { Model } from './models';
 import Engine from './engine';
-import { TModel } from './models/types';
 
 export interface DatabaseConfigurationType<DialectOptions, ExtraOptions> {
   engine: typeof Engine;
@@ -37,7 +36,7 @@ export type InitializedModelsType<M = any> = {
   domainPath: string;
   class: ReturnType<typeof Model>;
   initialized: M;
-  original: TModel;
+  original: InstanceType<ReturnType<typeof Model>>;
 };
 
 export interface DatabaseSettingsType extends SettingsType {
@@ -50,3 +49,7 @@ export interface DatabaseSettingsType extends SettingsType {
 export type OptionalMakemigrationsArgsType = {
   empty?: string;
 };
+
+export type This<T extends new (...args: any) => any> = {
+  new (...args: ConstructorParameters<T>): any;
+} & Pick<T, keyof T>;

@@ -7,11 +7,16 @@ import {
   AllRequiredModelFields,
   ModelFields,
   IncludesRelatedModels,
+  AllRequiredFieldsIgnoringRelations,
 } from './types';
+import {
+  IncludesRelatedModelsForCreateOrUpdate,
+  CreateOrUpdateModelFields,
+} from './types/create-or-update';
+import { Includes } from './types/queries';
 import { ManagerEngineInstanceNotFoundError } from './exceptions';
 import Engine from '../engine';
 import { Model, default as model } from './model';
-import { ClassConstructor } from './fields/types';
 import Databases from '../databases';
 import { DatabaseSettingsType } from '../types';
 import { DatabaseDomainInterface } from '../interfaces';
@@ -67,7 +72,7 @@ export default class Manager<
   instances: ManagerInstancesType;
   engineInstances: ManagerEngineInstancesType;
   defaultEngineInstanceName: string;
-  model!: ClassConstructor<Model>;
+  model!: Model;
   modelKls!: { new (...args: unknown[]): any };
   isLazyInitializing = false;
 
@@ -79,7 +84,7 @@ export default class Manager<
   }
 
   _setModel(model: M) {
-    this.model = model as any;
+    this.model = model as M;
   }
 
   /**
@@ -201,6 +206,10 @@ export default class Manager<
           )
         ),
         search: args?.search,
+      },
+      {
+        model: this.model as MDL,
+        includes: (args?.includes || []) as I,
       }
     ) as Promise<IncludesRelatedModels<AllRequiredModelFields<MDL>, MDL, I>[]>;
   }
@@ -226,23 +235,42 @@ export default class Manager<
    *
    * @return - Return the created instance or undefined if something went wrong, or boolean if it's an update.
    */
-  async set<S extends AllOptionalModelFields<M> | undefined | null = undefined>(
-    data: S extends undefined | null
-      ? ModelFields<M>
-      : AllOptionalModelFields<M>,
-    search?: S,
+  async set<
+    I extends Includes = undefined,
+    S extends M | undefined = undefined
+  >(
+    args: {
+      data: IncludesRelatedModelsForCreateOrUpdate<
+        CreateOrUpdateModelFields<M>,
+        M,
+        I
+      >;
+      search?: S;
+      includes?: I;
+    },
     engineName?: string
   ): Promise<
     S extends undefined | null ? AllRequiredModelFields<M> | undefined : boolean
   > {
     // Promise.all here will not work, we need to do this sequentially.
-
     const engineInstance = await this.getEngineInstance(engineName);
 
-    return engineInstance.query.set<M, S>(
+    return engineInstance.query.set<M, I, S>(
       await this.getInstance(engineName),
-      data as S extends undefined ? ModelFields<M> : AllOptionalModelFields<M>,
-      search
+      args.data as S extends undefined
+        ? ModelFields<M>
+        : AllOptionalModelFields<M>,
+      args.search,
+      await Promise.all(
+        (args?.includes || []).map(
+          async (includeModel) =>
+            await includeModel.default.getInstance(engineName)
+        )
+      ),
+      {
+        model: this.model as M,
+        includes: args.includes as I,
+      }
     );
   }
 

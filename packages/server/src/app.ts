@@ -5,10 +5,11 @@ import {
   FunctionControllerType,
 } from './controllers/types';
 import { default404handler } from './defaults';
+import { ServerDomainInterface } from './interfaces';
 import { Router } from './routers';
 import { BaseRoutesType } from './routers/types';
 import Server from './server';
-import { RootRouterTypes, ServerSettingsType } from './types';
+import { ServerSettingsType } from './types';
 
 export default class HttpAppServer extends AppServer {
   domains!: Domain[];
@@ -43,15 +44,20 @@ export default class HttpAppServer extends AppServer {
    *
    * @returns - The root array of routes of the application.
    */
-  async #getRootRouter(): Promise<Router[]> {
-    let rootRouter: RootRouterTypes;
-    const rootRouterFromSettings = this.settings.ROOT_ROUTER;
-    const isPromise = rootRouterFromSettings instanceof Promise;
-    if (isPromise) rootRouter = (await rootRouterFromSettings).default;
-    else rootRouter = rootRouterFromSettings;
-
-    if (Array.isArray(rootRouter)) return rootRouter;
-    else return [rootRouter];
+  async #getRootRouter(
+    domains: ServerDomainInterface[]
+  ): Promise<Promise<Router>[]> {
+    const routesFromAllDomains = await Promise.all(
+      domains.map(async (domain) => {
+        const routesOfDomain = await domain.getRoutes();
+        const isRoutesAnArray = Array.isArray(routesOfDomain);
+        return isRoutesAnArray
+          ? routesOfDomain
+          : (routesOfDomain as { default: Promise<Router>[] }).default;
+      })
+    );
+    const flattenRoutesOfDomains = routesFromAllDomains.flat();
+    return flattenRoutesOfDomains;
   }
 
   /**
@@ -72,9 +78,11 @@ export default class HttpAppServer extends AppServer {
    * For example '/test/<hello>/example/test', could accept a POST and a GET request. So we will have an
    * array of two objects, one for the POST and one for the GET.
    */
-  async getRoutes(): Promise<BaseRoutesType[]> {
+  async #getRoutes(
+    domains: ServerDomainInterface[]
+  ): Promise<BaseRoutesType[]> {
     if (!this.#cachedRoutes) {
-      const promisedRouters = await this.#getRootRouter();
+      const promisedRouters = await this.#getRootRouter(domains);
       const routers = await Promise.all(promisedRouters);
       const routes = await Promise.all([
         ...routers.map(async (router) => {
@@ -91,9 +99,10 @@ export default class HttpAppServer extends AppServer {
    * on the ServerRoutes instance. On the actual server we will translate those routes into the actual express
    * or any other framework (like koa or fastify) server so it should be able to handle the requests.
    */
-  async #startRoutes() {
-    const routes = await this.getRoutes();
+  async startRoutes(domains: ServerDomainInterface[]) {
+    const routes = await this.#getRoutes(domains);
     await this.server.routes.initialize(routes);
+    await this.#load404();
   }
 
   /**
@@ -163,9 +172,6 @@ export default class HttpAppServer extends AppServer {
    * ```
    */
   async start() {
-    await this.#startRoutes();
-
-    await this.#load404();
     await this.server.init();
 
     await super.start();

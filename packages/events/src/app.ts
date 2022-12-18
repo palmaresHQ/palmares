@@ -8,7 +8,7 @@ import {
   setEventsServer,
 } from './server';
 import { EventsSettingsType } from './types';
-import { LOGGING_APP_START_SERVER } from './utils';
+import { LOGGING_APP_START_EVENTS_SERVER } from './utils';
 
 /**
  * This is the event server for the Palmares framework. If the server doesn't already exist
@@ -98,7 +98,7 @@ export default class EventsAppServer extends AppServer {
     await Promise.all([
       super.start(),
       this.server.listen(() => {
-        logging.logMessage(LOGGING_APP_START_SERVER, {
+        logging.logMessage(LOGGING_APP_START_EVENTS_SERVER, {
           appName: this.settings.APP_NAME,
         });
       }),
