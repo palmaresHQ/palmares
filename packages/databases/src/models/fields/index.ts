@@ -81,7 +81,7 @@ export class Field<
     const ident = '  '.repeat(indentation);
     const fieldParamsIdent = '  '.repeat(indentation + 1);
     return (
-      `${ident}new models.fields.${this.constructor.name}({` +
+      `${ident}models.fields.${this.constructor.name}.new({` +
       `${customParams ? `\n${customParams}` : ''}\n` +
       `${fieldParamsIdent}primaryKey: ${this.primaryKey},\n` +
       `${fieldParamsIdent}defaultValue: ${JSON.stringify(
