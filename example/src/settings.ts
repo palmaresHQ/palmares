@@ -17,7 +17,6 @@ export const BASE_PATH = dirname(resolve(__dirname));
 export const USE_TS = true;
 
 export const SERVER = ExpressServer;
-export const ROOT_ROUTER = import('./core/routes');
 
 export const MIDDLEWARES = [
   ExpressCorsMiddleware,

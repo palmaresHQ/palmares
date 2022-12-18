@@ -98,7 +98,7 @@ export default class SequelizeEngineFields extends EngineFields {
    */
   async #appendIndexes(field: models.fields.Field) {
     const index = {
-      unique: field.unique === true,
+      unique: (field.unique as boolean) === true,
       fields: [field.databaseName],
     };
     const doesFieldIndexForModelNameExists = Array.isArray(
@@ -201,7 +201,7 @@ export default class SequelizeEngineFields extends EngineFields {
     field: models.fields.Field
   ): Promise<void> {
     const isFieldAIndexOrIsFieldUnique =
-      field.dbIndex === true || field.unique === true;
+      field.dbIndex === true || (field.unique as boolean) === true;
     if (isFieldAIndexOrIsFieldUnique) await this.#appendIndexes(field);
     if (modelAttributes.defaultValue === undefined)
       modelAttributes.defaultValue = field.defaultValue;
@@ -251,7 +251,7 @@ export default class SequelizeEngineFields extends EngineFields {
     fieldAttributes: ModelAttributeColumnOptions
   ): Promise<void> {
     fieldAttributes.type = DataTypes.UUID;
-    if (field.autoGenerate === true)
+    if ((field.autoGenerate as boolean) === true)
       fieldAttributes.defaultValue = DataTypes.UUIDV4;
     fieldAttributes.validate = {
       ...fieldAttributes.validate,
@@ -265,8 +265,9 @@ export default class SequelizeEngineFields extends EngineFields {
     fieldAttributes: ModelAttributeColumnOptions
   ): Promise<void> {
     fieldAttributes.type = DataTypes.DATEONLY;
-    const isAutoNow = field.autoNow === true;
-    const hasAutoNowOrAutoNowAdd = field.autoNowAdd === true || isAutoNow;
+    const isAutoNow = (field.autoNow as boolean) === true;
+    const hasAutoNowOrAutoNowAdd =
+      (field.autoNowAdd as boolean) === true || isAutoNow;
     if (hasAutoNowOrAutoNowAdd) fieldAttributes.defaultValue = DataTypes.NOW;
     if (isAutoNow)
       await this.#addHooksToUpdateDateFields(field.model.name, field.fieldName);
@@ -349,12 +350,12 @@ export default class SequelizeEngineFields extends EngineFields {
         );
       case models.fields.AutoField.name:
         return await this.#translateAutoField(
-          field as models.fields.AutoField,
+          field as models.fields.AutoField<any, any, any, any, any>,
           fieldAttributes
         );
       case models.fields.BigAutoField.name:
         return await this.#translateBigAutoField(
-          field as models.fields.BigAutoField,
+          field as models.fields.BigAutoField<any, any, any, any, any>,
           fieldAttributes
         );
       case models.fields.IntegerField.name:

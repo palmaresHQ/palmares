@@ -1,15 +1,35 @@
-import { models } from '@palmares/databases';
+import {
+  models,
+  AutoField,
+  ForeignKeyField,
+  CharField,
+  UUIDField,
+  IntegerField,
+  ON_DELETE,
+} from '@palmares/databases';
 
 export class Photo extends models.Model<Photo>() {
   fields = {
-    id: new models.fields.AutoField(),
-    name: new models.fields.CharField(),
-    postId: new models.fields.ForeignKeyField({
+    id: AutoField.new(),
+    name: CharField.new({
+      defaultValue: null,
+      allowNull: true,
+    }),
+    postId: ForeignKeyField.new({
       relatedTo: Post,
-      onDelete: models.fields.ON_DELETE.CASCADE,
+      onDelete: ON_DELETE.CASCADE,
       toField: 'id',
       relatedName: 'postPhotos',
       relationName: 'post',
+      defaultValue: null,
+      allowNull: true,
+    }),
+    userId: ForeignKeyField.new({
+      relatedTo: User,
+      onDelete: ON_DELETE.CASCADE,
+      toField: 'id',
+      relatedName: 'userPhotos',
+      relationName: 'user',
     }),
   };
 
@@ -20,14 +40,14 @@ export class Photo extends models.Model<Photo>() {
 
 export class Post extends models.Model<Post>() {
   fields = {
-    id: new models.fields.AutoField(),
-    number: new models.fields.IntegerField({
+    id: AutoField.new(),
+    number: IntegerField.new({
       allowNull: true,
-      defaultValue: 1,
+      defaultValue: 2,
     }),
-    userUuid: new models.fields.ForeignKeyField({
+    userUuid: ForeignKeyField.new({
       relatedTo: User,
-      onDelete: models.fields.ON_DELETE.CASCADE,
+      onDelete: ON_DELETE.CASCADE,
       toField: 'uuid',
       relatedName: 'userPosts',
       relationName: 'user',
@@ -41,14 +61,14 @@ export class Post extends models.Model<Post>() {
 
 export class User extends models.Model<User>() {
   fields = {
-    id: new models.fields.AutoField(),
-    firstName: new models.fields.CharField({
+    id: AutoField.new(),
+    firstName: CharField.new({
       maxLength: 255,
       dbIndex: true,
       allowNull: true,
     }),
-    lastName: new models.fields.CharField({ maxLength: 255, allowNull: true }),
-    uuid: new models.fields.UUIDField({ autoGenerate: true, unique: true }),
+    lastName: CharField.new({ maxLength: 255, allowNull: true }),
+    uuid: UUIDField.new({ autoGenerate: true, unique: true }),
   };
 
   options = {

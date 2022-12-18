@@ -9,6 +9,7 @@ export {
 } from './engine';
 export * from './engine/types';
 export * as models from './models';
+export * from './models/fields';
 export * from './models/types';
 export * as actions from './migrations/actions';
 export { default as Migration } from './migrations/migrate/migration';

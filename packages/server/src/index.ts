@@ -1,6 +1,11 @@
-import ServerDomain from "./domain";
+import ServerDomain from './domain';
 
-export { default as Server, ServerRoutes, ServerResponses, ServerRequests } from './server';
+export {
+  default as Server,
+  ServerRoutes,
+  ServerResponses,
+  ServerRequests,
+} from './server';
 export * from './server/types';
 export * from './types';
 export * from './status';
@@ -12,6 +17,7 @@ export { default as Response } from './response';
 export { default as HttpException } from './handler-exceptions';
 export { default as Middleware } from './middlewares';
 export { default as Controller } from './controllers';
+export { ServerDomainInterface } from './interfaces';
 export * from './decorators';
 export * from './controllers/types';
 

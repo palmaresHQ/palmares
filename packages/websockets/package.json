@@ -1,11 +1,10 @@
 {
-  "name": "@palmares/events",
+  "name": "@palmares/websockets",
   "version": "0.0.0",
-  "description": "This is the events framework for palmares, it's responsible for handling everything that is Pub/Sub like websockets, pub/sub like redis, and other types of asynchronous background tasks",
+  "description": "Adds support for websockets on the Palmares framework",
   "main": "src/index.ts",
   "scripts": {
-    "start": "ts-node src/events/index.ts",
-    "test": "ts-node src/test.ts"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -13,7 +12,7 @@
   },
   "keywords": [
     "palmares",
-    "events",
+    "websockets",
     "framework"
   ],
   "author": "Nicolas Leal",
@@ -23,9 +22,6 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "devDependencies": {
-    "typescript": "^4.9.3"
-  },
-  "peerDependencies": {
-    "@palmares/core": "*"
+    "typescript": "^4.9.4"
   }
 }

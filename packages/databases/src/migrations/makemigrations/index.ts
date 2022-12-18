@@ -586,7 +586,7 @@ export default class MakeMigrations {
         );
         const dependenciesAlreadyAdded =
           modelOfOperationToProcess.original._dependentOnModels.every(
-            (dependencyOfModel) =>
+            (dependencyOfModel: string) =>
               addedModels.has(dependencyOfModel) ||
               dependencyOfModel ===
                 modelOfOperationToProcess.original.originalName // For circular relations.

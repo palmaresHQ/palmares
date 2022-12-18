@@ -54,6 +54,11 @@ export default class EngineQuery {
     args?: {
       includes?: any[];
       search?: AllOptionalModelFields<M>;
+    },
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    internal?: {
+      model: M;
+      includes: I;
     }
   ): Promise<IncludesRelatedModels<AllRequiredModelFields<M>, M, I>[]> {
     return [] as IncludesRelatedModels<AllRequiredModelFields<M>, M, I>[];
@@ -87,24 +92,34 @@ export default class EngineQuery {
    */
   async set<
     M extends TModel,
+    I extends readonly ReturnType<typeof model>[] | undefined,
     S extends AllOptionalModelFields<M> | undefined | null = undefined
   >(
     instance: any,
     data: S extends undefined ? ModelFields<M> : AllOptionalModelFields<M>,
-    search?: S
+    search?: S,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    includes?: any[],
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    internal?: {
+      model: M;
+      includes: I;
+    }
   ): Promise<
-    S extends undefined | null ? AllRequiredModelFields<M> | undefined : boolean
+    S extends undefined | null
+      ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
+      : boolean
   > {
     const isSearchNotDefined = [null, undefined].includes(
       search as null | undefined
     );
     if (isSearchNotDefined) {
       return {} as S extends undefined | null
-        ? AllRequiredModelFields<M> | undefined
+        ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
         : boolean;
     }
     return false as S extends undefined | null
-      ? AllRequiredModelFields<M> | undefined
+      ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
       : boolean;
   }
 

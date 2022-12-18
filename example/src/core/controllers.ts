@@ -14,8 +14,7 @@ import { User, Post as PostModel, Photo } from './models';
 import { UserSerializer, PostSerializer } from './serializers';
 import { ModelSerializerInType } from '@palmares/serializers/src/serializers/types';
 export class ExampleController extends Controller {
-  path = '/example';
-
+  path = '';
   constructor() {
     super();
     //console.log(dependencyInjection);
@@ -24,23 +23,37 @@ export class ExampleController extends Controller {
   // Escreve uma rota com decorators
   @Get('/test')
   async testDecorator() {
-    const instance = (
-      await User.default.get({
-        search: { id: 1 },
-        includes: [PostModel] as const,
-      })
-    )[0];
-    const serializer = UserSerializer.new({
+    await Photo.default.set({
+      data: {
+
+      },
+      includes: [{
+        model: User,
+        includes: [{
+          model: PostModel
+        }]
+      }, {
+        model: PostModel
+      }] as const,
+    });
+
+    await User.default.set({
+      data: {
+         userPosts: {
+          :
+         }
+      },
+      includes: [Photo, [PostModel, [User, Photo]]] as const,
+    });
+    /*const serializer = UserSerializer.new({
       instance: instance,
     });
-    const data = await serializer.data;
+    const data = await serializer.data;*/
     return Response.new(HTTP_200_OK);
   }
 
   @Post('/test')
-  async testPostDecorator({
-    body,
-  }: ExpressRequest<{ D: ModelSerializerInType<UserSerializer> }>) {
+  async testPostDecorator({ body }: ExpressRequest<{ D: any }>) {
     const instance = (
       await User.default.get({
         search: { id: 1 },

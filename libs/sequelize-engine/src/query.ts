@@ -15,6 +15,9 @@ import {
   WhereOptions,
   CreationAttributes,
   Includeable,
+  Transaction,
+  Sequelize,
+  ModelAttributeColumnReferencesOptions,
   // eslint-disable-next-line import/no-unresolved
 } from 'sequelize/types';
 // eslint-disable-next-line import/no-unresolved
@@ -81,6 +84,109 @@ export default class SequelizeEngineQuery extends EngineQuery {
     return includeStatement;
   }
 
+  async create(
+    instance: ModelCtor<Model<any>>,
+    data: CreationAttributes<Model<ModelFields<any>>>,
+    transaction: Transaction
+  ): Promise<[boolean, Model<any, any>[]]> {
+    return [true, [await instance.create(data, { transaction })]];
+  }
+
+  async update(
+    instance: ModelCtor<Model<any>>,
+    search: any,
+    data: any,
+    transaction: Transaction
+  ): Promise<[boolean, Model<any, any>[]]> {
+    const instancesToUpdate = await instance.findAll({
+      where: search,
+      transaction,
+    });
+    if (instancesToUpdate.length === 0)
+      return await this.create(instance, data, transaction);
+    const updatedInstances = await Promise.all(
+      instancesToUpdate.map(async (instanceToUpdate) => {
+        instanceToUpdate.set(data);
+        await instanceToUpdate.save({ transaction });
+        return instanceToUpdate;
+      })
+    );
+    return [false, updatedInstances];
+  }
+
+  async save(
+    instance: ModelCtor<Model<any>>,
+    data: any,
+    transaction: Transaction,
+    includes?: ModelCtor<Model<any>>[],
+    search?: any
+  ): Promise<void> /*Promise<[boolean, Model<any, any>[]]>*/ {
+    async function saveQueries(this: SequelizeEngineQuery) {
+      if (search) return this.update(instance, search, data, transaction);
+      return this.create(instance, data, transaction);
+    }
+    console.log(instance.associations);
+    // Saves the model.
+    if (includes === undefined) {
+      await saveQueries.bind(this)();
+      return;
+    }
+
+    const [wasCreated, allOfSavedData] = await saveQueries.bind(this)();
+
+    // Loops through the associations and saves them as well
+    const associationsEntriesOfInstance = Object.entries(instance.associations);
+    const promises = associationsEntriesOfInstance.map(
+      async ([fieldName, associationObject]) => {
+        const existsFieldNameInTheDataRetrieved = fieldName in data;
+        const shouldWeIncludeTheAssociation = includes?.includes(
+          associationObject.target
+        );
+        const attributeOfReference =
+          associationObject.target.getAttributes()[
+            associationObject.foreignKey
+          ];
+        if (
+          existsFieldNameInTheDataRetrieved &&
+          shouldWeIncludeTheAssociation &&
+          attributeOfReference
+        ) {
+          const fieldNameOfReference = (
+            attributeOfReference.references as ModelAttributeColumnReferencesOptions
+          ).key as string;
+          const dataOfRelationToSave: any = Array.isArray(data[fieldName])
+            ? data[fieldName]
+            : [data[fieldName]];
+          await Promise.all(
+            allOfSavedData.map(async (savedData) => {
+              const savedDataJson = savedData.toJSON();
+
+              await Promise.all(
+                dataOfRelationToSave.map(async (dataToSave: any) => {
+                  dataToSave[associationObject.foreignKey] =
+                    savedDataJson[fieldNameOfReference];
+                  await this.save(
+                    associationObject.target,
+                    dataToSave,
+                    transaction,
+                    includes,
+                    wasCreated
+                      ? undefined
+                      : {
+                          [associationObject.foreignKey]:
+                            savedDataJson[fieldNameOfReference],
+                        }
+                  );
+                })
+              );
+            })
+          );
+        }
+      }
+    );
+    await Promise.all(promises);
+  }
+
   override async get<
     M extends TModel,
     I extends readonly ReturnType<typeof models.Model>[] | undefined
@@ -113,15 +219,19 @@ export default class SequelizeEngineQuery extends EngineQuery {
     }
   }
 
-  async set<
+  override async set<
     M extends TModel,
-    S extends AllOptionalModelFields<M> | undefined | null = undefined
+    I extends readonly ReturnType<typeof models.Model>[] | undefined,
+    S extends AllOptionalModelFields<M> | null | undefined = undefined
   >(
     instance: ModelCtor<Model<ModelFields<M>>>,
     data: S extends undefined ? ModelFields<M> : AllOptionalModelFields<M>,
-    search?: S
+    search?: S | undefined,
+    includes?: ModelCtor<Model<any>>[] | undefined
   ): Promise<
-    S extends undefined | null ? AllRequiredModelFields<M> | undefined : boolean
+    S extends null | undefined
+      ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
+      : boolean
   > {
     type SequelizeModel = Model<ModelFields<M>>;
     type SequelizeAttributes = Attributes<SequelizeModel>;
@@ -135,27 +245,39 @@ export default class SequelizeEngineQuery extends EngineQuery {
     type SearchType = WhereOptions<SequelizeAttributes>;
 
     try {
+      await this.engineInstance.transaction(
+        async (transaction: Transaction) => {
+          await this.save(instance, data, transaction, includes, search);
+        }
+      );
+
+      return true as unknown as S extends undefined | null
+        ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
+        : boolean;
+      /*
       if (search) {
         await instance.update<Model<ModelFields<M>>>(data as UpdateValueType, {
           where: search as SearchType,
         });
         return true as S extends undefined | null
-          ? AllRequiredModelFields<M> | undefined
+          ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
           : boolean;
       }
       return (await instance.create(
         data as CreationAttributes<SequelizeModel>
       )) as unknown as S extends undefined | null
-        ? AllRequiredModelFields<M> | undefined
+        ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
         : boolean;
+        */
     } catch (e) {
+      console.log(e);
       if (search) {
         return false as S extends undefined | null
-          ? AllRequiredModelFields<M> | undefined
+          ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
           : boolean;
       }
       return undefined as S extends undefined | null
-        ? AllRequiredModelFields<M> | undefined
+        ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
         : boolean;
     }
   }
