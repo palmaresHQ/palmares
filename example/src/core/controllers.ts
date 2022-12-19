@@ -13,6 +13,7 @@ import { getEventsServer } from '@palmares/events';
 import { User, Post as PostModel, Photo } from './models';
 import { UserSerializer, PostSerializer } from './serializers';
 import { ModelSerializerInType } from '@palmares/serializers/src/serializers/types';
+import { CreateOrUpdateModelFields } from '@palmares/databases/src/models/types/create-or-update';
 export class ExampleController extends Controller {
   path = '';
   constructor() {
@@ -23,25 +24,18 @@ export class ExampleController extends Controller {
   // Escreve uma rota com decorators
   @Get('/test')
   async testDecorator() {
-    await Photo.default.set({
-      data: {
-        user: {
-          userPosts: {},
-        },
-      },
-      includes: [
-        {
-          model: User,
-          includes: [{ model: PostModel }],
-        },
-        {
-          model: PostModel,
-        },
-      ] as const,
+    type Teste = CreateOrUpdateModelFields<PostModel>;
+    const teste: Teste = {};
+    await PostModel.default.set({
+      data: {},
     });
 
     await User.default.set({
-      data: {},
+      data: {
+        userPhotos: {
+          post: {},
+        },
+      },
       includes: [
         {
           model: Photo,

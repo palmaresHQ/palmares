@@ -118,7 +118,7 @@ export class Model<T = any> {
   className!: typeof this['constructor']['name'];
   options!: ModelOptionsType<T extends Model ? T : this>;
   relatedTo: readonly typeof Model[] = [];
-  abstracts: readonly Model[] = [];
+  abstracts: readonly Model[] = [] as const;
   name!: string;
   originalName!: string;
   domainName!: string;
