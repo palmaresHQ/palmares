@@ -21,8 +21,6 @@ export class Photo extends models.Model<Photo>() {
       toField: 'id',
       relatedName: 'postPhotos',
       relationName: 'post',
-      defaultValue: null,
-      allowNull: true,
     }),
     userId: ForeignKeyField.new({
       relatedTo: User,

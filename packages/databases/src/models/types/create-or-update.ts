@@ -99,39 +99,18 @@ type RelatedFieldOfModelOnCreateOrUpdateOptional<
     any
   >
     ? RMIFF extends InstanceType<ReturnType<typeof model>>
-      ? I extends readonly [readonly [infer FI, ...infer RI]]
-        ? FI extends ReturnType<typeof model>
-          ? RI extends Includes
-            ? IncludesRelatedModelsForCreateOrUpdate<
-                CreateOrUpdateModelFields<RMIFF>,
-                RMIFF,
-                RI
-              >
-            : IncludesRelatedModelsForCreateOrUpdate<
-                CreateOrUpdateModelFields<RMIFF>,
-                RMIFF,
-                []
-              >
-          : IncludesRelatedModelsForCreateOrUpdate<
-              CreateOrUpdateModelFields<RMIFF>,
-              RMIFF,
-              []
-            >
-        : IncludesRelatedModelsForCreateOrUpdate<
-            CreateOrUpdateModelFields<RMIFF>,
-            RMIFF,
-            []
-          >
-      : IncludesRelatedModelsForCreateOrUpdate<
+      ? IncludesRelatedModelsForCreateOrUpdate<
           CreateOrUpdateModelFields<RMIFF>,
           RMIFF,
-          []
+          I
         >
+      : never
     : never;
 };
 
 type RelatedFieldOfModelOnCreateOrUpdateRequired<
   M extends Model,
+  RM extends Model,
   I extends Includes
 > = {
   [K in keyof M['fields'] as M['fields'][K] extends ForeignKeyField<
@@ -142,7 +121,7 @@ type RelatedFieldOfModelOnCreateOrUpdateRequired<
     any,
     any,
     any,
-    any,
+    infer RMIFF,
     any,
     any,
     infer RNN
@@ -161,26 +140,22 @@ type RelatedFieldOfModelOnCreateOrUpdateRequired<
     infer RMIFF,
     any,
     any,
-    any
+    infer RNN
   >
     ? RMIFF extends InstanceType<ReturnType<typeof model>>
-      ? I extends readonly [readonly [infer FI, ...infer RI]]
-        ? FI extends ReturnType<typeof model>
+      ? I extends readonly [{ model: infer FI }, ...infer RI]
+        ? RM extends RMIFF
           ? RI extends Includes
             ? IncludesRelatedModelsForCreateOrUpdate<
-                IncludesRelatedModelsForCreateOrUpdate<
-                  CreateOrUpdateModelFields<RMIFF>,
-                  RMIFF,
-                  RI
-                >,
+                CreateOrUpdateModelFields<RMIFF>,
                 RMIFF,
-                RI
+                I
               >
-            : never
-          : never
+            : string
+          : boolean
         : CreateOrUpdateModelFields<RMIFF>
-      : CreateOrUpdateModelFields<RMIFF>
-    : never;
+      : unknown
+    : undefined;
 };
 
 type RelatedFieldToModelOnCreateOrUpdate<
@@ -204,29 +179,21 @@ type RelatedFieldToModelOnCreateOrUpdate<
     ? RMIFKF extends M
       ? RN
       : never
-    : never]: I extends [infer FI, ...infer RI]
-    ? FI extends ReturnType<typeof model>
-      ? RI extends Includes
-        ? IncludesRelatedModelsForCreateOrUpdate<
-            CreateOrUpdateModelFields<RM>,
-            RM,
-            I
-          >
-        : IncludesRelatedModelsForCreateOrUpdate<
-            CreateOrUpdateModelFields<RM>,
-            RM,
-            []
-          >
-      : IncludesRelatedModelsForCreateOrUpdate<
+    : never]: I extends readonly [
+    (
+      | { model: ReturnType<typeof model> }
+      | { model: ReturnType<typeof model>; includes: infer FMI }
+    ),
+    ...infer RI
+  ]
+    ? FMI extends Includes
+      ? IncludesRelatedModelsForCreateOrUpdate<
           CreateOrUpdateModelFields<RM>,
           RM,
           I
         >
-    : IncludesRelatedModelsForCreateOrUpdate<
-        CreateOrUpdateModelFields<RM>,
-        RM,
-        []
-      >;
+      : never
+    : CreateOrUpdateModelFields<RM>;
 };
 
 export type RelatedFieldsTypeWithoutModelRelation<
@@ -236,27 +203,35 @@ export type RelatedFieldsTypeWithoutModelRelation<
   ToInclude extends Includes
 > = I extends ReturnType<typeof model>
   ? T &
-      RelatedFieldToModelOnCreateOrUpdate<M, InstanceType<I>, ToInclude> &
-      RelatedFieldOfModelOnCreateOrUpdateRequired<M, ToInclude> &
-      RelatedFieldOfModelOnCreateOrUpdateOptional<M, ToInclude>
+      RelatedFieldOfModelOnCreateOrUpdateOptional<M, ToInclude> &
+      RelatedFieldOfModelOnCreateOrUpdateRequired<
+        M,
+        InstanceType<I>,
+        ToInclude
+      > &
+      RelatedFieldToModelOnCreateOrUpdate<M, InstanceType<I>, ToInclude>
   : T;
 
 export type IncludesRelatedModelsForCreateOrUpdate<
   T,
   M extends Model,
   I extends Includes
-> = I extends readonly [{ model: infer FI; includes: infer FMI }, ...infer RI]
+> = I extends
+  | readonly [{ model: infer FI; includes: infer FMI }, ...infer RI]
+  | readonly [{ model: infer FI }, ...infer RI]
+  | readonly [{ model: infer FI }]
   ? FI extends ReturnType<typeof model>
-    ? FMI extends Includes
-      ? RI extends Includes
+    ? RI extends Includes
+      ? FMI extends Includes
         ? T &
-            RelatedFieldsTypeWithoutModelRelation<T, M, FI, RI> &
-            IncludesRelatedModelsForCreateOrUpdate<T, InstanceType<FI>, FMI> &
+            RelatedFieldsTypeWithoutModelRelation<T, M, FI, FMI> &
             IncludesRelatedModelsForCreateOrUpdate<T, M, RI>
-        : null
-      : null
-    : null
-  : null;
+        : T &
+            RelatedFieldsTypeWithoutModelRelation<T, M, FI, []> &
+            IncludesRelatedModelsForCreateOrUpdate<T, M, RI>
+      : never
+    : never
+  : T;
 /*? RI extends Includes
     ? FI extends ReturnType<typeof model>
       ? T &

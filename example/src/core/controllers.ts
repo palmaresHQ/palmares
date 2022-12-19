@@ -25,25 +25,41 @@ export class ExampleController extends Controller {
   async testDecorator() {
     await Photo.default.set({
       data: {
-
+        user: {
+          userPosts: {},
+        },
       },
-      includes: [{
-        model: User,
-        includes: [{
-          model: PostModel
-        }]
-      }, {
-        model: PostModel
-      }] as const,
+      includes: [
+        {
+          model: User,
+          includes: [{ model: PostModel }],
+        },
+        {
+          model: PostModel,
+        },
+      ] as const,
     });
 
     await User.default.set({
-      data: {
-         userPosts: {
-          :
-         }
-      },
-      includes: [Photo, [PostModel, [User, Photo]]] as const,
+      data: {},
+      includes: [
+        {
+          model: Photo,
+          includes: [
+            {
+              model: PostModel,
+              includes: [
+                {
+                  model: User,
+                },
+                {
+                  model: Photo,
+                },
+              ],
+            },
+          ],
+        },
+      ] as const,
     });
     /*const serializer = UserSerializer.new({
       instance: instance,
