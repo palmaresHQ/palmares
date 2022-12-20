@@ -24,36 +24,8 @@ export class ExampleController extends Controller {
   // Escreve uma rota com decorators
   @Get('/test')
   async testDecorator() {
-    type Teste = CreateOrUpdateModelFields<PostModel>;
-    const teste: Teste = {};
-    await PostModel.default.set({
-      data: {},
-    });
-
     await User.default.set({
-      data: {
-        userPhotos: {
-          post: {},
-        },
-      },
-      includes: [
-        {
-          model: Photo,
-          includes: [
-            {
-              model: PostModel,
-              includes: [
-                {
-                  model: User,
-                },
-                {
-                  model: Photo,
-                },
-              ],
-            },
-          ],
-        },
-      ] as const,
+      data: {},
     });
     /*const serializer = UserSerializer.new({
       instance: instance,
@@ -93,3 +65,5 @@ export class ExampleController extends Controller {
     },
   };
 }
+
+type Teste = 'teste' extends 'teste' | 'teste2' ? true : false;

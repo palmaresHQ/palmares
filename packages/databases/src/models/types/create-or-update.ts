@@ -1,7 +1,7 @@
-import { ModelFieldsType, TModel } from '.';
+import { ModelFieldsType } from '.';
 import { Field, ForeignKeyField } from '../fields';
 import model, { Model } from '../model';
-import { Includes } from './queries';
+import { Includes, ExtractModelFromIncludesType } from './queries';
 
 type HasDefaultValueFieldsOrIsAuto<M extends ModelFieldsType> = {
   [F in keyof M as M[F]['hasDefaultValue'] extends true
@@ -13,11 +13,13 @@ type HasDefaultValueFieldsOrIsAuto<M extends ModelFieldsType> = {
 
 type OptionalFields<
   M extends Model,
-  TIgnoreRelations extends boolean = false
+  TRelationsToIgnore extends Model[] | undefined = undefined
 > = {
   [F in keyof HasDefaultValueFieldsOrIsAuto<
     M['fields']
-  > as TIgnoreRelations extends true
+  > as TRelationsToIgnore extends readonly InstanceType<
+    ReturnType<typeof model>
+  >[]
     ? M['fields'][F] extends ForeignKeyField<
         any,
         any,
@@ -26,12 +28,14 @@ type OptionalFields<
         any,
         any,
         undefined,
-        any,
+        infer TRelatedModelInForeignKeyField,
         any,
         any,
         any
       >
-      ? never
+      ? TRelatedModelInForeignKeyField extends TRelationsToIgnore[number]
+        ? never
+        : F
       : F
     : F]?: AddNull<M['fields'][F extends string ? F : never]>;
 };
@@ -46,11 +50,13 @@ type DoNotHaveDefaultValueFieldsOrIsNotAuto<M extends ModelFieldsType> = {
 
 type RequiredFields<
   M extends Model,
-  TIgnoreRelations extends boolean = false
+  TRelationsToIgnore extends Model[] | undefined = undefined
 > = {
   [F in keyof DoNotHaveDefaultValueFieldsOrIsNotAuto<
     M['fields']
-  > as TIgnoreRelations extends true
+  > as TRelationsToIgnore extends readonly InstanceType<
+    ReturnType<typeof model>
+  >[]
     ? M['fields'][F] extends ForeignKeyField<
         any,
         any,
@@ -59,12 +65,14 @@ type RequiredFields<
         any,
         any,
         undefined,
-        any,
+        infer TRelatedModelInForeignKeyField,
         any,
         any,
         any
       >
-      ? never
+      ? TRelatedModelInForeignKeyField extends TRelationsToIgnore[number]
+        ? never
+        : F
       : F
     : F]: AddNull<M['fields'][F extends string ? F : never]>;
 };
@@ -75,24 +83,24 @@ type AddNull<F extends Field<any, boolean>> = F['allowNull'] extends true
 
 type AbstractsAsFields<
   TAbstracts extends readonly Model[],
-  TIgnoreRelations extends boolean = false
+  TRelationsToIgnore extends Model[] | undefined = undefined
 > = TAbstracts extends readonly [infer TAbstract, ...infer TRestAbstracts]
   ? TAbstract extends Model
-    ? OptionalFields<TAbstract, TIgnoreRelations> &
-        RequiredFields<TAbstract, TIgnoreRelations> &
-        AbstractsAsFields<TAbstract['abstracts'], TIgnoreRelations> &
+    ? OptionalFields<TAbstract, TRelationsToIgnore> &
+        RequiredFields<TAbstract, TRelationsToIgnore> &
+        AbstractsAsFields<TAbstract['abstracts'], TRelationsToIgnore> &
         (TRestAbstracts extends readonly Model[]
-          ? AbstractsAsFields<TRestAbstracts, TIgnoreRelations>
+          ? AbstractsAsFields<TRestAbstracts, TRelationsToIgnore>
           : unknown)
     : unknown
   : unknown;
 
 export type CreateOrUpdateModelFields<
   M extends Model,
-  TIgnoreRelations extends boolean = false
-> = OptionalFields<M, TIgnoreRelations> &
-  RequiredFields<M, TIgnoreRelations> &
-  AbstractsAsFields<M['abstracts']>;
+  TRelationsToIgnore extends Model[] | undefined = undefined
+> = OptionalFields<M, TRelationsToIgnore> &
+  RequiredFields<M, TRelationsToIgnore> &
+  AbstractsAsFields<M['abstracts'], TRelationsToIgnore>;
 
 type RelatedFieldOfModelOnCreateOrUpdateOptional<
   M extends Model,
@@ -129,10 +137,7 @@ type RelatedFieldOfModelOnCreateOrUpdateOptional<
   >
     ? RMIFF extends InstanceType<ReturnType<typeof model>>
       ? IncludesRelatedModelsForCreateOrUpdate<
-          CreateOrUpdateModelFields<
-            RMIFF,
-            I extends any[] ? (I['length'] extends 0 ? false : true) : false
-          >,
+          CreateOrUpdateModelFields<RMIFF, ExtractModelFromIncludesType<I, []>>,
           RMIFF,
           I
         >
@@ -140,21 +145,9 @@ type RelatedFieldOfModelOnCreateOrUpdateOptional<
     : never;
 };
 
-type ExtractModelFromIncludesType<
-  I extends Includes,
-  TOnlyModels extends readonly Model[]
-> = I extends readonly [{ model: infer TModel }, ...infer TRest]
-  ? TModel extends ReturnType<typeof model>
-    ? ExtractModelFromIncludesType<
-        TRest extends Includes ? TRest : undefined,
-        readonly [...TOnlyModels, InstanceType<TModel>]
-      >
-    : TOnlyModels
-  : TOnlyModels;
-
 type RelatedFieldOfModelOnCreateOrUpdateRequired<
   M extends Model,
-  RM extends Model,
+  TRelatedModel extends Model,
   I extends Includes
 > = {
   [K in keyof M['fields'] as M['fields'][K] extends ForeignKeyField<
@@ -165,13 +158,13 @@ type RelatedFieldOfModelOnCreateOrUpdateRequired<
     any,
     any,
     any,
-    infer RMIFF,
+    infer TRelatedModelInForeignKeyField,
     any,
     any,
     infer RNN
   >
     ? M['fields'][K]['hasDefaultValue'] extends false
-      ? RMIFF extends RM
+      ? TRelatedModelInForeignKeyField extends TRelatedModel
         ? RNN
         : never
       : never
@@ -183,15 +176,20 @@ type RelatedFieldOfModelOnCreateOrUpdateRequired<
     any,
     any,
     undefined,
-    infer RMIFF,
+    infer TRelatedModelInForeignKeyField,
     any,
     any,
     any
   >
-    ? RMIFF extends InstanceType<ReturnType<typeof model>>
+    ? TRelatedModelInForeignKeyField extends InstanceType<
+        ReturnType<typeof model>
+      >
       ? IncludesRelatedModelsForCreateOrUpdate<
-          CreateOrUpdateModelFields<RMIFF, ExtractModelFromIncludesType<I, []>>,
-          RMIFF,
+          CreateOrUpdateModelFields<
+            TRelatedModelInForeignKeyField,
+            ExtractModelFromIncludesType<I, []>
+          >,
+          TRelatedModelInForeignKeyField,
           I
         >
       : never
@@ -219,14 +217,17 @@ type RelatedFieldToModelOnCreateOrUpdate<
     ? RMIFKF extends M
       ? RN
       : never
-    : never]: IncludesRelatedModelsForCreateOrUpdate<
-    CreateOrUpdateModelFields<
-      RM,
-      I extends readonly any[] ? (I['length'] extends 0 ? false : true) : false
-    >,
-    RM,
-    I
-  >;
+    : never]: RM['fields'][K]['unique'] extends true
+    ? IncludesRelatedModelsForCreateOrUpdate<
+        CreateOrUpdateModelFields<RM, ExtractModelFromIncludesType<I, [M]>>, // This will ignore the current model on the next
+        RM,
+        I
+      >
+    : IncludesRelatedModelsForCreateOrUpdate<
+        CreateOrUpdateModelFields<RM, ExtractModelFromIncludesType<I, [M]>>, // This will ignore the current model on the next
+        RM,
+        I
+      >[];
 };
 
 export type RelatedFieldsTypeWithoutModelRelation<
@@ -265,15 +266,3 @@ export type IncludesRelatedModelsForCreateOrUpdate<
       : never
     : never
   : T;
-/*? RI extends Includes
-    ? FI extends ReturnType<typeof model>
-      ? T &
-          RelatedFieldsTypeWithoutModelRelation<T, M, FI, RI> &
-          IncludesRelatedModelsForCreateOrUpdate<T, M, RI>
-      : FI extends Includes
-      ? T &
-          IncludesRelatedModelsForCreateOrUpdate<T, M, FI> &
-          IncludesRelatedModelsForCreateOrUpdate<T, M, RI>
-      : T & IncludesRelatedModelsForCreateOrUpdate<T, M, RI>
-    : T & IncludesRelatedModelsForCreateOrUpdate<T, M, []>
-  : T;*/

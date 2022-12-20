@@ -7,7 +7,6 @@ import {
   AllRequiredModelFields,
   ModelFields,
   IncludesRelatedModels,
-  AllRequiredFieldsIgnoringRelations,
 } from './types';
 import {
   IncludesRelatedModelsForCreateOrUpdate,
@@ -263,7 +262,7 @@ export default class Manager<
       args.search,
       await Promise.all(
         (args?.includes || []).map(
-          async (includeModel) =>
+          async ({ model: includeModel }) =>
             await includeModel.default.getInstance(engineName)
         )
       ),

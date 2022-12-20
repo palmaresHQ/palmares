@@ -270,7 +270,6 @@ export default class SequelizeEngineQuery extends EngineQuery {
         : boolean;
         */
     } catch (e) {
-      console.log(e);
       if (search) {
         return false as S extends undefined | null
           ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
