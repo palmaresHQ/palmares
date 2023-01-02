@@ -1,27 +1,24 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
-  AllOptionalModelFields,
-  AllRequiredModelFields,
   EngineQuery,
   ModelFields,
   TModel,
   models,
-  IncludesRelatedModels,
+  Includes,
+  IncludesInstances,
+  ModelFieldsWithIncludes,
 } from '@palmares/databases';
 
 import {
   ModelCtor,
   Model,
-  Attributes,
-  WhereOptions,
   CreationAttributes,
   Includeable,
   Transaction,
-  Sequelize,
   ModelAttributeColumnReferencesOptions,
   // eslint-disable-next-line import/no-unresolved
 } from 'sequelize/types';
 // eslint-disable-next-line import/no-unresolved
-import { Col, Fn, Literal } from 'sequelize/types/utils';
 
 export default class SequelizeEngineQuery extends EngineQuery {
   /**
@@ -125,7 +122,6 @@ export default class SequelizeEngineQuery extends EngineQuery {
       if (search) return this.update(instance, search, data, transaction);
       return this.create(instance, data, transaction);
     }
-    console.log(instance.associations);
     // Saves the model.
     if (includes === undefined) {
       await saveQueries.bind(this)();
@@ -187,111 +183,85 @@ export default class SequelizeEngineQuery extends EngineQuery {
     await Promise.all(promises);
   }
 
-  override async get<
-    M extends TModel,
-    I extends readonly ReturnType<typeof models.Model>[] | undefined
-  >(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    instance: ModelCtor<Model<ModelFields<M>>>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    args?: {
-      includes?: ModelCtor<Model<ModelFields<M>>>[];
-      search?: AllOptionalModelFields<M>;
-    }
-  ): Promise<IncludesRelatedModels<AllRequiredModelFields<M>, M, I>[]> {
-    const include = await this.getIncludeStatement(
-      instance,
-      args?.includes || [],
-      [],
-      []
-    );
-    try {
-      return instance.findAll({
-        where: args?.search,
-        include: include,
-        raw: true,
-        nest: true,
-      }) as unknown as Promise<
-        IncludesRelatedModels<AllRequiredModelFields<M>, M, I>[]
-      >;
-    } catch {
-      return [];
-    }
-  }
-
+  /*
   override async set<
-    M extends TModel,
-    I extends readonly ReturnType<typeof models.Model>[] | undefined,
-    S extends AllOptionalModelFields<M> | null | undefined = undefined
+    TModel extends InstanceType<ReturnType<typeof models.Model>>,
+    TIncludes extends Includes = undefined,
+    TSearch extends
+      | ModelFieldsWithIncludes<TModel, TIncludes, false, false, true, true>
+      | undefined
+      | null = undefined
   >(
-    instance: ModelCtor<Model<ModelFields<M>>>,
-    data: S extends undefined ? ModelFields<M> : AllOptionalModelFields<M>,
-    search?: S | undefined,
-    includes?: ModelCtor<Model<any>>[] | undefined
+    instance: ModelCtor<Model>,
+    data: ModelFieldsWithIncludes<
+      TModel,
+      TIncludes,
+      true,
+      false,
+      TSearch extends undefined ? false : true,
+      false
+    >,
+    search?: TSearch,
+    includes?: IncludesInstances<ModelCtor<Model>>[],
+    internal?: {
+      model: TModel;
+      includes: TIncludes;
+    }
   ): Promise<
-    S extends null | undefined
-      ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
-      : boolean
+    TSearch extends undefined
+      ? ModelFieldsWithIncludes<TModel, TIncludes>
+      : ModelFieldsWithIncludes<TModel, TIncludes>[]
   > {
-    type SequelizeModel = Model<ModelFields<M>>;
-    type SequelizeAttributes = Attributes<SequelizeModel>;
-    type UpdateValueType = {
-      [key in keyof SequelizeAttributes]?:
-        | SequelizeAttributes[key]
-        | Fn
-        | Col
-        | Literal;
-    };
-    type SearchType = WhereOptions<SequelizeAttributes>;
+    return [] as unknown as Promise<
+      TSearch extends undefined
+        ? ModelFieldsWithIncludes<TModel, TIncludes>
+        : ModelFieldsWithIncludes<TModel, TIncludes>[]
+    >;
+    /*type SequelizeModel = Model<ModelFields<M>>;
+type SequelizeAttributes = Attributes<SequelizeModel>;
+type UpdateValueType = {
+  [key in keyof SequelizeAttributes]?:
+    | SequelizeAttributes[key]
+    | Fn
+    | Col
+    | Literal;
+};
+type SearchType = WhereOptions<SequelizeAttributes>;
 
-    try {
-      await this.engineInstance.transaction(
-        async (transaction: Transaction) => {
-          await this.save(instance, data, transaction, includes, search);
-        }
-      );
-
-      return true as unknown as S extends undefined | null
-        ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
-        : boolean;
-      /*
-      if (search) {
-        await instance.update<Model<ModelFields<M>>>(data as UpdateValueType, {
-          where: search as SearchType,
-        });
-        return true as S extends undefined | null
-          ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
-          : boolean;
-      }
-      return (await instance.create(
-        data as CreationAttributes<SequelizeModel>
-      )) as unknown as S extends undefined | null
-        ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
-        : boolean;
-        */
-    } catch (e) {
-      if (search) {
-        return false as S extends undefined | null
-          ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
-          : boolean;
-      }
-      return undefined as S extends undefined | null
-        ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
-        : boolean;
+try {
+  await this.engineInstance.transaction(
+    async (transaction: Transaction) => {
+      await this.save(instance, data, transaction, includes, search);
     }
-  }
+  );
 
-  async remove<M extends TModel>(
-    instance: ModelCtor<Model<ModelFields<M>>>,
-    search?: AllOptionalModelFields<M>
-  ): Promise<boolean> {
-    try {
-      await instance.destroy({
-        where: search,
-      });
-      return true;
-    } catch {
-      return false;
-    }
+  return true as unknown as S extends undefined | null
+    ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
+    : boolean;
+  /*
+  if (search) {
+    await instance.update<Model<ModelFields<M>>>(data as UpdateValueType, {
+      where: search as SearchType,
+    });
+    return true as S extends undefined | null
+      ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
+      : boolean;
   }
+  return (await instance.create(
+    data as CreationAttributes<SequelizeModel>
+  )) as unknown as S extends undefined | null
+    ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
+    : boolean;
+} catch (e) {
+  if (search) {
+    return false as S extends undefined | null
+      ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
+      : boolean;
+  }
+  return undefined as S extends undefined | null
+    ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
+    : boolean;
+}
+  }
+  */
 }

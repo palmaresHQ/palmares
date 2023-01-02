@@ -1,8 +1,10 @@
-import State from "../state";
-import Migration from "../migrate/migration";
-import Engine from "../../engine";
+/* eslint-disable @typescript-eslint/no-empty-function */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import State from '../state';
+import Migration from '../migrate/migration';
+import Engine from '../../engine';
 import { ActionToGenerateType, ToStringFunctionReturnType } from './types';
-import { OriginalOrStateModelsByNameType } from "../types";
+import { OriginalOrStateModelsByNameType } from '../types';
 
 /**
  * Actions are the operations that we do in each migration.
@@ -33,7 +35,11 @@ export class Operation {
    * @param domainName - The name of the domain where this model was defined.
    * @param domainPath - The path of the domain where this model exists so we can add the migration file there.
    */
-  async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {}
+  async stateForwards(
+    state: State,
+    domainName: string,
+    domainPath: string
+  ): Promise<void> {}
 
   /**
    * Method that runs when a migration is running on a migration file, when this happens we will call the exact
@@ -49,7 +55,12 @@ export class Operation {
     toState: OriginalOrStateModelsByNameType
   ): Promise<void> {}
 
-  static async defaultToGenerate<T>(domainName: string, domainPath: string, modelName: string, data: T): Promise<ActionToGenerateType<T>> {
+  static async defaultToGenerate<T>(
+    domainName: string,
+    domainPath: string,
+    modelName: string,
+    data: T
+  ): Promise<ActionToGenerateType<T>> {
     return {
       operation: this,
       domainName: domainName,
@@ -57,21 +68,33 @@ export class Operation {
       modelName: modelName,
       order: 0,
       dependsOn: [],
-      data: data
-    }
-  }
-
-  static async toString(indentation: number=0, data: ActionToGenerateType<any>): Promise<ToStringFunctionReturnType> {
-    return {
-      asString: ''
+      data: data,
     };
   }
 
-  static async defaultToString(indentation: number = 0, customAttributesOfAction: string = ''): Promise<string> {
+  static async toString(
+    indentation = 0,
+    data: ActionToGenerateType<any>
+  ): Promise<ToStringFunctionReturnType> {
+    return {
+      asString: '',
+    };
+  }
+
+  static async defaultToString(
+    indentation = 0,
+    customAttributesOfAction = ''
+  ): Promise<string> {
     const ident = '  '.repeat(indentation);
-    return `${ident}new actions.${this.name}(`+
-    `${customAttributesOfAction !== '' ?`\n${customAttributesOfAction}\n${ident}` : '' }`+
-    `)`
+    return (
+      `${ident}new actions.${this.name}(` +
+      `${
+        customAttributesOfAction !== ''
+          ? `\n${customAttributesOfAction}\n${ident}`
+          : ''
+      }` +
+      `)`
+    );
   }
 
   static async describe(data: ActionToGenerateType<any>): Promise<string> {

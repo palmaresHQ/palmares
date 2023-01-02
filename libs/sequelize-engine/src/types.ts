@@ -1,25 +1,36 @@
-import { ModelAttributeColumnOptions, Model, IndexesOptions, ModelStatic, DataType } from "sequelize";
-import { InitializedModelsType, models } from "@palmares/databases";
+import {
+  ModelAttributeColumnOptions,
+  Model,
+  IndexesOptions,
+  ModelStatic,
+  DataType,
+  ModelCtor,
+} from 'sequelize';
+import {
+  InitializedModelsType,
+  ModelFieldsInQueries,
+  models,
+} from '@palmares/databases';
 
 export type IndexesToAddOnNextIterationType = {
-  tableName: string,
-  index: IndexesOptions
-}
+  tableName: string;
+  index: IndexesOptions;
+};
 
 export type GetForeignKeyReferencesForTableReturnType = {
-  constraintName?: string,
-  constraintSchema?: string,
-  constraintCatalog?: string,
-  tableName?: string,
-  tableSchema?: string,
-  tableCatalog?: string,
-  columnName?: string,
-  referencedTableSchema?: string,
-  referencedTableCatalog?: string,
-  referencedTableName?: string,
-  referencedColumnName?: string,
+  constraintName?: string;
+  constraintSchema?: string;
+  constraintCatalog?: string;
+  tableName?: string;
+  tableSchema?: string;
+  tableCatalog?: string;
+  columnName?: string;
+  referencedTableSchema?: string;
+  referencedTableCatalog?: string;
+  referencedTableName?: string;
+  referencedColumnName?: string;
   deferrable?: any;
-}
+};
 
 export type MigrationModelType = InitializedModelsType<ModelStatic<Model>>;
 
@@ -31,14 +42,18 @@ export type CircularDependenciesInMigrationType = {
 };
 
 export type ModelTranslatorIndexesType = {
-    [key: string]: IndexesOptions[]
-}
+  [key: string]: IndexesOptions[];
+};
 
 type RelatedFieldsToEvaluateType = {
-    field: models.fields.ForeignKeyField,
-    fieldAttributes: ModelAttributeColumnOptions
-}
+  field: models.fields.ForeignKeyField;
+  fieldAttributes: ModelAttributeColumnOptions;
+};
 
 export type RelatedModelToEvaluateAfterType = {
-    [key: string]: RelatedFieldsToEvaluateType[]
-}
+  [key: string]: RelatedFieldsToEvaluateType[];
+};
+
+export type SequelizeModel<
+  TModel extends InstanceType<ReturnType<typeof models.Model>>
+> = ModelCtor<Model<ModelFieldsInQueries<TModel>>>;

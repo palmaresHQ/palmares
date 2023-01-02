@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "start": "ts-node dist/manage.js dev",
-    "dev": "ts-node manage.ts dev",
+    "dev": "nodemon --watch 'src/' --watch '../packages' --watch '../libs' --exec ' ts-node manage.ts dev' -e ts",
     "events": "ts-node manage.ts eventsServer",
     "models": "ts-node src/core/models.ts",
     "test": "ts-node teste.ts",
@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "@types/cors": "^2.8.12",
+    "nodemon": "^2.0.20",
     "typescript": "^4.9.3"
   }
 }

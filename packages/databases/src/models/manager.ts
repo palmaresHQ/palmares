@@ -3,23 +3,18 @@ import { conf, Domain } from '@palmares/core';
 import {
   ManagerInstancesType,
   ManagerEngineInstancesType,
-  AllOptionalModelFields,
-  AllRequiredModelFields,
-  ModelFields,
-  IncludesRelatedModels,
+  Includes,
+  ModelFieldsWithIncludes,
+  IncludesInstances,
+  IncludesValidated,
+  FieldsOFModelType,
 } from './types';
-import {
-  IncludesRelatedModelsForCreateOrUpdate,
-  CreateOrUpdateModelFields,
-} from './types/create-or-update';
-import { Includes } from './types/queries';
 import { ManagerEngineInstanceNotFoundError } from './exceptions';
 import Engine from '../engine';
 import { Model, default as model } from './model';
 import Databases from '../databases';
 import { DatabaseSettingsType } from '../types';
 import { DatabaseDomainInterface } from '../interfaces';
-
 /**
  * Managers define how you make queries on the database. Instead of making queries everywhere in your application
  * you should always use managers for your most common tasks.
@@ -71,7 +66,7 @@ export default class Manager<
   instances: ManagerInstancesType;
   engineInstances: ManagerEngineInstancesType;
   defaultEngineInstanceName: string;
-  model!: Model;
+  models: { [engineName: string]: Model };
   modelKls!: { new (...args: unknown[]): any };
   isLazyInitializing = false;
 
@@ -79,11 +74,16 @@ export default class Manager<
     //this.modelKls = modelKls;
     this.instances = {};
     this.engineInstances = {};
+    this.models = {};
     this.defaultEngineInstanceName = '';
   }
 
-  _setModel(model: M) {
-    this.model = model as M;
+  _setModel(engineName: string, model: M) {
+    this.models[engineName] = model as M;
+  }
+
+  getModel(engineName: string) {
+    return this.models[engineName];
   }
 
   /**
@@ -91,7 +91,8 @@ export default class Manager<
    * the model outside of the domain, because of that we need to initialize the models manually. Usually it's a lot better
    * to just use the models after they've been initialized but sometimes it might happen that you need to initialize them
    * before the app is ready. For that we will use this. This will create a new Database instance if it doesn't exist,
-   * load the settings from where we can find them and initialize the domains. After that we are able to retrieve
+   * load the settings from where we can find them and initialize the domains. After that we are able to retrieve the
+   * data from the model
    */
   async verifyIfNotInitializedAndInitializeModels(engineName: string) {
     const database = new Databases();
@@ -173,6 +174,49 @@ export default class Manager<
     this.engineInstances[engineName] = instance;
   }
 
+  async #getIncludeInstancesRecursively(
+    engineName: string,
+    includes: Includes,
+    modelInstancesByModelName: { [modelName: string]: any } = {},
+    includesInstances: IncludesInstances[] = []
+  ) {
+    const doesIncludesExists = Array.isArray(includes);
+    if (doesIncludesExists) {
+      const includesAsArray = includes as readonly {
+        model: ReturnType<typeof model>;
+        includes?: Includes;
+      }[];
+      const promises = includesAsArray.map(
+        async ({ model, includes: includesOfModel }) => {
+          const modelName = model.name;
+          const isModelAlreadyGot =
+            modelInstancesByModelName[modelName] !== undefined;
+
+          const modelInstance = isModelAlreadyGot
+            ? modelInstancesByModelName[modelName]
+            : await model.default.getInstance(engineName);
+
+          if (isModelAlreadyGot === false)
+            modelInstancesByModelName[modelName] = modelInstance;
+
+          const includeInstanceForModel: IncludesInstances = {
+            model: modelInstance,
+          };
+          includesInstances.push(includeInstanceForModel);
+          if (includesOfModel)
+            await this.#getIncludeInstancesRecursively(
+              engineName,
+              includesOfModel,
+              modelInstancesByModelName,
+              includeInstanceForModel.includes || []
+            );
+        }
+      );
+      await Promise.all(promises);
+    }
+    return includesInstances;
+  }
+
   /**
    * A simple get method for retrieving the data of a model. It will ALWAYS be an array, it's the programmers responsibility
    * to filter it accordingly if he want to retrieve an instance.
@@ -183,34 +227,51 @@ export default class Manager<
    * @return - An array of instances retrieved by this query.
    */
   async get<
-    I extends readonly ReturnType<typeof model>[] | undefined,
-    MDL extends Model = M
+    TModel extends Model = M,
+    TIncludes extends Includes = undefined,
+    TFields extends FieldsOFModelType<TModel> = readonly (keyof TModel['fields'])[]
   >(
     args?: {
-      includes?: I;
-      search?: AllOptionalModelFields<MDL>;
+      includes?: IncludesValidated<TModel, TIncludes>;
+      fields?: TFields;
+      search?: ModelFieldsWithIncludes<
+        TModel,
+        TIncludes,
+        TFields,
+        false,
+        false,
+        true,
+        true
+      >;
     },
     engineName?: string
-  ): Promise<IncludesRelatedModels<AllRequiredModelFields<MDL>, MDL, I>[]> {
+  ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]> {
+    const engineInstanceName = engineName || this.defaultEngineInstanceName;
     // Promise.all here will not work, we need to do this sequentially.
     const engineInstance = await this.getEngineInstance(engineName);
-
-    return engineInstance.query.get<MDL, I>(
-      await this.getInstance(engineName),
+    const allFieldsOfModel = Object.keys(
+      this.getModel(engineInstanceName)['fields']
+    );
+    return engineInstance.query.get.run<TModel, TIncludes, TFields>(
       {
-        includes: await Promise.all(
-          (args?.includes || []).map(
-            async (includeModel) =>
-              await includeModel.default.getInstance(engineName)
-          )
-        ),
-        search: args?.search,
+        fields: args?.fields || (allFieldsOfModel as unknown as TFields),
+        search:
+          args?.search ||
+          ({} as ModelFieldsWithIncludes<
+            TModel,
+            TIncludes,
+            TFields,
+            false,
+            false,
+            true,
+            true
+          >),
       },
       {
-        model: this.model as MDL,
-        includes: (args?.includes || []) as I,
+        model: this.models[engineInstanceName] as TModel,
+        includes: (args?.includes || []) as TIncludes,
       }
-    ) as Promise<IncludesRelatedModels<AllRequiredModelFields<MDL>, MDL, I>[]>;
+    ) as Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]>;
   }
 
   /**
@@ -233,44 +294,64 @@ export default class Manager<
    * @param engineName - The name of the engine to use defined in the DATABASES object. By default we use the `default` one.
    *
    * @return - Return the created instance or undefined if something went wrong, or boolean if it's an update.
-   */
+   * /
   async set<
-    I extends Includes = undefined,
-    S extends M | undefined = undefined
+    TModel extends Model = M,
+    TIncludes extends Includes = undefined,
+    TSearch extends
+      | ModelFieldsWithIncludes<
+          TModel,
+          TIncludes,
+          [],
+          false,
+          false,
+          false,
+          true
+        >
+      | undefined
+      | null = undefined
   >(
     args: {
-      data: IncludesRelatedModelsForCreateOrUpdate<
-        CreateOrUpdateModelFields<M>,
-        M,
-        I
+      data: ModelFieldsWithIncludes<
+        TModel,
+        TIncludes,
+        [],
+        true,
+        false,
+        TSearch extends undefined ? false : true,
+        false
       >;
-      search?: S;
-      includes?: I;
+      search?: TSearch;
+      includes?: TIncludes;
     },
     engineName?: string
   ): Promise<
-    S extends undefined | null ? AllRequiredModelFields<M> | undefined : boolean
+    TSearch extends undefined
+      ? ModelFieldsWithIncludes<TModel, TIncludes>
+      : ModelFieldsWithIncludes<TModel, TIncludes>[]
   > {
+    const engineInstanceName = engineName || this.defaultEngineInstanceName;
+
     // Promise.all here will not work, we need to do this sequentially.
     const engineInstance = await this.getEngineInstance(engineName);
 
-    return engineInstance.query.set<M, I, S>(
+    return engineInstance.query.set<TModel, TIncludes, TSearch>(
       await this.getInstance(engineName),
-      args.data as S extends undefined
-        ? ModelFields<M>
-        : AllOptionalModelFields<M>,
+      args.data as any,
       args.search,
-      await Promise.all(
-        (args?.includes || []).map(
-          async ({ model: includeModel }) =>
-            await includeModel.default.getInstance(engineName)
-        )
+      await this.#getIncludeInstancesRecursively(
+        engineInstanceName,
+        args?.includes
       ),
       {
-        model: this.model as M,
-        includes: args.includes as I,
+        model: this.models[engineInstanceName] as TModel,
+        includes: args.includes as TIncludes,
       }
-    );
+    ) as Promise<
+      TSearch extends undefined
+        ? ModelFieldsWithIncludes<TModel, TIncludes>
+        : ModelFieldsWithIncludes<TModel, TIncludes>[]
+    >;
   }
 
   /**
@@ -281,17 +362,40 @@ export default class Manager<
    * @param engineName - The name of the engine to use defined in the DATABASES object. By default we use the `default` one.
    *
    * @return - Returns true if everything went fine and false otherwise.
-   */
-  async remove(
-    search: AllOptionalModelFields<M>,
+   * /
+  async remove<
+    TModel extends Model = M,
+    TIncludes extends Includes = undefined
+  >(
+    args: {
+      search: ModelFieldsWithIncludes<
+        TModel,
+        TIncludes,
+        false,
+        false,
+        true,
+        true
+      >;
+      includes?: TIncludes;
+    },
     engineName?: string
   ): Promise<boolean> {
+    const engineInstanceName = engineName || this.defaultEngineInstanceName;
+
     const [engineInstance, instance] = await Promise.all([
       this.getEngineInstance(),
       this.getInstance(engineName),
     ]);
-    return engineInstance.query.remove<M>(instance, search);
+    return engineInstance.query.remove<TModel, TIncludes>(
+      instance,
+      args.search,
+      {
+        model: this.models[engineInstanceName] as TModel,
+        includes: args.includes as TIncludes,
+      }
+    );
   }
+  */
 }
 
 export class DefaultManager<M extends Model> extends Manager<M, null> {}

@@ -1,17 +1,17 @@
-import Engine from "../../engine";
-import { Operation } from "./operation";
-import { ModelFieldsType, ModelOptionsType, } from "../../models/types";
+import Engine from '../../engine';
+import { Operation } from './operation';
+import { ModelFieldsType, ModelOptionsType } from '../../models/types';
 import {
   CreateModelToGenerateData,
   ChangeModelToGenerateData,
   RenameModelToGenerateData,
   ActionToGenerateType,
-  ToStringFunctionReturnType
-} from "./types";
-import { OriginalOrStateModelsByNameType } from "../types";
-import Migration from "../migrate/migration";
-import State from "../state";
-import { BaseModel } from "../../models";
+  ToStringFunctionReturnType,
+} from './types';
+import { OriginalOrStateModelsByNameType } from '../types';
+import Migration from '../migrate/migration';
+import State from '../state';
+import { BaseModel } from '../../models';
 
 /**
  * This operation is used when you create a model in the application.
@@ -26,14 +26,22 @@ export class CreateModel extends Operation {
   fields: ModelFieldsType;
   options: ModelOptionsType;
 
-  constructor(modelName: string, fields: ModelFieldsType, options: ModelOptionsType = {}) {
+  constructor(
+    modelName: string,
+    fields: ModelFieldsType,
+    options: ModelOptionsType = {}
+  ) {
     super();
     this.modelName = modelName;
     this.fields = fields;
     this.options = options;
   }
 
-  async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {
+  async stateForwards(
+    state: State,
+    domainName: string,
+    domainPath: string
+  ): Promise<void> {
     const model = await state.get(this.modelName);
     model.domainName = domainName;
     model.domainPath = domainPath;
@@ -55,9 +63,14 @@ export class CreateModel extends Operation {
     domainName: string,
     domainPath: string,
     modelName: string,
-    data: CreateModelToGenerateData,
+    data: CreateModelToGenerateData
   ) {
-    return await super.defaultToGenerate(domainName, domainPath, modelName, data);
+    return await super.defaultToGenerate(
+      domainName,
+      domainPath,
+      modelName,
+      data
+    );
   }
 
   static async toString(
@@ -65,15 +78,16 @@ export class CreateModel extends Operation {
     data: ActionToGenerateType<CreateModelToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
-    const { asString: fieldsAsString, customImports } = await BaseModel._fieldsToString(indentation, data.data.fields);
+    const { asString: fieldsAsString, customImports } =
+      await BaseModel._fieldsToString(indentation, data.data.fields);
     return {
       asString: await super.defaultToString(
-        indentation-1,
+        indentation - 1,
         `${ident}"${data.modelName}",\n` +
-        `${fieldsAsString},\n` +
-        `${await BaseModel._optionsToString(indentation, data.data.options)}`
+          `${fieldsAsString},\n` +
+          `${await BaseModel._optionsToString(indentation, data.data.options)}`
       ),
-      customImports: customImports
+      customImports: customImports,
     };
   }
 
@@ -99,7 +113,9 @@ export class DeleteModel extends Operation {
 
   async stateForwards(
     state: State,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     domainName: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     domainPath: string
   ): Promise<void> {
     await state.remove(this.modelName);
@@ -109,10 +125,11 @@ export class DeleteModel extends Operation {
     migration: Migration,
     engineInstance: Engine,
     fromState: OriginalOrStateModelsByNameType,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     toState: OriginalOrStateModelsByNameType
   ): Promise<void> {
     const fromModel = fromState[this.modelName];
-    await engineInstance.migrations.removeModel(fromModel, migration)
+    await engineInstance.migrations.removeModel(fromModel, migration);
   }
 
   static async toGenerate(
@@ -130,9 +147,9 @@ export class DeleteModel extends Operation {
     const ident = '  '.repeat(indentation);
     return {
       asString: await super.defaultToString(
-        indentation-1,
+        indentation - 1,
         `${ident}"${data.modelName}"`
-      )
+      ),
     };
   }
 
@@ -152,14 +169,22 @@ export class ChangeModel extends Operation {
   optionsBefore!: ModelOptionsType;
   optionsAfter!: ModelOptionsType;
 
-  constructor(modelName: string, optionsBefore: ModelOptionsType, optionsAfter: ModelOptionsType) {
+  constructor(
+    modelName: string,
+    optionsBefore: ModelOptionsType,
+    optionsAfter: ModelOptionsType
+  ) {
     super();
     this.modelName = modelName;
     this.optionsBefore = optionsBefore;
     this.optionsAfter = optionsAfter;
   }
 
-  async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {
+  async stateForwards(
+    state: State,
+    domainName: string,
+    domainPath: string
+  ): Promise<void> {
     const model = await state.get(this.modelName);
     model.domainName = domainName;
     model.domainPath = domainPath;
@@ -174,10 +199,15 @@ export class ChangeModel extends Operation {
   ) {
     const toModel = toState[this.modelName];
     const fromModel = fromState[this.modelName];
-    await engineInstance.migrations.changeModel(toModel, fromModel, migration)
+    await engineInstance.migrations.changeModel(toModel, fromModel, migration);
   }
 
-  static async toGenerate(domainName: string, domainPath: string, modelName: string, data: ChangeModelToGenerateData) {
+  static async toGenerate(
+    domainName: string,
+    domainPath: string,
+    modelName: string,
+    data: ChangeModelToGenerateData
+  ) {
     return super.defaultToGenerate(domainName, domainPath, modelName, data);
   }
 
@@ -188,18 +218,24 @@ export class ChangeModel extends Operation {
     const ident = '  '.repeat(indentation);
     return {
       asString: await super.defaultToString(
-        indentation-1,
+        indentation - 1,
         `${ident}"${data.modelName}",\n` +
-        `${await BaseModel._optionsToString(indentation, data.data.optionsBefore)},\n` +
-        `${await BaseModel._optionsToString(indentation, data.data.optionsAfter)}`
-      )
+          `${await BaseModel._optionsToString(
+            indentation,
+            data.data.optionsBefore
+          )},\n` +
+          `${await BaseModel._optionsToString(
+            indentation,
+            data.data.optionsAfter
+          )}`
+      ),
     };
   }
 
   static async describe(
     data: ActionToGenerateType<ChangeModelToGenerateData>
   ): Promise<string> {
-    return `Changed one or more of the model '${data.modelName}' options`
+    return `Changed one or more options of the model '${data.modelName}' options`;
   }
 }
 
@@ -217,18 +253,27 @@ export class RenameModel extends Operation {
     this.newModelName = newModelName;
   }
 
-  async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {
+  async stateForwards(
+    state: State,
+    domainName: string,
+    domainPath: string
+  ): Promise<void> {
     const model = await state.get(this.oldModelName);
     model.name = this.newModelName;
     model.domainName = domainName;
     model.domainPath = domainPath;
     await Promise.all([
       state.set(this.newModelName, model),
-      state.remove(this.oldModelName)
+      state.remove(this.oldModelName),
     ]);
   }
 
-  static async toGenerate(domainName: string, domainPath: string, modelName: string, data: RenameModelToGenerateData) {
+  static async toGenerate(
+    domainName: string,
+    domainPath: string,
+    modelName: string,
+    data: RenameModelToGenerateData
+  ) {
     return super.defaultToGenerate(domainName, domainPath, modelName, data);
   }
 
@@ -239,16 +284,16 @@ export class RenameModel extends Operation {
     const ident = '  '.repeat(indentation);
     return {
       asString: await super.defaultToString(
-        indentation-1,
+        indentation - 1,
         `${ident}"${data.data.modelNameBefore}",\n` +
-        `${ident}"${data.data.modelNameBefore}"`
-      )
+          `${ident}"${data.data.modelNameBefore}"`
+      ),
     };
   }
 
   static async describe(
     data: ActionToGenerateType<RenameModelToGenerateData>
   ): Promise<string> {
-    return `Renamed the model '${data.data.modelNameBefore}' to '${data.data.modelNameAfter}'`
+    return `Renamed the model '${data.data.modelNameBefore}' to '${data.data.modelNameAfter}'`;
   }
 }

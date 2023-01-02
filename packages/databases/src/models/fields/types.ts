@@ -1,6 +1,5 @@
 import Field from './field';
 import Engine, { EngineFields } from '../../engine';
-import { TModel } from '../types';
 import { Model } from '../model';
 
 export enum ON_DELETE {
@@ -101,6 +100,7 @@ export type UUIDFieldParamsType<
   AG extends boolean = A
 > = {
   autoGenerate?: AG;
+  maxLength?: number;
 } & TextFieldParamsType<F, D, U, N, AG extends true ? true : A, CA>;
 
 export type DateFieldParamsType<
@@ -121,17 +121,37 @@ export type DateFieldParamsType<
 
 export type ForeignKeyFieldParamsType<
   F extends Field,
+  TLazyDefaultValue = undefined,
   D extends N extends true
-    ? (T extends undefined ? M['fields'][RF]['type'] : T) | undefined | null
+    ?
+        | (TLazyDefaultValue extends undefined
+            ? T extends undefined
+              ? M extends Model<infer ThisModel>
+                ? ThisModel extends Model
+                  ? ThisModel['fields'][RF]['type']
+                  : T
+                : T
+              : T
+            : TLazyDefaultValue)
+        | undefined
+        | null
     :
-        | (T extends undefined ? M['fields'][RF]['type'] : T)
+        | (TLazyDefaultValue extends undefined
+            ? T extends undefined
+              ? M extends Model<infer ThisModel>
+                ? ThisModel extends Model
+                  ? ThisModel['fields'][RF]['type']
+                  : T
+                : T
+              : T
+            : TLazyDefaultValue)
         | undefined = undefined,
   U extends boolean = false,
   N extends boolean = false,
   A extends boolean = false,
   CA = any,
   T = undefined,
-  M extends Model = Model,
+  M = Model,
   RF extends string = any,
   RN extends string = any,
   RNN extends string = any
@@ -142,4 +162,5 @@ export type ForeignKeyFieldParamsType<
   relationName: RNN;
   onDelete: ON_DELETE;
   customName?: string;
+  lazyDefaultValueType?: TLazyDefaultValue;
 } & FieldDefaultParamsType<F, D, U, N, A, CA>;

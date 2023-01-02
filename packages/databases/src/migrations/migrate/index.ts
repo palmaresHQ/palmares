@@ -1,12 +1,18 @@
-import { logging } from "@palmares/core";
+import { logging } from '@palmares/core';
 
-import { PalmaresMigrations } from "../../defaults/models";
-import Engine from "../../engine";
-import { DatabaseSettingsType, InitializedEngineInstancesType } from "../../types";
-import { LOGGING_MIGRATIONS_NO_NEW_MIGRATIONS, LOGGING_MIGRATIONS_RUNNING_FILE_NAME } from "../../utils";
-import { FoundMigrationsFileType } from "../types";
-import Migration from "./migration";
-import { MigrationsToAddAfterIterationType } from "./type";
+import { PalmaresMigrations } from '../../defaults/models';
+import Engine from '../../engine';
+import {
+  DatabaseSettingsType,
+  InitializedEngineInstancesType,
+} from '../../types';
+import {
+  LOGGING_MIGRATIONS_NO_NEW_MIGRATIONS,
+  LOGGING_MIGRATIONS_RUNNING_FILE_NAME,
+} from '../../utils';
+import { FoundMigrationsFileType } from '../types';
+import Migration from './migration';
+import { MigrationsToAddAfterIterationType } from './type';
 
 /**
  * This class holds the logic for evaluating migrations, usually evaluating migrations is simple because we just
@@ -14,7 +20,7 @@ import { MigrationsToAddAfterIterationType } from "./type";
  */
 export default class Migrate {
   settings: DatabaseSettingsType;
-  migrationsToAddAfterIteration: MigrationsToAddAfterIterationType[] = []
+  migrationsToAddAfterIteration: MigrationsToAddAfterIterationType[] = [];
 
   private constructor(settings: DatabaseSettingsType) {
     this.settings = settings;
@@ -35,15 +41,19 @@ export default class Migrate {
    * @param engineName - The name of the user defined engine that was created in `DATABASES`
    */
   async saveMigration(migrationName: string, engineName: string) {
-    this.migrationsToAddAfterIteration.push({ migrationName, engineName});
-    const newMigrationsToAddAfterIteration: MigrationsToAddAfterIterationType[] = [];
-    for (const migrationToAddAfterIteration of this.migrationsToAddAfterIteration) {
+    this.migrationsToAddAfterIteration.push({ migrationName, engineName });
+    const newMigrationsToAddAfterIteration: MigrationsToAddAfterIterationType[] =
+      [];
+    for (const migrationToAddAfterIteration of this
+      .migrationsToAddAfterIteration) {
       try {
-        const createdMigration = await PalmaresMigrations.migrations.createMigration(
-          migrationToAddAfterIteration.migrationName,
-          migrationToAddAfterIteration.engineName
-        );
-        if (!createdMigration) newMigrationsToAddAfterIteration.push(migrationToAddAfterIteration);
+        const createdMigration =
+          await PalmaresMigrations.migrations.createMigration(
+            migrationToAddAfterIteration.migrationName,
+            migrationToAddAfterIteration.engineName
+          );
+        if (!createdMigration)
+          newMigrationsToAddAfterIteration.push(migrationToAddAfterIteration);
       } catch {
         newMigrationsToAddAfterIteration.push(migrationToAddAfterIteration);
       }
@@ -59,10 +69,14 @@ export default class Migrate {
    */
   async getLastMigration(engineName: string) {
     try {
-      const lastMigrationName = await PalmaresMigrations.migrations.getLastMigrationName(engineName);
-      const isAValidMigrationName = typeof lastMigrationName === 'string' && lastMigrationName !== '';
+      const lastMigrationName =
+        await PalmaresMigrations.migrations.getLastMigrationName(engineName);
+      const isAValidMigrationName =
+        typeof lastMigrationName === 'string' && lastMigrationName !== '';
       if (isAValidMigrationName) return lastMigrationName;
-    } catch {}
+    } catch {
+      return null;
+    }
     return null;
   }
 
@@ -78,25 +92,37 @@ export default class Migrate {
     engineInstance: Engine,
     allMigrationsOfDatabase: FoundMigrationsFileType[]
   ) {
-    const lastMigrationName = await this.getLastMigration(engineInstance.databaseName);
-    const startIndexOfFilter = allMigrationsOfDatabase.findIndex(
-      migration => migration.migration.name === lastMigrationName
-    ) + 1;
+    const lastMigrationName = await this.getLastMigration(
+      engineInstance.databaseName
+    );
+    const startIndexOfFilter =
+      allMigrationsOfDatabase.findIndex(
+        (migration) => migration.migration.name === lastMigrationName
+      ) + 1;
     const filteredMigrationsOfDatabase = allMigrationsOfDatabase.slice(
-      startIndexOfFilter, allMigrationsOfDatabase.length
+      startIndexOfFilter,
+      allMigrationsOfDatabase.length
     );
 
     if (filteredMigrationsOfDatabase.length > 0) {
       for (const migrationFile of filteredMigrationsOfDatabase) {
         const migrationName = migrationFile.migration.name;
 
-        logging.logMessage(LOGGING_MIGRATIONS_RUNNING_FILE_NAME, { title: migrationName });
+        logging.logMessage(LOGGING_MIGRATIONS_RUNNING_FILE_NAME, {
+          title: migrationName,
+        });
 
-        await Migration.buildFromFile(engineInstance, migrationFile, allMigrationsOfDatabase);
+        await Migration.buildFromFile(
+          engineInstance,
+          migrationFile,
+          allMigrationsOfDatabase
+        );
         await this.saveMigration(migrationName, engineInstance.databaseName);
       }
     } else {
-      logging.logMessage(LOGGING_MIGRATIONS_NO_NEW_MIGRATIONS, { databaseName: engineInstance.databaseName });
+      logging.logMessage(LOGGING_MIGRATIONS_NO_NEW_MIGRATIONS, {
+        databaseName: engineInstance.databaseName,
+      });
     }
   }
 
@@ -113,9 +139,14 @@ export default class Migrate {
     migrations: FoundMigrationsFileType[],
     initializedEngineInstances: InitializedEngineInstancesType
   ) {
-    const initializedEngineInstancesEntries = Object.entries(initializedEngineInstances);
-    for (const [database, { engineInstance }] of initializedEngineInstancesEntries) {
-      const filteredMigrationsOfDatabase = migrations.filter(migration =>
+    const initializedEngineInstancesEntries = Object.entries(
+      initializedEngineInstances
+    );
+    for (const [
+      database,
+      { engineInstance },
+    ] of initializedEngineInstancesEntries) {
+      const filteredMigrationsOfDatabase = migrations.filter((migration) =>
         [database, '*'].includes(migration.migration.database)
       );
       const migrate = new this(settings);

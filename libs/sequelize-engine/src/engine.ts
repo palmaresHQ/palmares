@@ -19,6 +19,7 @@ import SequelizeEngineQuery from './query';
 import SequelizeEngineFields from './fields';
 import ModelTranslator from './model';
 import SequelizeMigrations from './migrations';
+import SequelizeEngineGetQuery from './get-query';
 
 export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
   #isConnected: boolean | null = null;
@@ -70,7 +71,10 @@ export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
       databaseName,
       databaseSettings,
       SequelizeEngineFields,
-      SequelizeEngineQuery,
+      {
+        query: SequelizeEngineQuery,
+        get: SequelizeEngineGetQuery,
+      },
       SequelizeMigrations
     );
     this.fields = new SequelizeEngineFields(this);

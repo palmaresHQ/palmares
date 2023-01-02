@@ -504,7 +504,7 @@ export default class ModelSerializer<
    * @param validatedData - The data to pass to the `set` method to create a new instance/row.
    */
   async create(validatedData: this['inType']) {
-    if (validatedData) {
+    /*if (validatedData) {
       const Model = this.options.model as ReturnType<typeof models.Model>;
       if (this._many) {
         const validatedDatas = this.validatedData as this['inType'][];
@@ -519,7 +519,7 @@ export default class ModelSerializer<
         return Promise.all(promises);
       }
       return Model.default.set({ data: validatedData }, this.engineName);
-    }
+    }*/
   }
 
   /**
@@ -535,7 +535,7 @@ export default class ModelSerializer<
    * @returns - Returns the same thing it would return if you called the `Model.default.set` method update directly.
    */
   async update(instance: this['outType'], validatedData: this['inType']) {
-    if (validatedData && instance) {
+    /*if (validatedData && instance) {
       const Model = this.options.model as ReturnType<typeof models.Model>;
       if (this._many) {
         const instances = instance as this['outType'][];
@@ -558,7 +558,7 @@ export default class ModelSerializer<
         },
         this.engineName
       );
-    }
+    }*/
   }
 
   /**

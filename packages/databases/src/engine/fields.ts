@@ -1,6 +1,6 @@
-import Engine from ".";
-import { EngineFieldsType } from "./types";
-import { Field, TranslatableField } from "../models/fields";
+import Engine from '.';
+import { EngineFieldsType } from './types';
+import { Field, TranslatableField } from '../models/fields';
 
 /**
  * This works as a storage and transformer for all of the fields. First we have the `set` method
@@ -9,11 +9,11 @@ import { Field, TranslatableField } from "../models/fields";
  */
 export default class EngineFields implements EngineFieldsType {
   engineInstance!: Engine;
-  fields: Map<Field["fieldName"], Field> = new Map();
+  fields: Map<Field['fieldName'], Field> = new Map();
 
-	constructor(engineInstance: Engine) {
-		this.engineInstance = engineInstance;
-	}
+  constructor(engineInstance: Engine) {
+    this.engineInstance = engineInstance;
+  }
 
   /**
    * Sets the field instance in the `fields` Map object so we can retrieve it later. You generally don't need to override this.
@@ -23,9 +23,9 @@ export default class EngineFields implements EngineFieldsType {
    *
    * @param field - The field instance to save on the map object.
    */
-	async set(field: Field): Promise<void> {
-		this.fields.set(field.fieldName, field);
-	}
+  async set(field: Field): Promise<void> {
+    this.fields.set(field.fieldName, field);
+  }
 
   /**
    * This should return the field translated, on here it returns if the field was translated and the field translated or not.
@@ -44,17 +44,20 @@ export default class EngineFields implements EngineFieldsType {
    */
   async get(fieldName: string) {
     const field = this.fields.get(fieldName);
-    const hasTranslateHandler = typeof (field as TranslatableField).translate === 'function';
+    const hasTranslateHandler =
+      typeof (field as TranslatableField).translate === 'function';
     if (hasTranslateHandler) {
-      const fieldAsTranslatable = (field as TranslatableField);
+      const fieldAsTranslatable = field as TranslatableField;
       return {
         wasTranslated: true,
-        value: fieldAsTranslatable.translate ? fieldAsTranslatable.translate(this.engineInstance, this) : null
+        value: fieldAsTranslatable.translate
+          ? fieldAsTranslatable.translate(this.engineInstance, this)
+          : null,
       };
     } else {
       return {
         wasTranslated: false,
-        value: field
+        value: field,
       };
     }
   }

@@ -9,4 +9,5 @@ export { default as UUIDField } from './uuid';
 export { default as ForeignKeyField } from './foreign-key';
 export { default as AutoField } from './auto';
 export { default as BigAutoField } from './big-auto';
+export { default as TranslatableField } from './translatable';
 export { ON_DELETE } from './types';

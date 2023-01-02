@@ -15,6 +15,7 @@ import {
 import Manager, { DefaultManager } from './manager';
 import { getUniqueCustomImports } from '../utils';
 import { CustomImportsForFieldType } from './fields/types';
+import { ForeignKeyField } from './fields';
 
 /**
  * This class is used for initializing a model. This will work similar to django except that instead of
@@ -113,16 +114,32 @@ export class Model<T = any> {
   fields: ModelFieldsType = {};
   type!: ModelFields<T extends Model ? T : this>;
   _isState = false;
-  _dependentOnModels: string[] = [];
 
   className!: typeof this['constructor']['name'];
   options!: ModelOptionsType<T extends Model ? T : this>;
-  relatedTo: readonly typeof Model[] = [];
+  associations: {
+    [modelName: string]: ForeignKeyField<
+      any,
+      any,
+      any,
+      any,
+      any,
+      any,
+      any,
+      any,
+      any
+    >[];
+  } = {};
+  // Other models use this model as ForeignKey
+  indirectlyRelatedTo: { [modelName: string]: string[] } = {};
+  // This model uses other models as ForeignKey
+  directlyRelatedTo: { [modelName: string]: string[] } = {};
   abstracts: readonly Model[] = [] as const;
   name!: string;
   originalName!: string;
   domainName!: string;
   domainPath!: string;
+  primaryKeys: string[] = [];
 
   static _isInitialized = false;
   static readonly defaultOptions = {
@@ -273,12 +290,34 @@ export class Model<T = any> {
     const managerValues = Object.values(managers);
 
     for (const manager of managerValues) {
-      manager._setModel(this);
+      manager._setModel(engineInstance.databaseName, this);
       manager._setInstance(engineInstance.databaseName, modelInstance);
       manager._setEngineInstance(engineInstance.databaseName, engineInstance);
     }
   }
 
+  /**
+   * This setups the indirect relations to the model. What we are doing is that we are setting the relatedTo
+   * property of the model in the engineInstance._indirectlyRelatedModels. By doing this when we update the value on this
+   * array it will update the `relatedTo` array inside of this model as well. With this we are able to know which models
+   * relates to this model.
+   *
+   * @param engineInstance - The current engine instance we are initializing this model instance
+   */
+  async #initializeRelatedToModels(engineInstance?: Engine) {
+    if (engineInstance) {
+      const relatedTo: string[] = [];
+      engineInstance._indirectlyRelatedModels[this.originalName] =
+        engineInstance._indirectlyRelatedModels[this.originalName] || relatedTo;
+      this.indirectlyRelatedTo =
+        engineInstance._indirectlyRelatedModels[this.originalName];
+    }
+  }
+
+  /**
+   * Sometimes (Serializers) we want to initialize the models but not the hole model, just the basic stuff related to the fields.
+   * For that we use this method.
+   */
   async initializeBasic(engineInstance?: Engine) {
     if (this._isState) {
       this.originalName = this.name;
@@ -288,6 +327,7 @@ export class Model<T = any> {
       this.name = this.constructor.name;
     }
 
+    await this.#initializeRelatedToModels(engineInstance);
     await this.#initializeAbstracts();
     await this.#initializeOptions();
     await this.#initializeFields(engineInstance);
@@ -305,13 +345,13 @@ export class Model<T = any> {
       this.name = this.constructor.name;
     }
 
+    await this.#initializeRelatedToModels(engineInstance);
     await this.#initializeAbstracts();
     await this.#initializeOptions();
     await this.#initializeFields(engineInstance);
 
     const modelInstance = (await engineInstance.initializeModel(this)) as any;
     await this.#initializeManagers(engineInstance, modelInstance);
-
     (this.constructor as typeof Model)._isInitialized = true;
     return modelInstance;
   }

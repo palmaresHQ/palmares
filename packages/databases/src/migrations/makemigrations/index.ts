@@ -571,29 +571,39 @@ export default class MakeMigrations {
   ): Promise<ActionToGenerateType<any>[]> {
     const reorderedOperations = [];
     let pendingOperations = operations;
-    let previousNumberOfReorderedOperations = -1;
+    let previousNumberOfReorderedOperations: number | undefined = undefined;
+
     while (pendingOperations.length > 0) {
       const newPendingOperations = [];
-      for (const operationToProcess of pendingOperations) {
+      for (let i = 0; i < pendingOperations.length; i++) {
+        const operationToProcess = pendingOperations[i];
         const modelOfOperationToProcess =
           this.#originalModelsByName[operationToProcess.modelName] !== undefined
             ? this.#originalModelsByName[operationToProcess.modelName]
             : this.#stateModelsByName[operationToProcess.modelName];
         const hasNoDependencies =
-          modelOfOperationToProcess.original._dependentOnModels.length === 0;
+          Object.keys(modelOfOperationToProcess.original._dependentOnModels)
+            .length === 0;
+
         const addedModels = new Set(
           reorderedOperations.map((operation) => operation.modelName)
         );
-        const dependenciesAlreadyAdded =
-          modelOfOperationToProcess.original._dependentOnModels.every(
-            (dependencyOfModel: string) =>
-              addedModels.has(dependencyOfModel) ||
-              dependencyOfModel ===
-                modelOfOperationToProcess.original.originalName // For circular relations.
-          );
+
+        const dependenciesAlreadyAdded = Object.keys(
+          modelOfOperationToProcess.original.directlyRelatedTo
+        ).every(
+          (dependencyOfModel: string) =>
+            addedModels.has(dependencyOfModel) ||
+            dependencyOfModel ===
+              modelOfOperationToProcess.original.originalName // For circular relations.
+        );
+
         // this means it is the last run so we must add any pending migrations.
+        // This is here so we doesn't run in an infinite loop. We just add the pending one if it's the last one.
         const didNotAddAnyPendingOperationInThePreviousRun =
-          previousNumberOfReorderedOperations === reorderedOperations.length;
+          previousNumberOfReorderedOperations === reorderedOperations.length &&
+          i === pendingOperations.length - 1;
+
         if (
           hasNoDependencies ||
           dependenciesAlreadyAdded ||
@@ -644,13 +654,14 @@ export default class MakeMigrations {
     lastMigrationName = '',
     lastDomainPath = ''
   ) {
-    const [join, existsSync, mkdir, writeFile, readdir] = await Promise.all([
-      imports<typeof import('path')['join']>('path', 'join'),
+    const join = await imports<typeof import('path')['join']>('path', 'join');
+    const [existsSync, mkdir, writeFile, readdir] = await Promise.all([
       imports<typeof import('fs')['existsSync']>('fs', 'existsSync'),
       imports<typeof import('fs')['mkdir']>('fs', 'mkdir'),
       imports<typeof import('fs')['writeFile']>('fs', 'writeFile'),
       imports<typeof import('fs')['readdir']>('fs', 'readdir'),
     ]);
+
     const customImportsOfCustomData: CustomImportsForFieldType[] = [];
     const operationsAsString: string[] = [];
     const currentDate = new Date();
@@ -758,11 +769,11 @@ export default class MakeMigrations {
           const contentsOfIndex = filteredFilesWithoutIndex
             .map((fileName, index) =>
               this.settings.USE_TS
-                ? `export { default as ${fileName.replace(
+                ? `export { default as M${fileName.replace(
                     '.ts',
                     ''
-                  )} } from '${fileName}';`
-                : `require('${fileName}')${
+                  )} } from "./${fileName}";`
+                : `require('./${fileName}')${
                     index === filteredFilesWithoutIndex.length - 1 ? '' : ','
                   }`
             )
@@ -825,7 +836,7 @@ export default class MakeMigrations {
     const lastMigrationIndex = this.filteredMigrationsOfDatabase.length - 1;
     const hasALastMigration =
       this.filteredMigrationsOfDatabase[lastMigrationIndex] !== undefined;
-    const previousDomainPath = operations[0] ? operations[0].domainPath : '';
+    let previousDomainPath = operations[0] ? operations[0].domainPath : '';
     let lastDomainPath = hasALastMigration
       ? this.filteredMigrationsOfDatabase[lastMigrationIndex].domainPath
       : '';
@@ -834,7 +845,6 @@ export default class MakeMigrations {
       : '';
     let numberOfMigrationFilesCreated = 0;
     let operationsOnFile: ActionToGenerateType<any>[] = [];
-
     for (let i = 0; i < operations.length + 1; i++) {
       const operation = operations[i];
       const isLastOperationOrFromADifferentDomain =
@@ -856,6 +866,7 @@ export default class MakeMigrations {
         );
 
         numberOfMigrationFilesCreated++;
+        previousDomainPath = operation ? operation.domainPath : '';
         lastDomainPath = domainPath;
         lastMigrationName = migrationName;
         operationsOnFile = [];

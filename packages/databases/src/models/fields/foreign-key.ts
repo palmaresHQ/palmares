@@ -9,7 +9,7 @@ import { ForeignKeyFieldRequiredParamsMissingError } from './exceptions';
 import Engine, { EngineFields } from '../../engine';
 import { generateUUID } from '../../utils';
 import { This } from '../../types';
-import { Model } from '../model';
+import model, { Model } from '../model';
 
 /**
  * This type of field is special and is supposed to hold foreign key references to another field of another model.
@@ -19,22 +19,51 @@ import { Model } from '../model';
  */
 export default class ForeignKeyField<
   F extends Field = any,
+  TLazyDefaultValue = undefined,
   D extends N extends true
-    ? (T extends undefined ? M['fields'][RF]['type'] : T) | undefined | null
+    ?
+        | (TLazyDefaultValue extends undefined
+            ? T extends undefined
+              ? M extends Model<infer ThisModel>
+                ? ThisModel extends Model
+                  ? ThisModel['fields'][RF]['type']
+                  : T
+                : T
+              : T
+            : TLazyDefaultValue)
+        | undefined
+        | null
     :
-        | (T extends undefined ? M['fields'][RF]['type'] : T)
+        | (TLazyDefaultValue extends undefined
+            ? T extends undefined
+              ? M extends Model<infer ThisModel>
+                ? ThisModel extends Model
+                  ? ThisModel['fields'][RF]['type']
+                  : T
+                : T
+              : T
+            : TLazyDefaultValue)
         | undefined = undefined,
   U extends boolean = false,
   N extends boolean = false,
   A extends boolean = false,
   CA = any,
   T = undefined,
-  M extends Model = Model,
+  M = any,
   RF extends string = any,
   RN extends string = any,
   RNN extends string = any
 > extends Field<F, D, U, N, A, CA> {
-  type!: T extends undefined ? M['fields'][RF]['type'] : T;
+  type!: TLazyDefaultValue extends undefined
+    ? T extends undefined
+      ? M extends Model<infer ThisModel>
+        ? ThisModel extends InstanceType<ReturnType<typeof model>> | Model
+          ? ThisModel['fields'][RF]['type']
+          : T
+        : T
+      : T
+    : TLazyDefaultValue;
+  modelRelatedTo!: M extends Model<infer ThisModel> ? ThisModel : M;
   typeName: string = ForeignKeyField.name;
   relatedTo!: string;
   onDelete!: ON_DELETE;
@@ -44,7 +73,20 @@ export default class ForeignKeyField<
   _originalRelatedName?: string;
 
   constructor(
-    params: ForeignKeyFieldParamsType<F, D, U, N, A, CA, T, M, RF, RN, RNN>
+    params: ForeignKeyFieldParamsType<
+      F,
+      TLazyDefaultValue,
+      D,
+      U,
+      N,
+      A,
+      CA,
+      T,
+      M,
+      RF,
+      RN,
+      RNN
+    >
   ) {
     super(params);
 
@@ -70,17 +112,37 @@ export default class ForeignKeyField<
 
   static new<
     I extends This<typeof ForeignKeyField>,
+    TLazyDefaultValue = undefined,
     D extends N extends true
-      ? (T extends undefined ? M['fields'][RF]['type'] : T) | undefined | null
+      ?
+          | (TLazyDefaultValue extends undefined
+              ? T extends undefined
+                ? M extends Model<infer ThisModel>
+                  ? ThisModel extends Model
+                    ? ThisModel['fields'][RF]['type']
+                    : T
+                  : T
+                : T
+              : TLazyDefaultValue)
+          | undefined
+          | null
       :
-          | (T extends undefined ? M['fields'][RF]['type'] : T)
+          | (TLazyDefaultValue extends undefined
+              ? T extends undefined
+                ? M extends Model<infer ThisModel>
+                  ? ThisModel extends Model
+                    ? ThisModel['fields'][RF]['type']
+                    : T
+                  : T
+                : T
+              : TLazyDefaultValue)
           | undefined = undefined,
     U extends boolean = false,
     N extends boolean = false,
     A extends boolean = false,
     CA = any,
     T = undefined,
-    M extends Model = Model,
+    M = Model,
     RF extends string = any,
     RN extends string = any,
     RNN extends string = any
@@ -88,6 +150,7 @@ export default class ForeignKeyField<
     this: I,
     params: ForeignKeyFieldParamsType<
       InstanceType<I>,
+      TLazyDefaultValue,
       D,
       U,
       N,
@@ -102,6 +165,7 @@ export default class ForeignKeyField<
   ) {
     return new this(params) as ForeignKeyField<
       InstanceType<I>,
+      TLazyDefaultValue,
       D,
       U,
       N,
@@ -126,9 +190,39 @@ export default class ForeignKeyField<
     if (isRelatedToAndOnDeleteNotDefined)
       throw new ForeignKeyFieldRequiredParamsMissingError(this.fieldName);
 
-    // Appends to the model the other models this model is related to.
-    model._dependentOnModels.push(this.relatedTo);
+    const hasNotIncludesAssociation =
+      (model.associations[this.relatedTo] || []).some(
+        (association) => association.fieldName === fieldName
+      ) === false;
+    if (hasNotIncludesAssociation) {
+      model.associations[this.relatedTo] =
+        model.associations[this.relatedTo] || [];
+      model.associations[this.relatedTo].push(this);
+    }
 
+    // Appends to the model the other models this model is related to.
+    model.directlyRelatedTo[this.relatedTo] =
+      model.directlyRelatedTo[this.relatedTo] || [];
+    model.directlyRelatedTo[this.relatedTo].push(this.relationName);
+
+    // this will update the indirectly related models of the engine instance.
+    // This means that for example, if the Post model has a foreign key to the User model
+    // There is no way for the User model to know that it is related to the Post model.
+    // Because of this we update this value on the engine instance. Updating the array on the engine instance
+    // will also reflect on the `relatedTo` array in the model instance.
+    if (engineInstance && this._originalRelatedName) {
+      engineInstance._indirectlyRelatedModels[this.relatedTo] =
+        engineInstance._indirectlyRelatedModels[this.relatedTo] || {};
+      engineInstance._indirectlyRelatedModels[this.relatedTo][
+        model.originalName
+      ] =
+        engineInstance._indirectlyRelatedModels[this.relatedTo][
+          model.originalName
+        ] || [];
+      engineInstance._indirectlyRelatedModels[this.relatedTo][
+        model.originalName
+      ].push(this._originalRelatedName);
+    }
     await super.init(fieldName, model, engineInstance);
 
     const wasRelatedNameDefined: boolean = typeof this.relatedName === 'string';
@@ -177,6 +271,7 @@ export default class ForeignKeyField<
             ? `"${this.customName}"`
             : this.customName
         },\n` +
+        `${ident}relationName: "${this.relationName}",\n` +
         `${ident}relatedName: ${
           typeof this._originalRelatedName === 'string'
             ? `"${this._originalRelatedName}",`

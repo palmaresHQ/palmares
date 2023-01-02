@@ -1,12 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import Engine from '.';
 import model from '../models/model';
 import {
-  IncludesRelatedModels,
-  AllOptionalModelFields,
-  AllRequiredModelFields,
-  ModelFields,
-  TModel,
+  Includes,
+  ModelFieldsWithIncludes,
+  IncludesInstances,
 } from '../models/types';
+import EngineGetQuery from './get-query';
 
 /**
  * Offers >>>>BASIC<<<< querying functionalities, this enables us to create libs that works well on every
@@ -24,44 +24,33 @@ import {
  */
 export default class EngineQuery {
   engineInstance: Engine;
+  get: EngineGetQuery;
 
-  constructor(engineInstance: Engine) {
+  constructor(engineInstance: Engine, engineGetQuery: typeof EngineGetQuery) {
     this.engineInstance = engineInstance;
+    this.get = new engineGetQuery(this);
   }
 
-  getModelInstance(model: TModel) {
-    return (model.constructor as any).default.getInstance(
+  getModelInstance(modelToRetrieve: ReturnType<typeof model>) {
+    return (modelToRetrieve.constructor as any).default.getInstance(
       this.engineInstance.databaseName
     );
   }
 
-  /**
-   * A simple get method for retrieving the data of a model. It will ALWAYS be an array, it's the programmers responsibility
-   * to filter it accordingly if he want to retrieve an instance.
-   *
-   * @param instance - The model instance (translated by the engine) that we will use for this query.
-   * @param search - All of the parameters of a model that can be optional for querying.
-   *
-   * @return - An array of instances retrieved by this query.
-   */
-  async get<
-    M extends TModel,
-    I extends readonly ReturnType<typeof model>[] | undefined
-  >(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    instance: any,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    args?: {
-      includes?: any[];
-      search?: AllOptionalModelFields<M>;
-    },
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    internal?: {
-      model: M;
-      includes: I;
+  async parseSearch(
+    modelInstance: InstanceType<ReturnType<typeof model>>,
+    search: any
+  ) {
+    const fieldsInModelInstance = Object.keys(modelInstance.fields);
+    const fieldsInSearch = Object.keys(search);
+
+    const formattedSearch: Record<string, any> = {};
+    for (const key of fieldsInSearch) {
+      if (fieldsInModelInstance.includes(key)) {
+        formattedSearch[key] = search[key];
+      }
     }
-  ): Promise<IncludesRelatedModels<AllRequiredModelFields<M>, M, I>[]> {
-    return [] as IncludesRelatedModels<AllRequiredModelFields<M>, M, I>[];
+    return formattedSearch;
   }
 
   /**
@@ -89,38 +78,46 @@ export default class EngineQuery {
    * @param search - All of the parameters of a model that can be optional for querying.
    *
    * @return - Return the created instance or undefined if something went wrong, or boolean if it's an update.
-   */
+   * /
   async set<
-    M extends TModel,
-    I extends readonly ReturnType<typeof model>[] | undefined,
-    S extends AllOptionalModelFields<M> | undefined | null = undefined
+    TModel extends InstanceType<ReturnType<typeof model>>,
+    TIncludes extends Includes = undefined,
+    TSearch extends
+      | ModelFieldsWithIncludes<TModel, TIncludes, false, false, false, true>
+      | undefined
+      | null = undefined
   >(
     instance: any,
-    data: S extends undefined ? ModelFields<M> : AllOptionalModelFields<M>,
-    search?: S,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    includes?: any[],
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    data: ModelFieldsWithIncludes<
+      TModel,
+      TIncludes,
+      true,
+      false,
+      TSearch extends undefined ? false : true,
+      false
+    >,
+    search?: TSearch,
+    includes?: IncludesInstances<any>[],
     internal?: {
-      model: M;
-      includes: I;
+      model: TModel;
+      includes: TIncludes;
     }
   ): Promise<
-    S extends undefined | null
-      ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
-      : boolean
+    TSearch extends undefined
+      ? ModelFieldsWithIncludes<TModel, TIncludes>
+      : ModelFieldsWithIncludes<TModel, TIncludes>[]
   > {
     const isSearchNotDefined = [null, undefined].includes(
       search as null | undefined
     );
-    if (isSearchNotDefined) {
-      return {} as S extends undefined | null
-        ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
-        : boolean;
-    }
-    return false as S extends undefined | null
-      ? IncludesRelatedModels<AllRequiredModelFields<M>, M, I> | undefined
-      : boolean;
+    if (isSearchNotDefined)
+      return {} as TSearch extends undefined
+        ? ModelFieldsWithIncludes<TModel, TIncludes>
+        : ModelFieldsWithIncludes<TModel, TIncludes>[];
+    else
+      return [] as TSearch extends undefined
+        ? ModelFieldsWithIncludes<TModel, TIncludes>
+        : ModelFieldsWithIncludes<TModel, TIncludes>[];
   }
 
   /**
@@ -131,13 +128,25 @@ export default class EngineQuery {
    * @param search - All of the parameters of a model that can be used for querying.
    *
    * @return - Returns true if everything went fine and false otherwise.
-   */
-  async remove<M extends TModel>(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   * /
+  async remove<
+    TModel extends InstanceType<ReturnType<typeof model>>,
+    TIncludes extends Includes | undefined = undefined
+  >(
     instance: any,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    search?: AllOptionalModelFields<M>
+    search?: ModelFieldsWithIncludes<
+      TModel,
+      TIncludes,
+      false,
+      false,
+      true,
+      true
+    >,
+    internal?: {
+      model: TModel;
+      includes: TIncludes;
+    }
   ): Promise<boolean> {
     return false;
-  }
+  }*/
 }

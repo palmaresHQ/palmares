@@ -1,7 +1,7 @@
-import Engine from "../../engine";
-import { Operation } from "../actions";
-import State from "../state";
-import { FoundMigrationsFileType, MigrationFileType } from "../types";
+import Engine from '../../engine';
+import { Operation } from '../actions';
+import State from '../state';
+import { FoundMigrationsFileType, MigrationFileType } from '../types';
 
 export default class Migration {
   domainName: string;
@@ -18,7 +18,7 @@ export default class Migration {
     engineInstance: Engine,
     migrationFile: MigrationFileType,
     domainName: string,
-    allMigrations: FoundMigrationsFileType[],
+    allMigrations: FoundMigrationsFileType[]
   ) {
     this.engineInstance = engineInstance;
     this.name = migrationFile.name;
@@ -39,23 +39,29 @@ export default class Migration {
    * @param allMigrations - All of the migrations that are available to be used inside of this database. With
    * this we reconstruct the state AFTER the migration has been run and BEFORE the migration has been run.
    */
-  async #runOnTransaction(transaction: any, allMigrations: FoundMigrationsFileType[]): Promise<void> {
+  async #runOnTransaction(
+    transaction: any,
+    allMigrations: FoundMigrationsFileType[]
+  ): Promise<void> {
     this.transaction = transaction;
-    for (let i = 0; i<this.operations.length; i++) {
+    for (let i = 0; i < this.operations.length; i++) {
       const operation = this.operations[i];
       const fromState = await State.buildState(allMigrations, this.name, i);
       const {
         initializedModels: fromStateModelsByModelName,
-        closeEngineInstance: closeFromEngineInstance
+        closeEngineInstance: closeFromEngineInstance,
       } = await fromState.geInitializedModelsByName(this.engineInstance);
-      const toState = await State.buildState(allMigrations, this.name, i+1);
+      const toState = await State.buildState(allMigrations, this.name, i + 1);
 
       const {
         initializedModels: toStateModelsByModelName,
-        closeEngineInstance: closeToEngineInstance
+        closeEngineInstance: closeToEngineInstance,
       } = await toState.geInitializedModelsByName(this.engineInstance);
       await operation.run(
-        this, this.engineInstance, fromStateModelsByModelName, toStateModelsByModelName
+        this,
+        this.engineInstance,
+        fromStateModelsByModelName,
+        toStateModelsByModelName
       );
       await closeToEngineInstance();
       await closeFromEngineInstance();
@@ -69,7 +75,10 @@ export default class Migration {
    */
   private async run(): Promise<void> {
     await this.engineInstance.migrations.init();
-    await this.engineInstance.transaction(this.#runOnTransaction.bind(this), this.allMigrations);
+    await this.engineInstance.transaction(
+      this.#runOnTransaction.bind(this),
+      this.allMigrations
+    );
   }
 
   /**
@@ -88,7 +97,7 @@ export default class Migration {
   static async buildFromFile(
     engineInstance: Engine,
     migrationFile: FoundMigrationsFileType,
-    allMigrations: FoundMigrationsFileType[],
+    allMigrations: FoundMigrationsFileType[]
   ): Promise<void> {
     const migration = new this(
       engineInstance,

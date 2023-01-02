@@ -8,7 +8,5 @@ export type DatabaseDomainInterface = {
     | ReturnType<typeof Model>[]
     | { [modelName: string]: ReturnType<typeof Model> }
   >;
-  getMigrations?: () => Promise<
-    MigrationFileType[] | Promise<MigrationFileType[]>[]
-  >;
+  getMigrations?: () => Promise<MigrationFileType[]>;
 } & Domain;

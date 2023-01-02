@@ -11,9 +11,8 @@ import { ExpressRequest } from '@palmares/express-adapter';
 import { getEventsServer } from '@palmares/events';
 
 import { User, Post as PostModel, Photo } from './models';
-import { UserSerializer, PostSerializer } from './serializers';
-import { ModelSerializerInType } from '@palmares/serializers/src/serializers/types';
-import { CreateOrUpdateModelFields } from '@palmares/databases/src/models/types/create-or-update';
+import { SequelizeModel } from '@palmares/sequelize-engine';
+
 export class ExampleController extends Controller {
   path = '';
   constructor() {
@@ -24,9 +23,62 @@ export class ExampleController extends Controller {
   // Escreve uma rota com decorators
   @Get('/test')
   async testDecorator() {
-    await User.default.set({
-      data: {},
+    const startOfInternal = performance.now();
+    const value = await Photo.default.get({
+      search: {
+        post: {
+          number: 3,
+        },
+      },
+      includes: [
+        {
+          model: User,
+          fields: ['lastName'],
+        },
+        {
+          model: PostModel,
+        },
+      ] as const,
     });
+    //console.log(JSON.stringify(value, null, 2));
+    const endOfInternal = performance.now();
+    console.log('Raw Performance', endOfInternal - startOfInternal, value);
+
+    //console.log(JSON.stringify(value, null, 2));
+
+    const UserInstance: SequelizeModel<User> = await User.default.getInstance();
+    const PostInstance: SequelizeModel<PostModel> =
+      await PostModel.default.getInstance();
+    const PhotoInstance: SequelizeModel<Photo> =
+      await Photo.default.getInstance();
+    const startOfNative = performance.now();
+    await PhotoInstance.findAll({
+      include: [
+        {
+          model: PostInstance,
+          as: 'post',
+          where: {
+            number: 3,
+          },
+        },
+        {
+          model: UserInstance,
+          as: 'user',
+        },
+      ],
+      raw: true,
+      nest: true,
+    });
+    const endOfNative = performance.now();
+    console.log('native Performance', endOfNative - startOfNative);
+
+    /*await PostModel.default.get({
+      includes: [
+        {
+          model: User,
+        },
+      ],
+    });*/
     /*const serializer = UserSerializer.new({
       instance: instance,
     });
@@ -36,10 +88,9 @@ export class ExampleController extends Controller {
 
   @Post('/test')
   async testPostDecorator({ body }: ExpressRequest<{ D: any }>) {
-    const instance = (
+    /*const instance = (
       await User.default.get({
         search: { id: 1 },
-        includes: [PostModel, Photo] as const,
       })
     )[0];
     const serializer = UserSerializer.new({
@@ -52,7 +103,7 @@ export class ExampleController extends Controller {
     const isValid = await serializer.isValid();
     if (isValid) {
       const savedInstance = await serializer.save();
-    }
+    }*/
     return Response.new(HTTP_201_CREATED);
   }
 
@@ -65,5 +116,3 @@ export class ExampleController extends Controller {
     },
   };
 }
-
-type Teste = 'teste' extends 'teste' | 'teste2' ? true : false;

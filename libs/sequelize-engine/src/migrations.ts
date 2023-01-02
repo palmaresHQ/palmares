@@ -361,8 +361,8 @@ export default class SequelizeMigrations extends EngineMigrations {
   async changeField(
     toModel: InitializedModelsType<ModelCtor<Model>>,
     fromModel: InitializedModelsType<ModelCtor<Model>>,
-    fieldBefore: models.fields.Field<any, boolean>,
-    fieldAfter: models.fields.Field<any, boolean>,
+    fieldBefore: models.fields.Field,
+    fieldAfter: models.fields.Field,
     migration: Migration
   ): Promise<void> {
     const attributesAsArray = Object.values(

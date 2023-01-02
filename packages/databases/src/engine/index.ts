@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { logging } from '@palmares/core';
 
 import { NotImplementedEngineException } from './exceptions';
@@ -11,6 +12,7 @@ import EngineFields from './fields';
 import EngineMigrations from './migrations';
 import EngineQuery from './query';
 import { Model } from '../models/model';
+import EngineGetQuery from './get-query';
 
 /**
  * Instead of creating our own ORM for the framework we wrap any orm we want to use inside of this class. This allow
@@ -36,18 +38,24 @@ export default class Engine<M extends Model = Model> implements EngineType {
   migrations: EngineMigrations;
   ModelType: any;
   instance: any;
+  _indirectlyRelatedModels: {
+    [modelName: string]: { [relatedModelName: string]: string[] };
+  } = {};
 
   constructor(
     databaseName: string,
     databaseSettings: DatabaseConfigurationType<any, any>,
     fields: typeof EngineFields,
-    query: typeof EngineQuery,
+    query: {
+      query: typeof EngineQuery;
+      get: typeof EngineGetQuery;
+    },
     migration: typeof EngineMigrations
   ) {
     this.databaseName = databaseName;
     this.databaseSettings = databaseSettings;
     this.fields = new fields(this);
-    this.query = new query(this);
+    this.query = new query.query(this, query.get);
     this.migrations = new migration(this, this.fields);
   }
 
@@ -57,7 +65,7 @@ export default class Engine<M extends Model = Model> implements EngineType {
    */
   static async new(
     databaseName: string,
-    databaseSettings: DatabaseConfigurationType<string, {}>
+    databaseSettings: DatabaseConfigurationType<string, object>
   ): Promise<Engine> {
     throw new NotImplementedEngineException('new');
   }
@@ -184,4 +192,4 @@ export default class Engine<M extends Model = Model> implements EngineType {
   }
 }
 
-export { EngineQuery, EngineFields, EngineMigrations };
+export { EngineQuery, EngineFields, EngineMigrations, EngineGetQuery };

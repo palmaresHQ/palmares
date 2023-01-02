@@ -47,7 +47,7 @@ export default class Field<
     this.dbIndex = typeof params.dbIndex === 'boolean' ? params.dbIndex : false;
     this.databaseName = params.databaseName || '';
     this.underscored = params.underscored || false;
-    this.customAttributes = params.customAttributes as CA;
+    this.customAttributes = params.customAttributes || ({} as CA);
   }
 
   static new<
@@ -69,6 +69,7 @@ export default class Field<
     this.fieldName = fieldName;
     this.model = model;
 
+    if (this.primaryKey) this.model.primaryKeys.push(this.fieldName);
     if (isUnderscored)
       this.databaseName = utils.camelCaseToHyphenOrSnakeCase(this.fieldName);
     else this.databaseName = this.fieldName;
@@ -83,7 +84,7 @@ export default class Field<
     const ident = '  '.repeat(indentation);
     const fieldParamsIdent = '  '.repeat(indentation + 1);
     return (
-      `${ident}new models.fields.${this.constructor.name}({` +
+      `${ident}models.fields.${this.constructor.name}.new({` +
       `${customParams ? `\n${customParams}` : ''}\n` +
       `${fieldParamsIdent}primaryKey: ${this.primaryKey},\n` +
       `${fieldParamsIdent}defaultValue: ${JSON.stringify(
