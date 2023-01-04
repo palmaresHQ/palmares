@@ -56,7 +56,7 @@ export default class DateField<
     ANA extends boolean = false
   >(
     this: I,
-    params: DateFieldParamsType<
+    params?: DateFieldParamsType<
       InstanceType<I>,
       D,
       U,

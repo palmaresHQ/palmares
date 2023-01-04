@@ -294,64 +294,64 @@ export default class Manager<
    * @param engineName - The name of the engine to use defined in the DATABASES object. By default we use the `default` one.
    *
    * @return - Return the created instance or undefined if something went wrong, or boolean if it's an update.
-   * /
+   */
   async set<
     TModel extends Model = M,
-    TIncludes extends Includes = undefined,
+    TIncludes extends Includes<true> = undefined,
     TSearch extends
       | ModelFieldsWithIncludes<
           TModel,
           TIncludes,
-          [],
+          FieldsOFModelType<TModel>,
           false,
           false,
-          false,
+          true,
           true
         >
-      | undefined
-      | null = undefined
+      | undefined = undefined
   >(
-    args: {
-      data: ModelFieldsWithIncludes<
-        TModel,
-        TIncludes,
-        [],
-        true,
-        false,
-        TSearch extends undefined ? false : true,
-        false
-      >;
+    data:
+      | ModelFieldsWithIncludes<
+          TModel,
+          TIncludes,
+          FieldsOFModelType<TModel>,
+          true,
+          false,
+          TSearch extends undefined ? false : true,
+          false
+        >[]
+      | ModelFieldsWithIncludes<
+          TModel,
+          TIncludes,
+          FieldsOFModelType<TModel>,
+          true,
+          false,
+          TSearch extends undefined ? false : true,
+          false
+        >,
+    args?: {
+      includes?: IncludesValidated<TModel, TIncludes, true>;
       search?: TSearch;
-      includes?: TIncludes;
     },
     engineName?: string
   ): Promise<
-    TSearch extends undefined
-      ? ModelFieldsWithIncludes<TModel, TIncludes>
-      : ModelFieldsWithIncludes<TModel, TIncludes>[]
+    ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]
   > {
     const engineInstanceName = engineName || this.defaultEngineInstanceName;
 
     // Promise.all here will not work, we need to do this sequentially.
     const engineInstance = await this.getEngineInstance(engineName);
-
-    return engineInstance.query.set<TModel, TIncludes, TSearch>(
-      await this.getInstance(engineName),
-      args.data as any,
-      args.search,
-      await this.#getIncludeInstancesRecursively(
-        engineInstanceName,
-        args?.includes
-      ),
+    const dataAsAnArray = Array.isArray(data) ? data : [data];
+    return engineInstance.query.set.run(
+      dataAsAnArray,
       {
-        model: this.models[engineInstanceName] as TModel,
-        includes: args.includes as TIncludes,
+        search: args?.search,
+      },
+      {
+        model: this.getModel(engineInstanceName) as TModel,
+        includes: (args?.includes || []) as TIncludes,
       }
-    ) as Promise<
-      TSearch extends undefined
-        ? ModelFieldsWithIncludes<TModel, TIncludes>
-        : ModelFieldsWithIncludes<TModel, TIncludes>[]
-    >;
+    );
   }
 
   /**

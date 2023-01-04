@@ -458,7 +458,8 @@ export default class EngineGetQuery {
     }
   ): Promise<ModelFieldsWithIncludes<TModel, TIncludes>[]> {
     const result: any[] = [];
-    const selectedFields = (args.fields || []) as string[];
+    const selectedFields = (args.fields ||
+      Object.keys(internal.model.fields)) as string[];
     try {
       return await this.queryDataNatively(
         internal.model.constructor as ReturnType<typeof model>,

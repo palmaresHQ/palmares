@@ -5,18 +5,24 @@ export type FieldsOFModelType<TModel extends Model> =
   readonly (keyof TModel['fields'])[];
 
 // --------- INCLUDES ----------- //
-export type Includes =
-  | readonly {
-      model: ReturnType<typeof model>;
-      fields?: readonly string[];
-      includes?: Includes;
-    }[]
+export type Includes<TIsCreateOrUpdateData extends boolean = false> =
+  | (TIsCreateOrUpdateData extends true
+      ? readonly {
+          model: ReturnType<typeof model>;
+          includes?: Includes<TIsCreateOrUpdateData>;
+        }[]
+      : readonly {
+          model: ReturnType<typeof model>;
+          fields?: readonly string[];
+          includes?: Includes<TIsCreateOrUpdateData>;
+        }[])
   | undefined;
 type ValueOf<T> = T[keyof T];
 
 export type IncludesValidated<
   TParentModel extends InstanceType<ReturnType<typeof model>>,
-  T extends Includes
+  T extends Includes,
+  TIsCreateOrUpdateData extends boolean = false
 > = T extends readonly [
   {
     readonly model: infer TInferedModel;
@@ -29,20 +35,38 @@ export type IncludesValidated<
       ? readonly []
       : readonly [
           TInferedIncludesOfModel extends Includes
+            ? TIsCreateOrUpdateData extends true
+              ? {
+                  model: ValidateModelsOfIncludes<TParentModel, TInferedModel>;
+                  includes?: IncludesValidated<
+                    InstanceType<TInferedModel>,
+                    TInferedIncludesOfModel,
+                    TIsCreateOrUpdateData
+                  >;
+                }
+              : {
+                  model: ValidateModelsOfIncludes<TParentModel, TInferedModel>;
+                  fields?: FieldsOFModelType<InstanceType<TInferedModel>>;
+                  includes?: IncludesValidated<
+                    InstanceType<TInferedModel>,
+                    TInferedIncludesOfModel,
+                    TIsCreateOrUpdateData
+                  >;
+                }
+            : TIsCreateOrUpdateData extends true
             ? {
                 model: ValidateModelsOfIncludes<TParentModel, TInferedModel>;
-                fields?: FieldsOFModelType<InstanceType<TInferedModel>>;
-                includes?: IncludesValidated<
-                  InstanceType<TInferedModel>,
-                  TInferedIncludesOfModel
-                >;
               }
             : {
                 model: ValidateModelsOfIncludes<TParentModel, TInferedModel>;
                 fields?: FieldsOFModelType<InstanceType<TInferedModel>>;
               },
           ...(TInferedRestIncludes extends Includes
-            ? IncludesValidated<TParentModel, TInferedRestIncludes>
+            ? IncludesValidated<
+                TParentModel,
+                TInferedRestIncludes,
+                TIsCreateOrUpdateData
+              >
             : readonly [])
         ]
     : readonly []
@@ -480,6 +504,7 @@ type RelatedFieldToModel<
     any,
     undefined,
     any, // Related model in foreign key field
+    any,
     any,
     infer TRelatedName,
     any

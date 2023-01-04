@@ -7,6 +7,7 @@ export {
   EngineMigrations,
   EngineQuery,
   EngineGetQuery,
+  EngineSetQuery,
 } from './engine';
 export * from './engine/types';
 export * as models from './models';

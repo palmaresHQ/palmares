@@ -11,10 +11,7 @@ import {
 export class Photo extends models.Model<Photo>() {
   fields = {
     id: AutoField.new(),
-    name: CharField.new({
-      defaultValue: null,
-      allowNull: true,
-    }),
+    name: CharField.new(),
     postId: ForeignKeyField.new({
       relatedTo: Post,
       onDelete: ON_DELETE.CASCADE,
@@ -40,10 +37,7 @@ export class Photo extends models.Model<Photo>() {
 export class Post extends models.Model<Post>() {
   fields = {
     id: AutoField.new(),
-    number: IntegerField.new({
-      allowNull: true,
-      defaultValue: 2,
-    }),
+    number: IntegerField.new(),
     userUuid: ForeignKeyField.new({
       relatedTo: User,
       onDelete: ON_DELETE.CASCADE,

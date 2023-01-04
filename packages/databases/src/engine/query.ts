@@ -7,6 +7,7 @@ import {
   IncludesInstances,
 } from '../models/types';
 import EngineGetQuery from './get-query';
+import EngineSetQuery from './set-query';
 
 /**
  * Offers >>>>BASIC<<<< querying functionalities, this enables us to create libs that works well on every
@@ -25,10 +26,16 @@ import EngineGetQuery from './get-query';
 export default class EngineQuery {
   engineInstance: Engine;
   get: EngineGetQuery;
+  set: EngineSetQuery;
 
-  constructor(engineInstance: Engine, engineGetQuery: typeof EngineGetQuery) {
+  constructor(
+    engineInstance: Engine,
+    engineGetQuery: typeof EngineGetQuery,
+    engineSetQuery: typeof EngineSetQuery
+  ) {
     this.engineInstance = engineInstance;
     this.get = new engineGetQuery(this);
+    this.set = new engineSetQuery(this);
   }
 
   getModelInstance(modelToRetrieve: ReturnType<typeof model>) {
@@ -41,16 +48,45 @@ export default class EngineQuery {
     modelInstance: InstanceType<ReturnType<typeof model>>,
     search: any
   ) {
-    const fieldsInModelInstance = Object.keys(modelInstance.fields);
-    const fieldsInSearch = Object.keys(search);
+    if (search) {
+      const fieldsInModelInstance = Object.keys(modelInstance.fields);
+      const fieldsInSearch = Object.keys(search);
 
-    const formattedSearch: Record<string, any> = {};
-    for (const key of fieldsInSearch) {
-      if (fieldsInModelInstance.includes(key)) {
-        formattedSearch[key] = search[key];
+      const formattedSearch: Record<string, any> = {};
+      for (const key of fieldsInSearch) {
+        if (fieldsInModelInstance.includes(key)) {
+          formattedSearch[key] = search[key];
+        }
       }
+      return formattedSearch;
     }
-    return formattedSearch;
+    return {};
+  }
+
+  /**
+   * The data parser is used to parse the data that we will use to save it to the database.
+   */
+  async parseData(
+    modelInstance: InstanceType<ReturnType<typeof model>>,
+    data: any
+  ) {
+    if (data) {
+      const dataAsArray = Array.isArray(data) ? data : [data];
+      const formattedData = dataAsArray.map((eachDataToFormat) => {
+        const fieldsInModelInstance = Object.keys(modelInstance.fields);
+        const fieldsInData = Object.keys(eachDataToFormat);
+
+        const formattedData: Record<string, any> = {};
+        for (const key of fieldsInData) {
+          if (fieldsInModelInstance.includes(key)) {
+            formattedData[key] = eachDataToFormat[key];
+          }
+        }
+        return formattedData;
+      });
+      return formattedData;
+    }
+    return undefined;
   }
 
   /**

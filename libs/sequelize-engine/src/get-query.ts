@@ -12,6 +12,8 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
    * This is used to parse all of the includes so we can retrieve the native includes argument to add nested
    * relations to the query.
    *
+   * By implementing this we need to make sure that it'll work for all of the queries.
+   *
    * @param parentModel - The parent model that this includes relates to.
    * @param search - All of the search from the level of the parent model.
    * @param includes -  The includes statement.

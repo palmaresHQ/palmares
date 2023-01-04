@@ -24,54 +24,18 @@ export class ExampleController extends Controller {
   @Get('/test')
   async testDecorator() {
     const startOfInternal = performance.now();
-    const value = await Photo.default.get({
-      search: {
-        post: {
-          number: 3,
-        },
+    const value = await User.default.set([
+      {
+        firstName: 'Teste',
+        lastName: 'teste',
+        uuid: '12fe1fe1-7186-4196-9b07-50fb73cb26f0',
       },
-      includes: [
-        {
-          model: User,
-          fields: ['lastName'],
-        },
-        {
-          model: PostModel,
-        },
-      ] as const,
-    });
+    ]);
     //console.log(JSON.stringify(value, null, 2));
     const endOfInternal = performance.now();
-    console.log('Raw Performance', endOfInternal - startOfInternal, value);
+    console.log('Raw Performance', endOfInternal - startOfInternal);
 
     //console.log(JSON.stringify(value, null, 2));
-
-    const UserInstance: SequelizeModel<User> = await User.default.getInstance();
-    const PostInstance: SequelizeModel<PostModel> =
-      await PostModel.default.getInstance();
-    const PhotoInstance: SequelizeModel<Photo> =
-      await Photo.default.getInstance();
-    const startOfNative = performance.now();
-    await PhotoInstance.findAll({
-      include: [
-        {
-          model: PostInstance,
-          as: 'post',
-          where: {
-            number: 3,
-          },
-        },
-        {
-          model: UserInstance,
-          as: 'user',
-        },
-      ],
-      raw: true,
-      nest: true,
-    });
-    const endOfNative = performance.now();
-    console.log('native Performance', endOfNative - startOfNative);
-
     /*await PostModel.default.get({
       includes: [
         {
