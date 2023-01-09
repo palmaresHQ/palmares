@@ -24,16 +24,57 @@ export class ExampleController extends Controller {
   @Get('/test')
   async testDecorator() {
     const startOfInternal = performance.now();
-    const value = await User.default.set([
+    const value = await User.default.set(
+      [
+        {
+          firstName: 'Teste',
+          lastName: 'teste',
+          uuid: '12fe1fe1-7186-4196-9b07-50fb73cb26f0',
+          userPosts: [
+            {
+              number: 1,
+              postPhotos: [
+                {
+                  name: 'teste',
+                  userId: 1,
+                },
+              ],
+            },
+            {
+              number: 3,
+              postPhotos: [
+                {
+                  name: 'teste2',
+                  userId: 2,
+                },
+              ],
+            },
+          ],
+        },
+      ],
       {
-        firstName: 'Teste',
-        lastName: 'teste',
-        uuid: '12fe1fe1-7186-4196-9b07-50fb73cb26f0',
-      },
-    ]);
+        search: {
+          userPosts: {
+            postPhotos: {
+              name: 'teste',
+            },
+          },
+        },
+        includes: [
+          {
+            model: PostModel,
+            includes: [
+              {
+                model: Photo,
+              },
+            ],
+          },
+        ] as const,
+      }
+    );
     //console.log(JSON.stringify(value, null, 2));
     const endOfInternal = performance.now();
-    console.log('Raw Performance', endOfInternal - startOfInternal);
+    console.log('Raw Performance', JSON.stringify(value, null, 2));
 
     //console.log(JSON.stringify(value, null, 2));
     /*await PostModel.default.get({

@@ -330,6 +330,11 @@ export default class Manager<
           false
         >,
     args?: {
+      /**
+       * This is enabled by default if you are inserting more than one element or if you use includes, it can make you code slower, but
+       * it will guarantee that the data is consistent.
+       */
+      useTransaction?: boolean;
       includes?: IncludesValidated<TModel, TIncludes, true>;
       search?: TSearch;
     },
@@ -345,6 +350,7 @@ export default class Manager<
     return engineInstance.query.set.run(
       dataAsAnArray,
       {
+        useTransaction: args?.useTransaction,
         search: args?.search,
       },
       {
