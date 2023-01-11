@@ -7,7 +7,30 @@ import {
   ModelFieldsWithIncludes,
 } from '../models/types';
 import type EngineQuery from './query';
+/**
+ * Performs a deep merge of objects and returns new object. Does not modify
+ * objects (immutable) and merges arrays via concatenation.
+ *
+ * @param objects - Objects to merge
+ * @returns  New object with merged key/values
+ */
+function mergeDeep(results: any[], data: any) {
+  const isObject = (obj: any) => obj && typeof obj === 'object';
 
+  for (const result of results) {
+    for (const key in data) {
+      const resultValue = result[key];
+      const dataValue = data[key];
+      /*if (Array.isArray(dataValue) || isObject(dataValue))
+        result[key] = mergeDeep(
+          Array.isArray(resultValue) ? resultValue : [resultValue],
+          dataValue
+        );*/
+      result[key] = dataValue;
+    }
+  }
+  return results;
+}
 export default class EngineSetQuery {
   engineQueryInstance: EngineQuery;
 
@@ -86,14 +109,9 @@ export default class EngineSetQuery {
     data?: any,
     transaction?: any
   ): Promise<any[]> {
-    console.log(
-      'queryData',
-      data,
-      modelOfEngineInstance,
-      data.map(() => ({})) || [{}]
-    );
+    console.log('queryData', data, modelOfEngineInstance, search);
     console.log('-----------------------');
-    return data.map(() => ({}));
+    return data.map((eachData: any) => ({ ...eachData }));
   }
 
   async #resultsFromRelatedModelWithSearch(
@@ -108,10 +126,10 @@ export default class EngineSetQuery {
     search: any,
     results: any[],
     isDirectlyRelated: boolean,
+    resultToMergeWithData = undefined as any,
     data = undefined as any,
     transaction = undefined
   ) {
-    console.log('relatedModelsWithSearch');
     const {
       relationName,
       parentFieldName,
@@ -128,16 +146,45 @@ export default class EngineSetQuery {
             true,
             fieldsOfIncludedModel.concat([fieldNameOfRelationInIncludedModel]),
           ];
+    const hasData = data !== undefined && data[relationName] !== undefined;
+    const doesNotExistsRelatedValueForNextData =
+      hasData && data[parentFieldName] === undefined;
+    if (hasData) {
+      if (doesNotExistsRelatedValueForNextData) {
+        throw new Error('does not exist related value for next data');
+      }
+      const nextSearch = {
+        ...searchForRelatedModel,
+        [fieldNameOfRelationInIncludedModel]: data[parentFieldName],
+      };
+      console.log('aqui', (resultToMergeWithData || {})[relationName] || []);
+      await this.#getResultsWithIncludes(
+        includedModelInstance,
+        fieldsOfIncludedModelWithFieldsFromRelation,
+        includesOfIncluded,
+        nextSearch,
+        resultOfIncludes,
+        resultToMergeWithData[relationName],
+        data
+          ? {
+              ...(resultToMergeWithData[relationName] || {}),
+              ...data[relationName],
+            }
+          : undefined,
+        transaction
+      );
+    } else {
+      await this.#getResultsWithIncludes(
+        includedModelInstance,
+        fieldsOfIncludedModelWithFieldsFromRelation,
+        includesOfIncluded,
+        searchForRelatedModel,
+        resultOfIncludes,
+        undefined,
+        transaction
+      );
+    }
 
-    await this.#getResultsWithIncludes(
-      includedModelInstance,
-      fieldsOfIncludedModelWithFieldsFromRelation,
-      includesOfIncluded,
-      searchForRelatedModel,
-      resultOfIncludes,
-      data ? data[relationName] : undefined,
-      transaction
-    );
     const resultByUniqueFieldValue: Record<string, any[]> = {};
 
     for (const result of resultOfIncludes) {
@@ -156,15 +203,16 @@ export default class EngineSetQuery {
           [parentFieldName]: uniqueFieldValueOnRelation,
           ...search,
         };
-        await this.#getResultsWithIncludes(
-          modelInstance,
-          fieldsOfModel,
-          includesOfModel,
-          nextSearch,
-          results,
-          data,
-          transaction
-        );
+        if (!doesNotExistsRelatedValueForNextData)
+          await this.#getResultsWithIncludes(
+            modelInstance,
+            fieldsOfModel,
+            includesOfModel,
+            nextSearch,
+            results,
+            data,
+            transaction
+          );
 
         resultByUniqueFieldValue[uniqueFieldValueOnRelation] = [result];
         results[results.length - 1][relationName] =
@@ -186,6 +234,7 @@ export default class EngineSetQuery {
     search: any,
     results: any[],
     isDirectlyRelated: boolean,
+    resultToMergeWithData = undefined as any,
     data: any = undefined,
     transaction = undefined
   ) {
@@ -197,23 +246,23 @@ export default class EngineSetQuery {
       relatedField,
       isDirectlyRelated
     );
-
-    console.log('resultsFromRelatedModelsWithoutSearch');
     // Get the results of the parent model and then get the results of the children (included) models
     const [hasIncludedField, fieldsOfModelWithFieldsFromRelations] =
       fieldsOfModel.includes(parentFieldName)
         ? [false, fieldsOfModel]
         : [true, fieldsOfModel.concat([parentFieldName])];
-
+    console.log(search);
     await this.#getResultsWithIncludes(
       modelInstance,
       fieldsOfModelWithFieldsFromRelations,
       includesOfModel,
-      search,
+      { ...search, ...resultToMergeWithData },
       results,
-      data,
+      resultToMergeWithData,
+      { ...resultToMergeWithData, ...data },
       transaction
     );
+
     const isCreatingOrUpdating = data !== undefined;
     const allOfTheResultsToFetch = isCreatingOrUpdating
       ? [results[results.length - 1]]
@@ -222,10 +271,16 @@ export default class EngineSetQuery {
     for (const result of allOfTheResultsToFetch) {
       const resultOfIncludes: any[] = [];
       const uniqueFieldValueOnRelation = result[parentFieldName];
+      console.log(search, relationName);
       const nextSearch = {
+        ...(search || {})[relationName],
         [fieldNameOfRelationInIncludedModel]: uniqueFieldValueOnRelation,
       };
       if (isCreatingOrUpdating) {
+        const resultToMergeWithDataToAdd =
+          resultToMergeWithData !== undefined
+            ? resultToMergeWithData[relationName]
+            : undefined;
         const dataToAdd = data[relationName];
 
         await this.#getResultsWithIncludes(
@@ -234,6 +289,7 @@ export default class EngineSetQuery {
           includesOfIncluded,
           nextSearch,
           resultOfIncludes,
+          resultToMergeWithDataToAdd,
           dataToAdd,
           transaction
         );
@@ -245,17 +301,16 @@ export default class EngineSetQuery {
           nextSearch,
           resultOfIncludes,
           undefined,
+          undefined,
           transaction
         );
       }
 
       if (hasIncludedField) delete result[parentFieldName];
-      console.log('resultsOf');
       result[relationName] =
         relatedField.unique || isDirectlyRelated
           ? resultOfIncludes[0]
           : resultOfIncludes;
-      console.log('results', results, resultOfIncludes);
     }
   }
 
@@ -346,10 +401,10 @@ export default class EngineSetQuery {
     search: TSearch,
     results: TResult,
     isDirectlyRelated: TIsDirectlyRelated,
+    resultToMergeWithData = undefined as TData | undefined,
     data = undefined as TData,
     transaction = undefined
   ) {
-    console.log('resultsFromRelatedModels', search, results, data);
     const fieldToUseToGetRelationName = isDirectlyRelated
       ? 'relationName'
       : 'relatedName';
@@ -381,7 +436,11 @@ export default class EngineSetQuery {
           association[fieldToUseToGetRelationName] === relationNameOrRelatedName
       );
 
-      if (foreignKeyFieldRelatedToModel && searchForRelatedModel) {
+      if (
+        foreignKeyFieldRelatedToModel &&
+        searchForRelatedModel &&
+        data === undefined
+      ) {
         await this.#resultsFromRelatedModelWithSearch(
           foreignKeyFieldRelatedToModel,
           modelInstance,
@@ -394,6 +453,7 @@ export default class EngineSetQuery {
           search,
           results,
           false,
+          resultToMergeWithData,
           data,
           transaction
         );
@@ -409,6 +469,7 @@ export default class EngineSetQuery {
           search,
           results,
           false,
+          resultToMergeWithData,
           data,
           transaction
         );
@@ -459,10 +520,10 @@ export default class EngineSetQuery {
     includes: TIncludes,
     search: TSearch,
     result: TResult,
+    resultsToMergeWithData = undefined as TData,
     data = undefined as TData,
     transaction = undefined
   ) {
-    console.log('getResultsWithIncludes', data);
     const safeIncludes: Includes =
       typeof includes !== 'undefined' ? includes : [];
     const hasIncludes = safeIncludes.length > 0;
@@ -487,21 +548,56 @@ export default class EngineSetQuery {
         if (hasData) {
           let allDataToAdd: TData = data;
           if (Array.isArray(data) === false) allDataToAdd = [data] as TData;
-          for (const dataToAdd of allDataToAdd || []) {
-            await this.#resultsFromRelatedModels(
-              modelInstance,
-              includedModel,
-              safeIncludes.slice(1),
-              include.includes,
-              (include.fields as string[]) ||
-                (allFieldsOfIncludedModel as string[]),
-              fields as readonly string[],
-              search as TSearch,
-              result,
-              isDirectlyRelatedModel,
-              dataToAdd,
-              transaction
-            );
+
+          const isResultsToMergeWithDataDefinedAndNotAnArray =
+            resultsToMergeWithData !== undefined &&
+            Array.isArray(resultsToMergeWithData);
+          const resultsToMerge = isResultsToMergeWithDataDefinedAndNotAnArray
+            ? (resultsToMergeWithData as TData)
+            : ([resultsToMergeWithData] as unknown as TData);
+
+          for (
+            let indexOfDataToAdd = 0;
+            indexOfDataToAdd < (allDataToAdd || []).length;
+            indexOfDataToAdd++
+          ) {
+            const dataToAdd = (allDataToAdd || [])[indexOfDataToAdd];
+            const resultToMergeWithData = (resultsToMerge || [])[
+              indexOfDataToAdd
+            ];
+            if ((resultsToMerge || []).length > 0) {
+              await this.#resultsFromRelatedModels(
+                modelInstance,
+                includedModel,
+                safeIncludes.slice(1),
+                include.includes,
+                (include.fields as string[]) ||
+                  (allFieldsOfIncludedModel as string[]),
+                fields as readonly string[],
+                search as TSearch,
+                result,
+                isDirectlyRelatedModel,
+                resultToMergeWithData,
+                dataToAdd,
+                transaction
+              );
+            } else {
+              await this.#resultsFromRelatedModels(
+                modelInstance,
+                includedModel,
+                safeIncludes.slice(1),
+                include.includes,
+                (include.fields as string[]) ||
+                  (allFieldsOfIncludedModel as string[]),
+                fields as readonly string[],
+                search as TSearch,
+                result,
+                isDirectlyRelatedModel,
+                undefined,
+                dataToAdd,
+                transaction
+              );
+            }
           }
         } else {
           await this.#resultsFromRelatedModels(
@@ -601,16 +697,49 @@ export default class EngineSetQuery {
         FieldsOFModelType<TModel>
       >[];
       const fields = Object.keys(internal.model.fields);
-      await this.#getResultsWithIncludes(
-        internal.model,
-        fields,
-        internal.includes,
-        args.search as TSearch,
-        results,
-        data as TData,
-        transaction
-      );
-      return results;
+      const doesSearchExist = args.search !== undefined;
+      if (doesSearchExist) {
+        const allResultsOfSearch = await this.engineQueryInstance.get.run<
+          TModel,
+          TIncludes,
+          FieldsOFModelType<TModel>,
+          TSearch
+        >(
+          {
+            fields: fields,
+            search: args.search as TSearch,
+          },
+          {
+            model: internal.model,
+            includes: internal.includes,
+          }
+        );
+        await this.#getResultsWithIncludes(
+          internal.model,
+          fields,
+          internal.includes,
+          args.search as TSearch,
+          results,
+          (allResultsOfSearch.length > 0
+            ? allResultsOfSearch
+            : undefined) as TData,
+          data as TData,
+          transaction
+        );
+        return results;
+      } else {
+        await this.#getResultsWithIncludes(
+          internal.model,
+          fields,
+          internal.includes,
+          args.search as TSearch,
+          results,
+          undefined,
+          data as TData,
+          transaction
+        );
+        return results;
+      }
     };
 
     if (isToUseTransaction)

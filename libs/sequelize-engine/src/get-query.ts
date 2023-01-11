@@ -49,7 +49,8 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
         const relationName = isDirectlyRelated
           ? association.relationName
           : association.relatedName;
-        const whereClause = search[relationName];
+        const whereClause =
+          search !== undefined ? search[relationName] : undefined;
         const formattedInclude: Includeable = {
           as: relationName,
           model: sequelizeModelInstance,
@@ -95,13 +96,18 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
       includes
     );
 
-    return sequelizeModelInstance.findAll({
-      attributes: fields as string[],
-      where: await this.engineQueryInstance.parseSearch(modelInstance, search),
-      include: formattedIncludesStatement,
-      raw: true,
-      nest: true,
-    });
+    return JSON.parse(
+      JSON.stringify(
+        await sequelizeModelInstance.findAll({
+          attributes: fields as string[],
+          where: await this.engineQueryInstance.parseSearch(
+            modelInstance,
+            search
+          ),
+          include: formattedIncludesStatement,
+        })
+      )
+    );
   }
 
   override async queryData(

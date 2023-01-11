@@ -430,23 +430,17 @@ export default class EngineGetQuery {
     TFieldsOfModel extends FieldsOFModelType<
       InstanceType<ReturnType<typeof model>>
     > = readonly (keyof TModel['fields'])[],
-    TSearch extends ModelFieldsWithIncludes<
-      TModel,
-      TIncludes,
-      TFieldsOfModel,
-      false,
-      false,
-      true,
-      true
-    > = ModelFieldsWithIncludes<
-      TModel,
-      TIncludes,
-      TFieldsOfModel,
-      false,
-      false,
-      true,
-      true
-    >
+    TSearch extends
+      | ModelFieldsWithIncludes<
+          TModel,
+          TIncludes,
+          TFieldsOfModel,
+          false,
+          false,
+          true,
+          true
+        >
+      | undefined = undefined
   >(
     args: {
       fields?: TFieldsOfModel;

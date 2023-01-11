@@ -25,7 +25,6 @@ export class Photo extends models.Model<Photo>() {
       toField: 'id',
       relatedName: 'userPhotos',
       relationName: 'user',
-      unique: true,
     }),
   };
 

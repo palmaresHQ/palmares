@@ -234,15 +234,17 @@ export default class Manager<
     args?: {
       includes?: IncludesValidated<TModel, TIncludes>;
       fields?: TFields;
-      search?: ModelFieldsWithIncludes<
-        TModel,
-        TIncludes,
-        TFields,
-        false,
-        false,
-        true,
-        true
-      >;
+      search?:
+        | ModelFieldsWithIncludes<
+            TModel,
+            TIncludes,
+            TFields,
+            false,
+            false,
+            true,
+            true
+          >
+        | undefined;
     },
     engineName?: string
   ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]> {
@@ -252,20 +254,31 @@ export default class Manager<
     const allFieldsOfModel = Object.keys(
       this.getModel(engineInstanceName)['fields']
     );
-    return engineInstance.query.get.run<TModel, TIncludes, TFields>(
+    return engineInstance.query.get.run<
+      TModel,
+      TIncludes,
+      TFields,
+      ModelFieldsWithIncludes<
+        TModel,
+        TIncludes,
+        TFields,
+        false,
+        false,
+        true,
+        true
+      >
+    >(
       {
         fields: args?.fields || (allFieldsOfModel as unknown as TFields),
-        search:
-          args?.search ||
-          ({} as ModelFieldsWithIncludes<
-            TModel,
-            TIncludes,
-            TFields,
-            false,
-            false,
-            true,
-            true
-          >),
+        search: (args?.search || {}) as ModelFieldsWithIncludes<
+          TModel,
+          TIncludes,
+          TFields,
+          false,
+          false,
+          true,
+          true
+        >,
       },
       {
         model: this.models[engineInstanceName] as TModel,
@@ -298,17 +311,23 @@ export default class Manager<
   async set<
     TModel extends Model = M,
     TIncludes extends Includes<true> = undefined,
-    TSearch extends
-      | ModelFieldsWithIncludes<
-          TModel,
-          TIncludes,
-          FieldsOFModelType<TModel>,
-          false,
-          false,
-          true,
-          true
-        >
-      | undefined = undefined
+    TSearch extends ModelFieldsWithIncludes<
+      TModel,
+      TIncludes,
+      FieldsOFModelType<TModel>,
+      false,
+      false,
+      true,
+      true
+    > = ModelFieldsWithIncludes<
+      TModel,
+      TIncludes,
+      FieldsOFModelType<TModel>,
+      false,
+      false,
+      true,
+      true
+    >
   >(
     data:
       | ModelFieldsWithIncludes<
@@ -346,7 +365,17 @@ export default class Manager<
 
     // Promise.all here will not work, we need to do this sequentially.
     const engineInstance = await this.getEngineInstance(engineName);
-    const dataAsAnArray = Array.isArray(data) ? data : [data];
+    const dataAsAnArray = Array.isArray(data)
+      ? data
+      : ([data] as ModelFieldsWithIncludes<
+          TModel,
+          TIncludes,
+          FieldsOFModelType<TModel>,
+          true,
+          false,
+          TSearch extends undefined ? false : true,
+          false
+        >[]);
     return engineInstance.query.set.run(
       dataAsAnArray,
       {

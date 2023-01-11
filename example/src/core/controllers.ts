@@ -32,6 +32,7 @@ export class ExampleController extends Controller {
           uuid: '12fe1fe1-7186-4196-9b07-50fb73cb26f0',
           userPosts: [
             {
+              id: 1,
               number: 1,
               postPhotos: [
                 {
@@ -41,6 +42,7 @@ export class ExampleController extends Controller {
               ],
             },
             {
+              id: 3,
               number: 3,
               postPhotos: [
                 {
@@ -55,9 +57,7 @@ export class ExampleController extends Controller {
       {
         search: {
           userPosts: {
-            postPhotos: {
-              name: 'teste',
-            },
+            number: 2,
           },
         },
         includes: [
