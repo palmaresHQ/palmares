@@ -114,152 +114,108 @@ export default class EngineSetQuery {
     return data.map((eachData: any) => ({ ...eachData }));
   }
 
-  async #resultsFromRelatedModelWithSearch(
-    relatedField: ForeignKeyField,
-    modelInstance: InstanceType<ReturnType<typeof model>>,
-    includedModelInstance: InstanceType<ReturnType<typeof model>>,
-    includesOfModel: Includes,
-    includesOfIncluded: Includes,
-    fieldsOfModel: string[],
-    fieldsOfIncludedModel: string[],
-    searchForRelatedModel: any,
-    search: any,
-    results: any[],
+  async #resultsFromRelatedModelsWithoutSearch<
+    TRelatedField extends ForeignKeyField,
+    TModel extends InstanceType<ReturnType<typeof model>>,
+    TIncludedModel extends InstanceType<ReturnType<typeof model>>,
+    TSearch extends
+      | ModelFieldsWithIncludes<
+          TModel,
+          TIncludes,
+          FieldsOFModelType<TModel>,
+          false,
+          false,
+          true,
+          true
+        >
+      | undefined = undefined,
+    TData extends
+      | ModelFieldsWithIncludes<
+          TModel,
+          TIncludes,
+          FieldsOFModelType<TModel>,
+          true,
+          false,
+          TSearch extends undefined ? false : true,
+          false
+        >
+      | undefined = undefined,
+    TIncludes extends Includes<boolean> = Includes<
+      TData extends undefined ? false : true
+    >,
+    TIncludesOfIncludes extends Includes<boolean> = Includes<
+      TData extends undefined ? false : true
+    >,
+    TResult extends ModelFieldsWithIncludes<
+      TModel,
+      TIncludes,
+      FieldsOFModelType<TModel>
+    >[] = ModelFieldsWithIncludes<
+      TModel,
+      TIncludes,
+      FieldsOFModelType<TModel>
+    >[]
+  >(
+    relatedField: TRelatedField,
+    modelInstance: TModel,
+    includedModelInstance: TIncludedModel,
+    includesOfModel: TIncludes,
+    includesOfIncluded: TIncludesOfIncludes,
+    search: TSearch,
+    results: TResult,
     isDirectlyRelated: boolean,
-    resultToMergeWithData = undefined as any,
-    data = undefined as any,
+    resultToMergeWithData = undefined as
+      | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>
+      | undefined,
+    data = undefined as TData,
     transaction = undefined
   ) {
-    const {
-      relationName,
-      parentFieldName,
-      fieldNameOfRelationInIncludedModel,
-    } = this.getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName(
-      relatedField,
-      isDirectlyRelated
-    );
-    const resultOfIncludes: any[] = [];
-    const [hasIncludedField, fieldsOfIncludedModelWithFieldsFromRelation] =
-      fieldsOfIncludedModel.includes(fieldNameOfRelationInIncludedModel)
-        ? [false, fieldsOfIncludedModel]
-        : [
-            true,
-            fieldsOfIncludedModel.concat([fieldNameOfRelationInIncludedModel]),
-          ];
-    const hasData = data !== undefined && data[relationName] !== undefined;
-    const doesNotExistsRelatedValueForNextData =
-      hasData && data[parentFieldName] === undefined;
-    if (hasData) {
-      if (doesNotExistsRelatedValueForNextData) {
-        throw new Error('does not exist related value for next data');
-      }
-      const nextSearch = {
-        ...searchForRelatedModel,
-        [fieldNameOfRelationInIncludedModel]: data[parentFieldName],
-      };
-      console.log('aqui', (resultToMergeWithData || {})[relationName] || []);
-      await this.#getResultsWithIncludes(
-        includedModelInstance,
-        fieldsOfIncludedModelWithFieldsFromRelation,
-        includesOfIncluded,
-        nextSearch,
-        resultOfIncludes,
-        resultToMergeWithData[relationName],
-        data
-          ? {
-              ...(resultToMergeWithData[relationName] || {}),
-              ...data[relationName],
-            }
-          : undefined,
-        transaction
+    const { relationName, parentFieldName } =
+      this.getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName(
+        relatedField,
+        isDirectlyRelated
       );
-    } else {
-      await this.#getResultsWithIncludes(
-        includedModelInstance,
-        fieldsOfIncludedModelWithFieldsFromRelation,
-        includesOfIncluded,
-        searchForRelatedModel,
-        resultOfIncludes,
-        undefined,
-        transaction
-      );
-    }
-
-    const resultByUniqueFieldValue: Record<string, any[]> = {};
-
-    for (const result of resultOfIncludes) {
-      const uniqueFieldValueOnRelation =
-        result[fieldNameOfRelationInIncludedModel];
-
-      if (hasIncludedField) delete result[fieldNameOfRelationInIncludedModel];
-
-      const existsValueForUniqueFieldValueOnResults =
-        resultByUniqueFieldValue[uniqueFieldValueOnRelation] !== undefined;
-
-      if (existsValueForUniqueFieldValueOnResults) {
-        resultByUniqueFieldValue[uniqueFieldValueOnRelation].push(result);
-      } else {
-        const nextSearch = {
-          [parentFieldName]: uniqueFieldValueOnRelation,
-          ...search,
-        };
-        if (!doesNotExistsRelatedValueForNextData)
-          await this.#getResultsWithIncludes(
-            modelInstance,
-            fieldsOfModel,
-            includesOfModel,
-            nextSearch,
-            results,
-            data,
-            transaction
-          );
-
-        resultByUniqueFieldValue[uniqueFieldValueOnRelation] = [result];
-        results[results.length - 1][relationName] =
-          relatedField.unique || isDirectlyRelated
-            ? resultByUniqueFieldValue[uniqueFieldValueOnRelation][0]
-            : resultByUniqueFieldValue[uniqueFieldValueOnRelation];
-      }
-    }
-  }
-
-  async #resultsFromRelatedModelsWithoutSearch(
-    relatedField: ForeignKeyField,
-    modelInstance: InstanceType<ReturnType<typeof model>>,
-    includedModelInstance: InstanceType<ReturnType<typeof model>>,
-    includesOfModel: Includes,
-    includesOfIncluded: Includes,
-    fieldsOfModel: string[],
-    fieldsOfIncludedModel: string[],
-    search: any,
-    results: any[],
-    isDirectlyRelated: boolean,
-    resultToMergeWithData = undefined as any,
-    data: any = undefined,
-    transaction = undefined
-  ) {
-    const {
-      relationName,
-      parentFieldName,
-      fieldNameOfRelationInIncludedModel,
-    } = this.getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName(
-      relatedField,
-      isDirectlyRelated
+    console.log(
+      'resultsFromRelatedModelsWithoutSearch',
+      includedModelInstance.name,
+      resultToMergeWithData,
+      ((resultToMergeWithData as any) || {})[relationName]
     );
-    // Get the results of the parent model and then get the results of the children (included) models
-    const [hasIncludedField, fieldsOfModelWithFieldsFromRelations] =
-      fieldsOfModel.includes(parentFieldName)
-        ? [false, fieldsOfModel]
-        : [true, fieldsOfModel.concat([parentFieldName])];
-    console.log(search);
-    await this.#getResultsWithIncludes(
+
+    const mergedSearch = { ...search, ...resultToMergeWithData } as TSearch;
+    const mergedData = { ...resultToMergeWithData, ...data } as
+      | ModelFieldsWithIncludes<
+          TModel,
+          TIncludes,
+          FieldsOFModelType<TModel>,
+          true,
+          false,
+          TSearch extends undefined ? false : true,
+          false
+        >[]
+      | undefined;
+    await this.#getResultsWithIncludes<
+      TModel,
+      TSearch,
+      | ModelFieldsWithIncludes<
+          TModel,
+          TIncludes,
+          FieldsOFModelType<TModel>,
+          true,
+          false,
+          TSearch extends undefined ? false : true,
+          false
+        >[]
+      | undefined,
+      TIncludes,
+      TResult
+    >(
       modelInstance,
-      fieldsOfModelWithFieldsFromRelations,
       includesOfModel,
-      { ...search, ...resultToMergeWithData },
+      mergedSearch,
       results,
       resultToMergeWithData,
-      { ...resultToMergeWithData, ...data },
+      mergedData,
       transaction
     );
 
@@ -270,44 +226,24 @@ export default class EngineSetQuery {
 
     for (const result of allOfTheResultsToFetch) {
       const resultOfIncludes: any[] = [];
-      const uniqueFieldValueOnRelation = result[parentFieldName];
-      console.log(search, relationName);
       const nextSearch = {
-        ...(search || {})[relationName],
-        [fieldNameOfRelationInIncludedModel]: uniqueFieldValueOnRelation,
+        ...((resultToMergeWithData as any) || {})[relationName],
       };
-      if (isCreatingOrUpdating) {
-        const resultToMergeWithDataToAdd =
-          resultToMergeWithData !== undefined
-            ? resultToMergeWithData[relationName]
-            : undefined;
-        const dataToAdd = data[relationName];
+      const resultToMergeWithDataToAdd = ((resultToMergeWithData || {}) as any)[
+        relationName
+      ];
+      const dataToAdd = ((data || {}) as any)[relationName];
+      await this.#getResultsWithIncludes(
+        includedModelInstance,
+        includesOfIncluded,
+        nextSearch,
+        resultOfIncludes,
+        resultToMergeWithDataToAdd,
+        dataToAdd,
+        transaction
+      );
 
-        await this.#getResultsWithIncludes(
-          includedModelInstance,
-          fieldsOfIncludedModel,
-          includesOfIncluded,
-          nextSearch,
-          resultOfIncludes,
-          resultToMergeWithDataToAdd,
-          dataToAdd,
-          transaction
-        );
-      } else {
-        await this.#getResultsWithIncludes(
-          includedModelInstance,
-          fieldsOfIncludedModel,
-          includesOfIncluded,
-          nextSearch,
-          resultOfIncludes,
-          undefined,
-          undefined,
-          transaction
-        );
-      }
-
-      if (hasIncludedField) delete result[parentFieldName];
-      result[relationName] =
+      (result as any)[relationName] =
         relatedField.unique || isDirectlyRelated
           ? resultOfIncludes[0]
           : resultOfIncludes;
@@ -351,8 +287,6 @@ export default class EngineSetQuery {
   async #resultsFromRelatedModels<
     TModel extends InstanceType<ReturnType<typeof model>>,
     TIncludedModel extends InstanceType<ReturnType<typeof model>>,
-    TFields extends FieldsOFModelType<TModel> = readonly (keyof TModel['fields'])[],
-    TFieldsOfIncluded extends FieldsOFModelType<TIncludedModel> = readonly (keyof TIncludedModel['fields'])[],
     TSearch extends
       | ModelFieldsWithIncludes<
           TModel,
@@ -396,12 +330,12 @@ export default class EngineSetQuery {
     includedModelInstance: TIncludedModel,
     includesOfModel: TIncludes,
     includesOfIncluded: TIncludesOfIncluded,
-    fieldsOfIncludedModel: TFieldsOfIncluded,
-    fieldsOfModel: TFields,
     search: TSearch,
     results: TResult,
     isDirectlyRelated: TIsDirectlyRelated,
-    resultToMergeWithData = undefined as TData | undefined,
+    resultToMergeWithData = undefined as
+      | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>
+      | undefined,
     data = undefined as TData,
     transaction = undefined
   ) {
@@ -418,57 +352,21 @@ export default class EngineSetQuery {
       includedModelInstance.associations[modelInstance.originalName] || [];
 
     for (const relationNameOrRelatedName of relatedNamesDirectlyOrIndirectlyRelatedToModel) {
-      const searchForRelatedModel:
-        | ModelFieldsWithIncludes<
-            TIncludedModel,
-            TIncludesOfIncluded,
-            FieldsOFModelType<TIncludedModel>,
-            false,
-            false,
-            true,
-            true
-          >
-        | undefined = search
-        ? (search as any)[relationNameOrRelatedName]
-        : undefined;
       const foreignKeyFieldRelatedToModel = associationsOfIncludedModel.find(
         (association) =>
           association[fieldToUseToGetRelationName] === relationNameOrRelatedName
       );
 
-      if (
-        foreignKeyFieldRelatedToModel &&
-        searchForRelatedModel &&
-        data === undefined
-      ) {
-        await this.#resultsFromRelatedModelWithSearch(
-          foreignKeyFieldRelatedToModel,
-          modelInstance,
-          includedModelInstance,
-          includesOfModel,
-          includesOfIncluded,
-          fieldsOfModel as unknown as string[],
-          fieldsOfIncludedModel as unknown as string[],
-          searchForRelatedModel,
-          search,
-          results,
-          false,
-          resultToMergeWithData,
-          data,
-          transaction
-        );
-      } else if (foreignKeyFieldRelatedToModel) {
+      if (foreignKeyFieldRelatedToModel) {
         await this.#resultsFromRelatedModelsWithoutSearch(
           foreignKeyFieldRelatedToModel,
           modelInstance,
           includedModelInstance,
           includesOfModel,
           includesOfIncluded,
-          fieldsOfModel as unknown as string[],
-          fieldsOfIncludedModel as unknown as string[],
           search,
           results,
-          false,
+          isDirectlyRelated,
           resultToMergeWithData,
           data,
           transaction
@@ -479,7 +377,6 @@ export default class EngineSetQuery {
 
   async #getResultsWithIncludes<
     TModel extends InstanceType<ReturnType<typeof model>>,
-    TFields extends FieldsOFModelType<TModel> = readonly (keyof TModel['fields'])[],
     TSearch extends
       | ModelFieldsWithIncludes<
           TModel,
@@ -516,124 +413,90 @@ export default class EngineSetQuery {
     >[]
   >(
     modelInstance: TModel,
-    fields: TFields,
     includes: TIncludes,
     search: TSearch,
     result: TResult,
-    resultsToMergeWithData = undefined as TData,
+    resultsToMergeWithData = undefined as
+      | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>
+      | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]
+      | undefined,
     data = undefined as TData,
     transaction = undefined
   ) {
     const safeIncludes: Includes =
       typeof includes !== 'undefined' ? includes : [];
     const hasIncludes = safeIncludes.length > 0;
+    const allDataToAdd = Array.isArray(data) ? data : [data];
+    for (
+      let indexOfDataToAdd = 0;
+      indexOfDataToAdd < allDataToAdd.length;
+      indexOfDataToAdd++
+    ) {
+      const dataToAdd = allDataToAdd[indexOfDataToAdd];
+      const allResultsToMergeWithData = Array.isArray(resultsToMergeWithData)
+        ? resultsToMergeWithData
+        : [resultsToMergeWithData];
+      const resultToMergeWithData = allResultsToMergeWithData[indexOfDataToAdd];
 
-    if (hasIncludes) {
-      const include = safeIncludes[0];
-      const includedModel = include.model.default.getModel(
-        this.engineQueryInstance.engineInstance.databaseName
-      );
-      const allFieldsOfIncludedModel = Object.keys(includedModel['fields']);
-      const isNotACircularReference =
-        modelInstance.originalName !== includedModel.originalName;
-
-      if (isNotACircularReference) {
-        const isDirectlyRelatedModel =
-          modelInstance.directlyRelatedTo[includedModel.originalName] !==
-          undefined;
-        const hasData =
-          (typeof data === 'object' && data !== undefined) ||
-          Array.isArray(data);
-
-        if (hasData) {
-          let allDataToAdd: TData = data;
-          if (Array.isArray(data) === false) allDataToAdd = [data] as TData;
-
-          const isResultsToMergeWithDataDefinedAndNotAnArray =
-            resultsToMergeWithData !== undefined &&
-            Array.isArray(resultsToMergeWithData);
-          const resultsToMerge = isResultsToMergeWithDataDefinedAndNotAnArray
-            ? (resultsToMergeWithData as TData)
-            : ([resultsToMergeWithData] as unknown as TData);
-
-          for (
-            let indexOfDataToAdd = 0;
-            indexOfDataToAdd < (allDataToAdd || []).length;
-            indexOfDataToAdd++
-          ) {
-            const dataToAdd = (allDataToAdd || [])[indexOfDataToAdd];
-            const resultToMergeWithData = (resultsToMerge || [])[
-              indexOfDataToAdd
-            ];
-            if ((resultsToMerge || []).length > 0) {
-              await this.#resultsFromRelatedModels(
-                modelInstance,
-                includedModel,
-                safeIncludes.slice(1),
-                include.includes,
-                (include.fields as string[]) ||
-                  (allFieldsOfIncludedModel as string[]),
-                fields as readonly string[],
-                search as TSearch,
-                result,
-                isDirectlyRelatedModel,
-                resultToMergeWithData,
-                dataToAdd,
-                transaction
-              );
-            } else {
-              await this.#resultsFromRelatedModels(
-                modelInstance,
-                includedModel,
-                safeIncludes.slice(1),
-                include.includes,
-                (include.fields as string[]) ||
-                  (allFieldsOfIncludedModel as string[]),
-                fields as readonly string[],
-                search as TSearch,
-                result,
-                isDirectlyRelatedModel,
-                undefined,
-                dataToAdd,
-                transaction
-              );
-            }
-          }
-        } else {
-          await this.#resultsFromRelatedModels(
-            modelInstance,
-            includedModel,
-            safeIncludes.slice(1),
-            include.includes,
-            (include.fields as string[]) ||
-              (allFieldsOfIncludedModel as string[]),
-            fields as readonly string[],
-            search as TSearch,
-            result,
-            isDirectlyRelatedModel,
-            data as undefined,
-            transaction
-          );
-        }
-      }
-    } else {
-      const modelConstructor = modelInstance.constructor as ReturnType<
-        typeof model
-      >;
-      const translatedModelInstance =
-        await modelConstructor.default.getInstance(
+      if (hasIncludes) {
+        const include = safeIncludes[0];
+        const includedModelInstance = include.model.default.getModel(
           this.engineQueryInstance.engineInstance.databaseName
         );
-
-      result.push(
-        ...(await this.queryData(
-          translatedModelInstance,
-          await this.engineQueryInstance.parseSearch(modelInstance, search),
-          fields as readonly string[],
-          await this.engineQueryInstance.parseData(modelInstance, data),
+        const isDirectlyRelatedModel =
+          modelInstance.directlyRelatedTo[
+            includedModelInstance.originalName
+          ] !== undefined;
+        await this.#resultsFromRelatedModels(
+          modelInstance,
+          includedModelInstance,
+          safeIncludes.slice(1),
+          include.includes,
+          search,
+          result,
+          isDirectlyRelatedModel,
+          resultToMergeWithData as ModelFieldsWithIncludes<
+            TModel,
+            TIncludes,
+            FieldsOFModelType<TModel>
+          >,
+          dataToAdd,
           transaction
-        ))
-      );
+        );
+      } else {
+        const modelConstructor = modelInstance.constructor as ReturnType<
+          typeof model
+        >;
+        const translatedModelInstance =
+          await modelConstructor.default.getInstance(
+            this.engineQueryInstance.engineInstance.databaseName
+          );
+        const mergedSearch = { ...search, ...resultToMergeWithData } as TSearch;
+        const mergedData = { ...resultToMergeWithData, ...dataToAdd } as
+          | ModelFieldsWithIncludes<
+              TModel,
+              TIncludes,
+              FieldsOFModelType<TModel>,
+              true,
+              false,
+              TSearch extends undefined ? false : true,
+              false
+            >[]
+          | undefined;
+
+        result.push(
+          ...(await this.queryData(
+            translatedModelInstance,
+            await this.engineQueryInstance.parseSearch(
+              modelInstance,
+              mergedSearch
+            ),
+            Object.keys(modelInstance.fields) as readonly string[],
+            await this.engineQueryInstance.parseData(modelInstance, mergedData),
+            transaction
+          ))
+        );
+      }
     }
   }
 
@@ -714,23 +577,45 @@ export default class EngineSetQuery {
             includes: internal.includes,
           }
         );
-        await this.#getResultsWithIncludes(
+        await this.#getResultsWithIncludes<
+          TModel,
+          TSearch,
+          TData,
+          TIncludes,
+          ModelFieldsWithIncludes<
+            TModel,
+            TIncludes,
+            FieldsOFModelType<TModel>
+          >[]
+        >(
           internal.model,
-          fields,
           internal.includes,
           args.search as TSearch,
           results,
           (allResultsOfSearch.length > 0
             ? allResultsOfSearch
-            : undefined) as TData,
+            : undefined) as ModelFieldsWithIncludes<
+            TModel,
+            TIncludes,
+            FieldsOFModelType<TModel>
+          >,
           data as TData,
           transaction
         );
         return results;
       } else {
-        await this.#getResultsWithIncludes(
+        await this.#getResultsWithIncludes<
+          TModel,
+          TSearch,
+          TData,
+          TIncludes,
+          ModelFieldsWithIncludes<
+            TModel,
+            TIncludes,
+            FieldsOFModelType<TModel>
+          >[]
+        >(
           internal.model,
-          fields,
           internal.includes,
           args.search as TSearch,
           results,

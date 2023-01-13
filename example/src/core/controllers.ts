@@ -24,57 +24,63 @@ export class ExampleController extends Controller {
   @Get('/test')
   async testDecorator() {
     const startOfInternal = performance.now();
-    const value = await User.default.set(
-      [
-        {
-          firstName: 'Teste',
-          lastName: 'teste',
-          uuid: '12fe1fe1-7186-4196-9b07-50fb73cb26f0',
-          userPosts: [
-            {
-              id: 1,
-              number: 1,
-              postPhotos: [
-                {
-                  name: 'teste',
-                  userId: 1,
-                },
-              ],
-            },
-            {
-              id: 3,
-              number: 3,
-              postPhotos: [
-                {
-                  name: 'teste2',
-                  userId: 2,
-                },
-              ],
-            },
-          ],
-        },
-      ],
+    const data = [
       {
-        search: {
-          userPosts: {
-            number: 2,
-          },
-        },
-        includes: [
+        firstName: 'Teste',
+        lastName: 'teste',
+        uuid: '12fe1fe1-7186-4196-9b07-50fb73cb26f0',
+        userPosts: [
           {
-            model: PostModel,
-            includes: [
+            id: 1,
+            number: 1,
+            postPhotos: [
               {
-                model: Photo,
+                name: 'teste',
+                userId: 1,
+              },
+              {
+                name: 'teste2',
+                userId: 2,
+              },
+              {
+                name: 'hey3',
+                userId: 2,
               },
             ],
           },
-        ] as const,
-      }
-    );
-    //console.log(JSON.stringify(value, null, 2));
+          {
+            id: 1,
+            number: 20,
+            postPhotos: [
+              {
+                name: 'hey',
+                userId: 1,
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    const value = await User.default.set(data, {
+      search: {
+        userPosts: {
+          number: 2,
+        },
+      },
+      includes: [
+        {
+          model: PostModel,
+          includes: [
+            {
+              model: Photo,
+            },
+          ],
+        },
+      ] as const,
+    });
+    console.log(JSON.stringify(value, null, 2));
     const endOfInternal = performance.now();
-    console.log('Raw Performance', JSON.stringify(value, null, 2));
+    //console.log('Raw Performance', JSON.stringify(value, null, 2));
 
     //console.log(JSON.stringify(value, null, 2));
     /*await PostModel.default.get({
