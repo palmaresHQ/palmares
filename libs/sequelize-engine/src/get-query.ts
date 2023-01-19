@@ -115,6 +115,7 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
     search: any,
     fields: readonly string[]
   ) {
+    console.log('queryDataForGet', search, modelInstance);
     return modelInstance.findAll({
       attributes: fields as string[],
       where: search,
