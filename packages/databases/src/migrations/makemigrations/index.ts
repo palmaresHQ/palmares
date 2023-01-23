@@ -572,7 +572,7 @@ export default class MakeMigrations {
     const reorderedOperations = [];
     let pendingOperations = operations;
     let previousNumberOfReorderedOperations: number | undefined = undefined;
-
+    console.log(pendingOperations);
     while (pendingOperations.length > 0) {
       const newPendingOperations = [];
       for (let i = 0; i < pendingOperations.length; i++) {
@@ -582,7 +582,7 @@ export default class MakeMigrations {
             ? this.#originalModelsByName[operationToProcess.modelName]
             : this.#stateModelsByName[operationToProcess.modelName];
         const hasNoDependencies =
-          Object.keys(modelOfOperationToProcess.original._dependentOnModels)
+          Object.keys(modelOfOperationToProcess.original.indirectlyRelatedTo)
             .length === 0;
 
         const addedModels = new Set(

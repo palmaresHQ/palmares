@@ -17,6 +17,7 @@ type QueryDataFnType = (
   data?: any,
   transaction?: any
 ) => Promise<any>;
+
 /**
  * Offers >>>>BASIC<<<< querying functionalities, this enables us to create libs that works well on every
  * database engine without needing to specify a database engine. We usually advise AGAINST using this on
@@ -26,7 +27,8 @@ type QueryDataFnType = (
  * By default this will query for all of the fields in the database, so they are all non optimized. It's preferred
  * to use the engine directly for querying. Although this not advised this enables us to create functionalities
  * that can work well on every engine. This is also really easy to implement for people that want to create new
- * database engines.
+ * database engines. Besides that something that it enable us is to create distributed databases, that are
+ * in multiple servers
  *
  * The basic methods `get`, `set` and `remove` have the API idea taken of the browser's `localhost` and also
  * from `redis`. This guarantees this can work on most kind of databases without issues.
@@ -46,12 +48,26 @@ export default class EngineQuery {
     this.set = new engineSetQuery(this);
   }
 
+  /**
+   * Retrieve the model instance so we can query from it from the default manager.
+   *
+   * @param modelToRetrieve - The model to retrieve the instance from.
+   */
   getModelInstance(modelToRetrieve: ReturnType<typeof model>) {
     return (modelToRetrieve.constructor as any).default.getInstance(
       this.engineInstance.databaseName
     );
   }
 
+  /**
+   * The search parser is used to parse the search that we will use to query the database, with this we are able to remove the fields
+   * that are not in the model, and also translate queries like `in`, `not in` and so on
+   *
+   * @param modelInstance - The model instance to use to parse the search.
+   * @param search - The search to parse.
+   *
+   * @returns The parsed search, translated to the database engine so we can make a query.
+   */
   async parseSearch(
     modelInstance: InstanceType<ReturnType<typeof model>>,
     search: any
@@ -97,6 +113,21 @@ export default class EngineQuery {
     return undefined;
   }
 
+  /**
+   * This is used to get the field names of the relation. If we are working on a direct relation
+   * or an indirect relation we should behave differently.
+   *
+   * For a direct related model, the relation name is the relation name, and for an indirect related model
+   * the relation name is the related name (related names are used to define the relation name on the parent model,
+   * in other words, if the relation is between Post and User and the post has a postId foreign key with
+   * the related name userPosts, when we are fetching the user model data we can fetch all of the userPosts (posts)
+   * tied to it)
+   * We also change other values like `parentFieldName` that refers to the field name of the parent model
+   * and `fieldNameOfRelationInIncludedModel` that refers to the field name of the relation in the included model.
+   *
+   * @param relatedField - The related field to get the field names of the relation.
+   * @param isDirectlyRelated - If the related field is directly related or not.
+   */
   getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName<
     TToField extends string,
     TRelatedName extends string,
@@ -206,7 +237,11 @@ export default class EngineQuery {
       isDirectlyRelated
     );
 
-    const resultOfIncludes: any[] = [];
+    const resultOfIncludes: ModelFieldsWithIncludes<
+      TIncludedModel,
+      TIncludesOfIncludes,
+      TFieldsOfIncluded
+    >[] = [];
     const [hasIncludedField, fieldsOfIncludedModelWithFieldsFromRelation] =
       fieldsOfIncludedModel.includes(fieldNameOfRelationInIncludedModel)
         ? [false, fieldsOfIncludedModel]
@@ -231,10 +266,12 @@ export default class EngineQuery {
     const resultByUniqueFieldValue: Record<string, any[]> = {};
 
     for (const result of resultOfIncludes) {
-      const uniqueFieldValueOnRelation =
-        result[fieldNameOfRelationInIncludedModel];
+      const uniqueFieldValueOnRelation = (result as any)[
+        fieldNameOfRelationInIncludedModel
+      ];
 
-      if (hasIncludedField) delete result[fieldNameOfRelationInIncludedModel];
+      if (hasIncludedField)
+        delete (result as any)[fieldNameOfRelationInIncludedModel];
 
       const existsValueForUniqueFieldValueOnResults =
         resultByUniqueFieldValue[uniqueFieldValueOnRelation] !== undefined;
@@ -586,6 +623,17 @@ export default class EngineQuery {
     }
   }
 
+  /**
+   * Gets the results of the related model with or without the search.
+   * Look that we separate the logic of the function in a function called fetchResults.
+   *
+   * If the data is defined we need to loop through the data and get the results of the related model.
+   * If the data is not defined we need to get the results of the related model.
+   *
+   * The idea here is that we get the results of the included models in a recursion so for every result we get
+   * we loop through the data and get the results of the related models as well and then
+   * we append this to the original object.
+   */
   async getResultsWithIncludes<
     TModel extends InstanceType<ReturnType<typeof model>>,
     TFields extends FieldsOFModelType<TModel> = readonly (keyof TModel['fields'])[],
@@ -662,8 +710,8 @@ export default class EngineQuery {
           includedModelInstance,
           safeIncludes.slice(1),
           include.includes,
-          ((include as any).fields as readonly string[]) ||
-            (allFieldsOfIncludedModel as readonly string[]),
+          ((include as any).fields ||
+            allFieldsOfIncludedModel) as readonly (keyof typeof includedModelInstance['fields'])[],
           fields,
           search,
           results as TResult,
@@ -719,16 +767,14 @@ export default class EngineQuery {
               false
             >[]
           | undefined;
-
-        results.push(
-          ...(await queryData(
-            translatedModelInstance,
-            await this.parseSearch(modelInstance, mergedSearchForData),
-            Object.keys(modelInstance.fields) as readonly string[],
-            await this.parseData(modelInstance, mergedData),
-            transaction
-          ))
+        const queryDataResults = await queryData(
+          translatedModelInstance,
+          await this.parseSearch(modelInstance, mergedSearchForData),
+          Object.keys(modelInstance.fields) as readonly string[],
+          await this.parseData(modelInstance, mergedData),
+          transaction
         );
+        results.push(...queryDataResults);
       }
     }
 

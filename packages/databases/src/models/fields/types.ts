@@ -28,7 +28,7 @@ export type ClassConstructor<T> = {
 };
 
 export interface FieldDefaultParamsType<
-  F extends Field,
+  F extends Field<any, any, any, any, any, any>,
   D extends N extends true
     ? F['type'] | undefined | null
     : F['type'] | undefined = undefined,

@@ -82,7 +82,10 @@ export default class Migrations {
     );
     const promises: Promise<void>[] = this.domains.map(async (domain) => {
       if (domain.getMigrations) {
-        const domainMigrations = await Promise.resolve(domain.getMigrations());
+        let domainMigrations = await Promise.resolve(domain.getMigrations());
+        if (typeof domainMigrations === 'object' && domainMigrations !== null)
+          domainMigrations = Object.values(domainMigrations);
+
         for (const domainMigration of domainMigrations) {
           foundMigrations.push({
             domainPath: domain.path,

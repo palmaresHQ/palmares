@@ -21,15 +21,15 @@ async function main() {
     wildcards: { use: true },
   });
 
-  await emitter2.addEventListener('create.users', () => {
+  /*await emitter2.addEventListener('create.users', () => {
     return new Promise((resolve) =>
       setTimeout(() => resolve('create.user[1]'), 200)
     );
-  });
+  });*/
 
   //await emitter.unsubscribeAll();
   // Imagina em sistemas distribuidos, vc consegue comunicar facilmente entre seus sistemas.
-  const result = await emitter2.emitToChannel(['users'], 'create.users');
+  const result = await emitter2.emitToChannel(['users'], 'create.*');
   console.log(result);
 }
 main();

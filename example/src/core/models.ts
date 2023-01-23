@@ -11,7 +11,7 @@ import {
 export class Photo extends models.Model<Photo>() {
   fields = {
     id: AutoField.new(),
-    name: CharField.new(),
+    name: CharField.new({ allowNull: true }),
     postId: ForeignKeyField.new({
       relatedTo: Post,
       onDelete: ON_DELETE.CASCADE,
@@ -58,6 +58,7 @@ export class User extends models.Model<User>() {
       maxLength: 255,
       dbIndex: true,
       allowNull: true,
+      defaultValue: '',
     }),
     lastName: CharField.new({ maxLength: 255, allowNull: true }),
     uuid: UUIDField.new({ autoGenerate: true, unique: true }),

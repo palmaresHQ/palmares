@@ -20,9 +20,13 @@ import State from '../state';
 export class CreateField extends Operation {
   modelName: string;
   fieldName: string;
-  fieldDefinition: Field;
+  fieldDefinition: Field<any, any, any, any, any, any>;
 
-  constructor(modelName: string, fieldName: string, fieldDefinition: Field) {
+  constructor(
+    modelName: string,
+    fieldName: string,
+    fieldDefinition: Field<any, any, any, any, any, any>
+  ) {
     super();
     this.modelName = modelName;
     this.fieldName = fieldName;
@@ -92,14 +96,14 @@ export class CreateField extends Operation {
 export class ChangeField extends Operation {
   modelName: string;
   fieldName: string;
-  fieldDefinitionBefore: Field;
-  fieldDefinitionAfter: Field;
+  fieldDefinitionBefore: Field<any, any, any, any, any, any>;
+  fieldDefinitionAfter: Field<any, any, any, any, any, any>;
 
   constructor(
     modelName: string,
     fieldName: string,
-    fieldDefinitionBefore: Field,
-    fieldDefinitionAfter: Field
+    fieldDefinitionBefore: Field<any, any, any, any, any, any>,
+    fieldDefinitionAfter: Field<any, any, any, any, any, any>
   ) {
     super();
     this.modelName = modelName;
@@ -172,13 +176,13 @@ export class RenameField extends Operation {
   modelName: string;
   fieldNameBefore: string;
   fieldNameAfter: string;
-  fieldDefinition: Field;
+  fieldDefinition: Field<any, any, any, any, any, any>;
 
   constructor(
     modelName: string,
     fieldNameBefore: string,
     fieldNameAfter: string,
-    fieldDefinition: Field
+    fieldDefinition: Field<any, any, any, any, any, any>
   ) {
     super();
     this.modelName = modelName;

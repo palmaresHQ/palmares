@@ -13,6 +13,9 @@ export default class CoreDomain
   constructor() {
     super(CoreDomain.name, __dirname);
   }
+  async getMigrations() {
+    return import('./migrations');
+  }
 
   async getModels() {
     return import('./models');

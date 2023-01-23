@@ -36,8 +36,6 @@ export default class EngineSetQuery {
     data?: any,
     transaction?: any
   ): Promise<any[]> {
-    console.log('queryData', data, modelOfEngineInstance, search);
-    console.log('-----------------------');
     return data.map((eachData: any) => ({ ...eachData }));
   }
 
@@ -94,6 +92,8 @@ export default class EngineSetQuery {
     const isToUseTransaction =
       isUseTransactionDefined && isTransactionNeededForQuery ? true : false;
 
+    // used to retrieve the results of the query, we separate this in a function so
+    // we can use it in the transaction and outside of it
     const getResults = async (transaction: any) => {
       const results = [] as ModelFieldsWithIncludes<
         TModel,

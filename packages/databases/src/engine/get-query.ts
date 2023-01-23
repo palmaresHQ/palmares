@@ -79,7 +79,6 @@ export default class EngineGetQuery {
     const selectedFields = (args.fields ||
       Object.keys(internal.model.fields)) as TFieldsOfModel;
     try {
-      throw new NotImplementedEngineException('queryDataNatively');
       return await this.queryDataNatively(
         internal.model.constructor as ReturnType<typeof model>,
         args.search,
@@ -103,7 +102,6 @@ export default class EngineGetQuery {
         );
       else throw e;
     }
-    console.log(result);
     return result as ModelFieldsWithIncludes<TModel, TIncludes>[];
   }
 }

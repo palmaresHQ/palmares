@@ -306,7 +306,7 @@ export class Model<T = any> {
    */
   async #initializeRelatedToModels(engineInstance?: Engine) {
     if (engineInstance) {
-      const relatedTo: string[] = [];
+      const relatedTo: Record<string, string[]> = {};
       engineInstance._indirectlyRelatedModels[this.originalName] =
         engineInstance._indirectlyRelatedModels[this.originalName] || relatedTo;
       this.indirectlyRelatedTo =
