@@ -68,7 +68,9 @@ class Configuration {
     if (this.hasInitializedSettings) return this.settings;
     const settingsNotDefined = typeof settingsOrSettingsPath === 'undefined';
     const isSettingsAPath = typeof settingsOrSettingsPath === 'string';
-    const join = await imports<typeof import('path')['join']>('path', 'join');
+    const join = await imports<typeof import('path')['join']>('path', {
+      packagePath: 'join',
+    });
     let settingsModule = undefined;
 
     if (settingsNotDefined && join) {

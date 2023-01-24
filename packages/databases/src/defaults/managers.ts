@@ -13,11 +13,16 @@ export default class PalmaresMigrationsManager extends models.Manager<
    * @param engineName - The name of the engine from which this migration was created.
    */
   async createMigration(migrationName: string, engineName: string) {
-    /*return await this.set(
-      { data: { id: undefined, migrationName, engineName } },
+    return this.set(
+      {
+        migrationName,
+        engineName,
+      },
+      {
+        useTransaction: true,
+      },
       engineName
-    );*/
-    return null;
+    );
   }
 
   /**

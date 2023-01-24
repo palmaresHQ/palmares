@@ -1,43 +1,6 @@
-import { imports } from '@palmares/core';
-
-import type { Interface } from 'readline';
+import { std } from '@palmares/std';
 
 class Asker {
-  #readlineInterface: Interface | null = null;
-
-  /**
-   * Functions used for retrieving the readline interface, if it was not created or it was closed
-   * we will return a new one.
-   *
-   * @returns - Returns the readline interface.
-   */
-  async #getReadlineInterface(): Promise<Interface | undefined> {
-    const [createInterface, input, output] = await Promise.all([
-      imports<typeof import('readline').createInterface>(
-        'readline',
-        'createInterface'
-      ),
-      imports<typeof import('process').stdin>('process', 'stdin'),
-      imports<typeof import('process').stdout>('process', 'stdout'),
-    ]);
-    if (createInterface && input && output) {
-      const interfaceIsNotClosed =
-        this.#readlineInterface !== null &&
-        this.#readlineInterface !== undefined;
-      if (interfaceIsNotClosed) return this.#readlineInterface as Interface;
-      else {
-        this.#readlineInterface = createInterface({ input, output });
-        return this.#readlineInterface;
-      }
-    }
-  }
-
-  #closeReadlineInterface(): void {
-    const interfaceIsNotClosed =
-      this.#readlineInterface !== null && this.#readlineInterface !== undefined;
-    if (interfaceIsNotClosed) this.#readlineInterface?.close();
-  }
-
   async theNewAttributeCantHaveNullDoYouWishToContinue(
     modelName: string,
     fieldName: string
@@ -49,19 +12,9 @@ class Asker {
       `set to \x1b[33mfalse\x1b[0m. \n` +
       `You can safely ignore this message if you didn't add any data to the table. \n\n` +
       `Press any key to continue or 'CTRL+C' to stop and define the attributes yourself.\n`;
-    const readlineInterface = await this.#getReadlineInterface();
-    if (readlineInterface) {
-      return new Promise((resolve) => {
-        readlineInterface.question(question, (answer: string) => {
-          if (answer.toLowerCase() === 'n') {
-            resolve(false);
-          } else {
-            resolve(true);
-          }
-          this.#closeReadlineInterface();
-        });
-      });
-    } else return false;
+    const answer = await std.defaultStd.asker.ask(question);
+    if (answer.toLowerCase() === 'n') return false;
+    else return true;
   }
 
   async didUserRename(
@@ -69,21 +22,9 @@ class Asker {
     renamedTo: string
   ): Promise<boolean> {
     const question = `\nDid you rename '${modelOrFieldThatWasRenamed}' to '${renamedTo}'? [y/n]\n`;
-    const readlineInterface = await this.#getReadlineInterface();
-    if (readlineInterface) {
-      return new Promise((resolve, reject) => {
-        readlineInterface.question(question, (answer: string) => {
-          if (['y', 'n'].includes(answer)) {
-            this.#closeReadlineInterface();
-            resolve(answer === 'y');
-          } else {
-            this.didUserRename(modelOrFieldThatWasRenamed, renamedTo)
-              .then((response) => resolve(response))
-              .catch((error) => reject(error));
-          }
-        });
-      });
-    } else return false;
+    const answer = await std.defaultStd.asker.ask(question);
+    if (['y', 'n'].includes(answer)) return answer === 'y';
+    else return false;
   }
 
   async didUserRenameToOneOption(
@@ -98,23 +39,15 @@ class Asker {
     const question = `\nDid you rename '${valueThatWasRenamed}' to one of the following options? \n${toOptions.join(
       '\n'
     )} \n\n${explanation}\n`;
-    const readlineInterface = await this.#getReadlineInterface();
-    if (readlineInterface) {
-      return new Promise((resolve) => {
-        readlineInterface.question(question, (answer: string) => {
-          if (answer === '') {
-            resolve(null);
-          } else {
-            try {
-              resolve(renamedToOptions[parseInt(answer) - 1]);
-            } catch {
-              resolve(null);
-            }
-          }
-          this.#closeReadlineInterface();
-        });
-      });
-    } else return null;
+    const answer = await std.defaultStd.asker.ask(question);
+    if (answer === '') return null;
+    else {
+      try {
+        return renamedToOptions[parseInt(answer) - 1];
+      } catch {
+        return null;
+      }
+    }
   }
 }
 

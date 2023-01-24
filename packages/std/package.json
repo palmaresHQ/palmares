@@ -1,7 +1,7 @@
 {
-  "name": "@palmares/databases",
+  "name": "@palmares/std",
   "version": "0.0.0",
-  "description": "Add support for working with databases with palmares framework",
+  "description": "The palmares standard library, this is used to interact with the environment we are working with, it can be a browser, node.js, bun, deno or whatever runtime. The standard library should include interfaces that we can extend in whatever environment we are at",
   "main": "src/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -12,21 +12,17 @@
   },
   "keywords": [
     "palmares",
-    "databases"
+    "std",
+    "palmares",
+    "framework"
   ],
-  "author": "Nicolas Melo",
+  "author": "Nicolas Leal",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
-  "peerDependencies": {
-    "@palmares/core": "*",
-    "@palmares/std": "*"
-  },
-  "devDependencies": {
-    "@types/eslint": "^8.4.10",
-    "eslint": "^8.30.0",
-    "typescript": "^4.9.3"
+  "dependencies": {
+    "@palmares/core": "*"
   }
 }

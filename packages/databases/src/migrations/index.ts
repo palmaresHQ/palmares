@@ -1,4 +1,5 @@
-import { ERR_MODULE_NOT_FOUND, imports, logging } from '@palmares/core';
+import { ERR_MODULE_NOT_FOUND, logging } from '@palmares/core';
+import { std } from '@palmares/std';
 
 import { DatabaseDomainInterface } from '../interfaces';
 import {
@@ -10,8 +11,6 @@ import { FoundMigrationsFileType, MigrationFileType } from './types';
 import { LOGGING_MIGRATIONS_NOT_FOUND } from '../utils';
 import MakeMigrations from './makemigrations';
 import Migrate from './migrate';
-
-import type { Dirent } from 'fs';
 
 /**
  * Used for working with anything related to migrations inside of the project, from the automatic creation of migrations
@@ -75,11 +74,6 @@ export default class Migrations {
 
   async #getMigrations(): Promise<FoundMigrationsFileType[]> {
     const foundMigrations: FoundMigrationsFileType[] = [];
-    const join = await imports<typeof import('path')['join']>('path', 'join');
-    const readdir = await imports<typeof import('fs')['readdir']>(
-      'fs',
-      'readdir'
-    );
     const promises: Promise<void>[] = this.domains.map(async (domain) => {
       if (domain.getMigrations) {
         let domainMigrations = await Promise.resolve(domain.getMigrations());
@@ -93,20 +87,22 @@ export default class Migrations {
             migration: domainMigration,
           });
         }
-      } else if (join && readdir) {
-        const fullPath = join(domain.path, 'migrations');
+      } else {
+        const fullPath = await std.defaultStd.files.join(
+          domain.path,
+          'migrations'
+        );
         try {
-          const directoryFiles = await new Promise<
-            string[] | Buffer[] | Dirent[]
-          >((resolve, reject) => {
-            readdir(fullPath, (error, data) => {
-              if (error) reject(error);
-              resolve(data);
-            });
-          });
+          const directoryFiles = await std.defaultStd.files.readDirectory(
+            fullPath
+          );
           const promises = directoryFiles.map(async (element) => {
             const file = element as string;
-            const migrationFile = (await import(join(fullPath, file)))
+            const pathOfMigration = await std.defaultStd.files.join(
+              fullPath,
+              file
+            );
+            const migrationFile = (await import(pathOfMigration))
               .default as MigrationFileType;
             const isAValidMigrationFile =
               typeof migrationFile === 'object' &&

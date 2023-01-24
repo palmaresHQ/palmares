@@ -33,7 +33,10 @@ export const EVENTS_OPTIONS = {
   },
 };
 
+export const STD = import('@palmares/node-std');
+
 export const INSTALLED_DOMAINS = [
+  import('@palmares/std'),
   import('@palmares/server'),
   import('@palmares/databases'),
   import('@palmares/events'),

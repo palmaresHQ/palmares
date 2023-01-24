@@ -27,7 +27,7 @@
 export default async function imports<R>(
   packageName: string,
   args?: {
-    packagePath?: string;
+    apiName?: string;
     /**
      * This error code is the code that returns when we have an import error, to see what error code to use, try to run the following
      * code on your environment:
@@ -56,7 +56,7 @@ export default async function imports<R>(
   const errorCodeToConsider =
     typeof args?.errorCode === 'string' ? args.errorCode : 'MODULE_NOT_FOUND';
   const packagePathToUse =
-    typeof args?.packagePath === 'string' ? args.packagePath : 'default';
+    typeof args?.apiName === 'string' ? args.apiName : 'default';
   try {
     const module = await import(packageName);
     const splittedPackagePath: string[] = packagePathToUse.split('.');

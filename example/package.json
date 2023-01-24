@@ -18,9 +18,11 @@
   },
   "dependencies": {
     "@palmares/core": "*",
+    "@palmares/std": "*",
     "@palmares/databases": "*",
     "@palmares/eventemitter2-emitter": "*",
     "@palmares/events": "*",
+    "@palmares/node-std": "*",
     "@palmares/express-adapter": "*",
     "@palmares/redis-emitter": "*",
     "@palmares/sequelize-engine": "*",

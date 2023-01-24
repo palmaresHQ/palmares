@@ -1,7 +1,7 @@
 {
-  "name": "@palmares/databases",
+  "name": "@palmares/node-std",
   "version": "0.0.0",
-  "description": "Add support for working with databases with palmares framework",
+  "description": "This is the nodejs standard library, it uses the std interfaces to interact with the environment so palmares can work with the same APIs without worrying about the environment it is running on.",
   "main": "src/index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -12,21 +12,16 @@
   },
   "keywords": [
     "palmares",
-    "databases"
+    "node",
+    "std"
   ],
-  "author": "Nicolas Melo",
+  "author": "Nicolas Leal",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
-  "peerDependencies": {
-    "@palmares/core": "*",
+  "dependencies": {
     "@palmares/std": "*"
-  },
-  "devDependencies": {
-    "@types/eslint": "^8.4.10",
-    "eslint": "^8.30.0",
-    "typescript": "^4.9.3"
   }
 }
