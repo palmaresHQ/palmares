@@ -738,6 +738,15 @@ export default class MakeMigrations {
         ''
       );
     }
+    // write file first so after we can read the directory and update the index file.
+    await std.defaultStd.files.writeFile(
+      [
+        pathToWriteMigrations,
+        `${migrationName}.${this.settings?.USE_TS ? 'ts' : 'js'}`,
+      ],
+      file
+    );
+
     // This will write the migrations to index.ts or index.js file.
     const files = await std.defaultStd.files.readDirectory(
       pathToWriteMigrations
@@ -745,6 +754,7 @@ export default class MakeMigrations {
     const filteredFilesWithoutIndex = files.filter(
       (fileName) => fileName !== indexFileOfMigrations
     );
+
     const contentsOfIndex = filteredFilesWithoutIndex
       .map((fileName, index) => {
         const fileNameWithoutExtension = fileName.replace(
@@ -758,19 +768,12 @@ export default class MakeMigrations {
             }`;
       })
       .join('\n');
-    await Promise.all([
-      std.defaultStd.files.writeFile(
-        [pathToWriteMigrations, indexFileOfMigrations],
-        contentsOfIndex
-      ),
-      std.defaultStd.files.writeFile(
-        [
-          pathToWriteMigrations,
-          `${migrationName}.${this.settings?.USE_TS ? 'ts' : 'js'}`,
-        ],
-        file
-      ),
-    ]);
+
+    // save the index file.
+    await std.defaultStd.files.writeFile(
+      [pathToWriteMigrations, indexFileOfMigrations],
+      contentsOfIndex
+    );
 
     return migrationName;
   }

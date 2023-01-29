@@ -1,7 +1,10 @@
-import { Response, Request as ExpressRequest, NextFunction} from "express"
+import { Response, Request as ExpressRequest, NextFunction } from 'express';
 import cors from 'cors';
-import { Middleware, Request } from "@palmares/server";
-import ExpressServer, { ExpressMiddleware, ExpressMiddlewareHandlerType } from "@palmares/express-adapter";
+import { Middleware, Request } from '@palmares/server';
+import ExpressServer, {
+  ExpressMiddleware,
+  ExpressMiddlewareHandlerType,
+} from '@palmares/express-adapter';
 
 export default class CorsMiddleware extends Middleware {
   async run(request: Request) {
@@ -16,7 +19,9 @@ export default class CorsMiddleware extends Middleware {
 }
 
 export class ExpressCorsMiddleware extends ExpressMiddleware {
-  static async load(server: ExpressServer): Promise<ExpressMiddlewareHandlerType> {
+  static async load(
+    server: ExpressServer
+  ): Promise<ExpressMiddlewareHandlerType> {
     return cors();
   }
 }

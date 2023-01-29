@@ -767,6 +767,10 @@ export default class EngineQuery {
               false
             >[]
           | undefined;
+        console.log(
+          '',
+          await this.parseSearch(modelInstance, mergedSearchForData)
+        );
         const queryDataResults = await queryData(
           translatedModelInstance,
           await this.parseSearch(modelInstance, mergedSearchForData),

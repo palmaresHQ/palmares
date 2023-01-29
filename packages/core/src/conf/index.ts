@@ -26,6 +26,8 @@ class Configuration {
   hasInitializedSettings = false;
   hasInitializedDomains = false;
   domains: Domain[] = [];
+  #importedSettings: Promise<SettingsType> | SettingsType | string | null =
+    null;
 
   async #loadFromPathsOrEnv(
     settingsPaths: string[] = []
@@ -67,6 +69,11 @@ class Configuration {
   ) {
     if (this.hasInitializedSettings) return this.settings;
     const settingsNotDefined = typeof settingsOrSettingsPath === 'undefined';
+    if (this.#importedSettings && settingsNotDefined)
+      settingsOrSettingsPath = this.#importedSettings;
+    if (this.#importedSettings === null && settingsOrSettingsPath)
+      this.#importedSettings = await Promise.resolve(settingsOrSettingsPath);
+
     const isSettingsAPath = typeof settingsOrSettingsPath === 'string';
     const join = await imports<typeof import('path')['join']>('path', {
       packagePath: 'join',
@@ -104,7 +111,8 @@ class Configuration {
       settingsModule = await Promise.resolve(settingsOrSettingsPath);
     }
 
-    if (settingsModule) await this.mergeWithDefault(settingsModule);
+    if (settingsModule)
+      await this.mergeWithDefault(settingsModule as SettingsType);
     this.hasInitializedSettings = true;
     return this.settings;
   }

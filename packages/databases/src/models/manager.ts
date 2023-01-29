@@ -15,6 +15,7 @@ import { Model, default as model } from './model';
 import Databases from '../databases';
 import { DatabaseSettingsType } from '../types';
 import { DatabaseDomainInterface } from '../interfaces';
+
 /**
  * Managers define how you make queries on the database. Instead of making queries everywhere in your application
  * you should always use managers for your most common tasks.
@@ -102,6 +103,7 @@ export default class Manager<
       database.isInitializing === false;
     this.isLazyInitializing = true;
     if (canInitializeTheModels) {
+      console.log('fromManager');
       const settings =
         (await conf.getSettings()) as unknown as DatabaseSettingsType;
       const { domains } = await Domain.initializeDomains(settings);
@@ -162,6 +164,7 @@ export default class Manager<
         : T;
     const hasLazilyInitialized =
       await this.verifyIfNotInitializedAndInitializeModels(engineInstanceName);
+    console.log(this.models);
     if (hasLazilyInitialized) return this.getEngineInstance(engineName);
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }
@@ -248,11 +251,21 @@ export default class Manager<
     },
     engineName?: string
   ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]> {
-    const engineInstanceName = engineName || this.defaultEngineInstanceName;
+    const isValidEngineName =
+      typeof engineName === 'string' && engineName !== '';
+    const engineInstanceName = isValidEngineName
+      ? engineName
+      : this.defaultEngineInstanceName;
     // Promise.all here will not work, we need to do this sequentially.
-    const engineInstance = await this.getEngineInstance(engineName);
+    const engineInstance = await this.getEngineInstance(engineInstanceName);
+
+    const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName =
+      isValidEngineName ? engineName : this.defaultEngineInstanceName;
+
     const allFieldsOfModel = Object.keys(
-      this.getModel(engineInstanceName)['fields']
+      this.getModel(
+        initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName
+      )['fields']
     );
     return engineInstance.query.get.run<
       TModel,
@@ -281,7 +294,9 @@ export default class Manager<
         >,
       },
       {
-        model: this.models[engineInstanceName] as TModel,
+        model: this.models[
+          initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName
+        ] as TModel,
         includes: (args?.includes || []) as TIncludes,
       }
     ) as Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]>;

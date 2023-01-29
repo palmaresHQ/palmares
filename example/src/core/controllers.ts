@@ -23,7 +23,6 @@ export class ExampleController extends Controller {
   // Escreve uma rota com decorators
   @Get('/test')
   async testDecorator() {
-    const startOfInternal = performance.now();
     const data = [
       {
         firstName: 'Teste',
@@ -79,7 +78,7 @@ export class ExampleController extends Controller {
       ] as const,
     });
     console.log(JSON.stringify(value, null, 2));
-    const endOfInternal = performance.now();
+    //const endOfInternal = performance.now();
     //console.log('Raw Performance', JSON.stringify(value, null, 2));
 
     //console.log(JSON.stringify(value, null, 2));

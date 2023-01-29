@@ -3,6 +3,7 @@ import Configuration from '../conf';
 import { SettingsType } from '../conf/types';
 import { CommandNotFoundException } from './exceptions';
 import { DefaultCommandType } from './types';
+
 class Commands {
   commands = {} as DefaultCommandType;
 

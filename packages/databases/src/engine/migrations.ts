@@ -1,8 +1,8 @@
-import Engine from ".";
-import Migration from "../migrations/migrate/migration";
-import EngineFields from "./fields";
-import { InitializedModelsType } from "../types";
-import { Field } from "../models/fields";
+import Engine from '.';
+import Migration from '../migrations/migrate/migration';
+import EngineFields from './fields';
+import { InitializedModelsType } from '../types';
+import { Field } from '../models/fields';
 
 /**
  * Engine migrations enables developers to have migrations easily and automatically, no matter the orm they use.
@@ -23,10 +23,7 @@ export default class EngineMigrations {
     return;
   }
 
-  async addModel(
-    toModel: InitializedModelsType,
-    migration: Migration
-  ) {
+  async addModel(toModel: InitializedModelsType, migration: Migration) {
     return;
   }
 

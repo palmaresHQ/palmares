@@ -14,16 +14,21 @@ export default class SequelizeEngineSetQuery extends EngineSetQuery {
     return Promise.all(
       data.map(async (eachData: any) => {
         if (search === undefined)
-          return modelOfEngineInstance.create(eachData, { transaction });
-
-        const [instance] = await modelOfEngineInstance.upsert(
-          { ...search, ...eachData },
-          {
-            transaction,
+          return JSON.parse(
+            JSON.stringify(
+              await modelOfEngineInstance.create(eachData, { transaction })
+            )
+          );
+        try {
+          const [instance] = await modelOfEngineInstance.upsert(eachData, {
+            transaction: transaction,
             returning: true,
-          }
-        );
-        return instance;
+          });
+          return JSON.parse(JSON.stringify(instance));
+        } catch (error) {
+          console.log(error);
+          throw error;
+        }
       })
     );
   }

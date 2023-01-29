@@ -66,6 +66,29 @@ module.exports = {
           { devDependencies: ['**/*.test.*', '**/*.spec.*', '**/*.*-spec.*'] },
         ],
         'file-progress/activate': 1,
+        'sort-imports': [
+          'error',
+          {
+            ignoreCase: true,
+            ignoreDeclarationSort: true,
+          },
+        ],
+        'import/order': [
+          1,
+          {
+            'newlines-between': 'always',
+            groups: [
+              ['external', 'builtin'],
+              ['object', 'internal', 'sibling', 'parent', 'index'],
+              ['type'],
+            ],
+            pathGroupsExcludedImportTypes: ['internal'],
+            alphabetize: {
+              order: 'asc',
+              caseInsensitive: true,
+            },
+          },
+        ],
         'prettier/prettier': [
           'error',
           {
