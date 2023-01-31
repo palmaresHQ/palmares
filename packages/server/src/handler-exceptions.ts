@@ -1,5 +1,5 @@
-import Response from "./response";
-import { BodyTypes } from "./response/types";
+import Response from './response';
+import { BodyTypes } from './response/types';
 
 /**
  * Use this to throw exceptions inside of your app, like unauthorized users, or unauthenticated or
@@ -24,11 +24,11 @@ export default class HttpException<O = any> extends Error {
     options,
     cause,
   }: {
-    status?: number,
-    body?: BodyTypes,
+    status?: number;
+    body?: BodyTypes;
     options?: O;
-    headers?: object
-    cause?: Error
+    headers?: object;
+    cause?: Error;
   }) {
     super();
     this.name = this.constructor.name;
@@ -36,7 +36,7 @@ export default class HttpException<O = any> extends Error {
     if (status) this.status = status;
     if (headers) this.headers = headers;
     if (options) this.options = options;
-    if (cause) this.cause = cause
+    if (cause) this.cause = cause;
   }
 
   /**

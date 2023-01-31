@@ -54,14 +54,15 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
         const formattedInclude: Includeable = {
           as: relationName,
           model: sequelizeModelInstance,
-          required: true,
         };
 
-        if (whereClause)
+        if (whereClause) {
           formattedInclude.where = await this.engineQueryInstance.parseSearch(
             modelInstance,
             whereClause
           );
+          formattedInclude.required = true;
+        }
         if (include.fields)
           formattedInclude.attributes = include.fields as string[];
         if (include.includes) {
@@ -96,18 +97,21 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
       includes
     );
 
-    return JSON.parse(
-      JSON.stringify(
-        await sequelizeModelInstance.findAll({
-          attributes: fields as string[],
-          where: await this.engineQueryInstance.parseSearch(
-            modelInstance,
-            search
-          ),
-          include: formattedIncludesStatement,
-        })
-      )
+    const rootLevelWhereClause = await this.engineQueryInstance.parseSearch(
+      modelInstance,
+      search
     );
+
+    return (
+      await sequelizeModelInstance.findAll({
+        attributes: fields as string[],
+        where:
+          Object.keys(rootLevelWhereClause).length > 0
+            ? rootLevelWhereClause
+            : undefined,
+        include: formattedIncludesStatement,
+      })
+    ).map((data) => data.toJSON());
   }
 
   override async queryData(
@@ -115,6 +119,7 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
     search: any,
     fields: readonly string[]
   ) {
+    console.log('queryData', search);
     return modelInstance.findAll({
       attributes: fields as string[],
       where: search,

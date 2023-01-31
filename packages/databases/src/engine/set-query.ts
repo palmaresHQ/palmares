@@ -147,7 +147,7 @@ export default class EngineSetQuery {
           results,
           this.queryData.bind(this),
           true,
-          true,
+          false,
           undefined,
           data as TData,
           transaction

@@ -412,40 +412,70 @@ export default class Manager<
    * @param engineName - The name of the engine to use defined in the DATABASES object. By default we use the `default` one.
    *
    * @return - Returns true if everything went fine and false otherwise.
-   * /
+   */
   async remove<
     TModel extends Model = M,
     TIncludes extends Includes = undefined
   >(
-    args: {
-      search: ModelFieldsWithIncludes<
+    args?: {
+      includes?: IncludesValidated<TModel, TIncludes>;
+      search?:
+        | ModelFieldsWithIncludes<
+            TModel,
+            TIncludes,
+            FieldsOFModelType<TModel>,
+            false,
+            false,
+            true,
+            true
+          >
+        | undefined;
+    },
+    engineName?: string
+  ): Promise<ModelFieldsWithIncludes<TModel, TIncludes>[]> {
+    const isValidEngineName =
+      typeof engineName === 'string' && engineName !== '';
+    const engineInstanceName = isValidEngineName
+      ? engineName
+      : this.defaultEngineInstanceName;
+    // Promise.all here will not work, we need to do this sequentially.
+    const engineInstance = await this.getEngineInstance(engineInstanceName);
+
+    const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName =
+      isValidEngineName ? engineName : this.defaultEngineInstanceName;
+
+    return engineInstance.query.remove.run<
+      TModel,
+      TIncludes,
+      ModelFieldsWithIncludes<
         TModel,
         TIncludes,
+        FieldsOFModelType<TModel>,
         false,
         false,
         true,
         true
-      >;
-      includes?: TIncludes;
-    },
-    engineName?: string
-  ): Promise<boolean> {
-    const engineInstanceName = engineName || this.defaultEngineInstanceName;
-
-    const [engineInstance, instance] = await Promise.all([
-      this.getEngineInstance(),
-      this.getInstance(engineName),
-    ]);
-    return engineInstance.query.remove<TModel, TIncludes>(
-      instance,
-      args.search,
+      >
+    >(
       {
-        model: this.models[engineInstanceName] as TModel,
-        includes: args.includes as TIncludes,
+        search: (args?.search || {}) as ModelFieldsWithIncludes<
+          TModel,
+          TIncludes,
+          FieldsOFModelType<TModel>,
+          false,
+          false,
+          true,
+          true
+        >,
+      },
+      {
+        model: this.models[
+          initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName
+        ] as TModel,
+        includes: (args?.includes || []) as TIncludes,
       }
-    );
+    ) as Promise<ModelFieldsWithIncludes<TModel, TIncludes>[]>;
   }
-  */
 }
 
 export class DefaultManager<M extends Model> extends Manager<M, null> {}

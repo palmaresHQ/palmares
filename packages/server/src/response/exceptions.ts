@@ -1,15 +1,19 @@
 export class InvalidCookie extends Error {
   constructor() {
-    super(`The cookie should define a name and a value. `+
-    `And for an existing cookie the name or the value was not defined.`);
+    super(
+      `The cookie should define a name and a value. ` +
+        `And for an existing cookie the name or the value was not defined.`
+    );
     this.name = InvalidCookie.name;
   }
 }
 
 export class UseSetCookieInstead extends Error {
   constructor() {
-    super(`Looks like you are trying to set the 'set-cookie' header directly, `+
-    `please use the 'setCookie()' or 'setManyCookies()' methods instead.`);
+    super(
+      `Looks like you are trying to set the 'set-cookie' header directly, ` +
+        `please use the 'setCookie()' or 'setManyCookies()' methods instead.`
+    );
     this.name = UseSetCookieInstead.name;
   }
 }
@@ -24,6 +28,8 @@ export class UseSetBodyInstead extends Error {
 
 export class DoNotCallResponseDirectly extends Error {
   constructor() {
-    super(`Do not call the Response constructor directly, instead call the 'new' factory method. Example: Response.new(<your_args>)`);
+    super(
+      `Do not call the Response constructor directly, instead call the 'new' factory method. Example: Response.new(<your_args>)`
+    );
   }
 }

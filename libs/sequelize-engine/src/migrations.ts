@@ -144,7 +144,6 @@ export default class SequelizeMigrations extends EngineMigrations {
     const failedIndexesForNextIteration: IndexesToAddOnNextIterationType[] = [];
     const toModelIndexes = toModel.initialized.options.indexes || [];
     const fromModelIndexes = fromModel?.initialized?.options?.indexes || [];
-    console.log(fromModel?.initialized.associations['post'].cons);
     const toModelName = toModel.initialized.options.tableName as string;
     const toModelDatabaseColumnNames = Object.keys(
       toModel.initialized.rawAttributes
@@ -378,7 +377,6 @@ export default class SequelizeMigrations extends EngineMigrations {
         fieldBefore instanceof models.fields.ForeignKeyField;
       // This removes the constraint, when we change the column sequelize automatically creates a new constraint
       // because of that we remove the old one.
-      console.log(isOfTypeRelation);
       if (isOfTypeRelation) {
         const constraints:
           | GetForeignKeyReferencesForTableReturnType[]
@@ -386,12 +384,12 @@ export default class SequelizeMigrations extends EngineMigrations {
           tableName,
           { transaction: migration.transaction }
         )) as GetForeignKeyReferencesForTableReturnType[] | undefined;
-        console.log(constraints);
+
         if (constraints) {
           const constraintsToRemove = constraints?.filter(
             (constraint) => constraint.columnName === fieldBefore.databaseName
           );
-          console.log(constraintsToRemove);
+
           for (const constraintToRemove of constraintsToRemove) {
             await this.#queryInterface.removeConstraint(
               tableName,

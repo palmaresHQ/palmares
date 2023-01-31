@@ -1,10 +1,9 @@
-import { models, TModel } from '@palmares/databases';
+import { TModel } from '@palmares/databases';
 import {
   Sequelize,
   ModelOptions,
   ModelAttributeColumnOptions,
   Model,
-  ModelStatic,
   ModelCtor,
   OrderItem,
 } from 'sequelize';

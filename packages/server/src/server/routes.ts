@@ -21,7 +21,11 @@ import {
   HandlersType,
 } from './types';
 import HttpException from '../handler-exceptions';
-import { HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR } from '../status';
+import {
+  HTTP_404_NOT_FOUND,
+  HTTP_500_INTERNAL_SERVER_ERROR,
+  StatusCodes,
+} from '../status';
 
 /**
  * This class is responsible for translating the routes to something that the lib can understand.
@@ -326,22 +330,24 @@ export default class ServerRoutes {
       } catch (e) {
         const isHttpError = e instanceof HttpException;
         const error = e as Error;
+        console.log(this.server.settings.DEBUG);
         if (isHttpError) response = await e.getResponse();
         else if (this.server.settings.DEBUG) {
           const exception = new HttpException({
             status: HTTP_500_INTERNAL_SERVER_ERROR,
-            body: error.stack,
+            body: JSON.parse(JSON.stringify(error, null, 2)),
           });
           response = await exception.getResponse();
         } else {
           const exception = new HttpException({
             status: HTTP_500_INTERNAL_SERVER_ERROR,
           });
-          logging.error(error.stack as string);
+          // TODO: Change this to a proper logging
+          console.error(error);
           response = await exception.getResponse();
         }
       }
-      if (is404Handler) response.status = HTTP_404_NOT_FOUND;
+      if (is404Handler) response.status = HTTP_404_NOT_FOUND as StatusCodes;
       const translatedResponse = await this.server.responses.initialize(
         response,
         options

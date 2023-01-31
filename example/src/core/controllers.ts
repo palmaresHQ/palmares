@@ -30,7 +30,6 @@ export class ExampleController extends Controller {
         uuid: '12fe1fe1-7186-4196-9b07-50fb73cb26f0',
         userPosts: [
           {
-            id: 1,
             number: 1,
             postPhotos: [
               {
@@ -48,7 +47,6 @@ export class ExampleController extends Controller {
             ],
           },
           {
-            id: 1,
             number: 20,
             postPhotos: [
               {
@@ -60,10 +58,10 @@ export class ExampleController extends Controller {
         ],
       },
     ];
-    const value = await User.default.set(data, {
+    const value = await User.default.get({
       search: {
         userPosts: {
-          number: 2,
+          number: 20,
         },
       },
       includes: [
@@ -78,21 +76,7 @@ export class ExampleController extends Controller {
       ] as const,
     });
     console.log(JSON.stringify(value, null, 2));
-    //const endOfInternal = performance.now();
-    //console.log('Raw Performance', JSON.stringify(value, null, 2));
 
-    //console.log(JSON.stringify(value, null, 2));
-    /*await PostModel.default.get({
-      includes: [
-        {
-          model: User,
-        },
-      ],
-    });*/
-    /*const serializer = UserSerializer.new({
-      instance: instance,
-    });
-    const data = await serializer.data;*/
     return Response.new(HTTP_200_OK);
   }
 

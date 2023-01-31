@@ -21,6 +21,7 @@ import ModelTranslator from './model';
 import SequelizeMigrations from './migrations';
 import SequelizeEngineGetQuery from './get-query';
 import SequelizeEngineSetQuery from './set-query';
+import SequelizeEngineRemoveQuery from './remove-query';
 
 export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
   #isConnected: boolean | null = null;
@@ -76,6 +77,7 @@ export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
         query: SequelizeEngineQuery,
         get: SequelizeEngineGetQuery,
         set: SequelizeEngineSetQuery,
+        remove: SequelizeEngineRemoveQuery,
       },
       SequelizeMigrations
     );
