@@ -114,15 +114,14 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
     ).map((data) => data.toJSON());
   }
 
-  override async queryData(
-    modelInstance: ModelCtor<Model>,
-    search: any,
-    fields: readonly string[]
-  ) {
-    console.log('queryData', search);
-    return modelInstance.findAll({
-      attributes: fields as string[],
-      where: search,
+  override async queryData(args: {
+    modelOfEngineInstance: ModelCtor<Model>;
+    search: any;
+    fields: readonly string[];
+  }) {
+    return args.modelOfEngineInstance.findAll({
+      attributes: args.fields as string[],
+      where: args.search,
       nest: true,
       raw: true,
     });

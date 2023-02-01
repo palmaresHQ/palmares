@@ -20,14 +20,10 @@ export default class EngineRemoveQuery {
    *
    * @param modelOfEngineInstance - The model instance to query.
    */
-  async queryData(
-    modelOfEngineInstance: any,
-    search: any,
-    fields?: readonly string[],
-    data = undefined,
-    transaction?: any
-  ): Promise<any[]> {
-    console.log('remove query data', search, modelOfEngineInstance.tableName);
+  async queryData(args: {
+    modelOfEngineInstance: any;
+    search: any;
+  }): Promise<any[]> {
     return [{}];
   }
 

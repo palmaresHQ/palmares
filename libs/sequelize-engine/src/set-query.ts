@@ -3,22 +3,22 @@ import { EngineSetQuery } from '@palmares/databases';
 import { Model, ModelCtor, Transaction } from 'sequelize';
 
 export default class SequelizeEngineSetQuery extends EngineSetQuery {
-  async queryData(
-    modelOfEngineInstance: ModelCtor<Model>,
-    search: any,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _ = undefined,
-    data?: any,
-    transaction?: Transaction
-  ): Promise<any[]> {
+  async queryData(args: {
+    modelOfEngineInstance: ModelCtor<Model>;
+    search: any;
+    data?: any;
+    transaction?: Transaction;
+  }): Promise<any[]> {
     return Promise.all(
-      data.map(async (eachData: any) => {
-        if (search === undefined)
+      args.data.map(async (eachData: any) => {
+        if (args.search === undefined)
           return (
-            await modelOfEngineInstance.create(eachData, { transaction })
+            await args.modelOfEngineInstance.create(eachData, {
+              transaction: args.transaction,
+            })
           ).toJSON();
-        const [instance] = await modelOfEngineInstance.upsert(eachData, {
-          transaction: transaction,
+        const [instance] = await args.modelOfEngineInstance.upsert(eachData, {
+          transaction: args.transaction,
           returning: true,
         });
         return instance.toJSON();

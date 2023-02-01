@@ -31,11 +31,11 @@ export default class EngineGetQuery {
    * @param search - The search argument to search on the database.
    * @param fields - The fields to be included in the search and the output.
    */
-  async queryData(
-    modelConstructor: any,
-    search: any,
-    fields?: readonly string[]
-  ): Promise<any[]> {
+  async queryData(args: {
+    modelOfEngineInstance: any;
+    search: any;
+    fields: readonly string[];
+  }): Promise<any[]> {
     return [];
   }
 

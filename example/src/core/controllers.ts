@@ -58,23 +58,27 @@ export class ExampleController extends Controller {
         ],
       },
     ];
-    const value = await User.default.get({
-      search: {
-        userPosts: {
-          number: 20,
-        },
-      },
-      includes: [
+    const value = await PostModel.default.set(
+      [
         {
-          model: PostModel,
-          includes: [
-            {
-              model: Photo,
-            },
-          ],
+          number: 66,
+          user: {
+            firstName: 'Mathias',
+            lastName: 'Dantas',
+          },
         },
-      ] as const,
-    });
+      ],
+      {
+        search: {
+          number: 66,
+        },
+        includes: [
+          {
+            model: User,
+          },
+        ] as const,
+      }
+    );
     console.log(JSON.stringify(value, null, 2));
 
     return Response.new(HTTP_200_OK);

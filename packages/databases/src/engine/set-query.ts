@@ -29,14 +29,13 @@ export default class EngineSetQuery {
    * @param search - The search argument to search on the database.
    * @param fields - The fields to be included in the search and the output.
    */
-  async queryData(
-    modelOfEngineInstance: any,
-    search: any,
-    fields?: readonly string[],
-    data?: any,
-    transaction?: any
-  ): Promise<any[]> {
-    return data.map((eachData: any) => ({ ...eachData }));
+  async queryData(args: {
+    modelOfEngineInstance: any;
+    search: any;
+    data: any;
+    transaction?: any;
+  }): Promise<any[]> {
+    return args.data.map((eachData: any) => ({ ...eachData }));
   }
 
   async run<
