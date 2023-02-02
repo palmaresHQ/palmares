@@ -23,6 +23,7 @@ export default class EngineRemoveQuery {
   async queryData(args: {
     modelOfEngineInstance: any;
     search: any;
+    shouldReturnData?: boolean;
   }): Promise<any[]> {
     return [{}];
   }
@@ -61,19 +62,40 @@ export default class EngineRemoveQuery {
       TIncludes,
       FieldsOFModelType<TModel>
     >[];
-    await this.engineQueryInstance.getResultsWithIncludes(
-      internal.model as TModel,
-      selectedFields as FieldsOFModelType<TModel>,
-      internal.includes as TIncludes,
-      args.search as TSearch,
-      results,
-      this.queryData.bind(this),
-      false,
-      true,
-      undefined,
-      undefined,
-      undefined
-    );
+    try {
+      await this.engineQueryInstance.getResultsWithIncludes(
+        internal.model as TModel,
+        selectedFields as FieldsOFModelType<TModel>,
+        internal.includes as TIncludes,
+        args.search as TSearch,
+        results,
+        this.queryData.bind(this),
+        false,
+        true,
+        undefined,
+        undefined,
+        undefined
+      );
+    } catch (error) {
+      if (args.useTransaction) {
+        console.log('remove-query', results);
+        await this.engineQueryInstance.set.run(
+          results as any,
+          {
+            useTransaction: true,
+          },
+          {
+            model: internal.model,
+            includes: internal.includes,
+          }
+        );
+        return [] as ModelFieldsWithIncludes<
+          TModel,
+          TIncludes,
+          FieldsOFModelType<TModel>
+        >[];
+      } else throw error;
+    }
 
     return results;
   }

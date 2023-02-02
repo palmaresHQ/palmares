@@ -231,7 +231,9 @@ export default class Manager<
    */
   async get<
     TModel extends Model = M,
-    TIncludes extends Includes = undefined,
+    TIncludes extends Includes<{
+      fields: TFields;
+    }> = undefined,
     TFields extends FieldsOFModelType<TModel> = readonly (keyof TModel['fields'])[]
   >(
     args?: {
@@ -325,7 +327,7 @@ export default class Manager<
    */
   async set<
     TModel extends Model = M,
-    TIncludes extends Includes<true> = undefined,
+    TIncludes extends Includes = undefined,
     TSearch extends ModelFieldsWithIncludes<
       TModel,
       TIncludes,
@@ -415,10 +417,19 @@ export default class Manager<
    */
   async remove<
     TModel extends Model = M,
-    TIncludes extends Includes = undefined
+    TIncludes extends Includes<{
+      isToPreventRemove?: true;
+    }> = undefined
   >(
     args?: {
-      includes?: IncludesValidated<TModel, TIncludes>;
+      includes?: IncludesValidated<
+        TModel,
+        TIncludes,
+        false,
+        {
+          isToPreventRemove?: true;
+        }
+      >;
       search?:
         | ModelFieldsWithIncludes<
             TModel,
@@ -467,6 +478,7 @@ export default class Manager<
           true,
           true
         >,
+        useTransaction: true,
       },
       {
         model: this.models[

@@ -58,27 +58,18 @@ export class ExampleController extends Controller {
         ],
       },
     ];
-    const value = await PostModel.default.set(
-      [
+    const value = await User.default.remove({
+      search: {
+        userPosts: {
+          number: 22,
+        },
+      },
+      includes: [
         {
-          number: 66,
-          user: {
-            firstName: 'Mathias',
-            lastName: 'Dantas',
-          },
+          model: PostModel,
         },
-      ],
-      {
-        search: {
-          number: 66,
-        },
-        includes: [
-          {
-            model: User,
-          },
-        ] as const,
-      }
-    );
+      ] as const,
+    });
     console.log(JSON.stringify(value, null, 2));
 
     return Response.new(HTTP_200_OK);

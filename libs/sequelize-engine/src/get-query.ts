@@ -22,7 +22,7 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
   async #parseSearchWithIncludes(
     parentModel: InstanceType<ReturnType<typeof models.Model>>,
     search: any,
-    includes: Includes,
+    includes: Includes<{ fields: readonly string[] }>,
     formattedIncludesStatement: Includeable[] = []
   ) {
     const parentModelName = parentModel.name;
@@ -85,7 +85,7 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
     modelConstructor: ReturnType<typeof models.Model>,
     search: any,
     fields: readonly string[],
-    includes: Includes
+    includes: Includes<{ fields: readonly string[] }>
   ) {
     const engineName = this.engineQueryInstance.engineInstance.databaseName;
     const sequelizeModelInstance: ModelCtor<Model> =

@@ -17,8 +17,13 @@ type QueryDataFnType =
       search: any;
       data: any;
       transaction?: any;
+    }) => Promise<[boolean, any][]>)
+  | ((args: {
+      modelOfEngineInstance: any;
+      search: any;
+      shouldReturnData?: boolean;
+      shouldRemove?: boolean;
     }) => Promise<any>)
-  | ((args: { modelOfEngineInstance: any; search: any }) => Promise<any>)
   | ((args: {
       modelOfEngineInstance: any;
       search: any;
@@ -146,15 +151,6 @@ export default class EngineQuery {
           false,
           TSearch extends undefined ? false : true,
           false
-        >
-      | ModelFieldsWithIncludes<
-          TModel,
-          Includes,
-          FieldsOFModelType<TModel>,
-          true,
-          false,
-          TSearch extends undefined ? false : true,
-          false
         >[]
       | undefined = undefined,
     TResult extends
@@ -167,6 +163,7 @@ export default class EngineQuery {
     data?: TData;
     transaction?: any;
     queryDataFn: QueryDataFnType;
+    shouldReturnData?: boolean;
     resultToMergeWithData?:
       | ModelFieldsWithIncludes<TModel, Includes, FieldsOFModelType<TModel>>
       | undefined;
@@ -193,15 +190,17 @@ export default class EngineQuery {
         : search;
 
     const mergedData = (
-      resultToMergeWithData !== undefined && data !== undefined
+      resultToMergeWithData !== undefined
         ? Array.isArray(data)
           ? data.map((dataToAdd) => ({
               ...resultToMergeWithData,
               ...dataToAdd,
             }))
           : [{ ...resultToMergeWithData, ...(data as any) }]
-        : data
-    ) as
+        : Array.isArray(data)
+        ? data
+        : [data]
+    )?.filter((eachData) => eachData !== undefined) as
       | ModelFieldsWithIncludes<
           TModel,
           Includes,
@@ -218,8 +217,37 @@ export default class EngineQuery {
       fields: fields as readonly string[],
       data: await this.parseData(modelInstance, mergedData),
       transaction,
+      shouldReturnData:
+        typeof args.shouldReturnData === 'boolean'
+          ? args.shouldReturnData
+          : true,
     });
-    if (Array.isArray(args.results)) args.results.push(...queryDataResults);
+    if (Array.isArray(args.results)) {
+      if (mergedData)
+        args.results.push(
+          ...queryDataResults.map(
+            (
+              eachResult: [
+                boolean,
+                ModelFieldsWithIncludes<TModel, undefined, TFields>
+              ]
+            ) => eachResult[1]
+          )
+        );
+      else args.results.push(...queryDataResults);
+    }
+    /*
+    if (useTransaction)
+      (transactionData as any)[modelInstance.originalName] = {
+        data: dataToAdd,
+        results: Array.isArray(
+          (transactionData as any)[modelInstance.originalName].results
+        )
+          ? (transactionData as any)[modelInstance.originalName].results.concat(
+              [results[results.length - 1]]
+            )
+          : [results[results.length - 1]],
+      };*/
   }
 
   /**
@@ -314,8 +342,8 @@ export default class EngineQuery {
           true
         >
       | undefined = undefined,
-    TIncludes extends Includes<boolean> = Includes<false>,
-    TIncludesOfIncludes extends Includes<boolean> = Includes<false>,
+    TIncludes extends Includes = Includes,
+    TIncludesOfIncludes extends Includes = Includes,
     TResult extends ModelFieldsWithIncludes<
       TModel,
       TIncludes,
@@ -439,6 +467,7 @@ export default class EngineQuery {
         modelInstance: includedModelInstance,
         search: searchForRelatedModel,
         queryDataFn: queryData,
+        shouldReturnData: false,
       });
     }
   }
@@ -471,12 +500,8 @@ export default class EngineQuery {
           false
         >
       | undefined = undefined,
-    TIncludes extends Includes<boolean> = Includes<
-      TData extends undefined ? false : true
-    >,
-    TIncludesOfIncludes extends Includes<boolean> = Includes<
-      TData extends undefined ? false : true
-    >,
+    TIncludes extends Includes = Includes,
+    TIncludesOfIncludes extends Includes = Includes,
     TResult extends ModelFieldsWithIncludes<
       TModel,
       TIncludes,
@@ -679,6 +704,7 @@ export default class EngineQuery {
         modelInstance,
         search: search,
         queryDataFn: queryData,
+        shouldReturnData: false,
       });
       return;
     }
@@ -761,12 +787,8 @@ export default class EngineQuery {
           false
         >
       | undefined = undefined,
-    TIncludes extends Includes<boolean> = Includes<
-      TData extends undefined ? false : true
-    >,
-    TIncludesOfIncluded extends Includes<boolean> = Includes<
-      TData extends undefined ? false : true
-    >,
+    TIncludes extends Includes = Includes,
+    TIncludesOfIncluded extends Includes = Includes,
     TResult extends ModelFieldsWithIncludes<
       TModel,
       TIncludes,
@@ -907,9 +929,7 @@ export default class EngineQuery {
           false
         >[]
       | undefined = undefined,
-    TIncludes extends Includes<boolean> = Includes<
-      TData extends undefined ? false : true
-    >,
+    TIncludes extends Includes = Includes,
     TResult extends ModelFieldsWithIncludes<
       TModel,
       TIncludes,
@@ -1020,7 +1040,6 @@ export default class EngineQuery {
         });
       }
     }
-
     const safeIncludes: Includes =
       typeof includes !== 'undefined' ? includes : [];
     const allDataToAdd = Array.isArray(data) ? data : [data];

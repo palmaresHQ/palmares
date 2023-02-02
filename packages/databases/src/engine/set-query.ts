@@ -34,13 +34,13 @@ export default class EngineSetQuery {
     search: any;
     data: any;
     transaction?: any;
-  }): Promise<any[]> {
-    return args.data.map((eachData: any) => ({ ...eachData }));
+  }): Promise<[boolean, any][]> {
+    return args.data.map((eachData: any) => [true, { ...eachData }]);
   }
 
   async run<
     TModel extends InstanceType<ReturnType<typeof model>>,
-    TIncludes extends Includes<true> = undefined,
+    TIncludes extends Includes = undefined,
     TSearch extends
       | ModelFieldsWithIncludes<
           TModel,
