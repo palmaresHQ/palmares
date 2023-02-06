@@ -3,19 +3,14 @@ import {
   EngineQuery,
   ModelFields,
   TModel,
-  models,
-  Includes,
-  IncludesInstances,
-  ModelFieldsWithIncludes,
+  FieldWithOperationType,
 } from '@palmares/databases';
+import { Op } from 'sequelize';
 
 import {
   ModelCtor,
   Model,
-  CreationAttributes,
   Includeable,
-  Transaction,
-  ModelAttributeColumnReferencesOptions,
   // eslint-disable-next-line import/no-unresolved
 } from 'sequelize/types';
 // eslint-disable-next-line import/no-unresolved

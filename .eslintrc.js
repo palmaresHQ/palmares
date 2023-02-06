@@ -65,6 +65,7 @@ module.exports = {
           'warn',
           { devDependencies: ['**/*.test.*', '**/*.spec.*', '**/*.*-spec.*'] },
         ],
+        curly: ['error', 'multi-or-nest'],
         'file-progress/activate': 1,
         'sort-imports': [
           'error',

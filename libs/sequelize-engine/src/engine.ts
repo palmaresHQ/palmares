@@ -19,9 +19,10 @@ import SequelizeEngineQuery from './query';
 import SequelizeEngineFields from './fields';
 import ModelTranslator from './model';
 import SequelizeMigrations from './migrations';
-import SequelizeEngineGetQuery from './get-query';
-import SequelizeEngineSetQuery from './set-query';
-import SequelizeEngineRemoveQuery from './remove-query';
+import SequelizeEngineGetQuery from './query/get';
+import SequelizeEngineSetQuery from './query/set';
+import SequelizeEngineRemoveQuery from './query/remove';
+import SequelizeEngineSearchQuery from './query/search';
 
 export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
   #isConnected: boolean | null = null;
@@ -78,6 +79,7 @@ export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
         get: SequelizeEngineGetQuery,
         set: SequelizeEngineSetQuery,
         remove: SequelizeEngineRemoveQuery,
+        search: SequelizeEngineSearchQuery,
       },
       SequelizeMigrations
     );

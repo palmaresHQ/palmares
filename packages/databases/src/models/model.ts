@@ -323,8 +323,12 @@ export class Model<T = any> {
       this.originalName = this.name;
       this.name = `State${this.name}`;
     } else {
-      this.originalName = this.constructor.name;
-      this.name = this.constructor.name;
+      this.originalName =
+        typeof this.originalName === 'string'
+          ? this.originalName
+          : this.constructor.name;
+      this.name =
+        typeof this.name === 'string' ? this.name : this.constructor.name;
     }
 
     await this.#initializeRelatedToModels(engineInstance);
@@ -476,5 +480,29 @@ export default function model<M>() {
         M extends DefaultModel ? M : any
       >;
     }
+  };
+}
+
+/**
+ * Used for creating a model from a function instead of needing to define a class.
+ */
+export function initialize<
+  TFields extends Model['fields'],
+  TAbstracts extends readonly Model<any>[]
+>(
+  modelName: string,
+  args: {
+    fields: TFields;
+    abstracts?: TAbstracts;
+    options?: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
+  }
+) {
+  return class ModelConstructor extends model<ModelConstructor>() {
+    name = modelName;
+    originalName = modelName;
+
+    fields = args.fields as TFields;
+    options = args.options as ModelOptionsType<any>;
+    abstracts = args.abstracts as TAbstracts;
   };
 }

@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import model from '../models/model';
+import model from '../../models/model';
 
 import type {
   Includes,
   ModelFieldsWithIncludes,
   FieldsOFModelType,
-} from '../models/types';
-import type EngineQuery from './query';
+} from '../../models/types';
+import type EngineQuery from '.';
 
 export default class EngineRemoveQuery {
   engineQueryInstance: EngineQuery;
@@ -24,6 +24,7 @@ export default class EngineRemoveQuery {
     modelOfEngineInstance: any;
     search: any;
     shouldReturnData?: boolean;
+    transaction?: any;
   }): Promise<any[]> {
     return [{}];
   }
@@ -54,15 +55,19 @@ export default class EngineRemoveQuery {
   ): Promise<
     ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]
   > {
-    const selectedFields = Object.keys(
-      internal.model.fields
-    ) as FieldsOFModelType<TModel>;
-    const results = [] as ModelFieldsWithIncludes<
-      TModel,
-      TIncludes,
-      FieldsOFModelType<TModel>
-    >[];
-    try {
+    const isToUseTransaction =
+      typeof args.useTransaction === 'boolean' ? args.useTransaction : true;
+
+    async function getResults(this: EngineRemoveQuery, transaction: any) {
+      const results = [] as ModelFieldsWithIncludes<
+        TModel,
+        TIncludes,
+        FieldsOFModelType<TModel>
+      >[];
+      const selectedFields = Object.keys(
+        internal.model.fields
+      ) as FieldsOFModelType<TModel>;
+
       await this.engineQueryInstance.getResultsWithIncludes(
         internal.model as TModel,
         selectedFields as FieldsOFModelType<TModel>,
@@ -74,29 +79,15 @@ export default class EngineRemoveQuery {
         true,
         undefined,
         undefined,
-        undefined
+        transaction
       );
-    } catch (error) {
-      if (args.useTransaction) {
-        console.log('remove-query', results);
-        await this.engineQueryInstance.set.run(
-          results as any,
-          {
-            useTransaction: true,
-          },
-          {
-            model: internal.model,
-            includes: internal.includes,
-          }
-        );
-        return [] as ModelFieldsWithIncludes<
-          TModel,
-          TIncludes,
-          FieldsOFModelType<TModel>
-        >[];
-      } else throw error;
+      return results;
     }
 
-    return results;
+    if (isToUseTransaction)
+      return this.engineQueryInstance.engineInstance.transaction(
+        async (transaction) => await getResults.bind(this)(transaction)
+      );
+    else return getResults.bind(this)(undefined);
   }
 }

@@ -6,6 +6,7 @@ import {
   UUIDField,
   IntegerField,
   ON_DELETE,
+  ModelOptionsType,
 } from '@palmares/databases';
 
 export class Photo extends models.Model<Photo>() {

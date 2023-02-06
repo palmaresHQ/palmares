@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import model from '../models/model';
-import type EngineQuery from './query';
+import model from '../../models/model';
+import type EngineQuery from '.';
 import type {
   Includes,
   ModelFieldsWithIncludes,
   FieldsOFModelType,
-} from '../models/types';
-import { NotImplementedEngineException } from './exceptions';
+} from '../../models/types';
+import { NotImplementedEngineException } from '../exceptions';
 
 /** This class is used to run `.get` queries, so when we want to retrieve a value from the database to the user. */
 export default class EngineGetQuery {
@@ -53,7 +53,7 @@ export default class EngineGetQuery {
     TIncludes extends Includes = undefined,
     TFieldsOfModel extends FieldsOFModelType<
       InstanceType<ReturnType<typeof model>>
-    > = readonly (keyof TModel['fields'])[],
+    > = FieldsOFModelType<InstanceType<ReturnType<typeof model>>>,
     TSearch extends
       | ModelFieldsWithIncludes<
           TModel,
@@ -74,12 +74,12 @@ export default class EngineGetQuery {
       model: TModel;
       includes: TIncludes;
     }
-  ): Promise<ModelFieldsWithIncludes<TModel, TIncludes>[]> {
-    const result: any[] = [];
+  ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFieldsOfModel>[]> {
+    const result: ModelFieldsWithIncludes<TModel, TIncludes, TFieldsOfModel>[] =
+      [];
     const selectedFields = (args.fields ||
       Object.keys(internal.model.fields)) as TFieldsOfModel;
     try {
-      throw new NotImplementedEngineException('queryDataNatively');
       return await this.queryDataNatively(
         internal.model.constructor as ReturnType<typeof model>,
         args.search,
@@ -103,6 +103,6 @@ export default class EngineGetQuery {
         );
       else throw e;
     }
-    return result as ModelFieldsWithIncludes<TModel, TIncludes>[];
+    return result;
   }
 }

@@ -20,19 +20,55 @@ export type ManagersOfInstanceType = {
   [key: string]: Manager;
 };
 
-export type ModelIndexType = {
-  unique: true;
-  fields: string[];
+export type ModelIndexType<TFields = string> = {
+  unique: boolean;
+  fields: TFields[];
 };
 
-type OrderingOfModelOptions<M extends Model = Model> =
-  | keyof M['type']
-  | keyof { [F in keyof M['type'] as F extends string ? `-${F}` : never]: 1 }
-  | string;
+type OrderingOfModelOptions<TFields> =
+  | keyof { [F in TFields as F extends string ? `-${F}` : never]: F }
+  | keyof { [F in TFields as F extends string ? `${F}` : never]: F };
 
-export type ModelOptionsType<M extends Model = Model> = {
-  indexes?: ModelIndexType[];
-  ordering?: OrderingOfModelOptions<M>[];
+type ExtractFieldNames<TFieldsAndAbstracts, TModelAbstracts> =
+  TFieldsAndAbstracts extends { fields: infer TFields }
+    ?
+        | keyof TFields
+        | (TModelAbstracts extends readonly [
+            infer TAbstract,
+            ...infer TRestAbstracts
+          ]
+            ? TAbstract extends
+                | { fields: any }
+                | { fields: any; abstracts: infer TAbstractsOfAbstract }
+              ?
+                  | ExtractFieldNames<TAbstract, TAbstractsOfAbstract>
+                  | ExtractFieldNames<
+                      TFieldsAndAbstracts,
+                      TRestAbstracts extends
+                        | { fields: any }
+                        | { fields: any; abstracts: readonly any[] }
+                        ? TRestAbstracts
+                        : never[]
+                    >
+              : never
+            : never)
+    : never;
+
+export type ModelOptionsType<M = any> = {
+  indexes?: ModelIndexType<
+    ExtractFieldNames<
+      M,
+      M extends { abstracts: infer TAbstracts } ? TAbstracts : never[]
+    >
+  >[];
+  ordering?:
+    | OrderingOfModelOptions<
+        ExtractFieldNames<
+          M,
+          M extends { abstracts: infer TAbstracts } ? TAbstracts : never[]
+        >
+      >[]
+    | string[];
   abstract?: boolean;
   underscored?: boolean;
   tableName?: string;

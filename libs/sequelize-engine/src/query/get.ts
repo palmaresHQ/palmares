@@ -4,7 +4,6 @@ import {
   models,
   ForeignKeyField,
 } from '@palmares/databases';
-
 import { Includeable, Model, ModelCtor } from 'sequelize';
 
 export default class SequelizeEngineGetQuery extends EngineGetQuery {
@@ -13,6 +12,8 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
    * relations to the query.
    *
    * By implementing this we need to make sure that it'll work for all of the queries.
+   *
+   * We use this in order to improve the performance of the `get` query.
    *
    * @param parentModel - The parent model that this includes relates to.
    * @param search - All of the search from the level of the parent model.
@@ -57,10 +58,11 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
         };
 
         if (whereClause) {
-          formattedInclude.where = await this.engineQueryInstance.parseSearch(
-            modelInstance,
-            whereClause
-          );
+          formattedInclude.where =
+            await this.engineQueryInstance.search.parseSearch(
+              modelInstance,
+              whereClause
+            );
           formattedInclude.required = true;
         }
         if (include.fields)
@@ -97,10 +99,8 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
       includes
     );
 
-    const rootLevelWhereClause = await this.engineQueryInstance.parseSearch(
-      modelInstance,
-      search
-    );
+    const rootLevelWhereClause =
+      await this.engineQueryInstance.search.parseSearch(modelInstance, search);
 
     return (
       await sequelizeModelInstance.findAll({

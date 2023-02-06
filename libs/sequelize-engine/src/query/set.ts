@@ -1,5 +1,4 @@
 import { EngineSetQuery } from '@palmares/databases';
-
 import { Model, ModelCtor, Transaction } from 'sequelize';
 
 export default class SequelizeEngineSetQuery extends EngineSetQuery {

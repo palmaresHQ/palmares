@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import model from '../models/model';
+import model from '../../models/model';
 import {
   Includes,
   FieldsOFModelType,
   ModelFieldsWithIncludes,
-} from '../models/types';
-import type EngineQuery from './query';
+} from '../../models/types';
+import type EngineQuery from '.';
 
 export default class EngineSetQuery {
   engineQueryInstance: EngineQuery;
@@ -93,7 +93,7 @@ export default class EngineSetQuery {
 
     // used to retrieve the results of the query, we separate this in a function so
     // we can use it in the transaction and outside of it
-    const getResults = async (transaction: any) => {
+    async function getResults(this: EngineSetQuery, transaction: any) {
       const results = [] as ModelFieldsWithIncludes<
         TModel,
         TIncludes,
@@ -153,12 +153,12 @@ export default class EngineSetQuery {
         );
         return results;
       }
-    };
+    }
 
     if (isToUseTransaction)
       return this.engineQueryInstance.engineInstance.transaction(
-        async (transaction) => await getResults(transaction)
+        async (transaction) => await getResults.bind(this)(transaction)
       );
-    else return getResults(undefined);
+    else return getResults.bind(this)(undefined);
   }
 }

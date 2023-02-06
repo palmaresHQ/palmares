@@ -230,11 +230,11 @@ export default class Manager<
    * @return - An array of instances retrieved by this query.
    */
   async get<
-    TModel extends Model = M,
+    TModel extends Model<any> = M,
     TIncludes extends Includes<{
       fields: TFields;
     }> = undefined,
-    TFields extends FieldsOFModelType<TModel> = readonly (keyof TModel['fields'])[]
+    TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>
   >(
     args?: {
       includes?: IncludesValidated<TModel, TIncludes>;
@@ -269,20 +269,7 @@ export default class Manager<
         initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName
       )['fields']
     );
-    return engineInstance.query.get.run<
-      TModel,
-      TIncludes,
-      TFields,
-      ModelFieldsWithIncludes<
-        TModel,
-        TIncludes,
-        TFields,
-        false,
-        false,
-        true,
-        true
-      >
-    >(
+    return engineInstance.query.get.run(
       {
         fields: args?.fields || (allFieldsOfModel as unknown as TFields),
         search: (args?.search || {}) as ModelFieldsWithIncludes<

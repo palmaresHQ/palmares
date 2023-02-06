@@ -48,10 +48,15 @@ export const DATABASES = {
 - [x] .get
 - [x] .set
 - [x] .delete
+- [ ] Improve include relations on queries
+  - [ ] Define if the relation should be excluded in a `remove` query (we are just fecthing the data, and don't want to remove it)
+  - [ ] Define exactly what field we are refearing in a relation 'if the same model has two relations with the same model, we should be able to define which one we are refearing to'
+- [ ] Add `orderBy` and `limit` to relations
 - [ ] Support for seeding data into the database (useful for testing).
-- [ ] Support for queries like 'in', 'between', 'lessThan', etc.
+- [x] Support for queries like 'in', 'between', 'lessThan', etc.
 - [ ] Support for unmanaged models and distributed systems. We can have like, the model definition on this server, set this model to unmanaged, and try to fetch the resources for it
       automatically from the other servers. (This is useful for distributed systems, and for the edge)
+  - [ ] Check if unmananaged models does not create an instance in the database.
 - [ ] Possibility for Internal transactions (transactions that does not depend on the database engine, but on the framework itself.)
   - [ ] Custom transaction caller (so for example the user can define what to do when a transaction fails)
-- [ ] Functional model creation instead of class based.
+- [x] Functional model creation instead of class based.

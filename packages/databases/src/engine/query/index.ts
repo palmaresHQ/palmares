@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import Engine from '.';
-import { ForeignKeyField } from '../models/fields';
-import model from '../models/model';
+import Engine from '..';
+import { ForeignKeyField } from '../../models/fields';
+import model from '../../models/model';
 import {
   Includes,
   ModelFieldsWithIncludes,
   FieldsOFModelType,
-} from '../models/types';
-import EngineGetQuery from './get-query';
-import EngineRemoveQuery from './remove-query';
-import EngineSetQuery from './set-query';
+} from '../../models/types';
+import EngineGetQuery from './get';
+import EngineRemoveQuery from './remove';
+import EngineQuerySearch from './search';
+import EngineSetQuery from './set';
 
 type QueryDataFnType =
   | ((args: {
@@ -23,6 +24,7 @@ type QueryDataFnType =
       search: any;
       shouldReturnData?: boolean;
       shouldRemove?: boolean;
+      transaction?: any;
     }) => Promise<any>)
   | ((args: {
       modelOfEngineInstance: any;
@@ -50,14 +52,17 @@ export default class EngineQuery {
   get: EngineGetQuery;
   set: EngineSetQuery;
   remove: EngineRemoveQuery;
+  search: EngineQuerySearch;
 
   constructor(
     engineInstance: Engine,
     engineGetQuery: typeof EngineGetQuery,
     engineSetQuery: typeof EngineSetQuery,
-    engineRemoveQuery: typeof EngineRemoveQuery
+    engineRemoveQuery: typeof EngineRemoveQuery,
+    engineQuerySearch: typeof EngineQuerySearch
   ) {
     this.engineInstance = engineInstance;
+    this.search = new engineQuerySearch(this);
     this.get = new engineGetQuery(this);
     this.set = new engineSetQuery(this);
     this.remove = new engineRemoveQuery(this);
@@ -72,34 +77,6 @@ export default class EngineQuery {
     return (modelToRetrieve.constructor as any).default.getInstance(
       this.engineInstance.databaseName
     );
-  }
-
-  /**
-   * The search parser is used to parse the search that we will use to query the database, with this we are able to remove the fields
-   * that are not in the model, and also translate queries like `in`, `not in` and so on
-   *
-   * @param modelInstance - The model instance to use to parse the search.
-   * @param search - The search to parse.
-   *
-   * @returns The parsed search, translated to the database engine so we can make a query.
-   */
-  async parseSearch(
-    modelInstance: InstanceType<ReturnType<typeof model>>,
-    search: any
-  ) {
-    if (search) {
-      const fieldsInModelInstance = Object.keys(modelInstance.fields);
-      const fieldsInSearch = Object.keys(search);
-
-      const formattedSearch: Record<string, any> = {};
-      for (const key of fieldsInSearch) {
-        if (fieldsInModelInstance.includes(key)) {
-          formattedSearch[key] = search[key];
-        }
-      }
-      return formattedSearch;
-    }
-    return {};
   }
 
   /**
@@ -128,6 +105,9 @@ export default class EngineQuery {
     return undefined;
   }
 
+  /**
+   * Calls the query data function to retrieve the results of the
+   */
   async #callQueryDataFn<
     TModel extends InstanceType<ReturnType<typeof model>>,
     TFields extends FieldsOFModelType<TModel> = readonly (keyof TModel['fields'])[],
@@ -213,7 +193,7 @@ export default class EngineQuery {
       | undefined;
     const queryDataResults = await queryDataFn({
       modelOfEngineInstance: translatedModelInstance,
-      search: await this.parseSearch(modelInstance, mergedSearchForData),
+      search: await this.search.parseSearch(modelInstance, mergedSearchForData),
       fields: fields as readonly string[],
       data: await this.parseData(modelInstance, mergedData),
       transaction,
@@ -236,18 +216,6 @@ export default class EngineQuery {
         );
       else args.results.push(...queryDataResults);
     }
-    /*
-    if (useTransaction)
-      (transactionData as any)[modelInstance.originalName] = {
-        data: dataToAdd,
-        results: Array.isArray(
-          (transactionData as any)[modelInstance.originalName].results
-        )
-          ? (transactionData as any)[modelInstance.originalName].results.concat(
-              [results[results.length - 1]]
-            )
-          : [results[results.length - 1]],
-      };*/
   }
 
   /**
@@ -265,7 +233,7 @@ export default class EngineQuery {
    * @param relatedField - The related field to get the field names of the relation.
    * @param isDirectlyRelated - If the related field is directly related or not.
    */
-  getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName<
+  #getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName<
     TToField extends string,
     TRelatedName extends string,
     TRelationName extends string,
@@ -363,13 +331,14 @@ export default class EngineQuery {
     isDirectlyRelated = false,
     queryData: QueryDataFnType,
     isSetOperation = false,
-    isRemoveOperation = false
+    isRemoveOperation = false,
+    transaction = undefined
   ) {
     const {
       relationName,
       parentFieldName,
       fieldNameOfRelationInIncludedModel,
-    } = this.getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName(
+    } = this.#getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName(
       relatedField,
       isDirectlyRelated
     );
@@ -402,7 +371,7 @@ export default class EngineQuery {
       isRemoveOperation,
       undefined,
       undefined,
-      undefined
+      transaction
     );
     const resultByUniqueFieldValue: Record<string, any[]> = {};
     for (const result of resultOfIncludes) {
@@ -435,7 +404,7 @@ export default class EngineQuery {
           isRemoveOperation,
           undefined,
           undefined,
-          undefined
+          transaction
         );
 
         resultByUniqueFieldValue[uniqueFieldValueOnRelation] = [result];
@@ -468,6 +437,7 @@ export default class EngineQuery {
         search: searchForRelatedModel,
         queryDataFn: queryData,
         shouldReturnData: false,
+        transaction,
       });
     }
   }
@@ -531,7 +501,7 @@ export default class EngineQuery {
       relationName,
       parentFieldName,
       fieldNameOfRelationInIncludedModel,
-    } = this.getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName(
+    } = this.#getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName(
       relatedField,
       isDirectlyRelated
     );
@@ -705,6 +675,7 @@ export default class EngineQuery {
         search: search,
         queryDataFn: queryData,
         shouldReturnData: false,
+        transaction,
       });
       return;
     }
@@ -868,7 +839,8 @@ export default class EngineQuery {
           isDirectlyRelated,
           queryData,
           isSetOperation,
-          isRemoveOperation
+          isRemoveOperation,
+          transaction
         );
       } else if (isToGetResultsWithoutSearch) {
         await this.#resultsFromRelatedModelsWithoutSearch(

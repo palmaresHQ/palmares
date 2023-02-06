@@ -12,9 +12,10 @@ import EngineFields from './fields';
 import EngineMigrations from './migrations';
 import EngineQuery from './query';
 import { Model } from '../models/model';
-import EngineGetQuery from './get-query';
-import EngineSetQuery from './set-query';
-import EngineRemoveQuery from './remove-query';
+import EngineGetQuery from './query/get';
+import EngineSetQuery from './query/set';
+import EngineRemoveQuery from './query/remove';
+import EngineQuerySearch from './query/search';
 
 /**
  * Instead of creating our own ORM for the framework we wrap any orm we want to use inside of this class. This allow
@@ -53,13 +54,20 @@ export default class Engine<M extends Model = Model> implements EngineType {
       get: typeof EngineGetQuery;
       set: typeof EngineSetQuery;
       remove: typeof EngineRemoveQuery;
+      search: typeof EngineQuerySearch;
     },
     migration: typeof EngineMigrations
   ) {
     this.databaseName = databaseName;
     this.databaseSettings = databaseSettings;
     this.fields = new fields(this);
-    this.query = new query.query(this, query.get, query.set, query.remove);
+    this.query = new query.query(
+      this,
+      query.get,
+      query.set,
+      query.remove,
+      query.search
+    );
     this.migrations = new migration(this, this.fields);
   }
 
@@ -203,4 +211,5 @@ export {
   EngineGetQuery,
   EngineSetQuery,
   EngineRemoveQuery,
+  EngineQuerySearch,
 };
