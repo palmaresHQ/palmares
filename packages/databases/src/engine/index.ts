@@ -8,14 +8,27 @@ import {
   LOGGING_DATABASE_CLOSING,
 } from '../utils';
 import { EngineType, EngineInitializedModels } from './types';
-import EngineFields from './fields';
+import EngineFields, {
+  EngineFieldParser,
+  EngineAutoFieldParser,
+  EngineBigAutoFieldParser,
+  EngineBigIntegerFieldParser,
+  EngineCharFieldParser,
+  EngineDateFieldParser,
+  EngineDecimalFieldParser,
+  EngineForeignKeyFieldParser,
+  EngineIntegerFieldParser,
+  EngineTextFieldParser,
+  EngineUuidFieldParser,
+} from './fields';
 import EngineMigrations from './migrations';
-import EngineQuery from './query';
+import EngineQuery, {
+  EngineGetQuery,
+  EngineQuerySearch,
+  EngineSetQuery,
+  EngineRemoveQuery,
+} from './query';
 import { Model } from '../models/model';
-import EngineGetQuery from './query/get';
-import EngineSetQuery from './query/set';
-import EngineRemoveQuery from './query/remove';
-import EngineQuerySearch from './query/search';
 
 /**
  * Instead of creating our own ORM for the framework we wrap any orm we want to use inside of this class. This allow
@@ -48,7 +61,20 @@ export default class Engine<M extends Model = Model> implements EngineType {
   constructor(
     databaseName: string,
     databaseSettings: DatabaseConfigurationType<any, any>,
-    fields: typeof EngineFields,
+    fields: {
+      fields: typeof EngineFields;
+      field?: typeof EngineFieldParser;
+      auto: typeof EngineAutoFieldParser;
+      bigAuto: typeof EngineBigAutoFieldParser;
+      bigInteger: typeof EngineBigIntegerFieldParser;
+      char: typeof EngineCharFieldParser;
+      date: typeof EngineDateFieldParser;
+      decimal: typeof EngineDecimalFieldParser;
+      foreignKey: typeof EngineForeignKeyFieldParser;
+      integer: typeof EngineIntegerFieldParser;
+      text: typeof EngineTextFieldParser;
+      uuid: typeof EngineUuidFieldParser;
+    },
     query: {
       query: typeof EngineQuery;
       get: typeof EngineGetQuery;
@@ -60,7 +86,19 @@ export default class Engine<M extends Model = Model> implements EngineType {
   ) {
     this.databaseName = databaseName;
     this.databaseSettings = databaseSettings;
-    this.fields = new fields(this);
+    this.fields = new fields.fields(this, {
+      field: fields.field,
+      auto: fields.auto,
+      bigAuto: fields.bigAuto,
+      bigInteger: fields.bigInteger,
+      char: fields.char,
+      date: fields.date,
+      decimal: fields.decimal,
+      foreignKey: fields.foreignKey,
+      integer: fields.integer,
+      text: fields.text,
+      uuid: fields.uuid,
+    });
     this.query = new query.query(
       this,
       query.get,
@@ -212,4 +250,15 @@ export {
   EngineSetQuery,
   EngineRemoveQuery,
   EngineQuerySearch,
+  EngineFieldParser,
+  EngineAutoFieldParser,
+  EngineBigAutoFieldParser,
+  EngineBigIntegerFieldParser,
+  EngineCharFieldParser,
+  EngineDateFieldParser,
+  EngineDecimalFieldParser,
+  EngineForeignKeyFieldParser,
+  EngineIntegerFieldParser,
+  EngineTextFieldParser,
+  EngineUuidFieldParser,
 };

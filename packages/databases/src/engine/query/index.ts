@@ -1046,3 +1046,5 @@ export default class EngineQuery {
     }
   }
 }
+
+export { EngineGetQuery, EngineQuerySearch, EngineSetQuery, EngineRemoveQuery };

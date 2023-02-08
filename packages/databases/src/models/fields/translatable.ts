@@ -1,5 +1,5 @@
 import Field from './field';
-import Engine, { EngineFields } from '../../engine';
+import { EngineFields } from '../../engine';
 
 /**
  * Enables developers to create custom fields while also being able to translate them dynamically for a specific engine.
@@ -8,7 +8,7 @@ import Engine, { EngineFields } from '../../engine';
  */
 export default class TranslatableField extends Field {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async translate(engine: Engine, engineFields: EngineFields): Promise<any> {
+  async translate(engineFields: EngineFields): Promise<any> {
     return undefined;
   }
 }
