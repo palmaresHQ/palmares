@@ -27,6 +27,6 @@
     "@palmares/databases": "*"
   },
   "devDependencies": {
-    "typescript": "^4.9.3"
+    "typescript": "^5.0.0-beta"
   }
 }

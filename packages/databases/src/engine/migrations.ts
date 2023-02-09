@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import Engine from '.';
 import Migration from '../migrations/migrate/migration';
 import EngineFields from './fields';

@@ -223,7 +223,7 @@ export default class ForeignKeyField<
         model.originalName
       ].push(this._originalRelatedName);
     }
-    await super.init(fieldName, model, engineInstance);
+    await super.init(fieldName, model);
 
     const wasRelatedNameDefined: boolean = typeof this.relatedName === 'string';
 

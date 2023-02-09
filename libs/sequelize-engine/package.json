@@ -25,6 +25,6 @@
   },
   "devDependencies": {
     "@types/sequelize": "^4.28.14",
-    "typescript": "^4.9.3"
+    "typescript": "^5.0.0-beta"
   }
 }

@@ -5,11 +5,23 @@ export {
   default as Engine,
   EngineFields,
   EngineMigrations,
+  EngineModels,
   EngineQuery,
   EngineGetQuery,
   EngineSetQuery,
   EngineRemoveQuery,
   EngineQuerySearch,
+  EngineAutoFieldParser,
+  EngineBigAutoFieldParser,
+  EngineBigIntegerFieldParser,
+  EngineCharFieldParser,
+  EngineDateFieldParser,
+  EngineDecimalFieldParser,
+  EngineFieldParser,
+  EngineForeignKeyFieldParser,
+  EngineIntegerFieldParser,
+  EngineTextFieldParser,
+  EngineUuidFieldParser,
 } from './engine';
 export * from './engine/types';
 export * as models from './models';

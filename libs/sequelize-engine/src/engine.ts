@@ -17,16 +17,24 @@ import {
 
 import SequelizeEngineQuery from './query';
 import SequelizeEngineFields from './fields';
-import ModelTranslator from './model';
 import SequelizeMigrations from './migrations';
 import SequelizeEngineGetQuery from './query/get';
 import SequelizeEngineSetQuery from './query/set';
 import SequelizeEngineRemoveQuery from './query/remove';
 import SequelizeEngineSearchQuery from './query/search';
+import SequelizeEngineModels from './model';
+import SequelizeEngineFieldParser from './fields/field';
+import SequelizeEngineAutoFieldParser from './fields/auto';
+import SequelizeEngineBigAutoFieldParser from './fields/big-auto';
+import SequelizeEngineBigIntegerFieldParser from './fields/big-integer';
+import SequelizeEngineCharFieldParser from './fields/char';
+import SequelizeEngineDecimalFieldParser from './fields/decimal';
+import SequelizeEngineIntegerFieldParser from './fields/integer';
+import SequelizeEngineTextFieldParser from './fields/text';
+import SequelizeEngineUuidFieldParser from './fields/uuid';
 
 export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
   #isConnected: boolean | null = null;
-  #modelTranslator!: ModelTranslator;
   initializedModels!: EngineInitializedModels<ModelCtor<Model<ModelFields<M>>>>;
   instance!: Sequelize | null;
   fields!: SequelizeEngineFields;
@@ -73,7 +81,20 @@ export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
     super(
       databaseName,
       databaseSettings,
-      SequelizeEngineFields,
+      {
+        fields: SequelizeEngineFields,
+        field: SequelizeEngineFieldParser,
+        auto: SequelizeEngineAutoFieldParser,
+        bigAuto: SequelizeEngineBigAutoFieldParser,
+        bigInteger: SequelizeEngineBigIntegerFieldParser,
+        char: SequelizeEngineCharFieldParser,
+        date: SequelizeEngineCharFieldParser,
+        decimal: SequelizeEngineDecimalFieldParser,
+        foreignKey: SequelizeEngineCharFieldParser,
+        integer: SequelizeEngineIntegerFieldParser,
+        text: SequelizeEngineTextFieldParser,
+        uuid: SequelizeEngineUuidFieldParser,
+      },
       {
         query: SequelizeEngineQuery,
         get: SequelizeEngineGetQuery,
@@ -81,11 +102,10 @@ export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
         remove: SequelizeEngineRemoveQuery,
         search: SequelizeEngineSearchQuery,
       },
+      SequelizeEngineModels,
       SequelizeMigrations
     );
-    this.fields = new SequelizeEngineFields(this);
     this.instance = sequelizeInstance;
-    this.#modelTranslator = new ModelTranslator(this, this.fields);
   }
 
   static async new(
@@ -135,10 +155,7 @@ export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
   }
 
   async initializeModel(model: TModel): Promise<ModelCtor<Model> | undefined> {
-    const modelInstance = super.initializeModel(
-      model,
-      await this.#modelTranslator.translate(model)
-    );
+    const modelInstance = super.initializeModel(model);
     await this.fields.afterModelCreation(model.name);
     return modelInstance;
   }

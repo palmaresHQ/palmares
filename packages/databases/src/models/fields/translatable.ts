@@ -7,6 +7,8 @@ import { EngineFields } from '../../engine';
  * to support the field you are looking to.
  */
 export default class TranslatableField extends Field {
+  typeName: string = TranslatableField.name;
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async translate(engineFields: EngineFields): Promise<any> {
     return undefined;

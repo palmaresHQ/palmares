@@ -20,6 +20,7 @@ import EngineTextFieldParser from './text';
  */
 export default class EngineFields implements EngineFieldsType {
   engineInstance!: Engine;
+  fields: Map<Field['fieldName'], Field> = new Map();
   fieldParserInstance: EngineFieldParser;
 
   constructor(
@@ -94,8 +95,27 @@ export default class EngineFields implements EngineFieldsType {
    *
    * @return - An object that explains if the field was already translated and the translated value of it.
    */
-  async get(field: Field): Promise<any> {
-    return this.fieldParserInstance.internalParse(field);
+  async get(fieldName: string): Promise<{
+    wasTranslated: boolean;
+    value?: any;
+  }> {
+    const field = this.fields.get(fieldName);
+    const hasTranslateHandler =
+      typeof (field as TranslatableField).translate === 'function';
+    if (hasTranslateHandler) {
+      const fieldAsTranslatable = field as TranslatableField;
+      return {
+        wasTranslated: true,
+        value: fieldAsTranslatable.translate
+          ? fieldAsTranslatable.translate(this)
+          : null,
+      };
+    } else {
+      return {
+        wasTranslated: false,
+        value: field,
+      };
+    }
   }
 }
 

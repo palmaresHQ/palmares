@@ -24,6 +24,14 @@ import type EngineIntegerFieldParser from './integer';
 import type EngineTextFieldParser from './text';
 import type EngineUuidFieldParser from './uuid';
 
+/**
+ * This will be used to parse the fields that are going to be used in the model in the database, for every field we will call this class.
+ * This class will have two methods:
+ * - `internalParse` - That will be called internally and should not be overridden.
+ * - `translate` - Used to translate the field to something that the database can understand. Except for the `TranslatableField` class that will be
+ * translated directly with the `translate` method, all other field types should define a parser with the `translate` field, those will be injected
+ * in the `Engine` class constructor.
+ */
 export default class EngineFieldParser {
   engineFields: EngineFields;
   auto?: EngineAutoFieldParser;
@@ -67,7 +75,7 @@ export default class EngineFieldParser {
     return {};
   }
 
-  async parse(field: Field): Promise<any> {
+  async internalParse(field: Field): Promise<any> {
     const existAllFieldsSoProbablyTheEngineFieldParserInstance =
       this.auto !== undefined &&
       this.bigAuto !== undefined &&
@@ -84,25 +92,25 @@ export default class EngineFieldParser {
       return this.translate(field);
     switch (field.typeName) {
       case AutoField.name:
-        return this.auto?.parse(field);
+        return this.auto?.internalParse(field);
       case BigAutoField.name:
-        return this.bigAuto?.parse(field);
+        return this.bigAuto?.internalParse(field);
       case BigIntegerField.name:
-        return this.bigInt?.parse(field);
+        return this.bigInt?.internalParse(field);
       case CharField.name:
-        return this.char?.parse(field);
+        return this.char?.internalParse(field);
       case DateField.name:
-        return this.date?.parse(field);
+        return this.date?.internalParse(field);
       case DecimalField.name:
-        return this.decimal?.parse(field);
+        return this.decimal?.internalParse(field);
       case ForeignKeyField.name:
-        return this.foreignKey?.parse(field);
+        return this.foreignKey?.internalParse(field);
       case IntegerField.name:
-        return this.integer?.parse(field);
+        return this.integer?.internalParse(field);
       case TextField.name:
-        return this.text?.parse(field);
+        return this.text?.internalParse(field);
       case UUIDField.name:
-        return this.uuid?.parse(field);
+        return this.uuid?.internalParse(field);
       case TranslatableField.name:
         return (field as TranslatableField).translate(this.engineFields);
       default:

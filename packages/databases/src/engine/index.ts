@@ -29,6 +29,7 @@ import EngineQuery, {
   EngineRemoveQuery,
 } from './query';
 import { Model } from '../models/model';
+import EngineModels from './model';
 
 /**
  * Instead of creating our own ORM for the framework we wrap any orm we want to use inside of this class. This allow
@@ -49,6 +50,7 @@ export default class Engine<M extends Model = Model> implements EngineType {
   databaseName: string;
   databaseSettings: DatabaseConfigurationType<any, any>;
   initializedModels: EngineInitializedModels = {};
+  models: EngineModels;
   fields: EngineFields;
   query: EngineQuery;
   migrations: EngineMigrations;
@@ -82,6 +84,7 @@ export default class Engine<M extends Model = Model> implements EngineType {
       remove: typeof EngineRemoveQuery;
       search: typeof EngineQuerySearch;
     },
+    models: typeof EngineModels,
     migration: typeof EngineMigrations
   ) {
     this.databaseName = databaseName;
@@ -106,6 +109,7 @@ export default class Engine<M extends Model = Model> implements EngineType {
       query.remove,
       query.search
     );
+    this.models = new models(this, this.fields);
     this.migrations = new migration(this, this.fields);
   }
 
@@ -204,7 +208,8 @@ export default class Engine<M extends Model = Model> implements EngineType {
    *
    * @returns - The instance of the translated model.
    */
-  async initializeModel(model: Model, modelInstance?: any): Promise<any> {
+  async initializeModel(model: Model): Promise<any> {
+    const modelInstance = await this.models.translate(model);
     this.initializedModels[model.name] = modelInstance;
     return modelInstance;
   }
@@ -261,4 +266,5 @@ export {
   EngineIntegerFieldParser,
   EngineTextFieldParser,
   EngineUuidFieldParser,
+  EngineModels,
 };

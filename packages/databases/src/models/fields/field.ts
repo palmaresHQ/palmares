@@ -63,6 +63,7 @@ export default class Field<
     return new this(params) as Field<InstanceType<I>, D, U, N, A, CA>;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async init(fieldName: string, model: TModel, engineInstance?: Engine) {
     const isUnderscored: boolean =
       (this.underscored || model.options.underscored) === true;
@@ -73,8 +74,6 @@ export default class Field<
     if (isUnderscored)
       this.databaseName = utils.camelCaseToHyphenOrSnakeCase(this.fieldName);
     else this.databaseName = this.fieldName;
-
-    if (engineInstance) await engineInstance.fields.set(this as Field);
   }
 
   async toString(

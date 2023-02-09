@@ -1,7 +1,6 @@
-import { EngineFields, models } from '@palmares/databases';
+import { EngineFields, Field, models } from '@palmares/databases';
 
 import {
-  DataTypes,
   ModelAttributeColumnOptions,
   Model,
   ModelCtor,
@@ -12,15 +11,22 @@ import {
   IndexesOptions,
 } from 'sequelize';
 
-import SequelizeEngine from './engine';
-import {
-  UnsupportedFieldTypeError,
-  PreventForeignKeyError,
-} from './exceptions';
+import type SequelizeEngine from '../engine';
+import { PreventForeignKeyError } from '../exceptions';
 import {
   ModelTranslatorIndexesType,
   RelatedModelToEvaluateAfterType,
-} from './types';
+} from '../types';
+import SequelizeEngineFieldParser from './field';
+import SequelizeEngineAutoFieldParser from './auto';
+import SequelizeEngineBigAutoFieldParser from './big-auto';
+import SequelizeEngineBigIntegerFieldParser from './big-integer';
+import SequelizeEngineCharFieldParser from './char';
+import SequelizeEngineDateFieldParser from './date';
+import SequelizeEngineDecimalFieldParser from './decimal';
+import SequelizeEngineTextFieldParser from './text';
+import SequelizeEngineUuidFieldParser from './uuid';
+import SequelizeEngineForeignKeyFieldParser from './foreign-key';
 
 /**
  * This class is used to translate the fields of a model to the attributes of a sequelize model.
@@ -41,8 +47,23 @@ export default class SequelizeEngineFields extends EngineFields {
     [models.fields.ON_DELETE.DO_NOTHING]: 'DO NOTHING',
   };
 
-  constructor(engineInstance: SequelizeEngine<any>) {
-    super(engineInstance);
+  constructor(
+    engineInstance: SequelizeEngine<any>,
+    fields: {
+      field?: typeof SequelizeEngineFieldParser;
+      auto: typeof SequelizeEngineAutoFieldParser;
+      bigAuto: typeof SequelizeEngineBigAutoFieldParser;
+      bigInteger: typeof SequelizeEngineBigIntegerFieldParser;
+      char: typeof SequelizeEngineCharFieldParser;
+      date: typeof SequelizeEngineDateFieldParser;
+      decimal: typeof SequelizeEngineDecimalFieldParser;
+      foreignKey: typeof SequelizeEngineForeignKeyFieldParser;
+      integer: typeof SequelizeEngineFieldParser;
+      text: typeof SequelizeEngineTextFieldParser;
+      uuid: typeof SequelizeEngineUuidFieldParser;
+    }
+  ) {
+    super(engineInstance, fields);
   }
 
   /**
@@ -55,7 +76,7 @@ export default class SequelizeEngineFields extends EngineFields {
    * @param modelName - The name of the model that the field belongs to.
    * @param fieldName - The name of the field that is being updated.
    */
-  async #addHooksToUpdateDateFields(modelName: string, fieldName: string) {
+  async addHooksToUpdateDateFields(modelName: string, fieldName: string) {
     if (this.#dateFieldsAsAutoNowToAddHooks.has(modelName)) {
       this.#dateFieldsAsAutoNowToAddHooks.get(modelName)?.push(fieldName);
     } else {
@@ -71,7 +92,7 @@ export default class SequelizeEngineFields extends EngineFields {
    * 'Post' model to it. The problem, is: sometimes the otherway can occur: We have defined User already, but
    * we need to wait until `Post` is defined to assign the related value, on this case the relatedTo will finish
    */
-  async #addRelatedFieldToEvaluateAfter(
+  async addRelatedFieldToEvaluateAfter(
     field: models.fields.ForeignKeyField,
     fieldAttributes: ModelAttributeColumnOptions
   ) {
@@ -88,7 +109,6 @@ export default class SequelizeEngineFields extends EngineFields {
       field: field,
       fieldAttributes: fieldAttributes,
     });
-    throw new PreventForeignKeyError();
   }
 
   /**
@@ -96,7 +116,7 @@ export default class SequelizeEngineFields extends EngineFields {
    *
    * @param field - The field to add the index to.
    */
-  async #appendIndexes(field: models.fields.Field) {
+  async appendIndexes(field: models.fields.Field) {
     const index = {
       unique: (field.unique as boolean) === true,
       fields: [field.databaseName],
@@ -202,7 +222,7 @@ export default class SequelizeEngineFields extends EngineFields {
   ): Promise<void> {
     const isFieldAIndexOrIsFieldUnique =
       field.dbIndex === true || (field.unique as boolean) === true;
-    if (isFieldAIndexOrIsFieldUnique) await this.#appendIndexes(field);
+    if (isFieldAIndexOrIsFieldUnique) await this.appendIndexes(field);
     if (modelAttributes.defaultValue === undefined)
       modelAttributes.defaultValue = field.defaultValue;
     modelAttributes.primaryKey = field.primaryKey;
@@ -219,194 +239,24 @@ export default class SequelizeEngineFields extends EngineFields {
     }
   }
 
-  async #handleTextFieldValidations(
-    field: models.fields.TextField,
-    fieldAttributes: ModelAttributeColumnOptions
-  ) {
-    if (field.allowBlank === false)
-      fieldAttributes.validate = {
-        ...fieldAttributes.validate,
-        notEmpty: !field.allowBlank,
-      };
-  }
-
-  async #translateTextField(
-    field: models.fields.TextField,
-    fieldAttributes: ModelAttributeColumnOptions
-  ) {
-    fieldAttributes.type = DataTypes.STRING;
-    await this.#handleTextFieldValidations(field, fieldAttributes);
-  }
-
-  async #translateCharField(
-    field: models.fields.CharField,
-    fieldAttributes: ModelAttributeColumnOptions
-  ): Promise<void> {
-    fieldAttributes.type = DataTypes.STRING(field.maxLength);
-    await this.#handleTextFieldValidations(field, fieldAttributes);
-  }
-
-  async #translateUUIDField(
-    field: models.fields.UUIDField,
-    fieldAttributes: ModelAttributeColumnOptions
-  ): Promise<void> {
-    fieldAttributes.type = DataTypes.UUID;
-    if ((field.autoGenerate as boolean) === true)
-      fieldAttributes.defaultValue = DataTypes.UUIDV4;
-    fieldAttributes.validate = {
-      ...fieldAttributes.validate,
-      isUUID: 4,
-    };
-    await this.#handleTextFieldValidations(field, fieldAttributes);
-  }
-
-  async #translateDateField(
-    field: models.fields.DateField,
-    fieldAttributes: ModelAttributeColumnOptions
-  ): Promise<void> {
-    fieldAttributes.type = DataTypes.DATEONLY;
-    const isAutoNow = (field.autoNow as boolean) === true;
-    const hasAutoNowOrAutoNowAdd =
-      (field.autoNowAdd as boolean) === true || isAutoNow;
-    if (hasAutoNowOrAutoNowAdd) fieldAttributes.defaultValue = DataTypes.NOW;
-    if (isAutoNow)
-      await this.#addHooksToUpdateDateFields(field.model.name, field.fieldName);
-  }
-
-  async #translateAutoField(
-    field: models.fields.AutoField,
-    fieldAttributes: ModelAttributeColumnOptions
-  ) {
-    fieldAttributes.autoIncrement = true;
-    fieldAttributes.autoIncrementIdentity = true;
-    fieldAttributes.type = DataTypes.INTEGER;
-    fieldAttributes.validate = {
-      ...fieldAttributes.validate,
-      isNumeric: true,
-      isInt: true,
-    };
-  }
-
-  async #translateBigAutoField(
-    field: models.fields.BigAutoField,
-    fieldAttributes: ModelAttributeColumnOptions
-  ) {
-    fieldAttributes.autoIncrement = true;
-    fieldAttributes.autoIncrementIdentity = true;
-    fieldAttributes.type = DataTypes.BIGINT;
-    fieldAttributes.validate = {
-      ...fieldAttributes.validate,
-      isNumeric: true,
-      isInt: true,
-    };
-  }
-
-  async #translateIntegerField(
-    field: models.fields.IntegerField,
-    fieldAttributes: ModelAttributeColumnOptions
-  ) {
-    fieldAttributes.type = DataTypes.INTEGER;
-    fieldAttributes.validate = {
-      ...fieldAttributes.validate,
-      isNumeric: true,
-      isInt: true,
-    };
-  }
-
-  async #translateForeignKeyField(
-    field: models.fields.ForeignKeyField,
-    fieldAttributes: ModelAttributeColumnOptions
-  ): Promise<void> {
-    await this.#addRelatedFieldToEvaluateAfter(field, fieldAttributes);
-  }
-
-  async #translateFieldType(
-    fieldAttributes: ModelAttributeColumnOptions,
-    field: models.fields.Field
-  ): Promise<void> {
-    // Yes we can definitely simplify it by not making the translate functions private
-    // but the problem is that this will make it harder to read and know what types of fields
-    // are supported by the engine.
-    switch (field.typeName) {
-      case models.fields.CharField.name:
-        return await this.#translateCharField(
-          field as models.fields.CharField,
-          fieldAttributes
-        );
-      case models.fields.TextField.name:
-        return await this.#translateTextField(
-          field as models.fields.TextField,
-          fieldAttributes
-        );
-      case models.fields.UUIDField.name:
-        return await this.#translateUUIDField(
-          field as models.fields.UUIDField,
-          fieldAttributes
-        );
-      case models.fields.DateField.name:
-        return await this.#translateDateField(
-          field as models.fields.DateField,
-          fieldAttributes
-        );
-      case models.fields.AutoField.name:
-        return await this.#translateAutoField(
-          field as models.fields.AutoField<any, any, any, any, any>,
-          fieldAttributes
-        );
-      case models.fields.BigAutoField.name:
-        return await this.#translateBigAutoField(
-          field as models.fields.BigAutoField<any, any, any, any, any>,
-          fieldAttributes
-        );
-      case models.fields.IntegerField.name:
-        return await this.#translateIntegerField(
-          field as models.fields.IntegerField,
-          fieldAttributes
-        );
-      case models.fields.ForeignKeyField.name:
-        return await this.#translateForeignKeyField(
-          field as models.fields.ForeignKeyField,
-          fieldAttributes
-        );
-      default:
-        throw new UnsupportedFieldTypeError(field.constructor.name);
-    }
-  }
-
-  async #translateField(
-    field: models.fields.Field
-  ): Promise<ModelAttributeColumnOptions> {
-    const fieldAttributes = {} as ModelAttributeColumnOptions;
-    await this.handleDefaultAttributes(fieldAttributes, field);
-    await this.#translateFieldType(fieldAttributes, field);
-    return fieldAttributes;
-  }
-
   async getIndexes(modelName: string): Promise<IndexesOptions[]> {
     const doesIndexesExistForModel = Array.isArray(this.#indexes[modelName]);
     if (doesIndexesExistForModel) return this.#indexes[modelName];
     return [];
   }
 
-  async getTranslated(
-    fieldName: string
-  ): Promise<ModelAttributeColumnOptions | null> {
-    const { value, wasTranslated } = await super.get(fieldName);
-    if (!wasTranslated) {
-      const field = this.fields.get(fieldName) as models.fields.Field;
-      try {
-        const attributes = await this.#translateField(field);
-        return attributes;
-      } catch (e) {
-        const error = e as Error;
-        switch (error.name) {
-          case PreventForeignKeyError.name:
-            return null;
-          default:
-            throw error;
-        }
+  async get(field: Field): Promise<ModelAttributeColumnOptions | null> {
+    try {
+      const attributes = await super.get(field);
+      return attributes;
+    } catch (e) {
+      const error = e as Error;
+      switch (error.name) {
+        case PreventForeignKeyError.name:
+          return null;
+        default:
+          throw error;
       }
     }
-    return value as ModelAttributeColumnOptions | null;
   }
 }

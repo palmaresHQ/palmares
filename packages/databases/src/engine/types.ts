@@ -1,5 +1,4 @@
 import EngineFields from './fields';
-import { Field } from '../models/fields';
 import Engine from '.';
 
 export type EngineInitializedModels<M = unknown> = {
@@ -13,5 +12,4 @@ export type EngineType = {
 
 export type EngineFieldsType = {
   engineInstance: Engine;
-  fields: Map<Field['fieldName'], Field>;
 };
