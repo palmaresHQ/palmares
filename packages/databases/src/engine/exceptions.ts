@@ -16,3 +16,19 @@ export class NotImplementedEngineFieldsException extends Error {
     this.name = NotImplementedEngineFieldsException.name;
   }
 }
+
+export class RelatedModelFromForeignKeyIsNotFromEngineException extends Error {
+  constructor(
+    engineName: string,
+    modelName: string,
+    foreignKeyFieldName: string,
+    foreignKeyFieldModelName: string,
+    fieldName: string
+  ) {
+    super(
+      `The related model '${modelName}' from the foreign key field '${foreignKeyFieldName}' of the model '${foreignKeyFieldModelName}' is not from the engine '${engineName}' that is ` +
+        `being used. This is not a problem, but you need to make sure that the field '${fieldName}' it is relating to exists on the model '${modelName}' it is related to.`
+    );
+    this.name = RelatedModelFromForeignKeyIsNotFromEngineException.name;
+  }
+}

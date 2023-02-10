@@ -238,6 +238,27 @@ export default class ForeignKeyField<
   }
 
   /**
+   * Check if the related model is from the engine instance so we can override the field creation and change the type of the field to some other field.
+   */
+  async isRelatedModelFromEngineInstance(
+    engineInstance: Engine
+  ): Promise<[boolean, Field?]> {
+    const relatedModel = engineInstance._modelsOfEngine[this.relatedTo];
+    if (relatedModel === undefined) return [true, undefined];
+    else {
+      const modelRelatedTo =
+        engineInstance._modelsFilteredOutOfEngine[this.relatedTo];
+      if (modelRelatedTo === undefined) return [true, undefined];
+      else {
+        const modelRelatedToInitialized =
+          await new modelRelatedTo().initializeBasic(engineInstance);
+        const fieldRelatedTo = modelRelatedToInitialized.fields[this.toField];
+        return [false, fieldRelatedTo];
+      }
+    }
+  }
+
+  /**
    * This is needed for the state. Some ORMs cannot have the same relatedName twice. What happens is that when recreating the state
    * we repeat the models from the database. By doing it this way we able to create a random relatedName so we guarantee that the same related name will not be
    * used twice inside inside of the engine to two different models.

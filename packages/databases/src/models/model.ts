@@ -141,7 +141,7 @@ export class Model<T = any> {
   domainPath!: string;
   primaryKeys: string[] = [];
 
-  static _isInitialized = false;
+  static _isInitialized: { [engineName: string]: boolean } = {};
   static readonly defaultOptions = {
     abstract: false,
     underscored: true,
@@ -335,6 +335,7 @@ export class Model<T = any> {
     await this.#initializeAbstracts();
     await this.#initializeOptions();
     await this.#initializeFields(engineInstance);
+    return this as Model;
   }
 
   async _init(engineInstance: Engine, domainName: string, domainPath: string) {
@@ -356,7 +357,9 @@ export class Model<T = any> {
 
     const modelInstance = (await engineInstance.initializeModel(this)) as any;
     await this.#initializeManagers(engineInstance, modelInstance);
-    (this.constructor as typeof Model)._isInitialized = true;
+    (this.constructor as typeof Model)._isInitialized = {
+      [engineInstance.databaseName]: true,
+    };
     return modelInstance;
   }
 

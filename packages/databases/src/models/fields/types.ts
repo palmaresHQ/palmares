@@ -157,9 +157,14 @@ export type ForeignKeyFieldParamsType<
   RNN extends string = any
 > = {
   relatedTo: ClassConstructor<M> | string;
+  /** To which field of the `relatedTo` model does this field relates to? */
   toField: RF;
+  /** Name of the field of the relation in the related model. In other words: "the `relatedTo` model contains `${relatedName}`" */
   relatedName: RN;
+  /** Name of the field of the relation in the model you are creating the relation on  */
   relationName: RNN;
+  /** What will we do when you delete an instance from the database, this relates to the remove query, and is internal for the database,
+   * palmares by itself does not control cascading deletes */
   onDelete: ON_DELETE;
   customName?: string;
   lazyDefaultValueType?: TLazyDefaultValue;

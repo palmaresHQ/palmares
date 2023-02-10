@@ -13,6 +13,7 @@ import {
   UUIDField,
   TranslatableField,
 } from '../../models/fields';
+import { RelatedModelFromForeignKeyIsNotFromEngineException } from '../exceptions';
 import type EngineAutoFieldParser from './auto';
 import type EngineBigAutoFieldParser from './big-auto';
 import type EngineBigIntegerFieldParser from './big-integer';
@@ -75,7 +76,26 @@ export default class EngineFieldParser {
     return {};
   }
 
-  async internalParse(field: Field): Promise<any> {
+  async _foreignKeyFieldParser(field: ForeignKeyField): Promise<any> {
+    const [isRelatedModelFromEngine, fieldToChangeRelationTo] =
+      await field.isRelatedModelFromEngineInstance(
+        this.engineFields.engineInstance
+      );
+
+    if (isRelatedModelFromEngine === false) {
+      if (fieldToChangeRelationTo) return fieldToChangeRelationTo;
+      else
+        throw new RelatedModelFromForeignKeyIsNotFromEngineException(
+          this.engineFields.engineInstance.databaseName,
+          field.relatedTo,
+          field.fieldName,
+          field.model.name,
+          field.toField
+        );
+    } else return field;
+  }
+
+  async _internalParse(field: Field): Promise<any> {
     const existAllFieldsSoProbablyTheEngineFieldParserInstance =
       this.auto !== undefined &&
       this.bigAuto !== undefined &&
@@ -92,25 +112,30 @@ export default class EngineFieldParser {
       return this.translate(field);
     switch (field.typeName) {
       case AutoField.name:
-        return this.auto?.internalParse(field);
+        return this.auto?._internalParse(field);
       case BigAutoField.name:
-        return this.bigAuto?.internalParse(field);
+        return this.bigAuto?._internalParse(field);
       case BigIntegerField.name:
-        return this.bigInt?.internalParse(field);
+        return this.bigInt?._internalParse(field);
       case CharField.name:
-        return this.char?.internalParse(field);
+        return this.char?._internalParse(field);
       case DateField.name:
-        return this.date?.internalParse(field);
+        return this.date?._internalParse(field);
       case DecimalField.name:
-        return this.decimal?.internalParse(field);
-      case ForeignKeyField.name:
-        return this.foreignKey?.internalParse(field);
+        return this.decimal?._internalParse(field);
+      case ForeignKeyField.name: {
+        const fieldToParse = await this._foreignKeyFieldParser(
+          field as ForeignKeyField
+        );
+        console.log(fieldToParse);
+        return this.foreignKey?._internalParse(fieldToParse);
+      }
       case IntegerField.name:
-        return this.integer?.internalParse(field);
+        return this.integer?._internalParse(field);
       case TextField.name:
-        return this.text?.internalParse(field);
+        return this.text?._internalParse(field);
       case UUIDField.name:
-        return this.uuid?.internalParse(field);
+        return this.uuid?._internalParse(field);
       case TranslatableField.name:
         return (field as TranslatableField).translate(this.engineFields);
       default:

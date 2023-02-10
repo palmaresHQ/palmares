@@ -137,4 +137,34 @@ export default class Field<
       field.underscored === this.underscored
     );
   }
+
+  /**
+   * Gets the options passed on the constructor of the field so that we are able to clone it to a new field.
+   *
+   * @param field - The field to get the options from. If not provided it will use the current field.
+   *
+   * @returns - Returns the options passed on the constructor of the field.
+   */
+  async constructorOptions(field?: Field) {
+    if (!field) field = this as Field;
+    return {
+      allowNull: field.allowNull,
+      customAttributes: field.customAttributes,
+      defaultValue: field.defaultValue,
+      dbIndex: field.dbIndex,
+      databaseName: field.databaseName,
+      isAuto: field.isAuto,
+      primaryKey: field.primaryKey,
+      underscored: field.underscored,
+      unique: field.unique,
+    };
+  }
+
+  /**
+   * Used for cloning the field to a new field.
+   */
+  async clone(field: Field): Promise<Field> {
+    const constructorOptions = await this.constructorOptions(field);
+    return Field.new(constructorOptions);
+  }
 }

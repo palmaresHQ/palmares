@@ -14,6 +14,7 @@ import Engine from './engine';
 import { Model } from './models';
 import Migrations from './migrations';
 import DatabasesDomain from './domain';
+import model from './models/model';
 
 export default class Databases {
   settings!: DatabaseSettingsType;
@@ -171,12 +172,25 @@ export default class Databases {
     const models: FoundModelType[] = Object.values(
       await this.getModels(domains)
     );
-    const initializedManagedInPartialModels = models.filter((foundModel) => {
+
+    const onlyTheModelsFiltered: {
+      [modelName: string]: ReturnType<typeof model>;
+    } = {};
+    const onlyTheModelsNotOnTheEngine: {
+      [modelName: string]: ReturnType<typeof model>;
+    } = {};
+    const modelsFilteredForDatabase = models.filter((foundModel) => {
       const modelInstance = new foundModel.model();
-      return (
-        modelInstance.options?.managed !== false &&
-        foundModel.model._isInitialized === false
-      );
+      const isModelManagedByEngine =
+        foundModel.model._isInitialized[engineName] !== true &&
+        (Array.isArray(modelInstance.options?.databases) === false ||
+          modelInstance.options?.databases?.includes(engineName) === true);
+      const modelName = modelInstance.name || modelInstance.constructor.name;
+
+      if (isModelManagedByEngine)
+        onlyTheModelsFiltered[modelName] = foundModel.model;
+      else onlyTheModelsNotOnTheEngine[modelName] = foundModel.model;
+      return isModelManagedByEngine;
     });
 
     let engineInstance: Engine;
@@ -193,10 +207,16 @@ export default class Databases {
     const isDatabaseConnected = await Promise.resolve(
       engineInstance.isConnected()
     );
+    // Append all of the models to the engine instance.
+    await engineInstance._appendModelsOfEngineAndFilteredOut(
+      onlyTheModelsFiltered,
+      onlyTheModelsNotOnTheEngine
+    );
+
     if (isDatabaseConnected) {
       const { projectModels } = await this.initializeModels(
         engineInstance,
-        initializedManagedInPartialModels
+        modelsFilteredForDatabase
       );
       const mergedProjectModels = (
         this.initializedEngineInstances[engineName]?.projectModels || []

@@ -28,7 +28,7 @@ import EngineQuery, {
   EngineSetQuery,
   EngineRemoveQuery,
 } from './query';
-import { Model } from '../models/model';
+import model, { Model } from '../models/model';
 import EngineModels from './model';
 
 /**
@@ -56,6 +56,8 @@ export default class Engine<M extends Model = Model> implements EngineType {
   migrations: EngineMigrations;
   ModelType: any;
   instance: any;
+  _modelsFilteredOutOfEngine!: { [modelName: string]: typeof Model };
+  _modelsOfEngine!: { [modelName: string]: typeof Model };
   _indirectlyRelatedModels: {
     [modelName: string]: { [relatedModelName: string]: string[] };
   } = {};
@@ -212,6 +214,18 @@ export default class Engine<M extends Model = Model> implements EngineType {
     const modelInstance = await this.models.translate(model);
     this.initializedModels[model.name] = modelInstance;
     return modelInstance;
+  }
+
+  async _appendModelsOfEngineAndFilteredOut(
+    modelsOfEngine: {
+      [modelName: string]: typeof Model;
+    },
+    modelsFilteredOutOfEngine: {
+      [modelName: string]: typeof Model;
+    }
+  ) {
+    this._modelsOfEngine = modelsOfEngine;
+    this._modelsFilteredOutOfEngine = modelsFilteredOutOfEngine;
   }
 
   /**

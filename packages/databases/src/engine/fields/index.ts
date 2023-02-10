@@ -1,6 +1,6 @@
 import Engine from '..';
 import { EngineFieldsType } from '../types';
-import { Field, TranslatableField } from '../../models/fields';
+import { Field } from '../../models/fields';
 import EngineFieldParser from './field';
 import EngineAutoFieldParser from './auto';
 import EngineBigAutoFieldParser from './big-auto';
@@ -80,22 +80,14 @@ export default class EngineFields implements EngineFieldsType {
   }
 
   /**
-   * This should return the field translated, on here it returns if the field was translated and the field translated or not.
+   * This method will return the fields translated to something that the ORM can understand.
    *
-   * We can create fields able to translate by itself (without needing to be defined on the engine). Those are `TranslatableField`s,
-   * it is a field that have the `translate` function so we can translate it to a given engine at any time. Right now, it's not used
-   * much, and might not be used by any existing engine, but it's a nice stuff to have for users. So if your engine does not support by
-   * default all of the fields of the engine, the user can still create custom fields.
+   * @param field - The field that will be translated.
    *
-   * Generally speaking this is more for the user to create custom fields for your engine. A better engine API will enable users to create
-   * custom fields more easily.
-   *
-   * @param fieldName - The name of the field that we want to retrieve translated.
-   *
-   * @return - An object that explains if the field was already translated and the translated value of it.
+   * @returns The field translated to something that the ORM can understand.
    */
   async get(field: Field): Promise<any> {
-    return this.fieldParserInstance.internalParse(field);
+    return this.fieldParserInstance._internalParse(field);
   }
 }
 
