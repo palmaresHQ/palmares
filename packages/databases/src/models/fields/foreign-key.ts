@@ -6,7 +6,7 @@ import {
 import Field from './field';
 import type { TModel } from '../types';
 import { ForeignKeyFieldRequiredParamsMissingError } from './exceptions';
-import Engine, { EngineFields } from '../../engine';
+import Engine from '../../engine';
 import { generateUUID } from '../../utils';
 import { This } from '../../types';
 import model, { Model } from '../model';
@@ -253,7 +253,11 @@ export default class ForeignKeyField<
         const modelRelatedToInitialized =
           await new modelRelatedTo().initializeBasic(engineInstance);
         const fieldRelatedTo = modelRelatedToInitialized.fields[this.toField];
-        return [false, fieldRelatedTo];
+        const clonedField = await fieldRelatedTo.clone();
+        this.model[this.fieldName] = clonedField;
+        clonedField.model = this.model;
+        clonedField.fieldName = this.fieldName;
+        return [false, clonedField];
       }
     }
   }
@@ -312,16 +316,18 @@ export default class ForeignKeyField<
       fieldAsForeignKey.customName === this.customName
     );
   }
-}
 
-/**
- * Enables developers to create custom fields while also being able to translate them dynamically for a specific engine.
- * Engines might solve the most common issues but they might not support all fields out of the box so you use this field
- * to support the field you are looking to.
- */
-export class TranslatableField extends Field {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async translate(engine: Engine, engineFields: EngineFields): Promise<any> {
-    return undefined;
+  async constructorOptions(field?: ForeignKeyField) {
+    if (!field) field = this as ForeignKeyField;
+    const defaultConstructorOptions = await super.constructorOptions(field);
+    return {
+      ...defaultConstructorOptions,
+      relatedTo: field.relatedTo,
+      toField: field.toField,
+      onDelete: field.onDelete,
+      customName: field.customName,
+      relationName: field.relationName,
+      relatedName: field.relatedName as string,
+    };
   }
 }

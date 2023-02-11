@@ -95,7 +95,7 @@ export default class State {
    *
    * @param engineInstance - The engine instance to use to initialize the models.
    */
-  async initializeModels(
+  async initializeStateModels(
     engineInstance: Engine
   ): Promise<InitializedModelsType[]> {
     const modelsInState = Object.values(this.modelsByName);
@@ -146,7 +146,7 @@ export default class State {
         closeEngineInstance,
       };
 
-    const initializedModels = await this.initializeModels(
+    const initializedModels = await this.initializeStateModels(
       duplicatedEngineInstance
     );
     for (const initializedModel of initializedModels) {

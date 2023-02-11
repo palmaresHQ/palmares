@@ -54,4 +54,14 @@ export default class DecimalField<
       fieldAsDecimal.decimalPlaces === this.decimalPlaces
     );
   }
+
+  async constructorOptions(field?: DecimalField) {
+    if (!field) field = this as DecimalField;
+    const defaultConstructorOptions = await super.constructorOptions(field);
+    return {
+      ...defaultConstructorOptions,
+      maxDigits: field.maxDigits,
+      decimalPlaces: field.decimalPlaces,
+    };
+  }
 }

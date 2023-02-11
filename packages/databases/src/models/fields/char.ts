@@ -73,4 +73,13 @@ export default class CharField<
       (await super.compare(field)) && fieldAsText.maxLength === this.maxLength
     );
   }
+
+  async constructorOptions(field?: CharField) {
+    if (!field) field = this as CharField;
+    const defaultConstructorOptions = await super.constructorOptions(field);
+    return {
+      ...defaultConstructorOptions,
+      allowBlank: field.allowBlank,
+    };
+  }
 }

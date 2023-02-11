@@ -103,7 +103,6 @@ export default class Manager<
       database.isInitializing === false;
     this.isLazyInitializing = true;
     if (canInitializeTheModels) {
-      console.log('fromManager');
       const settings =
         (await conf.getSettings()) as unknown as DatabaseSettingsType;
       const { domains } = await Domain.initializeDomains(settings);
@@ -164,7 +163,6 @@ export default class Manager<
         : T;
     const hasLazilyInitialized =
       await this.verifyIfNotInitializedAndInitializeModels(engineInstanceName);
-    console.log(this.models);
     if (hasLazilyInitialized) return this.getEngineInstance(engineName);
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }

@@ -60,11 +60,31 @@ export class User extends models.Model<User>() {
       allowNull: true,
       defaultValue: '',
     }),
+    facebookId: ForeignKeyField.new({
+      relatedTo: Facebook,
+      onDelete: ON_DELETE.CASCADE,
+      toField: 'id',
+      relatedName: 'facebookUsers',
+      relationName: 'facebook',
+      allowNull: true,
+    }),
     lastName: CharField.new({ maxLength: 255, allowNull: true }),
     uuid: UUIDField.new({ autoGenerate: true, unique: true }),
   };
 
   options = {
     tableName: 'user',
+  };
+}
+
+export class Facebook extends models.Model<Facebook>() {
+  fields = {
+    id: AutoField.new(),
+    campaignName: CharField.new({ maxLength: 255, allowNull: true }),
+  };
+
+  options = {
+    tableName: 'facebook',
+    managed: false,
   };
 }

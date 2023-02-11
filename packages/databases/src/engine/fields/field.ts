@@ -127,7 +127,6 @@ export default class EngineFieldParser {
         const fieldToParse = await this._foreignKeyFieldParser(
           field as ForeignKeyField
         );
-        console.log(fieldToParse);
         return this.foreignKey?._internalParse(fieldToParse);
       }
       case IntegerField.name:

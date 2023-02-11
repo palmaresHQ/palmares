@@ -69,4 +69,13 @@ export default class UUIDField<
       fieldAsUUID.autoGenerate === this.autoGenerate
     );
   }
+
+  async constructorOptions(field?: UUIDField) {
+    if (!field) field = this as UUIDField;
+    const defaultConstructorOptions = await super.constructorOptions(field);
+    return {
+      ...defaultConstructorOptions,
+      autoGenerate: field.autoGenerate,
+    };
+  }
 }

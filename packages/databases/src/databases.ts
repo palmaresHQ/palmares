@@ -182,6 +182,7 @@ export default class Databases {
     const modelsFilteredForDatabase = models.filter((foundModel) => {
       const modelInstance = new foundModel.model();
       const isModelManagedByEngine =
+        modelInstance.options.managed !== false &&
         foundModel.model._isInitialized[engineName] !== true &&
         (Array.isArray(modelInstance.options?.databases) === false ||
           modelInstance.options?.databases?.includes(engineName) === true);

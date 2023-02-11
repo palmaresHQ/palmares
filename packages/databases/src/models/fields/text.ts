@@ -56,4 +56,13 @@ export default class TextField<
       (await super.compare(field)) && fieldAsText.allowBlank === this.allowBlank
     );
   }
+
+  async constructorOptions(field?: TextField) {
+    if (!field) field = this as TextField;
+    const defaultConstructorOptions = await super.constructorOptions(field);
+    return {
+      ...defaultConstructorOptions,
+      allowBlank: field.allowBlank,
+    };
+  }
 }

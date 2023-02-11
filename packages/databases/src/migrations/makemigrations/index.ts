@@ -933,7 +933,9 @@ export default class MakeMigrations {
         [database, '*'].includes(migration.migration.database)
       );
       const state = await State.buildState(filteredMigrationsOfDatabase);
-      const initializedState = await state.initializeModels(engineInstance);
+      const initializedState = await state.initializeStateModels(
+        engineInstance
+      );
       const makemigrations = new this(
         database,
         settings,

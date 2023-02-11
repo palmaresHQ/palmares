@@ -99,4 +99,14 @@ export default class DateField<
       fieldAsDate.autoNowAdd === this.autoNowAdd
     );
   }
+
+  async constructorOptions(field?: DateField) {
+    if (!field) field = this as DateField;
+    const defaultConstructorOptions = await super.constructorOptions(field);
+    return {
+      ...defaultConstructorOptions,
+      autoNow: field.autoNow,
+      autoNowAdd: field.autoNowAdd,
+    };
+  }
 }

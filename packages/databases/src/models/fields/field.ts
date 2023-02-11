@@ -162,9 +162,14 @@ export default class Field<
 
   /**
    * Used for cloning the field to a new field.
+   *
+   * @param field - The field to clone. If not provided it will use the current field.
+   *
+   * @returns - Returns the cloned field.
    */
-  async clone(field: Field): Promise<Field> {
+  async clone(field?: Field): Promise<Field> {
+    if (!field) field = this as Field;
     const constructorOptions = await this.constructorOptions(field);
-    return Field.new(constructorOptions);
+    return (field.constructor as typeof Field).new(constructorOptions);
   }
 }
