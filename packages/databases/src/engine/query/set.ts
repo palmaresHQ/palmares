@@ -126,6 +126,9 @@ export default class EngineSetQuery {
           this.queryData.bind(this),
           true,
           true,
+          undefined,
+          undefined,
+          undefined,
           (allResultsOfSearch.length > 0
             ? allResultsOfSearch
             : undefined) as ModelFieldsWithIncludes<
@@ -147,6 +150,9 @@ export default class EngineSetQuery {
           this.queryData.bind(this),
           true,
           false,
+          undefined,
+          undefined,
+          undefined,
           undefined,
           data as TData,
           transaction

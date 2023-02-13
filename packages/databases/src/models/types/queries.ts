@@ -1,9 +1,18 @@
 import model, { Model } from '../model';
 import type { ForeignKeyField, Field } from '../fields';
 
+export type FieldsOfModelOptionsType<TModel extends Model> =
+  keyof (TModel['fields'] & AbstractsAsFields<TModel['abstracts']>);
+
 export type FieldsOFModelType<TModel extends Model> =
   readonly (keyof (TModel['fields'] &
     AbstractsAsFields<TModel['abstracts']>))[];
+
+export type OrderingOfModelsType<TFields extends string> = readonly (
+  | TFields
+  | TFields extends string
+  ? TFields | `-${TFields}`
+  : never)[];
 
 // --------- INCLUDES ----------- //
 export type Includes<TCustomData extends object = object> =
@@ -45,6 +54,15 @@ export type IncludesValidated<
               : {
                   model: ValidateModelsOfIncludes<TParentModel, TInferedModel>;
                   fields?: FieldsOFModelType<InstanceType<TInferedModel>>;
+                  ordering?: OrderingOfModelsType<
+                    FieldsOfModelOptionsType<
+                      InstanceType<TInferedModel>
+                    > extends string
+                      ? FieldsOfModelOptionsType<InstanceType<TInferedModel>>
+                      : string
+                  >;
+                  limit?: number;
+                  offset?: number | string;
                   includes?: IncludesValidated<
                     InstanceType<TInferedModel>,
                     TInferedIncludesOfModel,
@@ -59,6 +77,15 @@ export type IncludesValidated<
             : {
                 model: ValidateModelsOfIncludes<TParentModel, TInferedModel>;
                 fields?: FieldsOFModelType<InstanceType<TInferedModel>>;
+                ordering?: OrderingOfModelsType<
+                  FieldsOfModelOptionsType<
+                    InstanceType<TInferedModel>
+                  > extends string
+                    ? FieldsOfModelOptionsType<InstanceType<TInferedModel>>
+                    : string
+                >;
+                limit?: number;
+                offset?: number | string;
               } & TCustomData,
           ...(TInferedRestIncludes extends Includes
             ? IncludesValidated<

@@ -5,6 +5,8 @@ import type {
   Includes,
   ModelFieldsWithIncludes,
   FieldsOFModelType,
+  OrderingOfModelsType,
+  FieldsOfModelOptionsType,
 } from '../../models/types';
 import { NotImplementedEngineException } from '../exceptions';
 
@@ -35,6 +37,9 @@ export default class EngineGetQuery {
     modelOfEngineInstance: any;
     search: any;
     fields: readonly string[];
+    ordering?: any;
+    limit?: number;
+    offset?: number | string;
   }): Promise<any[]> {
     return [];
   }
@@ -67,6 +72,13 @@ export default class EngineGetQuery {
       | undefined = undefined
   >(
     args: {
+      ordering?: OrderingOfModelsType<
+        FieldsOfModelOptionsType<TModel> extends string
+          ? FieldsOfModelOptionsType<TModel>
+          : string
+      >;
+      limit?: number;
+      offset?: number | string;
       fields?: TFieldsOfModel;
       search?: TSearch;
     },
@@ -87,6 +99,7 @@ export default class EngineGetQuery {
         internal.includes
       );
     } catch (e) {
+      console.log([]);
       if ((e as Error).name === NotImplementedEngineException.name)
         await this.engineQueryInstance.getResultsWithIncludes(
           internal.model as TModel,
@@ -97,6 +110,9 @@ export default class EngineGetQuery {
           this.queryData.bind(this),
           false,
           false,
+          args.ordering,
+          args.limit,
+          args.offset,
           undefined,
           undefined,
           undefined

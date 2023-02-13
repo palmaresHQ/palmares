@@ -79,6 +79,9 @@ export default class EngineRemoveQuery {
         true,
         undefined,
         undefined,
+        undefined,
+        undefined,
+        undefined,
         transaction
       );
       return results;

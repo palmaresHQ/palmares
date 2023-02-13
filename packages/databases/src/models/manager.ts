@@ -8,6 +8,8 @@ import {
   IncludesInstances,
   IncludesValidated,
   FieldsOFModelType,
+  OrderingOfModelsType,
+  FieldsOfModelOptionsType,
 } from './types';
 import { ManagerEngineInstanceNotFoundError } from './exceptions';
 import Engine from '../engine';
@@ -230,7 +232,10 @@ export default class Manager<
   async get<
     TModel extends Model<any> = M,
     TIncludes extends Includes<{
-      fields: TFields;
+      fields?: readonly string[];
+      ordering?: readonly (string | `-${string}`)[];
+      limit?: number;
+      offset?: number | string;
     }> = undefined,
     TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>
   >(
@@ -248,6 +253,13 @@ export default class Manager<
             true
           >
         | undefined;
+      ordering?: OrderingOfModelsType<
+        FieldsOfModelOptionsType<TModel> extends string
+          ? FieldsOfModelOptionsType<TModel>
+          : string
+      >;
+      limit?: number;
+      offset?: string | number;
     },
     engineName?: string
   ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]> {
@@ -279,6 +291,9 @@ export default class Manager<
           true,
           true
         >,
+        ordering: args?.ordering,
+        limit: args?.limit,
+        offset: args?.offset,
       },
       {
         model: this.models[

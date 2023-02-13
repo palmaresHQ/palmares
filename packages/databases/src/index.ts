@@ -11,6 +11,7 @@ export {
   EngineSetQuery,
   EngineRemoveQuery,
   EngineQuerySearch,
+  EngineQueryOrdering,
   EngineAutoFieldParser,
   EngineBigAutoFieldParser,
   EngineBigIntegerFieldParser,

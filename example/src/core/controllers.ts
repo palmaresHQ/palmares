@@ -65,6 +65,11 @@ export class ExampleController extends Controller {
           in: [1, 2],
         },
       },
+      includes: [
+        {
+          model: PostModel,
+        },
+      ],
     });
 
     console.log(JSON.stringify(value, null, 2));

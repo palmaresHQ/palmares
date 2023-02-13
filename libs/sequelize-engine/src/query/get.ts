@@ -4,7 +4,7 @@ import {
   models,
   ForeignKeyField,
 } from '@palmares/databases';
-import { Includeable, Model, ModelCtor } from 'sequelize';
+import { Includeable, Model, ModelCtor, Order } from 'sequelize';
 
 export default class SequelizeEngineGetQuery extends EngineGetQuery {
   /**
@@ -118,12 +118,21 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
     modelOfEngineInstance: ModelCtor<Model>;
     search: any;
     fields: readonly string[];
+    ordering?: Order;
+    limit?: number;
+    offset?: number | string;
   }) {
-    return args.modelOfEngineInstance.findAll({
+    const findAllOptions: Parameters<ModelCtor<Model>['findAll']>[0] = {
       attributes: args.fields as string[],
       where: args.search,
       nest: true,
       raw: true,
-    });
+    };
+    if (args.ordering) findAllOptions.order = args.ordering;
+    if (args.limit) findAllOptions.limit = args.limit;
+    if (args.offset) findAllOptions.offset = Number(args.offset);
+    const result = await args.modelOfEngineInstance.findAll(findAllOptions);
+    console.log(result);
+    return result;
   }
 }

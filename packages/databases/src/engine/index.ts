@@ -27,8 +27,9 @@ import EngineQuery, {
   EngineQuerySearch,
   EngineSetQuery,
   EngineRemoveQuery,
+  EngineQueryOrdering,
 } from './query';
-import model, { Model } from '../models/model';
+import { Model } from '../models/model';
 import EngineModels from './model';
 
 /**
@@ -85,6 +86,7 @@ export default class Engine<M extends Model = Model> implements EngineType {
       set: typeof EngineSetQuery;
       remove: typeof EngineRemoveQuery;
       search: typeof EngineQuerySearch;
+      ordering: typeof EngineQueryOrdering;
     },
     models: typeof EngineModels,
     migration: typeof EngineMigrations
@@ -109,6 +111,7 @@ export default class Engine<M extends Model = Model> implements EngineType {
       query.get,
       query.set,
       query.remove,
+      query.ordering,
       query.search
     );
     this.models = new models(this, this.fields);
@@ -269,6 +272,7 @@ export {
   EngineSetQuery,
   EngineRemoveQuery,
   EngineQuerySearch,
+  EngineQueryOrdering,
   EngineFieldParser,
   EngineAutoFieldParser,
   EngineBigAutoFieldParser,

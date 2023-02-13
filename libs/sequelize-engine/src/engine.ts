@@ -32,6 +32,9 @@ import SequelizeEngineDecimalFieldParser from './fields/decimal';
 import SequelizeEngineIntegerFieldParser from './fields/integer';
 import SequelizeEngineTextFieldParser from './fields/text';
 import SequelizeEngineUuidFieldParser from './fields/uuid';
+import SequelizeEngineQueryOrdering from './query/ordering';
+import SequelizeEngineForeignKeyFieldParser from './fields/foreign-key';
+import SequelizeEngineDateFieldParser from './fields/date';
 
 export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
   #isConnected: boolean | null = null;
@@ -88,9 +91,9 @@ export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
         bigAuto: SequelizeEngineBigAutoFieldParser,
         bigInteger: SequelizeEngineBigIntegerFieldParser,
         char: SequelizeEngineCharFieldParser,
-        date: SequelizeEngineCharFieldParser,
+        date: SequelizeEngineDateFieldParser,
         decimal: SequelizeEngineDecimalFieldParser,
-        foreignKey: SequelizeEngineCharFieldParser,
+        foreignKey: SequelizeEngineForeignKeyFieldParser,
         integer: SequelizeEngineIntegerFieldParser,
         text: SequelizeEngineTextFieldParser,
         uuid: SequelizeEngineUuidFieldParser,
@@ -101,6 +104,7 @@ export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
         set: SequelizeEngineSetQuery,
         remove: SequelizeEngineRemoveQuery,
         search: SequelizeEngineSearchQuery,
+        ordering: SequelizeEngineQueryOrdering,
       },
       SequelizeEngineModels,
       SequelizeMigrations
@@ -155,7 +159,7 @@ export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
   }
 
   async initializeModel(model: TModel): Promise<ModelCtor<Model> | undefined> {
-    const modelInstance = super.initializeModel(model);
+    const modelInstance = await super.initializeModel(model);
     await this.fields.afterModelCreation(model.name);
     return modelInstance;
   }

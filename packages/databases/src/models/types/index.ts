@@ -13,7 +13,7 @@ export type ManagerEngineInstancesType = {
 };
 
 export type ModelFieldsType = {
-  [key: string | symbol]: Field<any, any, any, any, any, any>;
+  [fieldName: string | symbol]: Field<any, any, any, any, any, any>;
 };
 
 export type ManagersOfInstanceType = {
@@ -54,6 +54,51 @@ type ExtractFieldNames<TFieldsAndAbstracts, TModelAbstracts> =
             : never)
     : never;
 
+type ExtractFieldTypes<
+  TFieldsAndAbstracts,
+  TModelAbstracts,
+  TIsAllOptional extends boolean = false
+> = TFieldsAndAbstracts extends { fields: infer TFields }
+  ? (TIsAllOptional extends true
+      ? {
+          [TFieldName in keyof TFields]?: 'type' extends keyof TFields[TFieldName]
+            ? 'allowNull' extends keyof TFields[TFieldName]
+              ? TFields[TFieldName]['allowNull'] extends true
+                ? TFields[TFieldName]['type'] | null
+                : TFields[TFieldName]['type']
+              : never
+            : never;
+        }
+      : {
+          [TFieldName in keyof TFields]: 'type' extends keyof TFields[TFieldName]
+            ? 'allowNull' extends keyof TFields[TFieldName]
+              ? TFields[TFieldName]['allowNull'] extends true
+                ? TFields[TFieldName]['type'] | null
+                : TFields[TFieldName]['type']
+              : never
+            : never;
+        }) &
+      (TModelAbstracts extends readonly [
+        infer TAbstract,
+        ...infer TRestAbstracts
+      ]
+        ? TAbstract extends
+            | { fields: any }
+            | { fields: any; abstracts: infer TAbstractsOfAbstract }
+          ?
+              | ExtractFieldTypes<TAbstract, TAbstractsOfAbstract>
+              | ExtractFieldTypes<
+                  TFieldsAndAbstracts,
+                  TRestAbstracts extends
+                    | { fields: any }
+                    | { fields: any; abstracts: readonly any[] }
+                    ? TRestAbstracts
+                    : never[]
+                >
+          : unknown
+        : unknown)
+  : unknown;
+
 export type ModelOptionsType<M = any> = {
   indexes?: ModelIndexType<
     ExtractFieldNames<
@@ -75,6 +120,19 @@ export type ModelOptionsType<M = any> = {
   managed?: boolean;
   databases?: string[];
   customOptions?: any;
+  onGet?: (args: {
+    search: ExtractFieldTypes<
+      M,
+      M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
+      true
+    >;
+    fields: ExtractFieldNames<
+      M,
+      M extends { abstracts: infer TAbstracts } ? TAbstracts : never[]
+    >;
+  }) => Promise<any[]>;
+  onSet?: () => Promise<any[]>;
+  onRemove?: () => Promise<any[]>;
 };
 
 export interface ModelType {

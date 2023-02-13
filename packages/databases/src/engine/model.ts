@@ -29,10 +29,11 @@ export default class EngineModels {
   }
 
   async translate(model: Model): Promise<any> {
-    const [options, fields] = await Promise.all([
-      this.translateOptions(model),
-      this.translateFields(Object.entries(model.fields), model),
-    ]);
+    const options = await this.translateOptions(model);
+    const fields = await this.translateFields(
+      Object.entries(model.fields),
+      model
+    );
 
     return {
       options,

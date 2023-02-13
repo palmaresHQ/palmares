@@ -239,12 +239,52 @@ export default class ForeignKeyField<
 
   /**
    * Check if the related model is from the engine instance so we can override the field creation and change the type of the field to some other field.
+   *
+   * This is useful to manage unmanaged relations. For example, we have a model in this database and another one in the other database. We can relate both
+   * of them without any issues. What this will do is convert the value of this field that does not exist on this database to the field it relates to.
+   *
+   * For example:
+   *
+   * ```
+   * class Facebook extends models.model<Facebook>() {
+   *    fields = {
+   *        id: IntegerField.new(),
+   *        campaignName: CharField.new()
+   *    }
+   *
+   *    options = {
+   *        managed: false
+   *    }
+   * }
+   *
+   * const User = models.initialize('User', {
+   *    fields: {
+   *      id: AutoField.new(),
+   *      firstName: CharField.new(),
+   *      facebookId: ForeignKeyField({
+   *         relatedTo: Facebook,
+   *         toField: 'id',
+   *         relatedName: 'facebookUsers',
+   *         relationName: 'facebook'
+   *      })
+   *    }
+   * })
+   * ```
+   *
+   * Since the `facebookId` field is matching a field in an unmanaged model, the facebookId field will be translated to `IntegerField` AND NOT
+   * the `ForeignKeyField`
+   *
+   * @param engineInstance - Needs the engine instance to check if the model exists in the engine instance or not.
+   *
+   * @returns - Returns an array where the first item is if the relatedmodel is from the engine instance (false if not) and the field it should
+   * change to.
    */
   async isRelatedModelFromEngineInstance(
     engineInstance: Engine
   ): Promise<[boolean, Field?]> {
     const relatedModel = engineInstance._modelsOfEngine[this.relatedTo];
-    if (relatedModel === undefined) return [true, undefined];
+
+    if (relatedModel !== undefined) return [true, undefined];
     else {
       const modelRelatedTo =
         engineInstance._modelsFilteredOutOfEngine[this.relatedTo];
@@ -254,9 +294,18 @@ export default class ForeignKeyField<
           await new modelRelatedTo().initializeBasic(engineInstance);
         const fieldRelatedTo = modelRelatedToInitialized.fields[this.toField];
         const clonedField = await fieldRelatedTo.clone();
-        this.model[this.fieldName] = clonedField;
         clonedField.model = this.model;
         clonedField.fieldName = this.fieldName;
+        clonedField.databaseName = this.databaseName;
+        (clonedField as any).defaultValue = this.defaultValue;
+        (clonedField as any).allowNull = this.allowNull;
+        clonedField.dbIndex = this.dbIndex;
+        (clonedField as any).hasDefaultValue = this.hasDefaultValue;
+        clonedField.underscored = this.underscored;
+        (clonedField as any).unique = this.unique;
+        clonedField.isAuto = false;
+        clonedField.primaryKey = false;
+        clonedField.model.fields[this.fieldName] = clonedField;
         return [false, clonedField];
       }
     }

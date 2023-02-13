@@ -6,10 +6,13 @@ import {
   Includes,
   ModelFieldsWithIncludes,
   FieldsOFModelType,
+  OrderingOfModelsType,
+  FieldsOfModelOptionsType,
 } from '../../models/types';
 import EngineGetQuery from './get';
 import EngineRemoveQuery from './remove';
 import EngineQuerySearch from './search';
+import EngineQueryOrdering from './ordering';
 import EngineSetQuery from './set';
 
 type QueryDataFnType =
@@ -30,6 +33,9 @@ type QueryDataFnType =
       modelOfEngineInstance: any;
       search: any;
       fields: readonly string[];
+      ordering?: any;
+      limit?: number;
+      offset?: number | string;
     }) => Promise<any>);
 
 /**
@@ -53,15 +59,18 @@ export default class EngineQuery {
   set: EngineSetQuery;
   remove: EngineRemoveQuery;
   search: EngineQuerySearch;
+  ordering: EngineQueryOrdering;
 
   constructor(
     engineInstance: Engine,
     engineGetQuery: typeof EngineGetQuery,
     engineSetQuery: typeof EngineSetQuery,
     engineRemoveQuery: typeof EngineRemoveQuery,
+    engineQueryOrdering: typeof EngineQueryOrdering,
     engineQuerySearch: typeof EngineQuerySearch
   ) {
     this.engineInstance = engineInstance;
+    this.ordering = new engineQueryOrdering(this);
     this.search = new engineQuerySearch(this);
     this.get = new engineGetQuery(this);
     this.set = new engineSetQuery(this);
@@ -137,6 +146,8 @@ export default class EngineQuery {
       | ModelFieldsWithIncludes<TModel, Includes, TFields>[]
       | undefined = ModelFieldsWithIncludes<TModel, Includes, TFields>[]
   >(args: {
+    isSetOperation?: boolean;
+    isRemoveOperation?: boolean;
     modelInstance: TModel;
     search?: TSearch;
     fields?: TFields;
@@ -147,9 +158,19 @@ export default class EngineQuery {
     resultToMergeWithData?:
       | ModelFieldsWithIncludes<TModel, Includes, FieldsOFModelType<TModel>>
       | undefined;
+    ordering?: OrderingOfModelsType<
+      FieldsOfModelOptionsType<TModel> extends string
+        ? FieldsOfModelOptionsType<TModel>
+        : string
+    >;
+    limit?: number;
+    offset?: number | string;
     results?: TResult;
   }) {
     const modelInstance = args.modelInstance;
+    const ordering = args.ordering;
+    const offset = args.offset;
+    const limit = args.limit;
     const search = args.search;
     const fields = (args.fields ||
       Object.keys(modelInstance.fields)) as TFields;
@@ -191,19 +212,27 @@ export default class EngineQuery {
           false
         >[]
       | undefined;
-    const queryDataResults = await queryDataFn({
+    const queryDataResults = await (queryDataFn as any)({
       modelOfEngineInstance: translatedModelInstance,
       search: await this.search.parseSearch(modelInstance, mergedSearchForData),
       fields: fields as readonly string[],
       data: await this.parseData(modelInstance, mergedData),
       transaction,
+      ordering: Array.isArray(ordering)
+        ? await this.ordering.parseOrdering(
+            ordering as (`${string}` | `${string}`)[]
+          )
+        : undefined,
+      offset,
+      limit,
       shouldReturnData:
         typeof args.shouldReturnData === 'boolean'
           ? args.shouldReturnData
           : true,
     });
     if (Array.isArray(args.results)) {
-      if (mergedData)
+      console.log('aqui1', data, search, args.isSetOperation);
+      if (args.isSetOperation)
         args.results.push(
           ...queryDataResults.map(
             (
@@ -216,6 +245,7 @@ export default class EngineQuery {
         );
       else args.results.push(...queryDataResults);
     }
+    console.log('aqui', args.results);
   }
 
   /**
@@ -332,6 +362,20 @@ export default class EngineQuery {
     queryData: QueryDataFnType,
     isSetOperation = false,
     isRemoveOperation = false,
+    ordering?: OrderingOfModelsType<
+      FieldsOfModelOptionsType<TModel> extends string
+        ? FieldsOfModelOptionsType<TModel>
+        : string
+    >,
+    limit?: number,
+    offset?: number | string,
+    orderingOfIncluded?: OrderingOfModelsType<
+      FieldsOfModelOptionsType<TIncludedModel> extends string
+        ? FieldsOfModelOptionsType<TIncludedModel>
+        : string
+    >,
+    limitOfIncluded?: number,
+    offsetOfIncluded?: number | string,
     transaction = undefined
   ) {
     const {
@@ -369,6 +413,9 @@ export default class EngineQuery {
         : queryData,
       isSetOperation,
       isRemoveOperation,
+      orderingOfIncluded,
+      limitOfIncluded,
+      offsetOfIncluded,
       undefined,
       undefined,
       transaction
@@ -402,6 +449,9 @@ export default class EngineQuery {
           queryData,
           isSetOperation,
           isRemoveOperation,
+          ordering,
+          limit,
+          offset,
           undefined,
           undefined,
           transaction
@@ -433,10 +483,15 @@ export default class EngineQuery {
         undefined,
         undefined
       >({
+        isSetOperation: isSetOperation,
+        isRemoveOperation: isRemoveOperation,
         modelInstance: includedModelInstance,
         search: searchForRelatedModel,
         queryDataFn: queryData,
         shouldReturnData: false,
+        ordering,
+        offset,
+        limit,
         transaction,
       });
     }
@@ -491,6 +546,20 @@ export default class EngineQuery {
     queryData: QueryDataFnType,
     isSetOperation = false,
     isRemoveOperation = false,
+    ordering?: OrderingOfModelsType<
+      FieldsOfModelOptionsType<TModel> extends string
+        ? FieldsOfModelOptionsType<TModel>
+        : string
+    >,
+    limit?: number,
+    offset?: number | string,
+    orderingOfIncluded?: OrderingOfModelsType<
+      FieldsOfModelOptionsType<TIncludedModel> extends string
+        ? FieldsOfModelOptionsType<TIncludedModel>
+        : string
+    >,
+    limitOfIncluded?: number,
+    offsetOfIncluded?: number | string,
     resultToMergeWithData = undefined as
       | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>
       | undefined,
@@ -549,6 +618,9 @@ export default class EngineQuery {
           : queryData,
         isSetOperation,
         isRemoveOperation,
+        ordering,
+        limit,
+        offset,
         resultToMergeWithData as
           | ModelFieldsWithIncludes<
               TModel,
@@ -633,6 +705,9 @@ export default class EngineQuery {
         queryData,
         isSetOperation,
         isRemoveOperation,
+        orderingOfIncluded,
+        limitOfIncluded,
+        offsetOfIncluded,
         resultToMergeWithDataToAdd,
         dataToAdd,
         transaction
@@ -671,11 +746,16 @@ export default class EngineQuery {
         undefined,
         undefined
       >({
+        isSetOperation: isSetOperation,
+        isRemoveOperation: isRemoveOperation,
         modelInstance,
         search: search,
         queryDataFn: queryData,
         shouldReturnData: false,
         transaction,
+        ordering,
+        limit,
+        offset,
       });
       return;
     }
@@ -690,6 +770,9 @@ export default class EngineQuery {
         queryData,
         isSetOperation,
         isRemoveOperation,
+        ordering,
+        limit,
+        offset,
         resultToMergeWithData as
           | ModelFieldsWithIncludes<
               TModel,
@@ -782,6 +865,20 @@ export default class EngineQuery {
     resultToMergeWithData = undefined as
       | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>
       | undefined,
+    ordering?: OrderingOfModelsType<
+      FieldsOfModelOptionsType<TModel> extends string
+        ? FieldsOfModelOptionsType<TModel>
+        : string
+    >,
+    limit?: number,
+    offset?: number | string,
+    orderingOfIncluded?: OrderingOfModelsType<
+      FieldsOfModelOptionsType<TIncludedModel> extends string
+        ? FieldsOfModelOptionsType<TIncludedModel>
+        : string
+    >,
+    limitOfIncluded?: number,
+    offsetOfIncluded?: number | string,
     data = undefined as TData,
     transaction = undefined
   ) {
@@ -840,6 +937,12 @@ export default class EngineQuery {
           queryData,
           isSetOperation,
           isRemoveOperation,
+          ordering,
+          limit,
+          offset,
+          orderingOfIncluded,
+          limitOfIncluded,
+          offsetOfIncluded,
           transaction
         );
       } else if (isToGetResultsWithoutSearch) {
@@ -857,6 +960,12 @@ export default class EngineQuery {
           queryData,
           isSetOperation,
           isRemoveOperation,
+          ordering,
+          limit,
+          offset,
+          orderingOfIncluded,
+          limitOfIncluded,
+          offsetOfIncluded,
           resultToMergeWithData,
           data,
           transaction
@@ -916,6 +1025,13 @@ export default class EngineQuery {
     queryData: QueryDataFnType,
     isSetOperation = false,
     isRemoveOperation = false,
+    ordering?: OrderingOfModelsType<
+      FieldsOfModelOptionsType<TModel> extends string
+        ? FieldsOfModelOptionsType<TModel>
+        : string
+    >,
+    limit?: number,
+    offset?: number | string,
     resultsToMergeWithData = undefined as
       | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>
       | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]
@@ -964,6 +1080,12 @@ export default class EngineQuery {
             TIncludes,
             FieldsOFModelType<TModel>
           >,
+          ordering,
+          limit,
+          offset,
+          (include as any).ordering,
+          (include as any).limit as number,
+          (include as any).offset as number | string,
           dataToAdd as ModelFieldsWithIncludes<
             TModel,
             TIncludes,
@@ -1001,11 +1123,16 @@ export default class EngineQuery {
           | undefined,
           ModelFieldsWithIncludes<TModel, Includes, TFields>[]
         >({
+          isSetOperation: isSetOperation,
+          isRemoveOperation: isRemoveOperation,
           modelInstance,
           search: search,
           queryDataFn: queryData,
           fields,
           results,
+          ordering,
+          limit,
+          offset,
           data: dataToAdd,
           transaction: transaction,
           resultToMergeWithData,
@@ -1047,4 +1174,10 @@ export default class EngineQuery {
   }
 }
 
-export { EngineGetQuery, EngineQuerySearch, EngineSetQuery, EngineRemoveQuery };
+export {
+  EngineGetQuery,
+  EngineQuerySearch,
+  EngineSetQuery,
+  EngineRemoveQuery,
+  EngineQueryOrdering,
+};

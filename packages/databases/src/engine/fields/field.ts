@@ -81,7 +81,6 @@ export default class EngineFieldParser {
       await field.isRelatedModelFromEngineInstance(
         this.engineFields.engineInstance
       );
-
     if (isRelatedModelFromEngine === false) {
       if (fieldToChangeRelationTo) return fieldToChangeRelationTo;
       else
@@ -109,34 +108,34 @@ export default class EngineFieldParser {
       this.text !== undefined &&
       this.uuid !== undefined;
     if (existAllFieldsSoProbablyTheEngineFieldParserInstance === false)
-      return this.translate(field);
+      return await this.translate(field);
     switch (field.typeName) {
       case AutoField.name:
-        return this.auto?._internalParse(field);
+        return await this.auto?._internalParse(field);
       case BigAutoField.name:
-        return this.bigAuto?._internalParse(field);
+        return await this.bigAuto?._internalParse(field);
       case BigIntegerField.name:
-        return this.bigInt?._internalParse(field);
+        return await this.bigInt?._internalParse(field);
       case CharField.name:
-        return this.char?._internalParse(field);
+        return await this.char?._internalParse(field);
       case DateField.name:
-        return this.date?._internalParse(field);
+        return await this.date?._internalParse(field);
       case DecimalField.name:
-        return this.decimal?._internalParse(field);
+        return await this.decimal?._internalParse(field);
       case ForeignKeyField.name: {
         const fieldToParse = await this._foreignKeyFieldParser(
           field as ForeignKeyField
         );
-        return this.foreignKey?._internalParse(fieldToParse);
+        return await this.foreignKey?._internalParse(fieldToParse);
       }
       case IntegerField.name:
-        return this.integer?._internalParse(field);
+        return await this.integer?._internalParse(field);
       case TextField.name:
-        return this.text?._internalParse(field);
+        return await this.text?._internalParse(field);
       case UUIDField.name:
-        return this.uuid?._internalParse(field);
+        return await this.uuid?._internalParse(field);
       case TranslatableField.name:
-        return (field as TranslatableField).translate(this.engineFields);
+        return await (field as TranslatableField).translate(this.engineFields);
       default:
         throw new Error('Field type not supported, please');
     }

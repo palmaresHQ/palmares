@@ -169,7 +169,6 @@ export default class SequelizeEngineFields extends EngineFields {
     const hasRelatedFieldsToEvaluateForModelName = Array.isArray(
       this.#relatedFieldsToEvaluate[modelName]
     );
-
     if (hasRelatedFieldsToEvaluateForModelName) {
       this.#relatedFieldsToEvaluate[modelName] = await Promise.all(
         this.#relatedFieldsToEvaluate[modelName].filter(
@@ -247,8 +246,7 @@ export default class SequelizeEngineFields extends EngineFields {
 
   async get(field: Field): Promise<ModelAttributeColumnOptions | null> {
     try {
-      const attributes = await super.get(field);
-      return attributes;
+      return await super.get(field);
     } catch (e) {
       const error = e as Error;
       switch (error.name) {
