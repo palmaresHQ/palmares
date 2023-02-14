@@ -1,5 +1,5 @@
 import { conf, Domain } from '@palmares/core';
-
+import type { Function } from 'ts-toolbelt';
 import {
   ManagerInstancesType,
   ManagerEngineInstancesType,
@@ -240,8 +240,8 @@ export default class Manager<
     TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>
   >(
     args?: {
-      includes?: IncludesValidated<TModel, TIncludes>;
-      fields?: TFields;
+      includes?: Function.Narrow<IncludesValidated<TModel, TIncludes>>;
+      fields?: Function.Narrow<TFields>;
       search?:
         | ModelFieldsWithIncludes<
             TModel,
@@ -281,7 +281,7 @@ export default class Manager<
     );
     return engineInstance.query.get.run(
       {
-        fields: args?.fields || (allFieldsOfModel as unknown as TFields),
+        fields: (args?.fields || allFieldsOfModel) as unknown as TFields,
         search: (args?.search || {}) as ModelFieldsWithIncludes<
           TModel,
           TIncludes,
@@ -371,7 +371,7 @@ export default class Manager<
        * it will guarantee that the data is consistent.
        */
       useTransaction?: boolean;
-      includes?: IncludesValidated<TModel, TIncludes, true>;
+      includes?: Function.Narrow<IncludesValidated<TModel, TIncludes, true>>;
       search?: TSearch;
     },
     engineName?: string
@@ -422,13 +422,15 @@ export default class Manager<
     }> = undefined
   >(
     args?: {
-      includes?: IncludesValidated<
-        TModel,
-        TIncludes,
-        false,
-        {
-          isToPreventRemove?: true;
-        }
+      includes?: Function.Narrow<
+        IncludesValidated<
+          TModel,
+          TIncludes,
+          false,
+          {
+            isToPreventRemove?: true;
+          }
+        >
       >;
       search?:
         | ModelFieldsWithIncludes<

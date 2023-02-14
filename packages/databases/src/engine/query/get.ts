@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import model from '../../models/model';
+import type { Function } from 'ts-toolbelt';
 import type EngineQuery from '.';
 import type {
   Includes,
@@ -56,8 +57,8 @@ export default class EngineGetQuery {
   async run<
     TModel extends InstanceType<ReturnType<typeof model>>,
     TIncludes extends Includes = undefined,
-    TFieldsOfModel extends FieldsOFModelType<
-      InstanceType<ReturnType<typeof model>>
+    TFieldsOfModel extends Function.Narrow<
+      FieldsOFModelType<InstanceType<ReturnType<typeof model>>>
     > = FieldsOFModelType<InstanceType<ReturnType<typeof model>>>,
     TSearch extends
       | ModelFieldsWithIncludes<
@@ -92,6 +93,7 @@ export default class EngineGetQuery {
     const selectedFields = (args.fields ||
       Object.keys(internal.model.fields)) as TFieldsOfModel;
     try {
+      throw new NotImplementedEngineException('queryDataNatively');
       return await this.queryDataNatively(
         internal.model.constructor as ReturnType<typeof model>,
         args.search,
@@ -99,7 +101,6 @@ export default class EngineGetQuery {
         internal.includes
       );
     } catch (e) {
-      console.log([]);
       if ((e as Error).name === NotImplementedEngineException.name)
         await this.engineQueryInstance.getResultsWithIncludes(
           internal.model as TModel,

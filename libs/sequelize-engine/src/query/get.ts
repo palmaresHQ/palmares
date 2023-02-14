@@ -131,8 +131,6 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
     if (args.ordering) findAllOptions.order = args.ordering;
     if (args.limit) findAllOptions.limit = args.limit;
     if (args.offset) findAllOptions.offset = Number(args.offset);
-    const result = await args.modelOfEngineInstance.findAll(findAllOptions);
-    console.log(result);
-    return result;
+    return args.modelOfEngineInstance.findAll(findAllOptions);
   }
 }

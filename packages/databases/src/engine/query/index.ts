@@ -8,6 +8,7 @@ import {
   FieldsOFModelType,
   OrderingOfModelsType,
   FieldsOfModelOptionsType,
+  ExtractFieldNames,
 } from '../../models/types';
 import EngineGetQuery from './get';
 import EngineRemoveQuery from './remove';
@@ -182,9 +183,6 @@ export default class EngineQuery {
     const modelConstructor = modelInstance.constructor as ReturnType<
       typeof model
     >;
-    const translatedModelInstance = await modelConstructor.default.getInstance(
-      this.engineInstance.databaseName
-    );
     const mergedSearchForData =
       resultToMergeWithData !== undefined
         ? { ...search, ...resultToMergeWithData }
@@ -212,26 +210,65 @@ export default class EngineQuery {
           false
         >[]
       | undefined;
-    const queryDataResults = await (queryDataFn as any)({
-      modelOfEngineInstance: translatedModelInstance,
-      search: await this.search.parseSearch(modelInstance, mergedSearchForData),
-      fields: fields as readonly string[],
-      data: await this.parseData(modelInstance, mergedData),
-      transaction,
-      ordering: Array.isArray(ordering)
-        ? await this.ordering.parseOrdering(
+
+    const [parsedSearch, parsedData, parsedOrdering] = await Promise.all([
+      this.search.parseSearch(modelInstance, mergedSearchForData),
+      this.parseData(modelInstance, mergedData),
+      (async () => {
+        if (Array.isArray(ordering))
+          return this.ordering.parseOrdering(
             ordering as (`${string}` | `${string}`)[]
-          )
-        : undefined,
-      offset,
-      limit,
-      shouldReturnData:
-        typeof args.shouldReturnData === 'boolean'
-          ? args.shouldReturnData
-          : true,
-    });
+          );
+      })(),
+    ]);
+
+    async function fetchFromDatabase(this: EngineQuery) {
+      const translatedModelInstance =
+        await modelConstructor.default.getInstance(
+          this.engineInstance.databaseName
+        );
+      return (queryDataFn as any)({
+        modelOfEngineInstance: translatedModelInstance,
+        search: parsedSearch,
+        fields: fields as readonly string[],
+        data: parsedData,
+        transaction,
+        ordering: parsedOrdering,
+        offset,
+        limit,
+        shouldReturnData:
+          typeof args.shouldReturnData === 'boolean'
+            ? args.shouldReturnData
+            : true,
+      });
+    }
+
+    async function fetchFromExternalSource(this: EngineQuery) {
+      if (args.isSetOperation && modelInstance.options.onSet)
+        return modelInstance.options.onSet({
+          data: parsedData as any,
+          search: parsedSearch as any,
+        });
+      else if (args.isRemoveOperation && modelInstance.options.onRemove)
+        return modelInstance.options.onRemove({
+          search: parsedSearch as any,
+        });
+      else if (modelInstance.options.onGet)
+        return modelInstance.options.onGet({
+          search: parsedSearch as any,
+          fields: fields as ExtractFieldNames<TModel, TModel['abstracts']>,
+          ordering: parsedOrdering,
+          offset,
+          limit,
+        });
+      else throw new Error(`Implement onGet for ${modelInstance.name} model`);
+    }
+    const isToFetchExternally = modelInstance.options.managed === false;
+    const queryDataResults = isToFetchExternally
+      ? await fetchFromExternalSource.bind(this)()
+      : await fetchFromDatabase.bind(this)();
+
     if (Array.isArray(args.results)) {
-      console.log('aqui1', data, search, args.isSetOperation);
       if (args.isSetOperation)
         args.results.push(
           ...queryDataResults.map(
@@ -245,7 +282,6 @@ export default class EngineQuery {
         );
       else args.results.push(...queryDataResults);
     }
-    console.log('aqui', args.results);
   }
 
   /**
@@ -421,7 +457,7 @@ export default class EngineQuery {
       transaction
     );
     const resultByUniqueFieldValue: Record<string, any[]> = {};
-    for (const result of resultOfIncludes) {
+    const promises = resultOfIncludes.map(async (result) => {
       const uniqueFieldValueOnRelation = (result as any)[
         fieldNameOfRelationInIncludedModel
       ];
@@ -464,7 +500,8 @@ export default class EngineQuery {
             ? resultByUniqueFieldValue[uniqueFieldValueOnRelation][0]
             : resultByUniqueFieldValue[uniqueFieldValueOnRelation];
       }
-    }
+    });
+    await Promise.all(promises);
 
     if (isARemoveOperationAndShouldGetResultsBeforeRemove) {
       await this.#callQueryDataFn<
@@ -653,7 +690,7 @@ export default class EngineQuery {
       ? [results[results.length - 1]]
       : results;
 
-    for (const result of allOfTheResultsToFetch) {
+    const promises = allOfTheResultsToFetch.map(async (result) => {
       const nextSearch = (() => {
         if (isSetOperation)
           return { ...((resultToMergeWithData as any) || {})[relationName] };
@@ -727,7 +764,8 @@ export default class EngineQuery {
             ? resultOfIncludes[0]
             : resultOfIncludes;
       }
-    }
+    });
+    await Promise.all(promises);
 
     if (isARemoveOperationAndShouldGetResultsBeforeRemove) {
       await this.#callQueryDataFn<
@@ -895,83 +933,86 @@ export default class EngineQuery {
     const associationsOfIncludedModel = isDirectlyRelated
       ? modelInstance.associations[includedModelInstance.originalName] || []
       : includedModelInstance.associations[modelInstance.originalName] || [];
-
-    for (const relationNameOrRelatedName of relatedNamesDirectlyOrIndirectlyRelatedToModel) {
-      const searchForRelatedModel:
-        | ModelFieldsWithIncludes<
-            TIncludedModel,
-            TIncludesOfIncluded,
-            TFieldsOfIncluded,
-            false,
-            false,
-            true,
-            true
-          >
-        | undefined = search
-        ? (search as any)[relationNameOrRelatedName]
-        : undefined;
-      const foreignKeyFieldRelatedToModel = associationsOfIncludedModel.find(
-        (association) =>
-          association[fieldToUseToGetRelationName] === relationNameOrRelatedName
-      );
-      const isToGetResultsWithSearch =
-        foreignKeyFieldRelatedToModel &&
-        searchForRelatedModel &&
-        isSetOperation !== true;
-
-      const isToGetResultsWithoutSearch = foreignKeyFieldRelatedToModel;
-
-      if (isToGetResultsWithSearch) {
-        await this.#resultsFromRelatedModelWithSearch(
-          foreignKeyFieldRelatedToModel,
-          modelInstance as TModel,
-          includedModelInstance as TIncludedModel,
-          includesOfModel as TIncludes,
-          includesOfIncluded as TIncludesOfIncluded,
-          fieldsOfModel as TFields,
-          fieldsOfIncludedModel as TFieldsOfIncluded,
-          searchForRelatedModel,
-          search,
-          results,
-          isDirectlyRelated,
-          queryData,
-          isSetOperation,
-          isRemoveOperation,
-          ordering,
-          limit,
-          offset,
-          orderingOfIncluded,
-          limitOfIncluded,
-          offsetOfIncluded,
-          transaction
+    const promises = relatedNamesDirectlyOrIndirectlyRelatedToModel.map(
+      async (relationNameOrRelatedName) => {
+        const searchForRelatedModel:
+          | ModelFieldsWithIncludes<
+              TIncludedModel,
+              TIncludesOfIncluded,
+              TFieldsOfIncluded,
+              false,
+              false,
+              true,
+              true
+            >
+          | undefined = search
+          ? (search as any)[relationNameOrRelatedName]
+          : undefined;
+        const foreignKeyFieldRelatedToModel = associationsOfIncludedModel.find(
+          (association) =>
+            association[fieldToUseToGetRelationName] ===
+            relationNameOrRelatedName
         );
-      } else if (isToGetResultsWithoutSearch) {
-        await this.#resultsFromRelatedModelsWithoutSearch(
-          foreignKeyFieldRelatedToModel,
-          modelInstance,
-          includedModelInstance,
-          includesOfModel,
-          includesOfIncluded,
-          fieldsOfModel,
-          fieldsOfIncludedModel,
-          search,
-          results,
-          isDirectlyRelated,
-          queryData,
-          isSetOperation,
-          isRemoveOperation,
-          ordering,
-          limit,
-          offset,
-          orderingOfIncluded,
-          limitOfIncluded,
-          offsetOfIncluded,
-          resultToMergeWithData,
-          data,
-          transaction
-        );
+        const isToGetResultsWithSearch =
+          foreignKeyFieldRelatedToModel &&
+          searchForRelatedModel &&
+          isSetOperation !== true;
+
+        const isToGetResultsWithoutSearch = foreignKeyFieldRelatedToModel;
+
+        if (isToGetResultsWithSearch) {
+          await this.#resultsFromRelatedModelWithSearch(
+            foreignKeyFieldRelatedToModel,
+            modelInstance as TModel,
+            includedModelInstance as TIncludedModel,
+            includesOfModel as TIncludes,
+            includesOfIncluded as TIncludesOfIncluded,
+            fieldsOfModel as TFields,
+            fieldsOfIncludedModel as TFieldsOfIncluded,
+            searchForRelatedModel,
+            search,
+            results,
+            isDirectlyRelated,
+            queryData,
+            isSetOperation,
+            isRemoveOperation,
+            ordering,
+            limit,
+            offset,
+            orderingOfIncluded,
+            limitOfIncluded,
+            offsetOfIncluded,
+            transaction
+          );
+        } else if (isToGetResultsWithoutSearch) {
+          await this.#resultsFromRelatedModelsWithoutSearch(
+            foreignKeyFieldRelatedToModel,
+            modelInstance,
+            includedModelInstance,
+            includesOfModel,
+            includesOfIncluded,
+            fieldsOfModel,
+            fieldsOfIncludedModel,
+            search,
+            results,
+            isDirectlyRelated,
+            queryData,
+            isSetOperation,
+            isRemoveOperation,
+            ordering,
+            limit,
+            offset,
+            orderingOfIncluded,
+            limitOfIncluded,
+            offsetOfIncluded,
+            resultToMergeWithData,
+            data,
+            transaction
+          );
+        }
       }
-    }
+    );
+    await Promise.all(promises);
   }
 
   /**
@@ -1147,23 +1188,24 @@ export default class EngineQuery {
       (typeof data === 'object' || Array.isArray(data));
 
     if (hasDataToAdd) {
-      for (
-        let indexOfDataToAdd = 0;
-        indexOfDataToAdd < allDataToAdd.length;
-        indexOfDataToAdd++
-      ) {
-        const dataToAdd = allDataToAdd[indexOfDataToAdd];
-        const allResultsToMergeWithData = Array.isArray(resultsToMergeWithData)
-          ? resultsToMergeWithData
-          : [resultsToMergeWithData];
-        const resultToMergeWithData =
-          allResultsToMergeWithData[indexOfDataToAdd];
-        await fetchResults.bind(this)(
-          dataToAdd,
-          resultToMergeWithData,
-          safeIncludes as TIncludes
-        );
-      }
+      const promises = Array.from({ length: allDataToAdd.length }).map(
+        async (_, indexOfDataToAdd) => {
+          const dataToAdd = allDataToAdd[indexOfDataToAdd];
+          const allResultsToMergeWithData = Array.isArray(
+            resultsToMergeWithData
+          )
+            ? resultsToMergeWithData
+            : [resultsToMergeWithData];
+          const resultToMergeWithData =
+            allResultsToMergeWithData[indexOfDataToAdd];
+          await fetchResults.bind(this)(
+            dataToAdd,
+            resultToMergeWithData,
+            safeIncludes as TIncludes
+          );
+        }
+      );
+      await Promise.all(promises);
     } else {
       await fetchResults.bind(this)(
         undefined,

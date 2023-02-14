@@ -61,10 +61,11 @@ export class ExampleController extends Controller {
 
     const value = await User.default.get({
       search: {
-        id: {
-          in: [1, 2],
+        userPosts: {
+          number: 23,
         },
       },
+      fields: ['id'],
       includes: [
         {
           model: PostModel,

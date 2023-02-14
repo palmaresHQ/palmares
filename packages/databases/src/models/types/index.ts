@@ -29,7 +29,7 @@ type OrderingOfModelOptions<TFields> =
   | keyof { [F in TFields as F extends string ? `-${F}` : never]: F }
   | keyof { [F in TFields as F extends string ? `${F}` : never]: F };
 
-type ExtractFieldNames<TFieldsAndAbstracts, TModelAbstracts> =
+export type ExtractFieldNames<TFieldsAndAbstracts, TModelAbstracts> =
   TFieldsAndAbstracts extends { fields: infer TFields }
     ?
         | keyof TFields
@@ -126,13 +126,38 @@ export type ModelOptionsType<M = any> = {
       M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
       true
     >;
-    fields: ExtractFieldNames<
+    fields: readonly ExtractFieldNames<
       M,
       M extends { abstracts: infer TAbstracts } ? TAbstracts : never[]
+    >[];
+    ordering?: OrderingOfModelOptions<
+      ExtractFieldNames<
+        M,
+        M extends { abstracts: infer TAbstracts } ? TAbstracts : never[]
+      >
+    >[];
+    limit?: number;
+    offset?: number | string;
+  }) => Promise<any[]>;
+  onSet?: (args: {
+    data: ExtractFieldTypes<
+      M,
+      M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
+      false
+    >;
+    search: ExtractFieldTypes<
+      M,
+      M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
+      true
     >;
   }) => Promise<any[]>;
-  onSet?: () => Promise<any[]>;
-  onRemove?: () => Promise<any[]>;
+  onRemove?: (args: {
+    search: ExtractFieldTypes<
+      M,
+      M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
+      true
+    >;
+  }) => Promise<any[]>;
 };
 
 export interface ModelType {
