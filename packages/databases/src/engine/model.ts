@@ -18,14 +18,16 @@ export default class EngineModels {
   }
 
   async translateOptions(model: Model): Promise<any> {
-    throw new NotImplementedEngineException('translateOptions');
+    if (this.engine._ignoreNotImplementedErrors !== true)
+      throw new NotImplementedEngineException('translateOptions');
   }
 
   async translateFields(
     fieldEntriesOfModel: [string, Field][],
     model: Model
   ): Promise<any> {
-    throw new NotImplementedEngineException('translateFields');
+    if (this.engine._ignoreNotImplementedErrors !== true)
+      throw new NotImplementedEngineException('translateFields');
   }
 
   async translate(model: Model): Promise<any> {

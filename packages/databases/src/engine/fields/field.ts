@@ -13,7 +13,10 @@ import {
   UUIDField,
   TranslatableField,
 } from '../../models/fields';
-import { RelatedModelFromForeignKeyIsNotFromEngineException } from '../exceptions';
+import {
+  EngineDoesNotSupportFieldTypeException,
+  RelatedModelFromForeignKeyIsNotFromEngineException,
+} from '../exceptions';
 import type EngineAutoFieldParser from './auto';
 import type EngineBigAutoFieldParser from './big-auto';
 import type EngineBigIntegerFieldParser from './big-integer';
@@ -126,7 +129,9 @@ export default class EngineFieldParser {
         const fieldToParse = await this._foreignKeyFieldParser(
           field as ForeignKeyField
         );
-        return await this.foreignKey?._internalParse(fieldToParse);
+        if (fieldToParse instanceof ForeignKeyField)
+          return await this.foreignKey?._internalParse(fieldToParse as Field);
+        else return this._internalParse(fieldToParse);
       }
       case IntegerField.name:
         return await this.integer?._internalParse(field);
@@ -137,7 +142,10 @@ export default class EngineFieldParser {
       case TranslatableField.name:
         return await (field as TranslatableField).translate(this.engineFields);
       default:
-        throw new Error('Field type not supported, please');
+        throw new EngineDoesNotSupportFieldTypeException(
+          this.engineFields.engineInstance.databaseName,
+          field.typeName
+        );
     }
   }
 }

@@ -285,13 +285,14 @@ export class Model<T = any> {
     };
   }
 
-  async #initializeManagers(engineInstance: Engine, modelInstance: any) {
+  async #initializeManagers(engineInstance: Engine, modelInstance?: any) {
     const managers: ManagersOfInstanceType = await this.#getManagers(this);
     const managerValues = Object.values(managers);
 
     for (const manager of managerValues) {
       manager._setModel(engineInstance.databaseName, this);
-      manager._setInstance(engineInstance.databaseName, modelInstance);
+      if (modelInstance)
+        manager._setInstance(engineInstance.databaseName, modelInstance);
       manager._setEngineInstance(engineInstance.databaseName, engineInstance);
     }
   }
@@ -338,7 +339,15 @@ export class Model<T = any> {
     return this as Model;
   }
 
-  async _init(engineInstance: Engine, domainName: string, domainPath: string) {
+  /**
+   * Initializes the model and returns the model instance for the current engine instance that is being used.
+   */
+  async _init(
+    engineInstance: Engine,
+    domainName: string,
+    domainPath: string,
+    isManaged = true
+  ) {
     this.domainName = domainName;
     this.domainPath = domainPath;
 
@@ -354,8 +363,9 @@ export class Model<T = any> {
     await this.#initializeAbstracts();
     await this.#initializeOptions();
     await this.#initializeFields(engineInstance);
-
-    const modelInstance = (await engineInstance.initializeModel(this)) as any;
+    let modelInstance = null;
+    if (isManaged)
+      modelInstance = (await engineInstance.initializeModel(this)) as any;
     await this.#initializeManagers(engineInstance, modelInstance);
     (this.constructor as typeof Model)._isInitialized = {
       [engineInstance.databaseName]: true,

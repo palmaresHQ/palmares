@@ -57,6 +57,7 @@ export default class Engine<M extends Model = Model> implements EngineType {
   migrations: EngineMigrations;
   ModelType: any;
   instance: any;
+  _ignoreNotImplementedErrors = false;
   _modelsFilteredOutOfEngine!: { [modelName: string]: typeof Model };
   _modelsOfEngine!: { [modelName: string]: typeof Model };
   _indirectlyRelatedModels: {
@@ -142,6 +143,13 @@ export default class Engine<M extends Model = Model> implements EngineType {
       this.databaseSettings
     );
     newInstance.initializedModels = { ...this.initializedModels };
+    newInstance._modelsOfEngine = { ...this._modelsOfEngine };
+    newInstance._modelsFilteredOutOfEngine = {
+      ...this._modelsFilteredOutOfEngine,
+    };
+    newInstance._indirectlyRelatedModels = {
+      ...this._indirectlyRelatedModels,
+    };
     return newInstance;
   }
 

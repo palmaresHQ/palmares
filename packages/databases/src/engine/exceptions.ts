@@ -32,3 +32,21 @@ export class RelatedModelFromForeignKeyIsNotFromEngineException extends Error {
     this.name = RelatedModelFromForeignKeyIsNotFromEngineException.name;
   }
 }
+
+export class EngineDoesNotSupportFieldTypeException extends Error {
+  constructor(engineName: string, fieldType: string) {
+    super(
+      `The engine '${engineName}' does not support the field of type: '${fieldType}'. If you are using a custom field, make sure that you are using the 'TranslatableField' class.`
+    );
+    this.name = EngineDoesNotSupportFieldTypeException.name;
+  }
+}
+
+export class UnmanagedModelsShouldImplementSpecialMethodsException extends Error {
+  constructor(modelName: string, methodItShouldImplement: string) {
+    super(
+      `The model '${modelName}' is unmanaged, so it should implement the '${methodItShouldImplement}' method in order to work properly in queries.`
+    );
+    this.name = UnmanagedModelsShouldImplementSpecialMethodsException.name;
+  }
+}

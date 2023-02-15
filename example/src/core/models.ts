@@ -61,6 +61,14 @@ export class User extends models.Model<User>() {
       allowNull: true,
       defaultValue: '',
     }),
+    pokemonId: ForeignKeyField.new({
+      relatedTo: Pokemon,
+      onDelete: ON_DELETE.CASCADE,
+      toField: 'id',
+      relatedName: 'pokemonUsers',
+      relationName: 'pokemon',
+      defaultValue: 25,
+    }),
     lastName: CharField.new({ maxLength: 255, allowNull: true }),
     uuid: UUIDField.new({ autoGenerate: true, unique: true }),
   };
@@ -70,14 +78,21 @@ export class User extends models.Model<User>() {
   };
 }
 
-export class Facebook extends models.Model<Facebook>() {
+export class Pokemon extends models.Model<Pokemon>() {
   fields = {
     id: IntegerField.new({ unique: true }),
-    campaignName: CharField.new({ maxLength: 255, allowNull: true }),
+    name: CharField.new({ maxLength: 255, allowNull: true }),
+    weight: IntegerField.new({ allowNull: true }),
   };
 
-  options: ModelOptionsType<Facebook> = {
-    tableName: 'facebook',
+  options: ModelOptionsType<Pokemon> = {
     managed: false,
+    onGet: async ({ search }) => {
+      const data = await fetch(
+        `https://pokeapi.co/api/v2/pokemon/${search.name || search.id}`
+      );
+      const json = await data.json();
+      return [{ id: json.id, name: json.name, weight: json.weight }];
+    },
   };
 }

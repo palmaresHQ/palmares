@@ -8,10 +8,9 @@ import {
   HTTP_201_CREATED,
 } from '@palmares/server';
 import { ExpressRequest } from '@palmares/express-adapter';
-import { getEventsServer } from '@palmares/events';
+//import { getEventsServer } from '@palmares/events';
 
-import { User, Post as PostModel, Photo } from './models';
-import { SequelizeModel } from '@palmares/sequelize-engine';
+import { User, Post as PostModel, Photo, Pokemon } from './models';
 
 export class ExampleController extends Controller {
   path = '';
@@ -20,62 +19,18 @@ export class ExampleController extends Controller {
     //console.log(dependencyInjection);
   }
 
-  // Escreve uma rota com decorators
   @Get('/test')
   async testDecorator() {
-    const data = [
-      {
-        firstName: 'Teste',
-        lastName: 'teste',
-        uuid: '12fe1fe1-7186-4196-9b07-50fb73cb26f0',
-        userPosts: [
-          {
-            number: 1,
-            postPhotos: [
-              {
-                name: 'teste',
-                userId: 1,
-              },
-              {
-                name: 'teste2',
-                userId: 2,
-              },
-              {
-                name: 'hey3',
-                userId: 2,
-              },
-            ],
-          },
-          {
-            number: 20,
-            postPhotos: [
-              {
-                name: 'hey',
-                userId: 1,
-              },
-            ],
-          },
-        ],
-      },
-    ];
-
     const value = await User.default.get({
-      search: {
-        userPosts: {
-          number: 23,
-        },
-      },
-      fields: ['id'],
+      fields: ['id', 'firstName'],
       includes: [
         {
-          model: PostModel,
+          model: Pokemon,
         },
       ],
     });
 
-    console.log(JSON.stringify(value, null, 2));
-
-    return Response.new(HTTP_200_OK);
+    return Response.new(HTTP_200_OK, { body: value });
   }
 
   @Post('/test')

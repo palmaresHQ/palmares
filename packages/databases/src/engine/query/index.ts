@@ -15,6 +15,7 @@ import EngineRemoveQuery from './remove';
 import EngineQuerySearch from './search';
 import EngineQueryOrdering from './ordering';
 import EngineSetQuery from './set';
+import { UnmanagedModelsShouldImplementSpecialMethodsException } from '../exceptions';
 
 type QueryDataFnType =
   | ((args: {
@@ -261,7 +262,15 @@ export default class EngineQuery {
           offset,
           limit,
         });
-      else throw new Error(`Implement onGet for ${modelInstance.name} model`);
+      else
+        throw new UnmanagedModelsShouldImplementSpecialMethodsException(
+          modelInstance.name,
+          args.isRemoveOperation
+            ? 'onRemove'
+            : args.isSetOperation
+            ? 'onSet'
+            : 'onGet'
+        );
     }
     const isToFetchExternally = modelInstance.options.managed === false;
     const queryDataResults = isToFetchExternally

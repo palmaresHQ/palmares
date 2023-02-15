@@ -169,6 +169,37 @@ export default class Databases {
     databaseSettings: DatabaseConfigurationType<string, object>,
     domains: DatabaseDomainInterface[]
   ) {
+    let engineInstance: Engine;
+    const doesAnEngineInstanceAlreadyExist =
+      engineName in this.initializedEngineInstances &&
+      this.initializedEngineInstances[engineName].engineInstance !== undefined;
+    const isProbablyAnEngineInstanceDefinedForDatabase =
+      databaseSettings.engine !== undefined;
+    const isEngineInstanceAPromise =
+      isProbablyAnEngineInstanceDefinedForDatabase
+        ? databaseSettings.engine instanceof Promise
+        : false;
+    const engineToUse = isEngineInstanceAPromise
+      ? (
+          (await Promise.resolve(databaseSettings.engine)) as {
+            default: typeof Engine;
+          }
+        ).default
+      : (databaseSettings.engine as typeof Engine);
+    const isAnEngineInstanceDefinedForDatabase =
+      isProbablyAnEngineInstanceDefinedForDatabase
+        ? engineToUse.prototype instanceof Engine
+        : false;
+
+    if (doesAnEngineInstanceAlreadyExist) {
+      engineInstance =
+        this.initializedEngineInstances[engineName].engineInstance;
+    } else if (isAnEngineInstanceDefinedForDatabase) {
+      engineInstance = await engineToUse.new(engineName, databaseSettings);
+    } else {
+      throw new Error('You must define an engine for the database.');
+    }
+
     const models: FoundModelType[] = Object.values(
       await this.getModels(domains)
     );
@@ -179,7 +210,8 @@ export default class Databases {
     const onlyTheModelsNotOnTheEngine: {
       [modelName: string]: ReturnType<typeof model>;
     } = {};
-    const modelsFilteredForDatabase = models.filter((foundModel) => {
+    const modelsFilteredForDatabase: FoundModelType[] = [];
+    const promises = models.map(async (foundModel) => {
       const modelInstance = new foundModel.model();
       const isModelManagedByEngine =
         modelInstance.options.managed !== false &&
@@ -190,21 +222,20 @@ export default class Databases {
 
       if (isModelManagedByEngine)
         onlyTheModelsFiltered[modelName] = foundModel.model;
-      else onlyTheModelsNotOnTheEngine[modelName] = foundModel.model;
-      return isModelManagedByEngine;
-    });
+      else {
+        await modelInstance._init(
+          engineInstance,
+          foundModel.domainName,
+          foundModel.domainPath,
+          false
+        );
+        onlyTheModelsNotOnTheEngine[modelName] = foundModel.model;
+      }
 
-    let engineInstance: Engine;
-    const doesAnEngineInstanceExist =
-      engineName in this.initializedEngineInstances &&
-      this.initializedEngineInstances[engineName].engineInstance !== undefined;
-    if (doesAnEngineInstanceExist) {
-      engineInstance =
-        this.initializedEngineInstances[engineName].engineInstance;
-    } else {
-      const engine = databaseSettings.engine;
-      engineInstance = await engine.new(engineName, databaseSettings);
-    }
+      if (isModelManagedByEngine) modelsFilteredForDatabase.push(foundModel);
+    });
+    await Promise.all(promises);
+
     const isDatabaseConnected = await Promise.resolve(
       engineInstance.isConnected()
     );

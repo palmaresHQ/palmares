@@ -126,10 +126,8 @@ export type ForeignKeyFieldParamsType<
     ?
         | (TLazyDefaultValue extends undefined
             ? T extends undefined
-              ? M extends Model<infer ThisModel>
-                ? ThisModel extends Model
-                  ? ThisModel['fields'][RF]['type']
-                  : T
+              ? M extends Model<any>
+                ? M['fields'][RF]['type']
                 : T
               : T
             : TLazyDefaultValue)
@@ -138,10 +136,8 @@ export type ForeignKeyFieldParamsType<
     :
         | (TLazyDefaultValue extends undefined
             ? T extends undefined
-              ? M extends Model<infer ThisModel>
-                ? ThisModel extends Model
-                  ? ThisModel['fields'][RF]['type']
-                  : T
+              ? M extends Model<any>
+                ? M['fields'][RF]['type']
                 : T
               : T
             : TLazyDefaultValue)

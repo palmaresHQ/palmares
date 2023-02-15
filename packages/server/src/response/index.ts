@@ -4,11 +4,16 @@ import {
   isSuccess,
   isServerError,
   isClientError,
-  StatusCodes
-} from "../status";
-import { InvalidCookie, UseSetBodyInstead, UseSetCookieInstead, DoNotCallResponseDirectly } from "./exceptions";
-import { CookiesType, CookieOptionsType, BodyTypes } from "./types";
-import Mimes from "../mimes";
+  StatusCodes,
+} from '../status';
+import {
+  InvalidCookie,
+  UseSetBodyInstead,
+  UseSetCookieInstead,
+  DoNotCallResponseDirectly,
+} from './exceptions';
+import { CookiesType, CookieOptionsType, BodyTypes } from './types';
+import Mimes from '../mimes';
 
 export default class Response<O = any> {
   readonly cookies: CookiesType = {};
@@ -50,13 +55,11 @@ export default class Response<O = any> {
    */
   async parseCookies(rawCookies: string[]) {
     for (const rawCookie of rawCookies) {
-
       let cookieKey: string | undefined = undefined;
       const splittedRawCookie = rawCookie.split(';');
       const cookieData = {} as CookieOptionsType;
 
       for (const cookie of splittedRawCookie) {
-
         const splittedCookie = cookie.split('=');
         const key = splittedCookie[0];
         const isPath = key === 'Path' || key === ' Path';
@@ -65,21 +68,28 @@ export default class Response<O = any> {
         const isDomain = key === 'Domain' || key === ' Domain';
         const isSecure = key === 'Secure' || key === ' Secure';
         const isHTTPOnly = key === 'HttpOnly' || key === ' HttpOnly';
-        const isSameSite = key === 'SameSite' || key === ' SameSite'
+        const isSameSite = key === 'SameSite' || key === ' SameSite';
         if (isPath) cookieData.path = splittedCookie[1];
         else if (isExpires) cookieData.expires = new Date(splittedCookie[1]);
         else if (isMaxAge) cookieData.maxAge = parseInt(splittedCookie[1]);
         else if (isDomain) cookieData.domain = splittedCookie[1];
         else if (isSecure) cookieData.secure = true;
         else if (isHTTPOnly) cookieData.httpOnly = true;
-        else if (isSameSite) cookieData.sameSite = splittedCookie[1] as boolean | 'lax' | 'strict' | 'none';
+        else if (isSameSite)
+          cookieData.sameSite = splittedCookie[1] as
+            | boolean
+            | 'lax'
+            | 'strict'
+            | 'none';
         else {
-          const formattedKey = key.replace(/^(__Secure-)/, '').replace(/^(__Host-)/, '');
+          const formattedKey = key
+            .replace(/^(__Secure-)/, '')
+            .replace(/^(__Host-)/, '');
           cookieKey = formattedKey;
           this.cookies[formattedKey] = Object.assign(
             this.cookies[formattedKey] || {},
             {
-              value: splittedCookie[1]
+              value: splittedCookie[1],
             }
           );
         }
@@ -87,7 +97,10 @@ export default class Response<O = any> {
       const isCookieKeyNotDefined = typeof cookieKey !== 'string';
       if (isCookieKeyNotDefined) throw new InvalidCookie();
       const existingDataOnCookieKey = this.cookies[cookieKey as string];
-      this.cookies[cookieKey as string] = { ...existingDataOnCookieKey, ...cookieData};
+      this.cookies[cookieKey as string] = {
+        ...existingDataOnCookieKey,
+        ...cookieData,
+      };
     }
   }
 
@@ -100,10 +113,14 @@ export default class Response<O = any> {
    * @param options - (optional) Custom options for the cookie like it's max age, the expiration date
    * and so on.
    */
-  async setCookie(key: string, value: string, options: CookieOptionsType = {path: '/'}) {
+  async setCookie(
+    key: string,
+    value: string,
+    options: CookieOptionsType = { path: '/' }
+  ) {
     this.cookies[key] = {
       value,
-      ...options
+      ...options,
     };
   }
 
@@ -157,7 +174,9 @@ export default class Response<O = any> {
    *
    * @param cookies - The cookies that you want to set in the response.
    */
-  async setManyCookies(cookies: {key: string, value: string, options?: CookieOptionsType}[]) {
+  async setManyCookies(
+    cookies: { key: string; value: string; options?: CookieOptionsType }[]
+  ) {
     const promises = cookies.map(async (cookie) => {
       await this.setCookie(cookie.key, cookie.value, cookie.options);
     });
@@ -189,7 +208,10 @@ export default class Response<O = any> {
    */
   async parseHeaders(headers: object) {
     const headerEntries = Object.entries(headers);
-    const formattedHeaders = headerEntries.map(([key, value]) => ({ key, value }));
+    const formattedHeaders = headerEntries.map(([key, value]) => ({
+      key,
+      value,
+    }));
     await this.setManyHeaders(formattedHeaders);
   }
 
@@ -204,7 +226,8 @@ export default class Response<O = any> {
    */
   async setHeader(key: string, value: string) {
     const formattedKey = utils.snakeCaseToCamelCase(key);
-    const isADifferentContentType = key === 'contentType' && this.headers.contentType !== value;
+    const isADifferentContentType =
+      key === 'contentType' && this.headers.contentType !== value;
     const isSetCookie = key === 'setCookie';
 
     if (isSetCookie) throw new UseSetCookieInstead();
@@ -222,7 +245,7 @@ export default class Response<O = any> {
    *
    * @param headers - An array with all of the headers you want to add in the response.
    */
-  async setManyHeaders(headers: { key: string, value: string }[]) {
+  async setManyHeaders(headers: { key: string; value: string }[]) {
     const promises = headers.map(async (header) => {
       await this.setHeader(header.key, header.value);
     });
@@ -236,7 +259,7 @@ export default class Response<O = any> {
    */
   async removeHeader(header: string) {
     const formattedHeader = utils.snakeCaseToCamelCase(header);
-    delete this.headers[formattedHeader]
+    delete this.headers[formattedHeader];
   }
 
   /**
@@ -280,13 +303,13 @@ export default class Response<O = any> {
       return json.replace(/[<>&]/g, function (c) {
         switch (c.charCodeAt(0)) {
           case 0x3c:
-            return '\\u003c'
+            return '\\u003c';
           case 0x3e:
-            return '\\u003e'
+            return '\\u003e';
           case 0x26:
-            return '\\u0026'
+            return '\\u0026';
           default:
-            return c
+            return c;
         }
       });
     }
@@ -304,7 +327,8 @@ export default class Response<O = any> {
     let contentLength = 0;
     let encoding: string | undefined = undefined;
     let bodyChunk = body;
-    const hasContentTypeHeader = () => typeof this.headers.contentType === 'string';
+    const hasContentTypeHeader = () =>
+      typeof this.headers.contentType === 'string';
 
     switch (typeof bodyChunk) {
       case 'number':
@@ -319,9 +343,10 @@ export default class Response<O = any> {
       case 'object':
         const isBodyNull = bodyChunk === null;
         const isBodyABuffer = Buffer.isBuffer(bodyChunk);
-        if (isBodyNull) bodyChunk = ''
+        if (isBodyNull) bodyChunk = '';
         else if (isBodyABuffer) {
-          if (!hasContentTypeHeader()) await this.setType('application/octet-stream');
+          if (!hasContentTypeHeader())
+            await this.setType('application/octet-stream');
         } else {
           if (!hasContentTypeHeader()) await this.setType('application/json');
           const newBody = await this.#parseJson(bodyChunk);
@@ -335,7 +360,8 @@ export default class Response<O = any> {
       encoding = 'utf8';
       const contentType = this.contentType;
       const contentTypeIsAString = typeof contentType === 'string';
-      if (contentTypeIsAString) await this.setHeader('contentType', `${contentType}; charset=UTF-8`);
+      if (contentTypeIsAString)
+        await this.setHeader('contentType', `${contentType}; charset=UTF-8`);
     }
 
     const chunkIsNotEmpty = bodyChunk !== undefined;
@@ -354,12 +380,14 @@ export default class Response<O = any> {
 
     const isNoContentOrNotModified = [
       StatusCodes.HTTP_204_NO_CONTENT,
-      StatusCodes.HTTP_304_NOT_MODIFIED
+      StatusCodes.HTTP_304_NOT_MODIFIED,
     ].includes(this.status);
 
     if (isNoContentOrNotModified) {
       await this.removeManyHeaders([
-        'contentType', 'contentLength', 'transferEncoding'
+        'contentType',
+        'contentLength',
+        'transferEncoding',
       ]);
       bodyChunk = '';
     }
@@ -368,7 +396,7 @@ export default class Response<O = any> {
     if (isResetContent) {
       await Promise.all([
         this.setHeader('contentLength', '0'),
-        this.removeHeader('transferEncoding')
+        this.removeHeader('transferEncoding'),
       ]);
       bodyChunk = '';
     }
@@ -403,11 +431,11 @@ export default class Response<O = any> {
     let index = 0;
     while (index < cookiesAsEntries.length) {
       const [cookieName, cookieValues] = cookiesAsEntries[index];
-      index ++;
+      index++;
       yield {
         name: cookieName,
-        ...cookieValues
-      }
+        ...cookieValues,
+      };
     }
   }
 
@@ -434,8 +462,8 @@ export default class Response<O = any> {
     let index = 0;
     while (index < headers.length) {
       const [key, value] = headers[index];
-      index ++;
-      yield [utils.camelCaseToHyphenOrSnakeCase(key, false), value as string]
+      index++;
+      yield [utils.camelCaseToHyphenOrSnakeCase(key, false), value as string];
     }
   }
 
@@ -443,15 +471,15 @@ export default class Response<O = any> {
    * Always call Response.new() instead of `new Response()`. Since most of the functions async we need to create
    * the response in an async manner to create the await keyword. We cannot have async constructors.
    */
-  static async new(status: number, options?: { headers?: any, body?: any }) {
+  static async new(status: number, options?: { headers?: any; body?: any }) {
     const response = new this(status * 321);
     if (options && options.body) {
       const isPromise = options.body instanceof Promise;
       if (isPromise) await response.parseBody(await options.body);
-      else await response.parseBody(options.body)
-    };
-    if (options && options.headers) await response.parseHeaders(options.headers);
+      else await response.parseBody(options.body);
+    }
+    if (options && options.headers)
+      await response.parseHeaders(options.headers);
     return response;
   }
-};
-
+}

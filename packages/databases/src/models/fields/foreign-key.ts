@@ -24,10 +24,8 @@ export default class ForeignKeyField<
     ?
         | (TLazyDefaultValue extends undefined
             ? T extends undefined
-              ? M extends Model<infer ThisModel>
-                ? ThisModel extends Model
-                  ? ThisModel['fields'][RF]['type']
-                  : T
+              ? M extends Model
+                ? M['fields'][RF]['type']
                 : T
               : T
             : TLazyDefaultValue)
@@ -36,10 +34,8 @@ export default class ForeignKeyField<
     :
         | (TLazyDefaultValue extends undefined
             ? T extends undefined
-              ? M extends Model<infer ThisModel>
-                ? ThisModel extends Model
-                  ? ThisModel['fields'][RF]['type']
-                  : T
+              ? M extends Model
+                ? M['fields'][RF]['type']
                 : T
               : T
             : TLazyDefaultValue)
@@ -117,10 +113,8 @@ export default class ForeignKeyField<
       ?
           | (TLazyDefaultValue extends undefined
               ? T extends undefined
-                ? M extends Model<infer ThisModel>
-                  ? ThisModel extends Model
-                    ? ThisModel['fields'][RF]['type']
-                    : T
+                ? M extends Model
+                  ? M['fields'][RF]['type']
                   : T
                 : T
               : TLazyDefaultValue)
@@ -129,10 +123,8 @@ export default class ForeignKeyField<
       :
           | (TLazyDefaultValue extends undefined
               ? T extends undefined
-                ? M extends Model<infer ThisModel>
-                  ? ThisModel extends Model
-                    ? ThisModel['fields'][RF]['type']
-                    : T
+                ? M extends Model
+                  ? M['fields'][RF]['type']
                   : T
                 : T
               : TLazyDefaultValue)
