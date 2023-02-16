@@ -15,11 +15,13 @@ export type OrderingOfModelsType<TFields extends string> = readonly (
   : never)[];
 
 // --------- INCLUDES ----------- //
+export type Include<TCustomData extends object = object> = {
+  model: ReturnType<typeof model>;
+  includes?: Includes<TCustomData>;
+} & TCustomData;
+
 export type Includes<TCustomData extends object = object> =
-  | readonly ({
-      model: ReturnType<typeof model>;
-      includes?: Includes<TCustomData>;
-    } & TCustomData)[]
+  | readonly Include<TCustomData>[]
   | undefined;
 
 type ValueOf<T> = T[keyof T];
@@ -61,6 +63,7 @@ export type IncludesValidated<
                       ? FieldsOfModelOptionsType<InstanceType<TInferedModel>>
                       : string
                   >;
+                  shouldRemove?: boolean;
                   limit?: number;
                   offset?: number | string;
                   includes?: IncludesValidated<
@@ -84,6 +87,7 @@ export type IncludesValidated<
                     ? FieldsOfModelOptionsType<InstanceType<TInferedModel>>
                     : string
                 >;
+                shouldRemove?: boolean;
                 limit?: number;
                 offset?: number | string;
               } & TCustomData,

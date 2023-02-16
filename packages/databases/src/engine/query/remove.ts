@@ -24,6 +24,7 @@ export default class EngineRemoveQuery {
     modelOfEngineInstance: any;
     search: any;
     shouldReturnData?: boolean;
+    shouldNotDelete?: boolean;
     transaction?: any;
   }): Promise<any[]> {
     return [{}];
@@ -47,6 +48,7 @@ export default class EngineRemoveQuery {
     args: {
       useTransaction?: boolean;
       search?: TSearch;
+      shouldRemove?: boolean;
     },
     internal: {
       model: TModel;
@@ -55,6 +57,8 @@ export default class EngineRemoveQuery {
   ): Promise<
     ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]
   > {
+    const shouldRemove =
+      typeof args.shouldRemove === 'boolean' ? args.shouldRemove : true;
     const isToUseTransaction =
       typeof args.useTransaction === 'boolean' ? args.useTransaction : true;
 
@@ -80,6 +84,7 @@ export default class EngineRemoveQuery {
         undefined,
         undefined,
         undefined,
+        shouldRemove,
         undefined,
         undefined,
         transaction

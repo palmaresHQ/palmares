@@ -428,7 +428,7 @@ export default class Manager<
           TIncludes,
           false,
           {
-            isToPreventRemove?: true;
+            shouldRemove?: boolean;
           }
         >
       >;
@@ -443,9 +443,12 @@ export default class Manager<
             true
           >
         | undefined;
+      shouldRemove?: boolean;
     },
     engineName?: string
   ): Promise<ModelFieldsWithIncludes<TModel, TIncludes>[]> {
+    const shouldRemove =
+      typeof args?.shouldRemove === 'boolean' ? args.shouldRemove : true;
     const isValidEngineName =
       typeof engineName === 'string' && engineName !== '';
     const engineInstanceName = isValidEngineName
@@ -481,6 +484,7 @@ export default class Manager<
           true
         >,
         useTransaction: true,
+        shouldRemove: shouldRemove,
       },
       {
         model: this.models[

@@ -9,6 +9,7 @@ import {
   OrderingOfModelsType,
   FieldsOfModelOptionsType,
   ExtractFieldNames,
+  Include,
 } from '../../models/types';
 import EngineGetQuery from './get';
 import EngineRemoveQuery from './remove';
@@ -150,6 +151,7 @@ export default class EngineQuery {
   >(args: {
     isSetOperation?: boolean;
     isRemoveOperation?: boolean;
+    shouldRemove?: boolean;
     modelInstance: TModel;
     search?: TSearch;
     fields?: TFields;
@@ -169,17 +171,21 @@ export default class EngineQuery {
     offset?: number | string;
     results?: TResult;
   }) {
-    const modelInstance = args.modelInstance;
-    const ordering = args.ordering;
-    const offset = args.offset;
-    const limit = args.limit;
-    const search = args.search;
+    const {
+      shouldRemove,
+      modelInstance,
+      ordering,
+      offset,
+      limit,
+      search,
+      data,
+      transaction,
+      queryDataFn,
+      resultToMergeWithData,
+    } = args;
+
     const fields = (args.fields ||
       Object.keys(modelInstance.fields)) as TFields;
-    const data = args.data;
-    const transaction = args.transaction;
-    const queryDataFn = args.queryDataFn;
-    const resultToMergeWithData = args.resultToMergeWithData;
 
     const modelConstructor = modelInstance.constructor as ReturnType<
       typeof model
@@ -407,6 +413,7 @@ export default class EngineQuery {
     queryData: QueryDataFnType,
     isSetOperation = false,
     isRemoveOperation = false,
+    shouldRemove = true,
     ordering?: OrderingOfModelsType<
       FieldsOfModelOptionsType<TModel> extends string
         ? FieldsOfModelOptionsType<TModel>
@@ -414,6 +421,7 @@ export default class EngineQuery {
     >,
     limit?: number,
     offset?: number | string,
+    shouldRemoveIncluded = true,
     orderingOfIncluded?: OrderingOfModelsType<
       FieldsOfModelOptionsType<TIncludedModel> extends string
         ? FieldsOfModelOptionsType<TIncludedModel>
@@ -461,6 +469,7 @@ export default class EngineQuery {
       orderingOfIncluded,
       limitOfIncluded,
       offsetOfIncluded,
+      shouldRemoveIncluded,
       undefined,
       undefined,
       transaction
@@ -497,6 +506,7 @@ export default class EngineQuery {
           ordering,
           limit,
           offset,
+          shouldRemove,
           undefined,
           undefined,
           transaction
@@ -535,6 +545,7 @@ export default class EngineQuery {
         search: searchForRelatedModel,
         queryDataFn: queryData,
         shouldReturnData: false,
+        shouldRemove: shouldRemove,
         ordering,
         offset,
         limit,
@@ -592,6 +603,7 @@ export default class EngineQuery {
     queryData: QueryDataFnType,
     isSetOperation = false,
     isRemoveOperation = false,
+    shouldRemove = true,
     ordering?: OrderingOfModelsType<
       FieldsOfModelOptionsType<TModel> extends string
         ? FieldsOfModelOptionsType<TModel>
@@ -599,6 +611,7 @@ export default class EngineQuery {
     >,
     limit?: number,
     offset?: number | string,
+    shouldRemoveIncluded = true,
     orderingOfIncluded?: OrderingOfModelsType<
       FieldsOfModelOptionsType<TIncludedModel> extends string
         ? FieldsOfModelOptionsType<TIncludedModel>
@@ -667,6 +680,7 @@ export default class EngineQuery {
         ordering,
         limit,
         offset,
+        shouldRemove,
         resultToMergeWithData as
           | ModelFieldsWithIncludes<
               TModel,
@@ -754,6 +768,7 @@ export default class EngineQuery {
         orderingOfIncluded,
         limitOfIncluded,
         offsetOfIncluded,
+        shouldRemoveIncluded,
         resultToMergeWithDataToAdd,
         dataToAdd,
         transaction
@@ -799,6 +814,7 @@ export default class EngineQuery {
         search: search,
         queryDataFn: queryData,
         shouldReturnData: false,
+        shouldRemove: shouldRemove,
         transaction,
         ordering,
         limit,
@@ -820,6 +836,7 @@ export default class EngineQuery {
         ordering,
         limit,
         offset,
+        shouldRemove,
         resultToMergeWithData as
           | ModelFieldsWithIncludes<
               TModel,
@@ -912,6 +929,7 @@ export default class EngineQuery {
     resultToMergeWithData = undefined as
       | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>
       | undefined,
+    shouldRemove = true,
     ordering?: OrderingOfModelsType<
       FieldsOfModelOptionsType<TModel> extends string
         ? FieldsOfModelOptionsType<TModel>
@@ -919,6 +937,7 @@ export default class EngineQuery {
     >,
     limit?: number,
     offset?: number | string,
+    shouldRemoveIncluded = false,
     orderingOfIncluded?: OrderingOfModelsType<
       FieldsOfModelOptionsType<TIncludedModel> extends string
         ? FieldsOfModelOptionsType<TIncludedModel>
@@ -985,9 +1004,11 @@ export default class EngineQuery {
             queryData,
             isSetOperation,
             isRemoveOperation,
+            shouldRemove,
             ordering,
             limit,
             offset,
+            shouldRemoveIncluded,
             orderingOfIncluded,
             limitOfIncluded,
             offsetOfIncluded,
@@ -1008,9 +1029,11 @@ export default class EngineQuery {
             queryData,
             isSetOperation,
             isRemoveOperation,
+            shouldRemove,
             ordering,
             limit,
             offset,
+            shouldRemoveIncluded,
             orderingOfIncluded,
             limitOfIncluded,
             offsetOfIncluded,
@@ -1082,6 +1105,7 @@ export default class EngineQuery {
     >,
     limit?: number,
     offset?: number | string,
+    shouldRemove?: boolean,
     resultsToMergeWithData = undefined as
       | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>
       | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]
@@ -1110,13 +1134,19 @@ export default class EngineQuery {
           modelInstance.directlyRelatedTo[
             includedModelInstance.originalName
           ] !== undefined;
-
+        const includesForRemove = include as Include<{ shouldRemove: boolean }>;
+        const includesForGet = include as Include<{
+          fields?: readonly string[];
+          ordering?: readonly (string | `-${string}`)[];
+          limit?: number;
+          offset?: number | string;
+        }>;
         await this.#resultsFromRelatedModels(
           modelInstance,
           includedModelInstance,
           safeIncludes.slice(1),
           include.includes,
-          ((include as any).fields ||
+          (includesForGet.fields ||
             allFieldsOfIncludedModel) as readonly (keyof typeof includedModelInstance['fields'])[],
           fields,
           search,
@@ -1130,12 +1160,16 @@ export default class EngineQuery {
             TIncludes,
             FieldsOFModelType<TModel>
           >,
+          shouldRemove,
           ordering,
           limit,
           offset,
-          (include as any).ordering,
-          (include as any).limit as number,
-          (include as any).offset as number | string,
+          typeof includesForRemove.shouldRemove === 'boolean'
+            ? includesForRemove.shouldRemove
+            : true,
+          includesForGet.ordering,
+          includesForGet.limit,
+          includesForGet.offset,
           dataToAdd as ModelFieldsWithIncludes<
             TModel,
             TIncludes,
@@ -1183,6 +1217,7 @@ export default class EngineQuery {
           ordering,
           limit,
           offset,
+          shouldRemove,
           data: dataToAdd,
           transaction: transaction,
           resultToMergeWithData,

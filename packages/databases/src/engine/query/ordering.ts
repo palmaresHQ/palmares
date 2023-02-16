@@ -10,6 +10,7 @@ export default class EngineOrdering {
   }
 
   async parseOrdering(ordering: (`${string}` | `-${string}`)[]): Promise<any> {
-    throw new NotImplementedEngineException('parseOrdering');
+    if (this.engineQueryInstance.engineInstance._ignoreNotImplementedErrors)
+      throw new NotImplementedEngineException('parseOrdering');
   }
 }
