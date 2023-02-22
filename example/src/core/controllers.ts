@@ -63,3 +63,6 @@ export class ExampleController extends Controller {
     },
   };
 }
+
+type array = readonly string[];
+type Teste = '10' extends array[number] ? true : false;

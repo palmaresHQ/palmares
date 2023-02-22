@@ -14,10 +14,86 @@ export type OrderingOfModelsType<TFields extends string> = readonly (
   ? TFields | `-${TFields}`
   : never)[];
 
+export type ExtractRelationsNames<
+  TParentModel extends InstanceType<ReturnType<typeof model>>,
+  TChildModel extends InstanceType<ReturnType<typeof model>>
+> = readonly ValueOf<
+  {
+    [TKey in keyof TParentModel['fields'] as TParentModel['fields'][TKey] extends ForeignKeyField<
+      any,
+      any,
+      any,
+      boolean,
+      boolean,
+      boolean,
+      any,
+      undefined,
+      any,
+      any,
+      any,
+      any
+    >
+      ? TParentModel['fields'][TKey]['modelRelatedTo'] extends TChildModel
+        ? TKey
+        : never
+      : never]: TParentModel['fields'][TKey] extends ForeignKeyField<
+      any,
+      any,
+      any,
+      boolean,
+      boolean,
+      boolean,
+      any,
+      undefined,
+      any,
+      any,
+      any,
+      infer TRelationName
+    >
+      ? TRelationName
+      : unknown;
+  } & {
+    [TKey in keyof TChildModel['fields'] as TChildModel['fields'][TKey] extends ForeignKeyField<
+      any,
+      any,
+      any,
+      boolean,
+      boolean,
+      boolean,
+      any,
+      undefined,
+      any,
+      any,
+      any,
+      any
+    >
+      ? TChildModel['fields'][TKey]['modelRelatedTo'] extends TParentModel
+        ? TKey
+        : never
+      : never]: TChildModel['fields'][TKey] extends ForeignKeyField<
+      any,
+      any,
+      any,
+      boolean,
+      boolean,
+      boolean,
+      any,
+      undefined,
+      any,
+      any,
+      infer TRelatedName,
+      any
+    > // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ? TRelatedName
+      : unknown;
+  }
+>[];
+
 // --------- INCLUDES ----------- //
 export type Include<TCustomData extends object = object> = {
   model: ReturnType<typeof model>;
   includes?: Includes<TCustomData>;
+  relationNames?: readonly string[];
 } & TCustomData;
 
 export type Includes<TCustomData extends object = object> =
@@ -52,10 +128,18 @@ export type IncludesValidated<
                     TIsCreateOrUpdateData,
                     TCustomData
                   >;
+                  relationNames?: readonly ExtractRelationsNames<
+                    TParentModel,
+                    InstanceType<TInferedModel>
+                  >[];
                 } & TCustomData
               : {
                   model: ValidateModelsOfIncludes<TParentModel, TInferedModel>;
                   fields?: FieldsOFModelType<InstanceType<TInferedModel>>;
+                  relationNames?: readonly ExtractRelationsNames<
+                    TParentModel,
+                    InstanceType<TInferedModel>
+                  >[];
                   ordering?: OrderingOfModelsType<
                     FieldsOfModelOptionsType<
                       InstanceType<TInferedModel>
@@ -76,10 +160,18 @@ export type IncludesValidated<
             : TIsCreateOrUpdateData extends true
             ? {
                 model: ValidateModelsOfIncludes<TParentModel, TInferedModel>;
+                relationNames?: readonly ExtractRelationsNames<
+                  TParentModel,
+                  InstanceType<TInferedModel>
+                >[];
               } & TCustomData
             : {
                 model: ValidateModelsOfIncludes<TParentModel, TInferedModel>;
                 fields?: FieldsOFModelType<InstanceType<TInferedModel>>;
+                relationNames?: ExtractRelationsNames<
+                  TParentModel,
+                  InstanceType<TInferedModel>
+                >;
                 ordering?: OrderingOfModelsType<
                   FieldsOfModelOptionsType<
                     InstanceType<TInferedModel>
@@ -444,6 +536,7 @@ type RelatedFieldOfModelOptional<
   TRelatedModel extends Model,
   TIncludes extends Includes,
   TFieldsOfRelatedModel extends FieldsOFModelType<TRelatedModel> = FieldsOFModelType<TRelatedModel>,
+  TRelationNamesOfModel extends readonly string[] = readonly string[],
   TIsCreateOrUpdate extends boolean = false,
   TIsAllRequired extends boolean = false,
   TIsAllOptional extends boolean = false,
@@ -465,7 +558,9 @@ type RelatedFieldOfModelOptional<
   >
     ? TModel['fields'][K]['hasDefaultValue'] extends true
       ? TModel['fields'][K]['modelRelatedTo'] extends TRelatedModel
-        ? TRelationName
+        ? TRelationName extends TRelationNamesOfModel[number]
+          ? TRelationName
+          : never
         : never
       : never
     : never]?: TModel['fields'][K] extends ForeignKeyField<
@@ -511,6 +606,7 @@ type RelatedFieldOfModelRequired<
   TRelatedModel extends Model,
   TIncludes extends Includes,
   TFieldsOfRelatedModel extends FieldsOFModelType<TRelatedModel>,
+  TRelationNamesOfModel extends readonly string[] = readonly string[],
   TIsCreateOrUpdate extends boolean = false,
   TIsAllRequired extends boolean = false,
   TIsAllOptional extends boolean = false,
@@ -532,7 +628,9 @@ type RelatedFieldOfModelRequired<
   >
     ? TModel['fields'][K]['hasDefaultValue'] extends false
       ? TModel['fields'][K]['modelRelatedTo'] extends TRelatedModel
-        ? TRelationName
+        ? TRelationName extends TRelationNamesOfModel[number]
+          ? TRelationName
+          : never
         : never
       : never
     : never]: TModel['fields'][K] extends ForeignKeyField<
@@ -610,6 +708,7 @@ type RelatedFieldToModel<
   TRelatedModel extends Model,
   TIncludes extends Includes,
   TFieldsOfModel extends FieldsOFModelType<TModel>,
+  TRelationNamesOfModel extends readonly string[],
   TIsCreateOrUpdate extends boolean,
   TIsAllRequired extends boolean,
   TIsAllOptional extends boolean,
@@ -630,7 +729,9 @@ type RelatedFieldToModel<
     any
   >
     ? TRelatedModel['fields'][K]['modelRelatedTo'] extends TModel
-      ? TRelatedName
+      ? TRelatedName extends TRelationNamesOfModel[number]
+        ? TRelatedName
+        : never
       : never
     : never]: TIsForSearch extends true
     ? BaseRelatedFieldToModel<
@@ -672,6 +773,7 @@ type BaseFieldsWithRelationsFromIncludesType<
   TIncludedModel extends ReturnType<typeof model>,
   TToInclude extends Includes,
   TFieldsOfModel extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>,
+  TRelationNamesOfModel extends readonly string[] = readonly string[],
   TIsCreateOrUpdate extends boolean = false,
   TIsAllRequired extends boolean = false,
   TIsAllOptional extends boolean = false,
@@ -682,6 +784,7 @@ type BaseFieldsWithRelationsFromIncludesType<
     InstanceType<TIncludedModel>,
     TToInclude,
     TFieldsOfModel,
+    TRelationNamesOfModel,
     TIsCreateOrUpdate,
     TIsAllRequired,
     TIsAllOptional,
@@ -692,6 +795,7 @@ type BaseFieldsWithRelationsFromIncludesType<
     InstanceType<TIncludedModel>,
     TToInclude,
     TFieldsOfModel,
+    TRelationNamesOfModel,
     TIsCreateOrUpdate,
     TIsAllRequired,
     TIsAllOptional,
@@ -702,6 +806,7 @@ type BaseFieldsWithRelationsFromIncludesType<
     InstanceType<TIncludedModel>,
     TToInclude,
     TFieldsOfModel,
+    TRelationNamesOfModel,
     TIsCreateOrUpdate,
     TIsAllRequired,
     TIsAllOptional,
@@ -714,6 +819,7 @@ export type FieldsWithRelationsFromIncludesType<
   TIncludedModel extends ReturnType<typeof model>,
   TToInclude extends Includes,
   TFieldsOfModel extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>,
+  TRelationNamesOfModel extends readonly string[] = readonly string[],
   TIsCreateOrUpdate extends boolean = false,
   TIsAllRequired extends boolean = false,
   TIsAllOptional extends boolean = false,
@@ -726,6 +832,7 @@ export type FieldsWithRelationsFromIncludesType<
         TIncludedModel,
         TToInclude,
         TFieldsOfModel,
+        TRelationNamesOfModel,
         TIsCreateOrUpdate,
         TIsAllRequired,
         TIsAllOptional,
@@ -740,6 +847,7 @@ export type FieldsWithRelationsFromIncludesType<
         TIncludedModel,
         TToInclude,
         TFieldsOfModel,
+        TRelationNamesOfModel,
         TIsCreateOrUpdate,
         TIsAllRequired,
         TIsAllOptional,
@@ -752,6 +860,7 @@ export type FieldsWithRelationsFromIncludesType<
       TIncludedModel,
       TToInclude,
       TFieldsOfModel,
+      TRelationNamesOfModel,
       TIsCreateOrUpdate,
       TIsAllRequired,
       TIsAllOptional,
@@ -773,6 +882,7 @@ export type IncludesRelatedModels<
         model: infer TFirstIncludes;
         fields: infer TFirstFieldsOfModel;
         includes: infer TFirstModelIncludes;
+        relationNames: infer TFirstRelationNames;
       },
       ...infer TRestIncludes
     ]
@@ -780,6 +890,7 @@ export type IncludesRelatedModels<
       {
         model: infer TFirstIncludes;
         includes: infer TFirstModelIncludes;
+        relationNames: infer TFirstRelationNames;
       },
       ...infer TRestIncludes
     ]
@@ -799,6 +910,9 @@ export type IncludesRelatedModels<
               >
                 ? TFirstFieldsOfModel
                 : FieldsOFModelType<InstanceType<TFirstIncludes>>,
+              TFirstRelationNames extends readonly string[]
+                ? TFirstRelationNames
+                : readonly string[],
               TIsCreateOrUpdate,
               TIsAllRequired,
               TIsAllOptional,
@@ -825,6 +939,9 @@ export type IncludesRelatedModels<
               >
                 ? TFirstFieldsOfModel
                 : FieldsOFModelType<InstanceType<TFirstIncludes>>,
+              TFirstRelationNames extends readonly string[]
+                ? TFirstRelationNames
+                : readonly string[],
               TIsCreateOrUpdate,
               TIsAllRequired,
               TIsAllOptional,

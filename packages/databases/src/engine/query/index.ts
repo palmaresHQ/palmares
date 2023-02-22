@@ -918,6 +918,7 @@ export default class EngineQuery {
     includedModelInstance: TIncludedModel,
     includesOfModel: TIncludes,
     includesOfIncluded: TIncludesOfIncluded,
+    includesRelationNames: readonly string[] | undefined,
     fieldsOfIncludedModel: TFieldsOfIncluded,
     fieldsOfModel: TFields,
     search: TSearch,
@@ -957,11 +958,16 @@ export default class EngineQuery {
         : modelInstance.indirectlyRelatedTo[
             includedModelInstance.originalName
           ]) || [];
-
+    const filteredRelatedNamesDirectlyOrIndirectlyRelatedToModel =
+      Array.isArray(includesRelationNames)
+        ? relatedNamesDirectlyOrIndirectlyRelatedToModel.filter(
+            (relationName) => includesRelationNames.includes(relationName)
+          )
+        : relatedNamesDirectlyOrIndirectlyRelatedToModel;
     const associationsOfIncludedModel = isDirectlyRelated
       ? modelInstance.associations[includedModelInstance.originalName] || []
       : includedModelInstance.associations[modelInstance.originalName] || [];
-    const promises = relatedNamesDirectlyOrIndirectlyRelatedToModel.map(
+    const promises = filteredRelatedNamesDirectlyOrIndirectlyRelatedToModel.map(
       async (relationNameOrRelatedName) => {
         const searchForRelatedModel:
           | ModelFieldsWithIncludes<
@@ -1134,68 +1140,63 @@ export default class EngineQuery {
           modelInstance.directlyRelatedTo[
             includedModelInstance.originalName
           ] !== undefined;
-        const includesForRemove = include as Include<{ shouldRemove: boolean }>;
-        const includesForGet = include as Include<{
-          fields?: readonly string[];
-          ordering?: readonly (string | `-${string}`)[];
-          limit?: number;
-          offset?: number | string;
-        }>;
-        await this.#resultsFromRelatedModels(
-          modelInstance,
-          includedModelInstance,
-          safeIncludes.slice(1),
-          include.includes,
-          (includesForGet.fields ||
-            allFieldsOfIncludedModel) as readonly (keyof typeof includedModelInstance['fields'])[],
-          fields,
-          search,
-          results as TResult,
-          isDirectlyRelatedModel,
-          isSetOperation,
-          isRemoveOperation,
-          queryData,
-          resultToMergeWithData as ModelFieldsWithIncludes<
-            TModel,
-            TIncludes,
-            FieldsOFModelType<TModel>
-          >,
-          shouldRemove,
-          ordering,
-          limit,
-          offset,
-          typeof includesForRemove.shouldRemove === 'boolean'
-            ? includesForRemove.shouldRemove
-            : true,
-          includesForGet.ordering,
-          includesForGet.limit,
-          includesForGet.offset,
-          dataToAdd as ModelFieldsWithIncludes<
-            TModel,
-            TIncludes,
-            FieldsOFModelType<TModel>,
-            true,
-            false,
-            TSearch extends undefined ? false : true,
-            false
-          >,
-          transaction
-        );
-      } else {
-        await this.#callQueryDataFn<
-          TModel,
-          TFields,
-          | ModelFieldsWithIncludes<
+        const relatedNamesDirectlyOrIndirectlyRelatedToModel =
+          (isDirectlyRelatedModel
+            ? modelInstance.directlyRelatedTo[
+                includedModelInstance.originalName
+              ]
+            : modelInstance.indirectlyRelatedTo[
+                includedModelInstance.originalName
+              ]) || [];
+        const isToFetchAnyRelatedNames = Array.isArray(include.relationNames)
+          ? relatedNamesDirectlyOrIndirectlyRelatedToModel.some(
+              (relatedNameDirectlyOrIndirectlyRelatedToModel) =>
+                include.relationNames?.includes(
+                  relatedNameDirectlyOrIndirectlyRelatedToModel
+                )
+            )
+          : true;
+        if (isToFetchAnyRelatedNames) {
+          const includesForRemove = include as Include<{
+            shouldRemove: boolean;
+          }>;
+          const includesForGet = include as Include<{
+            fields?: readonly string[];
+            ordering?: readonly (string | `-${string}`)[];
+            limit?: number;
+            offset?: number | string;
+          }>;
+          await this.#resultsFromRelatedModels(
+            modelInstance,
+            includedModelInstance,
+            safeIncludes.slice(1),
+            include.includes,
+            include.relationNames,
+            (includesForGet.fields ||
+              allFieldsOfIncludedModel) as readonly (keyof typeof includedModelInstance['fields'])[],
+            fields,
+            search,
+            results as TResult,
+            isDirectlyRelatedModel,
+            isSetOperation,
+            isRemoveOperation,
+            queryData,
+            resultToMergeWithData as ModelFieldsWithIncludes<
               TModel,
-              Includes,
-              TFields,
-              false,
-              false,
-              true,
-              true
-            >
-          | undefined,
-          | ModelFieldsWithIncludes<
+              TIncludes,
+              FieldsOFModelType<TModel>
+            >,
+            shouldRemove,
+            ordering,
+            limit,
+            offset,
+            typeof includesForRemove.shouldRemove === 'boolean'
+              ? includesForRemove.shouldRemove
+              : true,
+            includesForGet.ordering,
+            includesForGet.limit,
+            includesForGet.offset,
+            dataToAdd as ModelFieldsWithIncludes<
               TModel,
               TIncludes,
               FieldsOFModelType<TModel>,
@@ -1203,27 +1204,55 @@ export default class EngineQuery {
               false,
               TSearch extends undefined ? false : true,
               false
-            >[]
-          | undefined,
-          ModelFieldsWithIncludes<TModel, Includes, TFields>[]
-        >({
-          isSetOperation: isSetOperation,
-          isRemoveOperation: isRemoveOperation,
-          modelInstance,
-          search: search,
-          queryDataFn: queryData,
-          fields,
-          results,
-          ordering,
-          limit,
-          offset,
-          shouldRemove,
-          data: dataToAdd,
-          transaction: transaction,
-          resultToMergeWithData,
-        });
+            >,
+            transaction
+          );
+          return;
+        }
       }
+
+      await this.#callQueryDataFn<
+        TModel,
+        TFields,
+        | ModelFieldsWithIncludes<
+            TModel,
+            Includes,
+            TFields,
+            false,
+            false,
+            true,
+            true
+          >
+        | undefined,
+        | ModelFieldsWithIncludes<
+            TModel,
+            TIncludes,
+            FieldsOFModelType<TModel>,
+            true,
+            false,
+            TSearch extends undefined ? false : true,
+            false
+          >[]
+        | undefined,
+        ModelFieldsWithIncludes<TModel, Includes, TFields>[]
+      >({
+        isSetOperation: isSetOperation,
+        isRemoveOperation: isRemoveOperation,
+        modelInstance,
+        search: search,
+        queryDataFn: queryData,
+        fields,
+        results,
+        ordering,
+        limit,
+        offset,
+        shouldRemove,
+        data: dataToAdd,
+        transaction: transaction,
+        resultToMergeWithData,
+      });
     }
+
     const safeIncludes: Includes =
       typeof includes !== 'undefined' ? includes : [];
     const allDataToAdd = Array.isArray(data) ? data : [data];

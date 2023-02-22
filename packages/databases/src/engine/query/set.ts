@@ -129,6 +129,7 @@ export default class EngineSetQuery {
           undefined,
           undefined,
           undefined,
+          false,
           (allResultsOfSearch.length > 0
             ? allResultsOfSearch
             : undefined) as ModelFieldsWithIncludes<
@@ -153,6 +154,7 @@ export default class EngineSetQuery {
           undefined,
           undefined,
           undefined,
+          false,
           undefined,
           data as TData,
           transaction
