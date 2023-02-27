@@ -1,6 +1,11 @@
 import model, { Model } from '../model';
 import type { ForeignKeyField, Field } from '../fields';
 
+export type PalmaresTransactionsType = {
+  isSetOrRemoveOperation: 'set' | 'remove';
+  data: any[];
+};
+
 export type FieldsOfModelOptionsType<TModel extends Model> =
   keyof (TModel['fields'] & AbstractsAsFields<TModel['abstracts']>);
 

@@ -10,6 +10,7 @@ import {
   FieldsOfModelOptionsType,
   ExtractFieldNames,
   Include,
+  PalmaresTransactionsType,
 } from '../../models/types';
 import EngineGetQuery from './get';
 import EngineRemoveQuery from './remove';
@@ -159,6 +160,7 @@ export default class EngineQuery {
     transaction?: any;
     queryDataFn: QueryDataFnType;
     shouldReturnData?: boolean;
+    palmaresTransaction?: PalmaresTransactionsType;
     resultToMergeWithData?:
       | ModelFieldsWithIncludes<TModel, Includes, FieldsOFModelType<TModel>>
       | undefined;
@@ -243,6 +245,7 @@ export default class EngineQuery {
         ordering: parsedOrdering,
         offset,
         limit,
+        shouldRemove,
         shouldReturnData:
           typeof args.shouldReturnData === 'boolean'
             ? args.shouldReturnData
@@ -259,6 +262,8 @@ export default class EngineQuery {
       else if (args.isRemoveOperation && modelInstance.options.onRemove)
         return modelInstance.options.onRemove({
           search: parsedSearch as any,
+          shouldRemove: shouldRemove,
+          shouldReturnData: args.shouldReturnData,
         });
       else if (modelInstance.options.onGet)
         return modelInstance.options.onGet({
@@ -1117,7 +1122,8 @@ export default class EngineQuery {
       | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]
       | undefined,
     data = undefined as TData,
-    transaction = undefined
+    transaction = undefined,
+    palmaresTransaction: PalmaresTransactionsType | undefined = undefined
   ) {
     async function fetchResults(
       this: EngineQuery,
@@ -1208,7 +1214,8 @@ export default class EngineQuery {
               TSearch extends undefined ? false : true,
               false
             >,
-            transaction
+            transaction,
+            palmaresTransaction
           );
           return;
         }
@@ -1252,6 +1259,7 @@ export default class EngineQuery {
         shouldRemove,
         data: dataToAdd,
         transaction: transaction,
+        palmaresTransaction: palmaresTransaction,
         resultToMergeWithData,
       });
     }

@@ -152,6 +152,10 @@ export type ModelOptionsType<M = any> = {
     >;
   }) => Promise<any[]>;
   onRemove?: (args: {
+    /** Sometimes we just want to return the data but we don't want to remove it. Most of the time you should remove it. */
+    shouldRemove?: boolean;
+    /** Should you return the data that you are removing? By default yes, you should, in case this is false you should not. */
+    shouldReturnData?: boolean;
     search: ExtractFieldTypes<
       M,
       M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
