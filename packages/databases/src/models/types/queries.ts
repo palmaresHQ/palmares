@@ -93,6 +93,7 @@ export type ExtractRelationsNames<
 export type Include<TCustomData extends object = object> = {
   model: ReturnType<typeof model>;
   includes?: Includes<TCustomData>;
+  engineName?: string;
   relationNames?: readonly string[];
 } & TCustomData;
 
@@ -128,6 +129,7 @@ export type IncludesValidated<
                     TIsCreateOrUpdateData,
                     TCustomData
                   >;
+                  engineName?: string;
                   relationNames?: readonly ExtractRelationsNames<
                     TParentModel,
                     InstanceType<TInferedModel>
@@ -136,6 +138,7 @@ export type IncludesValidated<
               : {
                   model: ValidateModelsOfIncludes<TParentModel, TInferedModel>;
                   fields?: FieldsOFModelType<InstanceType<TInferedModel>>;
+                  engineName?: string;
                   relationNames?: readonly ExtractRelationsNames<
                     TParentModel,
                     InstanceType<TInferedModel>
@@ -160,6 +163,7 @@ export type IncludesValidated<
             : TIsCreateOrUpdateData extends true
             ? {
                 model: ValidateModelsOfIncludes<TParentModel, TInferedModel>;
+                engineName?: string;
                 relationNames?: readonly ExtractRelationsNames<
                   TParentModel,
                   InstanceType<TInferedModel>
@@ -168,6 +172,7 @@ export type IncludesValidated<
             : {
                 model: ValidateModelsOfIncludes<TParentModel, TInferedModel>;
                 fields?: FieldsOFModelType<InstanceType<TInferedModel>>;
+                engineName?: string;
                 relationNames?: ExtractRelationsNames<
                   TParentModel,
                   InstanceType<TInferedModel>

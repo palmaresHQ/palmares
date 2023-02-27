@@ -1130,9 +1130,12 @@ export default class EngineQuery {
       const hasIncludes = (safeIncludes || []).length > 0;
       if (hasIncludes && safeIncludes) {
         const include = safeIncludes[0];
-        const includedModelInstance = include.model.default.getModel(
-          this.engineInstance.databaseName
-        );
+        const engineNameToUse =
+          typeof include.engineName === 'string'
+            ? include.engineName
+            : this.engineInstance.databaseName;
+        const includedModelInstance =
+          include.model.default.getModel(engineNameToUse);
         const allFieldsOfIncludedModel = Object.keys(
           includedModelInstance['fields']
         );
