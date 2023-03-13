@@ -99,6 +99,31 @@ type ExtractFieldTypes<
         : unknown)
   : unknown;
 
+export type onSetFunction<M = any> = (args: {
+  data: ExtractFieldTypes<
+    M,
+    M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
+    false
+  >;
+  search: ExtractFieldTypes<
+    M,
+    M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
+    true
+  >;
+}) => Promise<any[]>;
+
+export type onRemoveFunction<M = any> = (args: {
+  /** Sometimes we just want to return the data but we don't want to remove it. Most of the time you should remove it. */
+  shouldRemove?: boolean;
+  /** Should you return the data that you are removing? By default yes, you should, in case this is false you should not. */
+  shouldReturnData?: boolean;
+  search: ExtractFieldTypes<
+    M,
+    M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
+    true
+  >;
+}) => Promise<any[]>;
+
 export type ModelOptionsType<M = any> = {
   indexes?: ModelIndexType<
     ExtractFieldNames<
@@ -139,29 +164,48 @@ export type ModelOptionsType<M = any> = {
     limit?: number;
     offset?: number | string;
   }) => Promise<any[]>;
-  onSet?: (args: {
-    data: ExtractFieldTypes<
-      M,
-      M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
-      false
-    >;
-    search: ExtractFieldTypes<
-      M,
-      M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
-      true
-    >;
-  }) => Promise<any[]>;
-  onRemove?: (args: {
-    /** Sometimes we just want to return the data but we don't want to remove it. Most of the time you should remove it. */
-    shouldRemove?: boolean;
-    /** Should you return the data that you are removing? By default yes, you should, in case this is false you should not. */
-    shouldReturnData?: boolean;
-    search: ExtractFieldTypes<
-      M,
-      M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
-      true
-    >;
-  }) => Promise<any[]>;
+  /**
+   * Can be used either for firing a synchronous call to make changes to a particular model or can use the event handler to fire asyncrhronous
+   * events to set data to this model. This is useful if you want to make your model in sync with the model from another palmares application or
+   * if you want to have hooks attached to this model.
+   * */
+  onSet?:
+    | onSetFunction<M>
+    | {
+        default:
+          | onSetFunction<M>
+          | {
+              preventCallerToBeTheHandled?: boolean;
+              handler: onSetFunction<M>;
+            };
+        [key: string]:
+          | onSetFunction<M>
+          | {
+              preventCallerToBeTheHandled?: boolean;
+              handler: onSetFunction<M>;
+            };
+      };
+  /**
+   * Can be used either for firing a synchronous call to make changes to a particular model or can use the event handler to fire asyncrhronous
+   * events to set data to this model. This is useful if you want to make your model in sync with the model from another palmares application or
+   * if you want to have hooks attached to this model.
+   * */
+  onRemove?:
+    | onRemoveFunction<M>
+    | {
+        default:
+          | onRemoveFunction<M>
+          | {
+              preventCallerToBeTheHandled?: boolean;
+              handler: onRemoveFunction<M>;
+            };
+        [key: string]:
+          | onRemoveFunction<M>
+          | {
+              preventCallerToBeTheHandled?: boolean;
+              handler: onRemoveFunction<M>;
+            };
+      };
 };
 
 export interface ModelType {

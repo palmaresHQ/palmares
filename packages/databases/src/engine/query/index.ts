@@ -10,7 +10,6 @@ import {
   FieldsOfModelOptionsType,
   ExtractFieldNames,
   Include,
-  PalmaresTransactionsType,
 } from '../../models/types';
 import EngineGetQuery from './get';
 import EngineRemoveQuery from './remove';
@@ -18,6 +17,7 @@ import EngineQuerySearch from './search';
 import EngineQueryOrdering from './ordering';
 import EngineSetQuery from './set';
 import { UnmanagedModelsShouldImplementSpecialMethodsException } from '../exceptions';
+import Transaction from '../../transaction';
 
 type QueryDataFnType =
   | ((args: {
@@ -160,7 +160,7 @@ export default class EngineQuery {
     transaction?: any;
     queryDataFn: QueryDataFnType;
     shouldReturnData?: boolean;
-    palmaresTransaction?: PalmaresTransactionsType;
+    palmaresTransaction?: Transaction;
     resultToMergeWithData?:
       | ModelFieldsWithIncludes<TModel, Includes, FieldsOFModelType<TModel>>
       | undefined;
@@ -287,7 +287,14 @@ export default class EngineQuery {
     const queryDataResults = isToFetchExternally
       ? await fetchFromExternalSource.bind(this)()
       : await fetchFromDatabase.bind(this)();
-
+    if (args.palmaresTransaction) {
+      await args.palmaresTransaction.appendData(
+        this.engineInstance.databaseName,
+        modelConstructor,
+        parsedSearch,
+        queryDataResults
+      );
+    }
     if (Array.isArray(args.results)) {
       if (args.isSetOperation)
         args.results.push(
@@ -302,6 +309,23 @@ export default class EngineQuery {
         );
       else args.results.push(...queryDataResults);
     }
+  }
+
+  async #getDefaultValuesForResultsWithSearchAndWithoutSearch(args: {
+    isDirectlyRelated?: boolean;
+    isSetOperation?: boolean;
+    isRemoveOperation?: boolean;
+    shouldRemove?: boolean;
+    shouldRemoveIncluded?: boolean;
+  }) {
+    if (typeof args.isDirectlyRelated !== 'boolean')
+      args.isDirectlyRelated = false;
+    if (typeof args.isSetOperation !== 'boolean') args.isSetOperation = false;
+    if (typeof args.isRemoveOperation !== 'boolean')
+      args.isRemoveOperation = false;
+    if (typeof args.shouldRemove !== 'boolean') args.shouldRemove = true;
+    if (typeof args.shouldRemoveIncluded !== 'boolean')
+      args.shouldRemoveIncluded = true;
   }
 
   /**
@@ -403,46 +427,49 @@ export default class EngineQuery {
       TIncludes,
       TFields
     >[] = ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]
-  >(
-    relatedField: TRelatedField,
-    modelInstance: TModel,
-    includedModelInstance: TIncludedModel,
-    includesOfModel: TIncludes,
-    includesOfIncluded: TIncludesOfIncludes,
-    fieldsOfModel: TFields,
-    fieldsOfIncludedModel: TFieldsOfIncluded,
-    searchForRelatedModel: TSearchOfIncluded,
-    search: TSearch,
-    results: TResult,
-    isDirectlyRelated = false,
-    queryData: QueryDataFnType,
-    isSetOperation = false,
-    isRemoveOperation = false,
-    shouldRemove = true,
+  >(args: {
+    relatedField: TRelatedField;
+    modelInstance: TModel;
+    includedModelInstance: TIncludedModel;
+    includesOfModel: TIncludes;
+    includesOfIncluded: TIncludesOfIncludes;
+    fieldsOfModel: TFields;
+    fieldsOfIncludedModel: TFieldsOfIncluded;
+    searchForRelatedModel: TSearchOfIncluded;
+    search: TSearch;
+    results: TResult;
+    isDirectlyRelated?: boolean;
+    queryData: QueryDataFnType;
+    isSetOperation?: boolean;
+    isRemoveOperation?: boolean;
+    shouldRemove?: boolean;
     ordering?: OrderingOfModelsType<
       FieldsOfModelOptionsType<TModel> extends string
         ? FieldsOfModelOptionsType<TModel>
         : string
-    >,
-    limit?: number,
-    offset?: number | string,
-    shouldRemoveIncluded = true,
+    >;
+    limit?: number;
+    offset?: number | string;
+    shouldRemoveIncluded?: boolean;
     orderingOfIncluded?: OrderingOfModelsType<
       FieldsOfModelOptionsType<TIncludedModel> extends string
         ? FieldsOfModelOptionsType<TIncludedModel>
         : string
-    >,
-    limitOfIncluded?: number,
-    offsetOfIncluded?: number | string,
-    transaction = undefined
-  ) {
+    >;
+    limitOfIncluded?: number;
+    offsetOfIncluded?: number | string;
+    transaction?: any;
+    palmaresTransaction?: Transaction;
+  }) {
+    await this.#getDefaultValuesForResultsWithSearchAndWithoutSearch(args);
+
     const {
       relationName,
       parentFieldName,
       fieldNameOfRelationInIncludedModel,
     } = this.#getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName(
-      relatedField,
-      isDirectlyRelated
+      args.relatedField,
+      args.isDirectlyRelated
     );
 
     const resultOfIncludes: ModelFieldsWithIncludes<
@@ -451,33 +478,35 @@ export default class EngineQuery {
       TFieldsOfIncluded
     >[] = [];
     const [hasIncludedField, fieldsOfIncludedModelWithFieldsFromRelation] =
-      fieldsOfIncludedModel.includes(fieldNameOfRelationInIncludedModel)
-        ? [false, fieldsOfIncludedModel]
+      args.fieldsOfIncludedModel.includes(fieldNameOfRelationInIncludedModel)
+        ? [false, args.fieldsOfIncludedModel]
         : [
             true,
-            fieldsOfIncludedModel.concat([fieldNameOfRelationInIncludedModel]),
+            args.fieldsOfIncludedModel.concat([
+              fieldNameOfRelationInIncludedModel,
+            ]),
           ];
     const isARemoveOperationAndShouldGetResultsBeforeRemove =
-      isRemoveOperation && isDirectlyRelated === true;
+      args.isRemoveOperation && args.isDirectlyRelated === true;
 
     await this.getResultsWithIncludes(
-      includedModelInstance as TIncludedModel,
+      args.includedModelInstance as TIncludedModel,
       fieldsOfIncludedModelWithFieldsFromRelation as TFieldsOfIncluded,
-      includesOfIncluded as TIncludesOfIncludes,
-      searchForRelatedModel,
+      args.includesOfIncluded as TIncludesOfIncludes,
+      args.searchForRelatedModel,
       resultOfIncludes,
       isARemoveOperationAndShouldGetResultsBeforeRemove
         ? this.get.queryData.bind(this)
-        : queryData,
-      isSetOperation,
-      isRemoveOperation,
-      orderingOfIncluded,
-      limitOfIncluded,
-      offsetOfIncluded,
-      shouldRemoveIncluded,
+        : args.queryData,
+      args.isSetOperation,
+      args.isRemoveOperation,
+      args.orderingOfIncluded,
+      args.limitOfIncluded,
+      args.offsetOfIncluded,
+      args.shouldRemoveIncluded,
       undefined,
       undefined,
-      transaction
+      args.transaction
     );
     const resultByUniqueFieldValue: Record<string, any[]> = {};
     const promises = resultOfIncludes.map(async (result) => {
@@ -496,31 +525,31 @@ export default class EngineQuery {
       } else {
         const nextSearch = {
           [parentFieldName]: uniqueFieldValueOnRelation,
-          ...search,
+          ...args.search,
         };
 
         await this.getResultsWithIncludes(
-          modelInstance as TModel,
-          fieldsOfModel as TFields,
-          includesOfModel as TIncludes,
+          args.modelInstance as TModel,
+          args.fieldsOfModel as TFields,
+          args.includesOfModel as TIncludes,
           nextSearch,
-          results,
-          queryData,
-          isSetOperation,
-          isRemoveOperation,
-          ordering,
-          limit,
-          offset,
-          shouldRemove,
+          args.results,
+          args.queryData,
+          args.isSetOperation,
+          args.isRemoveOperation,
+          args.ordering,
+          args.limit,
+          args.offset,
+          args.shouldRemove,
           undefined,
           undefined,
-          transaction
+          args.transaction
         );
 
         resultByUniqueFieldValue[uniqueFieldValueOnRelation] = [result];
 
-        (results as any)[results.length - 1][relationName] =
-          relatedField.unique || isDirectlyRelated
+        (args.results as any)[args.results.length - 1][relationName] =
+          args.relatedField.unique || args.isDirectlyRelated
             ? resultByUniqueFieldValue[uniqueFieldValueOnRelation][0]
             : resultByUniqueFieldValue[uniqueFieldValueOnRelation];
       }
@@ -544,17 +573,18 @@ export default class EngineQuery {
         undefined,
         undefined
       >({
-        isSetOperation: isSetOperation,
-        isRemoveOperation: isRemoveOperation,
-        modelInstance: includedModelInstance,
-        search: searchForRelatedModel,
-        queryDataFn: queryData,
+        isSetOperation: args.isSetOperation,
+        isRemoveOperation: args.isRemoveOperation,
+        modelInstance: args.includedModelInstance,
+        search: args.searchForRelatedModel,
+        queryDataFn: args.queryData,
         shouldReturnData: false,
-        shouldRemove: shouldRemove,
-        ordering,
-        offset,
-        limit,
-        transaction,
+        shouldRemove: args.shouldRemove,
+        ordering: args.ordering,
+        offset: args.offset,
+        limit: args.limit,
+        transaction: args.transaction,
+        palmaresTransaction: args.palmaresTransaction,
       });
     }
   }
@@ -594,58 +624,61 @@ export default class EngineQuery {
       TIncludes,
       TFields
     >[] = ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]
-  >(
-    relatedField: TRelatedField,
-    modelInstance: TModel,
-    includedModelInstance: TIncludedModel,
-    includesOfModel: TIncludes,
-    includesOfIncluded: TIncludesOfIncludes,
-    fieldsOfModel: TFields,
-    fieldsOfIncludedModel: TFieldsOfIncluded,
-    search: TSearch,
-    results: TResult,
-    isDirectlyRelated: boolean,
-    queryData: QueryDataFnType,
-    isSetOperation = false,
-    isRemoveOperation = false,
-    shouldRemove = true,
+  >(args: {
+    relatedField: TRelatedField;
+    modelInstance: TModel;
+    includedModelInstance: TIncludedModel;
+    includesOfModel: TIncludes;
+    includesOfIncluded: TIncludesOfIncludes;
+    fieldsOfModel: TFields;
+    fieldsOfIncludedModel: TFieldsOfIncluded;
+    search: TSearch;
+    results: TResult;
+    isDirectlyRelated: boolean;
+    queryData: QueryDataFnType;
+    isSetOperation?: boolean;
+    isRemoveOperation?: boolean;
+    shouldRemove?: boolean;
     ordering?: OrderingOfModelsType<
       FieldsOfModelOptionsType<TModel> extends string
         ? FieldsOfModelOptionsType<TModel>
         : string
-    >,
-    limit?: number,
-    offset?: number | string,
-    shouldRemoveIncluded = true,
+    >;
+    limit?: number;
+    offset?: number | string;
+    shouldRemoveIncluded?: boolean;
     orderingOfIncluded?: OrderingOfModelsType<
       FieldsOfModelOptionsType<TIncludedModel> extends string
         ? FieldsOfModelOptionsType<TIncludedModel>
         : string
-    >,
-    limitOfIncluded?: number,
-    offsetOfIncluded?: number | string,
-    resultToMergeWithData = undefined as
+    >;
+    limitOfIncluded?: number;
+    offsetOfIncluded?: number | string;
+    resultToMergeWithData?:
       | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>
-      | undefined,
-    data = undefined as TData,
-    transaction = undefined
-  ) {
+      | undefined;
+    data?: TData;
+    transaction?: any;
+    palmaresTransaction?: Transaction;
+  }) {
+    await this.#getDefaultValuesForResultsWithSearchAndWithoutSearch(args);
+
     const {
       relationName,
       parentFieldName,
       fieldNameOfRelationInIncludedModel,
     } = this.#getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName(
-      relatedField,
-      isDirectlyRelated
+      args.relatedField,
+      args.isDirectlyRelated
     );
 
     // Get the results of the parent model and then get the results of the children (included) models
     const [hasIncludedField, fieldsOfModelWithFieldsFromRelations] =
-      fieldsOfModel.includes(parentFieldName)
-        ? [false, fieldsOfModel]
-        : [true, fieldsOfModel.concat([parentFieldName])];
+      args.fieldsOfModel.includes(parentFieldName)
+        ? [false, args.fieldsOfModel]
+        : [true, args.fieldsOfModel.concat([parentFieldName])];
     const isARemoveOperationAndShouldGetResultsBeforeRemove =
-      isRemoveOperation && isDirectlyRelated === false;
+      args.isRemoveOperation && args.isDirectlyRelated === false;
 
     /**
      * When it is a set operation and it is directly related, we should first update or create the children and just after that we should
@@ -661,7 +694,7 @@ export default class EngineQuery {
      *  : results;
      */
     const isASetOperationAndShouldSetResultsAfterChildren =
-      isSetOperation && isDirectlyRelated === true;
+      args.isSetOperation && args.isDirectlyRelated === true;
     let resultOfChildren:
       | ModelFieldsWithIncludes<
           TIncludedModel,
@@ -672,21 +705,21 @@ export default class EngineQuery {
 
     if (isASetOperationAndShouldSetResultsAfterChildren === false) {
       await this.getResultsWithIncludes(
-        modelInstance as TModel,
+        args.modelInstance as TModel,
         fieldsOfModelWithFieldsFromRelations as TFields,
-        includesOfModel as TIncludes,
-        search as TSearch,
-        results,
+        args.includesOfModel as TIncludes,
+        args.search as TSearch,
+        args.results,
         isARemoveOperationAndShouldGetResultsBeforeRemove
           ? this.get.queryData.bind(this)
-          : queryData,
-        isSetOperation,
-        isRemoveOperation,
-        ordering,
-        limit,
-        offset,
-        shouldRemove,
-        resultToMergeWithData as
+          : args.queryData,
+        args.isSetOperation,
+        args.isRemoveOperation,
+        args.ordering,
+        args.limit,
+        args.offset,
+        args.shouldRemove,
+        args.resultToMergeWithData as
           | ModelFieldsWithIncludes<
               TModel,
               TIncludes,
@@ -698,7 +731,7 @@ export default class EngineQuery {
               FieldsOFModelType<TModel>
             >[]
           | undefined,
-        data as
+        args.data as
           | ModelFieldsWithIncludes<
               TModel,
               TIncludes,
@@ -709,19 +742,22 @@ export default class EngineQuery {
               false
             >[]
           | undefined,
-        transaction
+        args.transaction,
+        args.palmaresTransaction
       );
     }
     // If we are creating or updating we only want to fetch the children of the last result.
     // because we are only updating or creating one result at a time.
-    const allOfTheResultsToFetch = isSetOperation
-      ? [results[results.length - 1]]
-      : results;
+    const allOfTheResultsToFetch = args.isSetOperation
+      ? [args.results[args.results.length - 1]]
+      : args.results;
 
     const promises = allOfTheResultsToFetch.map(async (result) => {
       const nextSearch = (() => {
-        if (isSetOperation)
-          return { ...((resultToMergeWithData as any) || {})[relationName] };
+        if (args.isSetOperation)
+          return {
+            ...((args.resultToMergeWithData as any) || {})[relationName],
+          };
         else {
           const uniqueFieldValueOnRelation = (result as any)[parentFieldName];
           return {
@@ -744,10 +780,10 @@ export default class EngineQuery {
         TIncludesOfIncludes,
         TFieldsOfIncluded
       >[] = [];
-      const resultToMergeWithDataToAdd = ((resultToMergeWithData || {}) as any)[
-        relationName
-      ];
-      const allDataToAdd = ((data || {}) as any)[relationName];
+      const resultToMergeWithDataToAdd = (
+        (args.resultToMergeWithData || {}) as any
+      )[relationName];
+      const allDataToAdd = ((args.data || {}) as any)[relationName];
       const dataToAdd = (
         Array.isArray(allDataToAdd) ? allDataToAdd : [allDataToAdd]
       ).map((dataToMerge: any) =>
@@ -762,21 +798,22 @@ export default class EngineQuery {
       );
 
       await this.getResultsWithIncludes(
-        includedModelInstance as TIncludedModel,
-        fieldsOfIncludedModel as TFieldsOfIncluded,
-        includesOfIncluded as TIncludesOfIncludes,
+        args.includedModelInstance as TIncludedModel,
+        args.fieldsOfIncludedModel as TFieldsOfIncluded,
+        args.includesOfIncluded as TIncludesOfIncludes,
         nextSearch,
         resultOfIncludes,
-        queryData,
-        isSetOperation,
-        isRemoveOperation,
-        orderingOfIncluded,
-        limitOfIncluded,
-        offsetOfIncluded,
-        shouldRemoveIncluded,
+        args.queryData,
+        args.isSetOperation,
+        args.isRemoveOperation,
+        args.orderingOfIncluded,
+        args.limitOfIncluded,
+        args.offsetOfIncluded,
+        args.shouldRemoveIncluded,
         resultToMergeWithDataToAdd,
         dataToAdd,
-        transaction
+        args.transaction,
+        args.palmaresTransaction
       );
 
       if (isASetOperationAndShouldSetResultsAfterChildren) {
@@ -789,7 +826,7 @@ export default class EngineQuery {
         if (hasIncludedField) delete (result as any)[parentFieldName];
 
         (result as any)[relationName] =
-          relatedField.unique || isDirectlyRelated
+          args.relatedField.unique || args.isDirectlyRelated
             ? resultOfIncludes[0]
             : resultOfIncludes;
       }
@@ -813,36 +850,37 @@ export default class EngineQuery {
         undefined,
         undefined
       >({
-        isSetOperation: isSetOperation,
-        isRemoveOperation: isRemoveOperation,
-        modelInstance,
-        search: search,
-        queryDataFn: queryData,
+        isSetOperation: args.isSetOperation,
+        isRemoveOperation: args.isRemoveOperation,
+        modelInstance: args.modelInstance,
+        search: args.search,
+        queryDataFn: args.queryData,
         shouldReturnData: false,
-        shouldRemove: shouldRemove,
-        transaction,
-        ordering,
-        limit,
-        offset,
+        shouldRemove: args.shouldRemove,
+        transaction: args.transaction,
+        palmaresTransaction: args.palmaresTransaction,
+        ordering: args.ordering,
+        limit: args.limit,
+        offset: args.offset,
       });
       return;
     }
 
     if (isASetOperationAndShouldSetResultsAfterChildren) {
       await this.getResultsWithIncludes(
-        modelInstance as TModel,
+        args.modelInstance as TModel,
         fieldsOfModelWithFieldsFromRelations as TFields,
-        includesOfModel as TIncludes,
-        search as TSearch,
-        results,
-        queryData,
-        isSetOperation,
-        isRemoveOperation,
-        ordering,
-        limit,
-        offset,
-        shouldRemove,
-        resultToMergeWithData as
+        args.includesOfModel as TIncludes,
+        args.search as TSearch,
+        args.results,
+        args.queryData,
+        args.isSetOperation,
+        args.isRemoveOperation,
+        args.ordering,
+        args.limit,
+        args.offset,
+        args.shouldRemove,
+        args.resultToMergeWithData as
           | ModelFieldsWithIncludes<
               TModel,
               TIncludes,
@@ -857,12 +895,12 @@ export default class EngineQuery {
         (resultOfChildren &&
         (resultOfChildren as any)[fieldNameOfRelationInIncludedModel]
           ? {
-              ...data,
+              ...args.data,
               [parentFieldName]: (resultOfChildren as any)[
                 fieldNameOfRelationInIncludedModel
               ],
             }
-          : data) as
+          : args.data) as
           | ModelFieldsWithIncludes<
               TModel,
               TIncludes,
@@ -873,9 +911,10 @@ export default class EngineQuery {
               false
             >[]
           | undefined,
-        transaction
+        args.transaction,
+        args.palmaresTransaction
       );
-      for (const result of results) {
+      for (const result of args.results) {
         if (hasIncludedField) delete (result as any)[parentFieldName];
 
         (result as any)[relationName] = resultOfChildren;
@@ -952,7 +991,8 @@ export default class EngineQuery {
     limitOfIncluded?: number,
     offsetOfIncluded?: number | string,
     data = undefined as TData,
-    transaction = undefined
+    transaction = undefined,
+    palmaresTransaction: Transaction | undefined = undefined
   ) {
     const fieldToUseToGetRelationName = isDirectlyRelated
       ? 'relationName'
@@ -972,6 +1012,7 @@ export default class EngineQuery {
     const associationsOfIncludedModel = isDirectlyRelated
       ? modelInstance.associations[includedModelInstance.originalName] || []
       : includedModelInstance.associations[modelInstance.originalName] || [];
+
     const promises = filteredRelatedNamesDirectlyOrIndirectlyRelatedToModel.map(
       async (relationNameOrRelatedName) => {
         const searchForRelatedModel:
@@ -999,58 +1040,42 @@ export default class EngineQuery {
 
         const isToGetResultsWithoutSearch = foreignKeyFieldRelatedToModel;
 
+        const parametersForResultsFromRelatedModelsWithAndWithoutSearch = {
+          relatedField: foreignKeyFieldRelatedToModel as ForeignKeyField,
+          modelInstance: modelInstance as TModel,
+          includedModelInstance: includedModelInstance as TIncludedModel,
+          includesOfModel: includesOfModel as TIncludes,
+          includesOfIncluded: includesOfIncluded as TIncludesOfIncluded,
+          fieldsOfModel: fieldsOfModel as TFields,
+          fieldsOfIncludedModel: fieldsOfIncludedModel as TFieldsOfIncluded,
+          searchForRelatedModel,
+          search,
+          results,
+          isDirectlyRelated,
+          queryData,
+          isSetOperation,
+          isRemoveOperation,
+          shouldRemove,
+          ordering,
+          limit,
+          offset,
+          shouldRemoveIncluded,
+          orderingOfIncluded,
+          limitOfIncluded,
+          offsetOfIncluded,
+          transaction,
+          palmaresTransaction,
+          resultToMergeWithData,
+          data,
+        };
+
         if (isToGetResultsWithSearch) {
           await this.#resultsFromRelatedModelWithSearch(
-            foreignKeyFieldRelatedToModel,
-            modelInstance as TModel,
-            includedModelInstance as TIncludedModel,
-            includesOfModel as TIncludes,
-            includesOfIncluded as TIncludesOfIncluded,
-            fieldsOfModel as TFields,
-            fieldsOfIncludedModel as TFieldsOfIncluded,
-            searchForRelatedModel,
-            search,
-            results,
-            isDirectlyRelated,
-            queryData,
-            isSetOperation,
-            isRemoveOperation,
-            shouldRemove,
-            ordering,
-            limit,
-            offset,
-            shouldRemoveIncluded,
-            orderingOfIncluded,
-            limitOfIncluded,
-            offsetOfIncluded,
-            transaction
+            parametersForResultsFromRelatedModelsWithAndWithoutSearch
           );
         } else if (isToGetResultsWithoutSearch) {
           await this.#resultsFromRelatedModelsWithoutSearch(
-            foreignKeyFieldRelatedToModel,
-            modelInstance,
-            includedModelInstance,
-            includesOfModel,
-            includesOfIncluded,
-            fieldsOfModel,
-            fieldsOfIncludedModel,
-            search,
-            results,
-            isDirectlyRelated,
-            queryData,
-            isSetOperation,
-            isRemoveOperation,
-            shouldRemove,
-            ordering,
-            limit,
-            offset,
-            shouldRemoveIncluded,
-            orderingOfIncluded,
-            limitOfIncluded,
-            offsetOfIncluded,
-            resultToMergeWithData,
-            data,
-            transaction
+            parametersForResultsFromRelatedModelsWithAndWithoutSearch
           );
         }
       }
@@ -1123,7 +1148,7 @@ export default class EngineQuery {
       | undefined,
     data = undefined as TData,
     transaction = undefined,
-    palmaresTransaction: PalmaresTransactionsType | undefined = undefined
+    palmaresTransaction: Transaction | undefined = undefined
   ) {
     async function fetchResults(
       this: EngineQuery,
@@ -1133,6 +1158,8 @@ export default class EngineQuery {
         | undefined,
       safeIncludes = includes as TIncludes
     ) {
+      const safeSearch =
+        Object.keys(search || {}).length > 0 ? search : undefined;
       const hasIncludes = (safeIncludes || []).length > 0;
       if (hasIncludes && safeIncludes) {
         const include = safeIncludes[0];
@@ -1184,7 +1211,7 @@ export default class EngineQuery {
             (includesForGet.fields ||
               allFieldsOfIncludedModel) as readonly (keyof typeof includedModelInstance['fields'])[],
             fields,
-            search,
+            safeSearch,
             results as TResult,
             isDirectlyRelatedModel,
             isSetOperation,
@@ -1220,7 +1247,6 @@ export default class EngineQuery {
           return;
         }
       }
-
       await this.#callQueryDataFn<
         TModel,
         TFields,
@@ -1249,7 +1275,7 @@ export default class EngineQuery {
         isSetOperation: isSetOperation,
         isRemoveOperation: isRemoveOperation,
         modelInstance,
-        search: search,
+        search: safeSearch,
         queryDataFn: queryData,
         fields,
         results,

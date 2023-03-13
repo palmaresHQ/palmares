@@ -6,6 +6,7 @@ import {
   ModelFieldsWithIncludes,
 } from '../../models/types';
 import type EngineQuery from '.';
+import Transaction from '../../transaction';
 
 export default class EngineSetQuery {
   engineQueryInstance: EngineQuery;
@@ -63,10 +64,12 @@ export default class EngineSetQuery {
       false
     >[],
     args: {
+      usePalmaresTransaction?: boolean;
       useTransaction?: boolean;
       search?: TSearch;
     },
     internal: {
+      transaction?: any;
       model: TModel;
       includes: TIncludes;
     }
@@ -90,6 +93,9 @@ export default class EngineSetQuery {
       (internal.includes !== undefined && internal.includes.length > 0);
     const isToUseTransaction =
       isUseTransactionDefined && isTransactionNeededForQuery ? true : false;
+    const palmaresTransaction = args.usePalmaresTransaction
+      ? new Transaction('set')
+      : undefined;
 
     // used to retrieve the results of the query, we separate this in a function so
     // we can use it in the transaction and outside of it
@@ -138,7 +144,8 @@ export default class EngineSetQuery {
             FieldsOFModelType<TModel>
           >,
           data as TData,
-          transaction
+          transaction,
+          palmaresTransaction
         );
         return results;
       } else {
@@ -157,16 +164,23 @@ export default class EngineSetQuery {
           false,
           undefined,
           data as TData,
-          transaction
+          transaction,
+          palmaresTransaction
         );
         return results;
       }
     }
-
-    if (isToUseTransaction)
-      return this.engineQueryInstance.engineInstance.transaction(
-        async (transaction) => await getResults.bind(this)(transaction)
-      );
-    else return getResults.bind(this)(undefined);
+    try {
+      if (isToUseTransaction) {
+        return this.engineQueryInstance.engineInstance.transaction(
+          async (transaction) => getResults.bind(this)(transaction)
+        );
+      } else return getResults.bind(this)(internal.transaction);
+    } catch (error) {
+      if (palmaresTransaction) {
+        palmaresTransaction.rollback();
+        return [];
+      } else throw error;
+    }
   }
 }

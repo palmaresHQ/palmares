@@ -59,5 +59,6 @@ export const DATABASES = {
   - [x] Check if unmananaged models does not create an instance in the database.
 - [ ] Possibility for Internal transactions (transactions that does not depend on the database engine, but on the framework itself.)
   - [ ] Custom transaction caller (so for example the user can define what to do when a transaction fails)
+- [ ] Support for events on models. We can attach an event handler to a model, connected to a layer, and all of the models that are connected to that layer will trigger the event handler. This way we can keep copies of the data internally.
 - [x] Functional model creation instead of class based.
 - [ ] Make queries run in generators so we can better control the flow of the queries.

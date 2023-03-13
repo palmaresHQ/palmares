@@ -1,4 +1,5 @@
 import { conf } from '@palmares/core';
+import { EventEmitter } from '@palmares/events';
 
 import {
   DatabaseSettingsType,
@@ -95,6 +96,11 @@ export default class Databases {
           DatabaseConfigurationType<string, object>
         ][] = Object.entries(settings.DATABASES);
         for (const [databaseName, databaseSettings] of databaseEntries) {
+          const existsEventEmitterForSpecificEngine =
+            databaseSettings.eventEmitter instanceof EventEmitter;
+          databaseSettings.eventEmitter instanceof EventEmitter;
+          if (existsEventEmitterForSpecificEngine === false)
+            databaseSettings.eventEmitter = settings.DATABASES_EVENT_EMITTER;
           await this.initializeDatabase(
             databaseName,
             databaseSettings,

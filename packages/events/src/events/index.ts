@@ -39,7 +39,7 @@ import type {
  * a uuid `124002c4-3719-4c9b-a88e-f743b67f1686`, this means that on the emitter what we will be firing is the `124002c4-3719-4c9b-a88e-f743b67f1686`
  * event and not directly `create.user`. In other words we need to guarantee that we do this conversion when firing the event.
  * To help us with that we use the `this.#groupByKeys`, this means that for `create.user`, or `create.**`, or `create.*` we need
- * to fire the emit action to the following groups. You will see that for most functions we just need to do
+ * to fire the emit action to the following groups. You will see that for most functions we just need to do is get the groupIds and fire it.
  *
  * ```ts
  * const key = `create.user`

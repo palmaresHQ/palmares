@@ -21,14 +21,27 @@ export class ExampleController extends Controller {
 
   @Get('/test')
   async testDecorator() {
-    const value = await User.default.get({
-      fields: ['id', 'firstName'],
-      includes: [
-        {
-          model: Pokemon,
-        },
-      ],
-    });
+    const value = await User.default.set(
+      {
+        firstName: 'Teste',
+        lastName: 'Teste',
+        userPosts: [
+          {
+            number: 1,
+          },
+          {
+            number: 10,
+          },
+        ],
+      },
+      {
+        includes: [
+          {
+            model: PostModel,
+          },
+        ],
+      }
+    );
 
     return Response.new(HTTP_200_OK, { body: value });
   }

@@ -5,6 +5,8 @@ import {
   ModelOptionsType,
   ModelFields,
   ManagersOfInstanceType,
+  onSetFunction,
+  onRemoveFunction,
 } from './types';
 import {
   ModelCircularAbstractError,
@@ -13,7 +15,7 @@ import {
   ModelNoUniqueFieldsError,
 } from './exceptions';
 import Manager, { DefaultManager } from './manager';
-import { getUniqueCustomImports } from '../utils';
+import { getUniqueCustomImports, hashString } from '../utils';
 import { CustomImportsForFieldType } from './fields/types';
 import { ForeignKeyField } from './fields';
 
@@ -110,7 +112,8 @@ export class Model<T = any> {
     | string
     | string[]
     | boolean
-    | Function;
+    | Function
+    | (() => Promise<void>)[];
   fields: ModelFieldsType = {};
   type!: ModelFields<T extends Model ? T : this>;
   _isState = false;
@@ -137,10 +140,12 @@ export class Model<T = any> {
   abstracts: readonly Model[] = [] as const;
   name!: string;
   originalName!: string;
+  hashedName!: string;
   domainName!: string;
   domainPath!: string;
   primaryKeys: string[] = [];
 
+  #eventsUnsubscribers: (() => Promise<void>)[] = [];
   static _isInitialized: { [engineName: string]: boolean } = {};
   static readonly defaultOptions = {
     abstract: false,
@@ -315,6 +320,57 @@ export class Model<T = any> {
     }
   }
 
+  async #initializeEvents(engineInstance: Engine) {
+    if (!engineInstance) return;
+    if (!engineInstance.databaseSettings.eventEmitter) return;
+
+    const existingEngineInstanceConfiguration = JSON.stringify(
+      engineInstance.databaseSettings
+    );
+
+    for (const operationType of ['onSet', 'onRemove'] as const) {
+      const handlersObject =
+        typeof this.options[operationType] === 'function'
+          ? { default: this.options[operationType] }
+          : this.options[operationType];
+      if (!handlersObject) continue;
+
+      const onOperationEntries = Object.entries(handlersObject);
+      for (const [eventName, eventHandler] of onOperationEntries) {
+        const eventNameToUse =
+          eventName === 'default'
+            ? `${this.hashedName}.${operationType}`
+            : eventName;
+        const eventHandlerToCall =
+          typeof eventHandler === 'function'
+            ? eventHandler
+            : eventHandler.handler;
+        const isToPreventCallerToBeTheHandled =
+          typeof eventHandler !== 'function' &&
+          eventHandler.preventCallerToBeTheHandled;
+        this.#eventsUnsubscribers.push(
+          await engineInstance.databaseSettings.eventEmitter.addEventListenerWithoutResult(
+            eventNameToUse,
+            (
+              engineInstanceConfiguration: string,
+              args: Parameters<onSetFunction | onRemoveFunction>
+            ) => {
+              const isCallerDifferentThanHandler =
+                existingEngineInstanceConfiguration !==
+                engineInstanceConfiguration;
+
+              if (
+                isCallerDifferentThanHandler &&
+                isToPreventCallerToBeTheHandled
+              )
+                eventHandlerToCall(args as any);
+            }
+          )
+        );
+      }
+    }
+  }
+
   /**
    * Sometimes (Serializers) we want to initialize the models but not the hole model, just the basic stuff related to the fields.
    * For that we use this method.
@@ -331,9 +387,14 @@ export class Model<T = any> {
       this.name =
         typeof this.name === 'string' ? this.name : this.constructor.name;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [hashedString, _, __] = await Promise.all([
+      hashString(this.originalName),
+      this.#initializeRelatedToModels(engineInstance),
+      this.#initializeAbstracts(),
+    ]);
+    this.hashedName = hashedString;
 
-    await this.#initializeRelatedToModels(engineInstance);
-    await this.#initializeAbstracts();
     await this.#initializeOptions();
     await this.#initializeFields(engineInstance);
     return this as Model;
@@ -351,21 +412,17 @@ export class Model<T = any> {
     this.domainName = domainName;
     this.domainPath = domainPath;
 
-    if (this._isState) {
-      this.originalName = this.name;
-      this.name = `State${this.name}`;
-    } else {
-      this.originalName = this.constructor.name;
-      this.name = this.constructor.name;
-    }
+    await this.initializeBasic(engineInstance);
 
-    await this.#initializeRelatedToModels(engineInstance);
-    await this.#initializeAbstracts();
-    await this.#initializeOptions();
-    await this.#initializeFields(engineInstance);
     let modelInstance = null;
-    if (isManaged)
-      modelInstance = (await engineInstance.initializeModel(this)) as any;
+    if (isManaged) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const [initializedModelInstance, _] = await Promise.all([
+        engineInstance.initializeModel(this),
+        this.#initializeEvents(engineInstance),
+      ]);
+      modelInstance = initializedModelInstance;
+    }
     await this.#initializeManagers(engineInstance, modelInstance);
     (this.constructor as typeof Model)._isInitialized = {
       [engineInstance.databaseName]: true,

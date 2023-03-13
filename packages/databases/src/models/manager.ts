@@ -189,7 +189,7 @@ export default class Manager<
         model: ReturnType<typeof model>;
         includes?: Includes;
       }[];
-      const promises = includesAsArray.map(
+      const promises: Promise<void>[] = includesAsArray.map(
         async ({ model, includes: includesOfModel }) => {
           const modelName = model.name;
           const isModelAlreadyGot =
@@ -371,6 +371,7 @@ export default class Manager<
        * it will guarantee that the data is consistent.
        */
       useTransaction?: boolean;
+      usePalmaresTransaction?: boolean;
       includes?: Function.Narrow<IncludesValidated<TModel, TIncludes, true>>;
       search?: TSearch;
     },
@@ -422,6 +423,8 @@ export default class Manager<
     }> = undefined
   >(
     args?: {
+      usePalmaresTransaction?: boolean;
+      useTransaction?: boolean;
       includes?: Function.Narrow<
         IncludesValidated<
           TModel,
@@ -483,7 +486,8 @@ export default class Manager<
           true,
           true
         >,
-        useTransaction: true,
+        useTransaction: args?.useTransaction,
+        usePalmaresTransaction: args?.usePalmaresTransaction,
         shouldRemove: shouldRemove,
       },
       {

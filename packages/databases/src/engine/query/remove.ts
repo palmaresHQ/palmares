@@ -7,6 +7,7 @@ import type {
   FieldsOFModelType,
 } from '../../models/types';
 import type EngineQuery from '.';
+import Transaction from '../../transaction';
 
 export default class EngineRemoveQuery {
   engineQueryInstance: EngineQuery;
@@ -46,6 +47,7 @@ export default class EngineRemoveQuery {
       | undefined = undefined
   >(
     args: {
+      usePalmaresTransaction?: boolean;
       useTransaction?: boolean;
       search?: TSearch;
       shouldRemove?: boolean;
@@ -53,10 +55,14 @@ export default class EngineRemoveQuery {
     internal: {
       model: TModel;
       includes: TIncludes;
+      transaction?: any;
     }
   ): Promise<
     ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]
   > {
+    const palmaresTransaction = args.usePalmaresTransaction
+      ? new Transaction('remove')
+      : undefined;
     const shouldRemove =
       typeof args.shouldRemove === 'boolean' ? args.shouldRemove : true;
     const isToUseTransaction =
@@ -87,15 +93,22 @@ export default class EngineRemoveQuery {
         shouldRemove,
         undefined,
         undefined,
-        transaction
+        transaction,
+        palmaresTransaction
       );
       return results;
     }
-
-    if (isToUseTransaction)
-      return this.engineQueryInstance.engineInstance.transaction(
-        async (transaction) => await getResults.bind(this)(transaction)
-      );
-    else return getResults.bind(this)(undefined);
+    try {
+      if (isToUseTransaction) {
+        return this.engineQueryInstance.engineInstance.transaction(
+          async (transaction) => getResults.bind(this)(transaction)
+        );
+      } else return getResults.bind(this)(internal.transaction);
+    } catch (error) {
+      if (palmaresTransaction) {
+        palmaresTransaction.rollback();
+        return [];
+      } else throw error;
+    }
   }
 }
