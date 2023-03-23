@@ -366,6 +366,7 @@ export default class Manager<
           false
         >,
     args?: {
+      isToPreventEvents?: boolean;
       /**
        * This is enabled by default if you are inserting more than one element or if you use includes, it can make you code slower, but
        * it will guarantee that the data is consistent.
@@ -379,6 +380,10 @@ export default class Manager<
   ): Promise<
     ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]
   > {
+    const isToPreventEvents =
+      typeof args?.isToPreventEvents === 'boolean'
+        ? args.isToPreventEvents
+        : false;
     const engineInstanceName = engineName || this.defaultEngineInstanceName;
 
     // Promise.all here will not work, we need to do this sequentially.
@@ -397,6 +402,7 @@ export default class Manager<
     return engineInstance.query.set.run(
       dataAsAnArray,
       {
+        isToPreventEvents,
         useTransaction: args?.useTransaction,
         search: args?.search,
       },
@@ -425,6 +431,7 @@ export default class Manager<
     args?: {
       usePalmaresTransaction?: boolean;
       useTransaction?: boolean;
+      isToPreventEvents?: boolean;
       includes?: Function.Narrow<
         IncludesValidated<
           TModel,
@@ -450,6 +457,10 @@ export default class Manager<
     },
     engineName?: string
   ): Promise<ModelFieldsWithIncludes<TModel, TIncludes>[]> {
+    const isToPreventEvents =
+      typeof args?.isToPreventEvents === 'boolean'
+        ? args.isToPreventEvents
+        : false;
     const shouldRemove =
       typeof args?.shouldRemove === 'boolean' ? args.shouldRemove : true;
     const isValidEngineName =
@@ -486,6 +497,7 @@ export default class Manager<
           true,
           true
         >,
+        isToPreventEvents,
         useTransaction: args?.useTransaction,
         usePalmaresTransaction: args?.usePalmaresTransaction,
         shouldRemove: shouldRemove,

@@ -95,12 +95,24 @@ export default class Databases {
           string,
           DatabaseConfigurationType<string, object>
         ][] = Object.entries(settings.DATABASES);
+        const existsEventEmitterForAllEngines =
+          settings?.DATABASES_EVENT_EMITTER instanceof EventEmitter ||
+          (settings?.DATABASES_EVENT_EMITTER || {}) instanceof Promise;
+
         for (const [databaseName, databaseSettings] of databaseEntries) {
           const existsEventEmitterForSpecificEngine =
-            databaseSettings.eventEmitter instanceof EventEmitter;
-          databaseSettings.eventEmitter instanceof EventEmitter;
-          if (existsEventEmitterForSpecificEngine === false)
-            databaseSettings.eventEmitter = settings.DATABASES_EVENT_EMITTER;
+            databaseSettings.events?.emitter instanceof EventEmitter ||
+            databaseSettings.events?.emitter instanceof Promise;
+
+          if (
+            existsEventEmitterForSpecificEngine === false &&
+            existsEventEmitterForAllEngines
+          )
+            databaseSettings.events = {
+              emitter: settings.DATABASES_EVENT_EMITTER as
+                | EventEmitter
+                | Promise<EventEmitter>,
+            };
           await this.initializeDatabase(
             databaseName,
             databaseSettings,

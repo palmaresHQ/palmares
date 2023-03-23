@@ -18,6 +18,7 @@ import EngineQueryOrdering from './ordering';
 import EngineSetQuery from './set';
 import { UnmanagedModelsShouldImplementSpecialMethodsException } from '../exceptions';
 import Transaction from '../../transaction';
+import { extractDefaultEventsHandlerFromModel } from '../../utils';
 
 type QueryDataFnType =
   | ((args: {
@@ -118,6 +119,84 @@ export default class EngineQuery {
     return undefined;
   }
 
+  async getDataForOnSetOrOnRemoveOptionFunctions(
+    onSetOrOnRemove: 'onSet' | 'onRemove',
+    args: {
+      data: any;
+      search: any;
+      shouldRemove?: boolean;
+      shouldReturnData?: boolean;
+    }
+  ) {
+    return onSetOrOnRemove === 'onSet'
+      ? {
+          data: args.data,
+          search: args.search,
+        }
+      : {
+          search: args.search,
+          shouldRemove: args.shouldRemove,
+          shouldReturnData: args.shouldReturnData,
+        };
+  }
+
+  async #fireEventsAfterQueryDataFn(args: {
+    modelInstance: InstanceType<ReturnType<typeof model>>;
+    isSetOperation: boolean;
+    isRemoveOperation: boolean;
+    isToPreventEvents: boolean;
+    shouldReturnData: boolean;
+    shouldRemove: boolean;
+    parsedData: any;
+    parsedSearch: any;
+  }) {
+    const shouldCallEvents =
+      this.engineInstance.databaseSettings.events?.emitter &&
+      (args.isRemoveOperation || args.isSetOperation) &&
+      args.isToPreventEvents !== true;
+
+    if (
+      this.engineInstance.databaseSettings.events?.emitter &&
+      shouldCallEvents
+    ) {
+      const operationName = args.isRemoveOperation ? 'onRemove' : 'onSet';
+      const eventEmitter = await Promise.resolve(
+        this.engineInstance.databaseSettings.events.emitter
+      );
+      const dataForFunction =
+        await this.getDataForOnSetOrOnRemoveOptionFunctions(operationName, {
+          data: args.parsedData,
+          search: args.parsedSearch,
+          shouldRemove: args.shouldRemove,
+          shouldReturnData: args.shouldReturnData,
+        });
+
+      const isDataTheSameReceivedThroughEvent =
+        args.modelInstance.stringfiedArgumentsOfEvents.has(
+          JSON.stringify(dataForFunction)
+        );
+
+      if (isDataTheSameReceivedThroughEvent === false) {
+        if (eventEmitter.hasLayer) {
+          eventEmitter.emitToChannel(
+            this.engineInstance.databaseSettings.events.channels
+              ? this.engineInstance.databaseSettings.events.channels
+              : eventEmitter.channels,
+            `${args.modelInstance.hashedName}.${operationName}`,
+            this.engineInstance.databaseName,
+            dataForFunction
+          );
+        } else {
+          eventEmitter.emit(
+            `${args.modelInstance.hashedName}.${operationName}`,
+            this.engineInstance.databaseName,
+            dataForFunction
+          );
+        }
+      }
+    }
+  }
+
   /**
    * Calls the query data function to retrieve the results of the
    */
@@ -161,6 +240,7 @@ export default class EngineQuery {
     queryDataFn: QueryDataFnType;
     shouldReturnData?: boolean;
     palmaresTransaction?: Transaction;
+    isToPreventEvents?: boolean;
     resultToMergeWithData?:
       | ModelFieldsWithIncludes<TModel, Includes, FieldsOFModelType<TModel>>
       | undefined;
@@ -254,18 +334,37 @@ export default class EngineQuery {
     }
 
     async function fetchFromExternalSource(this: EngineQuery) {
-      if (args.isSetOperation && modelInstance.options.onSet)
-        return modelInstance.options.onSet({
-          data: parsedData as any,
-          search: parsedSearch as any,
-        });
-      else if (args.isRemoveOperation && modelInstance.options.onRemove)
-        return modelInstance.options.onRemove({
-          search: parsedSearch as any,
-          shouldRemove: shouldRemove,
-          shouldReturnData: args.shouldReturnData,
-        });
-      else if (modelInstance.options.onGet)
+      if (args.isSetOperation && modelInstance.options.onSet) {
+        const onSetHandler = extractDefaultEventsHandlerFromModel(
+          modelInstance,
+          'onSet'
+        );
+        if (onSetHandler) {
+          const dataForFunction =
+            await this.getDataForOnSetOrOnRemoveOptionFunctions('onSet', {
+              data: parsedData,
+              search: parsedSearch,
+              shouldRemove: shouldRemove,
+              shouldReturnData: args.shouldReturnData,
+            });
+          return onSetHandler(dataForFunction as any);
+        }
+      } else if (args.isRemoveOperation && modelInstance.options.onRemove) {
+        const onRemoveHandler = extractDefaultEventsHandlerFromModel(
+          modelInstance,
+          'onRemove'
+        );
+        if (onRemoveHandler) {
+          const dataForFunction =
+            await this.getDataForOnSetOrOnRemoveOptionFunctions('onRemove', {
+              data: parsedData,
+              search: parsedSearch,
+              shouldRemove: shouldRemove,
+              shouldReturnData: args.shouldReturnData,
+            });
+          return onRemoveHandler(dataForFunction);
+        }
+      } else if (modelInstance.options.onGet)
         return modelInstance.options.onGet({
           search: parsedSearch as any,
           fields: fields as ExtractFieldNames<TModel, TModel['abstracts']>,
@@ -287,8 +386,20 @@ export default class EngineQuery {
     const queryDataResults = isToFetchExternally
       ? await fetchFromExternalSource.bind(this)()
       : await fetchFromDatabase.bind(this)();
+
+    await this.#fireEventsAfterQueryDataFn({
+      isToPreventEvents: args.isToPreventEvents || false,
+      isRemoveOperation: args.isRemoveOperation || false,
+      isSetOperation: args.isSetOperation || false,
+      modelInstance,
+      parsedSearch,
+      parsedData,
+      shouldRemove: args.shouldRemove || false,
+      shouldReturnData: args.shouldReturnData || false,
+    });
+
     if (args.palmaresTransaction) {
-      await args.palmaresTransaction.appendData(
+      args.palmaresTransaction.appendData(
         this.engineInstance.databaseName,
         modelConstructor,
         parsedSearch,
@@ -312,6 +423,7 @@ export default class EngineQuery {
   }
 
   async #getDefaultValuesForResultsWithSearchAndWithoutSearch(args: {
+    isToPreventEvents?: boolean;
     isDirectlyRelated?: boolean;
     isSetOperation?: boolean;
     isRemoveOperation?: boolean;
@@ -326,6 +438,8 @@ export default class EngineQuery {
     if (typeof args.shouldRemove !== 'boolean') args.shouldRemove = true;
     if (typeof args.shouldRemoveIncluded !== 'boolean')
       args.shouldRemoveIncluded = true;
+    if (typeof args.isToPreventEvents !== 'boolean')
+      args.isToPreventEvents = false;
   }
 
   /**
@@ -458,6 +572,7 @@ export default class EngineQuery {
     >;
     limitOfIncluded?: number;
     offsetOfIncluded?: number | string;
+    isToPreventEvents?: boolean;
     transaction?: any;
     palmaresTransaction?: Transaction;
   }) {
@@ -506,6 +621,7 @@ export default class EngineQuery {
       args.shouldRemoveIncluded,
       undefined,
       undefined,
+      args.isToPreventEvents,
       args.transaction
     );
     const resultByUniqueFieldValue: Record<string, any[]> = {};
@@ -543,6 +659,7 @@ export default class EngineQuery {
           args.shouldRemove,
           undefined,
           undefined,
+          args.isToPreventEvents,
           args.transaction
         );
 
@@ -585,6 +702,7 @@ export default class EngineQuery {
         limit: args.limit,
         transaction: args.transaction,
         palmaresTransaction: args.palmaresTransaction,
+        isToPreventEvents: args.isToPreventEvents,
       });
     }
   }
@@ -658,6 +776,7 @@ export default class EngineQuery {
       | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>
       | undefined;
     data?: TData;
+    isToPreventEvents?: boolean;
     transaction?: any;
     palmaresTransaction?: Transaction;
   }) {
@@ -742,6 +861,9 @@ export default class EngineQuery {
               false
             >[]
           | undefined,
+        typeof args.isToPreventEvents === 'boolean'
+          ? args.isToPreventEvents
+          : false,
         args.transaction,
         args.palmaresTransaction
       );
@@ -812,6 +934,7 @@ export default class EngineQuery {
         args.shouldRemoveIncluded,
         resultToMergeWithDataToAdd,
         dataToAdd,
+        args.isToPreventEvents,
         args.transaction,
         args.palmaresTransaction
       );
@@ -862,6 +985,7 @@ export default class EngineQuery {
         ordering: args.ordering,
         limit: args.limit,
         offset: args.offset,
+        isToPreventEvents: args.isToPreventEvents,
       });
       return;
     }
@@ -911,6 +1035,7 @@ export default class EngineQuery {
               false
             >[]
           | undefined,
+        args.isToPreventEvents,
         args.transaction,
         args.palmaresTransaction
       );
@@ -991,6 +1116,7 @@ export default class EngineQuery {
     limitOfIncluded?: number,
     offsetOfIncluded?: number | string,
     data = undefined as TData,
+    isToPreventEvents = false,
     transaction = undefined,
     palmaresTransaction: Transaction | undefined = undefined
   ) {
@@ -1064,6 +1190,7 @@ export default class EngineQuery {
           limitOfIncluded,
           offsetOfIncluded,
           transaction,
+          isToPreventEvents,
           palmaresTransaction,
           resultToMergeWithData,
           data,
@@ -1147,6 +1274,7 @@ export default class EngineQuery {
       | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]
       | undefined,
     data = undefined as TData,
+    isToPreventEvents = false,
     transaction = undefined,
     palmaresTransaction: Transaction | undefined = undefined
   ) {
@@ -1241,6 +1369,7 @@ export default class EngineQuery {
               TSearch extends undefined ? false : true,
               false
             >,
+            isToPreventEvents,
             transaction,
             palmaresTransaction
           );
@@ -1287,6 +1416,7 @@ export default class EngineQuery {
         transaction: transaction,
         palmaresTransaction: palmaresTransaction,
         resultToMergeWithData,
+        isToPreventEvents: isToPreventEvents,
       });
     }
 

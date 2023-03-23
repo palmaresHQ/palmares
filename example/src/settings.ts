@@ -6,6 +6,7 @@ import { ExpressCorsMiddleware } from './core/middlewares';
 import { dirname, resolve } from 'path';
 import { EventEmitter } from '@palmares/events';
 
+export const PORT = 4001;
 export const ENV =
   typeof process.env.NODE_ENV === 'string'
     ? process.env.NODE_ENV
@@ -23,12 +24,14 @@ export const MIDDLEWARES = [
   import('./core/middlewares'),
 ];
 
+const layer = EventEmitter.new(import('@palmares/redis-emitter'), {
+  emitterParams: [{ url: 'redis://localhost:6379' }],
+});
+
 export const EVENTS_EMITTER = import('@palmares/eventemitter2-emitter');
 export const EVENTS_OPTIONS = {
   layer: {
-    use: EventEmitter.new(import('@palmares/redis-emitter'), {
-      emitterParams: [{ url: 'redis://localhost:6379' }],
-    }),
+    use: layer,
     channels: ['all'],
   },
 };

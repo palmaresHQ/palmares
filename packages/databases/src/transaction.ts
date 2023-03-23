@@ -119,6 +119,7 @@ export default class Transaction {
                     await engineToUse.query.set.run(
                       data,
                       {
+                        isToPreventEvents: false,
                         useTransaction: false,
                         search: formattedSearchObject,
                       },
@@ -131,6 +132,7 @@ export default class Transaction {
                   } else {
                     await engineToUse.query.remove.run(
                       {
+                        isToPreventEvents: false,
                         useTransaction: false,
                         search: dataToSet,
                         shouldRemove: true,
@@ -160,6 +162,7 @@ export default class Transaction {
                   await engineToUse.query.set.run(
                     dataThatWasRemoved,
                     {
+                      isToPreventEvents: false,
                       useTransaction: false,
                       search: searchObject,
                     },

@@ -112,6 +112,7 @@ export class Model<T = any> {
     | string
     | string[]
     | boolean
+    | Set<string>
     | Function
     | (() => Promise<void>)[];
   fields: ModelFieldsType = {};
@@ -133,6 +134,7 @@ export class Model<T = any> {
       any
     >[];
   } = {};
+  stringfiedArgumentsOfEvents = new Set<string>();
   // Other models use this model as ForeignKey
   indirectlyRelatedTo: { [modelName: string]: string[] } = {};
   // This model uses other models as ForeignKey
@@ -320,54 +322,60 @@ export class Model<T = any> {
     }
   }
 
+  /**
+   * This will add event listeners to the model. So when an event like `.get`, `.set` or `.remove` is triggered, we will call
+   * the event handler that was defined in the model.
+   *
+   * @param engineInstance - The current engine instance we are initializing this model instance
+   */
   async #initializeEvents(engineInstance: Engine) {
     if (!engineInstance) return;
-    if (!engineInstance.databaseSettings.eventEmitter) return;
+    if (!engineInstance.databaseSettings.events?.emitter) return;
 
-    const existingEngineInstanceConfiguration = JSON.stringify(
-      engineInstance.databaseSettings
-    );
+    const existingEngineInstanceName = engineInstance.databaseName;
 
     for (const operationType of ['onSet', 'onRemove'] as const) {
-      const handlersObject =
+      const eventHandler =
         typeof this.options[operationType] === 'function'
-          ? { default: this.options[operationType] }
-          : this.options[operationType];
-      if (!handlersObject) continue;
+          ? this.options[operationType]
+          : typeof this.options[operationType] === 'object'
+          ? (this.options[operationType] as any).handler
+          : undefined;
+      if (!eventHandler) continue;
 
-      const onOperationEntries = Object.entries(handlersObject);
-      for (const [eventName, eventHandler] of onOperationEntries) {
-        const eventNameToUse =
-          eventName === 'default'
-            ? `${this.hashedName}.${operationType}`
-            : eventName;
-        const eventHandlerToCall =
-          typeof eventHandler === 'function'
-            ? eventHandler
-            : eventHandler.handler;
-        const isToPreventCallerToBeTheHandled =
-          typeof eventHandler !== 'function' &&
-          eventHandler.preventCallerToBeTheHandled;
-        this.#eventsUnsubscribers.push(
-          await engineInstance.databaseSettings.eventEmitter.addEventListenerWithoutResult(
-            eventNameToUse,
-            (
-              engineInstanceConfiguration: string,
-              args: Parameters<onSetFunction | onRemoveFunction>
-            ) => {
-              const isCallerDifferentThanHandler =
-                existingEngineInstanceConfiguration !==
-                engineInstanceConfiguration;
+      const isToPreventCallerToBeTheHandled =
+        typeof this.options[operationType] === 'function'
+          ? true
+          : typeof this.options[operationType] === 'object'
+          ? (this.options[operationType] as any).preventCallerToBeTheHandled
+          : undefined;
 
-              if (
-                isCallerDifferentThanHandler &&
-                isToPreventCallerToBeTheHandled
-              )
-                eventHandlerToCall(args as any);
-            }
-          )
-        );
-      }
+      const eventNameToUse = `${this.hashedName}.${operationType}`;
+      const eventEmitter = await Promise.resolve(
+        engineInstance.databaseSettings.events.emitter
+      );
+      this.#eventsUnsubscribers.push(
+        await eventEmitter.addEventListenerWithoutResult(
+          eventNameToUse,
+          async (
+            engineInstanceName: string,
+            args: Parameters<onSetFunction | onRemoveFunction>
+          ) => {
+            const isCallerDifferentThanHandler =
+              engineInstanceName !== existingEngineInstanceName;
+            const argsAsString = JSON.stringify(args);
+            // This will prevent the event to be triggered twice for the same set of arguments.
+            this.stringfiedArgumentsOfEvents.add(argsAsString);
+
+            if (isToPreventCallerToBeTheHandled && isCallerDifferentThanHandler)
+              await Promise.resolve(eventHandler(args as any));
+            else if (!isToPreventCallerToBeTheHandled)
+              await Promise.resolve(eventHandler(args as any));
+
+            this.stringfiedArgumentsOfEvents.delete(argsAsString);
+          }
+        )
+      );
     }
   }
 

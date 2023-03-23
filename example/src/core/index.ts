@@ -13,6 +13,7 @@ export default class CoreDomain
   constructor() {
     super(CoreDomain.name, __dirname);
   }
+
   async getMigrations() {
     return import('./migrations');
   }

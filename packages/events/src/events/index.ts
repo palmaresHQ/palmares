@@ -230,6 +230,14 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     if (options?.layer?.channels) this.#channels = options.layer.channels;
   }
 
+  get hasLayer() {
+    return this.layer instanceof EventEmitter;
+  }
+
+  get channels(): string[] {
+    return Array.isArray(this.#channels) ? [...this.#channels] : [];
+  }
+
   /**
    * This is responsible fo retrieving the response of the emitted event, when the event
    * finishes processing it'll send a response to this function (this is handler for a specific

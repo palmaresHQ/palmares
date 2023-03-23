@@ -64,6 +64,7 @@ export default class EngineSetQuery {
       false
     >[],
     args: {
+      isToPreventEvents?: boolean;
       usePalmaresTransaction?: boolean;
       useTransaction?: boolean;
       search?: TSearch;
@@ -144,6 +145,7 @@ export default class EngineSetQuery {
             FieldsOFModelType<TModel>
           >,
           data as TData,
+          args.isToPreventEvents,
           transaction,
           palmaresTransaction
         );
@@ -164,6 +166,7 @@ export default class EngineSetQuery {
           false,
           undefined,
           data as TData,
+          args.isToPreventEvents,
           transaction,
           palmaresTransaction
         );

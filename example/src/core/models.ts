@@ -73,8 +73,16 @@ export class User extends models.Model<User>() {
     uuid: UUIDField.new({ autoGenerate: true, unique: true }),
   };
 
-  options = {
+  options: ModelOptionsType<User> = {
     tableName: 'user',
+    onSet: {
+      preventCallerToBeTheHandled: false,
+      handler: async ({ data }) => {
+        console.log('recieved onset event', data);
+        await User.default.set(data);
+        return [data];
+      },
+    },
   };
 }
 

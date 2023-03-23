@@ -172,18 +172,8 @@ export type ModelOptionsType<M = any> = {
   onSet?:
     | onSetFunction<M>
     | {
-        default:
-          | onSetFunction<M>
-          | {
-              preventCallerToBeTheHandled?: boolean;
-              handler: onSetFunction<M>;
-            };
-        [key: string]:
-          | onSetFunction<M>
-          | {
-              preventCallerToBeTheHandled?: boolean;
-              handler: onSetFunction<M>;
-            };
+        preventCallerToBeTheHandled?: boolean;
+        handler: onSetFunction<M>;
       };
   /**
    * Can be used either for firing a synchronous call to make changes to a particular model or can use the event handler to fire asyncrhronous
@@ -193,18 +183,8 @@ export type ModelOptionsType<M = any> = {
   onRemove?:
     | onRemoveFunction<M>
     | {
-        default:
-          | onRemoveFunction<M>
-          | {
-              preventCallerToBeTheHandled?: boolean;
-              handler: onRemoveFunction<M>;
-            };
-        [key: string]:
-          | onRemoveFunction<M>
-          | {
-              preventCallerToBeTheHandled?: boolean;
-              handler: onRemoveFunction<M>;
-            };
+        preventCallerToBeTheHandled?: boolean;
+        handler: onRemoveFunction<M>;
       };
 };
 

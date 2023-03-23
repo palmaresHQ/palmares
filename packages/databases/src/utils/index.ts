@@ -2,6 +2,7 @@ import { CustomImportsForFieldType } from '../models/fields/types';
 
 export * from './constants';
 export { default as hashString } from './hash';
+export * from './models';
 
 /** Retrieves the unique custom imports of the field or the model to generate the migrations to. */
 export function getUniqueCustomImports(

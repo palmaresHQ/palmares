@@ -15,7 +15,10 @@ export interface DatabaseConfigurationType<DialectOptions, ExtraOptions> {
   protocol?: string;
   port: number;
   extraOptions?: ExtraOptions;
-  eventEmitter?: EventEmitter;
+  events?: {
+    emitter: EventEmitter | Promise<EventEmitter>;
+    channels?: string[];
+  };
 }
 
 export type InitializedEngineInstancesType = {

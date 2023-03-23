@@ -14,6 +14,7 @@ import { User, Post as PostModel, Photo, Pokemon } from './models';
 
 export class ExampleController extends Controller {
   path = '';
+
   constructor() {
     super();
     //console.log(dependencyInjection);
@@ -25,21 +26,10 @@ export class ExampleController extends Controller {
       {
         firstName: 'Teste',
         lastName: 'Teste',
-        userPosts: [
-          {
-            number: 1,
-          },
-          {
-            number: 10,
-          },
-        ],
       },
       {
-        includes: [
-          {
-            model: PostModel,
-          },
-        ],
+        usePalmaresTransaction: false,
+        useTransaction: false,
       }
     );
 

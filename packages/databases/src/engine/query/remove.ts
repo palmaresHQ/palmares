@@ -47,6 +47,7 @@ export default class EngineRemoveQuery {
       | undefined = undefined
   >(
     args: {
+      isToPreventEvents?: boolean;
       usePalmaresTransaction?: boolean;
       useTransaction?: boolean;
       search?: TSearch;
@@ -93,6 +94,7 @@ export default class EngineRemoveQuery {
         shouldRemove,
         undefined,
         undefined,
+        args.isToPreventEvents,
         transaction,
         palmaresTransaction
       );
