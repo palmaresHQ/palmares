@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { HTTPMethodEnum } from '../controllers/enums';
 import { VariableControllerType } from '../controllers/types';
 import { MoreThanOneHandlerForSamePathError } from './exceptions';
@@ -272,3 +273,461 @@ export async function path<A extends Array<RouterParametersType>>(
 ): Promise<Router> {
   return Router.new(path, ...args);
 }
+//---------------------------------
+type ExtractRouterPaths<
+  TRootRouter,
+  TPaths extends [string, CustomRouter<any, any>][] = []
+> = TRootRouter extends CustomRouter<infer TPath, any, infer TChild>
+  ? TChild extends CustomRouter
+    ? TPath extends ``
+      ? TPaths
+      : ExtractRouterPaths<TChild, [...TPaths, [TPath, TRootRouter]]>
+    : TPaths
+  : TPaths;
+
+type GetTypeByString<TString extends string> = TString extends 'number'
+  ? number
+  : string;
+
+type ExtractStringWithoutSpaces<TString extends string> =
+  TString extends ` ${infer TRest}`
+    ? ExtractStringWithoutSpaces<`${TRest}`>
+    : TString extends `${infer TRest} `
+    ? ExtractStringWithoutSpaces<`${TRest}`>
+    : TString;
+
+type ExtractUrlParams<TPath extends string> =
+  TPath extends `${string}<${infer TParam}:${infer TType}>${infer TRest}`
+    ? {
+        [key in TParam]: GetTypeByString<
+          ExtractStringWithoutSpaces<
+            TType extends `${string}(${string}):${infer TTypeOfRegex}`
+              ? TTypeOfRegex
+              : TType
+          >
+        >;
+      } & ExtractUrlParams<TRest>
+    : unknown;
+
+type ExtractRouterPathsStrings<TRootRouter> = TRootRouter extends CustomRouter<
+  infer TPath,
+  any,
+  infer TChild
+>
+  ? TChild extends CustomRouter
+    ? TPath extends ``
+      ? never
+      : TPath | ExtractRouterPathsStrings<TChild>
+    : never
+  : never;
+
+type Teste = ExtractUrlParams<'/teste/<hello: (/d+):number>'>;
+type Teste2 = ExtractRouterPathsStrings<typeof teste>;
+
+class Request<
+  TRoutePath extends string = string,
+  TRequest extends {
+    Data?: unknown;
+    Headers?: object | unknown;
+    Cookies?: object | unknown;
+    Context?: unknown;
+  } = {
+    Data: unknown;
+    Headers: unknown;
+    Cookies: unknown;
+    Context: unknown;
+  }
+> {
+  params!: ExtractUrlParams<TRoutePath>;
+  data!: TRequest['Data'];
+  headers!: TRequest['Headers'];
+  cookies!: TRequest['Cookies'];
+  context!: TRequest['Context'];
+}
+
+class Middleware2 {
+  request:
+    | ((
+        request: Request<
+          string,
+          { Data: any; Headers: any; Cookies: any; Context: any }
+        >
+      ) =>
+        | Promise<
+            Request<
+              string,
+              { Data: any; Headers: any; Cookies: any; Context: any }
+            >
+          >
+        | Request<
+            string,
+            { Data: any; Headers: any; Cookies: any; Context: any }
+          >)
+    | undefined = undefined;
+}
+
+function middleware<
+  TRouter extends CustomRouter<any, any, any, any>,
+  TRouterMiddlewares = TRouter extends CustomRouter<
+    any,
+    any,
+    infer TInferMiddlewares,
+    any
+  >
+    ? TInferMiddlewares extends readonly Middleware2[]
+      ? TInferMiddlewares
+      : never
+    : never,
+  TRequestFunction =
+    | ((
+        request: TRouterMiddlewares extends readonly Middleware2[]
+          ? ExtractRequests<TRouter['path'], TRouterMiddlewares>
+          : undefined
+      ) =>
+        | Promise<
+            Request<
+              string,
+              { Data: any; Headers: any; Cookies: any; Context: any }
+            >
+          >
+        | Request<
+            string,
+            { Data: any; Headers: any; Cookies: any; Context: any }
+          >)
+    | undefined
+>(options: { request: TRequestFunction }) {
+  type TypeValidRequestFunction = TRequestFunction extends (
+    request: Request<
+      string,
+      { Data: any; Headers: any; Cookies: any; Context: any }
+    >
+  ) =>
+    | Promise<
+        Request<string, { Data: any; Headers: any; Cookies: any; Context: any }>
+      >
+    | Request<string, { Data: any; Headers: any; Cookies: any; Context: any }>
+    ? TRequestFunction
+    : undefined;
+
+  return class extends Middleware2 {
+    request = options.request as TypeValidRequestFunction;
+  };
+}
+
+function nestedMiddleware<TRouter extends CustomRouter<any, any, any, any>>() {
+  return <
+    TRouterMiddlewares = TRouter extends CustomRouter<
+      any,
+      any,
+      infer TInferMiddlewares,
+      any
+    >
+      ? TInferMiddlewares extends readonly Middleware2[]
+        ? TInferMiddlewares
+        : never
+      : never,
+    TRequestFunction =
+      | ((
+          request: TRouterMiddlewares extends readonly Middleware2[]
+            ? ExtractRequests<TRouter['path'], TRouterMiddlewares>
+            : Request
+        ) =>
+          | Promise<
+              Request<
+                string,
+                { Data: any; Headers: any; Cookies: any; Context: any }
+              >
+            >
+          | Request<
+              string,
+              { Data: any; Headers: any; Cookies: any; Context: any }
+            >)
+      | undefined
+  >(options: {
+    request: TRequestFunction;
+  }) => {
+    type TypeValidRequestFunction = TRequestFunction extends (
+      request: Request<
+        string,
+        { Data: any; Headers: any; Cookies: any; Context: any }
+      >
+    ) =>
+      | Promise<
+          Request<
+            string,
+            { Data: any; Headers: any; Cookies: any; Context: any }
+          >
+        >
+      | Request<string, { Data: any; Headers: any; Cookies: any; Context: any }>
+      ? TRequestFunction
+      : undefined;
+
+    return class extends Middleware2 {
+      request = options.request as TypeValidRequestFunction;
+    };
+  };
+}
+
+type Router2 = ReturnType<typeof middleware1['request']>;
+const teste: Router2 = {};
+class CustomRouter<
+  TParentRouter extends CustomRouter<any, any, any> | undefined = undefined,
+  TChildren extends
+    | readonly CustomRouter<any, any, any>[]
+    | undefined = undefined,
+  TMiddlewares extends readonly Middleware2[] = [],
+  TRootPath extends string | undefined = undefined
+> {
+  __wasCreatedFromNested = false;
+  path!: TRootPath;
+  children?: TChildren;
+  #middlewares: TMiddlewares = [] as unknown as TMiddlewares;
+
+  constructor(path: TRootPath, children?: TChildren) {
+    this.path = path;
+    this.children = children;
+  }
+
+  static new<TPath extends string | undefined = undefined>(path: TPath) {
+    const newRouter = new CustomRouter<undefined, [], [], TPath>(path);
+    newRouter.path = path;
+    return newRouter;
+  }
+
+  static newNested<
+    TParentRouter extends
+      | CustomRouter<any, any, any, any>
+      | undefined = undefined
+  >() {
+    return <
+      TPath extends string | undefined = undefined,
+      TFullPath = TParentRouter extends CustomRouter<
+        any,
+        any,
+        any,
+        infer TRootPath
+      >
+        ? `${TRootPath}${TPath}`
+        : TPath,
+      TMiddlewares = TParentRouter extends CustomRouter<
+        any,
+        any,
+        infer TParentMiddlewares,
+        any
+      >
+        ? TParentMiddlewares
+        : readonly Middleware2[]
+    >(
+      path: TPath
+    ) => {
+      type TValidatedMiddlewares = TMiddlewares extends readonly Middleware2[]
+        ? TMiddlewares
+        : readonly Middleware2[];
+      type TValidatedFullPath = TFullPath extends string | undefined
+        ? TFullPath
+        : TPath;
+
+      const validatedPath = path as TValidatedFullPath;
+      const newRouter = new CustomRouter<
+        TParentRouter,
+        [],
+        TValidatedMiddlewares,
+        TValidatedFullPath
+      >(validatedPath);
+      newRouter.path = validatedPath;
+      newRouter.__wasCreatedFromNested = true;
+      return newRouter;
+    };
+  }
+
+  include<
+    TIncludes extends readonly CustomRouter<any, any, any, any>[] | undefined
+  >(children: TIncludes) {
+    for (const childRouter of children || []) {
+      if (childRouter.__wasCreatedFromNested === false)
+        console.warn(
+          'You should use `.newNested` instead of `.new` for creating a nested router.'
+        );
+    }
+    this.children = children as any;
+    return this as unknown as CustomRouter<
+      TParentRouter,
+      TIncludes,
+      TMiddlewares,
+      TRootPath
+    >;
+  }
+
+  middle<TRouterMiddlewares extends readonly Middleware2[]>(
+    middlewares: TRouterMiddlewares
+  ) {
+    (this.#middlewares as unknown as Middleware2[]).push(...middlewares);
+    return this as unknown as CustomRouter<
+      TParentRouter,
+      TChildren,
+      [...TMiddlewares, ...TRouterMiddlewares],
+      TRootPath
+    >;
+  }
+
+  get(
+    handler: (
+      request: ExtractRequests<
+        TRootPath extends string ? TRootPath : string,
+        TMiddlewares
+      >
+    ) => any
+  ) {
+    return this;
+  }
+}
+
+const CustomMiddie = nestedMiddleware<typeof rootRouter>()({
+  request: (request) => {
+    return request as Request<
+      string,
+      {
+        Headers: {
+          teste: string;
+        };
+      }
+    > &
+      typeof request;
+  },
+});
+
+// O outro middleware modifica o header do request
+const CustomMiddie2 = middleware({
+  request: (request) => {
+    const customReq = request as Request<
+      string,
+      {
+        Headers: {
+          ['x-custom-header']: string;
+        };
+        Context: {
+          user: number;
+        };
+      }
+    >;
+    return customReq;
+  },
+});
+const middleware2 = new CustomMiddie2();
+const middleware1 = new CustomMiddie();
+const rootRouter = CustomRouter.new('/test').middle([middleware2] as const);
+
+const rootMiddleware = rootRouter.middle([middleware1] as const);
+
+export type router = typeof rootRouter;
+
+// Isso aqui é um router que foi criado de forma aninhada. Ele tem relação com o rootRouter. Dessa maneira,
+// se tenho parâmetros no rootRouter, eles também estarão presentes no router2 e no router3.
+// Imagina que essas rotas estarão em outro arquivo, só preciso importar o tipo.
+const router2 = CustomRouter.newNested<typeof rootRouter>()(
+  '/<hello: (/d+):number>'
+);
+const router3 = CustomRouter.newNested<typeof rootRouter>()('/test3');
+// Aqui estou incluindo os dois routers criados de forma aninhada no rootRouter. Isso é o que eu export
+const router = rootRouter.include([router2, router3]);
+
+rootMiddleware.get((request) => {
+  request.context;
+  request.headers['x-custom-header'];
+  request.context.user;
+});
+
+type ExtractRequests<
+  TPath extends string,
+  TMiddlewares extends readonly Middleware2[],
+  TFinalRequest extends Request<string, any> = Request
+> = TMiddlewares extends readonly [
+  infer TFirstMiddie,
+  ...infer TRestMiddlewares
+]
+  ? TFirstMiddie extends Middleware2
+    ? TFirstMiddie['request'] extends (
+        request: Request<
+          string,
+          { Data: any; Context: any; Headers: any; Cookies: any }
+        >
+      ) => Promise<infer TRequest> | infer TRequest
+      ? TRequest extends Request<string, any>
+        ? ExtractRequests<
+            TPath,
+            TRestMiddlewares extends readonly Middleware2[]
+              ? TRestMiddlewares
+              : [],
+            Request<
+              TPath,
+              {
+                Data: TRequest['data'] & TFinalRequest['data'];
+                Headers: TRequest['headers'] & TFinalRequest['headers'];
+                Cookies: TRequest['cookies'] & TFinalRequest['cookies'];
+                Context: TRequest['context'] & TFinalRequest['context'];
+              }
+            >
+          >
+        : never
+      : never
+    : TFinalRequest
+  : TFinalRequest;
+
+//const router2 = rootRouter.new<typeof router['path'], '/test'>('/test');
+//const router = CustomRouter.new('/test/<hello: number>').include([router2]);
+
+type ExtractRoutes<TNestedRouters> = TNestedRouters extends CustomRouter<
+  infer TParentPath,
+  infer TPath
+>[]
+  ? TPath extends `/${string}` | ''
+    ? {
+        parent: TParentPath;
+        path: TPath;
+      }
+    : {
+        parent: '';
+        path: '';
+      }
+  : {
+      parent: '';
+      path: '';
+    };
+
+type ExtractType<TType extends string> = TType extends 'string'
+  ? string
+  : TType extends 'number'
+  ? number
+  : TType extends 'boolean'
+  ? boolean
+  : `${TType}`;
+
+type Handlers<TPath extends string> = {
+  [key in HTTPMethodEnum]?: TPath;
+};
+
+type ExtractSpaces<
+  TString extends string,
+  TFullString extends string = ''
+> = TString extends `${infer TFirst}${infer TSecond}`
+  ? ExtractSpaces<
+      TSecond,
+      TFirst extends ' ' ? TFullString : `${TFullString}${TFirst}`
+    >
+  : TFullString;
+
+type ExtractRouterParameters<
+  TPath extends string,
+  TParams = undefined
+> = TPath extends `/${infer TParameter}/${infer TRest}`
+  ? TParameter extends
+      | `<${infer TParameterName}:${infer TType}>`
+      | `<${infer TParameterName}: ${infer TType}>`
+    ? ExtractRouterParameters<
+        `/${TRest}`,
+        TParams extends undefined
+          ? { [key in TParameterName]: ExtractType<TType> }
+          : { [key in TParameterName]: ExtractType<TType> } & TParams
+      >
+    : ExtractRouterParameters<`/${TRest}`, TParams>
+  : TParams;

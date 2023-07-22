@@ -25,7 +25,7 @@ export class Photo extends models.Model<Photo>() {
       onDelete: ON_DELETE.CASCADE,
       toField: 'id',
       relatedName: 'userPhotos',
-      relationName: 'user',
+      relationName: 'userPhoto',
     }),
   };
 
@@ -58,7 +58,7 @@ export class User extends models.Model<User>() {
     firstName: CharField.new({
       maxLength: 255,
       dbIndex: true,
-      allowNull: true,
+      allowNull: false,
       defaultValue: '',
     }),
     pokemonId: ForeignKeyField.new({
@@ -78,7 +78,6 @@ export class User extends models.Model<User>() {
     onSet: {
       preventCallerToBeTheHandled: false,
       handler: async ({ data }) => {
-        console.log('recieved onset event', data);
         await User.default.set(data);
         return [data];
       },
@@ -89,7 +88,7 @@ export class User extends models.Model<User>() {
 export class Pokemon extends models.Model<Pokemon>() {
   fields = {
     id: IntegerField.new({ unique: true }),
-    name: CharField.new({ maxLength: 255, allowNull: true }),
+    name: CharField.new({ maxLength: 255 }),
     weight: IntegerField.new({ allowNull: true }),
   };
 

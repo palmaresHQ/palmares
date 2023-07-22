@@ -149,7 +149,6 @@ export default class EngineSetQuery {
           transaction,
           palmaresTransaction
         );
-        return results;
       } else {
         await this.engineQueryInstance.getResultsWithIncludes(
           internal.model,
@@ -170,8 +169,8 @@ export default class EngineSetQuery {
           transaction,
           palmaresTransaction
         );
-        return results;
       }
+      return results;
     }
     try {
       if (isToUseTransaction) {

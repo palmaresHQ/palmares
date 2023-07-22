@@ -1,6 +1,6 @@
-import ServerRoutes from "./routes";
-import Server from ".";
-import Response from "../response";
+import ServerRoutes from './routes';
+import Server from '.';
+import Response from '../response';
 import { NotImplementedServerException } from './exceptions';
 
 /**
@@ -22,19 +22,34 @@ export default class ServerResponses {
   }
 
   async translateCookies(response: Response, args: unknown) {
-    throw new NotImplementedServerException(this.server.constructor.name, 'translateCookies');
+    throw new NotImplementedServerException(
+      this.server.constructor.name,
+      'translateCookies'
+    );
   }
 
   async translateHeaders(response: Response, args: unknown) {
-    throw new NotImplementedServerException(this.server.constructor.name, 'translateHeaders');
+    throw new NotImplementedServerException(
+      this.server.constructor.name,
+      'translateHeaders'
+    );
   }
 
-  async translateResponse(response: Response, options?: unknown): Promise<unknown> {
-    throw new NotImplementedServerException(this.server.constructor.name, 'translateResponse');
+  async translateResponse(
+    response: Response,
+    options?: unknown
+  ): Promise<unknown> {
+    throw new NotImplementedServerException(
+      this.server.constructor.name,
+      'translateResponse'
+    );
   }
 
   async sendResponse(response: Response, args?: unknown): Promise<void> {
-    throw new NotImplementedServerException(this.server.constructor.name, 'sendResponse');
+    throw new NotImplementedServerException(
+      this.server.constructor.name,
+      'sendResponse'
+    );
   }
 
   async initialize(response: Response, options?: unknown) {

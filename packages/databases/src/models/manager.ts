@@ -328,23 +328,17 @@ export default class Manager<
   async set<
     TModel extends Model = M,
     TIncludes extends Includes = undefined,
-    TSearch extends ModelFieldsWithIncludes<
-      TModel,
-      TIncludes,
-      FieldsOFModelType<TModel>,
-      false,
-      false,
-      true,
-      true
-    > = ModelFieldsWithIncludes<
-      TModel,
-      TIncludes,
-      FieldsOFModelType<TModel>,
-      false,
-      false,
-      true,
-      true
-    >
+    TSearch extends
+      | ModelFieldsWithIncludes<
+          TModel,
+          TIncludes,
+          FieldsOFModelType<TModel>,
+          false,
+          false,
+          true,
+          true
+        >
+      | undefined = undefined
   >(
     data:
       | ModelFieldsWithIncludes<

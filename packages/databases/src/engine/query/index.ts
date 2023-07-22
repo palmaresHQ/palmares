@@ -140,15 +140,100 @@ export default class EngineQuery {
         };
   }
 
-  async #fireEventsAfterQueryDataFn(args: {
-    modelInstance: InstanceType<ReturnType<typeof model>>;
+  /**
+   * This method will save every data that we retrieve from the database to the palmares transaction object. This object will hold each transaction
+   * that was made so we are able to roll everything back if something goes wrong. For example, if creating a user fails, we remove, if updating fails
+   * we use the `.set` method again to update the values to the previous ones as it was before the update.
+   *
+   * The palmares transaction instance should be garbage collected after the query is done. If the user fo some reason change the value of the result
+   * of the query the rolled back data will be lost.
+   */
+  async #storePalmaresTransaction<
+    TModelConstructor extends ReturnType<typeof model>,
+    TSearch extends
+      | ModelFieldsWithIncludes<
+          InstanceType<TModelConstructor>,
+          Includes,
+          FieldsOFModelType<InstanceType<TModelConstructor>>,
+          false,
+          false,
+          true,
+          true
+        >
+      | undefined = undefined,
+    TResult extends
+      | ModelFieldsWithIncludes<
+          InstanceType<TModelConstructor>,
+          Includes,
+          FieldsOFModelType<InstanceType<TModelConstructor>>
+        >[]
+      | undefined = ModelFieldsWithIncludes<
+      InstanceType<TModelConstructor>,
+      Includes,
+      FieldsOFModelType<InstanceType<TModelConstructor>>
+    >[]
+  >(
+    palmaresTransaction: Transaction | undefined,
+    modelConstructor: TModelConstructor,
+    search: TSearch,
+    results: TResult
+  ) {
+    if (palmaresTransaction && results) {
+      palmaresTransaction.appendData(
+        this.engineInstance.databaseName,
+        modelConstructor,
+        search,
+        results
+      );
+    }
+  }
+
+  /**
+   * This method will fire the events that are related to the query. In other words, if we are doing a `set` operation for example we can notify
+   * every listener that we are doing a `set` operation on this model. The nice thing about this is that it will use a layer if it exists.
+   *
+   * So for example, let's say that application A and B has the model users. But they are completely different applications with different databases.
+   * This means that we can sync the users from application A to application B. So when we do a `set` operation on application A we can notify
+   * application B that we are doing a `set` operation on the users model. This way we can sync the users from application A to application B.
+   *
+   * So in other words, both applications will have the same users.
+   *
+   * Before syncing systems, for events that does not use a layer, we can just send a simple signal to notify that a user was created for example.
+   * With this you can have side effects on your application. But we do not recommend using too much side effects because it can be hard to debug.
+   */
+  async #fireEventsAfterQueryDataFn<
+    TModel extends InstanceType<ReturnType<typeof model>>,
+    TSearch extends
+      | ModelFieldsWithIncludes<
+          TModel,
+          Includes,
+          FieldsOFModelType<TModel>,
+          false,
+          false,
+          true,
+          true
+        >
+      | undefined = undefined,
+    TData extends
+      | ModelFieldsWithIncludes<
+          TModel,
+          Includes,
+          FieldsOFModelType<TModel>,
+          true,
+          false,
+          TSearch extends undefined ? false : true,
+          false
+        >[]
+      | undefined = undefined
+  >(args: {
+    modelInstance: TModel;
     isSetOperation: boolean;
     isRemoveOperation: boolean;
     isToPreventEvents: boolean;
     shouldReturnData: boolean;
     shouldRemove: boolean;
-    parsedData: any;
-    parsedSearch: any;
+    parsedData: TData;
+    parsedSearch: TSearch;
   }) {
     const shouldCallEvents =
       this.engineInstance.databaseSettings.events?.emitter &&
@@ -274,7 +359,7 @@ export default class EngineQuery {
     >;
     const mergedSearchForData =
       resultToMergeWithData !== undefined
-        ? { ...search, ...resultToMergeWithData }
+        ? Object.assign(search ? search : {}, resultToMergeWithData)
         : search;
 
     const mergedData = (
@@ -382,30 +467,41 @@ export default class EngineQuery {
             : 'onGet'
         );
     }
+
     const isToFetchExternally = modelInstance.options.managed === false;
     const queryDataResults = isToFetchExternally
       ? await fetchFromExternalSource.bind(this)()
       : await fetchFromDatabase.bind(this)();
 
-    await this.#fireEventsAfterQueryDataFn({
-      isToPreventEvents: args.isToPreventEvents || false,
-      isRemoveOperation: args.isRemoveOperation || false,
-      isSetOperation: args.isSetOperation || false,
-      modelInstance,
-      parsedSearch,
-      parsedData,
-      shouldRemove: args.shouldRemove || false,
-      shouldReturnData: args.shouldReturnData || false,
-    });
-
-    if (args.palmaresTransaction) {
-      args.palmaresTransaction.appendData(
-        this.engineInstance.databaseName,
+    await Promise.all([
+      this.#fireEventsAfterQueryDataFn({
+        isToPreventEvents: args.isToPreventEvents || false,
+        isRemoveOperation: args.isRemoveOperation || false,
+        isSetOperation: args.isSetOperation || false,
+        modelInstance,
+        parsedSearch: parsedSearch as
+          | ModelFieldsWithIncludes<
+              TModel,
+              Includes,
+              FieldsOFModelType<TModel>,
+              false,
+              false,
+              true,
+              true
+            >
+          | undefined,
+        parsedData: parsedData as TData,
+        shouldRemove: args.shouldRemove || false,
+        shouldReturnData: args.shouldReturnData || false,
+      }),
+      this.#storePalmaresTransaction(
+        args.palmaresTransaction,
         modelConstructor,
         parsedSearch,
         queryDataResults
-      );
-    }
+      ),
+    ]);
+
     if (Array.isArray(args.results)) {
       if (args.isSetOperation)
         args.results.push(

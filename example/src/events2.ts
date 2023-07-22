@@ -1,4 +1,4 @@
-import { EventEmitter, eventsServer } from '@palmares/events';
+import { EventEmitter } from '@palmares/events';
 import EventEmitter2Emitter from '@palmares/eventemitter2-emitter';
 import RedisEmitter from '@palmares/redis-emitter';
 
@@ -29,7 +29,7 @@ async function main() {
 
   //await emitter.unsubscribeAll();
   // Imagina em sistemas distribuidos, vc consegue comunicar facilmente entre seus sistemas.
-  const result = await emitter2.emitToChannel(['users'], 'create.*');
+  const result = await emitter2.emitToChannel(['users'], 'create.user');
   console.log(result);
 }
 main();

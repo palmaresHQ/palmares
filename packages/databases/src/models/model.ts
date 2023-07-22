@@ -323,8 +323,11 @@ export class Model<T = any> {
   }
 
   /**
-   * This will add event listeners to the model. So when an event like `.get`, `.set` or `.remove` is triggered, we will call
-   * the event handler that was defined in the model.
+   * This will add event listeners to the model. So when an event like `.set` or `.remove` is triggered, we will call
+   * the event handler that was defined in the model using the `onSet` or `onRemove` options.
+   *
+   * By default we will take care to prevent the same data being triggered twice. So we stringify the data and compare it, so for example
+   * if a model is trying to save the same data it received through an event it will not trigger the event again by default.
    *
    * @param engineInstance - The current engine instance we are initializing this model instance
    */
