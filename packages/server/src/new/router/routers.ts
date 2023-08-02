@@ -1,5 +1,5 @@
 import type { Middleware2 } from '../middleware';
-
+import type { F } from 'ts-toolbelt';
 import type {
   AlreadyDefinedMethodsType,
   DefaultRouterType,
@@ -83,7 +83,7 @@ export class BaseRouter<
   protected __wasCreatedFromNested = false;
   protected __children?: TChildren;
   protected __middlewares: TMiddlewares = [] as unknown as TMiddlewares;
-  protected __handlers: TAlreadyDefinedHandlers =
+  __handlers: TAlreadyDefinedHandlers =
     undefined as unknown as TAlreadyDefinedHandlers;
   protected __handlersByRoutes: Record<string, TAlreadyDefinedHandlers> = {};
 
@@ -186,9 +186,15 @@ export class BaseRouter<
   }
 
   middlewares<TRouterMiddlewares extends readonly Middleware2[]>(
-    middlewares: TRouterMiddlewares
+    middlewares: F.Narrow<TRouterMiddlewares>
   ) {
-    (this.__middlewares as unknown as Middleware2[]).push(...middlewares);
+    middlewares.forEach((middleware) => {
+      middleware.request;
+    });
+    if (typeof this.__middlewares === 'string')
+      (this.__middlewares as unknown as Middleware2[]).push(
+        ...(middlewares as Middleware2[])
+      );
     return this as unknown as MethodsRouter<
       TParentRouter,
       TChildren,

@@ -1,87 +1,124 @@
 import { path, pathNested } from './router';
 import { middleware, nestedMiddleware } from './middleware';
+import { ExtractRequestsFromMiddlewaresForClient } from './middleware/types';
 import Request from './request';
-import { proxy } from './router/functions';
+import Response from './response';
 
-/**
- * Ambos os middlewares modificam o request
- */
-const addDataToRequest = middleware({
-  request: (request) => {
-    const customRequest = request.extend<{
-      Headers: { 'x-custom-header': string };
-      Context: { user: number };
-    }>();
-    return customRequest;
-  },
-});
-
-const addHeadersAndAuthenticateUser = nestedMiddleware<typeof rootRouter>()({
-  request: (request) => {
-    const modifiedRequest = request.extend<{
-      Data: {
+const authenticateRequest = middleware({
+  request: (
+    request: Request<
+      string,
+      {
+        Headers: { Authorization: string };
+      }
+    >
+  ) => {
+    if (request.headers.Authorization) return new Response<{ Status: 404 }>();
+    const modifiedRequest = request.clone<{
+      Body: {
         id: number;
         firstName: string;
         lastName: string;
       };
     }>();
-
     return modifiedRequest;
   },
 });
 
-const controller = pathNested<typeof rootRouter>()('/').get((request) => {
-  //request.data
+const addHeadersAndAuthenticateUser = nestedMiddleware<typeof rootRouter>()({
+  request: (request) => {
+    const customRequest = request.clone<{
+      Headers: { 'x-custom-header': string };
+      Context: { user: number };
+    }>();
+    return customRequest;
+  },
+  response: (response) => {
+    const modifiedResponse = response.clone();
+    return modifiedResponse;
+  },
+});
+
+const testMiddleware = nestedMiddleware<typeof rootRouter>()({
+  request: () => {
+    const response = new Response<{
+      Status: 200;
+      Body: {
+        id: number;
+        firstName: string;
+        lastName: string;
+        username: string;
+      };
+    }>();
+    return response;
+  },
 });
 
 export const rootRouter = path(
-  '/test/<hello: (/d+):number>/<userId: string>'
-).middlewares([addDataToRequest] as const)
+  '/test/<hello: (/d+):number>/<userId: string>?hello=(/d+):number&world=string[]?'
+).middlewares([authenticateRequest]);
 
-type Teste = ReturnType<typeof addHeadersAndAuthenticateUser['request']>;
-const withMiddlewares = rootRouter.middlewares([
-  addHeadersAndAuthenticateUser,
-] as const);
+const withMiddlewares = rootRouter.middlewares([addHeadersAndAuthenticateUser]);
 
-const roooot = path(
-  '/test/<hello: (/d+):number>/<userId: string>'
-).middlewares([
-  addHeadersAndAuthenticateUser,
-] as const);
+const controllers = pathNested<typeof withMiddlewares>()('/users').get(() => {
+  return new Response<{
+    Headers: {
+      Authorization: string;
+    };
+  }>();
+});
 
 export const router = withMiddlewares.nested(
   (path) =>
     [
-      path('/<dateId: number>').get((request) => {
-        request.
+      path('/<dateId: number>?teste=string[]?')
+        .get(async (request) => {
+          if (request.query.teste)
+            return new Response<{
+              Status: 200;
+              Headers: {
+                'x-header': string;
+              };
+            }>();
+          request.body;
+          return new Response<{
+            Status: 404;
+          }>();
+        })
+        .post((request) => {
+          return new Response<{
+            Body: {
+              id: number;
+              firstName: string;
+              lastName: string;
+              username: string;
+            };
+          }>();
+        }),
+      path('/').get((request) => {
+        return new Response<{
+          Body: {
+            id: number;
+            firstName: string;
+            lastName: string;
+            username: string;
+          };
+        }>();
       }),
-      controller,
     ] as const
 );
 
-/*
-export type router = typeof rootRouter;
+const testResponseMiddleware = nestedMiddleware<typeof router>()({
+  response: (response) => {
+    if (response.status === 200) {
+      return response.headers['x-header'];
+    }
+  },
+});
 
-// Isso aqui é um router que foi criado de forma aninhada. Ele tem relação com o rootRouter. Dessa maneira,
-// se tenho parâmetros no rootRouter, eles também estarão presentes no router2 e no router3.
-// Imagina que essas rotas estarão em outro arquivo, só preciso importar o tipo.
-const router2 = pathNested<typeof rootRouter>()('/<hello: (/d+):number>');
-const router3 = pathNested<typeof rootRouter>()('/test3');
-
-const controller = router2
-  .get((request) => {
-    request.params.hello;
-  })
-  .post((request) => {
-    request.params.hello;
-  });
-
-// Aqui estou incluindo os dois routers criados de forma aninhada no rootRouter. Isso é o que eu export
-const router = rootRouter.nested((router) => [
-  router.child('/test').get((request) => {
-    request.context.user;
-  }),
-  router2,
-  router3,
-]);
-*/
+// Esse exemplo é como o Request do Client deve ser definido, pensa em algo tipo um TRPC, aqui eu garanto que você ta passando
+// os dados corretos para o request na hora de fazer o fetch.
+type ClientRequest = ExtractRequestsFromMiddlewaresForClient<
+  string,
+  readonly [typeof authenticateRequest, typeof addHeadersAndAuthenticateUser]
+>;

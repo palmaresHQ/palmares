@@ -24,6 +24,7 @@
     "@palmares/core": "*"
   },
   "devDependencies": {
+    "ts-toolbelt": "^9.6.0",
     "typescript": "^4.9.5"
   }
 }

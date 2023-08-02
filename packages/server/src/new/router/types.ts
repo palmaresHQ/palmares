@@ -1,6 +1,7 @@
 import type { BaseRouter } from './routers';
 import type { Middleware2 } from '../middleware';
-import { ExtractRequestsFromMiddlewares } from '../middleware/types';
+import { ExtractRequestsFromMiddlewaresForServer } from '../middleware/types';
+import type Response from '../response';
 
 export type MethodTypes =
   | 'get'
@@ -15,7 +16,13 @@ export type MergeParentAndChildPathsType<
   TParentRouter extends BaseRouter<any, any, any, any, any>,
   TPathFromChild extends string
 > = TParentRouter extends BaseRouter<any, any, any, infer TRootPath, any>
-  ? `${TRootPath}${TPathFromChild}`
+  ? TRootPath extends `${infer InferedRootPath}?${infer InferedQueryParams}`
+    ? TPathFromChild extends `${infer InferedPathFromChild}?${infer InferedQueryParamsFromChild}`
+      ? `${InferedRootPath}${InferedPathFromChild}?${InferedQueryParams}&${InferedQueryParamsFromChild}`
+      : `${InferedRootPath}${TPathFromChild}?${InferedQueryParams}`
+    : TPathFromChild extends `${infer InferedPathFromChild}?${infer InferedQueryParamsFromChild}`
+    ? `${TRootPath}${InferedPathFromChild}?${InferedQueryParamsFromChild}`
+    : `${TRootPath}${TPathFromChild}`
   : TPathFromChild;
 
 export type ValidatedFullPathType<TMergedPath, TPathFromChild> =
@@ -45,12 +52,14 @@ export type DefaultRouterType = BaseRouter<any, any, any, any, any>;
 export type RequestOnHandlerType<
   TRootPath extends string,
   TMiddlewares extends readonly Middleware2[]
-> = ExtractRequestsFromMiddlewares<TRootPath, TMiddlewares>;
+> = ExtractRequestsFromMiddlewaresForServer<TRootPath, TMiddlewares>;
 
 export type HandlerType<
   TRootPath extends string,
   TMiddlewares extends readonly (Middleware2 | never)[]
-> = (request: RequestOnHandlerType<TRootPath, TMiddlewares>) => any;
+> = (
+  request: RequestOnHandlerType<TRootPath, TMiddlewares>
+) => Response<any> | Promise<Response<any>>;
 
 export type AlreadyDefinedMethodsType<
   TRootPath extends string,
@@ -73,3 +82,37 @@ export type DefineAlreadyDefinedMethodsType<
 > = TAlreadyDefinedMethods extends object
   ? TAlreadyDefinedMethods & { [key in TMethodType]: THandler }
   : { [key in TMethodType]: THandler };
+
+/**
+ * This is responsible for extracting all handlers from a router, a handler is what will effectively be executed when a request is made.
+ * This is used for knowing what type of request is expected for the handler and what type of response will it return for a given method.
+ */
+export type ExtractAllHandlersType<
+  TRouters extends DefaultRouterType[] | Omit<DefaultRouterType, never>[]
+> = TRouters extends [infer TFirstRouter, ...infer TRestRouters]
+  ? TFirstRouter extends
+      | BaseRouter<any, infer TRouterChildren, any, any, infer TDefinedHandlers>
+      | Omit<
+          BaseRouter<
+            any,
+            infer TRouterChildren,
+            any,
+            any,
+            infer TDefinedHandlers
+          >,
+          never
+        >
+    ?
+        | TDefinedHandlers[keyof TDefinedHandlers]
+        | (TRouterChildren extends
+            | DefaultRouterType[]
+            | Omit<DefaultRouterType, never>[]
+            ? ExtractAllHandlersType<TRouterChildren>
+            : never)
+        | (TRestRouters extends
+            | DefaultRouterType[]
+            | Omit<DefaultRouterType, never>[]
+            ? ExtractAllHandlersType<TRestRouters>
+            : never)
+    : never
+  : never;

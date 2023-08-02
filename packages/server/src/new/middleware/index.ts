@@ -1,14 +1,24 @@
 import type { DefaultRouterType } from '../router/types';
-import type { ExtractRequestsFromMiddlewares } from './types';
+import type { ExtractRequestsFromMiddlewaresForServer } from './types';
 import type { DefaultRequestType } from '../request/types';
 import type { BaseRouter } from '../router/routers';
 import type Request from '../request';
+import type Response from '../response';
+import type {
+  DefaultResponseType,
+  ExtractResponsesFromMiddlewaresRequestAndRouterHandlers,
+} from '../response/types';
 
 export class Middleware2 {
   request:
     | ((
         request: DefaultRequestType
       ) => Promise<DefaultRequestType> | DefaultRequestType)
+    | undefined = undefined;
+  response:
+    | ((
+        response: DefaultResponseType
+      ) => Promise<DefaultResponseType> | DefaultResponseType)
     | undefined = undefined;
 }
 
@@ -27,27 +37,48 @@ export function middleware<
   TReturn extends DefaultRequestType = Request<
     string,
     {
-      Data: unknown;
+      Body: unknown;
       Headers: unknown;
       Context: unknown;
       Cookies: unknown;
     }
   >,
+  TResponse extends DefaultResponseType = Response<{
+    Status: undefined;
+    Body: undefined;
+    Headers: unknown;
+    Context: unknown;
+  }>,
   TRequestFunction = (
     request: TRouterMiddlewares extends readonly Middleware2[]
-      ? ExtractRequestsFromMiddlewares<TRouter['path'], TRouterMiddlewares>
+      ? ExtractRequestsFromMiddlewaresForServer<
+          TRouter['path'],
+          TRouterMiddlewares
+        >
       : never
-  ) => Promise<TReturn> | TReturn
->(options: { request: TRequestFunction }) {
+  ) => Promise<TReturn> | TReturn,
+  TResponseFunction = (
+    response: ExtractResponsesFromMiddlewaresRequestAndRouterHandlers<[TRouter]>
+  ) => Promise<TResponse> | TResponse
+>(options: { request?: TRequestFunction; response?: TResponseFunction }) {
   type TypeValidRequestFunction = TRequestFunction extends (
     request: DefaultRequestType
   ) => Promise<DefaultRequestType> | DefaultRequestType
     ? TRequestFunction
     : undefined;
+  type TypeValidResponseFunction = TResponseFunction extends (
+    response: DefaultResponseType
+  ) => Promise<DefaultResponseType> | DefaultResponseType
+    ? TResponseFunction
+    : undefined;
 
   return new (class extends Middleware2 {
     request = options.request as TypeValidRequestFunction;
-  })() as Middleware2 & { request: TRequestFunction };
+    response = options.response as TypeValidResponseFunction;
+  })() as Middleware2 & {
+    request: TRequestFunction;
+    response: TResponseFunction;
+  };
 }
 
 export function nestedMiddleware<TRouter extends DefaultRouterType>() {
@@ -65,7 +96,7 @@ export function nestedMiddleware<TRouter extends DefaultRouterType>() {
     TReturn extends Request<
       string,
       {
-        Data: unknown;
+        Body: unknown;
         Headers: unknown;
         Context: unknown;
         Cookies: unknown;
@@ -73,28 +104,60 @@ export function nestedMiddleware<TRouter extends DefaultRouterType>() {
     > = Request<
       string,
       {
-        Data: unknown;
+        Body: unknown;
         Headers: unknown;
         Context: unknown;
         Cookies: unknown;
       }
     >,
+    TResponse extends DefaultResponseType = Response<{
+      Status: undefined;
+      Body: undefined;
+      Headers: unknown;
+      Context: unknown;
+    }>,
     TRequestFunction = (
       request: TRouterMiddlewares extends readonly Middleware2[]
-        ? ExtractRequestsFromMiddlewares<TRouter['path'], TRouterMiddlewares>
-        : never
-    ) => Promise<TReturn> | TReturn
+        ? ExtractRequestsFromMiddlewaresForServer<
+            TRouter['path'],
+            TRouterMiddlewares
+          >
+        : Request<
+            string,
+            {
+              Body: unknown;
+              Headers: unknown;
+              Context: unknown;
+              Cookies: unknown;
+            }
+          >
+    ) => Promise<TReturn> | TReturn,
+    TResponseFunction = (
+      response: ExtractResponsesFromMiddlewaresRequestAndRouterHandlers<
+        [TRouter]
+      >
+    ) => Promise<TResponse> | TResponse
   >(options: {
-    request: TRequestFunction;
+    request?: TRequestFunction;
+    response?: TResponseFunction;
   }) => {
     type TypeValidRequestFunction = TRequestFunction extends (
       request: DefaultRequestType
     ) => Promise<DefaultRequestType> | DefaultRequestType
       ? TRequestFunction
       : undefined;
+    type TypeValidResponseFunction = TResponseFunction extends (
+      response: DefaultResponseType
+    ) => Promise<DefaultResponseType> | DefaultResponseType
+      ? TResponseFunction
+      : undefined;
 
     return new (class extends Middleware2 {
       request = options.request as TypeValidRequestFunction;
-    })() as Middleware2 & { request: TRequestFunction };
+      response = options.response as TypeValidResponseFunction;
+    })() as Middleware2 & {
+      request: TRequestFunction;
+      response: TResponseFunction;
+    };
   };
 }

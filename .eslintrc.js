@@ -61,10 +61,6 @@ module.exports = {
         '@typescript-eslint/no-unused-vars': 'error',
         '@typescript-eslint/no-floating-promises': 'error',
         'import/no-unresolved': 'error',
-        indent: ['error', 2],
-        'linebreak-style': ['error', 'unix'],
-        quotes: ['error', 'single'],
-        semi: ['error', 'always'],
         'import/no-extraneous-dependencies': [
           'warn',
           { devDependencies: ['**/*.test.*', '**/*.spec.*', '**/*.*-spec.*'] },
