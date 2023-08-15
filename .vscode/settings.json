@@ -28,5 +28,6 @@
   "cSpell.ignoreWords": [
     "Tipadinho",
     "função"
-  ]
+  ],
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

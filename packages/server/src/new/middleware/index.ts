@@ -9,7 +9,7 @@ import type {
   ExtractResponsesFromMiddlewaresRequestAndRouterHandlers,
 } from '../response/types';
 
-export class Middleware2 {
+export class Middleware {
   request:
     | ((
         request: DefaultRequestType
@@ -30,7 +30,7 @@ export function middleware<
     infer TInferMiddlewares,
     any
   >
-    ? TInferMiddlewares extends readonly Middleware2[]
+    ? TInferMiddlewares extends readonly Middleware[]
       ? TInferMiddlewares
       : never
     : never,
@@ -50,7 +50,7 @@ export function middleware<
     Context: unknown;
   }>,
   TRequestFunction = (
-    request: TRouterMiddlewares extends readonly Middleware2[]
+    request: TRouterMiddlewares extends readonly Middleware[]
       ? ExtractRequestsFromMiddlewaresForServer<
           TRouter['path'],
           TRouterMiddlewares
@@ -72,10 +72,10 @@ export function middleware<
     ? TResponseFunction
     : undefined;
 
-  return new (class extends Middleware2 {
+  return new (class extends Middleware {
     request = options.request as TypeValidRequestFunction;
     response = options.response as TypeValidResponseFunction;
-  })() as Middleware2 & {
+  })() as Middleware & {
     request: TRequestFunction;
     response: TResponseFunction;
   };
@@ -89,7 +89,7 @@ export function nestedMiddleware<TRouter extends DefaultRouterType>() {
       infer TInferMiddlewares,
       any
     >
-      ? TInferMiddlewares extends readonly Middleware2[]
+      ? TInferMiddlewares extends readonly Middleware[]
         ? TInferMiddlewares
         : never
       : never,
@@ -117,7 +117,7 @@ export function nestedMiddleware<TRouter extends DefaultRouterType>() {
       Context: unknown;
     }>,
     TRequestFunction = (
-      request: TRouterMiddlewares extends readonly Middleware2[]
+      request: TRouterMiddlewares extends readonly Middleware[]
         ? ExtractRequestsFromMiddlewaresForServer<
             TRouter['path'],
             TRouterMiddlewares
@@ -152,10 +152,10 @@ export function nestedMiddleware<TRouter extends DefaultRouterType>() {
       ? TResponseFunction
       : undefined;
 
-    return new (class extends Middleware2 {
+    return new (class extends Middleware {
       request = options.request as TypeValidRequestFunction;
       response = options.response as TypeValidResponseFunction;
-    })() as Middleware2 & {
+    })() as Middleware & {
       request: TRequestFunction;
       response: TResponseFunction;
     };

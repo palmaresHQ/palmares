@@ -13,12 +13,13 @@ const authenticateRequest = middleware({
       }
     >
   ) => {
-    if (request.headers.Authorization) return new Response<{ Status: 404 }>();
+    //if (request.headers.Authorization) return new Response<{ Status: 404 }>();
     const modifiedRequest = request.clone<{
       Body: {
         id: number;
         firstName: string;
         lastName: string;
+        username: string;
       };
     }>();
     return modifiedRequest;
@@ -55,10 +56,12 @@ const testMiddleware = nestedMiddleware<typeof rootRouter>()({
 });
 
 export const rootRouter = path(
-  '/test/<hello: (/d+):number>/<userId: string>?hello=(/d+):number&world=string[]?'
+  '/test/<hello: {\\d+}:number>/<userId: string>?hello={[\\d\\w]+}:number&world=string[]?'
 ).middlewares([authenticateRequest]);
 
-const withMiddlewares = rootRouter.middlewares([addHeadersAndAuthenticateUser]);
+const withMiddlewares = pathNested<typeof rootRouter>()('').middlewares([
+  addHeadersAndAuthenticateUser,
+]);
 
 const controllers = pathNested<typeof withMiddlewares>()('/users').get(() => {
   return new Response<{
@@ -71,7 +74,7 @@ const controllers = pathNested<typeof withMiddlewares>()('/users').get(() => {
 export const router = withMiddlewares.nested(
   (path) =>
     [
-      path('/<dateId: number>?teste=string[]?')
+      path('/<dateId: {\\d+}:number>?teste=(string | number)[]')
         .get(async (request) => {
           if (request.query.teste)
             return new Response<{
@@ -80,7 +83,6 @@ export const router = withMiddlewares.nested(
                 'x-header': string;
               };
             }>();
-          request.body;
           return new Response<{
             Status: 404;
           }>();
@@ -105,8 +107,10 @@ export const router = withMiddlewares.nested(
           };
         }>();
       }),
+      controllers,
     ] as const
 );
+rootRouter.nested([withMiddlewares] as const); // this should not matter for the output, need to fix this so when you define the handlers for the nested router the parent WILL be updated.
 
 const testResponseMiddleware = nestedMiddleware<typeof router>()({
   response: (response) => {

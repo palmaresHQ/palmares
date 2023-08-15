@@ -1,4 +1,4 @@
-import type { Middleware2 } from '.';
+import type { Middleware } from '.';
 import type Request from '../request';
 //import type Response from '../response';
 //import { DefaultRequestType } from '../request/types';
@@ -15,7 +15,7 @@ type Exact<A, B> = (<T>() => T extends A ? 1 : 0) extends <T>() => T extends B
 
 export type ExtractRequestsFromMiddlewaresForServer<
   TPath extends string,
-  TMiddlewares extends readonly Middleware2[],
+  TMiddlewares extends readonly Middleware[],
   TFinalRequest extends Request<
     any,
     { Body: unknown; Headers: unknown; Cookies: unknown; Context: unknown }
@@ -27,7 +27,7 @@ export type ExtractRequestsFromMiddlewaresForServer<
   infer TFirstMiddie,
   ...infer TRestMiddlewares
 ]
-  ? TFirstMiddie extends Middleware2
+  ? TFirstMiddie extends Middleware
     ? TFirstMiddie['request'] extends (
         request: Request<
           any,
@@ -37,7 +37,7 @@ export type ExtractRequestsFromMiddlewaresForServer<
       ? TRequest extends Request<any, any>
         ? ExtractRequestsFromMiddlewaresForServer<
             TPath,
-            TRestMiddlewares extends readonly Middleware2[]
+            TRestMiddlewares extends readonly Middleware[]
               ? TRestMiddlewares
               : [],
             TPath extends string
@@ -54,7 +54,7 @@ export type ExtractRequestsFromMiddlewaresForServer<
           >
         : ExtractRequestsFromMiddlewaresForServer<
             TPath,
-            TRestMiddlewares extends readonly Middleware2[]
+            TRestMiddlewares extends readonly Middleware[]
               ? TRestMiddlewares
               : [],
             TPath extends string
@@ -72,7 +72,7 @@ export type ExtractRequestsFromMiddlewaresForServer<
       : never
     : ExtractRequestsFromMiddlewaresForServer<
         TPath,
-        TRestMiddlewares extends readonly Middleware2[] ? TRestMiddlewares : [],
+        TRestMiddlewares extends readonly Middleware[] ? TRestMiddlewares : [],
         TPath extends string
           ? Request<
               TPath,
@@ -89,7 +89,7 @@ export type ExtractRequestsFromMiddlewaresForServer<
 
 export type ExtractRequestsFromMiddlewaresForClient<
   TPath extends string,
-  TMiddlewares extends readonly Middleware2[],
+  TMiddlewares extends readonly Middleware[],
   TPreviousServerRequest extends Request<
     any,
     { Body: unknown; Headers: unknown; Cookies: unknown; Context: unknown }
@@ -108,7 +108,7 @@ export type ExtractRequestsFromMiddlewaresForClient<
   infer TFirstMiddie,
   ...infer TRestMiddlewares
 ]
-  ? TFirstMiddie extends Middleware2
+  ? TFirstMiddie extends Middleware
     ? TFirstMiddie['request'] extends (
         request: infer TRequestClient
       ) => Promise<infer TRequestServer> | infer TRequestServer
@@ -131,7 +131,7 @@ export type ExtractRequestsFromMiddlewaresForClient<
               > extends false // Prevents adding the requests modified by the middlewares, we should guarantee that the request is explicitly defined by the user.
               ? ExtractRequestsFromMiddlewaresForClient<
                   TPath,
-                  TRestMiddlewares extends readonly Middleware2[]
+                  TRestMiddlewares extends readonly Middleware[]
                     ? TRestMiddlewares
                     : [],
                   TRequestServer,
@@ -153,7 +153,7 @@ export type ExtractRequestsFromMiddlewaresForClient<
                 >
               : ExtractRequestsFromMiddlewaresForClient<
                   TPath,
-                  TRestMiddlewares extends readonly Middleware2[]
+                  TRestMiddlewares extends readonly Middleware[]
                     ? TRestMiddlewares
                     : [],
                   TRequestServer,

@@ -1,5 +1,5 @@
 import type Response from '.';
-import type { Middleware2 } from '../middleware';
+import type { Middleware } from '../middleware';
 import type Request from '../request';
 import type { BaseRouter } from '../router/routers';
 import type {
@@ -16,9 +16,9 @@ type ModifiedResponsesFromMiddlewares<
     Headers: any;
     Status: any;
   }>,
-  TMiddlewares extends readonly Middleware2[] = []
+  TMiddlewares extends readonly Middleware[] = []
 > = TMiddlewares extends [...infer TRestMiddlewares, infer TLastMiddleware]
-  ? TLastMiddleware extends Middleware2
+  ? TLastMiddleware extends Middleware
     ? TLastMiddleware['response'] extends (
         response: Response<any>
       ) => Promise<infer TResponse> | infer TResponse
@@ -32,7 +32,7 @@ type ModifiedResponsesFromMiddlewares<
               Headers: TResponse['headers'] & TFinalResponse['headers'];
               Context: TResponse['context'] & TFinalResponse['context'];
             }>,
-            TRestMiddlewares extends readonly Middleware2[]
+            TRestMiddlewares extends readonly Middleware[]
               ? TRestMiddlewares
               : []
           >
@@ -40,7 +40,7 @@ type ModifiedResponsesFromMiddlewares<
       : never
     : ModifiedResponsesFromMiddlewares<
         TFinalResponse,
-        TRestMiddlewares extends readonly Middleware2[] ? TRestMiddlewares : []
+        TRestMiddlewares extends readonly Middleware[] ? TRestMiddlewares : []
       >
   : TFinalResponse;
 
@@ -70,7 +70,7 @@ export type ExtractResponsesFromMiddlewaresRequestFromRouters<
           BaseRouter<any, infer TRouterChildren, infer TMiddlewares, any, any>,
           never
         >
-    ? TMiddlewares extends readonly Middleware2[]
+    ? TMiddlewares extends readonly Middleware[]
       ?
           | ExtractResponsesFromMiddlewaresRequest<TMiddlewares>
           | (TRouterChildren extends
@@ -105,8 +105,8 @@ export type ExtractResponsesFromMiddlewaresRequestFromRouters<
 // This works as an recursion that keeps track of the previous middlewares, so when a request fires a response
 // we can know how this response will be modified by the previous middlewares.
 export type ExtractResponsesFromMiddlewaresRequest<
-  TMiddlewares extends readonly Middleware2[],
-  TMiddlewaresPassed extends readonly Middleware2[] = [],
+  TMiddlewares extends readonly Middleware[],
+  TMiddlewaresPassed extends readonly Middleware[] = [],
   TFinalResponses extends Response<{
     Body: any;
     Context: any;
@@ -117,7 +117,7 @@ export type ExtractResponsesFromMiddlewaresRequest<
   infer TFirstMiddie,
   ...infer TRestMiddlewares
 ]
-  ? TFirstMiddie extends Middleware2
+  ? TFirstMiddie extends Middleware
     ? TFirstMiddie['request'] extends (
         request: Request<
           any,
@@ -126,7 +126,7 @@ export type ExtractResponsesFromMiddlewaresRequest<
       ) => Promise<infer TResponseOrRequest> | infer TResponseOrRequest
       ? Exclude<TResponseOrRequest, Request<any, any>> extends never
         ? ExtractResponsesFromMiddlewaresRequest<
-            TRestMiddlewares extends readonly Middleware2[]
+            TRestMiddlewares extends readonly Middleware[]
               ? TRestMiddlewares
               : [],
             [...TMiddlewaresPassed, TFirstMiddie],
@@ -134,7 +134,7 @@ export type ExtractResponsesFromMiddlewaresRequest<
           >
         : TResponseOrRequest extends Response<any>
         ? ExtractResponsesFromMiddlewaresRequest<
-            TRestMiddlewares extends readonly Middleware2[]
+            TRestMiddlewares extends readonly Middleware[]
               ? TRestMiddlewares
               : [],
             [...TMiddlewaresPassed, TFirstMiddie],

@@ -16,7 +16,7 @@ export default class ExpressServer extends Server {
   requests!: ExpressRequests;
   responses!: ExpressResponses;
   routes!: ExpressRoutes;
-  _app!: Express;
+  _app!: express.Express;
 
   constructor(settings: ServerSettingsType) {
     super(settings, ExpressRoutes, ExpressRequests, ExpressResponses);

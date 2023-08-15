@@ -28,15 +28,17 @@ export class UserSerializer extends ModelSerializer {
     if (data) return modelInstance.create(data) as any;
   }
 }
-export class PhotoSerializer extends ModelSerializer {
-  options = {
-    model: Photo,
-    excludes: ['id'] as const,
-  };
-}
+
 export class PostSerializer extends ModelSerializer {
   options = {
     model: Post,
+    excludes: ['id'] as const,
+  };
+}
+
+export class PhotoSerializer extends ModelSerializer {
+  options = {
+    model: Photo,
     excludes: ['id'] as const,
   };
 }

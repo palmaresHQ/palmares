@@ -1,5 +1,5 @@
 import type { BaseRouter } from './routers';
-import type { Middleware2 } from '../middleware';
+import type { Middleware } from '../middleware';
 import { ExtractRequestsFromMiddlewaresForServer } from '../middleware/types';
 import type Response from '../response';
 
@@ -37,40 +37,40 @@ export type MergeParentMiddlewaresType<
   any,
   any
 >
-  ? TParentMiddlewares extends readonly Middleware2[]
+  ? TParentMiddlewares extends readonly Middleware[]
     ? TParentMiddlewares
-    : readonly Middleware2[]
-  : readonly Middleware2[];
+    : readonly Middleware[]
+  : readonly Middleware[];
 
 export type ValidatedMiddlewaresType<TMiddlewares> =
-  TMiddlewares extends readonly Middleware2[]
+  TMiddlewares extends readonly Middleware[]
     ? TMiddlewares
-    : readonly Middleware2[];
+    : readonly Middleware[];
 
 export type DefaultRouterType = BaseRouter<any, any, any, any, any>;
 
 export type RequestOnHandlerType<
   TRootPath extends string,
-  TMiddlewares extends readonly Middleware2[]
+  TMiddlewares extends readonly Middleware[]
 > = ExtractRequestsFromMiddlewaresForServer<TRootPath, TMiddlewares>;
 
 export type HandlerType<
   TRootPath extends string,
-  TMiddlewares extends readonly (Middleware2 | never)[]
+  TMiddlewares extends readonly (Middleware | never)[]
 > = (
   request: RequestOnHandlerType<TRootPath, TMiddlewares>
 ) => Response<any> | Promise<Response<any>>;
 
 export type AlreadyDefinedMethodsType<
   TRootPath extends string,
-  TMiddlewares extends readonly Middleware2[]
+  TMiddlewares extends readonly Middleware[]
 > = {
   [key in MethodTypes]?: HandlerType<TRootPath, TMiddlewares>;
 };
 
 export type DefineAlreadyDefinedMethodsType<
   TRootPath extends string,
-  TMiddlewares extends readonly Middleware2[],
+  TMiddlewares extends readonly Middleware[],
   TAlreadyDefinedMethods extends
     | AlreadyDefinedMethodsType<TRootPath, TMiddlewares>
     | unknown,

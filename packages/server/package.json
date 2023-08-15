@@ -4,7 +4,8 @@
   "description": "The server from palmares, this is what you will use generally to make HTTP requests",
   "main": "src/index.ts",
   "scripts": {
-    "test": "ts-node src/controllers/index.ts"
+    "test": "ts-node src/controllers/index.ts",
+    "test:new": "ts-node src/new/index.ts"
   },
   "repository": {
     "type": "git",

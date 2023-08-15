@@ -1,4 +1,4 @@
-import type { Middleware2 } from '../middleware';
+import type { Middleware } from '../middleware';
 import type { F } from 'ts-toolbelt';
 import type {
   AlreadyDefinedMethodsType,
@@ -69,34 +69,84 @@ type ExtractIncludes<
 export class BaseRouter<
   TParentRouter extends DefaultRouterType | undefined = undefined,
   TChildren extends readonly DefaultRouterType[] | undefined = undefined,
-  TMiddlewares extends readonly Middleware2[] = [],
+  TMiddlewares extends readonly Middleware[] = [],
   TRootPath extends string | undefined = undefined,
   TAlreadyDefinedHandlers extends
     | AlreadyDefinedMethodsType<
         TRootPath extends string ? TRootPath : '',
-        readonly Middleware2[]
+        readonly Middleware[]
       >
     | unknown = unknown
 > {
   path!: TRootPath;
+  protected __queryParamsAndPath: {
+    path: string;
+    params: Map<
+      string,
+      {
+        type: ('number' | 'string' | 'boolean')[];
+        isArray: boolean;
+        regex: RegExp;
+      }
+    >;
+  } = {
+    path: '',
+    params: new Map(),
+  };
+  protected __urlParamsAndPath: {
+    path: string;
+    params: Map<
+      string,
+      {
+        type: ('number' | 'string' | 'boolean')[];
+        regex: RegExp;
+      }
+    >;
+  } = {
+    path: '',
+    params: new Map(),
+  };
+  protected __completePaths = new Map<
+    string,
+    {
+      middlewares: Middleware[];
+      urlParams: BaseRouter['__urlParamsAndPath']['params'];
+      queryPath: string;
+      urlPath: string;
+      queryParams: BaseRouter['__queryParamsAndPath']['params'];
+      router: BaseRouter;
+      handlers: {
+        [method in MethodTypes]?: HandlerType<string, Middleware[]>;
+      };
+    }
+  >();
   protected __parentRouter?: TParentRouter;
   protected __wasCreatedFromNested = false;
   protected __children?: TChildren;
   protected __middlewares: TMiddlewares = [] as unknown as TMiddlewares;
-  __handlers: TAlreadyDefinedHandlers =
+  protected __handlers: TAlreadyDefinedHandlers =
     undefined as unknown as TAlreadyDefinedHandlers;
-  protected __handlersByRoutes: Record<string, TAlreadyDefinedHandlers> = {};
 
   constructor(path: TRootPath, children?: TChildren) {
     this.path = path;
     this.__children = children;
+
+    const { queryPath, urlPath, queryParams, urlParams } =
+      this.extractUrlAndQueryParametersFromPath(path || '');
+    this.__queryParamsAndPath = {
+      path: queryPath,
+      params: new Map(Object.entries(queryParams)),
+    };
+    this.__urlParamsAndPath = {
+      path: urlPath,
+      params: new Map(Object.entries(urlParams)),
+    };
   }
 
   static new<TPath extends string | undefined = undefined>(path: TPath) {
     const newRouter = new MethodsRouter<undefined, [], [], TPath, undefined>(
       path
     );
-    newRouter.path = path;
     return newRouter;
   }
 
@@ -153,28 +203,22 @@ export class BaseRouter<
       TRootPath,
       undefined
     >(this.path);
-    const defineRoutes = (
-      childPath: string,
-      handlers: TAlreadyDefinedHandlers
-    ) => {
-      this.__handlersByRoutes[`${this.path}${childPath}`] = handlers;
-    };
 
-    const childrenArray =
-      typeof children === 'function'
-        ? children(newRouter.child())?.map((child) => {
-            (child as any).__parentRouter = this;
-            (child as any).__wasCreatedFromNested = true;
-            defineRoutes(child.path, (child as any).__handlers);
-            return child;
-          })
-        : children.map((child) => {
-            (child as any).__parentRouter = this;
-            defineRoutes(child.path, (child as any).__handlers);
-            return child;
-          });
+    const isNested = typeof children === 'function';
+    const childrenArray = isNested ? children(newRouter.child()) : children;
+    const doesChildrenAlreadyExists = Array.isArray(this.__children);
 
-    this.__children = childrenArray as any;
+    const formattedChildren = childrenArray?.map((child) => {
+      (child as any).__wasCreatedFromNested = isNested;
+      (child as any).__parentRouter = this;
+      this.appendChildToParentRouter(this, child as DefaultRouterType);
+      return child;
+    }) as any;
+
+    if (doesChildrenAlreadyExists)
+      this.__children =
+        (this.__children as any)?.concat(formattedChildren) || undefined;
+    else this.__children = formattedChildren;
 
     return this as unknown as MethodsRouter<
       TParentRouter,
@@ -185,16 +229,85 @@ export class BaseRouter<
     >;
   }
 
-  middlewares<TRouterMiddlewares extends readonly Middleware2[]>(
+  protected appendChildToParentRouter(
+    router: DefaultRouterType,
+    child: DefaultRouterType
+  ) {
+    // We traverse the tree of routers and parent routers so let's say you define 2 nested routers.
+    // One router is between the handler and the other is between the root router and the handler.
+    // something like this
+    //
+    // const rootRouter = path('')
+    // const nestedRouter = pathNested<typeof rootRouter>()('/nested')
+    // rootRouter.nested([nestedRouter])
+    // const handlers = pathNested<typeof nestedRouter>()('/handlers')
+    //   .get(() => return new Response())
+    // nestedRouter.nested([handlers])
+    //
+    // Notice that we defined the `nestedRouter` as nested to `rootRouter` and `handlers` as nested to `nestedRouter` just after that.
+    // If we don't use this loop here, there is NO WAY that `rootRouter` will be able to know that `handlers` exist. To fix that we use
+    // this loop to traverse the hole linked list of routers and parent routers and add the children to the parent routers.
+    while (router) {
+      const fullUrlPath = `${router.__urlParamsAndPath.path}${child.__urlParamsAndPath.path}`;
+      const fullQueryPath = `${router.__queryParamsAndPath.path}&${child.__queryParamsAndPath.path}`;
+
+      const existsHandlersOnChild =
+        typeof child.__handlers === 'object' &&
+        Object.keys(child.__handlers).length > 0;
+      const existsChildHandlersOnChild = child.__completePaths.size > 0;
+
+      if (existsHandlersOnChild) {
+        router.__completePaths.set(fullUrlPath, {
+          middlewares: router.__middlewares.concat(child.__middlewares),
+          urlParams: new Map([
+            ...router.__urlParamsAndPath.params,
+            ...child.__urlParamsAndPath.params,
+          ]),
+          urlPath: fullUrlPath,
+          queryParams: new Map([
+            ...router.__queryParamsAndPath.params,
+            ...child.__queryParamsAndPath.params,
+          ]),
+          queryPath: fullQueryPath,
+          router: child,
+          handlers: child.__handlers,
+        });
+      }
+
+      if (existsChildHandlersOnChild) {
+        for (const [
+          childPath,
+          childPathData,
+        ] of child.__completePaths.entries()) {
+          router.__completePaths.set(`${fullUrlPath}${childPath}`, {
+            middlewares: router.__middlewares.concat(childPathData.middlewares),
+            urlParams: new Map([
+              ...router.__urlParamsAndPath.params,
+              ...childPathData.urlParams,
+            ]),
+            urlPath: `${fullUrlPath}${childPathData.queryPath}`,
+            queryParams: new Map([
+              ...router.__queryParamsAndPath.params,
+              ...childPathData.queryParams,
+            ]),
+            queryPath: `${fullQueryPath}&${childPathData.queryPath}`,
+            router: child,
+            handlers: childPathData.handlers,
+          });
+        }
+      }
+
+      router = router.__parentRouter;
+    }
+  }
+
+  middlewares<TRouterMiddlewares extends readonly Middleware[]>(
     middlewares: F.Narrow<TRouterMiddlewares>
   ) {
-    middlewares.forEach((middleware) => {
-      middleware.request;
-    });
-    if (typeof this.__middlewares === 'string')
-      (this.__middlewares as unknown as Middleware2[]).push(
-        ...(middlewares as Middleware2[])
-      );
+    const middlewaresAsMutable = this.__middlewares as unknown as Middleware[];
+    (this.__middlewares as unknown as Middleware[]) =
+      middlewaresAsMutable.concat(middlewares as Middleware[]);
+
     return this as unknown as MethodsRouter<
       TParentRouter,
       TChildren,
@@ -203,17 +316,232 @@ export class BaseRouter<
       TAlreadyDefinedHandlers
     >;
   }
+
+  private extractQueryParamsFromPath(
+    splittedPath: string[],
+    params: Record<
+      string,
+      {
+        type: ('number' | 'string' | 'boolean')[];
+        isOptional: boolean;
+        isArray: boolean;
+        regex?: RegExp;
+      }
+    >,
+    initialIndex: number
+  ) {
+    let index = initialIndex;
+    index++;
+
+    const hasNotReachedEndOrNextQueryParam = () =>
+      splittedPath[index] !== '&' && index < splittedPath.length;
+    const ignoreSpaces = () => {
+      if (splittedPath[index] === ' ') index++;
+    };
+
+    while (index < splittedPath.length) {
+      let queryParamName = '';
+      let queryParamType = '';
+      let queryParamRegex = '';
+      const queryParamTypes = [];
+      let isArray = false;
+      let isOptional = false;
+      while (hasNotReachedEndOrNextQueryParam()) {
+        ignoreSpaces();
+        if (splittedPath[index] === '&') index++;
+        else if (splittedPath[index] === '=') {
+          index++;
+          if (splittedPath[index] === '{') {
+            index++;
+            while (splittedPath[index] !== '}') {
+              ignoreSpaces();
+              queryParamRegex += splittedPath[index];
+              index++;
+            }
+            index++; // remove the last }
+          }
+          if (splittedPath[index] === ':') index++;
+          while (hasNotReachedEndOrNextQueryParam()) {
+            ignoreSpaces();
+            if (splittedPath[index] === '?') isOptional = true;
+            else if (
+              splittedPath[index] === '[' &&
+              splittedPath[index + 1] === ']'
+            ) {
+              isArray = true;
+              index = index + 2;
+            } else if (splittedPath[index] === '(') {
+              index++;
+              ignoreSpaces();
+              while (
+                splittedPath[index] !== ')' &&
+                index < splittedPath.length
+              ) {
+                ignoreSpaces();
+                if (splittedPath[index] === '|') {
+                  queryParamTypes.push(queryParamType);
+                  queryParamType = '';
+                } else {
+                  queryParamType += splittedPath[index];
+                }
+                index++;
+              }
+              if (splittedPath[index] === ')')
+                queryParamTypes.push(queryParamType);
+            } else {
+              queryParamType += splittedPath[index];
+            }
+            index++;
+          }
+        } else {
+          queryParamName += splittedPath[index];
+          index++;
+        }
+      }
+
+      if (queryParamTypes.length === 0) queryParamTypes.push(queryParamType);
+      params[queryParamName] = {
+        type: queryParamTypes as ('number' | 'string' | 'boolean')[],
+        isOptional,
+        isArray,
+        regex:
+          queryParamRegex && queryParamRegex !== ''
+            ? new RegExp(queryParamRegex)
+            : undefined,
+      };
+      index++;
+    }
+
+    return index;
+  }
+
+  private extractUrlParamsFromPath(
+    splittedPath: string[],
+    params: Record<
+      string,
+      {
+        type: ('number' | 'string' | 'boolean')[];
+        regex: RegExp;
+      }
+    >,
+    initialIndex: number
+  ) {
+    let urlParamName = '';
+    let urlParamType = '';
+    let urlParamRegex = '';
+    let index = initialIndex;
+    index++;
+
+    const ignoreSpaces = () => {
+      if (splittedPath[index] === ' ') index++;
+    };
+
+    while (splittedPath[index] !== '>') {
+      ignoreSpaces();
+      // Either will be a regex or a type.
+      if (splittedPath[index] === ':') {
+        index++;
+
+        while (splittedPath[index] !== '>') {
+          ignoreSpaces();
+          if (splittedPath[index] === ':') index++;
+          if (splittedPath[index] === '{') {
+            index++;
+            while (splittedPath[index] !== '}') {
+              ignoreSpaces();
+              urlParamRegex += splittedPath[index];
+              index++;
+            }
+            index++; // remove the last }
+          } else {
+            while (splittedPath[index] !== '>') {
+              ignoreSpaces();
+              urlParamType += splittedPath[index];
+              index++;
+            }
+          }
+        }
+      } else
+        while (splittedPath[index] !== ':') {
+          ignoreSpaces();
+          urlParamName += splittedPath[index];
+          index++;
+        }
+    }
+
+    params[urlParamName] = {
+      type: [urlParamType] as ('number' | 'string' | 'boolean')[],
+      regex: new RegExp(urlParamRegex),
+    };
+    index++;
+    return index;
+  }
+
+  /**
+   * This works similarly to a lexer in a programming language, but it's a bit simpler. We split the characters and then we loop through them to find what we want.
+   *
+   * This means the complexity will grow the bigger the path is.
+   */
+  private extractUrlAndQueryParametersFromPath(path: string) {
+    const urlParams: Record<
+      string,
+      {
+        type: ('number' | 'string' | 'boolean')[];
+        regex: RegExp;
+      }
+    > = {};
+    const queryParams: Record<
+      string,
+      {
+        type: ('number' | 'string' | 'boolean')[];
+        isArray: boolean;
+        isOptional: boolean;
+        regex: RegExp;
+      }
+    > = {};
+    const splittedPath = path.split('');
+    const pathLength = splittedPath.length;
+
+    let queryPath = '';
+    let index = 0;
+
+    while (pathLength > index) {
+      const isBeginningOfUrlParam = splittedPath[index] === '<';
+      const isEnteringQueryParams = splittedPath[index] === '?';
+      if (isBeginningOfUrlParam) {
+        index = this.extractUrlParamsFromPath(splittedPath, urlParams, index);
+      } else if (isEnteringQueryParams) {
+        const startIndex = index;
+        index = this.extractQueryParamsFromPath(
+          splittedPath,
+          queryParams,
+          index
+        );
+        queryPath = path.slice(startIndex, index);
+      } else {
+        index++;
+      }
+    }
+
+    const urlPath = path.replace(queryPath, '');
+    return {
+      urlParams,
+      queryParams,
+      urlPath,
+      queryPath: queryPath.replace(/^\?/g, ''),
+    };
+  }
 }
 
 export class IncludesRouter<
   TParentRouter extends DefaultRouterType | undefined = undefined,
   TChildren extends readonly DefaultRouterType[] | undefined = undefined,
-  TMiddlewares extends readonly Middleware2[] = [],
+  TMiddlewares extends readonly Middleware[] = [],
   TRootPath extends string | undefined = undefined,
   TAlreadyDefinedMethods extends
     | AlreadyDefinedMethodsType<
         TRootPath extends string ? TRootPath : '',
-        readonly Middleware2[]
+        readonly Middleware[]
       >
     | undefined = undefined
 > extends BaseRouter<
@@ -245,12 +573,12 @@ export class IncludesRouter<
 export class MethodsRouter<
   TParentRouter extends DefaultRouterType | undefined = undefined,
   TChildren extends readonly DefaultRouterType[] | undefined = undefined,
-  TMiddlewares extends readonly Middleware2[] = [],
+  TMiddlewares extends readonly Middleware[] = [],
   TRootPath extends string | undefined = undefined,
   TAlreadyDefinedMethods extends
     | AlreadyDefinedMethodsType<
         TRootPath extends string ? TRootPath : '',
-        readonly Middleware2[]
+        readonly Middleware[]
       >
     | unknown = unknown
 > extends BaseRouter<
