@@ -1,25 +1,20 @@
-import {
-  DomainObligatoryParamsUndefinedError,
-  NotAValidDomainDefaultExportedError,
-} from './exceptions';
-import { SettingsType } from '../conf/types';
+import { DomainObligatoryParamsUndefinedError } from './exceptions';
 import { DefaultCommandType } from '../commands/types';
 import { DomainReadyFunctionArgs } from './types';
-import Configuration from '../conf';
-import Commands from '../commands';
 
 /**
- * The domain defines one of the domains of your application
+ * The domain defines one of the domains of your application. Think about domains as small self-contained applications. Your app is a collection of multiple domains.
+ * EVERYTHING is a domain, the server is a domain, the database is a domain. Domains are the building blocks of your application. Everything inside Palmares starts with domains.
  */
-export default class Domain<TModifiers extends object = object> {
-  commands = {} as DefaultCommandType;
+export default class Domain<TModifiers = any> {
+  commands = {} as DefaultCommandType | undefined;
   name!: string;
   path!: string;
   isLoaded = false;
   modifiers!: TModifiers;
-  protected isReady = false;
-  protected isClosed = false;
-  static __instance: Domain;
+  __isReady = false;
+  __isClosed = false;
+  static __instance: Domain<any>;
 
   constructor(name?: string, path?: string) {
     if ((this.constructor as typeof Domain).__instance)
@@ -36,86 +31,29 @@ export default class Domain<TModifiers extends object = object> {
     }
   }
 
-  static async retrieveDomains(
-    settings: SettingsType
-  ): Promise<typeof Domain[]> {
-    const domainClasses: typeof Domain[] = [];
-    for (const domain of settings.INSTALLED_DOMAINS) {
-      let domainKls: Promise<{ default: typeof Domain }> | typeof Domain =
-        domain;
-      if (domainKls instanceof Promise) {
-        domainKls = (await domainKls).default;
-      }
-      if (domainKls.prototype instanceof Domain) {
-        domainClasses.push(domainKls);
-      } else {
-        throw new NotAValidDomainDefaultExportedError();
-      }
-    }
-    return domainClasses;
-  }
-
   /**
-   * Initialize all of the domains as well as all of the commands from it. We will append all of the commands to this
-   * class so that we can cache it if we need to access it again for some reason.
+   * Runs when the domain is loaded. The domain is loaded whenever you run the app. This is obligatory to run.
    *
-   * @param settings - The settings of the application.
-   *
-   * @returns - Returns the commands of the domains inside of the application as well as the domains themselves.
+   * By default if you define to return a callback function this callback function will be called after all of the domains are loaded.
    */
-  static async initializeDomains(settings: SettingsType) {
-    if (Configuration.hasInitializedDomains)
-      return {
-        domains: Configuration.domains,
-        commands: Commands.commands,
-      };
-
-    let commands = {} as DefaultCommandType;
-    const initializedDomains: Domain[] = [];
-    const domainClasses = await Domain.retrieveDomains(settings);
-    for (const domainClass of domainClasses) {
-      const initializedDomain = new domainClass();
-      if (initializedDomain.isLoaded === false) {
-        await initializedDomain.load(settings);
-        initializedDomain.isLoaded = true;
-      }
-      commands = {
-        ...commands,
-        ...initializedDomain.commands,
-      };
-      initializedDomains.push(initializedDomain);
-    }
-    Configuration.hasInitializedDomains = true;
-    Configuration.domains = initializedDomains;
-    Commands.commands = commands;
-
-    return {
-      commands: commands,
-      domains: initializedDomains,
-    };
-  }
-
-  /**
-   * Runs when the domain is loaded.
-   */
-  load?: <TSettings extends SettingsType = SettingsType>(
-    settings: TSettings
-  ) => void | Promise<void>;
+  load?(
+    settings: any
+  ):
+    | void
+    | Promise<void>
+    | ((args: DomainReadyFunctionArgs<any, any>) => void | Promise<void>)
+    | Promise<
+        (args: DomainReadyFunctionArgs<any, any>) => void | Promise<void>
+      >;
 
   /**
    * Code to run when the app runs. This is sequentially executed one after another so you can
    * define the order of execution by defining the order of the INSTALLED_DOMAINS in the settings.ts/js
    * file.
    */
-  ready?: <
-    TSettings extends SettingsType = SettingsType,
-    TCustomOptions extends object = object
-  >(
-    options: DomainReadyFunctionArgs<TSettings, TCustomOptions>
-  ) => void | Promise<void>;
-
+  ready?(options: DomainReadyFunctionArgs<any, any>): void | Promise<void>;
   /**
    * Code to run when the app is closed.
    */
-  close?: () => Promise<void> | void;
+  close?(): Promise<void> | void;
 }

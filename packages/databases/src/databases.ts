@@ -1,4 +1,4 @@
-import { conf } from '@palmares/core';
+import { getSettings, retrieveDomains } from '@palmares/core';
 import { EventEmitter } from '@palmares/events';
 
 import {
@@ -14,7 +14,6 @@ import { DatabaseDomainInterface } from './interfaces';
 import Engine from './engine';
 import { Model } from './models';
 import Migrations from './migrations';
-import DatabasesDomain from './domain';
 import model from './models/model';
 
 export default class Databases {
@@ -199,8 +198,8 @@ export default class Databases {
         : false;
     const engineToUse = isEngineInstanceAPromise
       ? (
-          (await Promise.resolve(databaseSettings.engine)) as {
-            default: typeof Engine;
+          (await Promise.resolve(databaseSettings.engine)) as unknown as {
+            default: new (...args: any) => Engine;
           }
         ).default
       : (databaseSettings.engine as typeof Engine);
@@ -213,7 +212,10 @@ export default class Databases {
       engineInstance =
         this.initializedEngineInstances[engineName].engineInstance;
     } else if (isAnEngineInstanceDefinedForDatabase) {
-      engineInstance = await engineToUse.new(engineName, databaseSettings);
+      engineInstance = await (engineToUse as any).new(
+        engineName,
+        databaseSettings
+      );
     } else {
       throw new Error('You must define an engine for the database.');
     }
@@ -338,13 +340,14 @@ export default class Databases {
    * @returns - Returns an array of models.
    */
   async getModels(domains?: DatabaseDomainInterface[]) {
-    if (domains === undefined)
-      domains = (await DatabasesDomain.retrieveDomains(conf.settings)).map(
+    const settings = getSettings();
+    if (domains === undefined && settings)
+      domains = (await retrieveDomains(settings)).map(
         (domainClass) => new domainClass() as DatabaseDomainInterface
       );
     const cachedFoundModels = Object.values(this.#cachedModelsByModelName);
     const existsCachedFoundModels = cachedFoundModels.length > 0;
-    if (existsCachedFoundModels === false) {
+    if (existsCachedFoundModels === false && domains) {
       const promises: Promise<void>[] = domains.map(async (domain) => {
         const hasGetModelsMethodDefined =
           typeof domain.getModels === 'function';

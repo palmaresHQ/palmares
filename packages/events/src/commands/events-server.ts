@@ -13,5 +13,8 @@ export default async function eventsServer(
   app: EventsAppServer,
   options: DomainHandlerFunctionArgs
 ) {
-  await app.initialize(options.settings as EventsSettingsType, options.domains);
+  /*await app.initialize(
+    options.settings as unknown as EventsSettingsType,
+    options.domains
+  );*/
 }

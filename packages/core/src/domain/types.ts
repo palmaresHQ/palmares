@@ -12,15 +12,22 @@ export type DomainReadyFunctionArgs<
   customOptions: C;
 };
 
-export type DomainFunctionArguments = {
-  load?: <TSettings extends SettingsType = SettingsType>(
-    settings: TSettings
-  ) => void | Promise<void>;
-  ready?: <
-    TSettings extends SettingsType = SettingsType,
-    TCustomOptions extends object = object
-  >(
-    args: DomainReadyFunctionArgs<TSettings, TCustomOptions>
-  ) => void | Promise<void>;
-  close?: () => void | Promise<void>;
-};
+export type ExtractModifierArguments<
+  TModifiers extends readonly (abstract new (...args: any) => {
+    modifiers: any;
+  })[],
+  TFinalArgs = unknown
+> = TModifiers extends readonly [infer TFirstModifier, ...infer TRestModifiers]
+  ? TFirstModifier extends abstract new (...args: any) => {
+      modifiers: infer TModifierArgs;
+    }
+    ? ExtractModifierArguments<
+        TRestModifiers extends readonly (abstract new (...args: any) => {
+          modifiers: any;
+        })[]
+          ? TRestModifiers
+          : [],
+        TFinalArgs & TModifierArgs
+      >
+    : never
+  : TFinalArgs;

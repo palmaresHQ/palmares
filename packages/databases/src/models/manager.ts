@@ -1,4 +1,4 @@
-import { conf, Domain } from '@palmares/core';
+import { getSettings, initializeDomains, SettingsType2 } from '@palmares/core';
 import type { Function } from 'ts-toolbelt';
 import {
   ManagerInstancesType,
@@ -105,9 +105,10 @@ export default class Manager<
       database.isInitializing === false;
     this.isLazyInitializing = true;
     if (canInitializeTheModels) {
-      const settings =
-        (await conf.getSettings()) as unknown as DatabaseSettingsType;
-      const { domains } = await Domain.initializeDomains(settings);
+      const settings = getSettings() as unknown as DatabaseSettingsType;
+      const { domains } = await initializeDomains(
+        settings as unknown as SettingsType2
+      );
       await database.lazyInitializeEngine(
         engineName,
         settings,

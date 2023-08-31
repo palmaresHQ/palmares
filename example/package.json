@@ -9,6 +9,7 @@
     "start": "ts-node dist/manage.js dev",
     "dev": "nodemon --watch 'src/' --watch '../packages' --watch '../libs' --exec ' ts-node manage.ts dev' -e ts",
     "events": "ts-node manage.ts eventsServer",
+    "help": "npx tsx manage.ts help",
     "models": "ts-node src/core/models.ts",
     "test": "ts-node teste.ts",
     "events1": "ts-node src/events1.ts",

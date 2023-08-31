@@ -1,6 +1,31 @@
 import { FilesAndFolders, imports, ImportsError } from '@palmares/std';
 
 export default class FilesAndFoldersNode implements FilesAndFolders {
+  async readFromEnv<T = string>(envName: string): Promise<T> {
+    const env = await imports<typeof import('process')['env']>('process', {
+      apiName: 'env',
+    });
+    if (env) return env[envName] as T;
+    throw new ImportsError('nodejs process env');
+  }
+
+  async readFile(path: string | string[]): Promise<string> {
+    let pathAsString: string = path as string;
+    if (Array.isArray(path)) pathAsString = await this.join(...path);
+    const readFile = await imports<typeof import('fs')['readFile']>('fs', {
+      apiName: 'readFile',
+    });
+    if (readFile) {
+      return new Promise((resolve, reject) => {
+        readFile(pathAsString, (error, data) => {
+          if (error) reject(error);
+          else resolve(data.toString());
+        });
+      });
+    }
+    throw new ImportsError('nodejs fs readFile');
+  }
+
   async join(...paths: string[]): Promise<string> {
     const join = await imports<typeof import('path')['join']>('path', {
       apiName: 'join',

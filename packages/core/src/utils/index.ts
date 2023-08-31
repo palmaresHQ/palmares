@@ -1,5 +1,6 @@
 export * from './constants';
 export { default as imports } from './imports';
+export * from './types';
 
 /**
  * Converts a snakeCase string to a camelCase string formatting.
@@ -9,10 +10,8 @@ export { default as imports } from './imports';
  * @returns - The converted string on camelCase
  */
 export function snakeCaseToCamelCase(string: string) {
-  return string.replace(/([-_][a-z])/ig, (letter) => {
-    return letter.toUpperCase()
-      .replace('-', '')
-      .replace('_', '');
+  return string.replace(/([-_][a-z])/gi, (letter) => {
+    return letter.toUpperCase().replace('-', '').replace('_', '');
   });
 }
 
@@ -25,5 +24,8 @@ export function snakeCaseToCamelCase(string: string) {
  * @returns - The converted string.
  */
 export function camelCaseToHyphenOrSnakeCase(string: string, isSnake = true) {
-  return string.replace(/[A-Z]+/g, letter => `${isSnake ? '_' : '-'}${letter.toLowerCase()}`)
+  return string.replace(
+    /[A-Z]+/g,
+    (letter) => `${isSnake ? '_' : '-'}${letter.toLowerCase()}`
+  );
 }

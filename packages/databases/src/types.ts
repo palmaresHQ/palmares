@@ -1,11 +1,12 @@
-import { SettingsType } from '@palmares/core';
 import type { EventEmitter } from '@palmares/events';
 
 import { Model } from './models';
 import Engine from './engine';
 
 export interface DatabaseConfigurationType<DialectOptions, ExtraOptions> {
-  engine: typeof Engine | { default: typeof Engine };
+  engine: new (...args: any) =>
+    | Engine
+    | { default: new (...args: any) => Engine };
   url?: string | undefined;
   dialect: DialectOptions;
   databaseName: string;
@@ -44,13 +45,13 @@ export type InitializedModelsType<M = any> = {
   original: InstanceType<ReturnType<typeof Model>>;
 };
 
-export interface DatabaseSettingsType extends SettingsType {
+export type DatabaseSettingsType = {
   DATABASES: {
     [key: string]: DatabaseConfigurationType<string, object>;
   };
   DATABASES_EVENT_EMITTER?: EventEmitter;
   DATABASES_DISMISS_NO_MIGRATIONS_LOG: boolean;
-}
+};
 
 export type OptionalMakemigrationsArgsType = {
   empty?: string;

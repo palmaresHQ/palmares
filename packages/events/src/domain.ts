@@ -25,7 +25,8 @@ export default class EventsDomain extends Domain {
   commands: DefaultCommandType = {
     eventsServer: {
       description: 'Run the application in events server mode',
-      example: 'asdasd',
+      positionalArgs: undefined,
+      keywordArgs: undefined,
       handler: async (options: DomainHandlerFunctionArgs) => {
         // IMPORTANT: we only initialize the app because we are running an events server.
         await eventsServerCommand(this.app, options);
@@ -41,9 +42,9 @@ export default class EventsDomain extends Domain {
    * This is used to start the EventsAppServer, we will always create it, but we don't start the actual app if we don't run with
    * `eventsServer` command.
    */
-  override async load<S extends SettingsType = EventsSettingsType>(
+  override async load(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    settings: S
+    settings: EventsSettingsType
   ) {
     await buildLogging();
     this.app = new EventsAppServer(settings as unknown as EventsSettingsType);

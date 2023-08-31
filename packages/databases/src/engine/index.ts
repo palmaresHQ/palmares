@@ -47,7 +47,7 @@ import EngineModels from './model';
  * the base class with `super.initializeModel(model, theInstanceOfYourCustomModel)` so we can save it on the `initializedModels` object
  * in the class instance.
  */
-export default class Engine<M extends Model = Model> implements EngineType {
+export default class Engine<TModel extends Model = any> implements EngineType {
   databaseName: string;
   databaseSettings: DatabaseConfigurationType<any, any>;
   initializedModels: EngineInitializedModels = {};

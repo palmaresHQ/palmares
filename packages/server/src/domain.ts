@@ -26,7 +26,7 @@ export default class ServerDomain extends Domain {
   commands: DefaultCommandType = {
     dev: {
       description: 'runs the application in development mode',
-      example: 'asdasd',
+      syntax: 'asdasd',
       handler: async (options: DomainHandlerFunctionArgs) => {
         await devCommand(this.app, options);
       },

@@ -28,12 +28,13 @@ export class Photo extends models.Model<Photo>() {
       relationName: 'userPhoto',
     }),
   };
-
-  options = {
-    tableName: 'photo',
-  };
 }
-
+/*Photo.default.set(
+  {},
+  {
+    search: {},
+  }
+);*/
 export class Post extends models.Model<Post>() {
   fields = {
     id: AutoField.new(),

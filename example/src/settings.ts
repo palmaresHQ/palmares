@@ -1,12 +1,48 @@
-import SequelizeEngine from '@palmares/sequelize-engine';
+/*;
 import ExpressServer from '@palmares/express-adapter';
 import ZodSchema from '@palmares/zod-schema';
 import { ExpressCorsMiddleware } from './core/middlewares';
 
-import { dirname, resolve } from 'path';
-import { EventEmitter } from '@palmares/events';
 
-export const PORT = 4001;
+import { EventEmitter } from '@palmares/events';*/
+import { dirname, resolve } from 'path';
+import CoreDomain, { defineSettings } from '@palmares/core';
+import DatabasesDomain from '@palmares/databases';
+import SequelizeEngine from '@palmares/sequelize-engine';
+
+export default defineSettings({
+  basePath: dirname(resolve(__dirname)),
+  installedDomains: [
+    [
+      CoreDomain,
+      {
+        appName: 'example',
+      },
+    ],
+    [
+      DatabasesDomain,
+      {
+        DATABASES: {
+          default: {
+            engine: SequelizeEngine,
+            dialect: 'postgres',
+            databaseName: 'postgres',
+            username: 'postgres',
+            password: '',
+            host: 'localhost',
+            port: 5435,
+            extraOptions: {
+              logging: false,
+            },
+          },
+        },
+        DATABASES_DISMISS_NO_MIGRATIONS_LOG: false,
+      },
+    ],
+  ],
+});
+
+/*export const PORT = 4001;
 export const ENV =
   typeof process.env.NODE_ENV === 'string'
     ? process.env.NODE_ENV
@@ -64,3 +100,4 @@ export const DATABASES = {
 export const DATABASES_DISMISS_NO_MIGRATIONS_LOG = true;
 
 export const SERIALIZER_SCHEMA = ZodSchema;
+*/

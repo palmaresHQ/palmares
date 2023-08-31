@@ -36,7 +36,7 @@ import SequelizeEngineQueryOrdering from './query/ordering';
 import SequelizeEngineForeignKeyFieldParser from './fields/foreign-key';
 import SequelizeEngineDateFieldParser from './fields/date';
 
-export default class SequelizeEngine<M extends TModel = TModel> extends Engine {
+export default class SequelizeEngine<M extends TModel = any> extends Engine {
   #isConnected: boolean | null = null;
   initializedModels!: EngineInitializedModels<ModelCtor<Model<ModelFields<M>>>>;
   instance!: Sequelize | null;

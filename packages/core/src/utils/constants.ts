@@ -1,4 +1,5 @@
 export const FRAMEWORK_NAME = 'palmares';
+export const PACKAGE_NAME = '@palmares/core';
 export const ERR_MODULE_NOT_FOUND = 'MODULE_NOT_FOUND';
 export const PALMARES_SETTINGS_MODULE_ENVIRONMENT_VARIABLE =
   'PALMARES_SETTINGS_MODULE';

@@ -1,11 +1,11 @@
-import Logging from '.'
+import Logging from '.';
 import { MessageCategories } from './types';
 
 export default class Logger {
   name: string;
   logging: typeof Logging;
 
-  constructor(name:string, logging: typeof Logging) {
+  constructor(name: string, logging: typeof Logging) {
     this.name = name;
     this.logging = logging;
   }
@@ -28,5 +28,5 @@ export default class Logger {
 
   debug(message: string) {
     this.logging.log(MessageCategories.Debug, this.getMessage(message));
-  }  
+  }
 }

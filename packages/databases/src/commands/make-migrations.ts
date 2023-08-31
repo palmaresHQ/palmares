@@ -9,7 +9,9 @@ export default async function makeMigrations(
   databases: Databases,
   { settings, domains, args }: DomainHandlerFunctionArgs
 ) {
-  const databaseSettings = defaultSettings(settings as DatabaseSettingsType);
+  const databaseSettings = defaultSettings(
+    settings as unknown as DatabaseSettingsType
+  );
   const databaseDomains = domains as DatabaseDomainInterface[];
   await databases.makeMigrations(
     databaseSettings,

@@ -1,12 +1,12 @@
 import { SettingsType } from './conf/types';
-import Domain from './domain';
+import Domain from './domain/domain';
 import logging from './logging';
 import { NotImplementedException } from './exceptions';
 import { LOGGING_APP_STOP_SERVER } from './utils';
 
 /**
- * This is the app, the app instance is responsible for loading the server.
- * An server is responsible to keep the app running.
+ * This is the app, the app instance is responsible for loading the server, think about the server as anything. A server is just a program
+ * that keeps running until you close it. It can be an HTTP server, an Events Server, a TCP server, etc.
  *
  * By default this overrides many of the things defined on the core, like the `domains`.
  * It's on here that we call the `ready` and `close` methods of each domain so we are able to
@@ -21,6 +21,15 @@ export default class AppServer {
   domains!: Domain[];
   settings!: SettingsType;
   isClosingServer = false;
+
+  static __instance: AppServer;
+
+  constructor() {
+    if ((this.constructor as typeof AppServer).__instance)
+      return (this.constructor as typeof AppServer).__instance;
+
+    (this.constructor as typeof AppServer).__instance = this;
+  }
 
   /**
    * @private
@@ -47,7 +56,7 @@ export default class AppServer {
         appName: this.settings.APP_NAME,
       });
       const promises = this.domains.map(async (domain) => {
-        if (domain.isClosed === false) await domain.close();
+        if (domain.__isClosed === false && domain.close) await domain.close();
       });
       await Promise.all(promises);
     }
@@ -61,14 +70,14 @@ export default class AppServer {
    * for this application.
    * @param domains - All of the domains of the application, including the domain of the server.
    */
-  async initialize(settings: SettingsType, domains: Domain[]): Promise<void> {
+  async initialize(settings: any, domains: Domain[]): Promise<void> {
     this.settings = settings;
     this.domains = domains;
 
     const customOptions = {};
 
     for (const domain of domains) {
-      if (domain.isReady === false) {
+      if (domain.__isReady === false && domain.ready) {
         await domain.ready({
           settings: settings,
           domains,
