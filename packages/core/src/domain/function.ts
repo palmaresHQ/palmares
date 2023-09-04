@@ -1,7 +1,4 @@
-import type {
-  DomainReadyFunctionArgs,
-  ExtractModifierArguments,
-} from './types';
+import type { DomainReadyFunctionArgs, ExtractModifierArguments } from './types';
 import Domain from './domain';
 import type { DefaultCommandType } from '../commands/types';
 
@@ -39,20 +36,14 @@ export default function domain<
     | void
     | Promise<void>
     | ((args: DomainReadyFunctionArgs<any, any>) => void | Promise<void>)
-    | Promise<
-        (args: DomainReadyFunctionArgs<any, any>) => void | Promise<void>
-      > = (
+    | Promise<(args: DomainReadyFunctionArgs<any, any>) => void | Promise<void>> = (
     settings: unknown
   ) =>
     | void
     | Promise<void>
     | ((args: DomainReadyFunctionArgs<unknown, any>) => void | Promise<void>)
-    | Promise<
-        (args: DomainReadyFunctionArgs<unknown, any>) => void | Promise<void>
-      >,
-  TReadyFunction extends (
-    args: DomainReadyFunctionArgs<any, any>
-  ) => void | Promise<void> = (
+    | Promise<(args: DomainReadyFunctionArgs<unknown, any>) => void | Promise<void>>,
+  TReadyFunction extends (args: DomainReadyFunctionArgs<any, any>) => void | Promise<void> = (
     args: DomainReadyFunctionArgs<unknown, any>
   ) => void | Promise<void>
 >(
@@ -95,8 +86,7 @@ export default function domain<
     commands = (args.commands || {}) as TCommands | undefined;
   }
 
-  for (const [key, value] of argsEntries)
-    (ReturnedClass as any).prototype[key] = value;
+  for (const [key, value] of argsEntries) (ReturnedClass as any).prototype[key] = value;
 
   return ReturnedClass;
 }

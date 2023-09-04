@@ -19,9 +19,7 @@ let cachedInitializedDomains: Domain<any>[] | null = null;
  *
  * @returns - Returns all of the domains from the settings.
  */
-export async function retrieveDomains(
-  settings: CoreSettingsType & SettingsType2
-): Promise<typeof Domain[]> {
+export async function retrieveDomains(settings: CoreSettingsType & SettingsType2): Promise<typeof Domain[]> {
   const isNotDynamicDomains = settings.isDynamicDomains !== true;
   if (cachedDomains && isNotDynamicDomains) return cachedDomains;
 
@@ -94,15 +92,12 @@ export async function initializeDomains(settings: SettingsType2) {
   for (const domainClass of domainClasses) {
     const initializedDomain = new domainClass();
     const domainIsNotLoadedAndHasLoadFunction =
-      typeof initializedDomain.load === 'function' &&
-      !initializedDomain.isLoaded;
+      typeof initializedDomain.load === 'function' && !initializedDomain.isLoaded;
     if (domainIsNotLoadedAndHasLoadFunction) {
       if (initializedDomain.load) {
         const readyFunctionToCallOrNot = await initializedDomain.load(settings);
         if (typeof readyFunctionToCallOrNot === 'function')
-          readyFunctionsToCallAfterAllDomainsAreLoaded.push(
-            readyFunctionToCallOrNot
-          );
+          readyFunctionsToCallAfterAllDomainsAreLoaded.push(readyFunctionToCallOrNot);
       }
       initializedDomain.isLoaded = true;
     }

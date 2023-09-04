@@ -1,6 +1,4 @@
-import { Std } from '@palmares/std';
-
-import { SettingsType2 } from '../conf/types';
+import { SettingsType2, StdLike } from '../conf/types';
 import { CommandNotFoundException } from './exceptions';
 import { DefaultCommandType } from './types';
 import { initializeDomains } from '../domain/utils';
@@ -12,10 +10,7 @@ export function getCommands() {
   return cachedCommands;
 }
 
-function getValueFromType(
-  type: 'boolean' | 'number' | 'string' | string[] | readonly string[],
-  value: string
-) {
+function getValueFromType(type: 'boolean' | 'number' | 'string' | string[] | readonly string[], value: string) {
   switch (type) {
     case 'string':
       return value.toString();
@@ -25,9 +20,7 @@ function getValueFromType(
       else return valueToReturn;
     }
     case 'boolean':
-      return (
-        value === 'true' || value === '1' || value === 'yes' || value === 'y'
-      );
+      return value === 'true' || value === '1' || value === 'yes' || value === 'y';
     default:
       if (Array.isArray(type) && type.includes(value)) return value;
       else throw new Error(`Invalid type ${type}`);
@@ -65,16 +58,13 @@ function getValueFromType(
  * handleCommands({ installedDomains: [testDomain] }, ['testCommand', 'test', '--test=test']);
  */
 async function formatArgs(command: DefaultCommandType[string], args: string[]) {
-  const isArgAKeywordParameter = (arg: string) =>
-    arg.startsWith('--') || arg.startsWith('-');
-  const positionalArguments = structuredClone(
-    command.positionalArgs || ({} as object)
-  ) as NonNullable<DefaultCommandType[string]['positionalArgs']>;
+  const isArgAKeywordParameter = (arg: string) => arg.startsWith('--') || arg.startsWith('-');
+  const positionalArguments = structuredClone(command.positionalArgs || ({} as object)) as NonNullable<
+    DefaultCommandType[string]['positionalArgs']
+  >;
   const allKeywordArgsFlagsByRealName =
     Object.entries(command.keywordArgs || ({} as DefaultCommandType[string]))
-      .map(([argName, arg]) =>
-        arg.hasFlag ? { [argName[0]]: argName } : undefined
-      )
+      .map(([argName, arg]) => (arg.hasFlag ? { [argName[0]]: argName } : undefined))
       .filter((arg) => arg !== undefined)
       .reduce((accumulator, current) => {
         const [key, value] = Object.entries(current as object)[0];
@@ -95,26 +85,18 @@ async function formatArgs(command: DefaultCommandType[string], args: string[]) {
       const argKey = arg.replace(/^(--|-)/, '');
       const [keywordArgument, possibleArgument] = argKey.split(/=(.*)/g);
 
-      const formattedKeywordArgument =
-        allKeywordArgsFlagsByRealName[keywordArgument] || keywordArgument;
-      if (
-        command.keywordArgs &&
-        command.keywordArgs[formattedKeywordArgument]
-      ) {
+      const formattedKeywordArgument = allKeywordArgsFlagsByRealName[keywordArgument] || keywordArgument;
+      if (command.keywordArgs && command.keywordArgs[formattedKeywordArgument]) {
         const isABooleanParameter =
-          (typeof command.keywordArgs[formattedKeywordArgument].type ===
-            'string' &&
+          (typeof command.keywordArgs[formattedKeywordArgument].type === 'string' &&
             command.keywordArgs[formattedKeywordArgument].type === 'boolean') ||
-          typeof command.keywordArgs[formattedKeywordArgument].type !==
-            'string';
+          typeof command.keywordArgs[formattedKeywordArgument].type !== 'string';
         let valueToUse = possibleArgument;
 
         if (!valueToUse || isABooleanParameter) {
-          const hasDefaultValue =
-            command.keywordArgs[formattedKeywordArgument].default;
+          const hasDefaultValue = command.keywordArgs[formattedKeywordArgument].default;
 
-          if (hasDefaultValue)
-            valueToUse = command.keywordArgs[formattedKeywordArgument].default;
+          if (hasDefaultValue) valueToUse = command.keywordArgs[formattedKeywordArgument].default;
           else if (isABooleanParameter) valueToUse = 'true';
           else valueToUse = args.shift() as string;
         }
@@ -123,25 +105,14 @@ async function formatArgs(command: DefaultCommandType[string], args: string[]) {
           valueToUse
         );
 
-        const canBeMultiple =
-          command.keywordArgs[formattedKeywordArgument].canBeMultiple;
-        if (
-          canBeMultiple &&
-          Array.isArray(keywordArgs[formattedKeywordArgument])
-        )
+        const canBeMultiple = command.keywordArgs[formattedKeywordArgument].canBeMultiple;
+        if (canBeMultiple && Array.isArray(keywordArgs[formattedKeywordArgument]))
           keywordArgs[formattedKeywordArgument].push(valueToUseFormatted);
-        else
-          keywordArgs[formattedKeywordArgument] = canBeMultiple
-            ? [valueToUseFormatted]
-            : valueToUseFormatted;
+        else keywordArgs[formattedKeywordArgument] = canBeMultiple ? [valueToUseFormatted] : valueToUseFormatted;
       }
     } else if (Object.keys(positionalArguments).length > 0) {
-      const [positionalArgument, positionalArgsData] =
-        Object.entries(positionalArguments)[0];
-      positionalArgs[positionalArgument] = getValueFromType(
-        positionalArgsData.type || 'string',
-        arg
-      );
+      const [positionalArgument, positionalArgsData] = Object.entries(positionalArguments)[0];
+      positionalArgs[positionalArgument] = getValueFromType(positionalArgsData.type || 'string', arg);
       delete positionalArguments[positionalArgument as string];
     }
   }
@@ -159,36 +130,30 @@ export async function handleCommands(
   settingsOrSettingsPath:
     | Promise<{ default: SettingsType2 }>
     | SettingsType2
-    | Std
-    | Promise<{ default: Std }>
+    | StdLike
+    | Promise<{ default: StdLike }>
     | {
         settingsPathLocation: string;
-        std: Std;
+        std: StdLike;
       },
   args: string[]
 ): Promise<void> {
   const commandType = args[0];
   const settings = await setSettings(settingsOrSettingsPath);
 
-  const { domains, commands: availableCommands } = await initializeDomains(
-    settings
-  );
+  const { domains, commands: availableCommands } = await initializeDomains(settings);
 
   cachedCommands = availableCommands;
 
   const isCommandDefined: boolean =
-    typeof availableCommands[commandType] === 'object' &&
-    availableCommands[commandType] !== undefined;
+    typeof availableCommands[commandType] === 'object' && availableCommands[commandType] !== undefined;
 
   if (isCommandDefined) {
     await Promise.resolve(
       availableCommands[commandType].handler({
         settings,
         domains,
-        args: await formatArgs(
-          availableCommands[commandType],
-          args.slice(1, args.length)
-        ),
+        args: await formatArgs(availableCommands[commandType], args.slice(1, args.length)),
       })
     );
   } else {

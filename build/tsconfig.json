@@ -8,9 +8,10 @@
 		"allowSyntheticDefaultImports": true,
 		"strictNullChecks": true,
 		"esModuleInterop": true,
-		"target": "es2017",
+    "target": "ES2020",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+    "lib": ["ESNext"],
 		"sourceMap": true,
-		"outDir": "./dist",
+		"outDir": "./dist/cjs",
 		"baseUrl": "./",
 		"incremental": true,
 		"skipLibCheck": true,

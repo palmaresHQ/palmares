@@ -1,6 +1,4 @@
-import { Std } from '@palmares/std';
-
-import { SettingsType2 } from './types';
+import { SettingsType2, StdLike } from './types';
 import { PALMARES_SETTINGS_MODULE_ENVIRONMENT_VARIABLE } from '../utils';
 import { SettingsNotFoundException } from './exceptions';
 
@@ -16,18 +14,12 @@ export function getSettings() {
  * if you are using NodeStd and trying to run the code on the browser it WILL fail. Just use it if you are completely sure that it will
  * only run on that runtime and any other.
  */
-async function extractSettingsFromPath(stdToUse: Std, path?: string) {
-  const pathToUse: string =
-    path ||
-    (await stdToUse.files.readFromEnv(
-      PALMARES_SETTINGS_MODULE_ENVIRONMENT_VARIABLE
-    ));
+async function extractSettingsFromPath(stdToUse: StdLike, path?: string) {
+  const pathToUse: string = path || (await stdToUse.files.readFromEnv(PALMARES_SETTINGS_MODULE_ENVIRONMENT_VARIABLE));
   if (!pathToUse) throw new SettingsNotFoundException();
   try {
     const settingsModule = await stdToUse.files.readFile(pathToUse);
-    cachedSettings = (
-      (await import(settingsModule)) as { default: SettingsType2 }
-    ).default;
+    cachedSettings = ((await import(settingsModule)) as { default: SettingsType2 }).default;
   } catch (e) {
     throw new SettingsNotFoundException();
   }
@@ -40,28 +32,20 @@ export async function setSettings(
   settingsOrStd:
     | Promise<{ default: SettingsType2 }>
     | SettingsType2
-    | Std
-    | Promise<{ default: Std }>
+    | StdLike
+    | Promise<{ default: StdLike }>
     | {
         settingsPathLocation: string;
-        std: Std;
+        std: StdLike;
       }
 ) {
   if (settingsOrStd instanceof Promise) {
     const awaitedSettingsOrSrd = await settingsOrStd;
-    if (awaitedSettingsOrSrd.default instanceof Std)
-      await extractSettingsFromPath(awaitedSettingsOrSrd.default);
+    if ('files' in awaitedSettingsOrSrd.default) await extractSettingsFromPath(awaitedSettingsOrSrd.default);
     else cachedSettings = awaitedSettingsOrSrd.default;
-  } else if (settingsOrStd instanceof Std)
-    await extractSettingsFromPath(settingsOrStd);
-  else if (
-    typeof settingsOrStd === 'object' &&
-    'settingsPathLocation' in settingsOrStd
-  ) {
-    await extractSettingsFromPath(
-      settingsOrStd.std,
-      settingsOrStd.settingsPathLocation
-    );
+  } else if ('files' in settingsOrStd) await extractSettingsFromPath(settingsOrStd);
+  else if (typeof settingsOrStd === 'object' && 'settingsPathLocation' in settingsOrStd) {
+    await extractSettingsFromPath(settingsOrStd.std, settingsOrStd.settingsPathLocation);
   } else cachedSettings = settingsOrStd;
 
   if (!cachedSettings) throw new SettingsNotFoundException();

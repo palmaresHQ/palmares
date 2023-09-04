@@ -1,4 +1,4 @@
-import { Domain } from '@palmares/core/src/domain';
+import { Domain } from '@palmares/core';
 
 import Std from './interfaces';
 import config from './config';
@@ -12,8 +12,7 @@ export default class StdDomain extends Domain {
   async load(settings: StdSettingsType): Promise<void> {
     if (settings.STD) {
       let defaultStd: typeof Std;
-      if (settings.STD instanceof Promise)
-        defaultStd = (await settings.STD).default;
+      if (settings.STD instanceof Promise) defaultStd = (await settings.STD).default;
       else defaultStd = settings.STD;
       config.setDefaultStd(defaultStd);
     } else throw new Error('STD is required in settings');

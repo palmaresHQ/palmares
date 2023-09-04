@@ -4,6 +4,13 @@ import { DomainReadyFunctionArgs } from '../domain/types';
 import { Narrow } from '../utils';
 import domain from '../domain/function';
 
+export type StdLike = {
+  files: {
+    readFromEnv<T = string>(envName: string): Promise<T>;
+    readFile(path: string | string[]): Promise<string>;
+  };
+};
+
 export type ValidateDomains<
   TDomains extends
     | readonly (
@@ -11,11 +18,7 @@ export type ValidateDomains<
         | ReturnType<typeof domain>
         | Promise<{ default: typeof Domain | ReturnType<typeof domain> }>
         | readonly [
-            (
-              | typeof Domain
-              | ReturnType<typeof domain>
-              | Promise<{ default: typeof Domain | ReturnType<typeof domain> }>
-            ),
+            typeof Domain | ReturnType<typeof domain> | Promise<{ default: typeof Domain | ReturnType<typeof domain> }>,
             any
           ]
       )[]
@@ -81,9 +84,7 @@ export type ValidateDomains<
     : string
   : TDomains;
 
-export type InstalledDomainsType =
-  | Promise<{ default: typeof Domain }>[]
-  | typeof Domain[];
+export type InstalledDomainsType = Promise<{ default: typeof Domain }>[] | typeof Domain[];
 
 export type SettingsType2<
   TDomains extends readonly (
@@ -91,11 +92,7 @@ export type SettingsType2<
     | ReturnType<typeof domain>
     | Promise<{ default: typeof Domain | ReturnType<typeof domain> }>
     | readonly [
-        (
-          | typeof Domain
-          | ReturnType<typeof domain>
-          | Promise<{ default: typeof Domain | ReturnType<typeof domain> }>
-        ),
+        typeof Domain | ReturnType<typeof domain> | Promise<{ default: typeof Domain | ReturnType<typeof domain> }>,
         any
       ]
   )[] = readonly any[]
@@ -112,8 +109,7 @@ export type CoreSettingsType = {
   appName?: string;
 };
 
-export type ExtendsSettings<TOtherSettings extends object> = TOtherSettings &
-  Partial<SettingsType2>;
+export type ExtendsSettings<TOtherSettings extends object> = TOtherSettings & Partial<SettingsType2>;
 
 export type SettingsType = {
   ENV?: string;

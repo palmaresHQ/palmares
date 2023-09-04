@@ -6,12 +6,8 @@ import type { Narrow } from '../utils';
 
 type ExtractTypeFromArg<
   TArgument extends
-    | NonNullable<
-        NonNullable<Domain['commands']>[string]['keywordArgs']
-      >[string]
-    | NonNullable<
-        NonNullable<Domain['commands']>[string]['positionalArgs']
-      >[string],
+    | NonNullable<NonNullable<Domain['commands']>[string]['keywordArgs']>[string]
+    | NonNullable<NonNullable<Domain['commands']>[string]['positionalArgs']>[string],
   TPositionalOrKeyword extends 'positionalArgs' | 'keywordArgs'
 > = TArgument['type'] extends 'string'
   ? TArgument['canBeMultiple'] extends true
@@ -45,24 +41,14 @@ export type ExtractCommandsType<
   TCommand extends keyof NonNullable<InstanceType<TDomain>['commands']>
 > = {
   keywordArgs: {
-    [Key in keyof NonNullable<
-      InstanceType<TDomain>['commands']
-    >[TCommand]['keywordArgs']]?: ExtractTypeFromArg<
-      NonNullable<
-        NonNullable<InstanceType<TDomain>['commands']>[TCommand]['keywordArgs']
-      >[Key],
+    [Key in keyof NonNullable<InstanceType<TDomain>['commands']>[TCommand]['keywordArgs']]?: ExtractTypeFromArg<
+      NonNullable<NonNullable<InstanceType<TDomain>['commands']>[TCommand]['keywordArgs']>[Key],
       'keywordArgs'
     >;
   };
   positionalArgs: {
-    [Key in keyof NonNullable<
-      InstanceType<TDomain>['commands']
-    >[TCommand]['positionalArgs']]: ExtractTypeFromArg<
-      NonNullable<
-        NonNullable<
-          InstanceType<TDomain>['commands']
-        >[TCommand]['positionalArgs']
-      >[Key],
+    [Key in keyof NonNullable<InstanceType<TDomain>['commands']>[TCommand]['positionalArgs']]: ExtractTypeFromArg<
+      NonNullable<NonNullable<InstanceType<TDomain>['commands']>[TCommand]['positionalArgs']>[Key],
       'positionalArgs'
     >;
   };
@@ -150,12 +136,7 @@ export type DefaultCommandType = {
              *
              * @default 'boolean'
              */
-            type?:
-              | 'string'
-              | 'number'
-              | 'boolean'
-              | readonly string[]
-              | string[];
+            type?: 'string' | 'number' | 'boolean' | readonly string[] | string[];
           };
         }
       | undefined;
@@ -165,8 +146,6 @@ export type DefaultCommandType = {
      * ADVANCED:
      * If you return an AppServer from this function, we will initialize it. If you don't know what an AppServer is, don't worry about it.
      */
-    handler: (
-      options: DomainHandlerFunctionArgs
-    ) => Promise<void | AppServer> | (void | AppServer);
+    handler: (options: DomainHandlerFunctionArgs) => Promise<void | AppServer> | (void | AppServer);
   };
 };

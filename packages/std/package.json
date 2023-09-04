@@ -23,6 +23,6 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
-    "@palmares/core": "*"
+    "@palmares/core": "workspace:*"
   }
 }

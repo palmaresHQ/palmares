@@ -9,9 +9,7 @@ export default {
   USE_TS: true,
   PORT: 4000,
   SECRET_KEY: 'secret',
-  ENV: ![null, undefined, ''].includes(process?.env?.NODE_ENV)
-    ? process.env.NODE_ENV
-    : 'development',
+  ENV: ![null, undefined, ''].includes(process?.env?.NODE_ENV) ? process.env.NODE_ENV : 'development',
   DEBUG: true,
   APP_NAME: 'palmares',
   INSTALLED_DOMAINS: defaultInstalledDomains,

@@ -78,11 +78,7 @@ module.exports = {
           1,
           {
             'newlines-between': 'always',
-            groups: [
-              ['external', 'builtin'],
-              ['object', 'internal', 'sibling', 'parent', 'index'],
-              ['type'],
-            ],
+            groups: [['external', 'builtin'], ['object', 'internal', 'sibling', 'parent', 'index'], ['type']],
             pathGroupsExcludedImportTypes: ['internal'],
             alphabetize: {
               order: 'asc',

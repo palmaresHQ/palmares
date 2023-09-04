@@ -9,11 +9,7 @@ export default function defineSettings<
     | ReturnType<typeof domain>
     | Promise<{ default: typeof Domain | ReturnType<typeof domain> }>
     | readonly [
-        (
-          | typeof Domain
-          | ReturnType<typeof domain>
-          | Promise<{ default: typeof Domain | ReturnType<typeof domain> }>
-        ),
+        typeof Domain | ReturnType<typeof domain> | Promise<{ default: typeof Domain | ReturnType<typeof domain> }>,
         any
       ]
   )[] = readonly []

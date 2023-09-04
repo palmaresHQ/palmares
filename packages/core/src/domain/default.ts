@@ -13,8 +13,7 @@ const coreDomain = domain(PACKAGE_NAME, __dirname, {
       positionalArgs: undefined,
       keywordArgs: {
         command: {
-          description:
-            'If you add this argument it will show you the help only for that specific command.',
+          description: 'If you add this argument it will show you the help only for that specific command.',
           hasFlag: true,
           type: 'string',
           canBeMultiple: true,

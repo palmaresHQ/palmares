@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "declaration": true, /* Generate d.ts files */
+    "declarationMap": true, /* go to js file when using IDE functions like. "Go to Definition" in VSCode */
+    "emitDeclarationOnly": true,
+    "allowJs": true,
+    "outDir": "./dist/cjs",
+    "preserveSymlinks": true,
+    "target": "ES2020",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+    "lib": ["ESNext"],                                        /* Specify a set of bundled library declaration files that describe the target runtime environment. */
+    "module": "CommonJS",                                /* Specify what module code is generated. */
+    "rootDir": "./src",                                  /* Specify the root folder within your source files. */
+    "moduleResolution": "node",                       /* Specify how TypeScript looks up a file from a given module specifier. */
+    "baseUrl": "./src",                                  /* Specify the base directory to resolve non-relative module names. */
+    "allowSyntheticDefaultImports": true,             /* Allow 'import x from y' when a module doesn't have a default export. */
+    "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
+    "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
+    "strict": true,                                      /* Enable all strict type-checking options. */
+    "skipLibCheck": true,
+  },
+  "exclude": ["node_modules"],
+  "include": ["src/**/*"]
+}

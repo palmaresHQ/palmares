@@ -17,11 +17,9 @@ export default class Domain<TModifiers = any> {
   static __instance: Domain<any>;
 
   constructor(name?: string, path?: string) {
-    if ((this.constructor as typeof Domain).__instance)
-      return (this.constructor as typeof Domain).__instance;
+    if ((this.constructor as typeof Domain).__instance) return (this.constructor as typeof Domain).__instance;
 
-    const isAppNameAndAppPathDefined =
-      typeof name === 'string' && typeof path === 'string';
+    const isAppNameAndAppPathDefined = typeof name === 'string' && typeof path === 'string';
     if (isAppNameAndAppPathDefined) {
       this.name = name as string;
       this.path = path as string;
@@ -42,9 +40,7 @@ export default class Domain<TModifiers = any> {
     | void
     | Promise<void>
     | ((args: DomainReadyFunctionArgs<any, any>) => void | Promise<void>)
-    | Promise<
-        (args: DomainReadyFunctionArgs<any, any>) => void | Promise<void>
-      >;
+    | Promise<(args: DomainReadyFunctionArgs<any, any>) => void | Promise<void>>;
 
   /**
    * Code to run when the app runs. This is sequentially executed one after another so you can

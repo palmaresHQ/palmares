@@ -2,7 +2,18 @@
   "name": "@palmares/core",
   "version": "0.0.1",
   "description": "This is the core part of the palmares framework, palmares is a framework heavily inspired by django and nestjs core ideas",
-  "main": "src/index.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/es6/index.js",
+  "types": "./dist/cjs/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/cjs/index.d.ts",
+      "node": "./dist/cjs/index.js",
+      "require": "./dist/cjs/index.js",
+      "import": "./dist/es6/index.js",
+      "default": "./dist/es6/index.js"
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/palmaresHQ/palmares.git"
@@ -13,20 +24,19 @@
     "core"
   ],
   "scripts": {
-    "test": "ts-node teste.ts"
+    "clear": "rm -rf ./dist",
+    "build:types": "tsc --project tsconfig.json",
+    "build:cjs": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc",
+    "build:module": "swc ./src -d ./dist/es6 --config-file ../../build/.es6.swcrc",
+    "build": "pnpm run clear && pnpm run build:cjs && pnpm run build:module && pnpm run build:types",
+    "build:cjs:watch": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc --watch",
+    "build:module:watch": "swc ./src -d ./dist/es6 --config-file ../../build/.es6.swcrc --watch",
+    "build:watch": "pnpm run build:cjs:watch && pnpm run build:module:watch"
   },
   "author": "Nicolas Leal",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
-  "homepage": "https://github.com/palmaresHQ/palmares#readme",
-  "dependencies": {
-    "@palmares/std": "*",
-    "@palmares/express-adapter": "*",
-    "@palmares/sequelize-engine": "*"
-  },
-  "devDependencies": {
-    "typescript": "^4.9.5"
-  }
+  "homepage": "https://github.com/palmaresHQ/palmares#readme"
 }
