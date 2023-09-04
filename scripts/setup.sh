@@ -15,3 +15,4 @@ elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]; then
   winget install pnpm
 fi
 
+pnpm i

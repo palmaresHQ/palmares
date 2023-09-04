@@ -1,10 +1,28 @@
 {
   "name": "@palmares/std",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "The palmares standard library, this is used to interact with the environment we are working with, it can be a browser, node.js, bun, deno or whatever runtime. The standard library should include interfaces that we can extend in whatever environment we are at",
-  "main": "src/index.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/es6/index.js",
+  "types": "./dist/cjs/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/cjs/index.d.ts",
+      "node": "./dist/cjs/index.js",
+      "require": "./dist/cjs/index.js",
+      "import": "./dist/es6/index.js",
+      "default": "./dist/es6/index.js"
+    }
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "clear": "rm -rf ./dist",
+    "build:types": "tsc --project tsconfig.types.json",
+    "build:cjs": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc",
+    "build:module": "swc ./src -d ./dist/es6 --config-file ../../build/.es6.swcrc",
+    "build": "pnpm run clear && pnpm run build:cjs && pnpm run build:module && pnpm run build:types",
+    "build:cjs:watch": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc --watch",
+    "build:module:watch": "swc ./src -d ./dist/es6 --config-file ../../build/.es6.swcrc --watch",
+    "build:watch": "pnpm run build:cjs:watch && pnpm run build:module:watch"
   },
   "repository": {
     "type": "git",
