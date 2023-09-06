@@ -102,13 +102,27 @@ async function releaseToGithub(parsedTags: ReturnType<typeof parseGitTags>) {
       return;
     }
     console.log(`Publishing ${parsedTag.raw} to github releases...`);
-    await runCommand('gh', ['release', 'create', parsedTag.raw, '--title', parsedTag.raw, '--notes', changelogText]);
+    await runCommand('gh', [
+      'release',
+      'create',
+      '--target',
+      'main',
+      parsedTag.raw,
+      '--title',
+      parsedTag.raw,
+      '--notes',
+      changelogText,
+    ]);
   });
   await Promise.all(promises);
 }
 
 async function getCurrentGitTagsParsed() {
   const data = await runCommand('git', ['tag', '--points-at', 'HEAD', '--column']);
+  if (!data) {
+    console.log('No data found');
+    return;
+  }
   const parsedTags = parseGitTags(data.toString());
   if (parsedTags.length === 0) {
     console.log('No tags found');
@@ -117,11 +131,12 @@ async function getCurrentGitTagsParsed() {
   return parsedTags;
 }
 
-function main() {
-  getCurrentGitTagsParsed().then((parsedTags) => {
-    if (!parsedTags) return;
-    releaseToGithub(parsedTags);
-  });
+async function main() {
+  console.log('teste');
+  const parsedTags = await getCurrentGitTagsParsed();
+  console.log(parsedTags);
+  if (!parsedTags) return;
+  releaseToGithub(parsedTags);
 }
 
 main();
