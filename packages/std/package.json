@@ -1,6 +1,6 @@
 {
   "name": "@palmares/std",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "The palmares standard library, this is used to interact with the environment we are working with, it can be a browser, node.js, bun, deno or whatever runtime. The standard library should include interfaces that we can extend in whatever environment we are at",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",

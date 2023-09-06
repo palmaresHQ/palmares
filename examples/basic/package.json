@@ -1,6 +1,6 @@
 {
   "name": "@example/basic",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "This is a basic example application, just to test if everything works as expected",
   "main": "manage.ts",
   "author": "Nicolas Melo",

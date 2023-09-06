@@ -1,6 +1,6 @@
 {
   "name": "@palmares/serializers",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "This package is responsible for validating incoming requests and format how the requests are sent to the user.",
   "main": "src/index.ts",
   "scripts": {

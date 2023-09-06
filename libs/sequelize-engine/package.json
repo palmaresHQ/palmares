@@ -1,6 +1,6 @@
 {
   "name": "@palmares/sequelize-engine",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "This is the engine that wraps the hole sequelize interface in a way palmares can understand and have full control of",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",

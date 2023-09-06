@@ -1,6 +1,6 @@
 {
   "name": "@palmares/server",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "The server from palmares, this is what you will use generally to make HTTP requests",
   "main": "src/index.ts",
   "scripts": {

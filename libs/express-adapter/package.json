@@ -1,6 +1,6 @@
 {
   "name": "@palmares/express-adapter",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "This is the adapter for express framework to work with Palmares framework",
   "main": "src/index.ts",
   "scripts": {

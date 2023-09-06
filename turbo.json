@@ -23,6 +23,12 @@
         "lib/**/dist/**"
       ]
     },
+    "publish": {
+      "cache": false,
+      "dependsOn": [
+        "build"
+      ]
+    },
     "dev": {
       "dependsOn": [
         "build:watch"

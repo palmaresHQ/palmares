@@ -18,7 +18,10 @@
     "framework"
   ],
   "scripts": {
-    "bump": "npx changeset",
+    "define:change": "pnpm changeset",
+    "apply:change": "pnpm changeset version",
+    "release": "pnpm run define:change && pnpm run apply:change && pnpm run publish",
+    "publish": "turbo run publish",
     "build": "turbo run build",
     "build:watch": "turbo run build:watch --parallel",
     "dev": "turbo run dev --parallel",
