@@ -1,12 +1,12 @@
 import {
-  models,
   AutoField,
-  ForeignKeyField,
   CharField,
-  UUIDField,
+  ForeignKeyField,
   IntegerField,
-  ON_DELETE,
   ModelOptionsType,
+  models,
+  ON_DELETE,
+  UUIDField,
 } from '@palmares/databases';
 
 export class Photo extends models.Model<Photo>() {
@@ -68,7 +68,7 @@ export class User extends models.Model<User>() {
       toField: 'id',
       relatedName: 'pokemonUsers',
       relationName: 'pokemon',
-      defaultValue: 25,
+      defaultValue: undefined,
     }),
     lastName: CharField.new({ maxLength: 255, allowNull: true }),
     uuid: UUIDField.new({ autoGenerate: true, unique: true }),
@@ -96,9 +96,7 @@ export class Pokemon extends models.Model<Pokemon>() {
   options: ModelOptionsType<Pokemon> = {
     managed: false,
     onGet: async ({ search }) => {
-      const data = await fetch(
-        `https://pokeapi.co/api/v2/pokemon/${search.name || search.id}`
-      );
+      const data = await fetch(`https://pokeapi.co/api/v2/pokemon/${search.name || search.id}`);
       const json = await data.json();
       return [{ id: json.id, name: json.name, weight: json.weight }];
     },

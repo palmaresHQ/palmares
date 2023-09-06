@@ -79,9 +79,7 @@ export default class FilesAndFoldersNode implements FilesAndFolders {
       apiName: 'mkdir',
     });
     if (mkdir) {
-      const pathToCreateDirectory = Array.isArray(path)
-        ? await this.join(...path)
-        : path;
+      const pathToCreateDirectory = Array.isArray(path) ? await this.join(...path) : path;
       return new Promise((resolve, reject) => {
         mkdir(pathToCreateDirectory, { recursive: true }, (error) => {
           if (error) reject(error);
@@ -97,9 +95,7 @@ export default class FilesAndFoldersNode implements FilesAndFolders {
       apiName: 'readdir',
     });
     if (readdir) {
-      const pathToReadDirectory = Array.isArray(path)
-        ? await this.join(...path)
-        : path;
+      const pathToReadDirectory = Array.isArray(path) ? await this.join(...path) : path;
       return new Promise((resolve, reject) => {
         readdir(pathToReadDirectory, (error, files) => {
           if (error) reject(error);

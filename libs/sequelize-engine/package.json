@@ -2,7 +2,29 @@
   "name": "@palmares/sequelize-engine",
   "version": "0.0.1",
   "description": "This is the engine that wraps the hole sequelize interface in a way palmares can understand and have full control of",
-  "main": "src/index.ts",
+  "main": "./dist/cjs/src/index.js",
+  "module": "./dist/esm/src/index.js",
+  "types": "./dist/cjs/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/cjs/types/index.d.ts",
+      "node": "./dist/cjs/src/index.js",
+      "require": "./dist/cjs/src/index.js",
+      "import": "./dist/esm/src/index.js",
+      "default": "./dist/esm/src/index.js"
+    }
+  },
+  "scripts": {
+    "clear": "rm -rf ./dist",
+    "build:types": "tsc --project tsconfig.types.json",
+    "build:cjs": "swc ./src -d ./dist/cjs/src --config-file ../../build/.commonjs.swcrc",
+    "build:module": "swc ./src -d ./dist/esm/src --config-file ../../build/.esm.swcrc",
+    "build": "pnpm run clear && pnpm run build:cjs && pnpm run build:module && pnpm run build:types",
+    "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
+    "build:cjs:watch": "swc ./src -d ./dist/cjs/src --config-file ../../build/.commonjs.swcrc --watch",
+    "build:module:watch": "swc ./src -d ./dist/esm/src --config-file ../../build/.esm.swcrc --watch",
+    "build:watch": "pnpm run build:cjs:watch & pnpm run build:module:watch & pnpm run build:types:watch"
+  },
   "keywords": [
     "sequelize",
     "sequelize-engine",
@@ -19,12 +41,11 @@
   "author": "Nicolas Melo",
   "license": "MIT",
   "dependencies": {
-    "@palmares/core": "*",
-    "@palmares/databases": "*",
+    "@palmares/core": "workspace:*",
+    "@palmares/databases": "workspace:*",
     "sequelize": "^6.21.0"
   },
   "devDependencies": {
-    "@types/sequelize": "^4.28.14",
-    "typescript": "^4.9.5"
+    "@types/sequelize": "^4.28.14"
   }
 }

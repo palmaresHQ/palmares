@@ -1,21 +1,24 @@
 {
 	"compilerOptions": {
 		"module": "commonjs",
-		"declaration": true,
+		"declaration": false,
 		"removeComments": true,
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
 		"allowSyntheticDefaultImports": true,
 		"strictNullChecks": true,
 		"esModuleInterop": true,
-		"target": "es2017",
+    "target": "ES2020",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+    "lib": ["ESNext"],
 		"sourceMap": true,
-		"outDir": "./dist",
+		"outDir": "./dist/cjs",
 		"baseUrl": "./",
 		"incremental": true,
 		"skipLibCheck": true,
 		"strict": true,
 		"forceConsistentCasingInFileNames": true,
 		"noFallthroughCasesInSwitch": false,
-	}
+	},
+  "include": ["packages/**/*", "integration/**/*", "libs/**/*", "examples/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
 }

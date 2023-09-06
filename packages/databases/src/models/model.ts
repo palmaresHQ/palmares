@@ -122,17 +122,7 @@ export class Model<T = any> {
   className!: typeof this['constructor']['name'];
   options!: ModelOptionsType<T extends Model ? T : this>;
   associations: {
-    [modelName: string]: ForeignKeyField<
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any
-    >[];
+    [modelName: string]: ForeignKeyField<any, any, any, any, any, any, any, any, any>[];
   } = {};
   stringfiedArgumentsOfEvents = new Set<string>();
   // Other models use this model as ForeignKey
@@ -202,41 +192,26 @@ export class Model<T = any> {
    * @param composedAbstracts - We can have an abstract with an abstract and so on, for that a recursive approach
    * seems a good solution, this is an array with all of the abstracts that were already loaded for the current model.
    */
-  async #loadAbstract(
-    abstractInstance: Model,
-    composedAbstracts: string[]
-  ): Promise<void> {
+  async #loadAbstract(abstractInstance: Model, composedAbstracts: string[]): Promise<void> {
     const abstractInstanceName = abstractInstance.constructor.name;
     if (composedAbstracts.includes(abstractInstanceName)) {
-      throw new ModelCircularAbstractError(
-        this.constructor.name,
-        abstractInstanceName
-      );
+      throw new ModelCircularAbstractError(this.constructor.name, abstractInstanceName);
     }
 
-    const abstractManagers: [string, Manager][] = Object.entries(
-      this.#getManagers(abstractInstance)
-    );
+    const abstractManagers: [string, Manager][] = Object.entries(this.#getManagers(abstractInstance));
     const abstractFieldEntries = Object.entries(abstractInstance.fields);
-    const loadAbstractPromises = abstractInstance.abstracts.map(
-      (abstractKlsFromAbstract) => {
-        return this.#loadAbstract(abstractKlsFromAbstract, composedAbstracts);
-      }
-    );
+    const loadAbstractPromises = abstractInstance.abstracts.map((abstractKlsFromAbstract) => {
+      return this.#loadAbstract(abstractKlsFromAbstract, composedAbstracts);
+    });
 
     for (const [fieldName, field] of abstractFieldEntries) {
       if (this.fields[fieldName]) {
-        throw new ModelInvalidAbstractFieldError(
-          this.constructor.name,
-          abstractInstanceName,
-          fieldName
-        );
+        throw new ModelInvalidAbstractFieldError(this.constructor.name, abstractInstanceName, fieldName);
       }
       this.fields[fieldName] = field;
     }
 
-    const areAbstractInstanceOptionsDefined =
-      Object.keys(abstractInstance.options).length > 1;
+    const areAbstractInstanceOptionsDefined = Object.keys(abstractInstance.options).length > 1;
     if (this.options === undefined && areAbstractInstanceOptionsDefined) {
       this.options = abstractInstance.options;
       this.options.abstract = false;
@@ -244,11 +219,7 @@ export class Model<T = any> {
 
     for (const [managerName, managerInstance] of abstractManagers) {
       if (this[managerName]) {
-        throw new ModelInvalidAbstractManagerError(
-          this.constructor.name,
-          abstractInstanceName,
-          managerName
-        );
+        throw new ModelInvalidAbstractManagerError(this.constructor.name, abstractInstanceName, managerName);
       }
       this[managerName] = managerInstance;
     }
@@ -298,8 +269,7 @@ export class Model<T = any> {
 
     for (const manager of managerValues) {
       manager._setModel(engineInstance.databaseName, this);
-      if (modelInstance)
-        manager._setInstance(engineInstance.databaseName, modelInstance);
+      if (modelInstance) manager._setInstance(engineInstance.databaseName, modelInstance);
       manager._setEngineInstance(engineInstance.databaseName, engineInstance);
     }
   }
@@ -317,8 +287,7 @@ export class Model<T = any> {
       const relatedTo: Record<string, string[]> = {};
       engineInstance._indirectlyRelatedModels[this.originalName] =
         engineInstance._indirectlyRelatedModels[this.originalName] || relatedTo;
-      this.indirectlyRelatedTo =
-        engineInstance._indirectlyRelatedModels[this.originalName];
+      this.indirectlyRelatedTo = engineInstance._indirectlyRelatedModels[this.originalName];
     }
   }
 
@@ -354,26 +323,19 @@ export class Model<T = any> {
           : undefined;
 
       const eventNameToUse = `${this.hashedName}.${operationType}`;
-      const eventEmitter = await Promise.resolve(
-        engineInstance.databaseSettings.events.emitter
-      );
+      const eventEmitter = await Promise.resolve(engineInstance.databaseSettings.events.emitter);
       this.#eventsUnsubscribers.push(
         await eventEmitter.addEventListenerWithoutResult(
           eventNameToUse,
-          async (
-            engineInstanceName: string,
-            args: Parameters<onSetFunction | onRemoveFunction>
-          ) => {
-            const isCallerDifferentThanHandler =
-              engineInstanceName !== existingEngineInstanceName;
+          async (engineInstanceName: string, args: Parameters<onSetFunction | onRemoveFunction>) => {
+            const isCallerDifferentThanHandler = engineInstanceName !== existingEngineInstanceName;
             const argsAsString = JSON.stringify(args);
             // This will prevent the event to be triggered twice for the same set of arguments.
             this.stringfiedArgumentsOfEvents.add(argsAsString);
 
             if (isToPreventCallerToBeTheHandled && isCallerDifferentThanHandler)
               await Promise.resolve(eventHandler(args as any));
-            else if (!isToPreventCallerToBeTheHandled)
-              await Promise.resolve(eventHandler(args as any));
+            else if (!isToPreventCallerToBeTheHandled) await Promise.resolve(eventHandler(args as any));
 
             this.stringfiedArgumentsOfEvents.delete(argsAsString);
           }
@@ -391,12 +353,8 @@ export class Model<T = any> {
       this.originalName = this.name;
       this.name = `State${this.name}`;
     } else {
-      this.originalName =
-        typeof this.originalName === 'string'
-          ? this.originalName
-          : this.constructor.name;
-      this.name =
-        typeof this.name === 'string' ? this.name : this.constructor.name;
+      this.originalName = typeof this.originalName === 'string' ? this.originalName : this.constructor.name;
+      this.name = typeof this.name === 'string' ? this.name : this.constructor.name;
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [hashedString, _, __] = await Promise.all([
@@ -414,12 +372,7 @@ export class Model<T = any> {
   /**
    * Initializes the model and returns the model instance for the current engine instance that is being used.
    */
-  async _init(
-    engineInstance: Engine,
-    domainName: string,
-    domainPath: string,
-    isManaged = true
-  ) {
+  async _init(engineInstance: Engine, domainName: string, domainPath: string, isManaged = true) {
     this.domainName = domainName;
     this.domainPath = domainPath;
 
@@ -455,14 +408,10 @@ export class Model<T = any> {
       this.options.abstract === model.options.abstract &&
       this.options.underscored === model.options.underscored &&
       this.options.tableName === model.options.tableName &&
-      JSON.stringify(this.options.ordering) ===
-        JSON.stringify(model.options.ordering) &&
-      JSON.stringify(this.options.indexes) ===
-        JSON.stringify(model.options.indexes) &&
-      JSON.stringify(this.options.databases) ===
-        JSON.stringify(model.options.databases) &&
-      JSON.stringify(this.options.customOptions) ===
-        JSON.stringify(model.options.customOptions)
+      JSON.stringify(this.options.ordering) === JSON.stringify(model.options.ordering) &&
+      JSON.stringify(this.options.indexes) === JSON.stringify(model.options.indexes) &&
+      JSON.stringify(this.options.databases) === JSON.stringify(model.options.databases) &&
+      JSON.stringify(this.options.customOptions) === JSON.stringify(model.options.customOptions)
     );
   }
 
@@ -482,11 +431,10 @@ export class Model<T = any> {
       const isLastField = i === allFields.length - 1;
       const customImportsOfField = await field.customImports();
       stringifiedFields.push(
-        `${fieldsIdent}${fieldName}: ${(
-          await field.toString(indentation + 1)
-        ).replace(new RegExp(`^${fieldsIdent}`), '')},${
-          isLastField ? '' : '\n'
-        }`
+        `${fieldsIdent}${fieldName}: ${(await field.toString(indentation + 1)).replace(
+          new RegExp(`^${fieldsIdent}`),
+          ''
+        )},${isLastField ? '' : '\n'}`
       );
       getUniqueCustomImports(customImportsOfField, customImportsOfModel);
     }
@@ -508,35 +456,25 @@ export class Model<T = any> {
       `${optionsIndent}abstract: ${newOptions.abstract},\n` +
       `${optionsIndent}underscored: ${newOptions.underscored},\n` +
       `${optionsIndent}tableName: ${
-        typeof newOptions.tableName === 'string'
-          ? `"${newOptions.tableName}"`
-          : newOptions.tableName
+        typeof newOptions.tableName === 'string' ? `"${newOptions.tableName}"` : newOptions.tableName
       },\n` +
       `${optionsIndent}managed: ${newOptions.managed},\n` +
       `${optionsIndent}ordering: [${
-        newOptions.ordering
-          ? newOptions.ordering?.map((field) => `"${field as string}"`)
-          : ''
+        newOptions.ordering ? newOptions.ordering?.map((field) => `"${field as string}"`) : ''
       }],\n` +
       `${optionsIndent}indexes: [${
         newOptions.indexes
           ? newOptions.indexes?.map(
               (dbIndex, i) =>
-                `{ unique: ${dbIndex.unique}, fields: ${dbIndex.fields.map(
-                  (field) => `"${field}"`
-                )} }` +
+                `{ unique: ${dbIndex.unique}, fields: ${dbIndex.fields.map((field) => `"${field}"`)} }` +
                 `${i === (newOptions.indexes?.length || 1) - 1 ? '' : ','}`
             )
           : ''
       }],\n` +
       `${optionsIndent}databases: [${
-        newOptions.databases
-          ? newOptions.databases?.map((database) => `"${database}"`)
-          : ''
+        newOptions.databases ? newOptions.databases?.map((database) => `"${database}"`) : ''
       }],\n` +
-      `${optionsIndent}customOptions: ${JSON.stringify(
-        newOptions.customOptions
-      )}\n` +
+      `${optionsIndent}customOptions: ${JSON.stringify(newOptions.customOptions)}\n` +
       `${ident}}`
     );
   }
@@ -552,14 +490,10 @@ export default function model<M>() {
   return class DefaultModel extends Model<M> {
     static get default() {
       if (defaultManagerInstance === null) {
-        defaultManagerInstance = new DefaultManager<
-          M extends DefaultModel ? M : any
-        >();
+        defaultManagerInstance = new DefaultManager<M extends DefaultModel ? M : any>();
         defaultManagerInstance.modelKls = this;
       }
-      return defaultManagerInstance as DefaultManager<
-        M extends DefaultModel ? M : any
-      >;
+      return defaultManagerInstance as DefaultManager<M extends DefaultModel ? M : any>;
     }
   };
 }
@@ -567,10 +501,7 @@ export default function model<M>() {
 /**
  * Used for creating a model from a function instead of needing to define a class.
  */
-export function initialize<
-  TFields extends Model['fields'],
-  TAbstracts extends readonly Model<any>[]
->(
+export function initialize<TFields extends Model['fields'], TAbstracts extends readonly Model<any>[]>(
   modelName: string,
   args: {
     fields: TFields;

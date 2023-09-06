@@ -3,15 +3,15 @@
   "version": "0.0.1",
   "description": "This is the core part of the palmares framework, palmares is a framework heavily inspired by django and nestjs core ideas",
   "main": "./dist/cjs/index.js",
-  "module": "./dist/es6/index.js",
-  "types": "./dist/cjs/index.d.ts",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/cjs/types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/cjs/index.d.ts",
+      "types": "./dist/cjs/types/index.d.ts",
       "node": "./dist/cjs/index.js",
       "require": "./dist/cjs/index.js",
-      "import": "./dist/es6/index.js",
-      "default": "./dist/es6/index.js"
+      "import": "./dist/esm/index.js",
+      "default": "./dist/esm/index.js"
     }
   },
   "repository": {
@@ -25,18 +25,23 @@
   ],
   "scripts": {
     "clear": "rm -rf ./dist",
+    "publish": "npm publish --access public",
     "build:types": "tsc --project tsconfig.types.json",
     "build:cjs": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc",
-    "build:module": "swc ./src -d ./dist/es6 --config-file ../../build/.es6.swcrc",
-    "build": "pnpm run clear && pnpm run build:cjs && pnpm run build:module && pnpm run build:types",
+    "build:module": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc",
+    "build": "pnpm run clear && pnpm run build:cjs & pnpm run build:module & pnpm run build:types",
+    "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
     "build:cjs:watch": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc --watch",
-    "build:module:watch": "swc ./src -d ./dist/es6 --config-file ../../build/.es6.swcrc --watch",
-    "build:watch": "pnpm run build:cjs:watch && pnpm run build:module:watch"
+    "build:module:watch": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc --watch",
+    "build:watch": "pnpm run build:cjs:watch & pnpm run build:module:watch & pnpm run build:types:watch"
   },
   "author": "Nicolas Leal",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
-  "homepage": "https://github.com/palmaresHQ/palmares#readme"
+  "homepage": "https://github.com/palmaresHQ/palmares#readme",
+  "devDependencies": {
+    "@types/node": "^20.5.9"
+  }
 }

@@ -1,9 +1,4 @@
-import {
-  EngineGetQuery,
-  Includes,
-  models,
-  ForeignKeyField,
-} from '@palmares/databases';
+import { EngineGetQuery, Includes, models, ForeignKeyField } from '@palmares/databases';
 import { Includeable, Model, ModelCtor, Order } from 'sequelize';
 
 export default class SequelizeEngineGetQuery extends EngineGetQuery {
@@ -21,7 +16,7 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
    * @param formattedIncludesStatement - The include statement formatted to something that sequelize can understand.
    */
   async #parseSearchWithIncludes(
-    parentModel: InstanceType<ReturnType<typeof models.Model>>,
+    parentModel: models.BaseModel<any>,
     search: any,
     includes: Includes<{ fields: readonly string[] }>,
     formattedIncludesStatement: Includeable[] = []
@@ -30,51 +25,34 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
     const engineName = this.engineQueryInstance.engineInstance.databaseName;
     for (const include of includes || []) {
       const includedModelName = include.model.name;
-      const modelInstance = include.model.default.getModel(engineName);
-      const sequelizeModelInstance: ModelCtor<Model> =
-        await include.model.default.getInstance(engineName);
+      const modelInstance = include.model.default.getModel(engineName) as models.BaseModel<any>;
+      const sequelizeModelInstance: ModelCtor<Model> = await include.model.default.getInstance(engineName);
 
       const directlyRelatedAssociations: [boolean, ForeignKeyField][] = (
         parentModel.associations[includedModelName] || []
       ).map((directlyRelatedAssociation) => [true, directlyRelatedAssociation]);
       const indirectlyRelatedAssociations: [boolean, ForeignKeyField][] = (
         modelInstance.associations[parentModelName] || []
-      ).map((indirectlyRelatedAssociation) => [
-        false,
-        indirectlyRelatedAssociation,
-      ]);
+      ).map((indirectlyRelatedAssociation) => [false, indirectlyRelatedAssociation]);
       const allAssociations: [boolean, ForeignKeyField][] =
         directlyRelatedAssociations.concat(indirectlyRelatedAssociations);
 
       for (const [isDirectlyRelated, association] of allAssociations) {
-        const relationName = isDirectlyRelated
-          ? association.relationName
-          : association.relatedName;
-        const whereClause =
-          search !== undefined ? search[relationName] : undefined;
+        const relationName = isDirectlyRelated ? association.relationName : association.relatedName;
+        const whereClause = search !== undefined ? search[relationName] : undefined;
         const formattedInclude: Includeable = {
           as: relationName,
           model: sequelizeModelInstance,
         };
 
         if (whereClause) {
-          formattedInclude.where =
-            await this.engineQueryInstance.search.parseSearch(
-              modelInstance,
-              whereClause
-            );
+          formattedInclude.where = await this.engineQueryInstance.search.parseSearch(modelInstance, whereClause);
           formattedInclude.required = true;
         }
-        if (include.fields)
-          formattedInclude.attributes = include.fields as string[];
+        if (include.fields) formattedInclude.attributes = include.fields as string[];
         if (include.includes) {
           const includesOfIncludes: Includeable[] = [];
-          await this.#parseSearchWithIncludes(
-            modelInstance,
-            whereClause,
-            include.includes,
-            includesOfIncludes
-          );
+          await this.#parseSearchWithIncludes(modelInstance, whereClause, include.includes, includesOfIncludes);
           formattedInclude.include = includesOfIncludes;
         }
         formattedIncludesStatement.push(formattedInclude);
@@ -90,8 +68,7 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
     includes: Includes<{ fields: readonly string[] }>
   ) {
     const engineName = this.engineQueryInstance.engineInstance.databaseName;
-    const sequelizeModelInstance: ModelCtor<Model> =
-      await modelConstructor.default.getInstance(engineName);
+    const sequelizeModelInstance: ModelCtor<Model> = await modelConstructor.default.getInstance(engineName);
     const modelInstance = modelConstructor.default.getModel(engineName);
     const formattedIncludesStatement = await this.#parseSearchWithIncludes(
       modelConstructor.default.getModel(engineName),
@@ -99,16 +76,12 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
       includes
     );
 
-    const rootLevelWhereClause =
-      await this.engineQueryInstance.search.parseSearch(modelInstance, search);
+    const rootLevelWhereClause = await this.engineQueryInstance.search.parseSearch(modelInstance, search);
 
     return (
       await sequelizeModelInstance.findAll({
         attributes: fields as string[],
-        where:
-          Object.keys(rootLevelWhereClause).length > 0
-            ? rootLevelWhereClause
-            : undefined,
+        where: Object.keys(rootLevelWhereClause).length > 0 ? rootLevelWhereClause : undefined,
         include: formattedIncludesStatement,
       })
     ).map((data) => data.toJSON());

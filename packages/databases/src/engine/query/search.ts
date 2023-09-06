@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // eslint-disable-next-line import/no-named-as-default
 import type EngineQuery from '.';
+import { BaseModel } from '../../models';
 import model from '../../models/model';
 import { FieldWithOperationType, OperatorsOfQuery } from '../../models/types';
 
@@ -20,9 +21,7 @@ export default class EngineQuerySearch {
     /**
      * This is the value of the query
      */
-    value?: OperationType extends 'or' | 'and' | 'in' | 'between'
-      ? unknown[]
-      : unknown,
+    value?: OperationType extends 'or' | 'and' | 'in' | 'between' ? unknown[] : unknown,
     /**
      * This is the result we will use on the query.
      */
@@ -69,90 +68,42 @@ export default class EngineQuerySearch {
               }
             );
           } else {
-            await this.parseSearchFieldValue(
-              OperatorsOfQuery.like,
-              fieldData?.like.not,
-              dataOfFieldToUseInQuery,
-              {
-                isNot: true,
-              }
-            );
+            await this.parseSearchFieldValue(OperatorsOfQuery.like, fieldData?.like.not, dataOfFieldToUseInQuery, {
+              isNot: true,
+            });
           }
         } else {
-          await this.parseSearchFieldValue(
-            OperatorsOfQuery.like,
-            fieldData?.like,
-            dataOfFieldToUseInQuery
-          );
+          await this.parseSearchFieldValue(OperatorsOfQuery.like, fieldData?.like, dataOfFieldToUseInQuery);
         }
       }
       if (Array.isArray(fieldData?.and)) {
-        await this.parseSearchFieldValue(
-          OperatorsOfQuery.and,
-          fieldData?.and,
-          dataOfFieldToUseInQuery
-        );
+        await this.parseSearchFieldValue(OperatorsOfQuery.and, fieldData?.and, dataOfFieldToUseInQuery);
       }
       if (Array.isArray(fieldData?.or)) {
-        await this.parseSearchFieldValue(
-          OperatorsOfQuery.or,
-          fieldData?.or,
-          dataOfFieldToUseInQuery
-        );
+        await this.parseSearchFieldValue(OperatorsOfQuery.or, fieldData?.or, dataOfFieldToUseInQuery);
       }
       if (Array.isArray(fieldData?.in)) {
-        await this.parseSearchFieldValue(
-          OperatorsOfQuery.in,
-          fieldData?.in,
-          dataOfFieldToUseInQuery
-        );
+        await this.parseSearchFieldValue(OperatorsOfQuery.in, fieldData?.in, dataOfFieldToUseInQuery);
       } else if (typeof fieldData?.in === 'object') {
-        await this.parseSearchFieldValue(
-          OperatorsOfQuery.in,
-          fieldData?.in.not,
-          dataOfFieldToUseInQuery,
-          {
-            isNot: true,
-          }
-        );
+        await this.parseSearchFieldValue(OperatorsOfQuery.in, fieldData?.in.not, dataOfFieldToUseInQuery, {
+          isNot: true,
+        });
       }
       if (Array.isArray(fieldData?.between)) {
-        await this.parseSearchFieldValue(
-          OperatorsOfQuery.between,
-          fieldData?.between,
-          dataOfFieldToUseInQuery
-        );
+        await this.parseSearchFieldValue(OperatorsOfQuery.between, fieldData?.between, dataOfFieldToUseInQuery);
       } else if (typeof fieldData?.between === 'object') {
-        await this.parseSearchFieldValue(
-          OperatorsOfQuery.between,
-          fieldData?.between.not,
-          dataOfFieldToUseInQuery,
-          {
-            isNot: true,
-          }
-        );
+        await this.parseSearchFieldValue(OperatorsOfQuery.between, fieldData?.between.not, dataOfFieldToUseInQuery, {
+          isNot: true,
+        });
       }
       if (fieldData?.is !== undefined) {
-        await this.parseSearchFieldValue(
-          OperatorsOfQuery.is,
-          fieldData?.is,
-          dataOfFieldToUseInQuery
-        );
+        await this.parseSearchFieldValue(OperatorsOfQuery.is, fieldData?.is, dataOfFieldToUseInQuery);
       } else if (typeof fieldData?.is === 'object')
-        await this.parseSearchFieldValue(
-          OperatorsOfQuery.is,
-          (fieldData?.is as any).not,
-          dataOfFieldToUseInQuery,
-          {
-            isNot: true,
-          }
-        );
+        await this.parseSearchFieldValue(OperatorsOfQuery.is, (fieldData?.is as any).not, dataOfFieldToUseInQuery, {
+          isNot: true,
+        });
       if (fieldData?.greaterThan !== undefined)
-        await this.parseSearchFieldValue(
-          OperatorsOfQuery.greaterThan,
-          fieldData?.greaterThan,
-          dataOfFieldToUseInQuery
-        );
+        await this.parseSearchFieldValue(OperatorsOfQuery.greaterThan, fieldData?.greaterThan, dataOfFieldToUseInQuery);
       if (fieldData?.greaterThanOrEqual !== undefined)
         await this.parseSearchFieldValue(
           OperatorsOfQuery.greaterThanOrEqual,
@@ -160,11 +111,7 @@ export default class EngineQuerySearch {
           dataOfFieldToUseInQuery
         );
       if (fieldData?.lessThan !== undefined)
-        await this.parseSearchFieldValue(
-          OperatorsOfQuery.lessThan,
-          fieldData?.lessThan,
-          dataOfFieldToUseInQuery
-        );
+        await this.parseSearchFieldValue(OperatorsOfQuery.lessThan, fieldData?.lessThan, dataOfFieldToUseInQuery);
       if (fieldData?.lessThanOrEqual !== undefined)
         await this.parseSearchFieldValue(
           OperatorsOfQuery.lessThanOrEqual,
@@ -186,18 +133,14 @@ export default class EngineQuerySearch {
    *
    * @returns The parsed search, translated to the database engine so we can make a query.
    */
-  async parseSearch(
-    modelInstance: InstanceType<ReturnType<typeof model>>,
-    search: any
-  ) {
+  async parseSearch(modelInstance: BaseModel<any>, search: any) {
     if (search) {
       const fieldsInModelInstance = Object.keys(modelInstance.fields);
       const fieldsInSearch = Object.keys(search);
 
       const formattedSearch: Record<string, any> = {};
       const promises = fieldsInSearch.map(async (key) => {
-        if (fieldsInModelInstance.includes(key))
-          formattedSearch[key] = await this.#parseSearchField(search[key]);
+        if (fieldsInModelInstance.includes(key)) formattedSearch[key] = await this.#parseSearchField(search[key]);
       });
       await Promise.all(promises);
       return formattedSearch;

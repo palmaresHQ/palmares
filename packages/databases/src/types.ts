@@ -4,9 +4,7 @@ import { Model } from './models';
 import Engine from './engine';
 
 export interface DatabaseConfigurationType<DialectOptions, ExtraOptions> {
-  engine: new (...args: any) =>
-    | Engine
-    | { default: new (...args: any) => Engine };
+  engine: new (...args: any) => Engine | { default: new (...args: any) => Engine };
   url?: string | undefined;
   dialect: DialectOptions;
   databaseName: string;

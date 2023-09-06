@@ -62,10 +62,7 @@ import { DatabaseDomainInterface } from '../interfaces';
  * For example: one could create a framework that enables `bull.js` tasks to be defined on the database instead
  * of the code. This way we could update the tasks dynamically.
  */
-export default class Manager<
-  M extends Model = Model,
-  EI extends Engine<M> | null = null
-> {
+export default class Manager<M extends Model = Model, EI extends Engine<M> | null = null> {
   instances: ManagerInstancesType;
   engineInstances: ManagerEngineInstancesType;
   defaultEngineInstanceName: string;
@@ -86,7 +83,7 @@ export default class Manager<
   }
 
   getModel(engineName: string) {
-    return this.models[engineName];
+    return this.models[engineName] as M;
   }
 
   /**
@@ -100,20 +97,12 @@ export default class Manager<
   async verifyIfNotInitializedAndInitializeModels(engineName: string) {
     const database = new Databases();
     const canInitializeTheModels =
-      this.isLazyInitializing === false &&
-      database.isInitialized === false &&
-      database.isInitializing === false;
+      this.isLazyInitializing === false && database.isInitialized === false && database.isInitializing === false;
     this.isLazyInitializing = true;
     if (canInitializeTheModels) {
       const settings = getSettings() as unknown as DatabaseSettingsType;
-      const { domains } = await initializeDomains(
-        settings as unknown as SettingsType2
-      );
-      await database.lazyInitializeEngine(
-        engineName,
-        settings,
-        domains as DatabaseDomainInterface[]
-      );
+      const { domains } = await initializeDomains(settings as unknown as SettingsType2);
+      await database.lazyInitializeEngine(engineName, settings, domains as DatabaseDomainInterface[]);
       return true;
     }
     return false;
@@ -137,44 +126,31 @@ export default class Manager<
     const doesInstanceExists = this.instances[engineInstanceName] !== undefined;
     if (doesInstanceExists) return this.instances[engineInstanceName];
 
-    const hasLazilyInitialized =
-      await this.verifyIfNotInitializedAndInitializeModels(engineInstanceName);
+    const hasLazilyInitialized = await this.verifyIfNotInitializedAndInitializeModels(engineInstanceName);
     if (hasLazilyInitialized) return this.getInstance(engineName);
 
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }
 
   _setInstance(engineName: string, instance: any) {
-    const isDefaultEngineInstanceNameEmpty =
-      this.defaultEngineInstanceName === '';
-    if (isDefaultEngineInstanceNameEmpty)
-      this.defaultEngineInstanceName = engineName;
+    const isDefaultEngineInstanceNameEmpty = this.defaultEngineInstanceName === '';
+    if (isDefaultEngineInstanceNameEmpty) this.defaultEngineInstanceName = engineName;
 
     this.instances[engineName] = instance;
   }
 
-  async getEngineInstance<T extends Engine = Engine>(
-    engineName?: string
-  ): Promise<EI extends Engine ? EI : T> {
-    const engineInstanceName: string =
-      engineName || this.defaultEngineInstanceName;
-    const doesInstanceExists =
-      this.engineInstances[engineInstanceName] !== undefined;
-    if (doesInstanceExists)
-      return this.engineInstances[engineInstanceName] as EI extends Engine
-        ? EI
-        : T;
-    const hasLazilyInitialized =
-      await this.verifyIfNotInitializedAndInitializeModels(engineInstanceName);
+  async getEngineInstance<T extends Engine = Engine>(engineName?: string): Promise<EI extends Engine ? EI : T> {
+    const engineInstanceName: string = engineName || this.defaultEngineInstanceName;
+    const doesInstanceExists = this.engineInstances[engineInstanceName] !== undefined;
+    if (doesInstanceExists) return this.engineInstances[engineInstanceName] as EI extends Engine ? EI : T;
+    const hasLazilyInitialized = await this.verifyIfNotInitializedAndInitializeModels(engineInstanceName);
     if (hasLazilyInitialized) return this.getEngineInstance(engineName);
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }
 
   _setEngineInstance(engineName: string, instance: Engine) {
-    const isDefaultEngineInstanceNameEmpty =
-      this.defaultEngineInstanceName === '';
-    if (isDefaultEngineInstanceNameEmpty)
-      this.defaultEngineInstanceName = engineName;
+    const isDefaultEngineInstanceNameEmpty = this.defaultEngineInstanceName === '';
+    if (isDefaultEngineInstanceNameEmpty) this.defaultEngineInstanceName = engineName;
     this.engineInstances[engineName] = instance;
   }
 
@@ -190,32 +166,28 @@ export default class Manager<
         model: ReturnType<typeof model>;
         includes?: Includes;
       }[];
-      const promises: Promise<void>[] = includesAsArray.map(
-        async ({ model, includes: includesOfModel }) => {
-          const modelName = model.name;
-          const isModelAlreadyGot =
-            modelInstancesByModelName[modelName] !== undefined;
+      const promises: Promise<void>[] = includesAsArray.map(async ({ model, includes: includesOfModel }) => {
+        const modelName = model.name;
+        const isModelAlreadyGot = modelInstancesByModelName[modelName] !== undefined;
 
-          const modelInstance = isModelAlreadyGot
-            ? modelInstancesByModelName[modelName]
-            : await model.default.getInstance(engineName);
+        const modelInstance = isModelAlreadyGot
+          ? modelInstancesByModelName[modelName]
+          : await model.default.getInstance(engineName);
 
-          if (isModelAlreadyGot === false)
-            modelInstancesByModelName[modelName] = modelInstance;
+        if (isModelAlreadyGot === false) modelInstancesByModelName[modelName] = modelInstance;
 
-          const includeInstanceForModel: IncludesInstances = {
-            model: modelInstance,
-          };
-          includesInstances.push(includeInstanceForModel);
-          if (includesOfModel)
-            await this.#getIncludeInstancesRecursively(
-              engineName,
-              includesOfModel,
-              modelInstancesByModelName,
-              includeInstanceForModel.includes || []
-            );
-        }
-      );
+        const includeInstanceForModel: IncludesInstances = {
+          model: modelInstance,
+        };
+        includesInstances.push(includeInstanceForModel);
+        if (includesOfModel)
+          await this.#getIncludeInstancesRecursively(
+            engineName,
+            includesOfModel,
+            modelInstancesByModelName,
+            includeInstanceForModel.includes || []
+          );
+      });
       await Promise.all(promises);
     }
     return includesInstances;
@@ -243,63 +215,37 @@ export default class Manager<
     args?: {
       includes?: Function.Narrow<IncludesValidated<TModel, TIncludes>>;
       fields?: Function.Narrow<TFields>;
-      search?:
-        | ModelFieldsWithIncludes<
-            TModel,
-            TIncludes,
-            TFields,
-            false,
-            false,
-            true,
-            true
-          >
-        | undefined;
+      search?: ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true> | undefined;
       ordering?: OrderingOfModelsType<
-        FieldsOfModelOptionsType<TModel> extends string
-          ? FieldsOfModelOptionsType<TModel>
-          : string
+        FieldsOfModelOptionsType<TModel> extends string ? FieldsOfModelOptionsType<TModel> : string
       >;
       limit?: number;
       offset?: string | number;
     },
     engineName?: string
   ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]> {
-    const isValidEngineName =
-      typeof engineName === 'string' && engineName !== '';
-    const engineInstanceName = isValidEngineName
-      ? engineName
-      : this.defaultEngineInstanceName;
+    const isValidEngineName = typeof engineName === 'string' && engineName !== '';
+    const engineInstanceName = isValidEngineName ? engineName : this.defaultEngineInstanceName;
     // Promise.all here will not work, we need to do this sequentially.
     const engineInstance = await this.getEngineInstance(engineInstanceName);
 
-    const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName =
-      isValidEngineName ? engineName : this.defaultEngineInstanceName;
+    const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName = isValidEngineName
+      ? engineName
+      : this.defaultEngineInstanceName;
 
     const allFieldsOfModel = Object.keys(
-      this.getModel(
-        initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName
-      )['fields']
+      this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName)['fields']
     );
     return engineInstance.query.get.run(
       {
         fields: (args?.fields || allFieldsOfModel) as unknown as TFields,
-        search: (args?.search || {}) as ModelFieldsWithIncludes<
-          TModel,
-          TIncludes,
-          TFields,
-          false,
-          false,
-          true,
-          true
-        >,
+        search: (args?.search || {}) as ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true>,
         ordering: args?.ordering,
         limit: args?.limit,
         offset: args?.offset,
       },
       {
-        model: this.models[
-          initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName
-        ] as TModel,
+        model: this.models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName] as TModel,
         includes: (args?.includes || []) as TIncludes,
       }
     ) as Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]>;
@@ -330,15 +276,7 @@ export default class Manager<
     TModel extends Model = M,
     TIncludes extends Includes = undefined,
     TSearch extends
-      | ModelFieldsWithIncludes<
-          TModel,
-          TIncludes,
-          FieldsOFModelType<TModel>,
-          false,
-          false,
-          true,
-          true
-        >
+      | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
       | undefined = undefined
   >(
     data:
@@ -372,13 +310,8 @@ export default class Manager<
       search?: TSearch;
     },
     engineName?: string
-  ): Promise<
-    ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]
-  > {
-    const isToPreventEvents =
-      typeof args?.isToPreventEvents === 'boolean'
-        ? args.isToPreventEvents
-        : false;
+  ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]> {
+    const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
     const engineInstanceName = engineName || this.defaultEngineInstanceName;
 
     // Promise.all here will not work, we need to do this sequentially.
@@ -402,7 +335,7 @@ export default class Manager<
         search: args?.search,
       },
       {
-        model: this.getModel(engineInstanceName) as TModel,
+        model: this.getModel(engineInstanceName) as unknown as TModel,
         includes: (args?.includes || []) as TIncludes,
       }
     );
@@ -438,49 +371,27 @@ export default class Manager<
         >
       >;
       search?:
-        | ModelFieldsWithIncludes<
-            TModel,
-            TIncludes,
-            FieldsOFModelType<TModel>,
-            false,
-            false,
-            true,
-            true
-          >
+        | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
         | undefined;
       shouldRemove?: boolean;
     },
     engineName?: string
   ): Promise<ModelFieldsWithIncludes<TModel, TIncludes>[]> {
-    const isToPreventEvents =
-      typeof args?.isToPreventEvents === 'boolean'
-        ? args.isToPreventEvents
-        : false;
-    const shouldRemove =
-      typeof args?.shouldRemove === 'boolean' ? args.shouldRemove : true;
-    const isValidEngineName =
-      typeof engineName === 'string' && engineName !== '';
-    const engineInstanceName = isValidEngineName
-      ? engineName
-      : this.defaultEngineInstanceName;
+    const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
+    const shouldRemove = typeof args?.shouldRemove === 'boolean' ? args.shouldRemove : true;
+    const isValidEngineName = typeof engineName === 'string' && engineName !== '';
+    const engineInstanceName = isValidEngineName ? engineName : this.defaultEngineInstanceName;
     // Promise.all here will not work, we need to do this sequentially.
     const engineInstance = await this.getEngineInstance(engineInstanceName);
 
-    const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName =
-      isValidEngineName ? engineName : this.defaultEngineInstanceName;
+    const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName = isValidEngineName
+      ? engineName
+      : this.defaultEngineInstanceName;
 
     return engineInstance.query.remove.run<
       TModel,
       TIncludes,
-      ModelFieldsWithIncludes<
-        TModel,
-        TIncludes,
-        FieldsOFModelType<TModel>,
-        false,
-        false,
-        true,
-        true
-      >
+      ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
     >(
       {
         search: (args?.search || {}) as ModelFieldsWithIncludes<
@@ -498,9 +409,7 @@ export default class Manager<
         shouldRemove: shouldRemove,
       },
       {
-        model: this.models[
-          initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName
-        ] as TModel,
+        model: this.models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName] as TModel,
         includes: (args?.includes || []) as TIncludes,
       }
     ) as Promise<ModelFieldsWithIncludes<TModel, TIncludes>[]>;

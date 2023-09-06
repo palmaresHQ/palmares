@@ -5,10 +5,10 @@ import { ExpressCorsMiddleware } from './core/middlewares';
 
 
 import { EventEmitter } from '@palmares/events';*/
-import { dirname, resolve } from 'path';
 import CoreDomain, { defineSettings } from '@palmares/core';
 import DatabasesDomain from '@palmares/databases';
 import SequelizeEngine from '@palmares/sequelize-engine';
+import { dirname, resolve } from 'path';
 
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),

@@ -1,16 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { EngineQuery, ModelFields, models } from '@palmares/databases';
 import {
-  EngineQuery,
-  ModelFields,
-  TModel,
-  FieldWithOperationType,
-} from '@palmares/databases';
-import { Op } from 'sequelize';
-
-import {
-  ModelCtor,
-  Model,
   Includeable,
+  Model,
+  ModelCtor,
   // eslint-disable-next-line import/no-unresolved
 } from 'sequelize/types';
 // eslint-disable-next-line import/no-unresolved
@@ -43,7 +36,7 @@ export default class SequelizeEngineQuery extends EngineQuery {
    *
    * @returns - Returns an array, this array is the include statement to be used inside of the query.
    */
-  async getIncludeStatement<M extends TModel>(
+  async getIncludeStatement<M extends models.BaseModel>(
     model: ModelCtor<Model<ModelFields<M>>>,
     includes: ModelCtor<Model<ModelFields<M>>>[],
     includeStatement: Includeable[] = [],
@@ -52,8 +45,7 @@ export default class SequelizeEngineQuery extends EngineQuery {
     modelAlreadyParsed.push(model);
     const associationsOfModel = Object.entries(model.associations);
     for (const [associationName, association] of associationsOfModel) {
-      const hasNotParsedModelYet =
-        modelAlreadyParsed.includes(association.target) === false;
+      const hasNotParsedModelYet = modelAlreadyParsed.includes(association.target) === false;
       const includesInIncludeStatement = includes.includes(association.target);
       if (hasNotParsedModelYet && includesInIncludeStatement) {
         const nextInclude = [] as Includeable[];
@@ -63,9 +55,7 @@ export default class SequelizeEngineQuery extends EngineQuery {
         };
         await this.getIncludeStatement(
           association.target,
-          includes.map((include) =>
-            include === association.target ? model : include
-          ),
+          includes.map((include) => (include === association.target ? model : include)),
           nextInclude,
           modelAlreadyParsed
         );

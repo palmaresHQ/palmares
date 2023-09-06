@@ -5,6 +5,27 @@
       "cache": true,
       "dependsOn": [
         "^build"
+      ],
+      "outputs": [
+        "packages/**/dist/**",
+        "examples/**/dist/**",
+        "lib/**/dist/**"
+      ]
+    },
+    "build:watch": {
+      "cache": true,
+      "dependsOn": [
+        "^build:watch"
+      ],
+      "outputs": [
+        "packages/**/dist/**",
+        "examples/**/dist/**",
+        "lib/**/dist/**"
+      ]
+    },
+    "dev": {
+      "dependsOn": [
+        "build:watch"
       ]
     }
   }

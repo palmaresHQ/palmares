@@ -1,42 +1,28 @@
-import {
-  Engine,
-  DatabaseConfigurationType,
-  ModelFields,
-  TModel,
-  EngineInitializedModels,
-} from '@palmares/databases';
-import {
-  Sequelize,
-  Dialect,
-  Options,
-  Op,
-  Model,
-  ModelCtor,
-  Transaction,
-} from 'sequelize';
+import { DatabaseConfigurationType, Engine, EngineInitializedModels, ModelFields, models } from '@palmares/databases';
+import { Dialect, Model, ModelCtor, Op, Options, Sequelize, Transaction } from 'sequelize';
 
-import SequelizeEngineQuery from './query';
 import SequelizeEngineFields from './fields';
-import SequelizeMigrations from './migrations';
-import SequelizeEngineGetQuery from './query/get';
-import SequelizeEngineSetQuery from './query/set';
-import SequelizeEngineRemoveQuery from './query/remove';
-import SequelizeEngineSearchQuery from './query/search';
-import SequelizeEngineModels from './model';
-import SequelizeEngineFieldParser from './fields/field';
 import SequelizeEngineAutoFieldParser from './fields/auto';
 import SequelizeEngineBigAutoFieldParser from './fields/big-auto';
 import SequelizeEngineBigIntegerFieldParser from './fields/big-integer';
 import SequelizeEngineCharFieldParser from './fields/char';
+import SequelizeEngineDateFieldParser from './fields/date';
 import SequelizeEngineDecimalFieldParser from './fields/decimal';
+import SequelizeEngineFieldParser from './fields/field';
+import SequelizeEngineForeignKeyFieldParser from './fields/foreign-key';
 import SequelizeEngineIntegerFieldParser from './fields/integer';
 import SequelizeEngineTextFieldParser from './fields/text';
 import SequelizeEngineUuidFieldParser from './fields/uuid';
+import SequelizeMigrations from './migrations';
+import SequelizeEngineModels from './model';
+import SequelizeEngineQuery from './query';
+import SequelizeEngineGetQuery from './query/get';
 import SequelizeEngineQueryOrdering from './query/ordering';
-import SequelizeEngineForeignKeyFieldParser from './fields/foreign-key';
-import SequelizeEngineDateFieldParser from './fields/date';
+import SequelizeEngineRemoveQuery from './query/remove';
+import SequelizeEngineSearchQuery from './query/search';
+import SequelizeEngineSetQuery from './query/set';
 
-export default class SequelizeEngine<M extends TModel = any> extends Engine {
+export default class SequelizeEngine<M extends models.BaseModel = any> extends Engine {
   #isConnected: boolean | null = null;
   initializedModels!: EngineInitializedModels<ModelCtor<Model<ModelFields<M>>>>;
   instance!: Sequelize | null;
@@ -119,10 +105,7 @@ export default class SequelizeEngine<M extends TModel = any> extends Engine {
     const isUrlDefined: boolean = typeof databaseSettings.url === 'string';
     if (isUrlDefined) {
       const databaseUrl: string = databaseSettings.url || '';
-      const sequelizeInstance = new Sequelize(
-        databaseUrl,
-        databaseSettings.extraOptions
-      );
+      const sequelizeInstance = new Sequelize(databaseUrl, databaseSettings.extraOptions);
       return new this(databaseName, databaseSettings, sequelizeInstance);
     }
     const sequelizeInstance = new Sequelize(
@@ -158,7 +141,7 @@ export default class SequelizeEngine<M extends TModel = any> extends Engine {
     return await super.isConnected();
   }
 
-  async initializeModel(model: TModel): Promise<ModelCtor<Model> | undefined> {
+  async initializeModel(model: models.BaseModel): Promise<ModelCtor<Model> | undefined> {
     const modelInstance = await super.initializeModel(model);
     await this.fields.afterModelCreation(model.name);
     return modelInstance;

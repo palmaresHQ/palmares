@@ -1,11 +1,5 @@
-import { TModel, EngineModels, Field } from '@palmares/databases';
-import {
-  ModelOptions,
-  ModelAttributeColumnOptions,
-  Model,
-  ModelCtor,
-  OrderItem,
-} from 'sequelize';
+import { EngineModels, Field, models } from '@palmares/databases';
+import { Model, ModelAttributeColumnOptions, ModelCtor, ModelOptions, OrderItem } from 'sequelize';
 
 import SequelizeEngine from './engine';
 import SequelizeEngineFields from './fields';
@@ -19,7 +13,7 @@ export default class SequelizeEngineModels extends EngineModels {
   engineFields!: SequelizeEngineFields;
   #indexes: ModelTranslatorIndexesType = {};
 
-  async translateOptions(model: TModel): Promise<ModelOptions> {
+  async translateOptions(model: models.BaseModel): Promise<ModelOptions> {
     const modelName = model.name;
     const options = model.options;
     const indexes = this.#indexes[modelName] ? this.#indexes[modelName] : [];
@@ -32,18 +26,11 @@ export default class SequelizeEngineModels extends EngineModels {
     };
   }
 
-  async #translateOrdering(
-    originalModel: TModel,
-    translatedModel: ModelCtor<Model>
-  ) {
-    const translatedOrdering: OrderItem[] = (
-      originalModel.options.ordering || []
-    )?.map((order) => {
+  async #translateOrdering(originalModel: models.BaseModel, translatedModel: ModelCtor<Model>) {
+    const translatedOrdering: OrderItem[] = (originalModel.options.ordering || [])?.map((order) => {
       const orderAsString = order as string;
       const isDescending = orderAsString.startsWith('-');
-      return isDescending
-        ? [orderAsString.substring(1), 'DESC']
-        : [orderAsString, 'ASC'];
+      return isDescending ? [orderAsString.substring(1), 'DESC'] : [orderAsString, 'ASC'];
     });
 
     if (translatedOrdering.length > 0) {
@@ -61,28 +48,19 @@ export default class SequelizeEngineModels extends EngineModels {
     const fieldAttributes: { [key: string]: ModelAttributeColumnOptions } = {};
     for (const [fieldName, field] of fieldEntriesOfModel) {
       const translatedAttributes = await this.engineFields.get(field);
-      const isTranslatedAttributeDefined =
-        translatedAttributes !== null &&
-        typeof translatedAttributes === 'object';
-      if (isTranslatedAttributeDefined)
-        fieldAttributes[fieldName] = translatedAttributes;
+      const isTranslatedAttributeDefined = translatedAttributes !== null && typeof translatedAttributes === 'object';
+      if (isTranslatedAttributeDefined) fieldAttributes[fieldName] = translatedAttributes;
     }
     return fieldAttributes;
   }
 
-  async translate(model: TModel): Promise<ModelCtor<Model> | undefined> {
-    const { options: translatedOptions, fields: translatedAttributes } =
-      await super.translate(model);
+  async translate(model: models.BaseModel): Promise<ModelCtor<Model> | undefined> {
+    const { options: translatedOptions, fields: translatedAttributes } = await super.translate(model);
 
     translatedOptions.indexes = await this.engineFields.getIndexes(model.name);
 
-    const translatedModel = this.engine.instance?.define(
-      model.name,
-      translatedAttributes,
-      translatedOptions
-    );
-    if (translatedModel !== undefined)
-      await this.#translateOrdering(model, translatedModel);
+    const translatedModel = this.engine.instance?.define(model.name, translatedAttributes, translatedOptions);
+    if (translatedModel !== undefined) await this.#translateOrdering(model, translatedModel);
     return translatedModel;
   }
 }

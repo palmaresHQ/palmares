@@ -1,9 +1,9 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "declaration": true,
+    "declaration": false,
     "outDir": "./dist",
-    "types": ["node"]
+    "lib": ["DOM"],
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "manage.ts"]
 }
