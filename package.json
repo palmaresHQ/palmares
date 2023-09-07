@@ -6,8 +6,7 @@
     "examples/*",
     "packages/*",
     "libs/*",
-    "deps/*",
-    "deps/**/*"
+    "docs/*"
   ],
   "repository": {
     "type": "git",
@@ -23,6 +22,7 @@
     "release:publish": "pnpm changeset publish",
     "release:github": "tsx scripts/release/index.ts",
     "release": "pnpm run build && pnpm run release:apply && pnpm run release:publish ß&& pnpm run release:github",
+    "docs:dev": "cd docs && pnpm run docs:dev",
     "publish": "turbo run publish",
     "build": "turbo run build",
     "build:watch": "turbo run build:watch --parallel",

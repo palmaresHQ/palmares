@@ -3,6 +3,7 @@ module.exports = {
   env: {
     node: true,
   },
+  files: ['*.js', '*.ts', '*.tsx'],
   plugins: ['@typescript-eslint/eslint-plugin', 'import', 'file-progress'],
   extends: [
     'eslint:recommended',
@@ -15,7 +16,7 @@ module.exports = {
   ],
   overrides: [
     {
-      files: ['**/*.ts'],
+      files: ['packages/**/*.ts', 'scripts/**/*.ts', 'examples/**/*.tsx', 'libs/**/*.tsx'],
       parser: '@typescript-eslint/parser',
       parserOptions: {
         tsconfigRootDir: __dirname,

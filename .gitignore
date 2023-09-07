@@ -77,6 +77,9 @@ typings/
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 
+# vercel
+.vercel
+
 # Next.js build output
 .next
 
@@ -95,6 +98,8 @@ dist
 
 # Serverless directories
 .serverless/
+
+next-env.d.ts
 
 # FuseBox cache
 .fusebox/
