@@ -1,3 +1,5 @@
+// This file got the idea from: https://github.com/changesets/changesets/issues/885#issuecomment-1203334503
+// And we pretty much did our own version of it, but we do follow the same principles.
 import { getChangelogFile, runCommand } from './utils';
 
 /**
@@ -29,6 +31,15 @@ function parseChangelog(changelog: string, version: string) {
 
 /**
  * Parses all of the git tags from the current commit and returns an array of all of the tags.
+ *
+ * @param gitTags The git tags as a string. It will be something like this:
+ * ```
+ * @palmares/core@1.0.0                   @palmares/sequelize-engine@1.0.0
+ * @palmares/databases@1.0.0              @palmares/std@1.0.0
+ * @palmares/express-server@1.0.0
+ * ```
+ *
+ * @returns An array of objects with the tags parsed by name, version and their raw value.
  */
 function parseGitTags(gitTags: string) {
   const formattedTags = [] as {
@@ -53,6 +64,12 @@ function parseGitTags(gitTags: string) {
   return formattedTags;
 }
 
+/**
+ * This uses pnpm to get all of the packages and their paths. Without this we would need to use some other tool or library and do it manually.
+ * Since we are already using pnpm, why don't let it do the work for us?
+ *
+ * @returns An object with all of the packages by name and their path.
+ */
 async function getPackagesAndPathsByName() {
   // Reference: https://github.com/pnpm/pnpm/issues/1519#issuecomment-1299922699
   const data = await runCommand('pnpm', ['m', 'ls', '--json', '--depth=-1']);
@@ -77,6 +94,9 @@ async function getPackagesAndPathsByName() {
   }
 }
 
+/**
+ * This will release all of the packages to github releases. It will get the changelog for each package and release it to github properly formatted.
+ */
 async function releaseToGithub(parsedTags: ReturnType<typeof parseGitTags>) {
   const packagesByName = await getPackagesAndPathsByName();
   if (!packagesByName) {
@@ -102,17 +122,7 @@ async function releaseToGithub(parsedTags: ReturnType<typeof parseGitTags>) {
       return;
     }
     console.log(`Publishing ${parsedTag.raw} to github releases...`);
-    await runCommand('gh', [
-      'release',
-      'create',
-      '--target',
-      'main',
-      parsedTag.raw,
-      '--title',
-      parsedTag.raw,
-      '--notes',
-      changelogText,
-    ]);
+    await runCommand('gh', ['release', 'create', parsedTag.raw, '--title', parsedTag.raw, '--notes', changelogText]);
   });
   await Promise.all(promises);
 }
@@ -132,9 +142,7 @@ async function getCurrentGitTagsParsed() {
 }
 
 async function main() {
-  console.log('teste');
   const parsedTags = await getCurrentGitTagsParsed();
-  console.log(parsedTags);
   if (!parsedTags) return;
   releaseToGithub(parsedTags);
 }

@@ -1,6 +1,10 @@
 {
   "name": "@palmares/std",
-  "version": "0.1.0",
+  "version": "0.0.0",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "description": "The palmares standard library, this is used to interact with the environment we are working with, it can be a browser, node.js, bun, deno or whatever runtime. The standard library should include interfaces that we can extend in whatever environment we are at",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -15,7 +19,7 @@
     }
   },
   "scripts": {
-    "clear": "rm -rf ./dist",
+    "clear": "rimraf ./dist",
     "build:types": "tsc --project tsconfig.types.json",
     "build:cjs": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc",
     "build:module": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc",

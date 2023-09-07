@@ -1,6 +1,6 @@
 {
   "name": "@palmares/core",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "This is the core part of the palmares framework, palmares is a framework heavily inspired by django and nestjs core ideas",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -24,8 +24,7 @@
     "core"
   ],
   "scripts": {
-    "clear": "rm -rf ./dist",
-    "publish": "npm publish --access public",
+    "clear": "rimraf ./dist",
     "build:types": "tsc --project tsconfig.types.json",
     "build:cjs": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc",
     "build:module": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc",

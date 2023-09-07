@@ -1,6 +1,6 @@
 {
   "name": "@palmares/websockets",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "Adds support for websockets on the Palmares framework",
   "main": "src/index.ts",
   "scripts": {

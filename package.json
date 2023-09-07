@@ -19,8 +19,10 @@
   ],
   "scripts": {
     "define:change": "pnpm changeset",
-    "apply:change": "pnpm changeset version",
-    "release": "pnpm run define:change && pnpm run apply:change && pnpm run publish",
+    "release:apply": "pnpm changeset version",
+    "release:publish": "pnpm changeset publish",
+    "release:github": "tsx scripts/release/index.ts",
+    "release": "pnpm run build && pnpm run release:apply && pnpm run release:publish ß&& pnpm run release:github",
     "publish": "turbo run publish",
     "build": "turbo run build",
     "build:watch": "turbo run build:watch --parallel",
@@ -49,8 +51,9 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-security": "^1.5.0",
     "prettier": "2.6.2",
+    "rimraf": "^5.0.1",
     "swc": "^1.0.11",
-    "ts-node": "^10.9.1",
+    "tsx": "^3.12.8",
     "turbo": "^1.10.13",
     "typescript": "^5.1.6"
   }

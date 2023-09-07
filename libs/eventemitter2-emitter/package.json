@@ -1,6 +1,6 @@
 {
   "name": "@palmares/eventemitter2-emitter",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "EventEmitter2 as the event emitter to palmares. With this we are able to send events inside and between servers really fast.",
   "main": "src/index.ts",
   "repository": {

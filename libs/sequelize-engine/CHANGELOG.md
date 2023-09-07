@@ -1,5 +1,23 @@
 # @palmares/sequelize-engine
 
+## 0.1.2
+
+### Patch Changes
+
+- asdasdsa
+- Updated dependencies
+  - @palmares/databases@0.1.2
+  - @palmares/core@0.1.2
+
+## 0.1.1
+
+### Patch Changes
+
+- Testing if changesets and if custom script works
+- Updated dependencies
+  - @palmares/core@0.1.1
+  - @palmares/databases@0.1.1
+
 ## 0.1.0
 
 ### Minor Changes

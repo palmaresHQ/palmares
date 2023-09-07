@@ -1,10 +1,10 @@
 {
   "name": "@palmares/express-adapter",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "This is the adapter for express framework to work with Palmares framework",
   "main": "src/index.ts",
   "scripts": {
-    "test": "ts-node teste.ts"
+    "test": "tsx teste.ts"
   },
   "repository": {
     "type": "git",
