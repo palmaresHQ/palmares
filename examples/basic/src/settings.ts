@@ -8,7 +8,9 @@ import { EventEmitter } from '@palmares/events';*/
 import CoreDomain, { defineSettings } from '@palmares/core';
 import DatabasesDomain from '@palmares/databases';
 import SequelizeEngine from '@palmares/sequelize-engine';
+import ServerDomain, { Response, Server, middleware } from '@palmares/server';
 import { dirname, resolve } from 'path';
+import servertest from './servertest';
 
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
@@ -19,7 +21,7 @@ export default defineSettings({
         appName: 'example',
       },
     ],
-    [
+    /*[
       DatabasesDomain,
       {
         DATABASES: {
@@ -38,7 +40,16 @@ export default defineSettings({
         },
         DATABASES_DISMISS_NO_MIGRATIONS_LOG: false,
       },
+    ],*/
+    [
+      ServerDomain,
+      {
+        server: Server,
+        port: 4001,
+        handler500: middleware({ response: () => new Response() }),
+      },
     ],
+    servertest,
   ],
 });
 

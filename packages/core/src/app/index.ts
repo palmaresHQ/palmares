@@ -1,34 +1,45 @@
-import { SettingsType } from './conf/types';
-import Domain from './domain/domain';
-import logging from './logging';
-import { NotImplementedException } from './exceptions';
-import { LOGGING_APP_STOP_SERVER } from './utils';
+import { DomainHandlerFunctionArgs } from '../commands/types';
+import { SettingsType2 } from '../conf/types';
+import { CoreSettingsType } from '../conf/types';
+import Domain from '../domain/domain';
+import logging from '../logging';
+import { LOGGING_APP_STOP_SERVER } from '../utils';
+
+let baseAppServerInstance: BaseAppServer | undefined = undefined;
+let appServerInstance: InstanceType<ReturnType<typeof appServer>> | AppServer | undefined = undefined;
 
 /**
- * This is the app, the app instance is responsible for loading the server, think about the server as anything. A server is just a program
- * that keeps running until you close it. It can be an HTTP server, an Events Server, a TCP server, etc.
- *
- * By default this overrides many of the things defined on the core, like the `domains`.
- * It's on here that we call the `ready` and `close` methods of each domain so we are able to
- * start the server.
- *
- * The life cycle of the app is:
- * - `load`: Loads the constructor.
- * - `start`: Starts the appServer.
- * - `close`: Stops the appServer.
+ * Functional approach for creating an app server instead of using the class approach, it's pretty much the same as the class one.
  */
-export default class AppServer {
+export function appServer<
+  TLoadFunction extends AppServer['load'],
+  TStartFunction extends AppServer['start'],
+  TCloseFunction extends AppServer['close']
+>(args: { start: TStartFunction; load: TLoadFunction; close: TCloseFunction }) {
+  return class extends AppServer {
+    start = args.start as TStartFunction;
+    load = args.load as TLoadFunction;
+    close = args.close as TCloseFunction;
+  };
+}
+
+/**
+ * The base app server is not supposed to be extended and used externally, it's used internally by the app server and it configures automatically the cleanup phase of the server.
+ * It also handles the start of the server.
+ */
+export class BaseAppServer {
   domains!: Domain[];
-  settings!: SettingsType;
+  settings!: SettingsType2;
   isClosingServer = false;
 
-  static __instance: AppServer;
-
-  constructor() {
-    if ((this.constructor as typeof AppServer).__instance)
-      return (this.constructor as typeof AppServer).__instance;
-
-    (this.constructor as typeof AppServer).__instance = this;
+  constructor(domains: Domain[], settings: SettingsType2) {
+    if (baseAppServerInstance) return baseAppServerInstance;
+    else {
+      this.domains = domains;
+      this.settings = settings;
+      baseAppServerInstance = this;
+      return this;
+    }
   }
 
   /**
@@ -36,7 +47,7 @@ export default class AppServer {
    * Configure the cleanup of the server, this will run when the user press Ctrl+C and the server stops running.
    * This will stop the server gracefully instead of hard kill the process so we are able to do some cleanup.
    */
-  async #configureCleanup() {
+  async configureCleanup() {
     process.on('SIGINT', async () => {
       await this.#cleanup();
       process.exit(0);
@@ -50,10 +61,11 @@ export default class AppServer {
    * By default what this does is simply calling all of the `close` methods of the domains.
    */
   async #cleanup() {
+    const settingsAsCoreSettings = this.settings as SettingsType2 & CoreSettingsType;
     if (this.isClosingServer === false) {
       this.isClosingServer = true;
       await logging.logMessage(LOGGING_APP_STOP_SERVER, {
-        appName: this.settings.APP_NAME,
+        appName: settingsAsCoreSettings.appName || 'palmares_app',
       });
       const promises = this.domains.map(async (domain) => {
         if (domain.__isClosed === false && domain.close) await domain.close();
@@ -81,10 +93,36 @@ export default class AppServer {
         await domain.ready({
           settings: settings,
           domains,
-          app: this,
+          app: this as unknown as AppServer | InstanceType<ReturnType<typeof appServer>>,
           customOptions,
         });
       }
+    }
+  }
+}
+
+/**
+ * This is the app, the app instance is responsible for loading the server, think about the server as anything. A server is just a program
+ * that keeps running until you close it. It can be an HTTP server, an Events Server, a TCP server, etc.
+ *
+ * By default this overrides many of the things defined on the core, like the `domains`.
+ * It's on here that we call the `ready` and `close` methods of each domain so we are able to
+ * start the server.
+ *
+ * The life cycle of the app is:
+ * - `load`: Loads the constructor.
+ * - `start`: Starts the appServer.
+ * - `close`: Stops the appServer.
+ */
+export class AppServer {
+  baseAppServer!: BaseAppServer;
+
+  constructor(domains: Domain[], settings: SettingsType2) {
+    if (appServerInstance) return appServerInstance;
+    else {
+      this.baseAppServer = new BaseAppServer(domains, settings);
+      appServerInstance = this;
+      return this;
     }
   }
 
@@ -96,8 +134,12 @@ export default class AppServer {
    * const app = express();
    * ```
    */
-  async load() {
-    throw new NotImplementedException(this.constructor.name, 'load');
+  async load(_: {
+    domains: Domain[];
+    commandLineArgs: DomainHandlerFunctionArgs['commandLineArgs'];
+    settings: SettingsType2;
+  }): Promise<void> {
+    return undefined;
   }
 
   /**
@@ -123,15 +165,15 @@ export default class AppServer {
    * })
    * ```
    */
-  async start() {
-    await this.#configureCleanup();
+  async start(_configureCleanup: BaseAppServer['configureCleanup']): Promise<void> {
+    return undefined;
   }
 
   /**
    * Runs the clean up function of the server when the application stops, most frameworks might not need this
    * but if some framework relies on stopping gracefully it might be needed.
    */
-  async close() {
-    throw new NotImplementedException(this.constructor.name, 'close');
+  async close(): Promise<void> {
+    return undefined;
   }
 }

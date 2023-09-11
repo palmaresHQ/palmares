@@ -117,6 +117,9 @@ importers:
       '@palmares/sequelize-engine':
         specifier: workspace:*
         version: link:../../libs/sequelize-engine
+      '@palmares/server':
+        specifier: workspace:*
+        version: link:../../packages/server
       '@palmares/std':
         specifier: workspace:*
         version: link:../../packages/std
@@ -236,21 +239,17 @@ importers:
   packages/events:
     dependencies:
       '@palmares/core':
-        specifier: '*'
-        version: 0.1.2
-    devDependencies:
-      typescript:
-        specifier: ^4.9.5
-        version: 4.9.5
+        specifier: workspace:*
+        version: link:../core
 
   packages/serializers:
     dependencies:
       '@palmares/core':
-        specifier: '*'
-        version: 0.1.2
+        specifier: workspace:*
+        version: link:../core
       '@palmares/databases':
-        specifier: '*'
-        version: 0.1.2
+        specifier: workspace:*
+        version: link:../databases
     devDependencies:
       typescript:
         specifier: ^4.9.5
@@ -259,15 +258,8 @@ importers:
   packages/server:
     dependencies:
       '@palmares/core':
-        specifier: '*'
-        version: 0.1.2
-    devDependencies:
-      ts-toolbelt:
-        specifier: ^9.6.0
-        version: 9.6.0
-      typescript:
-        specifier: ^4.9.5
-        version: 4.9.5
+        specifier: workspace:*
+        version: link:../core
 
   packages/std:
     dependencies:

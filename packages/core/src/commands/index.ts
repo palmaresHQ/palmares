@@ -1,8 +1,10 @@
 import { SettingsType2, StdLike } from '../conf/types';
 import { CommandNotFoundException } from './exceptions';
-import { DefaultCommandType } from './types';
+import { DefaultCommandType, DomainHandlerFunctionArgs } from './types';
 import { initializeDomains } from '../domain/utils';
 import { setSettings } from '../conf/settings';
+import { AppServer, appServer } from '../app';
+import { initializeApp } from '../app/utils';
 
 let cachedCommands = {} as DefaultCommandType;
 
@@ -148,15 +150,27 @@ export async function handleCommands(
   const isCommandDefined: boolean =
     typeof availableCommands[commandType] === 'object' && availableCommands[commandType] !== undefined;
 
+  let returnOfCommand: void | typeof AppServer | ReturnType<typeof appServer>;
+  let formattedCommandLineArgs = {
+    positionalArgs: {},
+    keywordArgs: {},
+  } as DomainHandlerFunctionArgs['commandLineArgs'];
+
   if (isCommandDefined) {
-    await Promise.resolve(
+    formattedCommandLineArgs = await formatArgs(availableCommands[commandType], args.slice(1, args.length));
+    returnOfCommand = await Promise.resolve(
       availableCommands[commandType].handler({
         settings,
         domains,
-        args: await formatArgs(availableCommands[commandType], args.slice(1, args.length)),
+        commandLineArgs: formattedCommandLineArgs,
       })
     );
   } else {
     throw new CommandNotFoundException(commandType);
   }
+
+  // This will start the app server if your command returns an app server class. Please, don't try to run the app server manually, unless you REALLY know
+  // what you are doing, since it has it's own lifecycle.
+  if (returnOfCommand?.prototype instanceof AppServer)
+    initializeApp(domains, settings, formattedCommandLineArgs, returnOfCommand);
 }

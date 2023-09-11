@@ -1,4 +1,4 @@
-import AppServer from '../app';
+import { AppServer, appServer } from '../app';
 import type { SettingsType2 } from '../conf/types';
 import type domain from '../domain/function';
 import type Domain from '../domain/domain';
@@ -57,7 +57,7 @@ export type ExtractCommandsType<
 export type DomainHandlerFunctionArgs = {
   settings: SettingsType2;
   domains: Domain[];
-  args: {
+  commandLineArgs: {
     positionalArgs: {
       [key: string]: any;
     };
@@ -146,6 +146,10 @@ export type DefaultCommandType = {
      * ADVANCED:
      * If you return an AppServer from this function, we will initialize it. If you don't know what an AppServer is, don't worry about it.
      */
-    handler: (options: DomainHandlerFunctionArgs) => Promise<void | AppServer> | (void | AppServer);
+    handler: (
+      options: DomainHandlerFunctionArgs
+    ) =>
+      | Promise<void | typeof AppServer | ReturnType<typeof appServer>>
+      | (void | typeof AppServer | ReturnType<typeof appServer>);
   };
 };

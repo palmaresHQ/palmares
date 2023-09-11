@@ -1,14 +1,11 @@
 import { domain } from '@palmares/core';
 
-import httpAppServer from './app';
-import type { path, pathNested } from './router/functions';
-import type { ServerSettingsType } from './types';
+import httpAppServer from '../app';
+import type { path, pathNested } from '../router/functions';
+import type { ServerSettingsType } from '../types';
 
 export const serverDomainModifier = domain<{
-  getRoutes: () =>
-    | Promise<ReturnType<typeof path> | Omit<ReturnType<typeof path>, any>>
-    | ReturnType<typeof path>
-    | Omit<ReturnType<typeof path>, any>;
+  getRoutes: () => Promise<ReturnType<typeof path>> | ReturnType<typeof path>;
 }>('@palmares/server', __dirname, {});
 
 export default domain('@palmares/server', __dirname, {

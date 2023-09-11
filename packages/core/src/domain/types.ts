@@ -1,11 +1,11 @@
 import type Domain from './domain';
-import AppServer from '../app';
+import { AppServer, appServer } from '../app';
 import { SettingsType } from '../conf/types';
 
 export type DomainReadyFunctionArgs<S = SettingsType, C extends object = object> = {
   settings: S;
   domains: Domain[];
-  app?: AppServer;
+  app?: AppServer | InstanceType<ReturnType<typeof appServer>>;
   customOptions: C;
 };
 

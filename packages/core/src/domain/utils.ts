@@ -2,7 +2,7 @@ import Domain from './domain';
 import { NotAValidDomainDefaultExportedError } from './exceptions';
 import { setSettings } from '../conf/settings';
 import { getCommands } from '../commands';
-import AppServer from '../app';
+import { AppServer, appServer } from '../app';
 
 import type { DefaultCommandType } from '../commands/types';
 import type { DomainReadyFunctionArgs } from './types';
@@ -114,7 +114,7 @@ export async function initializeDomains(settings: SettingsType2) {
         readyFunction({
           settings,
           customOptions: {},
-          app: {} as AppServer,
+          app: {} as AppServer | InstanceType<ReturnType<typeof appServer>>,
           domains: initializedDomains,
         })
       );

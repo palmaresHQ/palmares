@@ -1,9 +1,6 @@
-import { Domain, AppServer } from '@palmares/core';
+import { Domain, AppServerInterface, SettingsType2, AppServer } from '@palmares/core';
 
-import {
-  ControllerHandlerType,
-  FunctionControllerType,
-} from './controllers/types';
+import { ControllerHandlerType, FunctionControllerType } from './controllers/types';
 import { default404handler } from './defaults';
 import { ServerDomainInterface } from './interfaces';
 import { Router } from './routers';
@@ -11,17 +8,12 @@ import { BaseRoutesType } from './routers/types';
 import Server from './server';
 import { ServerSettingsType } from './types';
 
-export default class HttpAppServer extends AppServer {
+export default class HttpAppServer extends AppServer implements AppServerInterface {
   domains!: Domain[];
   settings!: ServerSettingsType;
-  server: Server;
+  server!: Server;
   isClosingServer = false;
   #cachedRoutes!: BaseRoutesType[];
-
-  constructor(server: Server) {
-    super();
-    this.server = server;
-  }
 
   /**
    * Function used for retrieving the root router. The root router is the router that is responsible for loading
@@ -44,16 +36,12 @@ export default class HttpAppServer extends AppServer {
    *
    * @returns - The root array of routes of the application.
    */
-  async #getRootRouter(
-    domains: ServerDomainInterface[]
-  ): Promise<Promise<Router>[]> {
+  async #getRootRouter(domains: ServerDomainInterface[]): Promise<Promise<Router>[]> {
     const routesFromAllDomains = await Promise.all(
       domains.map(async (domain) => {
         const routesOfDomain = await domain.getRoutes();
         const isRoutesAnArray = Array.isArray(routesOfDomain);
-        return isRoutesAnArray
-          ? routesOfDomain
-          : (routesOfDomain as { default: Promise<Router>[] }).default;
+        return isRoutesAnArray ? routesOfDomain : (routesOfDomain as { default: Promise<Router>[] }).default;
       })
     );
     const flattenRoutesOfDomains = routesFromAllDomains.flat();
@@ -78,9 +66,7 @@ export default class HttpAppServer extends AppServer {
    * For example '/test/<hello>/example/test', could accept a POST and a GET request. So we will have an
    * array of two objects, one for the POST and one for the GET.
    */
-  async #getRoutes(
-    domains: ServerDomainInterface[]
-  ): Promise<BaseRoutesType[]> {
+  async #getRoutes(domains: ServerDomainInterface[]): Promise<BaseRoutesType[]> {
     if (!this.#cachedRoutes) {
       const promisedRouters = await this.#getRootRouter(domains);
       const routers = await Promise.all(promisedRouters);
@@ -117,8 +103,7 @@ export default class HttpAppServer extends AppServer {
     } as ControllerHandlerType;
 
     if (this.settings.HANDLER_404) {
-      const isHandlerAFunction =
-        typeof this.settings.HANDLER_404 === 'function';
+      const isHandlerAFunction = typeof this.settings.HANDLER_404 === 'function';
       const handlerAsObject = this.settings.HANDLER_404 as {
         options?: undefined;
         handler: FunctionControllerType;
@@ -129,10 +114,7 @@ export default class HttpAppServer extends AppServer {
         : handlerAsObject.handler;
     }
 
-    const formattedHandler = await this.server.routes.getHandlerForPath(
-      handler,
-      { is404Handler: true }
-    );
+    const formattedHandler = await this.server.routes.getHandlerForPath(handler, { is404Handler: true });
     await this.server.load404(formattedHandler);
   }
 
@@ -171,10 +153,9 @@ export default class HttpAppServer extends AppServer {
    * })
    * ```
    */
-  async start() {
+  async start(configureCleanup: AppServer['baseAppServer']['configureCleanup']) {
     await this.server.init();
-
-    await super.start();
+    await configureCleanup();
   }
 
   /**

@@ -25,10 +25,11 @@ import type { DefaultCommandType } from '../commands/types';
  */
 export default function domain<
   TModifierArguments = object,
-  TModifiers extends
-    | readonly (abstract new (...args: any) => {
-        modifiers: any;
-      })[] = [],
+  TModifiers extends readonly (abstract new (...args: any) => {
+    modifiers: any;
+  })[] = readonly (abstract new (...args: any) => {
+    modifiers: any;
+  })[],
   TCommands extends DefaultCommandType = DefaultCommandType,
   TLoadFunction extends (
     settings: any

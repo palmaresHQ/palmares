@@ -11,6 +11,8 @@ export * from './conf/types';
 export * as utils from './utils';
 export * from './utils/constants';
 export { imports } from './utils';
-export { default as AppServer } from './app';
+export * from './utils/types';
+export { AppServer, appServer } from './app';
+export { AppServerInterface } from './app/types';
 
 export { default as default } from './domain/default';

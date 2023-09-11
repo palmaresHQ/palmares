@@ -59,9 +59,7 @@ export const rootRouter = path(
   '/test/<hello: {\\d+}:number>/<userId: string>?hello={[\\d\\w]+}:number&world=string[]?'
 ).middlewares([authenticateRequest]);
 
-const withMiddlewares = pathNested<typeof rootRouter>()('').middlewares([
-  addHeadersAndAuthenticateUser,
-]);
+const withMiddlewares = pathNested<typeof rootRouter>()('').middlewares([addHeadersAndAuthenticateUser]);
 
 const controllers = pathNested<typeof withMiddlewares>()('/users').get(() => {
   return new Response<{

@@ -1,5 +1,5 @@
 import type { Middleware } from '../middleware';
-import type { F } from 'ts-toolbelt';
+import type { Narrow } from '@palmares/core';
 import type {
   AlreadyDefinedMethodsType,
   DefaultRouterType,
@@ -13,35 +13,19 @@ import type {
 } from './types';
 
 type ExtractIncludes<
-  TIncludes extends readonly (
-    | DefaultRouterType
-    | Omit<DefaultRouterType, any>
-  )[],
+  TIncludes extends readonly (DefaultRouterType | Omit<DefaultRouterType, any>)[],
   TRouters extends readonly DefaultRouterType[]
 > = TIncludes extends readonly [infer TFirstRouter, ...infer TRestRouters]
-  ? TRestRouters extends readonly (
-      | DefaultRouterType
-      | Omit<DefaultRouterType, any>
-    )[]
+  ? TRestRouters extends readonly (DefaultRouterType | Omit<DefaultRouterType, any>)[]
     ? TFirstRouter extends DefaultRouterType
       ? ExtractIncludes<
-          TRestRouters extends readonly (
-            | DefaultRouterType
-            | Omit<DefaultRouterType, any>
-          )[]
-            ? TRestRouters
-            : [],
+          TRestRouters extends readonly (DefaultRouterType | Omit<DefaultRouterType, any>)[] ? TRestRouters : [],
           [...TRouters, TFirstRouter]
         >
       : TFirstRouter extends Omit<infer TRouter, any>
       ? TRouter extends DefaultRouterType
         ? ExtractIncludes<
-            TRestRouters extends readonly (
-              | DefaultRouterType
-              | Omit<DefaultRouterType, any>
-            )[]
-              ? TRestRouters
-              : [],
+            TRestRouters extends readonly (DefaultRouterType | Omit<DefaultRouterType, any>)[] ? TRestRouters : [],
             [...TRouters, TRouter]
           >
         : TRouters
@@ -72,10 +56,7 @@ export class BaseRouter<
   TMiddlewares extends readonly Middleware[] = [],
   TRootPath extends string | undefined = undefined,
   TAlreadyDefinedHandlers extends
-    | AlreadyDefinedMethodsType<
-        TRootPath extends string ? TRootPath : '',
-        readonly Middleware[]
-      >
+    | AlreadyDefinedMethodsType<TRootPath extends string ? TRootPath : '', readonly Middleware[]>
     | unknown = unknown
 > {
   path!: TRootPath;
@@ -124,15 +105,13 @@ export class BaseRouter<
   protected __wasCreatedFromNested = false;
   protected __children?: TChildren;
   protected __middlewares: TMiddlewares = [] as unknown as TMiddlewares;
-  protected __handlers: TAlreadyDefinedHandlers =
-    undefined as unknown as TAlreadyDefinedHandlers;
+  protected __handlers: TAlreadyDefinedHandlers = undefined as unknown as TAlreadyDefinedHandlers;
 
   constructor(path: TRootPath, children?: TChildren) {
     this.path = path;
     this.__children = children;
 
-    const { queryPath, urlPath, queryParams, urlParams } =
-      this.extractUrlAndQueryParametersFromPath(path || '');
+    const { queryPath, urlPath, queryParams, urlParams } = this.extractUrlAndQueryParametersFromPath(path || '');
     this.__queryParamsAndPath = {
       path: queryPath,
       params: new Map(Object.entries(queryParams)),
@@ -144,15 +123,11 @@ export class BaseRouter<
   }
 
   static new<TPath extends string | undefined = undefined>(path: TPath) {
-    const newRouter = new MethodsRouter<undefined, [], [], TPath, undefined>(
-      path
-    );
+    const newRouter = new MethodsRouter<undefined, [], [], TPath, undefined>(path);
     return newRouter;
   }
 
-  static newNested<
-    TParentRouter extends BaseRouter<any, any, any, any, any>
-  >() {
+  static newNested<TParentRouter extends BaseRouter<any, any, any, any, any>>() {
     return <
       TPath extends string,
       TFullPath = MergeParentAndChildPathsType<TParentRouter, TPath>,
@@ -176,33 +151,14 @@ export class BaseRouter<
    * Used for including other routers inside of this router. This way we can construct a tree of routers. And you
    * can use it to use the same middlewares and handlers for multiple routes.
    */
-  nested<
-    TIncludes extends readonly (
-      | DefaultRouterType
-      | Omit<DefaultRouterType, never>
-    )[]
-  >(
+  nested<TIncludes extends readonly (DefaultRouterType | Omit<DefaultRouterType, never>)[]>(
     children:
       | TIncludes
       | ((
-          router: ReturnType<
-            IncludesRouter<
-              TParentRouter,
-              TChildren,
-              TMiddlewares,
-              TRootPath,
-              undefined
-            >['child']
-          >
+          router: ReturnType<IncludesRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, undefined>['child']>
         ) => TIncludes)
   ) {
-    const newRouter = new IncludesRouter<
-      TParentRouter,
-      TChildren,
-      TMiddlewares,
-      TRootPath,
-      undefined
-    >(this.path);
+    const newRouter = new IncludesRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, undefined>(this.path);
 
     const isNested = typeof children === 'function';
     const childrenArray = isNested ? children(newRouter.child()) : children;
@@ -215,9 +171,7 @@ export class BaseRouter<
       return child;
     }) as any;
 
-    if (doesChildrenAlreadyExists)
-      this.__children =
-        (this.__children as any)?.concat(formattedChildren) || undefined;
+    if (doesChildrenAlreadyExists) this.__children = (this.__children as any)?.concat(formattedChildren) || undefined;
     else this.__children = formattedChildren;
 
     return this as unknown as MethodsRouter<
@@ -229,10 +183,7 @@ export class BaseRouter<
     >;
   }
 
-  protected appendChildToParentRouter(
-    router: DefaultRouterType,
-    child: DefaultRouterType
-  ) {
+  protected appendChildToParentRouter(router: DefaultRouterType, child: DefaultRouterType) {
     // We traverse the tree of routers and parent routers so let's say you define 2 nested routers.
     // One router is between the handler and the other is between the root router and the handler.
     // something like this
@@ -251,23 +202,15 @@ export class BaseRouter<
       const fullUrlPath = `${router.__urlParamsAndPath.path}${child.__urlParamsAndPath.path}`;
       const fullQueryPath = `${router.__queryParamsAndPath.path}&${child.__queryParamsAndPath.path}`;
 
-      const existsHandlersOnChild =
-        typeof child.__handlers === 'object' &&
-        Object.keys(child.__handlers).length > 0;
+      const existsHandlersOnChild = typeof child.__handlers === 'object' && Object.keys(child.__handlers).length > 0;
       const existsChildHandlersOnChild = child.__completePaths.size > 0;
 
       if (existsHandlersOnChild) {
         router.__completePaths.set(fullUrlPath, {
           middlewares: router.__middlewares.concat(child.__middlewares),
-          urlParams: new Map([
-            ...router.__urlParamsAndPath.params,
-            ...child.__urlParamsAndPath.params,
-          ]),
+          urlParams: new Map([...router.__urlParamsAndPath.params, ...child.__urlParamsAndPath.params]),
           urlPath: fullUrlPath,
-          queryParams: new Map([
-            ...router.__queryParamsAndPath.params,
-            ...child.__queryParamsAndPath.params,
-          ]),
+          queryParams: new Map([...router.__queryParamsAndPath.params, ...child.__queryParamsAndPath.params]),
           queryPath: fullQueryPath,
           router: child,
           handlers: child.__handlers,
@@ -275,21 +218,12 @@ export class BaseRouter<
       }
 
       if (existsChildHandlersOnChild) {
-        for (const [
-          childPath,
-          childPathData,
-        ] of child.__completePaths.entries()) {
+        for (const [childPath, childPathData] of child.__completePaths.entries()) {
           router.__completePaths.set(`${fullUrlPath}${childPath}`, {
             middlewares: router.__middlewares.concat(childPathData.middlewares),
-            urlParams: new Map([
-              ...router.__urlParamsAndPath.params,
-              ...childPathData.urlParams,
-            ]),
+            urlParams: new Map([...router.__urlParamsAndPath.params, ...childPathData.urlParams]),
             urlPath: `${fullUrlPath}${childPathData.queryPath}`,
-            queryParams: new Map([
-              ...router.__queryParamsAndPath.params,
-              ...childPathData.queryParams,
-            ]),
+            queryParams: new Map([...router.__queryParamsAndPath.params, ...childPathData.queryParams]),
             queryPath: `${fullQueryPath}&${childPathData.queryPath}`,
             router: child,
             handlers: childPathData.handlers,
@@ -301,12 +235,9 @@ export class BaseRouter<
     }
   }
 
-  middlewares<TRouterMiddlewares extends readonly Middleware[]>(
-    middlewares: F.Narrow<TRouterMiddlewares>
-  ) {
+  middlewares<TRouterMiddlewares extends readonly Middleware[]>(middlewares: Narrow<TRouterMiddlewares>) {
     const middlewaresAsMutable = this.__middlewares as unknown as Middleware[];
-    (this.__middlewares as unknown as Middleware[]) =
-      middlewaresAsMutable.concat(middlewares as Middleware[]);
+    (this.__middlewares as unknown as Middleware[]) = middlewaresAsMutable.concat(middlewares as Middleware[]);
 
     return this as unknown as MethodsRouter<
       TParentRouter,
@@ -333,8 +264,7 @@ export class BaseRouter<
     let index = initialIndex;
     index++;
 
-    const hasNotReachedEndOrNextQueryParam = () =>
-      splittedPath[index] !== '&' && index < splittedPath.length;
+    const hasNotReachedEndOrNextQueryParam = () => splittedPath[index] !== '&' && index < splittedPath.length;
     const ignoreSpaces = () => {
       if (splittedPath[index] === ' ') index++;
     };
@@ -364,19 +294,13 @@ export class BaseRouter<
           while (hasNotReachedEndOrNextQueryParam()) {
             ignoreSpaces();
             if (splittedPath[index] === '?') isOptional = true;
-            else if (
-              splittedPath[index] === '[' &&
-              splittedPath[index + 1] === ']'
-            ) {
+            else if (splittedPath[index] === '[' && splittedPath[index + 1] === ']') {
               isArray = true;
               index = index + 2;
             } else if (splittedPath[index] === '(') {
               index++;
               ignoreSpaces();
-              while (
-                splittedPath[index] !== ')' &&
-                index < splittedPath.length
-              ) {
+              while (splittedPath[index] !== ')' && index < splittedPath.length) {
                 ignoreSpaces();
                 if (splittedPath[index] === '|') {
                   queryParamTypes.push(queryParamType);
@@ -386,8 +310,7 @@ export class BaseRouter<
                 }
                 index++;
               }
-              if (splittedPath[index] === ')')
-                queryParamTypes.push(queryParamType);
+              if (splittedPath[index] === ')') queryParamTypes.push(queryParamType);
             } else {
               queryParamType += splittedPath[index];
             }
@@ -404,10 +327,7 @@ export class BaseRouter<
         type: queryParamTypes as ('number' | 'string' | 'boolean')[],
         isOptional,
         isArray,
-        regex:
-          queryParamRegex && queryParamRegex !== ''
-            ? new RegExp(queryParamRegex)
-            : undefined,
+        regex: queryParamRegex && queryParamRegex !== '' ? new RegExp(queryParamRegex) : undefined,
       };
       index++;
     }
@@ -512,11 +432,7 @@ export class BaseRouter<
         index = this.extractUrlParamsFromPath(splittedPath, urlParams, index);
       } else if (isEnteringQueryParams) {
         const startIndex = index;
-        index = this.extractQueryParamsFromPath(
-          splittedPath,
-          queryParams,
-          index
-        );
+        index = this.extractQueryParamsFromPath(splittedPath, queryParams, index);
         queryPath = path.slice(startIndex, index);
       } else {
         index++;
@@ -539,18 +455,9 @@ export class IncludesRouter<
   TMiddlewares extends readonly Middleware[] = [],
   TRootPath extends string | undefined = undefined,
   TAlreadyDefinedMethods extends
-    | AlreadyDefinedMethodsType<
-        TRootPath extends string ? TRootPath : '',
-        readonly Middleware[]
-      >
+    | AlreadyDefinedMethodsType<TRootPath extends string ? TRootPath : '', readonly Middleware[]>
     | undefined = undefined
-> extends BaseRouter<
-  TParentRouter,
-  TChildren,
-  TMiddlewares,
-  TRootPath,
-  TAlreadyDefinedMethods
-> {
+> extends BaseRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, TAlreadyDefinedMethods> {
   /**
    * Syntax sugar for creating a nested router inside of the `include` method when passing a function instead of an array.
    *
@@ -559,13 +466,7 @@ export class IncludesRouter<
    */
   child() {
     return MethodsRouter.newNested<
-      BaseRouter<
-        TParentRouter,
-        TChildren,
-        TMiddlewares,
-        TRootPath,
-        TAlreadyDefinedMethods
-      >
+      BaseRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, TAlreadyDefinedMethods>
     >();
   }
 }
@@ -576,27 +477,11 @@ export class MethodsRouter<
   TMiddlewares extends readonly Middleware[] = [],
   TRootPath extends string | undefined = undefined,
   TAlreadyDefinedMethods extends
-    | AlreadyDefinedMethodsType<
-        TRootPath extends string ? TRootPath : '',
-        readonly Middleware[]
-      >
+    | AlreadyDefinedMethodsType<TRootPath extends string ? TRootPath : '', readonly Middleware[]>
     | unknown = unknown
-> extends BaseRouter<
-  TParentRouter,
-  TChildren,
-  TMiddlewares,
-  TRootPath,
-  TAlreadyDefinedMethods
-> {
-  get<
-    THandler extends HandlerType<
-      TRootPath extends string ? TRootPath : string,
-      TMiddlewares
-    >
-  >(handler: THandler) {
-    const existingHandlers = (
-      (this.__handlers as any) ? this.__handlers : {}
-    ) as any;
+> extends BaseRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, TAlreadyDefinedMethods> {
+  get<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares>>(handler: THandler) {
+    const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
     (this.__handlers as { get: THandler }) = {
       ...existingHandlers,
@@ -621,15 +506,8 @@ export class MethodsRouter<
     >;
   }
 
-  post<
-    THandler extends HandlerType<
-      TRootPath extends string ? TRootPath : string,
-      TMiddlewares
-    >
-  >(handler: THandler) {
-    const existingHandlers = (
-      (this.__handlers as any) ? this.__handlers : {}
-    ) as any;
+  post<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares>>(handler: THandler) {
+    const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
     (this.__handlers as { post: THandler }) = {
       ...existingHandlers,
@@ -654,15 +532,8 @@ export class MethodsRouter<
     >;
   }
 
-  delete<
-    THandler extends HandlerType<
-      TRootPath extends string ? TRootPath : string,
-      TMiddlewares
-    >
-  >(handler: THandler) {
-    const existingHandlers = (
-      (this.__handlers as any) ? this.__handlers : {}
-    ) as any;
+  delete<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares>>(handler: THandler) {
+    const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
     (this.__handlers as { delete: THandler }) = {
       ...existingHandlers,
@@ -687,15 +558,10 @@ export class MethodsRouter<
     >;
   }
 
-  options<
-    THandler extends HandlerType<
-      TRootPath extends string ? TRootPath : string,
-      TMiddlewares
-    >
-  >(handler: THandler) {
-    const existingHandlers = (
-      (this.__handlers as any) ? this.__handlers : {}
-    ) as any;
+  options<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares>>(
+    handler: THandler
+  ) {
+    const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
     (this.__handlers as { options: THandler }) = {
       ...existingHandlers,
@@ -720,15 +586,8 @@ export class MethodsRouter<
     >;
   }
 
-  head<
-    THandler extends HandlerType<
-      TRootPath extends string ? TRootPath : string,
-      TMiddlewares
-    >
-  >(handler: THandler) {
-    const existingHandlers = (
-      (this.__handlers as any) ? this.__handlers : {}
-    ) as any;
+  head<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares>>(handler: THandler) {
+    const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
     (this.__handlers as { options: THandler }) = {
       ...existingHandlers,
@@ -753,21 +612,13 @@ export class MethodsRouter<
     >;
   }
 
-  all<
-    THandler extends HandlerType<
-      TRootPath extends string ? TRootPath : string,
-      TMiddlewares
-    >
-  >(handler: THandler) {
+  all<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares>>(handler: THandler) {
     const handlersAsAny = this.__handlers as any;
 
     // Remove all the methods handlers since we are defining a handler for all methods.
-    for (const key of Object.keys(handlersAsAny))
-      if (key !== 'all') delete handlersAsAny[key];
+    for (const key of Object.keys(handlersAsAny)) if (key !== 'all') delete handlersAsAny[key];
 
-    const existingHandlers = (
-      (this.__handlers as any) ? this.__handlers : {}
-    ) as any;
+    const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     (this.__handlers as { all: THandler }) = {
       ...existingHandlers,
       all: handler,

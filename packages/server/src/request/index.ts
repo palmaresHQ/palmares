@@ -1,7 +1,6 @@
-import type {
-  ExtractQueryParamsFromPathType,
-  ExtractUrlParamsFromPathType,
-} from './types';
+import { Blob } from 'buffer';
+import type { ExtractQueryParamsFromPathType, ExtractUrlParamsFromPathType } from './types';
+import ServerRequestAdapter from '../adapters/requests';
 
 export default class Request<
   TRoutePath extends string = string,
@@ -18,20 +17,34 @@ export default class Request<
     Context: unknown;
   }
 > {
+  private __error: Error | undefined = undefined;
+  private __requestAdapter: ServerRequestAdapter | undefined = undefined;
+  /**
+   * This is data sent by the server, you can use it to translate your request and response during the lifecycle of Request/Response.
+   *
+   * Think like that, on express:
+   *
+   * ```ts
+   * app.use((req, res, next) => {
+   *   const serverRequestAndResponseData = { req, res };
+   *   await wrappedHandler(serverRequestAndResponseData);
+   * });
+   * ```
+   */
+  private __serverRequestAndResponseData: any = undefined;
+
   method!: TRequest['Method'];
   readonly query!: ExtractQueryParamsFromPathType<TRoutePath>;
   readonly params!: ExtractUrlParamsFromPathType<TRoutePath>;
   readonly body!: TRequest['Body'];
-  readonly headers!: TRequest['Headers'];
+  private __headers!: {
+    wasDirectlySet: boolean;
+    data: TRequest['Headers'];
+  };
   readonly cookies!: TRequest['Cookies'];
   context!: TRequest['Context'];
-  readonly cache!:
-    | 'default'
-    | 'no-store'
-    | 'reload'
-    | 'no-cache'
-    | 'force-cache'
-    | 'only-if-cached';
+
+  readonly cache!: 'default' | 'no-store' | 'reload' | 'no-cache' | 'force-cache' | 'only-if-cached';
   readonly credentials!: 'omit' | 'same-origin' | 'include';
   readonly mode!: 'same-origin' | 'no-cors' | 'cors' | 'navigate' | 'websocket';
   readonly redirect!: 'follow' | 'error' | 'manual';
@@ -48,22 +61,24 @@ export default class Request<
     if (options?.params) this.params = options?.params;
     this.method = options?.method;
     this.body = options?.body;
-    this.headers = options?.headers;
+    if (options?.headers)
+      this.__headers = {
+        wasDirectlySet: true,
+        data: options.headers,
+      };
+
     this.cookies = options?.cookies;
+  }
+
+  get headers(): TRequest['Headers'] {
+    if (this?.__headers?.wasDirectlySet !== true && this.__requestAdapter)
+      return this.__requestAdapter.headers(this.__serverRequestAndResponseData);
+    else return this.__headers?.data;
   }
 
   clone<
     TNewRequest extends {
-      Method?:
-        | 'GET'
-        | 'POST'
-        | 'PUT'
-        | 'DELETE'
-        | 'PATCH'
-        | 'OPTIONS'
-        | 'HEAD'
-        | 'CONNECT'
-        | 'TRACE';
+      Method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS' | 'HEAD' | 'CONNECT' | 'TRACE';
       Body?: unknown;
       Headers?: object | unknown;
       Cookies?: object | unknown;
@@ -92,6 +107,7 @@ export default class Request<
   }
 
   async json() {
+    if (this.__error) return JSON.parse(JSON.stringify(this.__error));
     return this.body;
   }
 

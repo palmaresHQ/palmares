@@ -23,8 +23,8 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "peerDependencies": {
-    "@palmares/core": "*",
-    "@palmares/databases": "*"
+    "@palmares/core": "workspace:*",
+    "@palmares/databases": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^4.9.5"

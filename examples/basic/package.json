@@ -8,7 +8,7 @@
   "license": "MIT",
   "scripts": {
     "start": "tsx dist/manage.js dev",
-    "dev": "nodemon --watch 'src/' --watch '../packages' --watch '../libs' --exec ' tsx manage.ts dev' -e ts",
+    "dev": "nodemon --watch 'src/' --watch '../../packages/*/dist/**' --watch '../../libs/*/dist/**' --exec ' tsx manage.ts runserver' -e ts",
     "events": "tsx manage.ts eventsServer",
     "help": "npx tsx manage.ts help",
     "models": "tsx src/core/models.ts",
@@ -22,6 +22,7 @@
     "@palmares/core": "workspace:*",
     "@palmares/std": "workspace:*",
     "@palmares/databases": "workspace:*",
+    "@palmares/server": "workspace:*",
     "@palmares/sequelize-engine": "workspace:*",
     "cors": "^2.8.5",
     "pg": "^8.7.3"
