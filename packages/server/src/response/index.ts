@@ -32,6 +32,11 @@ export default class Response<
   headers!: TResponse['Headers'] extends object ? TResponse['Headers'] : undefined;
   context!: TResponse['Context'] extends object ? TResponse['Context'] : undefined;
 
+  constructor(body?: TResponse['Body'], options?: { status?: TResponse['Status'] }) {
+    this.body = body as any;
+    this.status = options?.status as any;
+  }
+
   clone<
     TNewResponse extends {
       Status?: StatusCodes;
@@ -55,5 +60,9 @@ export default class Response<
       Headers: TResponse['Headers'] & TNewResponse['Headers'];
       Context: TResponse['Context'] & TNewResponse['Context'];
     }>();
+  }
+
+  serverData<T>(): T {
+    return this.__serverRequestAndResponseData;
   }
 }

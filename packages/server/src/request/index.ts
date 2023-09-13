@@ -1,6 +1,9 @@
 import { Blob } from 'buffer';
 import type { ExtractQueryParamsFromPathType, ExtractUrlParamsFromPathType } from './types';
 import ServerRequestAdapter from '../adapters/requests';
+import { parseParamsValue, parseQueryParams } from './utils';
+import { BaseRouter } from '../router/routers';
+import ServerAdapter from '../adapters';
 
 export default class Request<
   TRoutePath extends string = string,
@@ -17,7 +20,15 @@ export default class Request<
     Context: unknown;
   }
 > {
+  /**
+   * All of those private methods are not really private, we use them internally so we do a typescript mangling to use them.
+   *
+   * But the intellisense on VSCODE or other editors will not show them.
+   */
+  private __queryParams: BaseRouter['__queryParamsAndPath']['params'] | undefined = undefined;
+  private __urlParams: BaseRouter['__urlParamsAndPath']['params'] | undefined = undefined;
   private __error: Error | undefined = undefined;
+  private __serverAdapter: ServerAdapter | undefined = undefined;
   private __requestAdapter: ServerRequestAdapter | undefined = undefined;
   /**
    * This is data sent by the server, you can use it to translate your request and response during the lifecycle of Request/Response.
@@ -34,13 +45,13 @@ export default class Request<
   private __serverRequestAndResponseData: any = undefined;
 
   method!: TRequest['Method'];
-  readonly query!: ExtractQueryParamsFromPathType<TRoutePath>;
-  readonly params!: ExtractUrlParamsFromPathType<TRoutePath>;
-  readonly body!: TRequest['Body'];
+  private __query!: ProxyHandler<ExtractQueryParamsFromPathType<TRoutePath>>;
   private __headers!: {
     wasDirectlySet: boolean;
     data: TRequest['Headers'];
   };
+  private __params!: ProxyHandler<ExtractUrlParamsFromPathType<TRoutePath>>;
+  readonly body!: TRequest['Body'];
   readonly cookies!: TRequest['Cookies'];
   context!: TRequest['Context'];
 
@@ -56,24 +67,181 @@ export default class Request<
     body?: TRequest['Body'];
     headers?: TRequest['Headers'];
     cookies?: TRequest['Cookies'];
-    params?: ExtractUrlParamsFromPathType<TRoutePath>;
   }) {
-    if (options?.params) this.params = options?.params;
     this.method = options?.method;
     this.body = options?.body;
-    if (options?.headers)
-      this.__headers = {
-        wasDirectlySet: true,
-        data: options.headers,
-      };
+
+    const wasHeadersDirectlySet = options?.headers !== undefined;
+    this.__headers = {
+      wasDirectlySet: wasHeadersDirectlySet,
+      data: new Proxy(options?.headers || {}, {
+        set: (target, prop, value) => {
+          const propAsString = prop as string;
+          (target as any)[propAsString] = value;
+          return true;
+        },
+        get: (target, prop) => {
+          const propAsString = prop as string;
+          if (this.__requestAdapter) {
+            const propNotYetCached = !(prop in target);
+
+            if (propNotYetCached) {
+              const dataFromHeader = this.__requestAdapter.headers(
+                this.__serverAdapter as NonNullable<Request['__serverAdapter']>,
+                this.__serverRequestAndResponseData,
+                propAsString
+              );
+              if (dataFromHeader) (target as any)[propAsString] = dataFromHeader;
+            }
+            return (target as any)[propAsString];
+          }
+
+          return undefined;
+        },
+      }),
+    };
 
     this.cookies = options?.cookies;
   }
 
   get headers(): TRequest['Headers'] {
-    if (this?.__headers?.wasDirectlySet !== true && this.__requestAdapter)
-      return this.__requestAdapter.headers(this.__serverRequestAndResponseData);
-    else return this.__headers?.data;
+    return this.__headers.data;
+  }
+
+  /**
+   * This is an extraction of a piece of code that repeats inside of `query` getter.
+   *
+   * @param target - The target to append the parsed query param.
+   * @param key - The key of the query param.
+   */
+  private __appendUrlParamParsedToTarget(target: any, key: string) {
+    if (!this.__urlParams) return undefined;
+    const nonNullableRequestAdapter = this.__requestAdapter as NonNullable<typeof this.__requestAdapter>;
+    const parserData = this.__urlParams.get(key);
+    const dataFromUrl = nonNullableRequestAdapter.params(
+      this.__serverAdapter as NonNullable<Request['__serverAdapter']>,
+      this.__serverRequestAndResponseData,
+      key
+    );
+    if (dataFromUrl) (target as any)[key] = parseParamsValue(dataFromUrl, parserData as NonNullable<typeof parserData>);
+  }
+
+  /**
+   * Same as query params but for url parameters, like `/user/<id: number>`. Nothing really special once you know how we lazy load and parse the query/param data.
+   */
+  get params(): ExtractUrlParamsFromPathType<TRoutePath> {
+    if (this.__requestAdapter && this.__serverAdapter) {
+      if (this.__params instanceof Proxy) return this.__params as ExtractUrlParamsFromPathType<TRoutePath>;
+      else {
+        const paramsProxy = new Proxy(
+          {},
+          {
+            get: (target, prop) => {
+              // Reference: https://dev.to/jankapunkt/how-stringify-proxy-to-json-10oe
+              // The toJSON method is called whenever JSON.stringify is called on the proxy.
+              if (prop.toString() === 'toJSON') {
+                if (this.__requestAdapter && this.__urlParams) {
+                  return () => {
+                    if (!this.__urlParams) return undefined;
+
+                    for (const key of this.__urlParams.keys()) {
+                      if (key in target) continue;
+                      this.__appendUrlParamParsedToTarget(target, key);
+                    }
+                    return target;
+                  };
+                }
+                return undefined;
+              }
+
+              const propAsString = prop as string;
+              const existsDataOnQuery = this.__urlParams && this.__urlParams.has(propAsString);
+
+              if (this.__requestAdapter && existsDataOnQuery) {
+                const propNotYetCached = !(prop in target);
+
+                if (propNotYetCached) this.__appendUrlParamParsedToTarget(target, propAsString);
+                return (target as any)[propAsString];
+              }
+
+              return undefined;
+            },
+          }
+        );
+        this.__params = paramsProxy;
+        return paramsProxy as ExtractUrlParamsFromPathType<TRoutePath>;
+      }
+    } else return {} as ExtractUrlParamsFromPathType<TRoutePath>;
+  }
+
+  /**
+   * This is an extraction of a piece of code that repeats inside of `query` getter.
+   *
+   * @param target - The target to append the parsed query param.
+   * @param key - The key of the query param.
+   */
+  private __appendQueryParamParsedToTarget(target: any, key: string) {
+    if (!this.__queryParams) return undefined;
+    const nonNullableRequestAdapter = this.__requestAdapter as NonNullable<typeof this.__requestAdapter>;
+    const parserData = this.__queryParams.get(key);
+    const dataFromQuery = nonNullableRequestAdapter.query(
+      this.__serverAdapter as NonNullable<Request['__serverAdapter']>,
+      this.__serverRequestAndResponseData,
+      key
+    );
+    if (dataFromQuery) {
+      (target as any)[key] = parseQueryParams(dataFromQuery, parserData as NonNullable<typeof parserData>);
+    }
+  }
+
+  /**
+   * Lazily extract the query params from the request and translate it to the type of the query params only when needed.
+   *
+   * This should make everything run smooth and fast. The translation will only happen when the query params are accessed.
+   */
+  get query(): ExtractQueryParamsFromPathType<TRoutePath> {
+    if (this.__requestAdapter) {
+      if (this.__query instanceof Proxy) return this.__query as ExtractQueryParamsFromPathType<TRoutePath>;
+      else {
+        const queryProxy = new Proxy(
+          {},
+          {
+            get: (target, prop) => {
+              // Reference: https://dev.to/jankapunkt/how-stringify-proxy-to-json-10oe
+              // The toJSON method is called whenever JSON.stringify is called on the proxy.
+              if (prop.toString() === 'toJSON') {
+                if (this.__requestAdapter && this.__queryParams) {
+                  return () => {
+                    if (!this.__queryParams) return undefined;
+
+                    for (const key of this.__queryParams.keys()) {
+                      if (key in target) continue;
+                      this.__appendQueryParamParsedToTarget(target, key);
+                    }
+                    return target;
+                  };
+                }
+                return undefined;
+              }
+
+              const propAsString = prop as string;
+              const existsDataOnQuery = this.__queryParams && this.__queryParams.has(propAsString);
+
+              if (this.__requestAdapter && existsDataOnQuery) {
+                const propNotYetCached = !(prop in target);
+
+                if (propNotYetCached) this.__appendQueryParamParsedToTarget(target, propAsString);
+                return (target as any)[propAsString];
+              }
+
+              return undefined;
+            },
+          }
+        );
+        this.__query = queryProxy;
+        return queryProxy as ExtractQueryParamsFromPathType<TRoutePath>;
+      }
+    } else return {} as ExtractQueryParamsFromPathType<TRoutePath>;
   }
 
   clone<
@@ -100,6 +268,10 @@ export default class Request<
         Context: TRequest['Context'] & TNewRequest['Context'];
       }
     >();
+  }
+
+  serverData<T>(): T {
+    return this.__serverRequestAndResponseData;
   }
 
   async arrayBuffer() {

@@ -1,8 +1,9 @@
 import { domain } from '@palmares/core';
 
 import httpAppServer from './app';
-import type { path, pathNested } from './router/functions';
-import type { ServerSettingsType } from './types';
+
+import type { path } from './router/functions';
+import type { ServersSettingsType } from './types';
 
 export const serverDomainModifier = domain<{
   getRoutes: () =>
@@ -29,5 +30,5 @@ export default domain('@palmares/server', __dirname, {
       },
     },
   },
-  load: async (_: ServerSettingsType) => undefined,
+  load: async (_: ServersSettingsType) => undefined,
 });

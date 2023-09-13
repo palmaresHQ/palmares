@@ -1,6 +1,2 @@
-import ExpressServer from './server';
-
-export default ExpressServer;
-
-export * from './middlewares';
+export { default as ExpressServerAdapter } from './server';
 export * from './types';

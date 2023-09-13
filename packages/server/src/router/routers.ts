@@ -60,6 +60,11 @@ export class BaseRouter<
     | unknown = unknown
 > {
   path!: TRootPath;
+
+  protected __partsOfPath: {
+    part: string;
+    isUrlParam: boolean;
+  }[];
   protected __queryParamsAndPath: {
     path: string;
     params: Map<
@@ -95,6 +100,10 @@ export class BaseRouter<
       queryPath: string;
       urlPath: string;
       queryParams: BaseRouter['__queryParamsAndPath']['params'];
+      partsOfPath: {
+        part: string;
+        isUrlParam: boolean;
+      }[];
       router: BaseRouter;
       handlers: {
         [method in MethodTypes]?: HandlerType<string, Middleware[]>;
@@ -111,7 +120,10 @@ export class BaseRouter<
     this.path = path;
     this.__children = children;
 
-    const { queryPath, urlPath, queryParams, urlParams } = this.extractUrlAndQueryParametersFromPath(path || '');
+    const { queryPath, urlPath, queryParams, urlParams, partsOfPath } = this.extractUrlAndQueryParametersFromPath(
+      path || ''
+    );
+    this.__partsOfPath = partsOfPath;
     this.__queryParamsAndPath = {
       path: queryPath,
       params: new Map(Object.entries(queryParams)),
@@ -208,6 +220,7 @@ export class BaseRouter<
       if (existsHandlersOnChild) {
         router.__completePaths.set(fullUrlPath, {
           middlewares: router.__middlewares.concat(child.__middlewares),
+          partsOfPath: router.__partsOfPath.concat(child.__partsOfPath),
           urlParams: new Map([...router.__urlParamsAndPath.params, ...child.__urlParamsAndPath.params]),
           urlPath: fullUrlPath,
           queryParams: new Map([...router.__queryParamsAndPath.params, ...child.__queryParamsAndPath.params]),
@@ -221,6 +234,7 @@ export class BaseRouter<
         for (const [childPath, childPathData] of child.__completePaths.entries()) {
           router.__completePaths.set(`${fullUrlPath}${childPath}`, {
             middlewares: router.__middlewares.concat(childPathData.middlewares),
+            partsOfPath: router.__partsOfPath.concat(childPathData.partsOfPath),
             urlParams: new Map([...router.__urlParamsAndPath.params, ...childPathData.urlParams]),
             urlPath: `${fullUrlPath}${childPathData.queryPath}`,
             queryParams: new Map([...router.__queryParamsAndPath.params, ...childPathData.queryParams]),
@@ -421,7 +435,9 @@ export class BaseRouter<
     > = {};
     const splittedPath = path.split('');
     const pathLength = splittedPath.length;
+    const partsOfPath = [];
 
+    let partOfPath = '';
     let queryPath = '';
     let index = 0;
 
@@ -430,21 +446,37 @@ export class BaseRouter<
       const isEnteringQueryParams = splittedPath[index] === '?';
       if (isBeginningOfUrlParam) {
         index = this.extractUrlParamsFromPath(splittedPath, urlParams, index);
+        const keysOfUrlParams = Object.keys(urlParams);
+        const lastInsertedKey = keysOfUrlParams[keysOfUrlParams.length - 1];
+        partsOfPath.push({
+          part: lastInsertedKey,
+          isUrlParam: true,
+        });
       } else if (isEnteringQueryParams) {
         const startIndex = index;
         index = this.extractQueryParamsFromPath(splittedPath, queryParams, index);
         queryPath = path.slice(startIndex, index);
+      } else if (splittedPath[index] !== '/') {
+        partOfPath += splittedPath[index];
+        index++;
       } else {
+        if (partOfPath !== '') {
+          partsOfPath.push({
+            part: partOfPath,
+            isUrlParam: false,
+          });
+          partOfPath = '';
+        }
         index++;
       }
     }
-
     const urlPath = path.replace(queryPath, '');
     return {
       urlParams,
       queryParams,
       urlPath,
       queryPath: queryPath.replace(/^\?/g, ''),
+      partsOfPath,
     };
   }
 }

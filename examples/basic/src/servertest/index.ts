@@ -26,9 +26,11 @@ const authenticateRequest = middleware({
 export default domain('servertest', __dirname, {
   modifiers: [serverDomainModifier] as const,
   getRoutes: async () => {
-    return path('/hello')
+    return path('/hello/<test: string>/hey/<heloo: number>?test=string')
       .middlewares([authenticateRequest])
 
-      .get(() => new Response());
+      .get(() => {
+        return new Response('Olá (palmares) mundo!');
+      });
   },
 });

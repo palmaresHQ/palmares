@@ -1,21 +1,23 @@
+import ServerAdapter from '.';
+
 export default class ServerRequestAdapter {
-  headers(_originalRequest: any): any {
+  headers(_server: ServerAdapter, _originalRequest: any, _key: string): any {
     return undefined;
   }
 
-  params(_originalRequest: any): any {
+  params(_server: ServerAdapter, _originalRequest: any, _key: string): any {
     return undefined;
   }
 
-  query(_originalRequest: any): any {
+  query(_server: ServerAdapter, _originalRequest: any, _key: string): any {
     return undefined;
   }
 
-  body(_originalRequest: any): any {
+  body(_server: ServerAdapter, _originalRequest: any): any {
     return undefined;
   }
 
-  cookies(_originalRequest: any): any {
+  cookies(_server: ServerAdapter, _originalRequest: any): any {
     return undefined;
   }
 }

@@ -23,6 +23,7 @@
     "@palmares/std": "workspace:*",
     "@palmares/databases": "workspace:*",
     "@palmares/server": "workspace:*",
+    "@palmares/express-adapter": "workspace:*",
     "@palmares/sequelize-engine": "workspace:*",
     "cors": "^2.8.5",
     "pg": "^8.7.3"

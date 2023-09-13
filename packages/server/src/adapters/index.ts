@@ -1,18 +1,31 @@
 import { Domain } from '@palmares/core';
-import { ServerSettingsType } from '../types';
+import { ServersSettingsType } from '../types';
 import ServerRequestAdapter from './requests';
 import ServerResponseAdapter from './response';
+import ServerRouterAdapter from './routers';
 
 /**
  * Functional approach to creating a server adapter instead of the default class/inheritance approach.
  */
 export function serverAdapter<
+  TServerResponseAdapter extends ServerAdapter['response'],
+  TServerRouterAdapter extends ServerAdapter['routers'],
   TLoadFunction extends ServerAdapter['load'],
   TLoad404Function extends ServerAdapter['load404'],
   TLoad500Function extends ServerAdapter['load500'],
   TStartFunction extends ServerAdapter['start'],
-  TCloseFunction extends ServerAdapter['close']
+  TCloseFunction extends ServerAdapter['close'],
+  TCustomServerSettings extends typeof ServerAdapter['customServerSettings']
 >(args: {
+  /**
+   * This is the ServerResponseAdapter instance to be used by the server so we can translate Palmares's response to the server's response.
+   */
+  response: TServerResponseAdapter;
+  /**
+   * This is the ServerRouterAdapter instance to be used by the server so we can translate Palmares's router to the server's router.
+   */
+  routers: TServerRouterAdapter;
+  customServerSettings: TCustomServerSettings;
   load: TLoadFunction;
   load404: TLoad404Function;
   load500: TLoad500Function;
@@ -20,37 +33,66 @@ export function serverAdapter<
   close: TCloseFunction;
 }) {
   class CustomServerAdapter extends ServerAdapter {
+    response = args.response as TServerResponseAdapter;
+    routers = args.routers as ServerRouterAdapter;
     load = args.load as TLoadFunction;
     load404 = args.load404 as TLoad404Function;
     load500 = args.load500 as TLoad500Function;
     start = args.start as TStartFunction;
     close = args.close as TCloseFunction;
+
+    static customServerSettings = args.customServerSettings as TCustomServerSettings;
   }
 
-  return CustomServerAdapter;
+  return CustomServerAdapter as {
+    customServerSettings: TCustomServerSettings;
+    new (serverName: string): ServerAdapter & {
+      response: TServerResponseAdapter;
+      routers: TServerRouterAdapter;
+      load: TLoadFunction;
+      load404: TLoad404Function;
+      load500: TLoad500Function;
+      start: TStartFunction;
+      close: TCloseFunction;
+    };
+  };
 }
 
 export default class ServerAdapter {
-  request!: ServerRequestAdapter;
-  response!: ServerResponseAdapter;
+  serverName: string;
+  routers: ServerRouterAdapter = new ServerRouterAdapter();
+  request: ServerRequestAdapter = new ServerRequestAdapter();
+  response: ServerResponseAdapter = new ServerResponseAdapter();
 
-  async load(_domains: Domain[], _settings: ServerSettingsType): Promise<void> {
+  constructor(serverName: string) {
+    this.serverName = serverName;
+  }
+
+  async load(
+    _serverName: string,
+    _domains: Domain[],
+    _settings: ServersSettingsType['servers'][string]
+  ): Promise<void> {
     return undefined;
   }
 
-  async load404(_handler: ServerSettingsType['handler404']): Promise<void> {
+  async load404(_handler: ServersSettingsType['servers'][string]['handler404']): Promise<void> {
     return undefined;
   }
 
-  async load500(_handler: ServerSettingsType['handler500']): Promise<void> {
+  async load500(_handler: ServersSettingsType['servers'][string]['handler500']): Promise<void> {
     return undefined;
   }
 
-  async start(): Promise<void> {
+  async start(_serverName: string, _port: number): Promise<void> {
     return undefined;
   }
 
   async close(): Promise<void> {
     return undefined;
+  }
+
+  static customServerSettings(args: ServersSettingsType['servers'][string]['customServerSettings']) {
+    return args;
   }
 }
