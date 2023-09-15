@@ -1,16 +1,20 @@
-import { StatusCodes } from './status';
+import {
+  DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON,
+  DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY,
+  DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY,
+} from '../defaults';
+import { HTTP_200_OK, HTTP_302_FOUND, RedirectionStatusCodes, StatusCodes } from './status';
 
 export default class Response<
+  TBody = undefined,
   TResponse extends {
-    Status?: StatusCodes;
-    Body?: unknown;
-    Headers?: object | unknown;
-    Context?: object | unknown;
+    status?: StatusCodes;
+    headers?: object | unknown;
+    context?: object | unknown;
   } = {
-    Status: undefined;
-    Body: undefined;
-    Headers: undefined;
-    Context: undefined;
+    status: undefined;
+    headers: undefined;
+    context: undefined;
   }
 > {
   /**
@@ -27,42 +31,94 @@ export default class Response<
    */
   private __serverRequestAndResponseData: any = undefined;
 
-  status!: TResponse['Status'] extends StatusCodes ? TResponse['Status'] : undefined;
-  body!: 'Body' extends keyof TResponse ? TResponse['Body'] : undefined;
-  headers!: TResponse['Headers'] extends object ? TResponse['Headers'] : undefined;
-  context!: TResponse['Context'] extends object ? TResponse['Context'] : undefined;
+  status!: TResponse['status'] extends StatusCodes ? TResponse['status'] : undefined;
+  body?: TBody;
+  headers!: TResponse['headers'] extends object ? TResponse['headers'] : undefined;
+  context!: TResponse['context'] extends object ? TResponse['context'] : undefined;
 
-  constructor(body?: TResponse['Body'], options?: { status?: TResponse['Status'] }) {
-    this.body = body as any;
-    this.status = options?.status as any;
+  constructor(body?: TBody, options?: TResponse) {
+    this.body = body;
+    this.status = options?.status as TResponse['status'] extends StatusCodes ? TResponse['status'] : undefined;
+    this.headers = options?.headers as TResponse['headers'] extends object ? TResponse['headers'] : undefined;
+    this.context = options?.context as TResponse['context'] extends object ? TResponse['context'] : undefined;
   }
 
-  clone<
-    TNewResponse extends {
-      Status?: StatusCodes;
-      Body?: unknown;
-      Headers?: object | unknown;
-      Context?: unknown;
+  static json<
+    TBody extends object,
+    TResponse extends {
+      status?: StatusCodes;
+      headers?: object | unknown;
+      context?: object | unknown;
     } = {
-      Status: undefined;
-      Body: undefined;
-      Headers: object | unknown;
-      Context: unknown;
+      status: undefined;
+      headers: undefined;
+      context: undefined;
     }
-  >() {
-    return new Response<{
-      Status: TNewResponse['Status'] extends StatusCodes ? TNewResponse['Status'] : TResponse['Status'];
-      Body: 'Body' extends keyof TNewResponse
-        ? TNewResponse['Body']
-        : 'Body' extends keyof TResponse
-        ? TResponse['Body']
-        : undefined;
-      Headers: TResponse['Headers'] & TNewResponse['Headers'];
-      Context: TResponse['Context'] & TNewResponse['Context'];
-    }>();
+  >(body: TBody, options?: TResponse & { statusText?: string }) {
+    const isStatusNotDefined = typeof options?.status !== 'number';
+    const hasNotDefinedJsonHeader =
+      (options?.headers as any)?.[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] !==
+      DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON;
+
+    // Define default status and statusText.
+    if (isStatusNotDefined) {
+      if (options) options.status = HTTP_200_OK;
+      else options = { status: HTTP_200_OK } as TResponse;
+      options.statusText = typeof options.statusText === 'string' ? options.statusText : 'OK';
+    }
+
+    if (hasNotDefinedJsonHeader) {
+      if (options) {
+        if (options.headers)
+          (options.headers as any)[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] =
+            DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON;
+        else
+          options.headers = {
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON,
+          };
+      } else
+        options = {
+          headers: { [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON },
+        } as TResponse;
+    }
+
+    return new Response<TBody, TResponse>(JSON.stringify(body) as unknown as TBody, options);
+  }
+
+  static redirect<
+    TResponse extends {
+      status?: RedirectionStatusCodes;
+      headers?: object | unknown;
+      context?: object | unknown;
+    } = {
+      status: undefined;
+      headers: undefined;
+      context: undefined;
+    }
+  >(url: string, options?: TResponse) {
+    if (options) {
+      if (options.headers) (options.headers as any)[DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY] = url;
+      else options.headers = { [DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY]: url };
+    } else options = { headers: { [DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY]: url } } as TResponse;
+
+    if (typeof options.status !== 'number') options.status = HTTP_302_FOUND;
+
+    return new Response<undefined, TResponse>(undefined, options);
+  }
+
+  clone() {
+    return new Response<TBody, TResponse>();
   }
 
   serverData<T>(): T {
     return this.__serverRequestAndResponseData;
+  }
+
+  async json() {
+    const isNotAJsonResponse =
+      (this.headers as any)?.[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] !==
+        DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON && typeof this.body !== 'string';
+    if (isNotAJsonResponse) return undefined as TBody;
+    return JSON.parse(this.body as string) as TBody;
   }
 }

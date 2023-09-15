@@ -12,7 +12,7 @@ export function parseParamsValue(
     else return undefined;
   } else if (type.type.includes('number') && typeof value === 'number') return value;
   else if (type.type.includes('number') && typeof value !== 'number') {
-    const numberValidatorRegex = /^[\d]+(\.{1})?[\d]+$/g;
+    const numberValidatorRegex = /^[\d]+((\.{1})?[\d]+)?$/g;
     if (value !== undefined && value !== null && numberValidatorRegex.test(value.toString())) return Number(value);
     else return undefined;
   } else if (type.type.includes('boolean') && typeof value === 'boolean') return value;

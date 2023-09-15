@@ -27,6 +27,7 @@
     "build": "turbo run build",
     "build:watch": "turbo run build:watch --parallel",
     "dev": "turbo run dev --parallel",
+    "examples:server-express-only": "turbo run dev --parallel --filter=@examples/server-express-only --filter=@palmares/*",
     "setup": "bash ./scripts/setup.sh",
     "debug": "eslint --debug .eslintrc.js"
   },

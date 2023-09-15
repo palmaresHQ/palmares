@@ -8,8 +8,14 @@ import type { Express, Request, Response } from 'express';
  * This will automatically initialize all the routes of the server on the express server.
  */
 export default serverRouterAdapter({
+  /**
+   * handler is the function to call when a request is made to the server, by default Palmares
+   * gives us the option to send a data during the request/response lifecycle, we just send req and res.
+   *
+   * We can use this data to send a response, parse the request and do pretty much anything.
+   */
   parseHandler(server, path, method, handler, _) {
-    const initializedServer = servers.get(server.serverName);
+    const initializedServer = servers.get(server.serverName)?.server;
     const methodAsLowerCase = method.toLowerCase() as keyof Express;
     // This will initialize the server routes.
     if (initializedServer && typeof initializedServer[methodAsLowerCase] === 'function') {

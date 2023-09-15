@@ -32,12 +32,14 @@ export function middleware<
       Cookies: unknown;
     }
   >,
-  TResponse extends DefaultResponseType = Response<{
-    Status: undefined;
-    Body: undefined;
-    Headers: unknown;
-    Context: unknown;
-  }>,
+  TResponse extends DefaultResponseType = Response<
+    undefined,
+    {
+      status: undefined;
+      headers: unknown;
+      context: unknown;
+    }
+  >,
   TRequestFunction = (
     request: TRouterMiddlewares extends readonly Middleware[]
       ? ExtractRequestsFromMiddlewaresForServer<TRouter['path'], TRouterMiddlewares>
@@ -91,12 +93,14 @@ export function nestedMiddleware<TRouter extends DefaultRouterType>() {
         Cookies: unknown;
       }
     >,
-    TResponse extends DefaultResponseType = Response<{
-      Status: undefined;
-      Body: undefined;
-      Headers: unknown;
-      Context: unknown;
-    }>,
+    TResponse extends DefaultResponseType = Response<
+      undefined,
+      {
+        status: undefined;
+        headers: unknown;
+        context: unknown;
+      }
+    >,
     TRequestFunction = (
       request: TRouterMiddlewares extends readonly Middleware[]
         ? ExtractRequestsFromMiddlewaresForServer<TRouter['path'], TRouterMiddlewares>

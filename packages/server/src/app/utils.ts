@@ -1,16 +1,20 @@
 import ServerAdapter from '../adapters';
 import ServerRequestAdapter from '../adapters/requests';
 import ServerResponseAdapter from '../adapters/response';
-import { DEFAULT_STATUS_CODE_BY_METHOD } from '../defaults';
+import { DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY, DEFAULT_STATUS_CODE_BY_METHOD } from '../defaults';
 import { ServerDomain } from '../domain/types';
 import { Middleware } from '../middleware';
 import Request from '../request';
 import Response from '../response';
+import { isRedirect } from '../response/status';
 import { path } from '../router';
 import { BaseRouter } from '../router/routers';
 import { HandlerType, MethodTypes } from '../router/types';
 import { AllServerSettingsType } from '../types';
-import { ResponseNotReturnedFromResponseOnMiddlewareError } from './exceptions';
+import {
+  RedirectionStatusCodesMustHaveALocationHeaderError,
+  ResponseNotReturnedFromResponseOnMiddlewareError,
+} from './exceptions';
 
 /**
  * By default we don't know how to handle the routes by itself. Pretty much MethodsRouter does everything that we need here during runtime.
@@ -20,14 +24,22 @@ export async function getRootRouterCompletePaths(
   domains: ServerDomain[],
   settings: AllServerSettingsType['servers'][string]
 ) {
+  const extractedRouterInterceptors: NonNullable<Awaited<NonNullable<typeof domains[number]>['routerInterceptor']>>[] =
+    [];
   const extractedRoutes: Promise<ReturnType<NonNullable<Awaited<NonNullable<typeof domains[number]>['getRoutes']>>>>[] =
     [];
   for (const domain of domains) {
     if (domain.getRoutes) extractedRoutes.push(Promise.resolve(domain.getRoutes()));
+    if (domain.routerInterceptor) extractedRouterInterceptors.push(domain.routerInterceptor);
   }
 
   const allRoutes = await Promise.all(extractedRoutes);
   const rootRouter = path(settings?.prefix ? settings.prefix : '').nested(allRoutes);
+  const rootRouterCompletePaths = (rootRouter as any).__completePaths as BaseRouter['__completePaths'];
+  if (extractedRouterInterceptors.length > 0)
+    await Promise.all(
+      extractedRouterInterceptors.map(async (routerInterceptor) => await routerInterceptor(rootRouterCompletePaths))
+    );
   return (rootRouter as any).__completePaths as BaseRouter['__completePaths'];
 }
 
@@ -83,6 +95,17 @@ async function appendErrorToRequestAndReturnResponseOrThrow(
   } else throw error;
 }
 
+/**
+ * Used for appending multiple private methods and values to the Request object. Private methods and values are prefixed with __. Remember that they only exist on typescript
+ * not on runtime, so there is no issue when assigning a value to them. Also, we want to guarantee a nice user experience so we should keep them private so that intellisense
+ * doesn't catch it.
+ *
+ * IMPORTANT: Don't expect any maintainer to know about those private methods, so if you need to use them in a translation, flat them out! In other words: send them directly,
+ * don't send the request object.
+ *
+ * @param request - The request that was created by the server adapter.
+ * @param serverAdapter - The server adapter that was selected to handle the server creation.
+ */
 function appendTranslatorToRequest(
   request: Request,
   serverAdapter: ServerAdapter,
@@ -110,13 +133,13 @@ function appendTranslatorToRequest(
 }
 
 function appendTranslatorToResponse(
-  response: Response,
+  response: Response<any, any>,
   serverAdapter: ServerAdapter,
   serverResponseAdapter: ServerResponseAdapter,
   serverRequestAndResponseData: any
 ) {
   const responseWithoutPrivateMethods = response as unknown as Omit<
-    Response<any>,
+    Response<any, any>,
     '__responseAdapter' | '__serverRequestAndResponseData' | '__serverAdapter'
   > & {
     __serverAdapter: ServerAdapter;
@@ -142,20 +165,19 @@ async function translateResponseToServerResponse(
   server: ServerAdapter,
   serverRequestAndResponseData: any
 ) {
-  console.log('translateResponseToServerResponse');
-  const [header, status, body] = await Promise.all([
-    server.response.headers(server, serverRequestAndResponseData, response.headers),
-    server.response.status(server, serverRequestAndResponseData, response.status),
-    server.response.body(server, serverRequestAndResponseData, response.body),
-  ]);
-
-  return server.response.send(
-    server,
-    serverRequestAndResponseData,
-    response.status || DEFAULT_STATUS_CODE_BY_METHOD(method),
-    response.headers,
-    response.body
-  );
+  const responseStatus = response.status || DEFAULT_STATUS_CODE_BY_METHOD(method);
+  const isRedirectResponse = isRedirect(responseStatus);
+  if (isRedirectResponse && !response.headers?.[DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY])
+    throw new RedirectionStatusCodesMustHaveALocationHeaderError();
+  if (isRedirectResponse)
+    return server.response.redirect(
+      server,
+      serverRequestAndResponseData,
+      responseStatus,
+      response.headers,
+      (response.headers as any)[DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY] as string
+    );
+  return server.response.send(server, serverRequestAndResponseData, responseStatus, response.headers, response.body);
 }
 
 /**
@@ -278,6 +300,7 @@ export async function* getAllHandlers(
 ) {
   const rootRouterCompletePaths = await getRootRouterCompletePaths(domains, settings);
   for (const [path, router] of rootRouterCompletePaths) {
+    console;
     const handlerByMethod = Object.entries(router.handlers || {});
     if (handlerByMethod.length === 0) continue;
     for (const [method, handler] of handlerByMethod) {
@@ -302,6 +325,9 @@ export async function* getAllHandlers(
   }
 }
 
+/**
+ * This will initialize all of the routers in sequence, it'll extract all of the routes from all of the domains and initialize them on the server.
+ */
 export async function initializeRouters(
   domains: ServerDomain[],
   settings: AllServerSettingsType['servers'][string],

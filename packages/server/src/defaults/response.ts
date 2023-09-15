@@ -1,0 +1,3 @@
+export const DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY = 'Content-Type';
+export const DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON = 'application/json';
+export const DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY = 'Location';

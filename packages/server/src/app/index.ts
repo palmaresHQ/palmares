@@ -44,7 +44,11 @@ export default appServer({
   start: async (configureCleanup) => {
     const promises: Promise<void>[] = [];
     for (const [serverName, { server, settings }] of serverInstances.entries()) {
-      promises.push(server.start(serverName, settings.port || DEFAULT_SERVER_PORT));
+      promises.push(
+        server.start(serverName, settings.port || DEFAULT_SERVER_PORT, () => {
+          console.log(`Server ${serverName} started on port ${settings.port || DEFAULT_SERVER_PORT}`);
+        })
+      );
     }
     await Promise.all(promises);
   },

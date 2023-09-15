@@ -14,7 +14,6 @@ import { dirname, resolve } from 'path';
 import servertest from './servertest';
 import cors from 'cors';
 
-ExpressServerAdapter.customServerSettings({ middlewares: [cors()] });
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
   installedDomains: [
@@ -51,6 +50,14 @@ export default defineSettings({
           default: {
             server: ExpressServerAdapter,
             port: 4001,
+            customServerSettings: ExpressServerAdapter.customServerSettings({
+              middlewares: [cors()],
+              // Aqui eu poderia adicionar mais coisa
+              // que eu não tenho no adapter e ai tenho acesso ao server direto
+              additionalBehaviour: (app) => {
+                app.use(cors());
+              },
+            }),
             handler500: middleware({ response: () => new Response() }),
           },
         },

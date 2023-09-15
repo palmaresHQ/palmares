@@ -42,15 +42,17 @@ const addHeadersAndAuthenticateUser = nestedMiddleware<typeof rootRouter>()({
 
 const testMiddleware = nestedMiddleware<typeof rootRouter>()({
   request: () => {
-    const response = new Response<{
-      Status: 200;
-      Body: {
+    const response = new Response<
+      {
         id: number;
         firstName: string;
         lastName: string;
         username: string;
-      };
-    }>();
+      },
+      {
+        status: 200;
+      }
+    >();
     return response;
   },
 });
@@ -62,11 +64,14 @@ export const rootRouter = path(
 const withMiddlewares = pathNested<typeof rootRouter>()('').middlewares([addHeadersAndAuthenticateUser]);
 
 const controllers = pathNested<typeof withMiddlewares>()('/users').get(() => {
-  return new Response<{
-    Headers: {
-      Authorization: string;
-    };
-  }>();
+  return new Response<
+    unknown,
+    {
+      headers: {
+        Authorization: string;
+      };
+    }
+  >();
 });
 
 export const router = withMiddlewares.nested(
@@ -75,34 +80,36 @@ export const router = withMiddlewares.nested(
       path('/<dateId: {\\d+}:number>?teste=(string | number)[]')
         .get(async (request) => {
           if (request.query.teste)
-            return new Response<{
-              Status: 200;
-              Headers: {
-                'x-header': string;
-              };
-            }>();
-          return new Response<{
-            Status: 404;
-          }>();
+            return new Response<
+              unknown,
+              {
+                status: 200;
+                headers: {
+                  'x-header': string;
+                };
+              }
+            >();
+          return new Response<
+            unknown,
+            {
+              status: 404;
+            }
+          >();
         })
         .post((request) => {
           return new Response<{
-            Body: {
-              id: number;
-              firstName: string;
-              lastName: string;
-              username: string;
-            };
-          }>();
-        }),
-      path('/').get((request) => {
-        return new Response<{
-          Body: {
             id: number;
             firstName: string;
             lastName: string;
             username: string;
-          };
+          }>();
+        }),
+      path('/').get((request) => {
+        return new Response<{
+          id: number;
+          firstName: string;
+          lastName: string;
+          username: string;
         }>();
       }),
       controllers,

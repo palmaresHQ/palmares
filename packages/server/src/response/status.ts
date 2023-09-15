@@ -137,3 +137,14 @@ export type StatusCodes =
   | typeof HTTP_509_BANDWIDTH_LIMIT_EXCEEDED
   | typeof HTTP_510_NOT_EXTENDED
   | typeof HTTP_511_NETWORK_AUTHENTICATION_REQUIRED;
+
+export type RedirectionStatusCodes =
+  | typeof HTTP_300_MULTIPLE_CHOICES
+  | typeof HTTP_301_MOVED_PERMANENTLY
+  | typeof HTTP_302_FOUND
+  | typeof HTTP_303_SEE_OTHER
+  | typeof HTTP_304_NOT_MODIFIED
+  | typeof HTTP_305_USE_PROXY
+  | typeof HTTP_306_RESERVED
+  | typeof HTTP_307_TEMPORARY_REDIRECT
+  | typeof HTTP_308_PERMANENT_REDIRECT;

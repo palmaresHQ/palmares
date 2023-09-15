@@ -1,41 +1,37 @@
 import ServerAdapter from '.';
+import Response from '../response';
 
 /**
  * Functional approach to creating a server adapter instead of the default class/inheritance approach.
  */
 export function serverResponseAdapter<
-  TBodyFunction extends ServerResponseAdapter['body'],
-  THeadersFunction extends ServerResponseAdapter['headers'],
-  TStatusFunction extends ServerResponseAdapter['status'],
+  TRedirectFunction extends ServerResponseAdapter['redirect'],
   TSendFunction extends ServerResponseAdapter['send']
->(args: { body: TBodyFunction; headers: THeadersFunction; status: TStatusFunction; send: TSendFunction }) {
+>(args: { send: TSendFunction; redirect: TRedirectFunction }) {
   class CustomServerResponseAdapter extends ServerResponseAdapter {
-    body = args.body as TBodyFunction;
-    headers = args.headers as THeadersFunction;
-    status = args.status as TStatusFunction;
+    redirect = args.redirect as TRedirectFunction;
     send = args.send as TSendFunction;
   }
 
   return CustomServerResponseAdapter as {
     new (): ServerResponseAdapter & {
-      body: TBodyFunction;
-      headers: THeadersFunction;
-      status: TStatusFunction;
+      redirect: TRedirectFunction;
       send: TSendFunction;
     };
   };
 }
 
+/**
+ * This code here is responsible for translating the response from the palmares framework to the server.
+ */
 export default class ServerResponseAdapter {
-  async body(_server: ServerAdapter, _serverRequestAndResponseData: any, _body: any): Promise<any> {
-    return undefined;
-  }
-
-  async headers(_server: ServerAdapter, _serverRequestAndResponseData: any, _headers: any): Promise<any> {
-    return undefined;
-  }
-
-  async status(_server: ServerAdapter, _serverRequestAndResponseData: any, _status: any): Promise<number | undefined> {
+  async redirect(
+    _server: ServerAdapter,
+    _serverRequestAndResponseData: any,
+    _status: number,
+    _headers: Response['headers'],
+    _redirectTo: string
+  ): Promise<any> {
     return undefined;
   }
 
@@ -43,8 +39,8 @@ export default class ServerResponseAdapter {
     _server: ServerAdapter,
     _serverRequestAndResponseData: any,
     _status: number,
-    _headers: Awaited<ReturnType<ServerResponseAdapter['headers']>>,
-    _body: Awaited<ReturnType<ServerResponseAdapter['body']>>
+    _headers: Response['headers'],
+    _body: Response['body']
   ): Promise<any> {
     return undefined;
   }

@@ -119,7 +119,6 @@ export class BaseRouter<
   constructor(path: TRootPath, children?: TChildren) {
     this.path = path;
     this.__children = children;
-
     const { queryPath, urlPath, queryParams, urlParams, partsOfPath } = this.extractUrlAndQueryParametersFromPath(
       path || ''
     );
@@ -470,6 +469,12 @@ export class BaseRouter<
         index++;
       }
     }
+    if (partOfPath !== '')
+      partsOfPath.push({
+        part: partOfPath,
+        isUrlParam: false,
+      });
+
     const urlPath = path.replace(queryPath, '');
     return {
       urlParams,

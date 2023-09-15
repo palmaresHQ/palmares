@@ -61,22 +61,12 @@ export default class EngineGetQuery {
       FieldsOFModelType<InstanceType<ReturnType<typeof model>>>
     > = FieldsOFModelType<InstanceType<ReturnType<typeof model>>>,
     TSearch extends
-      | ModelFieldsWithIncludes<
-          TModel,
-          TIncludes,
-          TFieldsOfModel,
-          false,
-          false,
-          true,
-          true
-        >
+      | ModelFieldsWithIncludes<TModel, TIncludes, TFieldsOfModel, false, false, true, true>
       | undefined = undefined
   >(
     args: {
       ordering?: OrderingOfModelsType<
-        FieldsOfModelOptionsType<TModel> extends string
-          ? FieldsOfModelOptionsType<TModel>
-          : string
+        FieldsOfModelOptionsType<TModel> extends string ? FieldsOfModelOptionsType<TModel> : string
       >;
       limit?: number;
       offset?: number | string;
@@ -88,12 +78,9 @@ export default class EngineGetQuery {
       includes: TIncludes;
     }
   ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFieldsOfModel>[]> {
-    const result: ModelFieldsWithIncludes<TModel, TIncludes, TFieldsOfModel>[] =
-      [];
-    const selectedFields = (args.fields ||
-      Object.keys(internal.model.fields)) as TFieldsOfModel;
+    const result: ModelFieldsWithIncludes<TModel, TIncludes, TFieldsOfModel>[] = [];
+    const selectedFields = (args.fields || Object.keys(internal.model.fields)) as TFieldsOfModel;
     try {
-      throw new NotImplementedEngineException('queryDataNatively');
       return await this.queryDataNatively(
         internal.model.constructor as ReturnType<typeof model>,
         args.search,

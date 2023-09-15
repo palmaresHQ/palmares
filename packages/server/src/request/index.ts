@@ -1,9 +1,9 @@
-import { Blob } from 'buffer';
-import type { ExtractQueryParamsFromPathType, ExtractUrlParamsFromPathType } from './types';
 import ServerRequestAdapter from '../adapters/requests';
 import { parseParamsValue, parseQueryParams } from './utils';
 import { BaseRouter } from '../router/routers';
 import ServerAdapter from '../adapters';
+
+import type { ExtractQueryParamsFromPathType, ExtractUrlParamsFromPathType } from './types';
 
 export default class Request<
   TRoutePath extends string = string,
@@ -117,13 +117,13 @@ export default class Request<
   private __appendUrlParamParsedToTarget(target: any, key: string) {
     if (!this.__urlParams) return undefined;
     const nonNullableRequestAdapter = this.__requestAdapter as NonNullable<typeof this.__requestAdapter>;
-    const parserData = this.__urlParams.get(key);
+    const parsedData = this.__urlParams.get(key);
     const dataFromUrl = nonNullableRequestAdapter.params(
       this.__serverAdapter as NonNullable<Request['__serverAdapter']>,
       this.__serverRequestAndResponseData,
       key
     );
-    if (dataFromUrl) (target as any)[key] = parseParamsValue(dataFromUrl, parserData as NonNullable<typeof parserData>);
+    if (dataFromUrl) (target as any)[key] = parseParamsValue(dataFromUrl, parsedData as NonNullable<typeof parsedData>);
   }
 
   /**
@@ -156,7 +156,6 @@ export default class Request<
 
               const propAsString = prop as string;
               const existsDataOnQuery = this.__urlParams && this.__urlParams.has(propAsString);
-
               if (this.__requestAdapter && existsDataOnQuery) {
                 const propNotYetCached = !(prop in target);
 
@@ -280,6 +279,8 @@ export default class Request<
 
   async json() {
     if (this.__error) return JSON.parse(JSON.stringify(this.__error));
+    if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
+      return this.__requestAdapter.toJson(this.__serverAdapter, this.__serverRequestAndResponseData);
     return this.body;
   }
 

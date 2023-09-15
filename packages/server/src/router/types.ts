@@ -2,15 +2,9 @@ import type { BaseRouter } from './routers';
 import type { Middleware } from '../middleware';
 import { ExtractRequestsFromMiddlewaresForServer } from '../middleware/types';
 import type Response from '../response';
+import Request from '../request';
 
-export type MethodTypes =
-  | 'get'
-  | 'post'
-  | 'put'
-  | 'delete'
-  | 'patch'
-  | 'head'
-  | 'options';
+export type MethodTypes = 'get' | 'post' | 'put' | 'delete' | 'patch' | 'head' | 'options';
 
 export type MergeParentAndChildPathsType<
   TParentRouter extends BaseRouter<any, any, any, any, any>,
@@ -25,59 +19,43 @@ export type MergeParentAndChildPathsType<
     : `${TRootPath}${TPathFromChild}`
   : TPathFromChild;
 
-export type ValidatedFullPathType<TMergedPath, TPathFromChild> =
-  TMergedPath extends string | undefined ? TMergedPath : TPathFromChild;
+export type ValidatedFullPathType<TMergedPath, TPathFromChild> = TMergedPath extends string | undefined
+  ? TMergedPath
+  : TPathFromChild;
 
-export type MergeParentMiddlewaresType<
-  TParentRouter extends BaseRouter<any, any, any, any, any>
-> = TParentRouter extends BaseRouter<
-  any,
-  any,
-  infer TParentMiddlewares,
-  any,
-  any
->
-  ? TParentMiddlewares extends readonly Middleware[]
-    ? TParentMiddlewares
-    : readonly Middleware[]
-  : readonly Middleware[];
-
-export type ValidatedMiddlewaresType<TMiddlewares> =
-  TMiddlewares extends readonly Middleware[]
-    ? TMiddlewares
+export type MergeParentMiddlewaresType<TParentRouter extends BaseRouter<any, any, any, any, any>> =
+  TParentRouter extends BaseRouter<any, any, infer TParentMiddlewares, any, any>
+    ? TParentMiddlewares extends readonly Middleware[]
+      ? TParentMiddlewares
+      : readonly Middleware[]
     : readonly Middleware[];
+
+export type ValidatedMiddlewaresType<TMiddlewares> = TMiddlewares extends readonly Middleware[]
+  ? TMiddlewares
+  : readonly Middleware[];
 
 export type DefaultRouterType = BaseRouter<any, any, any, any, any>;
 
 export type RequestOnHandlerType<
   TRootPath extends string,
   TMiddlewares extends readonly Middleware[]
-> = ExtractRequestsFromMiddlewaresForServer<TRootPath, TMiddlewares>;
+> = TMiddlewares['length'] extends 0
+  ? Request<TRootPath, any>
+  : ExtractRequestsFromMiddlewaresForServer<TRootPath, TMiddlewares>;
 
-export type HandlerType<
-  TRootPath extends string,
-  TMiddlewares extends readonly (Middleware | never)[]
-> = (
+export type HandlerType<TRootPath extends string, TMiddlewares extends readonly (Middleware | never)[]> = (
   request: RequestOnHandlerType<TRootPath, TMiddlewares>
-) => Response<any> | Promise<Response<any>>;
+) => Response<any, any> | Promise<Response<any, any>>;
 
-export type AlreadyDefinedMethodsType<
-  TRootPath extends string,
-  TMiddlewares extends readonly Middleware[]
-> = {
+export type AlreadyDefinedMethodsType<TRootPath extends string, TMiddlewares extends readonly Middleware[]> = {
   [key in MethodTypes]?: HandlerType<TRootPath, TMiddlewares>;
 };
 
 export type DefineAlreadyDefinedMethodsType<
   TRootPath extends string,
   TMiddlewares extends readonly Middleware[],
-  TAlreadyDefinedMethods extends
-    | AlreadyDefinedMethodsType<TRootPath, TMiddlewares>
-    | unknown,
-  THandler extends HandlerType<
-    TRootPath extends string ? TRootPath : string,
-    TMiddlewares
-  >,
+  TAlreadyDefinedMethods extends AlreadyDefinedMethodsType<TRootPath, TMiddlewares> | unknown,
+  THandler extends HandlerType<TRootPath, TMiddlewares>,
   TMethodType extends MethodTypes
 > = TAlreadyDefinedMethods extends object
   ? TAlreadyDefinedMethods & { [key in TMethodType]: THandler }
@@ -87,32 +65,18 @@ export type DefineAlreadyDefinedMethodsType<
  * This is responsible for extracting all handlers from a router, a handler is what will effectively be executed when a request is made.
  * This is used for knowing what type of request is expected for the handler and what type of response will it return for a given method.
  */
-export type ExtractAllHandlersType<
-  TRouters extends DefaultRouterType[] | Omit<DefaultRouterType, never>[]
-> = TRouters extends [infer TFirstRouter, ...infer TRestRouters]
-  ? TFirstRouter extends
-      | BaseRouter<any, infer TRouterChildren, any, any, infer TDefinedHandlers>
-      | Omit<
-          BaseRouter<
-            any,
-            infer TRouterChildren,
-            any,
-            any,
-            infer TDefinedHandlers
-          >,
-          never
-        >
-    ?
-        | TDefinedHandlers[keyof TDefinedHandlers]
-        | (TRouterChildren extends
-            | DefaultRouterType[]
-            | Omit<DefaultRouterType, never>[]
-            ? ExtractAllHandlersType<TRouterChildren>
-            : never)
-        | (TRestRouters extends
-            | DefaultRouterType[]
-            | Omit<DefaultRouterType, never>[]
-            ? ExtractAllHandlersType<TRestRouters>
-            : never)
-    : never
-  : never;
+export type ExtractAllHandlersType<TRouters extends DefaultRouterType[] | Omit<DefaultRouterType, never>[]> =
+  TRouters extends [infer TFirstRouter, ...infer TRestRouters]
+    ? TFirstRouter extends
+        | BaseRouter<any, infer TRouterChildren, any, any, infer TDefinedHandlers>
+        | Omit<BaseRouter<any, infer TRouterChildren, any, any, infer TDefinedHandlers>, never>
+      ?
+          | TDefinedHandlers[keyof TDefinedHandlers]
+          | (TRouterChildren extends DefaultRouterType[] | Omit<DefaultRouterType, never>[]
+              ? ExtractAllHandlersType<TRouterChildren>
+              : never)
+          | (TRestRouters extends DefaultRouterType[] | Omit<DefaultRouterType, never>[]
+              ? ExtractAllHandlersType<TRestRouters>
+              : never)
+      : never
+    : never;

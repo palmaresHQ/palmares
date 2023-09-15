@@ -44,16 +44,17 @@ export type ExtractQueryParamsFromPathType<T extends string> = T extends `${stri
   ? ExtractUrlQueryParamsFromPathTypeRequiredAndOptional<TQueryParams>
   : never;
 
-export type ExtractUrlParamsFromPathType<TPath extends string> =
-  TPath extends `${string}<${infer TParam}:${infer TType}>${infer TRest}`
-    ? {
-        [key in TParam]: GetTypeByStringType<
-          ExtractStringWithoutSpacesType<
-            TType extends `${string}{${string}}:${infer TTypeOfRegex}` ? TTypeOfRegex : TType
-          >
-        >;
-      } & ExtractUrlParamsFromPathType<TRest>
-    : never;
+export type ExtractUrlParamsFromPathType<TPath extends string> = TPath extends
+  | `${string}<${infer TParam}:${infer TType}>${infer TRest}`
+  | `${string}<${infer TParam}:${infer TType}>`
+  ? {
+      [key in TParam]: GetTypeByStringType<
+        ExtractStringWithoutSpacesType<
+          TType extends `${string}{${string}}:${infer TTypeOfRegex}` ? TTypeOfRegex : TType
+        >
+      >;
+    } & ExtractUrlParamsFromPathType<TRest>
+  : object;
 
 export type ExtractUrlQueryParamsFromPathType<TPath extends string> =
   TPath extends `${infer TParam}=${infer TType}&${infer TRest}`
