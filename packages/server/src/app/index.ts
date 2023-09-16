@@ -1,13 +1,12 @@
-import { Domain, ExtractCommandsType, ExtractModifierArguments, SettingsType2, appServer } from '@palmares/core';
+import { appServer } from '@palmares/core';
 
 import { ServerAlreadyInitializedError } from './exceptions';
-import { serverDomainModifier } from '../domain';
-import { getAllHandlers, initializeRouters } from './utils';
+import { initializeRouters } from './utils';
+import { DEFAULT_SERVER_PORT } from '../defaults';
 
 import type Server from '../adapters';
 import type { ServerSettingsType, AllServerSettingsType } from '../types';
 import type { ServerDomain } from '../domain/types';
-import { DEFAULT_SERVER_PORT } from '../defaults';
 
 let serverInstances: Map<string, { server: Server; settings: ServerSettingsType }> = new Map();
 
@@ -34,7 +33,7 @@ export default appServer({
     for (const [serverName, serverSettings] of serverEntries) {
       const serverWasNotInitialized = !serverInstances.has(serverName);
       if (serverWasNotInitialized) {
-        const newServerInstance = new serverSettings.server(serverName);
+        const newServerInstance = new serverSettings.server(serverName, args.settings, args.domains);
         serverInstances.set(serverName, { server: newServerInstance, settings: serverSettings });
         await newServerInstance.load(serverName, args.domains, serverSettings);
         await initializeRouters(args.domains, serverSettings, newServerInstance);
@@ -50,9 +49,11 @@ export default appServer({
         })
       );
     }
-    await Promise.all(promises);
+    await Promise.all(promises.concat(configureCleanup()));
   },
   close: async () => {
-    //if (serverInstance && serverInstance.close) await serverInstance.close();
+    for (const [, { server }] of serverInstances.entries()) {
+      await server.close();
+    }
   },
 });

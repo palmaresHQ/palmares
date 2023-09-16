@@ -39,18 +39,10 @@ export default serverAdapter({
   close: async () => {
     console.log('close');
   },
-  load404: async (handler: Middleware) => {
-    console.log('load404');
-  },
-  load500: async (handler: Middleware) => {
-    console.log('load500');
-  },
-  start: async (serverName, port) => {
+  start: async (serverName, port, logServerStart) => {
     const serverInstanceToStart = servers.get(serverName);
     if (serverInstanceToStart) {
-      serverInstanceToStart.server.listen(port, () => {
-        console.log(`Server ${serverName} started on port ${port}`);
-      });
+      serverInstanceToStart.server.listen(port, () => logServerStart());
     }
   },
 });

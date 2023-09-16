@@ -43,13 +43,15 @@ export class BaseAppServer {
   }
 
   /**
-   * @private
    * Configure the cleanup of the server, this will run when the user press Ctrl+C and the server stops running.
    * This will stop the server gracefully instead of hard kill the process so we are able to do some cleanup.
+   *
+   * @params args - The arguments of the server, this way you can send anything you want to the `close` method of the app server.
    */
-  async configureCleanup() {
+  async configureCleanup(appServer: AppServer, args: any) {
     process.on('SIGINT', async () => {
       await this.#cleanup();
+      await appServer.close(args);
       process.exit(0);
     });
   }
@@ -165,7 +167,7 @@ export class AppServer {
    * })
    * ```
    */
-  async start(_configureCleanup: BaseAppServer['configureCleanup']): Promise<void> {
+  async start(_configureCleanup: (args?: any) => Promise<void>): Promise<void> {
     return undefined;
   }
 
@@ -173,7 +175,7 @@ export class AppServer {
    * Runs the clean up function of the server when the application stops, most frameworks might not need this
    * but if some framework relies on stopping gracefully it might be needed.
    */
-  async close(): Promise<void> {
+  async close(args: any): Promise<void> {
     return undefined;
   }
 }

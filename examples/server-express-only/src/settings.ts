@@ -4,6 +4,7 @@ import ServerDomain, { Response, middleware } from '@palmares/server';
 import { dirname, resolve } from 'path';
 import ApiDomain from './api';
 import cors from 'cors';
+import response from 'libs/express-adapter/src/response';
 
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
@@ -29,13 +30,18 @@ export default defineSettings({
               // que eu não tenho no adapter e ai tenho acesso ao server direto
               additionalBehaviour: (app) => {
                 app.use(cors());
-                app.all('*', (req, res) => {
-                  // Custom 404 page
-                  res.status(404).send('Not found');
-                });
               },
             }),
-            handler500: middleware({ response: () => new Response() }),
+            handler404: () =>
+              Response.json({
+                status: 404,
+                body: {
+                  message: 'Not found',
+                },
+              }),
+            handler500: async (response) => {
+              return response;
+            },
           },
         },
       },

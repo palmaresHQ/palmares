@@ -26,7 +26,10 @@ export async function initializeApp(
   const instanceOfAppServer = new appServer(domains, settings);
   await instanceOfAppServer.load({ domains, settings, commandLineArgs });
   await instanceOfAppServer.baseAppServer.initialize(settings, domains);
-  await instanceOfAppServer.start(
-    instanceOfAppServer.baseAppServer.configureCleanup.bind(instanceOfAppServer.baseAppServer)
-  );
+  await instanceOfAppServer.start(async (args) => {
+    await instanceOfAppServer.baseAppServer.configureCleanup.bind(instanceOfAppServer.baseAppServer)(
+      instanceOfAppServer,
+      args
+    );
+  });
 }

@@ -7,22 +7,47 @@ import ServerResponseAdapter from './response';
  */
 export function serverRouterAdapter<
   TParseRouteFunction extends ServerRouterAdapter['parseRoute'],
-  TParseHandlerFunction extends ServerRouterAdapter['parseHandler']
->(args: { parseRoute: TParseRouteFunction; parseHandler: TParseHandlerFunction }) {
+  TParseHandlerFunction extends ServerRouterAdapter['parseHandler'],
+  TLoad404Function extends ServerRouterAdapter['load404'],
+  TLoad500Function extends ServerRouterAdapter['load500']
+>(args: {
+  parseRoute: TParseRouteFunction;
+  parseHandler: TParseHandlerFunction;
+  load404: TLoad404Function;
+  load500: TLoad500Function;
+}) {
   class CustomServerRouterAdapter extends ServerRouterAdapter {
     parseRoute = args.parseRoute as TParseRouteFunction;
     parseHandler = args.parseHandler as TParseHandlerFunction;
+    load404 = args.load404 as TLoad404Function;
+    load500 = args.load500 as TLoad500Function;
   }
 
   return CustomServerRouterAdapter as {
     new (): ServerRouterAdapter & {
       parseRoute: TParseRouteFunction;
       parseHandler: TParseHandlerFunction;
+      load404: TLoad404Function;
+      load500: TLoad500Function;
     };
   };
 }
 
 export default class ServerRouterAdapter {
+  async load404(
+    _server: ServerAdapter,
+    _handler: (serverRequestAndResponseData: any) => ReturnType<ServerResponseAdapter['send']>
+  ): Promise<void> {
+    return undefined;
+  }
+
+  async load500(
+    _server: ServerAdapter,
+    _handler: (serverRequestAndResponseData: any) => ReturnType<ServerResponseAdapter['send']>
+  ): Promise<void> {
+    return undefined;
+  }
+
   parseRoute(
     _server: ServerAdapter,
     _partOfPath: string,

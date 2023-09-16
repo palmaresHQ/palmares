@@ -32,4 +32,19 @@ export default serverRouterAdapter({
     if (urlParamType) return `:${partOfPath}`;
     else return partOfPath;
   },
+  load404: async (server, handler) => {
+    const initializedServer = servers.get(server.serverName)?.server;
+    if (initializedServer) {
+      initializedServer.use((req, res) => {
+        const serverRequestAndResponseData = {
+          req,
+          res,
+        };
+        handler(serverRequestAndResponseData);
+      });
+    }
+  },
+  load500: async (server, handler) => {
+    console.log('load500');
+  },
 });

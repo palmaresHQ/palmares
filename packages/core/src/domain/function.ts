@@ -85,6 +85,7 @@ export default function domain<
     ready = args.ready as TReadyFunction;
     close = args.close;
     commands = (args.commands || {}) as TCommands | undefined;
+    static toJSON = () => ({ name, path });
   }
 
   for (const [key, value] of argsEntries) (ReturnedClass as any).prototype[key] = value;

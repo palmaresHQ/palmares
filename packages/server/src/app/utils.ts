@@ -1,12 +1,18 @@
 import ServerAdapter from '../adapters';
 import ServerRequestAdapter from '../adapters/requests';
 import ServerResponseAdapter from '../adapters/response';
-import { DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY, DEFAULT_STATUS_CODE_BY_METHOD } from '../defaults';
+import {
+  DEFAULT_NOT_FOUND_STATUS_TEXT_MESSAGE,
+  DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY,
+  DEFAULT_SERVER_ERROR_RESPONSE,
+  DEFAULT_STATUS_CODE_BY_METHOD,
+} from '../defaults';
+import { errorCaptureHandler } from '../defaults/error-capture';
 import { ServerDomain } from '../domain/types';
 import { Middleware } from '../middleware';
 import Request from '../request';
 import Response from '../response';
-import { isRedirect } from '../response/status';
+import { HTTP_404_NOT_FOUND, isRedirect } from '../response/status';
 import { path } from '../router';
 import { BaseRouter } from '../router/routers';
 import { HandlerType, MethodTypes } from '../router/types';
@@ -22,7 +28,8 @@ import {
  */
 export async function getRootRouterCompletePaths(
   domains: ServerDomain[],
-  settings: AllServerSettingsType['servers'][string]
+  settings: AllServerSettingsType['servers'][string],
+  isDebugModeEnabled: boolean = true
 ) {
   const extractedRouterInterceptors: NonNullable<Awaited<NonNullable<typeof domains[number]>['routerInterceptor']>>[] =
     [];
@@ -34,7 +41,10 @@ export async function getRootRouterCompletePaths(
   }
 
   const allRoutes = await Promise.all(extractedRoutes);
-  const rootRouter = path(settings?.prefix ? settings.prefix : '').nested(allRoutes);
+  const allRoutesWithOrWithoutErrorHandler = isDebugModeEnabled
+    ? allRoutes.concat([errorCaptureHandler() as any])
+    : allRoutes;
+  const rootRouter = path(settings?.prefix ? settings.prefix : '').nested(allRoutesWithOrWithoutErrorHandler);
   const rootRouterCompletePaths = (rootRouter as any).__completePaths as BaseRouter['__completePaths'];
   if (extractedRouterInterceptors.length > 0)
     await Promise.all(
@@ -77,22 +87,19 @@ async function* wrappedMiddlewareResponses(
 /**
  * This will pretty much wrap call the handler500.request and return the response if it returns a response. Otherwise it will throw an error.
  *
- * @param request - The request that was being handled when the error happened.
+ * @param request - The new response with the error.
  * @param error - The error that was thrown.
  * @param handler500 - The handler500 that was set on the settings.
  */
-async function appendErrorToRequestAndReturnResponseOrThrow(
-  request: Request,
+async function appendErrorToResponseAndReturnResponseOrThrow(
+  response: Response<any, any>,
   error: Error,
   handler500?: AllServerSettingsType['servers'][string]['handler500']
 ) {
-  (request as unknown as Omit<Request<any, any>, '__error'> & { __error: Error }).__error = error as Error;
-  if (handler500?.request) {
-    const responseOrRequest = await handler500.request(request as Request<any, any>);
-    const isResponse = responseOrRequest instanceof Response;
-    if (isResponse) return responseOrRequest;
-    else throw error;
-  } else throw error;
+  if (!handler500) throw error;
+  response = await Promise.resolve(handler500(response));
+  if (response instanceof Response) return response;
+  else throw error;
 }
 
 /**
@@ -213,7 +220,7 @@ function wrapHandlerAndMiddlewares(
     );
 
     let response: Response | undefined = undefined;
-    let wasErrorAlreadyHandled = false;
+    let wasErrorAlreadyHandledInRequestLifecycle = false;
     // This is the index of the middleware that we are currently handling for the request. So on the response we start from the last to the first.
     let middlewareOnionIndex = 0;
 
@@ -249,9 +256,17 @@ function wrapHandlerAndMiddlewares(
           serverRequestAndResponseData
         );
     } catch (error) {
-      wasErrorAlreadyHandled = true;
+      const errorAsError = error as Error;
+      wasErrorAlreadyHandledInRequestLifecycle = true;
+      console.log();
+      const errorResponse = appendTranslatorToResponse(
+        DEFAULT_SERVER_ERROR_RESPONSE(errorAsError, server.settings, server.domains),
+        server,
+        server.response,
+        serverRequestAndResponseData
+      );
       response = appendTranslatorToResponse(
-        await appendErrorToRequestAndReturnResponseOrThrow(request, error as Error, handler500),
+        await appendErrorToResponseAndReturnResponseOrThrow(errorResponse, errorAsError, handler500),
         server,
         server.response,
         serverRequestAndResponseData
@@ -279,13 +294,20 @@ function wrapHandlerAndMiddlewares(
         return translateResponseToServerResponse(response, method, server, serverRequestAndResponseData);
       }
     } catch (error) {
-      if (!wasErrorAlreadyHandled)
-        response = appendTranslatorToResponse(
-          await appendErrorToRequestAndReturnResponseOrThrow(request, error as Error, handler500),
+      if (wasErrorAlreadyHandledInRequestLifecycle === false) {
+        const errorResponse = appendTranslatorToResponse(
+          DEFAULT_SERVER_ERROR_RESPONSE(error as Error, server.settings, server.domains),
           server,
           server.response,
           serverRequestAndResponseData
         );
+        response = appendTranslatorToResponse(
+          await appendErrorToResponseAndReturnResponseOrThrow(errorResponse, error as Error, handler500),
+          server,
+          server.response,
+          serverRequestAndResponseData
+        );
+      }
       if (response) return translateResponseToServerResponse(response, method, server, serverRequestAndResponseData);
       else throw error;
     }
@@ -298,15 +320,18 @@ export async function* getAllHandlers(
   settings: AllServerSettingsType['servers'][string],
   serverAdapter: ServerAdapter
 ) {
+  const existsRootMiddlewares = Array.isArray(settings.middlewares) && settings.middlewares.length > 0;
   const rootRouterCompletePaths = await getRootRouterCompletePaths(domains, settings);
+
   for (const [path, router] of rootRouterCompletePaths) {
-    console;
     const handlerByMethod = Object.entries(router.handlers || {});
     if (handlerByMethod.length === 0) continue;
     for (const [method, handler] of handlerByMethod) {
       const wrappedHandler = wrapHandlerAndMiddlewares(
         method as MethodTypes,
-        router.middlewares,
+        existsRootMiddlewares
+          ? (settings.middlewares as NonNullable<typeof settings.middlewares>).concat(router.middlewares)
+          : router.middlewares,
         router.queryParams,
         router.urlParams,
         handler,
@@ -323,6 +348,52 @@ export async function* getAllHandlers(
       };
     }
   }
+}
+
+export function wrap404HandlerAndRootMiddlewares(
+  serverAdapter: ServerAdapter,
+  middlewares: Middleware[],
+  middleware404: AllServerSettingsType['servers'][string]['handler404'],
+  middleware500: AllServerSettingsType['servers'][string]['handler500']
+) {
+  async function wrapped404Handler(serverRequestAndResponseData: any) {
+    if (!middleware404) return;
+    let response = appendTranslatorToResponse(
+      new Response(undefined, { status: HTTP_404_NOT_FOUND, statusText: DEFAULT_NOT_FOUND_STATUS_TEXT_MESSAGE }),
+      serverAdapter,
+      serverAdapter.response,
+      serverRequestAndResponseData
+    );
+
+    try {
+      response = await middleware404(response);
+      if (response) {
+        for await (const modifiedResponse of wrappedMiddlewareResponses(
+          middlewares,
+          response as Response,
+          middlewares.length - 1
+        )) {
+          const isResponse = modifiedResponse instanceof Response;
+          if (isResponse)
+            response = appendTranslatorToResponse(
+              modifiedResponse,
+              serverAdapter,
+              serverAdapter.response,
+              serverRequestAndResponseData
+            );
+          else throw new ResponseNotReturnedFromResponseOnMiddlewareError();
+        }
+
+        return translateResponseToServerResponse(response, 'get', serverAdapter, serverRequestAndResponseData);
+      }
+    } catch (error) {
+      if (middleware500) response = await middleware500(response);
+      if (response)
+        return translateResponseToServerResponse(response, 'get', serverAdapter, serverRequestAndResponseData);
+      else throw error;
+    }
+  }
+  return wrapped404Handler;
 }
 
 /**
@@ -344,4 +415,14 @@ export async function initializeRouters(
     }
     serverAdapter.routers.parseHandler(serverAdapter, fullPath, handler.method, handler.handler, handler.queryParams);
   }
+  if (settings.handler404)
+    serverAdapter.routers.load404(
+      serverAdapter,
+      wrap404HandlerAndRootMiddlewares(
+        serverAdapter,
+        settings.middlewares || [],
+        settings.handler404,
+        settings.handler500
+      )
+    );
 }

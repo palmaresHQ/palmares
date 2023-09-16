@@ -1,5 +1,5 @@
 import { Domain } from '@palmares/core';
-import { ServersSettingsType } from '../types';
+import { AllServerSettingsType, ServersSettingsType } from '../types';
 import ServerRequestAdapter from './requests';
 import ServerResponseAdapter from './response';
 import ServerRouterAdapter from './routers';
@@ -12,8 +12,6 @@ export function serverAdapter<
   TServerResponseAdapter extends ServerAdapter['response'],
   TServerRouterAdapter extends ServerAdapter['routers'],
   TLoadFunction extends ServerAdapter['load'],
-  TLoad404Function extends ServerAdapter['load404'],
-  TLoad500Function extends ServerAdapter['load500'],
   TStartFunction extends ServerAdapter['start'],
   TCloseFunction extends ServerAdapter['close'],
   TCustomServerSettings extends typeof ServerAdapter['customServerSettings']
@@ -32,8 +30,6 @@ export function serverAdapter<
   routers: TServerRouterAdapter;
   customServerSettings: TCustomServerSettings;
   load: TLoadFunction;
-  load404: TLoad404Function;
-  load500: TLoad500Function;
   start: TStartFunction;
   close: TCloseFunction;
 }) {
@@ -42,8 +38,6 @@ export function serverAdapter<
     response = args.response as TServerResponseAdapter;
     routers = args.routers as ServerRouterAdapter;
     load = args.load as TLoadFunction;
-    load404 = args.load404 as TLoad404Function;
-    load500 = args.load500 as TLoad500Function;
     start = args.start as TStartFunction;
     close = args.close as TCloseFunction;
 
@@ -57,8 +51,6 @@ export function serverAdapter<
       response: TServerResponseAdapter;
       routers: TServerRouterAdapter;
       load: TLoadFunction;
-      load404: TLoad404Function;
-      load500: TLoad500Function;
       start: TStartFunction;
       close: TCloseFunction;
     };
@@ -67,12 +59,16 @@ export function serverAdapter<
 
 export default class ServerAdapter {
   serverName: string;
+  settings: AllServerSettingsType;
+  domains: Domain[];
   routers: ServerRouterAdapter = new ServerRouterAdapter();
   request: ServerRequestAdapter = new ServerRequestAdapter();
   response: ServerResponseAdapter = new ServerResponseAdapter();
 
-  constructor(serverName: string) {
+  constructor(serverName: string, settings: AllServerSettingsType, domains: Domain[]) {
     this.serverName = serverName;
+    this.settings = settings;
+    this.domains = domains;
   }
 
   async load(
@@ -80,14 +76,6 @@ export default class ServerAdapter {
     _domains: Domain[],
     _settings: ServersSettingsType['servers'][string]
   ): Promise<void> {
-    return undefined;
-  }
-
-  async load404(_handler: ServersSettingsType['servers'][string]['handler404']): Promise<void> {
-    return undefined;
-  }
-
-  async load500(_handler: ServersSettingsType['servers'][string]['handler500']): Promise<void> {
     return undefined;
   }
 

@@ -31,13 +31,15 @@ export default class Response<
    */
   private __serverRequestAndResponseData: any = undefined;
 
+  statusText!: string;
   status!: TResponse['status'] extends StatusCodes ? TResponse['status'] : undefined;
   body?: TBody;
   headers!: TResponse['headers'] extends object ? TResponse['headers'] : undefined;
   context!: TResponse['context'] extends object ? TResponse['context'] : undefined;
 
-  constructor(body?: TBody, options?: TResponse) {
+  constructor(body?: TBody, options?: TResponse & { statusText?: string }) {
     this.body = body;
+    this.statusText = options?.statusText as string;
     this.status = options?.status as TResponse['status'] extends StatusCodes ? TResponse['status'] : undefined;
     this.headers = options?.headers as TResponse['headers'] extends object ? TResponse['headers'] : undefined;
     this.context = options?.context as TResponse['context'] extends object ? TResponse['context'] : undefined;

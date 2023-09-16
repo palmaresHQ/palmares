@@ -1,11 +1,14 @@
 import { Response, pathNested } from '@palmares/server';
 
-import type { baseRouter } from './routes';
+import type { baseRouter, errorRouter } from './routes';
 
-const apiController = pathNested<typeof baseRouter>()('/api').get(async (request) => {
+export const paramsController = pathNested<typeof baseRouter>()('').get(async (request) => {
+  console.log('paramsController', request.params.heloo, request.query.test);
   return Response.json({
     hello: 'world',
   });
 });
 
-export default apiController;
+export const errorController = pathNested<typeof errorRouter>()('').get(async () => {
+  throw new Error('Error');
+});
