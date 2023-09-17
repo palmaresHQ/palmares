@@ -1,5 +1,6 @@
 import Response from '../response';
 import { AllServerSettingsType } from '../types';
+import { getErrorId } from '../handlers';
 
 import type { Domain } from '@palmares/core';
 
@@ -57,10 +58,14 @@ export const DEFAULT_SERVER_ERROR_RESPONSE = (error: Error, settings: AllServerS
       <h3>${error.message}</h3>
       <div style="width: 100%; background-color: #f1f1f1; border-radius: 20px">
         <div style="padding: 10px">
-          <h4>Stack trace</h4>
-          <button id="open-in-editor">Open in editor</button>
+          <div style="display: inline-block;">
+            <h4 style="display: inline-block;">Stack trace</h4>
+            <button id="open-in-editor" style="display: inline-block; background-color: transparent; padding: 5px; border: 0; cursor: pointer">
+              <p style="border-bottom: 1px solid black; color: green;">Open in editor</p>
+            </button>
+          </div>
           <div style="border-bottom: 1px solid black; width: 100%; height: 1px;" ></div>
-          <pre >${error.stack}</pre>
+          <pre>${error.stack}</pre>
         </div>
       </div>
       <br>
@@ -85,8 +90,9 @@ export const DEFAULT_SERVER_ERROR_RESPONSE = (error: Error, settings: AllServerS
         </div>
       </div>
       <script>
-        document.getElementById('open-in-editor').addEventListener('click', () => {
-          fetch('/error/open-in-editor', {
+        document.getElementById('open-in-editor').addEventListener('click', (e) => {
+          e.preventDefault();
+          fetch('/${getErrorId()}', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

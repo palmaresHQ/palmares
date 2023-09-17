@@ -7,7 +7,7 @@ import {
   DEFAULT_SERVER_ERROR_RESPONSE,
   DEFAULT_STATUS_CODE_BY_METHOD,
 } from '../defaults';
-import { errorCaptureHandler } from '../defaults/error-capture';
+import { errorCaptureHandler } from '../handlers';
 import { ServerDomain } from '../domain/types';
 import { Middleware } from '../middleware';
 import Request from '../request';
