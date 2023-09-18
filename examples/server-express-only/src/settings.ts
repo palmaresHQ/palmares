@@ -1,14 +1,22 @@
 import CoreDomain, { defineSettings } from '@palmares/core';
 import { ExpressServerAdapter } from '@palmares/express-adapter';
+import StdDomain from '@palmares/std';
+import NodeStd from '@palmares/node-std';
 import ServerDomain, { Response, middleware } from '@palmares/server';
+
 import { dirname, resolve } from 'path';
 import ApiDomain from './api';
 import cors from 'cors';
-import response from 'libs/express-adapter/src/response';
 
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
   installedDomains: [
+    [
+      StdDomain,
+      {
+        STD: NodeStd,
+      },
+    ],
     // Domain Core, required for palmares to work
     [
       CoreDomain,

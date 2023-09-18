@@ -1,12 +1,8 @@
 import { ERR_MODULE_NOT_FOUND, logging } from '@palmares/core';
-import { std } from '@palmares/std';
+import { getDefaultStd } from '@palmares/std';
 
 import { DatabaseDomainInterface } from '../interfaces';
-import {
-  DatabaseSettingsType,
-  InitializedEngineInstancesType,
-  OptionalMakemigrationsArgsType,
-} from '../types';
+import { DatabaseSettingsType, InitializedEngineInstancesType, OptionalMakemigrationsArgsType } from '../types';
 import { FoundMigrationsFileType, MigrationFileType } from './types';
 import { LOGGING_MIGRATIONS_NOT_FOUND } from '../utils';
 import MakeMigrations from './makemigrations';
@@ -20,10 +16,7 @@ export default class Migrations {
   settings: DatabaseSettingsType;
   domains: DatabaseDomainInterface[];
 
-  constructor(
-    settings: DatabaseSettingsType,
-    domains: DatabaseDomainInterface[]
-  ) {
+  constructor(settings: DatabaseSettingsType, domains: DatabaseDomainInterface[]) {
     this.settings = settings;
     this.domains = domains;
   }
@@ -33,34 +26,21 @@ export default class Migrations {
     optionalArgs: OptionalMakemigrationsArgsType
   ) {
     const migrations = await this.#getMigrations();
-    await MakeMigrations.buildAndRun(
-      this.settings,
-      migrations,
-      initializedEngineInstances,
-      optionalArgs
-    );
+    await MakeMigrations.buildAndRun(this.settings, migrations, initializedEngineInstances, optionalArgs);
   }
 
   async migrate(initializedEngineInstances: InitializedEngineInstancesType) {
     const migrations = await this.#getMigrations();
-    await Migrate.buildAndRun(
-      this.settings,
-      migrations,
-      initializedEngineInstances
-    );
+    await Migrate.buildAndRun(this.settings, migrations, initializedEngineInstances);
   }
 
-  async #reorderMigrations(
-    migrations: FoundMigrationsFileType[]
-  ): Promise<FoundMigrationsFileType[]> {
+  async #reorderMigrations(migrations: FoundMigrationsFileType[]): Promise<FoundMigrationsFileType[]> {
     const reorderedMigrations = [];
     const reference: { [key: string]: number } = {};
     for (const migration of migrations) {
       const dependsOn = migration.migration.dependsOn;
       const migrationName = migration.migration.name;
-      const indexToAddValue = reference[dependsOn]
-        ? reference[dependsOn] + 1
-        : reorderedMigrations.length;
+      const indexToAddValue = reference[dependsOn] ? reference[dependsOn] + 1 : reorderedMigrations.length;
 
       if (reference[dependsOn]) {
         reorderedMigrations.splice(indexToAddValue, 0, migration);
@@ -73,6 +53,7 @@ export default class Migrations {
   }
 
   async #getMigrations(): Promise<FoundMigrationsFileType[]> {
+    const defaultStd = getDefaultStd();
     const foundMigrations: FoundMigrationsFileType[] = [];
     const promises: Promise<void>[] = this.domains.map(async (domain) => {
       if (domain.getMigrations) {
@@ -88,22 +69,13 @@ export default class Migrations {
           });
         }
       } else {
-        const fullPath = await std.defaultStd.files.join(
-          domain.path,
-          'migrations'
-        );
+        const fullPath = await defaultStd.files.join(domain.path, 'migrations');
         try {
-          const directoryFiles = await std.defaultStd.files.readDirectory(
-            fullPath
-          );
+          const directoryFiles = await defaultStd.files.readDirectory(fullPath);
           const promises = directoryFiles.map(async (element) => {
             const file = element as string;
-            const pathOfMigration = await std.defaultStd.files.join(
-              fullPath,
-              file
-            );
-            const migrationFile = (await import(pathOfMigration))
-              .default as MigrationFileType;
+            const pathOfMigration = await defaultStd.files.join(fullPath, file);
+            const migrationFile = (await import(pathOfMigration)).default as MigrationFileType;
             const isAValidMigrationFile =
               typeof migrationFile === 'object' &&
               migrationFile !== undefined &&
@@ -121,13 +93,8 @@ export default class Migrations {
           await Promise.all(promises);
         } catch (e) {
           const error: any = e;
-          const couldNotFindFileOrDirectory = error.message.startsWith(
-            'ENOENT: no such file or directory, scandir'
-          );
-          if (
-            error.code === ERR_MODULE_NOT_FOUND ||
-            couldNotFindFileOrDirectory
-          ) {
+          const couldNotFindFileOrDirectory = error.message.startsWith('ENOENT: no such file or directory, scandir');
+          if (error.code === ERR_MODULE_NOT_FOUND || couldNotFindFileOrDirectory) {
             if (this.settings.DATABASES_DISMISS_NO_MIGRATIONS_LOG !== true)
               await logging.logMessage(LOGGING_MIGRATIONS_NOT_FOUND, {
                 domainName: domain.name,

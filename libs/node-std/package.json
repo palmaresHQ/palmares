@@ -20,9 +20,10 @@
     "build:cjs": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc",
     "build:module": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc",
     "build": "pnpm run clear && pnpm run build:cjs && pnpm run build:module && pnpm run build:types",
+    "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
     "build:cjs:watch": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc --watch",
     "build:module:watch": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc --watch",
-    "build:watch": "pnpm run build:cjs:watch && pnpm run build:module:watch"
+    "build:watch": "pnpm run build:cjs:watch & pnpm run build:module:watch & pnpm run build:types:watch"
   },
   "repository": {
     "type": "git",
@@ -40,6 +41,6 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
-    "@palmares/std": "*"
+    "@palmares/std": "workspace:*"
   }
 }

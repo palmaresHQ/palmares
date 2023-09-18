@@ -7,15 +7,15 @@
   ],
   "description": "The server from palmares, this is what you will use generally to make HTTP requests",
   "main": "./dist/cjs/src/index.js",
-  "module": "./dist/esm/index.js",
+  "module": "./dist/esm/src/index.js",
   "types": "./dist/cjs/types/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/cjs/types/index.d.ts",
       "node": "./dist/cjs/src/index.js",
       "require": "./dist/cjs/src/index.js",
-      "import": "./dist/esm/index.js",
-      "default": "./dist/esm/index.js"
+      "import": "./dist/esm/src/index.js",
+      "default": "./dist/esm/src/index.js"
     }
   },
   "repository": {
@@ -44,6 +44,7 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
-    "@palmares/core": "workspace:*"
+    "@palmares/core": "workspace:*",
+    "@palmares/std": "workspace:*"
   }
 }

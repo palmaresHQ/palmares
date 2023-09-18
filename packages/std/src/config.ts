@@ -1,21 +1,19 @@
+import { StdNotSetError } from './exceptions';
 import Std from './interfaces';
 
+let cachedDefaultStd: undefined | Std = undefined;
+
 /**
- * This class is used to store the default standard library.
+ * This will set the default standard library thats being used by the application, so you can load it at any time in your application.
  */
-class StdConfiguration {
-  defaultStandardLibrary: null | Std = null;
-
-  setDefaultStd(std: typeof Std) {
-    this.defaultStandardLibrary = new std();
-  }
-
-  get defaultStd() {
-    if (this.defaultStandardLibrary === null) {
-      throw new Error('Default standard library not set');
-    }
-    return this.defaultStandardLibrary;
-  }
+export function setDefaultStd(std: typeof Std) {
+  cachedDefaultStd = new std();
 }
 
-export default new StdConfiguration();
+/**
+ * If no standard library is set, this will throw an error.
+ */
+export function getDefaultStd() {
+  if (cachedDefaultStd === undefined) throw new StdNotSetError();
+  return cachedDefaultStd;
+}

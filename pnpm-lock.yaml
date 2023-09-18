@@ -148,6 +148,9 @@ importers:
       '@palmares/express-adapter':
         specifier: workspace:*
         version: link:../../libs/express-adapter
+      '@palmares/node-std':
+        specifier: workspace:*
+        version: link:../../libs/node-std
       '@palmares/server':
         specifier: workspace:*
         version: link:../../packages/server
@@ -209,8 +212,8 @@ importers:
   libs/node-std:
     dependencies:
       '@palmares/std':
-        specifier: '*'
-        version: 0.1.2
+        specifier: workspace:*
+        version: link:../../packages/std
 
   libs/redis-emitter:
     dependencies:
@@ -300,6 +303,9 @@ importers:
       '@palmares/core':
         specifier: workspace:*
         version: link:../core
+      '@palmares/std':
+        specifier: workspace:*
+        version: link:../std
 
   packages/std:
     dependencies:

@@ -6,27 +6,28 @@
     "README.md"
   ],
   "description": "The palmares standard library, this is used to interact with the environment we are working with, it can be a browser, node.js, bun, deno or whatever runtime. The standard library should include interfaces that we can extend in whatever environment we are at",
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
+  "main": "./dist/cjs/src/index.js",
   "types": "./dist/cjs/types/index.d.ts",
+  "module": "./dist/esm/src/index.js",
   "exports": {
     ".": {
       "types": "./dist/cjs/types/index.d.ts",
-      "node": "./dist/cjs/index.js",
-      "require": "./dist/cjs/index.js",
-      "import": "./dist/esm/index.js",
-      "default": "./dist/esm/index.js"
+      "node": "./dist/cjs/src/index.js",
+      "require": "./dist/cjs/src/index.js",
+      "import": "./dist/esm/src/index.js",
+      "default": "./dist/esm/src/index.js"
     }
   },
   "scripts": {
     "clear": "rimraf ./dist",
     "build:types": "tsc --project tsconfig.types.json",
-    "build:cjs": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc",
-    "build:module": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc",
+    "build:cjs": "swc ./src -d ./dist/cjs/src --config-file ../../build/.commonjs.swcrc",
+    "build:module": "swc ./src -d ./dist/esm/src --config-file ../../build/.esm.swcrc",
     "build": "pnpm run clear && pnpm run build:cjs && pnpm run build:module && pnpm run build:types",
-    "build:cjs:watch": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc --watch",
-    "build:module:watch": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc --watch",
-    "build:watch": "pnpm run build:cjs:watch && pnpm run build:module:watch"
+    "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
+    "build:cjs:watch": "swc ./src -d ./dist/cjs/src --config-file ../../build/.commonjs.swcrc --watch",
+    "build:module:watch": "swc ./src -d ./dist/esm/src --config-file ../../build/.esm.swcrc --watch",
+    "build:watch": "pnpm run build:cjs:watch & pnpm run build:module:watch & pnpm run build:types:watch"
   },
   "repository": {
     "type": "git",
