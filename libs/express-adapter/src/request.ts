@@ -5,6 +5,7 @@ import multer from 'multer';
 import { servers } from './server';
 import type { ToFormDataOptions } from './types';
 import { type Request, type Response } from 'express';
+import { formDataLikeFactory } from 'packages/server/dist/cjs/types/adapters/utils';
 
 export default serverRequestAdapter({
   customToFormDataOptions<TType extends keyof ReturnType<typeof multer>>(args: ToFormDataOptions<TType>) {
@@ -53,6 +54,7 @@ export default serverRequestAdapter({
   toFormData: async (
     server,
     serverRequestAndResponseData: { req: Request; res: Response },
+    formDataConstructor,
     options: ToFormDataOptions<'any' | 'array' | 'fields' | 'none' | 'single'>
   ) => {
     const serverInstanceAndSettings = servers.get(server.serverName);
@@ -71,10 +73,14 @@ export default serverRequestAdapter({
       const optionsOfParser = (options?.options || []) as any[];
       if (options) upload = (formDataParser[options.type] as any)(...optionsOfParser);
       if (!upload) upload = formDataParser.any();
+
       upload(req, res, () => {
-        console.log('body', req.body);
-        console.log('files', req.files);
-        console.log('file', req.file);
+        const formData = new formDataConstructor();
+        const bodyKeys = Object.keys(req.body);
+        for (const key of bodyKeys) formData.append(key, req.body[key]);
+        if (req.files)
+          if (Array.isArray(req.files))
+            for (const file of req.files) formData.append(file.fieldname, new Blob([file.buffer]), file.originalname);
         resolve(undefined);
       });
     });
