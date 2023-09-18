@@ -4,6 +4,7 @@
     "declaration": true, /* Generate d.ts files */
     "rootDir": "./src",
     "outDir": "./dist/cjs/types",
+    "lib": ["DOM", "DOM.Iterable", "ES2020"],
     "types": ["node"]
   },
   "include": ["src/**/*"]

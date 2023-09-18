@@ -4,6 +4,7 @@ import { BaseRouter } from '../router/routers';
 import ServerAdapter from '../adapters';
 
 import type { ExtractQueryParamsFromPathType, ExtractUrlParamsFromPathType } from './types';
+import { formDataLikeFactory } from '../adapters/utils';
 
 export default class Request<
   TRoutePath extends string = string,
@@ -277,10 +278,10 @@ export default class Request<
     return undefined;
   }
 
-  async json() {
+  async json(options?: any) {
     if (this.__error) return JSON.parse(JSON.stringify(this.__error));
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
-      return this.__requestAdapter.toJson(this.__serverAdapter, this.__serverRequestAndResponseData);
+      return this.__requestAdapter.toJson(this.__serverAdapter, this.__serverRequestAndResponseData, options);
     return this.body;
   }
 
@@ -288,7 +289,15 @@ export default class Request<
     return undefined;
   }
 
-  async formData() {
+  async formData(options?: any): Promise<FormData | InstanceType<ReturnType<typeof formDataLikeFactory>> | undefined> {
+    if (this.__error) return JSON.parse(JSON.stringify(this.__error));
+    if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
+      return this.__requestAdapter.toFormData(
+        this.__serverAdapter,
+        this.__serverRequestAndResponseData,
+        this.__requestAdapter.formDataConstructor(),
+        options
+      );
     return undefined;
   }
 

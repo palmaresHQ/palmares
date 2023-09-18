@@ -1,11 +1,13 @@
-import { Middleware, serverAdapter } from '@palmares/server';
+import { serverAdapter } from '@palmares/server';
 import { Domain } from '@palmares/core';
-import express, { Express } from 'express';
+import express, { type Express } from 'express';
 
-import { ServerSettingsTypeExpress, CustomSettingsForExpress } from './types';
 import ExpressServerRouterAdapter from './router';
 import ExpressServerResponseAdapter from './response';
 import ExpressServerRequestAdapter from './request';
+
+import type { ServerSettingsTypeExpress, CustomSettingsForExpress } from './types';
+import type multer from 'multer';
 
 export const servers = new Map<
   string,
@@ -13,6 +15,8 @@ export const servers = new Map<
     server: Express;
     settings: ServerSettingsTypeExpress;
     jsonParser?: ReturnType<typeof express['json']>;
+    bodyRawParser?: ReturnType<typeof express['raw']>;
+    formDataParser?: ReturnType<typeof multer>;
   }
 >();
 

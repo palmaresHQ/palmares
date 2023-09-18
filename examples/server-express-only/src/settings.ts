@@ -31,7 +31,7 @@ export default defineSettings({
         servers: {
           default: {
             server: ExpressServerAdapter,
-            port: 4001,
+            port: 4000,
             customServerSettings: ExpressServerAdapter.customServerSettings({
               middlewares: [cors()],
               // Aqui eu poderia adicionar mais coisa

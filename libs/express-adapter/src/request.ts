@@ -1,16 +1,36 @@
 import { serverRequestAdapter } from '@palmares/server';
-import express, { type Request, type Response } from 'express';
+import express from 'express';
+import multer from 'multer';
+
 import { servers } from './server';
-import { ServerSettingsTypeExpress } from './types';
+import type { ToFormDataOptions } from './types';
+import { type Request, type Response } from 'express';
 
 export default serverRequestAdapter({
+  customToFormDataOptions<TType extends keyof ReturnType<typeof multer>>(args: ToFormDataOptions<TType>) {
+    return args;
+  },
   toArrayBuffer: async (_server, serverRequestAndResponseData: { req: Request }) => {
     const { req } = serverRequestAndResponseData as { req: Request };
     return req.body;
   },
-  toBlob: async (_server, serverRequestAndResponseData: { req: Request }) => {
-    const { req } = serverRequestAndResponseData as { req: Request };
-    return req.body;
+  toBlob: async (server, serverRequestAndResponseData: { req: Request }) => {
+    const serverInstanceAndSettings = servers.get(server.serverName);
+    const { req, res } = serverRequestAndResponseData as { req: Request; res: Response };
+    return new Promise((resolve) => {
+      let rawBodyParser = serverInstanceAndSettings?.bodyRawParser;
+      if (serverInstanceAndSettings && !serverInstanceAndSettings?.bodyRawParser) {
+        const rawBodyParserSettings = serverInstanceAndSettings.settings.customServerSettings?.bodyRawOptions;
+
+        serverInstanceAndSettings.bodyRawParser = express.raw(rawBodyParserSettings);
+        rawBodyParser = serverInstanceAndSettings.bodyRawParser;
+      }
+      if (!rawBodyParser) rawBodyParser = express.raw();
+
+      rawBodyParser(req, res, () => {
+        resolve(req.body);
+      });
+    });
   },
   toJson: async (server, serverRequestAndResponseData: { req: Request }) => {
     const serverInstanceAndSettings = servers.get(server.serverName);
@@ -18,7 +38,7 @@ export default serverRequestAdapter({
     return new Promise((resolve) => {
       let jsonParser = serverInstanceAndSettings?.jsonParser;
       if (serverInstanceAndSettings && !serverInstanceAndSettings?.jsonParser) {
-        const jsonParserSettings = serverInstanceAndSettings.settings.customServerSettings?.jsonParser;
+        const jsonParserSettings = serverInstanceAndSettings.settings.customServerSettings?.jsonOptions;
 
         serverInstanceAndSettings.jsonParser = express.json(jsonParserSettings);
         jsonParser = serverInstanceAndSettings.jsonParser;
@@ -30,9 +50,34 @@ export default serverRequestAdapter({
       });
     });
   },
-  toFormData: async (_server, serverRequestAndResponseData: { req: Request }) => {
-    const { req } = serverRequestAndResponseData as { req: Request };
-    return req.body;
+  toFormData: async (
+    server,
+    serverRequestAndResponseData: { req: Request; res: Response },
+    options: ToFormDataOptions<'any' | 'array' | 'fields' | 'none' | 'single'>
+  ) => {
+    const serverInstanceAndSettings = servers.get(server.serverName);
+    const { req, res } = serverRequestAndResponseData as { req: Request; res: Response };
+
+    return new Promise((resolve) => {
+      let formDataParser = serverInstanceAndSettings?.formDataParser;
+      if (serverInstanceAndSettings && !serverInstanceAndSettings?.formDataParser) {
+        const formDataParserSettings = serverInstanceAndSettings.settings.customServerSettings?.multerOptions;
+
+        serverInstanceAndSettings.formDataParser = multer(formDataParserSettings);
+        formDataParser = serverInstanceAndSettings.formDataParser;
+      }
+      let upload: ReturnType<ReturnType<typeof multer>[keyof ReturnType<typeof multer>]> | undefined = undefined;
+      if (!formDataParser) formDataParser = multer();
+      const optionsOfParser = (options?.options || []) as any[];
+      if (options) upload = (formDataParser[options.type] as any)(...optionsOfParser);
+      if (!upload) upload = formDataParser.any();
+      upload(req, res, () => {
+        console.log('body', req.body);
+        console.log('files', req.files);
+        console.log('file', req.file);
+        resolve(undefined);
+      });
+    });
   },
   toText: async (_server, serverRequestAndResponseData: { req: Request }) => {
     const { req } = serverRequestAndResponseData as { req: Request };
