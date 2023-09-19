@@ -17,6 +17,8 @@ export const servers = new Map<
     jsonParser?: ReturnType<typeof express['json']>;
     bodyRawParser?: ReturnType<typeof express['raw']>;
     formDataParser?: ReturnType<typeof multer>;
+    textParser?: ReturnType<typeof express['text']>;
+    urlEncodedParser?: ReturnType<typeof express['urlencoded']>;
   }
 >();
 

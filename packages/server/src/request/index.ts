@@ -1,10 +1,9 @@
 import ServerRequestAdapter from '../adapters/requests';
-import { parseParamsValue, parseQueryParams } from './utils';
+import { parseParamsValue, parseQueryParams, formDataLikeFactory } from './utils';
 import { BaseRouter } from '../router/routers';
 import ServerAdapter from '../adapters';
 
-import type { ExtractQueryParamsFromPathType, ExtractUrlParamsFromPathType } from './types';
-import { formDataLikeFactory } from '../adapters/utils';
+import type { ExtractQueryParamsFromPathType, ExtractUrlParamsFromPathType, FormDataLike } from './types';
 
 export default class Request<
   TRoutePath extends string = string,
@@ -28,7 +27,6 @@ export default class Request<
    */
   private __queryParams: BaseRouter['__queryParamsAndPath']['params'] | undefined = undefined;
   private __urlParams: BaseRouter['__urlParamsAndPath']['params'] | undefined = undefined;
-  private __error: Error | undefined = undefined;
   private __serverAdapter: ServerAdapter | undefined = undefined;
   private __requestAdapter: ServerRequestAdapter | undefined = undefined;
   /**
@@ -279,29 +277,31 @@ export default class Request<
   }
 
   async json(options?: any) {
-    if (this.__error) return JSON.parse(JSON.stringify(this.__error));
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
       return this.__requestAdapter.toJson(this.__serverAdapter, this.__serverRequestAndResponseData, options);
     return this.body;
   }
 
   async blob() {
+    if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
+      return this.__requestAdapter.toBlob(this.__serverAdapter, this.__serverRequestAndResponseData) as Promise<Blob>;
     return undefined;
   }
 
-  async formData(options?: any): Promise<FormData | InstanceType<ReturnType<typeof formDataLikeFactory>> | undefined> {
-    if (this.__error) return JSON.parse(JSON.stringify(this.__error));
+  async formData(options?: any): Promise<InstanceType<FormDataLike<TRequest['Body']>> | undefined> {
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
       return this.__requestAdapter.toFormData(
         this.__serverAdapter,
         this.__serverRequestAndResponseData,
-        this.__requestAdapter.formDataConstructor(),
+        formDataLikeFactory(),
         options
-      );
+      ) as unknown as Promise<InstanceType<FormDataLike<TRequest['Body']>> | undefined>;
     return undefined;
   }
 
   async text() {
+    if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
+      return this.__requestAdapter.toText(this.__serverAdapter, this.__serverRequestAndResponseData);
     return undefined;
   }
 }

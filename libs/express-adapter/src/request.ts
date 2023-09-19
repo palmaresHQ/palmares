@@ -1,23 +1,39 @@
 import { serverRequestAdapter } from '@palmares/server';
 import express from 'express';
+import { File } from 'buffer';
 import multer from 'multer';
 
 import { servers } from './server';
 import type { ToFormDataOptions } from './types';
 import { type Request, type Response } from 'express';
-import { formDataLikeFactory } from 'packages/server/dist/cjs/types/adapters/utils';
 
 export default serverRequestAdapter({
   customToFormDataOptions<TType extends keyof ReturnType<typeof multer>>(args: ToFormDataOptions<TType>) {
     return args;
   },
-  toArrayBuffer: async (_server, serverRequestAndResponseData: { req: Request }) => {
-    const { req } = serverRequestAndResponseData as { req: Request };
-    return req.body;
+  toArrayBuffer: async (server, serverRequestAndResponseData: { req: Request; res: Response }) => {
+    const serverInstanceAndSettings = servers.get(server.serverName);
+    const { req, res } = serverRequestAndResponseData;
+
+    return new Promise((resolve) => {
+      let rawBodyParser = serverInstanceAndSettings?.bodyRawParser;
+      if (serverInstanceAndSettings && !serverInstanceAndSettings?.bodyRawParser) {
+        const rawBodyParserSettings = serverInstanceAndSettings.settings.customServerSettings?.bodyRawOptions;
+
+        serverInstanceAndSettings.bodyRawParser = express.raw(rawBodyParserSettings);
+        rawBodyParser = serverInstanceAndSettings.bodyRawParser;
+      }
+      if (!rawBodyParser) rawBodyParser = express.raw();
+
+      rawBodyParser(req, res, () => {
+        resolve(new Blob([req.body]).arrayBuffer());
+      });
+    });
   },
   toBlob: async (server, serverRequestAndResponseData: { req: Request }) => {
     const serverInstanceAndSettings = servers.get(server.serverName);
     const { req, res } = serverRequestAndResponseData as { req: Request; res: Response };
+
     return new Promise((resolve) => {
       let rawBodyParser = serverInstanceAndSettings?.bodyRawParser;
       if (serverInstanceAndSettings && !serverInstanceAndSettings?.bodyRawParser) {
@@ -36,6 +52,7 @@ export default serverRequestAdapter({
   toJson: async (server, serverRequestAndResponseData: { req: Request }) => {
     const serverInstanceAndSettings = servers.get(server.serverName);
     const { req, res } = serverRequestAndResponseData as { req: Request; res: Response };
+
     return new Promise((resolve) => {
       let jsonParser = serverInstanceAndSettings?.jsonParser;
       if (serverInstanceAndSettings && !serverInstanceAndSettings?.jsonParser) {
@@ -75,20 +92,89 @@ export default serverRequestAdapter({
       if (!upload) upload = formDataParser.any();
 
       upload(req, res, () => {
-        const formData = new formDataConstructor();
-        const bodyKeys = Object.keys(req.body);
-        for (const key of bodyKeys) formData.append(key, req.body[key]);
-        if (req.files)
-          if (Array.isArray(req.files))
-            for (const file of req.files) formData.append(file.fieldname, new Blob([file.buffer]), file.originalname);
-        resolve(undefined);
+        const formData = new formDataConstructor({
+          getKeys: () => {
+            const bodyKeys = Object.keys(req.body || {}) || [];
+            if (req.files) {
+              if (Array.isArray(req.files)) {
+                for (const file of req.files) bodyKeys.push(file.fieldname);
+              } else bodyKeys.push(...Object.keys(req.files));
+            }
+            if (req.file) bodyKeys.push(req.file.fieldname);
+            return bodyKeys;
+          },
+          getValue: (name) => {
+            const bodyKeys = Object.keys(req.body || {});
+            for (const key of bodyKeys) {
+              if (key === name)
+                return [
+                  {
+                    value: req.body[key],
+                    filename: undefined,
+                  },
+                ];
+            }
+
+            if (req.files) {
+              if (Array.isArray(req.files)) {
+                const files = [];
+                for (const file of req.files) {
+                  if (file.fieldname === name)
+                    files.push({
+                      value: new File([file.buffer], file.originalname, { type: file.mimetype }),
+                      filename: file.originalname,
+                    });
+                }
+                return files;
+              } else {
+                const files = req.files[name];
+                const filesArray = [];
+
+                for (const file of files) {
+                  if (file.fieldname === name)
+                    filesArray.push({
+                      value: new File([file.buffer], file.originalname, { type: file.mimetype }),
+                      filename: file.originalname,
+                    });
+                }
+                return filesArray;
+              }
+            }
+
+            if (req.file)
+              if (req.file.fieldname === name)
+                return [
+                  {
+                    value: new File([req.file.buffer], req.file.originalname, { type: req.file.mimetype }),
+                    filename: req.file.originalname,
+                  },
+                ];
+
+            return [];
+          },
+        });
+        resolve(formData);
       });
     });
   },
-  toText: async (_server, serverRequestAndResponseData: { req: Request }) => {
-    const { req } = serverRequestAndResponseData as { req: Request };
-    console.log(req.body);
-    return req.body;
+  toText: async (server, serverRequestAndResponseData: { req: Request; res: Response }) => {
+    const serverInstanceAndSettings = servers.get(server.serverName);
+    const { req, res } = serverRequestAndResponseData;
+
+    return new Promise((resolve) => {
+      let textParser = serverInstanceAndSettings?.textParser;
+      if (serverInstanceAndSettings && !serverInstanceAndSettings?.textParser) {
+        const textParserSettings = serverInstanceAndSettings.settings.customServerSettings?.textOptions;
+
+        serverInstanceAndSettings.textParser = express.text(textParserSettings);
+        textParser = serverInstanceAndSettings.textParser;
+      }
+      if (!textParser) textParser = express.text();
+      console.log(req.body);
+      textParser(req, res, () => {
+        resolve(req.body);
+      });
+    });
   },
   cookies: async (_server, serverRequestAndResponseData) => {
     const { req } = serverRequestAndResponseData as { req: Request };

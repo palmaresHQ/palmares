@@ -10,10 +10,19 @@ export const DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY = 'Location';
 export const DEFAULT_NOT_FOUND_STATUS_TEXT_MESSAGE = 'Not Found';
 export const DEFAULT_SERVER_ERROR_STATUS_TEXT_MESSAGE = 'Internal Server Error';
 export const DEFAULT_SERVER_ERROR_RESPONSE = (error: Error, settings: AllServerSettingsType, domains: Domain[]) => {
-  const errorFileAndLines = error.stack?.split('\n')[1].match(/\((.*)\)/)?.[1];
-  const errorFile = errorFileAndLines?.split(':')[0];
-  const errorLine = errorFileAndLines?.split(':')[1];
-  const errorColumn = errorFileAndLines?.split(':')[2];
+  const errorFileAndLines = error.stack?.split('\n');
+  let errorFile = '';
+  let errorLine = '';
+  let errorColumn = '';
+  while (errorFileAndLines?.length && errorFileAndLines.length > 0) {
+    const errorFileAndLine = errorFileAndLines.shift()?.match(/\((.*)\)/)?.[1];
+    if (errorFileAndLine) {
+      errorFile = errorFileAndLine.split(':')[0];
+      errorLine = errorFileAndLine.split(':')[1];
+      errorColumn = errorFileAndLine.split(':')[2];
+      if (errorFile && errorLine && errorColumn && errorFile !== '' && errorLine !== '' && errorColumn !== '') break;
+    }
+  }
 
   return new Response(
     `

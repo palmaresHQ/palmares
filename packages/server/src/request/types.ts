@@ -86,3 +86,39 @@ export type ExtractUrlQueryParamsFromPathTypeRequiredAndOptional<TPath extends s
 };
 
 export type DefaultRequestType = Request<string, { Body: any; Headers: any; Cookies: any; Context: any }>;
+
+export type FormDataLike<TObject = unknown> = new (proxyCallback?: {
+  getValue: (name: string) => {
+    value: string | Blob;
+    fileName?: string;
+  }[];
+  getKeys: () => string[];
+}) => {
+  append: (name: keyof TObject, value: string | Blob | File, fileName?: string) => void;
+  get: <TName extends keyof TObject>(
+    name: TName
+  ) => TName extends keyof TObject
+    ? TObject[TName] extends (infer TType)[]
+      ? TType
+      : TObject[TName]
+    : string | Blob | File;
+  getAll: <TName extends keyof TObject>(
+    name: TName
+  ) => TName extends keyof TObject
+    ? TObject[TName] extends any[]
+      ? TObject[TName]
+      : TObject[TName][]
+    : string | Blob | File;
+  has: (name: keyof TObject) => boolean;
+  set: <TName extends keyof TObject>(
+    name: keyof TObject,
+    value: TName extends keyof TObject
+      ? TObject[TName] extends (infer TType)[]
+        ? TType
+        : TObject[TName]
+      : string | Blob | File,
+    fileName?: string
+  ) => void;
+  delete: (name: keyof TObject) => void;
+  toJSON: () => TObject;
+};

@@ -1,4 +1,4 @@
-import { BaseRouter, MethodsRouter } from '../router/routers';
+import { BaseRouter } from '../router/routers';
 
 export function parseParamsValue(
   value: any,
@@ -26,4 +26,114 @@ export function parseQueryParams(
 ) {
   if (type.isArray && Array.isArray(value)) return value.map((valueToParse) => parseParamsValue(valueToParse, type));
   else return parseParamsValue(value, type);
+}
+
+/**
+ * Since not all runtime environments support FormData, this function should be used to create a form data like object.
+ * See: https://developer.mozilla.org/en-US/docs/Web/API/FormData for more information.
+ *
+ * @returns - A class that can be used to create a new FormData-like instance. This FormData-like instance behave the same way as the original FormData class.
+ */
+export function formDataLikeFactory() {
+  return class FormDataLike {
+    proxyCallback: ConstructorParameters<typeof FormDataLike>[0];
+    data: Record<string, { value: string | Blob | File; fileName?: string }[]>;
+
+    /**
+     * Instead of the default FormData constructor, this one will create a FormData-like object. You can pass a proxyCallback to it,
+     * this way you can lazy load the values of the form data.
+     *
+     * @param proxyCallback - A callback that will be called when a value is needed. This way you can lazy load the values of the form data.
+     */
+    constructor(
+      /**
+       * This should be prefered, what it does is that instead of creating a default form data like class it'll return a proxy, this way all values are lazy loaded. Just when needed.
+       */
+      proxyCallback?: {
+        getValue: (name: string) => {
+          value: string | Blob | File;
+          fileName?: string;
+        }[];
+        getKeys: () => string[];
+      }
+    ) {
+      this.proxyCallback = proxyCallback;
+      this.data = proxyCallback
+        ? new Proxy({} as Record<string, { value: string | Blob | File; fileName?: string }[]>, {
+            get: (target, name) => {
+              if (name in target) return target[name as string];
+              else {
+                const values = proxyCallback.getValue?.(name as string);
+                if (!values) return undefined;
+                for (const value of values || []) {
+                  if (value) {
+                    if (target[name as string]) target[name as string].push(value);
+                    else target[name as string] = [value];
+                  }
+                }
+                return target[name as string];
+              }
+            },
+            set: (target, name, value: { value: string | Blob | File; fileName?: string }[]) => {
+              target[name as string] = value;
+              return true;
+            },
+            deleteProperty: (target, name) => {
+              delete target[name as string];
+              return true;
+            },
+            has: (target, name) => {
+              return name in target;
+            },
+          })
+        : ({} as Record<string, { value: string | Blob; fileName?: string }[]>);
+    }
+
+    append(name: string, value: string | Blob | File, fileName?: string) {
+      const existingDataOfName = this.data[name];
+      if (existingDataOfName) existingDataOfName.push({ value, fileName: fileName });
+      else this.data[name] = [{ value, fileName: fileName }];
+    }
+
+    get(name: string) {
+      const existingDataOfName = this.data[name];
+
+      if (existingDataOfName) return existingDataOfName?.[0]?.value || null;
+      else return null;
+    }
+
+    getAll(name: string) {
+      const existingDataOfName = this.data[name];
+      if (existingDataOfName) return existingDataOfName.map((item: any) => item.value);
+      else return [];
+    }
+
+    has(name: string) {
+      return name in this.data;
+    }
+
+    set(name: string, value: string | Blob | File, fileName?: string) {
+      this.data[name] = [{ value, fileName: fileName }];
+    }
+
+    delete(name: string) {
+      delete this.data[name];
+    }
+
+    /**
+     * Converts the form data like object to a json object, this way it can be validated by schemas or anything else.
+     *
+     * Important: Be aware that this function will only return the first value of each key, if you want to get all values of a key use getAll instead.
+     */
+    toJSON() {
+      const allKeys = this.proxyCallback?.getKeys?.() || Object.keys(this.data);
+      const result: Record<string, string | Blob | File> = {};
+      for (const key of allKeys) {
+        const values = this.getAll(key);
+        if (values.length > 1) (result as any)[key] = values;
+        else if (values.length === 1) (result as any)[key] = values[0];
+      }
+      return result;
+    }
+  };
 }
