@@ -9,11 +9,15 @@ export function serverRequestAdapter<
   TParamsFunction extends ServerRequestAdapter['params'],
   TQueryFunction extends ServerRequestAdapter['query'],
   TToJsonFunction extends ServerRequestAdapter['toJson'],
+  TCustomToJsonOptionsFunction extends typeof ServerRequestAdapter['customToJsonOptions'],
   TToFormDataFunction extends ServerRequestAdapter['toFormData'],
   TCustomToFormDataOptionsFunction extends typeof ServerRequestAdapter['customToFormDataOptions'],
   TToArrayBufferFunction extends ServerRequestAdapter['toArrayBuffer'],
+  TCustomToArrayBufferOptionsFunction extends typeof ServerRequestAdapter['customToArrayBufferOptions'],
   TToBlobFunction extends ServerRequestAdapter['toBlob'],
+  TCustomToBlobOptionsFunction extends typeof ServerRequestAdapter['customToBlobOptions'],
   TToTextFunction extends ServerRequestAdapter['toText'],
+  TCustomToTextOptionsFunction extends typeof ServerRequestAdapter['customToTextOptions'],
   TCookiesFunction extends ServerRequestAdapter['cookies']
 >(args: {
   /**
@@ -27,6 +31,8 @@ export function serverRequestAdapter<
   query: TQueryFunction;
   toJson: TToJsonFunction;
   /**
+   * This should return something when the request Content-Type is a `multipart/form-data` or `application/x-www-form-urlencoded` request. This is lazy loaded, so
+   * it will only parse the data when you actually need it.
    * Transforms the data to a FormData-like instance. FormData is not available on Node.js and other runtimes, so in order to support it we have created a FormData-like class that
    * follows the same api as the original FormData.
    *
@@ -38,12 +44,24 @@ export function serverRequestAdapter<
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on `parseHandler` on the router.
    * @param _formDataConstructor - The constructor of the FormData-like class. It's a class so you should use it like this: `new formDataConstructor()`. You can pass a custom
    * proxyCallback, this will lazy load the values when you actually need it.
+   * @param _isUrlEncoded - Whether or not the request is a `application/x-www-form-urlencoded` request. If not, it's a `multipart/form-data` request.
    * @param _options - Any type of custom options that you want to be able to pass when converting to FormData.
    *
    * @returns -A promise that resolves to a FormData-like instance.
    */
   toFormData: TToFormDataFunction;
+  /**
+   * If you want to pass custom options to the `toFormData` method, you can override this method, the user will need to call this method so he can have intellisense on the options.
+   *
+   * You can totally ignore this method and just pass the options directly to the `toFormData` method.
+   *
+   * @param args - The arguments that you want to pass to the `toFormData` method.
+   */
   customToFormDataOptions?: TCustomToFormDataOptionsFunction;
+  customToJsonOptions?: TCustomToJsonOptionsFunction;
+  customToArrayBufferOptions?: TCustomToArrayBufferOptionsFunction;
+  customToBlobOptions?: TCustomToBlobOptionsFunction;
+  customToTextOptions?: TCustomToTextOptionsFunction;
   toArrayBuffer: TToArrayBufferFunction;
   toBlob: TToBlobFunction;
   /**
@@ -62,28 +80,41 @@ export function serverRequestAdapter<
     headers = args.headers;
     params = args.params;
     query = args.query;
+    cookies = args.cookies;
+
     toJson = args.toJson;
+    static customToJsonOptions = args.customToJsonOptions || ServerRequestAdapter.customToJsonOptions;
+
     toFormData = args.toFormData;
     static customToFormDataOptions = args.customToFormDataOptions || ServerRequestAdapter.customToFormDataOptions;
+
     toArrayBuffer = args.toArrayBuffer;
+    static customToArrayBufferOptions =
+      args.customToArrayBufferOptions || ServerRequestAdapter.customToArrayBufferOptions;
+
     toBlob = args.toBlob;
+    static customToBlobOptions = args.customToBlobOptions || ServerRequestAdapter.customToBlobOptions;
+
     toText = args.toText;
-    cookies = args.cookies;
+    static customToTextOptions = args.customToTextOptions || ServerRequestAdapter.customToTextOptions;
   }
 
   return CustomServerRequestAdapter as {
     customToFormDataOptions?: TCustomToFormDataOptionsFunction;
+    customToJsonOptions?: TCustomToJsonOptionsFunction;
+    customToArrayBufferOptions?: TCustomToArrayBufferOptionsFunction;
+    customToBlobOptions?: TCustomToBlobOptionsFunction;
+    customToTextOptions?: TCustomToTextOptionsFunction;
     new (): ServerRequestAdapter & {
       headers: THeadersFunction;
       params: TParamsFunction;
       query: TQueryFunction;
+      cookies: TCookiesFunction;
       toJson: TToJsonFunction;
-      formDataConstructor: () => ReturnType<typeof formDataLikeFactory>;
       toFormData: TToFormDataFunction;
       toArrayBuffer: TToArrayBufferFunction;
       toBlob: TToBlobFunction;
       toText: TToTextFunction;
-      cookies: TCookiesFunction;
     };
   };
 }
@@ -111,7 +142,8 @@ export default class ServerRequestAdapter {
   }
 
   /**
-   * This should return something when the request is a multipart/form-data request. This is lazy loaded, so it will only parse the data when you actually need it.
+   * This should return something when the request Content-Type is a `multipart/form-data` or `application/x-www-form-urlencoded` request. This is lazy loaded, so
+   * it will only parse the data when you actually need it.
    * Transforms the data to a FormData-like instance. FormData is not available on Node.js and other runtimes, so in order to support it we have created a FormData-like class that
    * follows the same api as the original FormData.
    *
@@ -123,6 +155,7 @@ export default class ServerRequestAdapter {
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on `parseHandler` on the router.
    * @param _formDataConstructor - The constructor of the FormData-like class. It's a class so you should use it like this: `new formDataConstructor()`. You can pass a custom
    * proxyCallback, this will lazy load the values when you actually need it.
+   * @param _isUrlEncoded - Whether or not the request is a `application/x-www-form-urlencoded` request. If not, it's a `multipart/form-data` request.
    * @param _options - Any type of custom options that you want to be able to pass when converting to FormData.
    *
    * @returns -A promise that resolves to a FormData-like instance.
@@ -131,16 +164,21 @@ export default class ServerRequestAdapter {
     _server: ServerAdapter,
     _serverRequestAndResponseData: any,
     _formDataConstructor: ReturnType<typeof formDataLikeFactory>,
+    _isUrlEncoded: boolean,
     _options: any
   ): Promise<InstanceType<ReturnType<typeof formDataLikeFactory>>> {
     return new Promise((resolve) => resolve(new (formDataLikeFactory())()));
   }
 
-  toArrayBuffer(_server: ServerAdapter, _serverRequestAndResponseData: any): Promise<ArrayBuffer | undefined> {
+  toArrayBuffer(
+    _server: ServerAdapter,
+    _serverRequestAndResponseData: any,
+    _options: any
+  ): Promise<ArrayBuffer | undefined> {
     return new Promise((resolve) => resolve(undefined));
   }
 
-  toBlob(_server: ServerAdapter, _serverRequestAndResponseData: any): Promise<Blob | undefined> {
+  toBlob(_server: ServerAdapter, _serverRequestAndResponseData: any, _options: any): Promise<Blob | undefined> {
     return new Promise((resolve) => resolve(undefined));
   }
 
@@ -153,7 +191,7 @@ export default class ServerRequestAdapter {
    *
    * @returns A promise that resolves to a string.
    */
-  toText(_server: ServerAdapter, _serverRequestAndResponseData: any): Promise<string | undefined> {
+  toText(_server: ServerAdapter, _serverRequestAndResponseData: any, _options: any): Promise<string | undefined> {
     return new Promise((resolve) => resolve(undefined));
   }
 
@@ -161,7 +199,30 @@ export default class ServerRequestAdapter {
     return undefined;
   }
 
+  /**
+   * If you want to pass custom options to the `toFormData` method, you can override this method, the user will need to call this method so he can have intellisense on the options.
+   *
+   * You can totally ignore this method and just pass the options directly to the `toFormData` method.
+   *
+   * @param args - The arguments that you want to pass to the `toFormData` method.
+   */
   static customToFormDataOptions(args: any): any {
+    return args;
+  }
+
+  static customToJsonOptions(args: any): any {
+    return args;
+  }
+
+  static customToTextOptions(args: any): any {
+    return args;
+  }
+
+  static customToBlobOptions(args: any): any {
+    return args;
+  }
+
+  static customToArrayBufferOptions(args: any): any {
     return args;
   }
 }

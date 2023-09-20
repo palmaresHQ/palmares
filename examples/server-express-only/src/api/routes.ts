@@ -4,6 +4,7 @@ import {
   errorController,
   jsonController,
   formDataController,
+  formUrlEncodedController,
   textController,
   blobController,
 } from './controllers';
@@ -12,6 +13,7 @@ export const baseRouter = path('/hello/<test:number>/hey/<heloo:number>?test=str
 export const errorRouter = path('/error');
 export const jsonRouter = path('/json');
 export const formDataRouter = path('/form');
+export const formUrlEncodedRouter = path('/urlencoded');
 export const textRouter = path('/text');
 export const blobRouter = path('/blob');
 export const arrayBufferRouter = path('/arraybuffer');
@@ -23,4 +25,5 @@ export default path('').nested([
   formDataRouter.nested([formDataController]),
   textRouter.nested([textController]),
   blobRouter.nested([blobController]),
+  formUrlEncodedRouter.nested([formUrlEncodedController]),
 ]);

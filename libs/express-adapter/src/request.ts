@@ -45,7 +45,7 @@ export default serverRequestAdapter({
       if (!rawBodyParser) rawBodyParser = express.raw();
 
       rawBodyParser(req, res, () => {
-        resolve(req.body);
+        resolve(new Blob([req.body]));
       });
     });
   },
@@ -68,39 +68,68 @@ export default serverRequestAdapter({
       });
     });
   },
+  /**
+   * Since express doesn't have a built-in method for parsing form data, we use multer for this. Multer is from express so it should serve most use cases.
+   *
+   * This handles both `multipart/form-data` and `application/x-www-form-urlencoded` requests. So this, by default, uses both the `multer` and `urlencoded` methods from express.
+   */
   toFormData: async (
     server,
     serverRequestAndResponseData: { req: Request; res: Response },
     formDataConstructor,
+    isUrlEncoded,
     options: ToFormDataOptions<'any' | 'array' | 'fields' | 'none' | 'single'>
   ) => {
     const serverInstanceAndSettings = servers.get(server.serverName);
     const { req, res } = serverRequestAndResponseData as { req: Request; res: Response };
 
     return new Promise((resolve) => {
-      let formDataParser = serverInstanceAndSettings?.formDataParser;
-      if (serverInstanceAndSettings && !serverInstanceAndSettings?.formDataParser) {
+      let formDataOrUrlEncodedParser = isUrlEncoded
+        ? serverInstanceAndSettings?.urlEncodedParser
+        : serverInstanceAndSettings?.formDataParser;
+
+      if (isUrlEncoded && serverInstanceAndSettings && !serverInstanceAndSettings?.urlEncodedParser) {
+        const urlEncodedParserSettings = serverInstanceAndSettings.settings.customServerSettings?.urlEncodedOptions;
+
+        serverInstanceAndSettings.urlEncodedParser = express.urlencoded({
+          ...urlEncodedParserSettings,
+          extended: true,
+        });
+        formDataOrUrlEncodedParser = serverInstanceAndSettings.urlEncodedParser;
+      } else if (serverInstanceAndSettings && !serverInstanceAndSettings?.formDataParser) {
         const formDataParserSettings = serverInstanceAndSettings.settings.customServerSettings?.multerOptions;
 
         serverInstanceAndSettings.formDataParser = multer(formDataParserSettings);
-        formDataParser = serverInstanceAndSettings.formDataParser;
+        formDataOrUrlEncodedParser = serverInstanceAndSettings.formDataParser;
       }
-      let upload: ReturnType<ReturnType<typeof multer>[keyof ReturnType<typeof multer>]> | undefined = undefined;
-      if (!formDataParser) formDataParser = multer();
-      const optionsOfParser = (options?.options || []) as any[];
-      if (options) upload = (formDataParser[options.type] as any)(...optionsOfParser);
-      if (!upload) upload = formDataParser.any();
 
-      upload(req, res, () => {
+      let middleware:
+        | ReturnType<typeof express.urlencoded>
+        | ReturnType<ReturnType<typeof multer>[keyof ReturnType<typeof multer>]>
+        | undefined = undefined;
+      if (isUrlEncoded && !formDataOrUrlEncodedParser)
+        formDataOrUrlEncodedParser = express.urlencoded({ extended: true });
+      else if (!isUrlEncoded && !formDataOrUrlEncodedParser) formDataOrUrlEncodedParser = multer();
+
+      const optionsOfParser = (options?.options || []) as any[];
+      if (!isUrlEncoded) {
+        const formDataParser = formDataOrUrlEncodedParser as ReturnType<typeof multer>;
+        if (options && !isUrlEncoded)
+          middleware = (formDataParser[options.type as keyof ReturnType<typeof multer>] as any)(...optionsOfParser);
+
+        if (!middleware) middleware = formDataParser.any();
+      } else middleware = formDataOrUrlEncodedParser as ReturnType<typeof express.urlencoded>;
+
+      middleware(req, res, () => {
         const formData = new formDataConstructor({
           getKeys: () => {
             const bodyKeys = Object.keys(req.body || {}) || [];
-            if (req.files) {
+            if (req?.files) {
               if (Array.isArray(req.files)) {
                 for (const file of req.files) bodyKeys.push(file.fieldname);
               } else bodyKeys.push(...Object.keys(req.files));
             }
-            if (req.file) bodyKeys.push(req.file.fieldname);
+            if (req?.file) bodyKeys.push(req.file.fieldname);
             return bodyKeys;
           },
           getValue: (name) => {
@@ -115,7 +144,7 @@ export default serverRequestAdapter({
                 ];
             }
 
-            if (req.files) {
+            if (req?.files) {
               if (Array.isArray(req.files)) {
                 const files = [];
                 for (const file of req.files) {
@@ -141,7 +170,7 @@ export default serverRequestAdapter({
               }
             }
 
-            if (req.file)
+            if (req?.file)
               if (req.file.fieldname === name)
                 return [
                   {
@@ -181,14 +210,15 @@ export default serverRequestAdapter({
     return req.cookies;
   },
   headers: (_, serverRequestAndResponseData, key) => {
+    const lowerCasedKey = key.toLowerCase();
     const { req } = serverRequestAndResponseData as { req: Request; headers?: Record<string, string> };
 
     if (!req.headers) return undefined;
-    if (serverRequestAndResponseData.headers && serverRequestAndResponseData.headers[key])
-      return serverRequestAndResponseData.headers[key];
+    if (serverRequestAndResponseData.headers && serverRequestAndResponseData.headers[lowerCasedKey])
+      return serverRequestAndResponseData.headers[lowerCasedKey];
     if (!serverRequestAndResponseData.headers) serverRequestAndResponseData.headers = {};
-    serverRequestAndResponseData.headers[key] = req.headers[key];
-    return serverRequestAndResponseData.headers[key];
+    serverRequestAndResponseData.headers[lowerCasedKey] = req.headers[lowerCasedKey];
+    return serverRequestAndResponseData.headers[lowerCasedKey];
   },
   params: (_server, serverRequestAndResponseData, key) => {
     const { req } = serverRequestAndResponseData as { req: Request; params?: Record<string, any> };

@@ -4,6 +4,10 @@ import { BaseRouter } from '../router/routers';
 import ServerAdapter from '../adapters';
 
 import type { ExtractQueryParamsFromPathType, ExtractUrlParamsFromPathType, FormDataLike } from './types';
+import {
+  DEFAULT_REQUEST_CONTENT_HEADER_VALUE_URLENCODED,
+  DEFAULT_REQUEST_HEADERS_CONTENT_HEADER_KEY,
+} from '../defaults';
 
 export default class Request<
   TRoutePath extends string = string,
@@ -272,8 +276,10 @@ export default class Request<
     return this.__serverRequestAndResponseData;
   }
 
-  async arrayBuffer() {
-    return undefined;
+  async arrayBuffer(options?: any) {
+    if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
+      return this.__requestAdapter.toArrayBuffer(this.__serverAdapter, this.__serverRequestAndResponseData, options);
+    return this.body;
   }
 
   async json(options?: any) {
@@ -282,26 +288,43 @@ export default class Request<
     return this.body;
   }
 
-  async blob() {
+  async blob(options?: any) {
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
-      return this.__requestAdapter.toBlob(this.__serverAdapter, this.__serverRequestAndResponseData) as Promise<Blob>;
+      return this.__requestAdapter.toBlob(
+        this.__serverAdapter,
+        this.__serverRequestAndResponseData,
+        options
+      ) as Promise<Blob>;
     return undefined;
   }
 
+  /**
+   * This should contain data when the 'Content-Type' on the request is a `multipart/form-data` or `application/x-www-form-urlencoded`.
+   * Otherwise it should be undefined.
+   *
+   * This should be used for retrieving a FormData-like instance. FormData is not available on Node.js and other runtimes,
+   * so in order to support it we have created a FormData-like class that has the same API as the original FormData.
+   *
+   * See: https://developer.mozilla.org/en-US/docs/Web/API/FormData
+   *
+   * @param options - Those options are custom options you want to pass to the underlying framework instance when retrieving the form data.
+   */
   async formData(options?: any): Promise<InstanceType<FormDataLike<TRequest['Body']>> | undefined> {
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
       return this.__requestAdapter.toFormData(
         this.__serverAdapter,
         this.__serverRequestAndResponseData,
         formDataLikeFactory(),
+        (this.headers as any)[DEFAULT_REQUEST_HEADERS_CONTENT_HEADER_KEY] ===
+          DEFAULT_REQUEST_CONTENT_HEADER_VALUE_URLENCODED,
         options
       ) as unknown as Promise<InstanceType<FormDataLike<TRequest['Body']>> | undefined>;
     return undefined;
   }
 
-  async text() {
+  async text(options?: any) {
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
-      return this.__requestAdapter.toText(this.__serverAdapter, this.__serverRequestAndResponseData);
+      return this.__requestAdapter.toText(this.__serverAdapter, this.__serverRequestAndResponseData, options);
     return undefined;
   }
 }

@@ -1,7 +1,15 @@
 import { Request, Response, pathNested } from '@palmares/server';
 import { ExpressServerRequestAdapter as esra } from '@palmares/express-adapter';
 
-import type { baseRouter, errorRouter, jsonRouter, formDataRouter, textRouter, blobRouter } from './routes';
+import type {
+  baseRouter,
+  errorRouter,
+  jsonRouter,
+  formDataRouter,
+  textRouter,
+  blobRouter,
+  formUrlEncodedRouter,
+} from './routes';
 
 export const paramsController = pathNested<typeof baseRouter>()('').get(async (request) => {
   console.log('paramsController', request.params.heloo, request.query.test);
@@ -34,6 +42,23 @@ export const formDataController = pathNested<typeof formDataRouter>()('').post(a
   >;
   const formData = await requestModified.formData(esra.customToFormDataOptions?.({ type: 'array', options: ['file'] }));
   console.log(formData?.get('file').name);
+  return Response.json({
+    hello: 'world',
+  });
+});
+
+export const formUrlEncodedController = pathNested<typeof formUrlEncodedRouter>()('').post(async (request) => {
+  const requestModified = request as unknown as Request<
+    any,
+    {
+      Body: {
+        firstName: string;
+        lastName: string;
+      };
+    }
+  >;
+  const formData = await requestModified.formData();
+  console.log(formData?.get('firstName'));
   return Response.json({
     hello: 'world',
   });
