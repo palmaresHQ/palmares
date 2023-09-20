@@ -27,7 +27,7 @@ const coreDomain = domain(PACKAGE_NAME, __dirname, {
         },
       },
       handler: (options: DomainHandlerFunctionArgs) => {
-        help(options.domains, options.args.keywordArgs);
+        help(options.domains, options.commandLineArgs.keywordArgs);
       },
     },
   },

@@ -18,6 +18,7 @@ import { BaseRouter } from '../router/routers';
 import { HandlerType, MethodTypes } from '../router/types';
 import { AllServerSettingsType } from '../types';
 import {
+  HandlerOrHandlersShouldBeDefinedOnRouterAdapterError,
   RedirectionStatusCodesMustHaveALocationHeaderError,
   ResponseNotReturnedFromResponseOnMiddlewareError,
 } from './exceptions';
@@ -187,6 +188,34 @@ async function translateResponseToServerResponse(
   return server.response.send(server, serverRequestAndResponseData, responseStatus, response.headers, response.body);
 }
 
+function translatePathFactory(serverAdapter: ServerAdapter) {
+  const translatedPathsByRawPath = new Map<string, string>();
+
+  return (
+    path: string,
+    partsOfPath: Exclude<
+      NonNullable<Awaited<ReturnType<ReturnType<typeof getAllHandlers>['next']>>>['value'],
+      void
+    >['partsOfPath'],
+    urlParams: Exclude<
+      NonNullable<Awaited<ReturnType<ReturnType<typeof getAllHandlers>['next']>>>['value'],
+      void
+    >['urlParams']
+  ) => {
+    let fullPath = translatedPathsByRawPath.get(path) || '';
+    // Translate only once, cache the rest.
+    if (fullPath === '') {
+      for (const path of partsOfPath) {
+        const urlParamType = path.isUrlParam ? urlParams.get(path.part) : undefined;
+        const translatedPartOfPath = serverAdapter.routers.parseRoute(serverAdapter, path.part, urlParamType);
+        if (translatedPartOfPath === undefined) continue;
+        fullPath += '/' + translatedPartOfPath;
+      }
+    }
+    return fullPath;
+  };
+}
+
 /**
  * Responsible for wrapping the handler and the middlewares into a single function that will be called when a request is made to the server.
  *
@@ -258,7 +287,7 @@ function wrapHandlerAndMiddlewares(
     } catch (error) {
       const errorAsError = error as Error;
       wasErrorAlreadyHandledInRequestLifecycle = true;
-      console.log();
+
       const errorResponse = appendTranslatorToResponse(
         DEFAULT_SERVER_ERROR_RESPONSE(errorAsError, server.settings, server.domains),
         server,
@@ -315,6 +344,48 @@ function wrapHandlerAndMiddlewares(
   return wrappedHandler.bind(wrappedHandler);
 }
 
+export async function* getAllRouters(
+  domains: ServerDomain[],
+  settings: AllServerSettingsType['servers'][string],
+  serverAdapter: ServerAdapter
+) {
+  const translatePath = translatePathFactory(serverAdapter);
+  const existsRootMiddlewares = Array.isArray(settings.middlewares) && settings.middlewares.length > 0;
+  const rootRouterCompletePaths = await getRootRouterCompletePaths(domains, settings);
+
+  for (const [path, router] of rootRouterCompletePaths) {
+    const handlerByMethod = Object.entries(router.handlers || {});
+    if (handlerByMethod.length === 0) continue;
+    const [, firstHandler] = handlerByMethod[0];
+    if (!firstHandler) continue;
+
+    const translatedPath = translatePath(path, router.partsOfPath, router.urlParams);
+
+    const convertedHandlersToMap = handlerByMethod.reduce((accumulator, currentValue) => {
+      const [method, handler] = currentValue;
+      const wrappedHandler = wrapHandlerAndMiddlewares(
+        method as MethodTypes,
+        existsRootMiddlewares
+          ? (settings.middlewares as NonNullable<typeof settings.middlewares>).concat(router.middlewares)
+          : router.middlewares,
+        router.queryParams,
+        router.urlParams,
+        handler,
+        serverAdapter,
+        settings.handler500
+      );
+      accumulator.set(method as MethodTypes | 'all', wrappedHandler);
+      return accumulator;
+    }, new Map<MethodTypes | 'all', ReturnType<typeof wrapHandlerAndMiddlewares>>());
+
+    yield {
+      translatedPath,
+      handlers: convertedHandlersToMap,
+      queryParams: router.queryParams,
+    };
+  }
+}
+
 export async function* getAllHandlers(
   domains: ServerDomain[],
   settings: AllServerSettingsType['servers'][string],
@@ -326,6 +397,7 @@ export async function* getAllHandlers(
   for (const [path, router] of rootRouterCompletePaths) {
     const handlerByMethod = Object.entries(router.handlers || {});
     if (handlerByMethod.length === 0) continue;
+
     for (const [method, handler] of handlerByMethod) {
       const wrappedHandler = wrapHandlerAndMiddlewares(
         method as MethodTypes,
@@ -404,25 +476,37 @@ export async function initializeRouters(
   settings: AllServerSettingsType['servers'][string],
   serverAdapter: ServerAdapter
 ) {
-  const handlers = getAllHandlers(domains, settings, serverAdapter);
-  for await (const handler of handlers) {
-    let fullPath = '';
-    for (const path of handler.partsOfPath) {
-      const urlParamType = path.isUrlParam ? handler.urlParams.get(path.part) : undefined;
-      const translatedPartOfPath = serverAdapter.routers.parseRoute(serverAdapter, path.part, urlParamType);
-      if (translatedPartOfPath === undefined) continue;
-      fullPath += '/' + translatedPartOfPath;
-    }
-    serverAdapter.routers.parseHandler(serverAdapter, fullPath, handler.method, handler.handler, handler.queryParams);
-  }
-  if (settings.handler404)
-    serverAdapter.routers.load404(
-      serverAdapter,
-      wrap404HandlerAndRootMiddlewares(
+  const wrapped404Handler = wrap404HandlerAndRootMiddlewares(
+    serverAdapter,
+    settings.middlewares || [],
+    settings.handler404,
+    settings.handler500
+  );
+  if (serverAdapter.routers.parseHandlers) {
+    const routers = getAllRouters(domains, settings, serverAdapter);
+    for await (const router of routers)
+      serverAdapter.routers.parseHandlers(
         serverAdapter,
-        settings.middlewares || [],
-        settings.handler404,
-        settings.handler500
-      )
-    );
+        router.translatedPath,
+        router.handlers,
+        router.queryParams,
+        wrapped404Handler
+      );
+  } else if (serverAdapter.routers.parseHandler) {
+    const translatePath = translatePathFactory(serverAdapter);
+    const handlers = getAllHandlers(domains, settings, serverAdapter);
+
+    for await (const handler of handlers) {
+      const translatedPath = translatePath(handler.path, handler.partsOfPath, handler.urlParams);
+      serverAdapter.routers.parseHandler(
+        serverAdapter,
+        translatedPath,
+        handler.method as MethodTypes | 'all',
+        handler.handler,
+        handler.queryParams
+      );
+    }
+  } else throw new HandlerOrHandlersShouldBeDefinedOnRouterAdapterError();
+
+  if (settings.handler404) serverAdapter.routers.load404(serverAdapter, wrapped404Handler);
 }

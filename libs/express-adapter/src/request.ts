@@ -240,4 +240,8 @@ export default serverRequestAdapter({
     serverRequestAndResponseData.query[key] = req.query[key];
     return serverRequestAndResponseData.query[key];
   },
+  method: (_server, serverRequestAndResponseData) => {
+    const { req } = serverRequestAndResponseData as { req: Request };
+    return req.method;
+  },
 });

@@ -23,7 +23,7 @@
     "build:types": "tsc --project tsconfig.types.json",
     "build:cjs": "swc ./src -d ./dist/cjs/src --config-file ../../build/.commonjs.swcrc",
     "build:module": "swc ./src -d ./dist/esm/src --config-file ../../build/.esm.swcrc",
-    "build": "pnpm run clear && pnpm run build:cjs && pnpm run build:module && pnpm run build:types",
+    "build": "pnpm run clear && pnpm run build:cjs & pnpm run build:module & pnpm run build:types",
     "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
     "build:cjs:watch": "swc ./src -d ./dist/cjs/src --config-file ../../build/.commonjs.swcrc --watch",
     "build:module:watch": "swc ./src -d ./dist/esm/src --config-file ../../build/.esm.swcrc --watch",

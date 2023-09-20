@@ -2,12 +2,12 @@ import ServerRequestAdapter from '../adapters/requests';
 import { parseParamsValue, parseQueryParams, formDataLikeFactory } from './utils';
 import { BaseRouter } from '../router/routers';
 import ServerAdapter from '../adapters';
-
-import type { ExtractQueryParamsFromPathType, ExtractUrlParamsFromPathType, FormDataLike } from './types';
 import {
   DEFAULT_REQUEST_CONTENT_HEADER_VALUE_URLENCODED,
   DEFAULT_REQUEST_HEADERS_CONTENT_HEADER_KEY,
 } from '../defaults';
+
+import type { ExtractQueryParamsFromPathType, ExtractUrlParamsFromPathType, FormDataLike } from './types';
 
 export default class Request<
   TRoutePath extends string = string,
@@ -47,14 +47,14 @@ export default class Request<
    */
   private __serverRequestAndResponseData: any = undefined;
 
-  method!: TRequest['Method'];
   private __query!: ProxyHandler<ExtractQueryParamsFromPathType<TRoutePath>>;
   private __headers!: {
     wasDirectlySet: boolean;
     data: TRequest['Headers'];
   };
+  private __cachedMethod!: { value: TRequest['Method'] };
   private __params!: ProxyHandler<ExtractUrlParamsFromPathType<TRoutePath>>;
-  readonly body!: TRequest['Body'];
+  private __body!: { value: TRequest['Body'] };
   readonly cookies!: TRequest['Cookies'];
   context!: TRequest['Context'];
 
@@ -71,8 +71,8 @@ export default class Request<
     headers?: TRequest['Headers'];
     cookies?: TRequest['Cookies'];
   }) {
-    this.method = options?.method;
-    this.body = options?.body;
+    if (options?.method) this.__cachedMethod = Object.freeze({ value: options.method });
+    if (options?.body) this.__body = Object.freeze({ value: options.body });
 
     const wasHeadersDirectlySet = options?.headers !== undefined;
     this.__headers = {
@@ -107,6 +107,72 @@ export default class Request<
     this.cookies = options?.cookies;
   }
 
+  /**
+   * This is the method that will be used to get the method of the request, it will be lazy loaded and cached and cannot be changed.
+   *
+   * @example
+   * ```ts
+   * const request = new Request({ method: 'GET' });
+   * request.method; //'GET'
+   *
+   * path('/test').get((request) => {
+   *   request.method; //'GET'
+   * });
+   * ```
+   *
+   * @returns - The method of the request. For reference, see: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+   */
+  get method(): TRequest['Method'] {
+    if (this.__cachedMethod?.value) return this.__cachedMethod.value;
+    else if (this.__requestAdapter && this.__serverAdapter) {
+      const method = this.__requestAdapter.method(
+        this.__serverAdapter as NonNullable<Request['__serverAdapter']>,
+        this.__serverRequestAndResponseData
+      );
+      const upperCased = method?.toUpperCase() as TRequest['Method'];
+      this.__cachedMethod = Object.freeze({ value: upperCased });
+      return this.__cachedMethod.value;
+    } else return undefined;
+  }
+
+  /**
+   * By default this will return nothing, you need to use one of the following methods {@link formData()}, {@link json()}, {@link text()}, {@link blob()} or {@link arrayBuffer()} to get the body.
+   * This is because we don't want to parse the body if the user doesn't need it. This will JUST have a value if you use either use {@link clone()} passing
+   * a new body or if you create a new instance of Request passing a body. Otherwise it will always be undefined.
+   *
+   * @example
+   * ```ts
+   * const request = new Request({ body: 'Hello World' });
+   * request.body; //'Hello World'
+   *
+   * path('/test').get((request) => {
+   *   request.body; //undefined
+   * })
+   * ```
+   *
+   * @returns - The body of the request.
+   */
+  get body(): TRequest['Body'] {
+    return this.__body.value;
+  }
+
+  /**
+   * This will lazy load the headers of the request. Instead of returning the headers directly it is a proxy, so it's only parsed and translated when needed.
+   *
+   * @example
+   * ```ts
+   * const request = new Request({ headers: { 'Content-Type': 'application/json' } });
+   * request.headers; // { 'Content-Type': 'application/json' }
+   *
+   * path('/test').get((request) => {
+   *   request.headers; // Proxy instance
+   *   request.headers['Content-Type']; // 'application/json'
+   *   JSON.stringify(request.headers); // '{"Content-Type":"application/json"}'
+   * });
+   * ```
+   *
+   * @returns - Returns a proxy that will lazy load the headers of the request.
+   */
   get headers(): TRequest['Headers'] {
     return this.__headers.data;
   }

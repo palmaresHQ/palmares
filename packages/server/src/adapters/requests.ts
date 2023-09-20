@@ -5,6 +5,7 @@ import { formDataLikeFactory } from '../request/utils';
  * Functional approach to creating a server adapter instead of the default class/inheritance approach.
  */
 export function serverRequestAdapter<
+  TMethodFunction extends ServerRequestAdapter['method'],
   THeadersFunction extends ServerRequestAdapter['headers'],
   TParamsFunction extends ServerRequestAdapter['params'],
   TQueryFunction extends ServerRequestAdapter['query'],
@@ -20,12 +21,13 @@ export function serverRequestAdapter<
   TCustomToTextOptionsFunction extends typeof ServerRequestAdapter['customToTextOptions'],
   TCookiesFunction extends ServerRequestAdapter['cookies']
 >(args: {
+  method: TMethodFunction;
   /**
-   * Translates the headers from the server request to the headers of the request to the API. This is lazy loaded, so it will only parse the headers when you actully need it.
+   * Translates the headers from the server request to the headers of the request to the API. This is lazy loaded, so it will only parse the headers when you actually need it.
    */
   headers: THeadersFunction;
   /**
-   * Translates the params from the server request to the params of the request to the API. This is lazy loaded, so it will only parse the params when you actully need it.
+   * Translates the params from the server request to the params of the request to the API. This is lazy loaded, so it will only parse the params when you actually need it.
    */
   params: TParamsFunction;
   query: TQueryFunction;
@@ -77,6 +79,7 @@ export function serverRequestAdapter<
   cookies: TCookiesFunction;
 }) {
   class CustomServerRequestAdapter extends ServerRequestAdapter {
+    method = args.method;
     headers = args.headers;
     params = args.params;
     query = args.query;
@@ -106,6 +109,7 @@ export function serverRequestAdapter<
     customToBlobOptions?: TCustomToBlobOptionsFunction;
     customToTextOptions?: TCustomToTextOptionsFunction;
     new (): ServerRequestAdapter & {
+      method: TMethodFunction;
       headers: THeadersFunction;
       params: TParamsFunction;
       query: TQueryFunction;
@@ -122,6 +126,10 @@ export function serverRequestAdapter<
 export default class ServerRequestAdapter {
   headers(_server: ServerAdapter, _serverRequestAndResponseData: any, _key: string): string | undefined {
     return undefined;
+  }
+
+  method(_server: ServerAdapter, _serverRequestAndResponseData: any): string {
+    return '';
   }
 
   params(_server: ServerAdapter, _serverRequestAndResponseData: any, _key: string): string | undefined {

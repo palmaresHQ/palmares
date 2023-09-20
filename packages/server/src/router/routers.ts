@@ -10,28 +10,8 @@ import type {
   MethodTypes,
   ValidatedFullPathType,
   ValidatedMiddlewaresType,
+  ExtractIncludes,
 } from './types';
-
-type ExtractIncludes<
-  TIncludes extends readonly (DefaultRouterType | Omit<DefaultRouterType, any>)[],
-  TRouters extends readonly DefaultRouterType[]
-> = TIncludes extends readonly [infer TFirstRouter, ...infer TRestRouters]
-  ? TRestRouters extends readonly (DefaultRouterType | Omit<DefaultRouterType, any>)[]
-    ? TFirstRouter extends DefaultRouterType
-      ? ExtractIncludes<
-          TRestRouters extends readonly (DefaultRouterType | Omit<DefaultRouterType, any>)[] ? TRestRouters : [],
-          [...TRouters, TFirstRouter]
-        >
-      : TFirstRouter extends Omit<infer TRouter, any>
-      ? TRouter extends DefaultRouterType
-        ? ExtractIncludes<
-            TRestRouters extends readonly (DefaultRouterType | Omit<DefaultRouterType, any>)[] ? TRestRouters : [],
-            [...TRouters, TRouter]
-          >
-        : TRouters
-      : TRouters
-    : TRouters
-  : TRouters;
 
 /**
  * This is the core of the types and for the application to work.
@@ -231,7 +211,9 @@ export class BaseRouter<
 
       if (existsChildHandlersOnChild) {
         for (const [childPath, childPathData] of child.__completePaths.entries()) {
-          router.__completePaths.set(`${fullUrlPath}${childPath}`, {
+          const completePath = `${router.path}${childPath}`;
+
+          router.__completePaths.set(completePath, {
             middlewares: router.__middlewares.concat(childPathData.middlewares),
             partsOfPath: router.__partsOfPath.concat(childPathData.partsOfPath),
             urlParams: new Map([...router.__urlParamsAndPath.params, ...childPathData.urlParams]),
@@ -248,9 +230,11 @@ export class BaseRouter<
     }
   }
 
-  middlewares<TRouterMiddlewares extends readonly Middleware[]>(middlewares: Narrow<TRouterMiddlewares>) {
+  middlewares<TRouterMiddlewares extends readonly Middleware[]>(definedMiddlewares: Narrow<TRouterMiddlewares>) {
     const middlewaresAsMutable = this.__middlewares as unknown as Middleware[];
-    (this.__middlewares as unknown as Middleware[]) = middlewaresAsMutable.concat(middlewares as Middleware[]);
+    (this.__middlewares as unknown as Middleware[]) = middlewaresAsMutable.concat(definedMiddlewares as Middleware[]);
+    for (const handler of this.__completePaths.values())
+      handler.middlewares = (definedMiddlewares as Middleware[]).concat(handler.middlewares);
 
     return this as unknown as MethodsRouter<
       TParentRouter,
@@ -626,9 +610,9 @@ export class MethodsRouter<
   head<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares>>(handler: THandler) {
     const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
-    (this.__handlers as { options: THandler }) = {
+    (this.__handlers as { head: THandler }) = {
       ...existingHandlers,
-      options: handler,
+      head: handler,
     };
 
     return this as unknown as Omit<
@@ -649,11 +633,63 @@ export class MethodsRouter<
     >;
   }
 
+  put<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares>>(handler: THandler) {
+    const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
+    delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
+    (this.__handlers as { put: THandler }) = {
+      ...existingHandlers,
+      put: handler,
+    };
+
+    return this as unknown as Omit<
+      MethodsRouter<
+        TParentRouter,
+        TChildren,
+        TMiddlewares,
+        TRootPath,
+        DefineAlreadyDefinedMethodsType<
+          TRootPath extends string ? TRootPath : string,
+          TMiddlewares,
+          TAlreadyDefinedMethods,
+          THandler,
+          'put'
+        >
+      >,
+      keyof TAlreadyDefinedMethods | 'put' | 'all'
+    >;
+  }
+
+  patch<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares>>(handler: THandler) {
+    const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
+    delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
+    (this.__handlers as { patch: THandler }) = {
+      ...existingHandlers,
+      patch: handler,
+    };
+
+    return this as unknown as Omit<
+      MethodsRouter<
+        TParentRouter,
+        TChildren,
+        TMiddlewares,
+        TRootPath,
+        DefineAlreadyDefinedMethodsType<
+          TRootPath extends string ? TRootPath : string,
+          TMiddlewares,
+          TAlreadyDefinedMethods,
+          THandler,
+          'patch'
+        >
+      >,
+      keyof TAlreadyDefinedMethods | 'patch' | 'all'
+    >;
+  }
+
   all<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares>>(handler: THandler) {
     const handlersAsAny = this.__handlers as any;
 
     // Remove all the methods handlers since we are defining a handler for all methods.
-    for (const key of Object.keys(handlersAsAny)) if (key !== 'all') delete handlersAsAny[key];
+    if (handlersAsAny) for (const key of Object.keys(handlersAsAny)) if (key !== 'all') delete handlersAsAny[key];
 
     const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     (this.__handlers as { all: THandler }) = {

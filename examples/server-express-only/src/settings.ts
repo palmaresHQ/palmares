@@ -5,8 +5,8 @@ import NodeStd from '@palmares/node-std';
 import ServerDomain, { Response, middleware } from '@palmares/server';
 
 import { dirname, resolve } from 'path';
-import ApiDomain from './api';
-import cors from 'cors';
+import RequestsDomain from './requests';
+import RoutersDomain from './routers';
 
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
@@ -32,14 +32,6 @@ export default defineSettings({
           default: {
             server: ExpressServerAdapter,
             port: 4000,
-            customServerSettings: ExpressServerAdapter.customServerSettings({
-              middlewares: [cors()],
-              // Aqui eu poderia adicionar mais coisa
-              // que eu não tenho no adapter e ai tenho acesso ao server direto
-              additionalBehaviour: (app) => {
-                app.use(cors());
-              },
-            }),
             handler404: () =>
               Response.json({
                 status: 404,
@@ -55,6 +47,7 @@ export default defineSettings({
       },
     ],
     // We have just created this custom domain, and it defines our routes.
-    ApiDomain,
+    RequestsDomain,
+    RoutersDomain,
   ],
 });

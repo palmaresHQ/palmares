@@ -1,2 +1,0 @@
-export const LOGGING_APP_START_SERVER = 'APP_START_SERVER';
-export const LOGGING_REQUEST = 'REQUEST';

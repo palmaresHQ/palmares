@@ -6,6 +6,7 @@
     "allowSyntheticDefaultImports": true,
     "rootDir": "./src",
     "outDir": "./dist/cjs/types",
+    "types": ["express", "qs", "connect", "express-serve-static-core", "multer", "node"],
     "paths": {
       "*": ["node_modules/*"],
       "@palmares/server": ["../../packages/server/dist"],

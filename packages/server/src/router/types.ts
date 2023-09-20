@@ -80,3 +80,24 @@ export type ExtractAllHandlersType<TRouters extends DefaultRouterType[] | Omit<D
               : never)
       : never
     : never;
+
+export type ExtractIncludes<
+  TIncludes extends readonly (DefaultRouterType | Omit<DefaultRouterType, any>)[],
+  TRouters extends readonly DefaultRouterType[]
+> = TIncludes extends readonly [infer TFirstRouter, ...infer TRestRouters]
+  ? TRestRouters extends readonly (DefaultRouterType | Omit<DefaultRouterType, any>)[]
+    ? TFirstRouter extends DefaultRouterType
+      ? ExtractIncludes<
+          TRestRouters extends readonly (DefaultRouterType | Omit<DefaultRouterType, any>)[] ? TRestRouters : [],
+          [...TRouters, TFirstRouter]
+        >
+      : TFirstRouter extends Omit<infer TRouter, any>
+      ? TRouter extends DefaultRouterType
+        ? ExtractIncludes<
+            TRestRouters extends readonly (DefaultRouterType | Omit<DefaultRouterType, any>)[] ? TRestRouters : [],
+            [...TRouters, TRouter]
+          >
+        : TRouters
+      : TRouters
+    : TRouters
+  : TRouters;

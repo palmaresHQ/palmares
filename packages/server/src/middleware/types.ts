@@ -20,9 +20,7 @@ export type ExtractRequestsFromMiddlewaresForServer<
   >
 > = TMiddlewares extends readonly [infer TFirstMiddie, ...infer TRestMiddlewares]
   ? TFirstMiddie extends Middleware
-    ? TFirstMiddie['request'] extends (
-        request: Request<any, { Body: any; Context: any; Headers: any; Cookies: any }>
-      ) => Promise<infer TRequest> | infer TRequest
+    ? TFirstMiddie['request'] extends (request: Request<any, any>) => Promise<infer TRequest> | infer TRequest
       ? TRequest extends Request<any, any>
         ? ExtractRequestsFromMiddlewaresForServer<
             TPath,
@@ -54,7 +52,7 @@ export type ExtractRequestsFromMiddlewaresForServer<
                 >
               : TFinalRequest
           >
-      : unknown
+      : TFirstMiddie['request']
     : ExtractRequestsFromMiddlewaresForServer<
         TPath,
         TRestMiddlewares extends readonly Middleware[] ? TRestMiddlewares : [],

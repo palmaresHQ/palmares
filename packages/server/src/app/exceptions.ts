@@ -17,3 +17,12 @@ export class RedirectionStatusCodesMustHaveALocationHeaderError extends Error {
     );
   }
 }
+
+export class HandlerOrHandlersShouldBeDefinedOnRouterAdapterError extends Error {
+  constructor() {
+    super(
+      `Either 'parseHandler' or 'parseHandlers' methods/functions should be defined on router adapter. If none of them are defined, the router will not work.`
+    );
+    this.name = HandlerOrHandlersShouldBeDefinedOnRouterAdapterError.name;
+  }
+}
