@@ -9,13 +9,13 @@ const authenticateRequest = middleware({
     request: Request<
       string,
       {
-        Headers: { Authorization: string };
+        headers: { Authorization: string };
       }
     >
   ) => {
     //if (request.headers.Authorization) return new Response<{ Status: 404 }>();
     const modifiedRequest = request.clone<{
-      Body: {
+      body: {
         id: number;
         firstName: string;
         lastName: string;
@@ -29,8 +29,8 @@ const authenticateRequest = middleware({
 const addHeadersAndAuthenticateUser = nestedMiddleware<typeof rootRouter>()({
   request: (request) => {
     const customRequest = request.clone<{
-      Headers: { 'x-custom-header': string };
-      Context: { user: number };
+      headers: { 'x-custom-header': string };
+      context: { user: number };
     }>();
     return customRequest;
   },

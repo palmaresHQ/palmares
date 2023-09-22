@@ -23,6 +23,8 @@ import {
   ResponseNotReturnedFromResponseOnMiddlewareError,
 } from './exceptions';
 
+import type ServerRouterAdapter from '../adapters/routers';
+
 /**
  * By default we don't know how to handle the routes by itself. Pretty much MethodsRouter does everything that we need here during runtime.
  * So we pretty much need to extract this data "for free".
@@ -54,7 +56,7 @@ export async function getRootRouterCompletePaths(
   return (rootRouter as any).__completePaths as BaseRouter['__completePaths'];
 }
 
-async function* wrappedMiddlewareRequests(middlewares: Middleware[], request: Request) {
+async function* wrappedMiddlewareRequests(middlewares: Middleware[], request: Request<any, any>) {
   // We need to use this, because if we were creating another array we would be consuming an uneccesary amount of memory.
   let middlewareIndex = 0;
   for (const middleware of middlewares) {
@@ -115,7 +117,7 @@ async function appendErrorToResponseAndReturnResponseOrThrow(
  * @param serverAdapter - The server adapter that was selected to handle the server creation.
  */
 function appendTranslatorToRequest(
-  request: Request,
+  request: Request<any, any>,
   serverAdapter: ServerAdapter,
   serverRequestAdapter: ServerRequestAdapter,
   serverRequestAndResponseData: any,
@@ -188,6 +190,16 @@ async function translateResponseToServerResponse(
   return server.response.send(server, serverRequestAndResponseData, responseStatus, response.headers, response.body);
 }
 
+/**
+ * There are two ways of translating the path, either use {@link ServerRouterAdapter.parseHandler} which will parse each handler (method) at a time. Or use
+ * {@link ServerRouterAdapter.parseHandlers} which will parse all of the handlers at once.
+ *
+ * Since they are pretty similar and they both need to translate the path we use this factory function to extract this common functionality on both of them.
+ *
+ * @param serverAdapter - The server adapter that was selected. We will call the {@link ServerRouterAdapter.parseRoute} method on it.
+ *
+ * @returns - A function that can be used to translate the path.
+ */
 function translatePathFactory(serverAdapter: ServerAdapter) {
   const translatedPathsByRawPath = new Map<string, string>();
 
@@ -344,6 +356,9 @@ function wrapHandlerAndMiddlewares(
   return wrappedHandler.bind(wrappedHandler);
 }
 
+/**
+ * A generator that will yield all of the routers that were extracted from the domains and the settings. Used for {@link ServerRouterAdapter.parseHandlers} function.
+ */
 export async function* getAllRouters(
   domains: ServerDomain[],
   settings: AllServerSettingsType['servers'][string],
@@ -386,6 +401,9 @@ export async function* getAllRouters(
   }
 }
 
+/**
+ * A generator that will yield all of the routers that were extracted from the domains and the settings. Used for {@link ServerRouterAdapter.parseHandler} function.
+ */
 export async function* getAllHandlers(
   domains: ServerDomain[],
   settings: AllServerSettingsType['servers'][string],
@@ -425,11 +443,11 @@ export async function* getAllHandlers(
 export function wrap404HandlerAndRootMiddlewares(
   serverAdapter: ServerAdapter,
   middlewares: Middleware[],
-  middleware404: AllServerSettingsType['servers'][string]['handler404'],
-  middleware500: AllServerSettingsType['servers'][string]['handler500']
+  handler404: AllServerSettingsType['servers'][string]['handler404'],
+  handler500: AllServerSettingsType['servers'][string]['handler500']
 ) {
   async function wrapped404Handler(serverRequestAndResponseData: any) {
-    if (!middleware404) return;
+    if (!handler404) return;
     let response = appendTranslatorToResponse(
       new Response(undefined, { status: HTTP_404_NOT_FOUND, statusText: DEFAULT_NOT_FOUND_STATUS_TEXT_MESSAGE }),
       serverAdapter,
@@ -438,7 +456,7 @@ export function wrap404HandlerAndRootMiddlewares(
     );
 
     try {
-      response = await middleware404(response);
+      response = await handler404(response);
       if (response) {
         for await (const modifiedResponse of wrappedMiddlewareResponses(
           middlewares,
@@ -459,7 +477,7 @@ export function wrap404HandlerAndRootMiddlewares(
         return translateResponseToServerResponse(response, 'get', serverAdapter, serverRequestAndResponseData);
       }
     } catch (error) {
-      if (middleware500) response = await middleware500(response);
+      if (handler500) response = await handler500(response);
       if (response)
         return translateResponseToServerResponse(response, 'get', serverAdapter, serverRequestAndResponseData);
       else throw error;

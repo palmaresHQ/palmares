@@ -11,6 +11,9 @@ export default serverRequestAdapter({
   customToFormDataOptions<TType extends keyof ReturnType<typeof multer>>(args: ToFormDataOptions<TType>) {
     return args;
   },
+  toRaw: async (_server, _serverRequestAndResponseData, _options) => {
+    return undefined;
+  },
   toArrayBuffer: async (server, serverRequestAndResponseData: { req: Request; res: Response }) => {
     const serverInstanceAndSettings = servers.get(server.serverName);
     const { req, res } = serverRequestAndResponseData;
@@ -205,10 +208,6 @@ export default serverRequestAdapter({
       });
     });
   },
-  cookies: async (_server, serverRequestAndResponseData) => {
-    const { req } = serverRequestAndResponseData as { req: Request };
-    return req.cookies;
-  },
   headers: (_, serverRequestAndResponseData, key) => {
     const lowerCasedKey = key.toLowerCase();
     const { req } = serverRequestAndResponseData as { req: Request; headers?: Record<string, string> };
@@ -243,5 +242,9 @@ export default serverRequestAdapter({
   method: (_server, serverRequestAndResponseData) => {
     const { req } = serverRequestAndResponseData as { req: Request };
     return req.method;
+  },
+  url: (_server, serverRequestAndResponseData) => {
+    const { req } = serverRequestAndResponseData as { req: Request };
+    return req.url;
   },
 });

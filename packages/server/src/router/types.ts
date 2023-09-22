@@ -3,6 +3,7 @@ import type { Middleware } from '../middleware';
 import { ExtractRequestsFromMiddlewaresForServer } from '../middleware/types';
 import type Response from '../response';
 import Request from '../request';
+import { RequestMethodTypes } from '../request/types';
 
 export type MethodTypes = 'get' | 'post' | 'put' | 'delete' | 'patch' | 'head' | 'options';
 
@@ -26,25 +27,33 @@ export type ValidatedFullPathType<TMergedPath, TPathFromChild> = TMergedPath ext
 export type MergeParentMiddlewaresType<TParentRouter extends BaseRouter<any, any, any, any, any>> =
   TParentRouter extends BaseRouter<any, any, infer TParentMiddlewares, any, any>
     ? TParentMiddlewares extends readonly Middleware[]
-      ? TParentMiddlewares
-      : readonly Middleware[]
-    : readonly Middleware[];
+      ? TParentMiddlewares['length'] extends 0
+        ? []
+        : TParentMiddlewares
+      : []
+    : [];
 
-export type ValidatedMiddlewaresType<TMiddlewares> = TMiddlewares extends readonly Middleware[]
-  ? TMiddlewares
-  : readonly Middleware[];
+// This is used for creating a new router from a parent router, it will add the middlewares from the parent router to the child router
+export type ValidatedMiddlewaresType<TMiddlewares> = TMiddlewares extends readonly Middleware[] ? TMiddlewares : [];
 
 export type DefaultRouterType = BaseRouter<any, any, any, any, any>;
 
+// Used for extracting the request type all the way from the root router to the handler, it knows where the request has passed, to which middlewares.
+// This way we have a fully typesafe request object without writing a single type
 export type RequestOnHandlerType<
   TRootPath extends string,
-  TMiddlewares extends readonly Middleware[]
+  TMiddlewares extends readonly Middleware[],
+  TMethod extends RequestMethodTypes = RequestMethodTypes
 > = TMiddlewares['length'] extends 0
   ? Request<TRootPath, any>
-  : ExtractRequestsFromMiddlewaresForServer<TRootPath, TMiddlewares>;
+  : ExtractRequestsFromMiddlewaresForServer<TRootPath, TMiddlewares, TMethod>;
 
-export type HandlerType<TRootPath extends string, TMiddlewares extends readonly (Middleware | never)[]> = (
-  request: RequestOnHandlerType<TRootPath, TMiddlewares>
+export type HandlerType<
+  TRootPath extends string,
+  TMiddlewares extends readonly (Middleware | never)[],
+  TMethod extends RequestMethodTypes = RequestMethodTypes
+> = (
+  request: RequestOnHandlerType<TRootPath, TMiddlewares, TMethod>
 ) => Response<any, any> | Promise<Response<any, any>>;
 
 export type AlreadyDefinedMethodsType<TRootPath extends string, TMiddlewares extends readonly Middleware[]> = {
@@ -55,7 +64,7 @@ export type DefineAlreadyDefinedMethodsType<
   TRootPath extends string,
   TMiddlewares extends readonly Middleware[],
   TAlreadyDefinedMethods extends AlreadyDefinedMethodsType<TRootPath, TMiddlewares> | unknown,
-  THandler extends HandlerType<TRootPath, TMiddlewares>,
+  THandler extends HandlerType<TRootPath, TMiddlewares, any>,
   TMethodType extends MethodTypes
 > = TAlreadyDefinedMethods extends object
   ? TAlreadyDefinedMethods & { [key in TMethodType]: THandler }

@@ -2,10 +2,11 @@ import ServerAdapter from '.';
 import { BaseRouter } from '../router/routers';
 import { MethodTypes } from '../router/types';
 import ServerResponseAdapter from './response';
+
 import type ServerRequestAdapter from './requests';
 
 /**
- * Adapter used for translating palmares router to the framework of choice router.
+ * Adapter used for translating Palmares router to the framework of choice router.
  *
  * Functional approach to creating a server adapter instead of the default class/inheritance approach.
  */
@@ -115,7 +116,8 @@ export function serverRouterAdapter<
    * @param _path - The retrieved by calling {@link parseRoute()} method.
    * @param _method - The method to be used.
    * @param _handler - The handler is a simple callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of
-   * {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods.
+   * {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods. What you return on {@link ServerResponseAdapter.redirect} or {@link ServerResponseAdapter.send} will be
+   * the return value of this method.
    * @param _queryParams - The query params so you can parse it and validate as you wish.
    */
   parseHandler?: TParseHandlerFunction;
@@ -179,7 +181,8 @@ export function serverRouterAdapter<
    * @param _path - The retrieved by calling {@link parseRoute()} method.
    * @param _methodsAndHandlers - A Map instance where the method is the key and the handler is the value. The handler is a simple
    * callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of {@link ServerResponseAdapter}
-   * and {@link ServerRequestAdapter} methods.
+   * and {@link ServerRequestAdapter} methods. What you return on {@link ServerResponseAdapter.redirect} or {@link ServerResponseAdapter.send} will be
+   * the return value of the handlers callback.
    * @param _queryParams - The query params so you can parse it and validate as you wish.
    * @param _404Handler - The 404 handler.
    */
@@ -326,7 +329,8 @@ export default class ServerRouterAdapter {
    * @param _path - The retrieved by calling {@link parseRoute()} method.
    * @param _method - The method to be used.
    * @param _handler - The handler is a simple callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of
-   * {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods.
+   * {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods. What you return on {@link ServerResponseAdapter.redirect} or {@link ServerResponseAdapter.send} will be
+   * the return value of this method.
    * @param _queryParams - The query params so you can parse it and validate as you wish.
    */
   parseHandler?(
@@ -399,7 +403,8 @@ export default class ServerRouterAdapter {
    * @param _path - The retrieved by calling {@link parseRoute()} method.
    * @param _methodsAndHandlers - A Map instance where the method is the key and the handler is the value. The handler is a simple
    * callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of {@link ServerResponseAdapter}
-   * and {@link ServerRequestAdapter} methods.
+   * and {@link ServerRequestAdapter} methods. What you return on {@link ServerResponseAdapter.redirect} or {@link ServerResponseAdapter.send} will be
+   * the return value of the handler callback.
    * @param _queryParams - The query params so you can parse it and validate as you wish.
    * @param _404Handler - The 404 handler.
    */

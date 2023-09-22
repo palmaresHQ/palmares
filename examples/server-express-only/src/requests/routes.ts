@@ -1,4 +1,4 @@
-import { path } from '@palmares/server';
+import { middleware, path } from '@palmares/server';
 import {
   paramsController,
   errorController,
@@ -9,7 +9,14 @@ import {
   blobController,
 } from './controllers';
 
-export const baseRouter = path('/hello/<test:number>/hey/<heloo:number>?test=string');
+export const baseRouter = path('/hello/<test:number>/hey/<heloo:number>?test=string').middlewares([
+  middleware({
+    request: (request) => {
+      const clonedRequest = request.clone<{ headers: { 'x-authentication': string } }>();
+      return clonedRequest;
+    },
+  }),
+]);
 export const errorRouter = path('/error');
 export const jsonRouter = path('/json');
 export const formDataRouter = path('/form');

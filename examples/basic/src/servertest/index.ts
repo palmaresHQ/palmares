@@ -8,13 +8,13 @@ const authenticateRequest = middleware({
     request: Request<
       string,
       {
-        Headers: { Authorization: string };
+        headers: { Authorization: string };
       }
     >
   ) => {
     //if (request.headers.Authorization) return new Response<{ Status: 404 }>();
     const modifiedRequest = request.clone<{
-      Body: {
+      body: {
         id: number;
         firstName: string;
         lastName: string;

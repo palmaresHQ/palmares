@@ -98,7 +98,7 @@ export type ExtractResponsesFromMiddlewaresRequest<
 > = TMiddlewares extends readonly [infer TFirstMiddie, ...infer TRestMiddlewares]
   ? TFirstMiddie extends Middleware
     ? TFirstMiddie['request'] extends (
-        request: Request<any, { Body: any; Context: any; Headers: any; Cookies: any }>
+        request: Request<any, any>
       ) => Promise<infer TResponseOrRequest> | infer TResponseOrRequest
       ? Exclude<TResponseOrRequest, Request<any, any>> extends never
         ? ExtractResponsesFromMiddlewaresRequest<
@@ -129,3 +129,5 @@ export type DefaultResponseType = Response<
     context: any;
   }
 >;
+
+export type ResponseTypeType = 'basic' | 'cors' | 'error' | 'opaque' | 'opaqueredirect';

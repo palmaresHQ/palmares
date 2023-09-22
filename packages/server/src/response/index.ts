@@ -3,7 +3,21 @@ import {
   DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY,
   DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY,
 } from '../defaults';
-import { HTTP_200_OK, HTTP_302_FOUND, RedirectionStatusCodes, StatusCodes } from './status';
+import { formDataLikeFactory } from '../request/utils';
+import {
+  HTTP_200_OK,
+  HTTP_302_FOUND,
+  HTTP_500_INTERNAL_SERVER_ERROR,
+  RedirectionStatusCodes,
+  StatusCodes,
+  isRedirect,
+  isServerError,
+  isSuccess,
+} from './status';
+import { ResponseTypeType } from './types';
+
+import type { FormDataLike } from '../request/types';
+import type Request from '../request';
 
 export default class Response<
   TBody = undefined,
@@ -31,20 +45,55 @@ export default class Response<
    */
   private __serverRequestAndResponseData: any = undefined;
 
+  readonly url: string = '';
+  readonly ok: boolean = false;
+  readonly redirected: boolean = false;
+  readonly type: ResponseTypeType = 'basic';
+  readonly bodyUsed: boolean = false;
+
   statusText!: string;
   status!: TResponse['status'] extends StatusCodes ? TResponse['status'] : undefined;
   body?: TBody;
   headers!: TResponse['headers'] extends object ? TResponse['headers'] : undefined;
   context!: TResponse['context'] extends object ? TResponse['context'] : undefined;
 
+  /**
+   * This is the constructor of the Response class.
+   *
+   * @param body - The body of the response, it doesn't support FormData, but it supports Blob, ArrayBuffer, string and object.
+   * @param options - The options of the response.
+   */
   constructor(body?: TBody, options?: TResponse & { statusText?: string }) {
     this.body = body;
-    this.statusText = options?.statusText as string;
-    this.status = options?.status as TResponse['status'] extends StatusCodes ? TResponse['status'] : undefined;
-    this.headers = options?.headers as TResponse['headers'] extends object ? TResponse['headers'] : undefined;
     this.context = options?.context as TResponse['context'] extends object ? TResponse['context'] : undefined;
+    this.headers = options?.headers as TResponse['headers'] extends object ? TResponse['headers'] : undefined;
+    this.status = options?.status as TResponse['status'] extends StatusCodes ? TResponse['status'] : undefined;
+    this.statusText = options?.statusText as string;
+    this.ok = options?.status ? isSuccess(options?.status) : false;
+    this.redirected = options?.status ? isRedirect(options.status) : false;
+    this.type = options?.status ? (isServerError(options.status) ? 'error' : 'basic') : 'basic';
   }
 
+  /**
+   * This method is a factory method that should be used to send a response with a json body.
+   *
+   * By default, it will set the status to 200 and set the content-type header to application/json.
+   *
+   * @example
+   * ```ts
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/users').get(async () => {
+   *   const users = await getUsers();
+   *   return Response.json(users);
+   * });
+   * ```
+   *
+   * @param body - The body to send as json.
+   * @param options - The options to pass to the response.
+   *
+   * @returns - A response with the status set to 200 and the content-type header set to application/json.
+   */
   static json<
     TBody extends object,
     TResponse extends {
@@ -87,6 +136,26 @@ export default class Response<
     return new Response<TBody, TResponse>(JSON.stringify(body) as unknown as TBody, options);
   }
 
+  /**
+   * This method should be used to redirect to another page.
+   * By default, it will set the status to 302 and set the location header to the url passed as argument.
+   *
+   * @param url - The url to redirect to.
+   * @param options - The options to pass to the response.
+   *
+   * @example
+   * ```ts
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/login').post(async (request) => {
+   *   const { username, password } = await request.json();
+   *   if (username === 'admin' && password === 'admin') return Response.redirect('/admin');
+   *   return Response.redirect('/login');
+   * });
+   * ```
+   *
+   * @returns - A response with the status set to 302 and the location header set to the url passed as argument.
+   */
   static redirect<
     TResponse extends {
       status?: RedirectionStatusCodes;
@@ -103,24 +172,216 @@ export default class Response<
       else options.headers = { [DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY]: url };
     } else options = { headers: { [DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY]: url } } as TResponse;
 
-    if (typeof options.status !== 'number') options.status = HTTP_302_FOUND;
+    options.status = HTTP_302_FOUND;
 
     return new Response<undefined, TResponse>(undefined, options);
   }
 
-  clone() {
-    return new Response<TBody, TResponse>();
+  /**
+   * This method should be used to send a response with a 500 status code. It will NOT call the error handler.
+   *
+   * @example
+   * ```ts
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/users').get(async () => {
+   *   const users = await getUsers();
+   *   return Response.error();
+   * });
+   * ```
+   *
+   * @returns - A response with the status set to 500.
+   */
+  static error() {
+    return new Response<undefined, { status: StatusCodes }>(undefined, { status: HTTP_500_INTERNAL_SERVER_ERROR });
   }
 
+  /**
+   * This is similar to the {@link Request.clone()} method. By default it will modify the response in place, but you can set
+   * the `inPlace` option to false to return a new response.
+   *
+   * @param args - The arguments to pass to the new response.
+   * @param options - The options to pass to the new response.
+   */
+  clone<
+    TNewResponse extends {
+      body?: object;
+      status?: StatusCodes;
+      headers?: object | unknown;
+      context?: object | unknown;
+    } = {
+      body: never;
+      status: undefined;
+      headers: undefined;
+      context: undefined;
+    }
+  >(args?: TNewResponse, options?: { inPlace: boolean }) {
+    const isInPlace = options?.inPlace !== false;
+    const newResponse = isInPlace
+      ? this
+      : new Response<
+          TNewResponse['body'] extends never ? TBody : TNewResponse['body'],
+          {
+            status: TNewResponse['status'] extends StatusCodes ? TNewResponse['status'] : TResponse['status'];
+            headers: TNewResponse['headers'] extends object ? TNewResponse['headers'] : TResponse['headers'];
+            context: TNewResponse['context'] extends object
+              ? TNewResponse['context'] & TResponse['context']
+              : TResponse['context'];
+          }
+        >(args?.body ? args.body : (this.body as any), {
+          headers: args?.headers ? args.headers : (this.headers as any),
+          status: args?.status ? args.status : (this.status as any),
+          context: args?.context ? { ...args.context, ...this.context } : this.context,
+        });
+
+    newResponse.__serverRequestAndResponseData = this.__serverRequestAndResponseData;
+    (newResponse as any).url = this.url;
+
+    if (args?.status) {
+      (newResponse as any).ok = isSuccess(args?.status);
+      (newResponse as any).redirected = isRedirect(args?.status);
+      (newResponse as any).type = isServerError(args?.status) ? 'error' : 'basic';
+    }
+    return newResponse;
+  }
+
+  /**
+   * This method is used to get the underlying server data. This is similar to {@link Request.serverData()} method. This is useful usually on middlewares, not on handlers.
+   * This is the underlying serverData. The documentation of this should be provided by the framework you are using underlined with Palmares.
+   * So, the idea is simple, when a request is made, the underlying framework will call a callback we provide passing the data it needs to handle both
+   * the request and the response. For Express.js for example this will be an object containing both the `req` and `res` objects. If for some reason you need
+   * some data or some functionality we do not support by default you can, at any time, call this function and get this data.
+   *
+   * ### IMPORTANT
+   *
+   * It's not up for us to document this, ask the library author of the adapter to provide a documentation and properly type this.
+   *
+   * ### IMPORTANT2
+   *
+   * Understand that when you create a new instance of response we will not have the server data attached to it, so calling this method will return undefined.
+   * You should use the request to attach the server data to the response. This method is useful for middlewares, and only that.
+   *
+   * @example
+   * ```ts
+   * // on settings.ts
+   * import { ExpressServerAdapter } from '@palmares/express-adapter';
+   * import ServerDomain from '@palmares/server';
+   *
+   * export default defineSettings({
+   *   //...other configs,
+   *   installedDomains: [
+   *     [
+   *       ServerDomain,
+   *       {
+   *          servers: {
+   *            default: {
+   *              server: ExpressServerAdapter,
+   *              // ...other configs,
+   *            },
+   *          },
+   *       },
+   *    ],
+   *  ],
+   * });
+   *
+   * // on controllers.ts
+   * import { middleware, path } from '@palmares/server';
+   * import type { Request, Response } from 'express';
+   *
+   * const request = new Request();
+   * request.serverData(); // undefined
+   *
+   * path('/test').get((request) => {
+   *   const response = Response.json({ hello: 'World' });
+   *   response.serverData(); // undefined, we have not appended the server data just yet, you should use request for that.
+   *   return response
+   * }).middlewares([
+   *   middleware({
+   *     response: (response) => {
+   *       response.serverData(); // { req: Request, res: Response }
+   *     }
+   *   })
+   * });
+   * ```
+   *
+   * @returns - The underlying server data.
+   */
   serverData<T>(): T {
     return this.__serverRequestAndResponseData;
   }
 
+  /**
+   * This method will extract the body of the response as a json object.
+   * If the response is not a json response, it will return undefined.
+   *
+   * @example
+   * ```ts
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/users').get(async () => {
+   *  const users = await getUsers();
+   *  const response = Response.json(users);
+   *  await response.json(); // This will return the users object.
+   *  return response;
+   * });
+   * ```
+   *
+   * @returns - The body of the response as a json object.
+   */
   async json() {
     const isNotAJsonResponse =
       (this.headers as any)?.[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] !==
         DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON && typeof this.body !== 'string';
     if (isNotAJsonResponse) return undefined as TBody;
     return JSON.parse(this.body as string) as TBody;
+  }
+
+  async text() {
+    if (typeof this.body === 'object') return JSON.stringify(this.body);
+    else if (typeof this.body === 'string') return this.body;
+    else if (this.body instanceof Blob) return this.body.text();
+    else return undefined;
+  }
+
+  async arrayBuffer() {
+    if (this.body instanceof ArrayBuffer) return this.body;
+    else if (this.body instanceof Blob) return this.body.arrayBuffer();
+    else return undefined;
+  }
+
+  async blob() {
+    if (this.body instanceof Blob) return this.body;
+    else if (this.body instanceof ArrayBuffer) return new Blob([this.body]);
+    else return undefined;
+  }
+
+  /**
+   * You can use this method to get the body of the response as a FormData, you cannot send FormData though, we don't currently support it.
+   *
+   * @example
+   * ```ts
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/users').post(async (request) => {
+   *    const formData = await request.formData();
+   *    const response = new Response(formData);
+   *
+   *    await response.formData() // This will return the formData passed as argument.
+   *
+   *    return response;
+   * });
+   * ```
+   *
+   * @returns - The body of the response as a {@link FormDataLike} object.
+   */
+  async formData() {
+    const formDataLike = formDataLikeFactory();
+    if (this.body instanceof formDataLike) return this.body;
+    else if (typeof this.body === 'object') {
+      return new formDataLike({
+        getKeys: () => Object.keys(this.body as object),
+        getValue: (key: string) => (this.body as any)[key],
+      });
+    } else return undefined;
   }
 }

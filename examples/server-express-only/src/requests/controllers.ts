@@ -1,7 +1,7 @@
-import { Request, Response, pathNested } from '@palmares/server';
+import { Request, Response, middleware, nestedMiddleware, path, pathNested } from '@palmares/server';
 import { ExpressServerRequestAdapter as esra } from '@palmares/express-adapter';
 
-import type {
+import {
   baseRouter,
   errorRouter,
   jsonRouter,
@@ -33,7 +33,7 @@ export const formDataController = pathNested<typeof formDataRouter>()('').post(a
   const requestModified = request as unknown as Request<
     any,
     {
-      Body: {
+      body: {
         firstName: string;
         lastName: string;
         file: File[];
@@ -51,7 +51,7 @@ export const formUrlEncodedController = pathNested<typeof formUrlEncodedRouter>(
   const requestModified = request as unknown as Request<
     any,
     {
-      Body: {
+      body: {
         firstName: string;
         lastName: string;
       };
@@ -74,7 +74,6 @@ export const textController = pathNested<typeof textRouter>()('').post(async (re
 
 export const blobController = pathNested<typeof blobRouter>()('').post(async (request) => {
   const blob = await request.blob();
-  console.log(blob);
   return Response.json({
     hello: 'world',
   });

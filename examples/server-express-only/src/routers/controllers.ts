@@ -1,6 +1,5 @@
 import { Response, pathNested, middleware } from '@palmares/server';
 import { allRouter, baseRouter } from './routes';
-import { middleware2 } from './middlewares';
 
 export const routerController = pathNested<typeof baseRouter>()('')
   .get(() => {
@@ -27,9 +26,6 @@ export const routerController = pathNested<typeof baseRouter>()('')
     return Response.json({ message: 'Options Ok' });
   });
 
-export const allController = pathNested<typeof allRouter>()('')
-  .all(() => {
-    console.log('received request');
-    return Response.json({ message: 'All Ok' });
-  })
-  .middlewares([middleware2] as const);
+export const allController = pathNested<typeof allRouter>()('').all(() => {
+  return Response.json({ message: 'All Ok' });
+});

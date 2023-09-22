@@ -50,10 +50,47 @@ export function formDataLikeFactory() {
        * This should be prefered, what it does is that instead of creating a default form data like class it'll return a proxy, this way all values are lazy loaded. Just when needed.
        */
       proxyCallback?: {
+        /**
+         * This function will be called when a value is needed. It should return an array of object for the given key.
+         *
+         * If the key is a File or Blob, fileName should be defined. Otherwise just return on value. A File object is prefered over a Blob object, because it can hold more information
+         * about the file.
+         *
+         * @example
+         * ```ts
+         * const formData = new FormDataLike({
+         *   getValue: (name) => {
+         *      if (name === 'file') return [{ value: new File([''], 'file.txt'), fileName: 'file.txt' }];
+         *      else return [{ value: 'value' }];
+         *   },
+         * });
+         * formData.get('file'); // File { name: 'file.txt' }
+         * ```
+         *
+         * @param name - The name of the key to get the value from.
+         */
         getValue: (name: string) => {
           value: string | Blob | File;
           fileName?: string;
         }[];
+        /**
+         * This function will be called for returning all keys of the form data in order to transform it to a json object.
+         *
+         * @example
+         * ```ts
+         * const formData = new FormDataLike({
+         *   getValue: (name) => {
+         *     if (name === 'file') return [{ value: new File([''], 'file.txt'), fileName: 'file.txt' }];
+         *     else return [{ value: 'value' }];
+         *   },
+         *   getKeys: () => ['file', 'key'],
+         * });
+         *
+         * formData.toJSON(); // { file: File { name: 'file.txt' }, key: 'value' }
+         * ```
+         *
+         * @returns - An array of all keys of the form data.
+         */
         getKeys: () => string[];
       }
     ) {

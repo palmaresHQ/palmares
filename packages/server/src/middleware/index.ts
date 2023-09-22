@@ -1,6 +1,14 @@
 import type { DefaultRouterType } from '../router/types';
 import type { ExtractRequestsFromMiddlewaresForServer } from './types';
-import type { DefaultRequestType } from '../request/types';
+import type {
+  DefaultRequestType,
+  RequestCache,
+  RequestCredentials,
+  RequestDestination,
+  RequestMethodTypes,
+  RequestMode,
+  RequestRedirect,
+} from '../request/types';
 import type { BaseRouter } from '../router/routers';
 import type Request from '../request';
 import type Response from '../response';
@@ -26,10 +34,18 @@ export function middleware<
   TReturn extends DefaultRequestType = Request<
     string,
     {
-      Body: unknown;
-      Headers: unknown;
-      Context: unknown;
-      Cookies: unknown;
+      method: RequestMethodTypes;
+      headers: unknown;
+      body: unknown;
+      context: unknown;
+      mode: RequestMode;
+      cache: RequestCache;
+      credentials: RequestCredentials;
+      integrity: string;
+      destination: RequestDestination;
+      referrer: string;
+      referrerPolicy: ReferrerPolicy;
+      redirect: RequestRedirect;
     }
   >,
   TResponse extends DefaultResponseType = Response<
@@ -79,18 +95,34 @@ export function nestedMiddleware<TRouter extends DefaultRouterType>() {
     TReturn extends Request<
       string,
       {
-        Body: unknown;
-        Headers: unknown;
-        Context: unknown;
-        Cookies: unknown;
+        method: RequestMethodTypes;
+        headers: unknown;
+        body: unknown;
+        context: unknown;
+        mode: RequestMode;
+        cache: RequestCache;
+        credentials: RequestCredentials;
+        integrity: string;
+        destination: RequestDestination;
+        referrer: string;
+        referrerPolicy: ReferrerPolicy;
+        redirect: RequestRedirect;
       }
     > = Request<
       string,
       {
-        Body: unknown;
-        Headers: unknown;
-        Context: unknown;
-        Cookies: unknown;
+        method: RequestMethodTypes;
+        headers: unknown;
+        body: unknown;
+        context: unknown;
+        mode: RequestMode;
+        cache: RequestCache;
+        credentials: RequestCredentials;
+        integrity: string;
+        destination: RequestDestination;
+        referrer: string;
+        referrerPolicy: ReferrerPolicy;
+        redirect: RequestRedirect;
       }
     >,
     TResponse extends DefaultResponseType = Response<
@@ -107,10 +139,18 @@ export function nestedMiddleware<TRouter extends DefaultRouterType>() {
         : Request<
             string,
             {
-              Body: unknown;
-              Headers: unknown;
-              Context: unknown;
-              Cookies: unknown;
+              method: RequestMethodTypes;
+              headers: unknown;
+              body: unknown;
+              context: unknown;
+              mode: RequestMode;
+              cache: RequestCache;
+              credentials: RequestCredentials;
+              integrity: string;
+              destination: RequestDestination;
+              referrer: string;
+              referrerPolicy: ReferrerPolicy;
+              redirect: RequestRedirect;
             }
           >
     ) => Promise<TReturn> | TReturn,

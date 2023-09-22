@@ -33,7 +33,7 @@ import type {
 export class BaseRouter<
   TParentRouter extends DefaultRouterType | undefined = undefined,
   TChildren extends readonly DefaultRouterType[] | undefined = undefined,
-  TMiddlewares extends readonly Middleware[] = [],
+  TMiddlewares extends readonly Middleware[] = never[],
   TRootPath extends string | undefined = undefined,
   TAlreadyDefinedHandlers extends
     | AlreadyDefinedMethodsType<TRootPath extends string ? TRootPath : '', readonly Middleware[]>
@@ -501,7 +501,9 @@ export class MethodsRouter<
     | AlreadyDefinedMethodsType<TRootPath extends string ? TRootPath : '', readonly Middleware[]>
     | unknown = unknown
 > extends BaseRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, TAlreadyDefinedMethods> {
-  get<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares>>(handler: THandler) {
+  get<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares, 'GET'>>(
+    handler: THandler
+  ) {
     const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
     (this.__handlers as { get: THandler }) = {
@@ -527,7 +529,9 @@ export class MethodsRouter<
     >;
   }
 
-  post<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares>>(handler: THandler) {
+  post<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares, 'POST'>>(
+    handler: THandler
+  ) {
     const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
     (this.__handlers as { post: THandler }) = {
@@ -553,7 +557,9 @@ export class MethodsRouter<
     >;
   }
 
-  delete<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares>>(handler: THandler) {
+  delete<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares, 'DELETE'>>(
+    handler: THandler
+  ) {
     const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
     (this.__handlers as { delete: THandler }) = {
@@ -579,7 +585,7 @@ export class MethodsRouter<
     >;
   }
 
-  options<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares>>(
+  options<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares, 'OPTIONS'>>(
     handler: THandler
   ) {
     const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
@@ -607,7 +613,9 @@ export class MethodsRouter<
     >;
   }
 
-  head<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares>>(handler: THandler) {
+  head<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares, 'HEAD'>>(
+    handler: THandler
+  ) {
     const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
     (this.__handlers as { head: THandler }) = {
@@ -633,7 +641,9 @@ export class MethodsRouter<
     >;
   }
 
-  put<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares>>(handler: THandler) {
+  put<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares, 'PUT'>>(
+    handler: THandler
+  ) {
     const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
     (this.__handlers as { put: THandler }) = {
@@ -659,7 +669,9 @@ export class MethodsRouter<
     >;
   }
 
-  patch<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares>>(handler: THandler) {
+  patch<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares, 'PATCH'>>(
+    handler: THandler
+  ) {
     const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
     (this.__handlers as { patch: THandler }) = {
