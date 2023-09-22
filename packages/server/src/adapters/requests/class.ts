@@ -351,7 +351,7 @@ export default class ServerRequestAdapter {
   /**
    * This should return the parsed Blob of the request. This is called when the user calls the {@link Request.blob} method.
    * If you want to let users pass custom options to the {@link Request.blob} method, you can override the {@link customToBlobOptions} static method.
-   * The user will then need to call this method (for intellisense) in order to pass custom options.
+   * The user will then need to call this method (for intellisense) in order to pass custom options. A File instance can also be returned since it's generally more descriptive.
    *
    * @example
    * ```ts
@@ -375,7 +375,7 @@ export default class ServerRequestAdapter {
    *
    * @returns - A promise that resolves to the parsed Blob.
    */
-  toBlob(_server: ServerAdapter, _serverRequestAndResponseData: any, _options: any): Promise<Blob | undefined> {
+  toBlob(_server: ServerAdapter, _serverRequestAndResponseData: any, _options: any): Promise<Blob | File | undefined> {
     return new Promise((resolve) => resolve(undefined));
   }
 

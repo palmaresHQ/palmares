@@ -1,7 +1,7 @@
 import { Request, Response, middleware, nestedMiddleware, path, pathNested } from '@palmares/server';
 import { ExpressServerRequestAdapter as esra } from '@palmares/express-adapter';
 
-import {
+import type {
   baseRouter,
   errorRouter,
   jsonRouter,
@@ -9,6 +9,8 @@ import {
   textRouter,
   blobRouter,
   formUrlEncodedRouter,
+  queryAndUrlParamsRouter,
+  arrayBufferRouter,
 } from './routes';
 
 export const paramsController = pathNested<typeof baseRouter>()('').get(async (request) => {
@@ -74,6 +76,32 @@ export const textController = pathNested<typeof textRouter>()('').post(async (re
 
 export const blobController = pathNested<typeof blobRouter>()('').post(async (request) => {
   const blob = await request.blob();
+  console.log(blob);
+  return Response.json({
+    hello: 'world',
+  });
+});
+
+export const arrayBufferController = pathNested<typeof arrayBufferRouter>()('').post(async (request) => {
+  const arrayBuffer = await request.arrayBuffer();
+  console.log(arrayBuffer);
+  return Response.json({
+    hello: 'world',
+  });
+});
+
+export const queryAndUrlParamsController = pathNested<typeof queryAndUrlParamsRouter>()(
+  '/<string: string>/<boolean: boolean>/<number: number>?string=string&stringArrayOptional=string[]?&number=number'
+).get(async (request) => {
+  console.log(
+    'queryParamsController',
+    request.params.boolean,
+    request.params.number,
+    request.params.string,
+    request.query.string,
+    request.query.stringArrayOptional,
+    request.query.number
+  );
   return Response.json({
     hello: 'world',
   });

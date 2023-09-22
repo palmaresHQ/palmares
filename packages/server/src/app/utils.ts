@@ -187,7 +187,13 @@ async function translateResponseToServerResponse(
       response.headers,
       (response.headers as any)[DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY] as string
     );
-  return server.response.send(server, serverRequestAndResponseData, responseStatus, response.headers, response.body);
+  return server.response.send(
+    server,
+    serverRequestAndResponseData,
+    responseStatus,
+    response.headers as any,
+    response.body as any
+  );
 }
 
 /**
@@ -502,7 +508,7 @@ export async function initializeRouters(
   );
   if (serverAdapter.routers.parseHandlers) {
     const routers = getAllRouters(domains, settings, serverAdapter);
-    for await (const router of routers)
+    for await (const router of routers) {
       serverAdapter.routers.parseHandlers(
         serverAdapter,
         router.translatedPath,
@@ -510,6 +516,7 @@ export async function initializeRouters(
         router.queryParams,
         wrapped404Handler
       );
+    }
   } else if (serverAdapter.routers.parseHandler) {
     const translatePath = translatePathFactory(serverAdapter);
     const handlers = getAllHandlers(domains, settings, serverAdapter);

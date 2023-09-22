@@ -7,6 +7,8 @@ import {
   formUrlEncodedController,
   textController,
   blobController,
+  queryAndUrlParamsController,
+  arrayBufferController,
 } from './controllers';
 
 export const baseRouter = path('/hello/<test:number>/hey/<heloo:number>?test=string').middlewares([
@@ -25,6 +27,8 @@ export const textRouter = path('/text');
 export const blobRouter = path('/blob');
 export const arrayBufferRouter = path('/arraybuffer');
 
+export const queryAndUrlParamsRouter = path('');
+
 export default path('').nested([
   baseRouter.nested([paramsController]),
   errorRouter.nested([errorController]),
@@ -32,5 +36,7 @@ export default path('').nested([
   formDataRouter.nested([formDataController]),
   textRouter.nested([textController]),
   blobRouter.nested([blobController]),
+  arrayBufferRouter.nested([arrayBufferController]),
   formUrlEncodedRouter.nested([formUrlEncodedController]),
+  queryAndUrlParamsRouter.nested([queryAndUrlParamsController]),
 ]);

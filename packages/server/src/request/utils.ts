@@ -25,6 +25,7 @@ export function parseQueryParams(
   type: BaseRouter['__queryParamsAndPath']['params'] extends Map<any, infer TType> ? TType : any
 ) {
   if (type.isArray && Array.isArray(value)) return value.map((valueToParse) => parseParamsValue(valueToParse, type));
+  else if (type.isArray && !Array.isArray(value)) return [parseParamsValue(value, type)];
   else return parseParamsValue(value, type);
 }
 

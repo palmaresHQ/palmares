@@ -11,6 +11,12 @@ export default serverResponseAdapter({
   send: async (_server, serverRequestAndResponseData, status, headers, body) => {
     const { res } = serverRequestAndResponseData as { res: Response };
     if (headers) res.set(headers);
-    res.status(status).send(body);
+    if (typeof status === 'number') res.status(status);
+    if ((body as unknown as Blob) instanceof Blob) {
+      const bodyAsBlob = body as unknown as Blob;
+      res.type(bodyAsBlob.type);
+      const arrayBuffer = await bodyAsBlob.arrayBuffer();
+      res.send(Buffer.from(arrayBuffer));
+    } else res.send(body);
   },
 });

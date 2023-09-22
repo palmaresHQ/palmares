@@ -64,8 +64,8 @@ export default class ServerResponseAdapter {
     _server: ServerAdapter,
     _serverRequestAndResponseData: any,
     _status: number,
-    _headers: Response['headers'],
-    _body: Response['body']
+    _headers: object,
+    _body: string | Blob | File | ArrayBuffer
   ): Promise<any> {
     return undefined;
   }

@@ -3,6 +3,7 @@ import { AllServerSettingsType } from '../types';
 import { getErrorId } from '../handlers';
 
 import type { Domain } from '@palmares/core';
+import { HTTP_500_INTERNAL_SERVER_ERROR } from '../response/status';
 
 export const DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY = 'Content-Type';
 export const DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON = 'application/json';
@@ -112,6 +113,10 @@ export const DEFAULT_SERVER_ERROR_RESPONSE = (error: Error, settings: AllServerS
       </script>
     </body>
     `,
-    { status: 500, statusText: DEFAULT_SERVER_ERROR_STATUS_TEXT_MESSAGE, headers: { ['Content-Type']: 'text/html' } }
+    {
+      status: HTTP_500_INTERNAL_SERVER_ERROR,
+      statusText: DEFAULT_SERVER_ERROR_STATUS_TEXT_MESSAGE,
+      headers: { ['Content-Type']: 'text/html' },
+    }
   );
 };

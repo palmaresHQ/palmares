@@ -74,12 +74,12 @@ export default class Request<
    */
   private __serverRequestAndResponseData: any = undefined;
 
-  private __query!: ProxyHandler<ExtractQueryParamsFromPathType<TRoutePath>>;
+  private __query?: ProxyHandler<ExtractQueryParamsFromPathType<TRoutePath>>;
   private __headers!: ProxyHandler<TRequest['headers'] extends object ? TRequest['headers'] : object>;
   private __destination?: { value: TRequest['destination'] };
   private __cachedMethod!: { value: TRequest['method'] };
-  private __params!: ProxyHandler<ExtractUrlParamsFromPathType<TRoutePath>>;
-  private __body!: { value: TRequest['body'] };
+  private __params?: ProxyHandler<ExtractUrlParamsFromPathType<TRoutePath>>;
+  private __body?: { value: TRequest['body'] };
   private __cache?: { value: TRequest['cache'] };
   private __credentials?: { value: TRequest['credentials'] };
   private __mode?: { value: TRequest['mode'] };
@@ -286,7 +286,7 @@ export default class Request<
    * @returns - The body of the request.
    */
   get body(): TRequest['body'] {
-    return this.__body.value;
+    return this.__body?.value;
   }
 
   /**
@@ -345,7 +345,7 @@ export default class Request<
    */
   get params(): ExtractUrlParamsFromPathType<TRoutePath> {
     if (this.__requestAdapter && this.__serverAdapter) {
-      if (this.__params instanceof Proxy) return this.__params as ExtractUrlParamsFromPathType<TRoutePath>;
+      if (this.__params !== undefined) return this.__params as ExtractUrlParamsFromPathType<TRoutePath>;
       else {
         const paramsProxy = new Proxy(
           {},
@@ -408,13 +408,24 @@ export default class Request<
   }
 
   /**
-   * Lazily extract the query params from the request and translate it to the type of the query params only when needed.
+   * This is really similar to {@link headers} but it's used for query params instead.
+   * This will lazy load and parse query parameters of the request. Instead of returning the query params directly it is a proxy, so it's only parsed and translated when needed.
    *
-   * This should make everything run smooth and fast. The translation will only happen when the query params are accessed.
+   * @example
+   * ```ts
+   * path('/test?filter=string&world=string[]?').get((request) => {
+   *   request.query; // Proxy instance
+   *   request.query['filter']; // string type
+   *   request.query['world']; // string[] | undefined type
+   *   JSON.stringify(request.headers); // '{"filter":"string"}'
+   * });
+   * ```
+   *
+   * @returns - Returns a proxy that will lazy load the headers of the request.
    */
   get query(): ExtractQueryParamsFromPathType<TRoutePath> {
     if (this.__requestAdapter) {
-      if (this.__query instanceof Proxy) return this.__query as ExtractQueryParamsFromPathType<TRoutePath>;
+      if (this.__query !== undefined) return this.__query as ExtractQueryParamsFromPathType<TRoutePath>;
       else {
         const queryProxy = new Proxy(
           {},
@@ -744,13 +755,13 @@ export default class Request<
    * adapter. You can retrieve those options by: 'MyCustomFrameworkRequestAdapter.customToBlobOptions?.()' if it is implemented.
    */
   async blob(options?: any) {
-    if (this.body instanceof Blob) return this.body;
+    if (this.body instanceof Blob || this.body instanceof File) return this.body;
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
       return this.__requestAdapter.toBlob(
         this.__serverAdapter,
         this.__serverRequestAndResponseData,
         options
-      ) as Promise<Blob>;
+      ) as Promise<Blob | File>;
     return undefined;
   }
 

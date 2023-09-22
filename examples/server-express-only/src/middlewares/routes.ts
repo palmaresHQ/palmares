@@ -1,7 +1,7 @@
 import { path, pathNested } from '@palmares/server';
 
 import { typingTestHeaderMiddleware, typingTestAuthenticateUserMiddleware, middlewareOrdering1 } from './middlewares';
-import { typingTestController } from './controllers';
+import { typingTestController, middlewareOrderingController } from './controllers';
 
 export const baseRouter = path('/base').middlewares([typingTestHeaderMiddleware]);
 
@@ -13,5 +13,5 @@ export const middlewareOrderingRouter = path('/middleware-ordering').middlewares
 
 export default path('').nested([
   baseRouter.nested([rootRouter.nested([typingTestController])]),
-  middlewareOrderingRouter,
+  middlewareOrderingRouter.nested([middlewareOrderingController]),
 ]);
