@@ -4,6 +4,8 @@ First, thank you for taking the time to contribute to the project. It means a lo
 
 This document is focused on contributing to the `@palmares/server` package. Please, make sure you understand the core concepts of the `@palmares/core` before contributing to this package.
 
+**IMPORTANT**: This is a **CORE** package, it shouldn't contain any dependency besides devDependencies, need a node API? Don't use it directly, make sure to add `@palmares/std` as a dependency and make sure it's interfaces fit your needs. Need an event emitter? add `@palmares/events` as dependency. Needs database access? `@palmares/databases`.
+
 ## About Typescript
 
 We use a lot of advanced typescript here. We use a LOT of types. Types, like functions, should contain documentation in them, what is it for? It's easy to get lost with typescript, specially if the project has A LOT of types.
@@ -70,3 +72,7 @@ The utils are defined on `utils` folder. This is where you should keep your util
 You need to create a custom adapter, by default we use the `@palmares/express-adapter` but you can use any other adapter that you want. Then, just start testing and iterating if everything is working.
 
 PLEASE, Make sure that the types are working as well.
+
+## Documentation
+
+Any User, or lib maintainer faced API should be documented. Sometimes you need to repeat yourself, but try to be as descriptive as possible.
