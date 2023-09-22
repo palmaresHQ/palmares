@@ -329,7 +329,19 @@ export default class Request<
   }
 
   /**
-   * This will lazy load all your
+   * This is really similar to {@link headers} but it's used for url params instead.
+   * This will lazy load and parse the url parameters of the request. Instead of returning the params directly it is a proxy, so it's only parsed and translated when needed.
+   *
+   * @example
+   * ```ts
+   * path('/test/<filter: string>').get((request) => {
+   *   request.params; // Proxy instance
+   *   request.params['filter']; // string type
+   *   JSON.stringify(request.headers); // '{"filter":"string"}'
+   * });
+   * ```
+   *
+   * @returns - Returns a proxy that will lazy load the headers of the request.
    */
   get params(): ExtractUrlParamsFromPathType<TRoutePath> {
     if (this.__requestAdapter && this.__serverAdapter) {

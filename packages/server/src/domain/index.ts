@@ -1,9 +1,8 @@
 import { domain } from '@palmares/core';
 
 import httpAppServer from '../app';
-import type { path, pathNested } from '../router/functions';
+import type { path } from '../router/functions';
 import type { ServersSettingsType } from '../types';
-import ServerAdapter from '../adapters';
 import { BaseRouter } from '../router/routers';
 
 export const serverDomainModifier = domain<{
