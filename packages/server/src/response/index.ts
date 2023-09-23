@@ -1,5 +1,7 @@
 import {
   DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON,
+  DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_STREAM,
+  DEFAULT_RESPONSE_HEADERS_CONTENT_DISPOSITION_KEY,
   DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY,
   DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY,
 } from '../defaults';
@@ -14,16 +16,25 @@ import {
   isServerError,
   isSuccess,
 } from './status';
-import { ResponseTypeType } from './types';
+import { AsyncGeneratorFunction, FileLike, GeneratorFunction } from './utils';
 
+import type { ResponseTypeType } from './types';
 import type { FormDataLike } from '../request/types';
 import type Request from '../request';
 
 export default class Response<
-  TBody = undefined,
+  TBody extends
+    | unknown
+    | undefined
+    | ArrayBuffer
+    | Blob
+    | FileLike
+    | (() => AsyncGenerator<any, any, any> | Generator<any, any, any>)
+    | string
+    | object = undefined,
   TResponse extends {
     status?: StatusCodes;
-    headers?: object | unknown;
+    headers?: { [key: string]: string } | unknown;
     context?: object | unknown;
   } = {
     status: undefined;
@@ -58,13 +69,21 @@ export default class Response<
   context!: TResponse['context'] extends object ? TResponse['context'] : undefined;
 
   /**
-   * This is the constructor of the Response class.
+   * # IMPORTANT
+   * We advise you to use the static methods instead of this constructor directly, it will not set the headers and status correctly so it can lead to unexpected behavior.
+   * Need to clone a response? Use the {@link Response.clone} method instead.
    *
    * @param body - The body of the response, it doesn't support FormData, but it supports Blob, ArrayBuffer, string and object.
    * @param options - The options of the response.
    */
   constructor(body?: TBody, options?: TResponse & { statusText?: string }) {
-    this.body = body;
+    const isAJsonObject =
+      typeof body === 'object' &&
+      body !== null &&
+      !(body instanceof Blob) &&
+      !(body instanceof FileLike) &&
+      !(body instanceof ArrayBuffer);
+    this.body = isAJsonObject ? (JSON.stringify(body) as unknown as TBody) : body;
     this.context = options?.context as TResponse['context'] extends object ? TResponse['context'] : undefined;
     this.headers = options?.headers as TResponse['headers'] extends object ? TResponse['headers'] : undefined;
     this.status = options?.status as TResponse['status'] extends StatusCodes ? TResponse['status'] : undefined;
@@ -134,6 +153,179 @@ export default class Response<
     }
 
     return new Response<TBody, TResponse>(JSON.stringify(body) as unknown as TBody, options);
+  }
+
+  /**
+   * Streams a response back to the client. Instead of using a ReadableStream (which is not Supported by things like React Native.) We opted to use a generator function instead.
+   * You just need to return a generator function that yields chunks of data, and we will stream it back to the client. Seems easy enough, right?
+   *
+   * @example
+   * ```ts
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/users').get(async () => {
+   *   const users = await getUsers();
+   *   return Response.stream(function* () {
+   *     for (const user of users) {
+   *       yield JSON.stringify(user);
+   *     }
+   *   });
+   * });
+   * ```
+   *
+   * @param body - The generator function to stream back to the client.
+   * @param options - The options to pass to the response.
+   *
+   * @returns - A response with the status set to 200 and the content-type header set to application/octet-stream.
+   */
+  static stream<
+    TBody extends () => AsyncGenerator<any, any, any> | Generator<any, any, any>,
+    TResponse extends {
+      status?: StatusCodes;
+      headers?: object | unknown;
+      context?: object | unknown;
+    } = {
+      status: undefined;
+      headers: undefined;
+      context: undefined;
+    }
+  >(body: TBody, options?: TResponse & { statusText?: string }) {
+    const isStatusNotDefined = typeof options?.status !== 'number';
+    const hasNotDefinedStreamHeader =
+      (options?.headers as any)?.[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] !==
+      DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_STREAM;
+
+    // Define default status and statusText.
+    if (isStatusNotDefined) {
+      if (options) options.status = HTTP_200_OK;
+      else options = { status: HTTP_200_OK } as TResponse;
+      options.statusText = typeof options.statusText === 'string' ? options.statusText : 'OK';
+    }
+
+    if (hasNotDefinedStreamHeader) {
+      if (options) {
+        if (options.headers)
+          (options.headers as any)[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] =
+            DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_STREAM;
+        else
+          options.headers = {
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_STREAM,
+          };
+      } else
+        options = {
+          headers: { [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON },
+        } as TResponse;
+    }
+
+    return new Response<TBody, TResponse>(body, options);
+  }
+
+  /**
+   * Sends a response back to the client, by default it will set the status to 200 and we will try to retrieve the content-type from the Blob body sent.
+   * If you also want to send the filename, you can pass it as the second argument using the `filename` key, OR you can send a FileLike object as the body.
+   *
+   * @example
+   * ```ts
+   * import { Response, FileLike, path } from '@palmares/server';
+   *
+   * path('/users').get(async () => {
+   *      const blob = new Blob(['Hello, world!'], { type: 'text/plain;charset=utf-8' });
+   *      return Response.file(blob, { filename: 'hello.txt' });
+   * });
+   *
+   * // OR
+   *
+   * path('/users').get(async () => {
+   *   const blob = new Blob(['Hello, world!'], { type: 'text/plain;charset=utf-8' });
+   *   return Response.file(new FileLike(blob, 'hello.txt'));
+   * });
+   * ```
+   *
+   * @example
+   * ```ts
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/users').get(async () => {
+   *   const blob = new Blob(['Hello, world!'], { type: 'text/plain;charset=utf-8' });
+   *   return Response.file(blob);
+   * });
+   * ```
+   *
+   * @example
+   * ```ts
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/users').get(async () => {
+   *   const blob = new Blob(['Hello, world!'], { type: 'text/plain;charset=utf-8' });
+   *   const arrayBuffer = await blob.arrayBuffer();
+   *   return Response.file(arrayBuffer);
+   * });
+   * ```
+   *
+   * @param body - The generator function to stream back to the client.
+   * @param options - The options to pass to the response.
+   *
+   * @returns - A response with the status set to 200 and the content-type header set to application/octet-stream.
+   */
+  static file<
+    TBody extends FileLike | ArrayBuffer | Blob,
+    TResponse extends {
+      status?: StatusCodes;
+      headers?: object | unknown;
+      context?: object | unknown;
+    } = {
+      status: undefined;
+      headers: undefined;
+      context: undefined;
+    }
+  >(body: TBody, options?: TResponse & { statusText?: string; filename?: string }) {
+    // See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition for reference.
+    // Also: https://stackoverflow.com/questions/60833644/getting-filename-from-react-fetch-call
+    // Also: https://stackoverflow.com/questions/49286221/how-to-get-the-filename-from-a-file-downloaded-using-javascript-fetch-api
+    // I concluded we should use Content-Disposition for this.
+    const isStatusNotDefined = typeof options?.status !== 'number';
+    const hasNotDefinedFileHeader =
+      typeof (options?.headers as any)?.[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] !== 'string' &&
+      typeof (options?.headers as any)?.[DEFAULT_RESPONSE_HEADERS_CONTENT_DISPOSITION_KEY] !== 'string';
+
+    // Define default status and statusText.
+    if (isStatusNotDefined) {
+      if (options) options.status = HTTP_200_OK;
+      else options = { status: HTTP_200_OK } as TResponse;
+      options.statusText = typeof options.statusText === 'string' ? options.statusText : 'OK';
+    }
+
+    if (hasNotDefinedFileHeader && (body instanceof FileLike || body instanceof Blob)) {
+      const contentType = body instanceof FileLike ? body.blob.type : body.type;
+      const fileName = body instanceof FileLike ? body.name : options?.filename ? options.filename : undefined;
+      if (options) {
+        if (options.headers) {
+          if (!(options.headers as any)[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY])
+            (options.headers as any)[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] = contentType;
+          if (!(options.headers as any)[DEFAULT_RESPONSE_HEADERS_CONTENT_DISPOSITION_KEY])
+            (options.headers as any)[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] =
+              `attachment` + (fileName ? `; filename="${fileName}"` : '');
+        } else {
+          options.headers = {
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: contentType,
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_DISPOSITION_KEY]:
+              `attachment` + (fileName ? `; filename="${fileName}"` : ''),
+          };
+        }
+      } else
+        options = {
+          headers: {
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: contentType,
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_DISPOSITION_KEY]:
+              `attachment` + (fileName ? `; filename="${fileName}"` : ''),
+          },
+        } as TResponse;
+    }
+
+    return new Response<TBody extends FileLike ? TBody['blob'] : TBody, TResponse>(
+      body as TBody extends FileLike ? TBody['blob'] : TBody,
+      options
+    );
   }
 
   /**
@@ -339,7 +531,7 @@ export default class Response<
   async text() {
     if (typeof this.body === 'object') return JSON.stringify(this.body);
     else if (typeof this.body === 'string') return this.body;
-    else if (this.body instanceof Blob) return this.body.text();
+    else if (this.body instanceof Blob) return (this.body as Blob).text();
     else return undefined;
   }
 

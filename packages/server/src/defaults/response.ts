@@ -6,7 +6,10 @@ import type { Domain } from '@palmares/core';
 import { HTTP_500_INTERNAL_SERVER_ERROR } from '../response/status';
 
 export const DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY = 'Content-Type';
+// Used for sending the file names, see: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
+export const DEFAULT_RESPONSE_HEADERS_CONTENT_DISPOSITION_KEY = 'Content-Disposition';
 export const DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON = 'application/json';
+export const DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_STREAM = 'application/octet-stream';
 export const DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY = 'Location';
 export const DEFAULT_NOT_FOUND_STATUS_TEXT_MESSAGE = 'Not Found';
 export const DEFAULT_SERVER_ERROR_STATUS_TEXT_MESSAGE = 'Internal Server Error';

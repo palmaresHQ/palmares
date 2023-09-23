@@ -1,5 +1,6 @@
 import ServerAdapter from '.';
 import Response from '../response';
+import { FileLike } from '../response/utils';
 
 import type ServerRouterAdapter from './routers';
 
@@ -8,9 +9,13 @@ import type ServerRouterAdapter from './routers';
  */
 export function serverResponseAdapter<
   TRedirectFunction extends ServerResponseAdapter['redirect'],
-  TSendFunction extends ServerResponseAdapter['send']
->(args: { send: TSendFunction; redirect: TRedirectFunction }) {
+  TSendFunction extends ServerResponseAdapter['send'],
+  TStreamFunction extends ServerResponseAdapter['stream'],
+  TSendFileFunction extends ServerResponseAdapter['sendFile']
+>(args: { send: TSendFunction; redirect: TRedirectFunction; stream: TStreamFunction; sendFile: TSendFileFunction }) {
   class CustomServerResponseAdapter extends ServerResponseAdapter {
+    stream = args.stream as TStreamFunction;
+    sendFile = args.sendFile as TSendFileFunction;
     redirect = args.redirect as TRedirectFunction;
     send = args.send as TSendFunction;
   }
@@ -19,6 +24,8 @@ export function serverResponseAdapter<
     new (): ServerResponseAdapter & {
       redirect: TRedirectFunction;
       send: TSendFunction;
+      stream: TStreamFunction;
+      sendFile: TSendFileFunction;
     };
   };
 }
@@ -43,7 +50,7 @@ export default class ServerResponseAdapter {
     _server: ServerAdapter,
     _serverRequestAndResponseData: any,
     _status: number,
-    _headers: Response['headers'],
+    _headers: { [key: string]: string } | undefined,
     _redirectTo: string
   ): Promise<any> {
     return undefined;
@@ -64,8 +71,29 @@ export default class ServerResponseAdapter {
     _server: ServerAdapter,
     _serverRequestAndResponseData: any,
     _status: number,
-    _headers: object,
-    _body: string | Blob | File | ArrayBuffer
+    _headers: { [key: string]: string } | undefined,
+    _body: string
+  ): Promise<any> {
+    return undefined;
+  }
+
+  async stream(
+    _server: ServerAdapter,
+    _serverRequestAndResponseData: any,
+    _status: number,
+    _headers: { [key: string]: string } | undefined,
+    _body: AsyncGenerator<any, any, any> | Generator<any, any, any>,
+    _isAsync: boolean
+  ): Promise<any> {
+    return undefined;
+  }
+
+  async sendFile(
+    _server: ServerAdapter,
+    _serverRequestAndResponseData: any,
+    _status: number,
+    _headers: { [key: string]: string } | undefined,
+    _filePath: Blob | ArrayBuffer
   ): Promise<any> {
     return undefined;
   }

@@ -6,6 +6,9 @@ This document is focused on contributing to the `@palmares/server` package. Plea
 
 **IMPORTANT**: This is a **CORE** package, it shouldn't contain any dependency besides devDependencies, need a node API? Don't use it directly, make sure to add `@palmares/std` as a dependency and make sure it's interfaces fit your needs. Need an event emitter? add `@palmares/events` as dependency. Needs database access? `@palmares/databases`.
 
+**IMPORTANT 2**: Make sure that the APIs you want to support works on most runtimes. (For example: FormData is not supported on Node.js, so if you use it directly, it'll break. Another example is ReadableStream which doesn't work on React Native, so we should not support it as well, we should find another way to do it).
+So, how to test it? Open your browser, open node.js, and open a new [Snack on Expo](https://snack.expo.dev/). Try to test on other runtimes as well like Deno and Bun, but they are not obligatory, if it supports Node and the Browser it should work on them.
+
 ## About Typescript
 
 We use a lot of advanced typescript here. We use a LOT of types. Types, like functions, should contain documentation in them, what is it for? It's easy to get lost with typescript, specially if the project has A LOT of types.

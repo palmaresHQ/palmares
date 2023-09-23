@@ -1,13 +1,25 @@
 import { path } from '@palmares/server';
-import { blobResponseController, jsonController, textController } from './controllers';
+import {
+  blobResponseController,
+  jsonController,
+  textController,
+  streamController,
+  arrayBufferController,
+  fileController,
+} from './controllers';
 
-export const blobResponseRouter = path('/blob');
+export const blobRouter = path('/blob');
+export const arrayBufferRouter = path('/array-buffer');
+export const fileRouter = path('/file');
 export const jsonRouter = path('/json');
 export const textRouter = path('/text');
-export const arrayBufferRouter = path('/array-buffer');
+export const streamRouter = path('/stream');
 
 export default path('/responses').nested([
-  blobResponseRouter.nested([blobResponseController]),
+  blobRouter.nested([blobResponseController]),
+  arrayBufferRouter.nested([arrayBufferController]),
+  fileRouter.nested([fileController]),
   jsonRouter.nested([jsonController]),
   textRouter.nested([textController]),
+  streamRouter.nested([streamController]),
 ]);

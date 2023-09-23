@@ -24,6 +24,7 @@ import {
 } from './exceptions';
 
 import type ServerRouterAdapter from '../adapters/routers';
+import { AsyncGeneratorFunction, FileLike, GeneratorFunction } from '../response/utils';
 
 /**
  * By default we don't know how to handle the routes by itself. Pretty much MethodsRouter does everything that we need here during runtime.
@@ -177,6 +178,13 @@ async function translateResponseToServerResponse(
 ) {
   const responseStatus = response.status || DEFAULT_STATUS_CODE_BY_METHOD(method);
   const isRedirectResponse = isRedirect(responseStatus);
+  const isStreamResponse =
+    (response.body && (response.body as any) instanceof GeneratorFunction) ||
+    (response.body as any) instanceof AsyncGeneratorFunction;
+  const isFileResponse =
+    (response.body && (response.body as any) instanceof Blob) ||
+    (response.body as any) instanceof FileLike ||
+    (response.body as any) instanceof ArrayBuffer;
   if (isRedirectResponse && !response.headers?.[DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY])
     throw new RedirectionStatusCodesMustHaveALocationHeaderError();
   if (isRedirectResponse)
@@ -186,6 +194,25 @@ async function translateResponseToServerResponse(
       responseStatus,
       response.headers,
       (response.headers as any)[DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY] as string
+    );
+  if (isStreamResponse)
+    return server.response.stream(
+      server,
+      serverRequestAndResponseData,
+      responseStatus,
+      response.headers as any,
+      (response.body as unknown as () => AsyncGenerator<any, any, any> | Generator<any, any, any>)() as
+        | AsyncGenerator<any, any, any>
+        | Generator<any, any, any>,
+      (response.body as any) instanceof AsyncGeneratorFunction
+    );
+  if (isFileResponse)
+    return server.response.sendFile(
+      server,
+      serverRequestAndResponseData,
+      responseStatus,
+      response.headers as any,
+      response.body as any
     );
   return server.response.send(
     server,
