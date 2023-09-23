@@ -16,7 +16,7 @@ import {
   isServerError,
   isSuccess,
 } from './status';
-import { AsyncGeneratorFunction, FileLike, GeneratorFunction } from './utils';
+import { FileLike } from './utils';
 
 import type { ResponseTypeType } from './types';
 import type { FormDataLike } from '../request/types';
@@ -528,6 +528,23 @@ export default class Response<
     return JSON.parse(this.body as string) as TBody;
   }
 
+  /**
+   * This method will extract the body of the response as a string.
+   *
+   * @example
+   * ```ts
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/users').get(async () => {
+   *    const users = await getUsers();
+   *    const response = Response.json(users);
+   *    await response.text(); // This will return the users object as a string.
+   *    return response;
+   * });
+   * ```
+   *
+   * @returns - The body of the response as a string.
+   */
   async text() {
     if (typeof this.body === 'object') return JSON.stringify(this.body);
     else if (typeof this.body === 'string') return this.body;
