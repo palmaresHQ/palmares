@@ -55,6 +55,7 @@ export default class Response<
    * ```
    */
   private __serverRequestAndResponseData: any = undefined;
+  private __error: Error | undefined = undefined;
 
   readonly url: string = '';
   readonly ok: boolean = false;
@@ -386,6 +387,62 @@ export default class Response<
    */
   static error() {
     return new Response<undefined, { status: StatusCodes }>(undefined, { status: HTTP_500_INTERNAL_SERVER_ERROR });
+  }
+
+  /**
+   * You know? Sometimes s*it happens, and you need to send an error back to the client. This method is used so you can retrieve the error metadata. This is helpful on the `handler500` on your settings.
+   * You can also extract errors on custom middlewares so you can properly handle them.
+   *
+   * @example
+   * ```ts
+   * import { middleware, Response, path } from '@palmares/server';
+   *
+   * const validationMiddleware = middleware({
+   *   response: (response) => {
+   *     const error = response.error();
+   *     if (error) {
+   *      // Do something with the error.
+   *     }
+   *     return response;
+   *   }
+   * });
+   *
+   *
+   * path('/users').get(async () => {
+   *    const users = await getUsers();
+   *    throw new Error('Something went wrong');
+   * }).middlewares([validationMiddleware]);
+   * ````
+   *
+   * @returns - The error object.
+   */
+  error<TError extends Error = Error>() {
+    return this.__error as TError;
+  }
+
+  /**
+   * This method should be used to throw a {@link Response}. Throwing a Response will not trigger the `handler500` function.
+   *
+   * Use it when you want to throw stuff like 404, 403, 401, etc. This is a syntatic sugar for `throw Response(response)`.
+   *
+   * @example
+   * ```ts
+   * import { Response, path, HTTP_404_NOT_FOUND } from '@palmares/server';
+   *
+   * function fetchUsersOrThrow() {
+   *   const users = await getUsers();
+   *   if (!users) Response.json({ message: 'Users not found' }, { status: HTTP_404_NOT_FOUND }).throw();
+   *   return users;
+   * }
+   *
+   * path('/users').get(async () => {
+   *    const users = await fetchUsersOrThrow();
+   *    return Response.json(users);
+   * });
+   *
+   */
+  throw() {
+    throw this;
   }
 
   /**

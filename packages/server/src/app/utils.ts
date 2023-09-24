@@ -92,15 +92,17 @@ async function* wrappedMiddlewareResponses(
  * This will pretty much wrap call the handler500.request and return the response if it returns a response. Otherwise it will throw an error.
  *
  * @param request - The new response with the error.
- * @param error - The error that was thrown.
+ * @param error - The error that was thrown or a response if a ResponseError was thrown.
  * @param handler500 - The handler500 that was set on the settings.
  */
 async function appendErrorToResponseAndReturnResponseOrThrow(
   response: Response<any, any>,
-  error: Error,
+  error: Error | Response<any, any>,
   handler500?: AllServerSettingsType['servers'][string]['handler500']
 ) {
-  if (!handler500) throw error;
+  if (error instanceof Response) return error;
+  else if (!handler500) throw error;
+
   response = await Promise.resolve(handler500(response));
   if (response instanceof Response) return response;
   else throw error;
@@ -330,21 +332,19 @@ function wrapHandlerAndMiddlewares(
           serverRequestAndResponseData
         );
     } catch (error) {
+      const isResponseError = error instanceof Response;
       const errorAsError = error as Error;
+      let errorResponse: Response = isResponseError
+        ? (error as Response<any, any>)
+        : DEFAULT_SERVER_ERROR_RESPONSE(errorAsError, server.settings, server.domains);
       wasErrorAlreadyHandledInRequestLifecycle = true;
 
-      const errorResponse = appendTranslatorToResponse(
-        DEFAULT_SERVER_ERROR_RESPONSE(errorAsError, server.settings, server.domains),
-        server,
-        server.response,
-        serverRequestAndResponseData
-      );
-      response = appendTranslatorToResponse(
-        await appendErrorToResponseAndReturnResponseOrThrow(errorResponse, errorAsError, handler500),
-        server,
-        server.response,
-        serverRequestAndResponseData
-      );
+      errorResponse = appendTranslatorToResponse(errorResponse, server, server.response, serverRequestAndResponseData);
+
+      errorResponse = isResponseError
+        ? errorResponse
+        : await appendErrorToResponseAndReturnResponseOrThrow(errorResponse, errorAsError, handler500);
+      response = appendTranslatorToResponse(errorResponse, server, server.response, serverRequestAndResponseData);
     }
 
     try {
@@ -369,18 +369,23 @@ function wrapHandlerAndMiddlewares(
       }
     } catch (error) {
       if (wasErrorAlreadyHandledInRequestLifecycle === false) {
-        const errorResponse = appendTranslatorToResponse(
-          DEFAULT_SERVER_ERROR_RESPONSE(error as Error, server.settings, server.domains),
+        const isResponseError = error instanceof Response;
+        let errorResponse: Response = isResponseError
+          ? (error as Response<any, any>)
+          : DEFAULT_SERVER_ERROR_RESPONSE(error as Error, server.settings, server.domains);
+
+        errorResponse = appendTranslatorToResponse(
+          errorResponse,
           server,
           server.response,
           serverRequestAndResponseData
         );
-        response = appendTranslatorToResponse(
-          await appendErrorToResponseAndReturnResponseOrThrow(errorResponse, error as Error, handler500),
-          server,
-          server.response,
-          serverRequestAndResponseData
-        );
+
+        // It it's a ResponseError then we don't need to call the handler500, because it was already handled.
+        errorResponse = isResponseError
+          ? errorResponse
+          : await appendErrorToResponseAndReturnResponseOrThrow(errorResponse, error as Error, handler500);
+        response = appendTranslatorToResponse(errorResponse, server, server.response, serverRequestAndResponseData);
       }
       if (response) return translateResponseToServerResponse(response, method, server, serverRequestAndResponseData);
       else throw error;
