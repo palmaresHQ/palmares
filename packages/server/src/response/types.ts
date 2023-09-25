@@ -3,6 +3,7 @@ import type { Middleware } from '../middleware';
 import type Request from '../request';
 import type { BaseRouter } from '../router/routers';
 import type { DefaultRouterType, ExtractAllHandlersType } from '../router/types';
+import { StatusCodes } from './status';
 
 // This is used to extract the Response modifier from the middlewares. When you return a response from `response` method/function
 // We understand that you are making a modification to the response. This means you are attaching stuff to that response.
@@ -55,31 +56,75 @@ export type ExtractResponsesFromMiddlewaresRequestAndRouterHandlers<
 // You pass first a tuple of routers and then it will extract all of the responses from the `request` function
 // of those middlewares. It gets the children routers as well.
 export type ExtractResponsesFromMiddlewaresRequestFromRouters<
-  TRouters extends DefaultRouterType[] | Omit<DefaultRouterType, never>[]
+  TRouters extends DefaultRouterType[] | Omit<DefaultRouterType, never>[],
+  TFinalResponses extends Response<any, any> = never
 > = TRouters extends [infer TFirstRouter, ...infer TRestRouters]
   ? TFirstRouter extends
       | BaseRouter<any, infer TRouterChildren, infer TMiddlewares, any, any>
       | Omit<BaseRouter<any, infer TRouterChildren, infer TMiddlewares, any, any>, never>
     ? TMiddlewares extends readonly Middleware[]
-      ?
-          | ExtractResponsesFromMiddlewaresRequest<TMiddlewares>
-          | (TRouterChildren extends DefaultRouterType[] | Omit<DefaultRouterType, never>[]
-              ? ExtractResponsesFromMiddlewaresRequestFromRouters<TRouterChildren>
-              : never)
-          | (TRestRouters extends DefaultRouterType[] | Omit<DefaultRouterType, never>[]
-              ? ExtractResponsesFromMiddlewaresRequestFromRouters<TRestRouters>
-              : never)
+      ? TMiddlewares extends readonly [infer TFirstMiddie, ...infer TRestMiddlewares]
+        ? TFirstMiddie extends {
+            request: (request: Request<any, any>) => Promise<infer TResponseOrRequest> | infer TResponseOrRequest;
+            response: (response: any) => Promise<infer TResponse> | infer TResponse;
+          }
+          ?
+              | ExtractResponsesFromMiddlewaresRequestFromRouters<
+                  TRestRouters extends DefaultRouterType[] | Omit<DefaultRouterType, never>[] ? TRestRouters : [],
+                  | (TResponseOrRequest extends Response<any, any> ? TResponseOrRequest : never)
+                  | (TResponse extends Response<any, any> ? TResponse : never)
+                >
+              | ExtractResponsesFromMiddlewaresRequestFromRouters<
+                  TRouterChildren extends DefaultRouterType[] | Omit<DefaultRouterType, never>[] ? TRouterChildren : [],
+                  | (TResponseOrRequest extends Response<any, any> ? TResponseOrRequest : never)
+                  | (TResponse extends Response<any, any> ? TResponse : never)
+                >
+              | ExtractResponsesFromMiddlewaresRequestFromRouters<
+                  [
+                    BaseRouter<
+                      any,
+                      any,
+                      TRestMiddlewares extends readonly Middleware[] ? TRestMiddlewares : [],
+                      any,
+                      any
+                    >
+                  ],
+                  | (TResponseOrRequest extends Response<any, any> ? TResponseOrRequest : never)
+                  | (TResponse extends Response<any, any> ? TResponse : never)
+                >
+          :
+              | ExtractResponsesFromMiddlewaresRequestFromRouters<
+                  TRestRouters extends DefaultRouterType[] | Omit<DefaultRouterType, never>[] ? TRestRouters : [],
+                  TFinalResponses
+                >
+              | ExtractResponsesFromMiddlewaresRequestFromRouters<
+                  TRouterChildren extends DefaultRouterType[] | Omit<DefaultRouterType, never>[] ? TRouterChildren : [],
+                  TFinalResponses
+                >
+              | ExtractResponsesFromMiddlewaresRequestFromRouters<
+                  [
+                    BaseRouter<
+                      any,
+                      any,
+                      TRestMiddlewares extends readonly Middleware[] ? TRestMiddlewares : [],
+                      any,
+                      any
+                    >
+                  ],
+                  TFinalResponses
+                >
+        : TFinalResponses
       :
-          | (TRouterChildren extends DefaultRouterType[] | Omit<DefaultRouterType, never>[]
-              ? ExtractResponsesFromMiddlewaresRequestFromRouters<TRouterChildren>
-              : never)
-          | (TRestRouters extends DefaultRouterType[] | Omit<DefaultRouterType, never>[]
-              ? ExtractResponsesFromMiddlewaresRequestFromRouters<TRestRouters>
-              : never)
-    : TRestRouters extends DefaultRouterType[] | Omit<DefaultRouterType, never>[]
-    ? ExtractResponsesFromMiddlewaresRequestFromRouters<TRestRouters>
-    : never
-  : never;
+          | ExtractResponsesFromMiddlewaresRequestFromRouters<
+              TRestRouters extends DefaultRouterType[] | Omit<DefaultRouterType, never>[] ? TRestRouters : [],
+              TFinalResponses
+            >
+          | ExtractResponsesFromMiddlewaresRequestFromRouters<
+              TRouterChildren extends DefaultRouterType[] | Omit<DefaultRouterType, never>[] ? TRouterChildren : [],
+              TFinalResponses
+            >
+    : TFinalResponses
+  : TFinalResponses;
 
 // This is used to extract all the responses from the `request` functions of the middlewares.
 // This works as an recursion that keeps track of the previous middlewares, so when a request fires a response

@@ -1,5 +1,5 @@
 import type { DefaultRouterType } from '../router/types';
-import type { ExtractRequestsFromMiddlewaresForServer } from './types';
+import type { ExtractRequestsFromMiddlewaresForServer, MiddlewareOptions } from './types';
 import type {
   DefaultRequestType,
   RequestCache,
@@ -13,6 +13,7 @@ import type { BaseRouter } from '../router/routers';
 import type Request from '../request';
 import type Response from '../response';
 import type { DefaultResponseType, ExtractResponsesFromMiddlewaresRequestAndRouterHandlers } from '../response/types';
+import { StatusCodes } from '../response/status';
 
 /**
  * This class is used to create a new {@link Middleware} instance.
@@ -125,6 +126,30 @@ export class Middleware<TRouter extends DefaultRouterType = DefaultRouterType> {
             : []
         >
       ) => Promise<DefaultRequestType | DefaultResponseType> | DefaultRequestType | DefaultResponseType)
+    | {
+        handler: (
+          request: ExtractRequestsFromMiddlewaresForServer<
+            TRouter['path'],
+            TRouter extends BaseRouter<any, any, infer TInferMiddlewares, any>
+              ? TInferMiddlewares extends readonly Middleware[]
+                ? TInferMiddlewares
+                : []
+              : []
+          >
+        ) => Promise<DefaultRequestType | DefaultResponseType> | DefaultRequestType | DefaultResponseType;
+        options: {
+          responses?: {
+            [TKey in StatusCodes]?: (...args: any[]) => Response<
+              any,
+              {
+                context?: unknown;
+                headers?: Record<string, string> | unknown;
+                status: TKey;
+              }
+            >;
+          };
+        };
+      }
     | undefined = undefined;
   /**
    * This function is executed during the response lifecycle. It needs to return a {@link Response} instance. Usually you will use this to either change the sent response entirely or
@@ -248,11 +273,31 @@ export function middleware<
       context: unknown;
     }
   >,
-  TRequestFunction = (
-    request: TRouterMiddlewares extends readonly Middleware[]
-      ? ExtractRequestsFromMiddlewaresForServer<TRouter['path'], TRouterMiddlewares>
-      : never
-  ) => Promise<TReturn> | TReturn,
+  TRequestFunction =
+    | ((
+        request: TRouterMiddlewares extends readonly Middleware[]
+          ? ExtractRequestsFromMiddlewaresForServer<TRouter['path'], TRouterMiddlewares>
+          : never
+      ) => Promise<TReturn> | TReturn)
+    | {
+        handler: (
+          request: TRouterMiddlewares extends readonly Middleware[]
+            ? ExtractRequestsFromMiddlewaresForServer<TRouter['path'], TRouterMiddlewares>
+            : never
+        ) => Promise<TReturn> | TReturn;
+        options: {
+          responses?: {
+            [TKey in StatusCodes]?: (...args: any[]) => Response<
+              any,
+              {
+                context?: unknown;
+                headers?: Record<string, string> | unknown;
+                status: TKey;
+              }
+            >;
+          };
+        };
+      },
   TResponseFunction = (
     response: ExtractResponsesFromMiddlewaresRequestAndRouterHandlers<[TRouter]>
   ) => Promise<TResponse> | TResponse
@@ -361,76 +406,14 @@ export function middleware<
  */
 export function nestedMiddleware<TRouter extends DefaultRouterType>() {
   return <
+    TOptions extends MiddlewareOptions,
+    TReturnOfResponseFunction extends Response<any, any> = never,
+    TReturnOfRequestFunction extends Request<any, any> | Response<any, any> = never,
     TRouterMiddlewares = TRouter extends BaseRouter<any, any, infer TInferMiddlewares, any>
       ? TInferMiddlewares extends readonly Middleware[]
         ? TInferMiddlewares
         : never
-      : never,
-    TReturn extends Request<
-      string,
-      {
-        method: RequestMethodTypes;
-        headers: unknown;
-        body: unknown;
-        context: unknown;
-        mode: RequestMode;
-        cache: RequestCache;
-        credentials: RequestCredentials;
-        integrity: string;
-        destination: RequestDestination;
-        referrer: string;
-        referrerPolicy: ReferrerPolicy;
-        redirect: RequestRedirect;
-      }
-    > = Request<
-      string,
-      {
-        method: RequestMethodTypes;
-        headers: unknown;
-        body: unknown;
-        context: unknown;
-        mode: RequestMode;
-        cache: RequestCache;
-        credentials: RequestCredentials;
-        integrity: string;
-        destination: RequestDestination;
-        referrer: string;
-        referrerPolicy: ReferrerPolicy;
-        redirect: RequestRedirect;
-      }
-    >,
-    TResponse extends DefaultResponseType = Response<
-      undefined,
-      {
-        status: undefined;
-        headers: unknown;
-        context: unknown;
-      }
-    >,
-    TRequestFunction = (
-      request: TRouterMiddlewares extends readonly Middleware[]
-        ? ExtractRequestsFromMiddlewaresForServer<TRouter['path'], TRouterMiddlewares>
-        : Request<
-            string,
-            {
-              method: RequestMethodTypes;
-              headers: unknown;
-              body: unknown;
-              context: unknown;
-              mode: RequestMode;
-              cache: RequestCache;
-              credentials: RequestCredentials;
-              integrity: string;
-              destination: RequestDestination;
-              referrer: string;
-              referrerPolicy: ReferrerPolicy;
-              redirect: RequestRedirect;
-            }
-          >
-    ) => Promise<TReturn> | TReturn,
-    TResponseFunction = (
-      response: ExtractResponsesFromMiddlewaresRequestAndRouterHandlers<[TRouter]>
-    ) => Promise<TResponse> | TResponse
+      : never
   >(options: {
     /**
      * This function is executed during the request lifecycle. It can return a {@link Request} or a {@link Response}.
@@ -471,7 +454,33 @@ export function nestedMiddleware<TRouter extends DefaultRouterType>() {
      *
      * @returns - A {@link Request} instance with the modified data or a {@link Response} instance if you want to break the middleware chain.
      */
-    request?: TRequestFunction;
+    request?: (
+      request: TRouterMiddlewares extends readonly Middleware[]
+        ? ExtractRequestsFromMiddlewaresForServer<
+            TRouter['path'],
+            TRouterMiddlewares,
+            RequestMethodTypes,
+            TOptions['responses']
+          >
+        : Request<
+            TRouter['path'],
+            {
+              method: RequestMethodTypes;
+              headers: unknown;
+              body: unknown;
+              context: unknown;
+              mode: RequestMode;
+              cache: RequestCache;
+              credentials: RequestCredentials;
+              integrity: string;
+              destination: RequestDestination;
+              referrer: string;
+              responses: TOptions['responses'];
+              referrerPolicy: ReferrerPolicy;
+              redirect: RequestRedirect;
+            }
+          >
+    ) => TReturnOfRequestFunction | Promise<TReturnOfRequestFunction>;
     /**
      * This function is executed during the response lifecycle. It needs to return a {@link Response} instance. Usually you will use this to either change the sent response entirely or
      * to add some headers/data to the response or filter out some properties.
@@ -495,14 +504,47 @@ export function nestedMiddleware<TRouter extends DefaultRouterType>() {
      *
      * @returns - A {@link Response} instance with the modified data.
      */
-    response?: TResponseFunction;
+    response?: (
+      response:
+        | Exclude<TReturnOfRequestFunction, Request<any, any>>
+        | ExtractResponsesFromMiddlewaresRequestAndRouterHandlers<[TRouter]>
+    ) => Promise<TReturnOfResponseFunction> | TReturnOfResponseFunction;
+    options?: TOptions;
   }) => {
     return new (class extends Middleware {
       request = options.request as any;
       response = options.response as any;
     })() as Middleware & {
-      request: TRequestFunction;
-      response: TResponseFunction;
+      request: (
+        request: TRouterMiddlewares extends readonly Middleware[]
+          ? ExtractRequestsFromMiddlewaresForServer<
+              TRouter['path'],
+              TRouterMiddlewares,
+              RequestMethodTypes,
+              TOptions['responses']
+            >
+          : Request<
+              TRouter['path'],
+              {
+                method: RequestMethodTypes;
+                headers: unknown;
+                body: unknown;
+                context: unknown;
+                mode: RequestMode;
+                cache: RequestCache;
+                credentials: RequestCredentials;
+                integrity: string;
+                destination: RequestDestination;
+                referrer: string;
+                responses: TOptions['responses'];
+                referrerPolicy: ReferrerPolicy;
+                redirect: RequestRedirect;
+              }
+            >
+      ) => TReturnOfRequestFunction | Promise<TReturnOfRequestFunction>;
+      response: (
+        response: ExtractResponsesFromMiddlewaresRequestAndRouterHandlers<[TRouter]>
+      ) => Promise<TReturnOfResponseFunction> | TReturnOfResponseFunction;
     };
   };
 }

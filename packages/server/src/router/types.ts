@@ -1,9 +1,9 @@
 import type { BaseRouter } from './routers';
 import type { Middleware } from '../middleware';
-import { ExtractRequestsFromMiddlewaresForServer } from '../middleware/types';
+import type { ExtractRequestsFromMiddlewaresForServer } from '../middleware/types';
 import type Response from '../response';
-import Request from '../request';
-import { RequestMethodTypes } from '../request/types';
+import type Request from '../request';
+import type { RequestMethodTypes } from '../request/types';
 
 export type MethodTypes = 'get' | 'post' | 'put' | 'delete' | 'patch' | 'head' | 'options';
 
@@ -43,17 +43,32 @@ export type DefaultRouterType = BaseRouter<any, any, any, any, any>;
 export type RequestOnHandlerType<
   TRootPath extends string,
   TMiddlewares extends readonly Middleware[],
-  TMethod extends RequestMethodTypes = RequestMethodTypes
+  TMethod extends RequestMethodTypes = RequestMethodTypes,
+  TResponses extends
+    | Record<string, (...args: any[]) => Response<any, any> | Promise<Response<any, any>>>
+    | undefined = undefined
 > = TMiddlewares['length'] extends 0
   ? Request<TRootPath, any>
-  : ExtractRequestsFromMiddlewaresForServer<TRootPath, TMiddlewares, TMethod>;
+  : ExtractRequestsFromMiddlewaresForServer<TRootPath, TMiddlewares, TMethod, TResponses>;
 
+/**
+ * This is used for defining the handler function. It will automatically infer the request type based on the middlewares used.
+ *
+ * @generics TRootPath - The path from the router, this is the full path by joining all the routers together.
+ * @generics TMiddlewares - All the middlewares used by the router, from the root router to the handler. This will be recursive, and it's used for inferring the request type.
+ * @generics TMethod - The method used for the handler. Eg. 'GET' | 'POST', etc.
+ * @generics TResponses - The responses that the handler can return. This is used for inferring the response type. Instead of using `Response.json()` the user will be able to use
+ * `401: () => Response.json({ message: 'Something bad happened' }, { status: 404 })`
+ */
 export type HandlerType<
   TRootPath extends string,
   TMiddlewares extends readonly (Middleware | never)[],
-  TMethod extends RequestMethodTypes = RequestMethodTypes
+  TMethod extends RequestMethodTypes = RequestMethodTypes,
+  TResponses extends
+    | Record<string, (...args: any[]) => Response<any, any> | Promise<Response<any, any>>>
+    | undefined = undefined
 > = (
-  request: RequestOnHandlerType<TRootPath, TMiddlewares, TMethod>
+  request: RequestOnHandlerType<TRootPath, TMiddlewares, TMethod, TResponses>
 ) => Response<any, any> | Promise<Response<any, any>>;
 
 export type AlreadyDefinedMethodsType<TRootPath extends string, TMiddlewares extends readonly Middleware[]> = {
@@ -64,7 +79,7 @@ export type DefineAlreadyDefinedMethodsType<
   TRootPath extends string,
   TMiddlewares extends readonly Middleware[],
   TAlreadyDefinedMethods extends AlreadyDefinedMethodsType<TRootPath, TMiddlewares> | unknown,
-  THandler extends HandlerType<TRootPath, TMiddlewares, any>,
+  THandler extends HandlerType<TRootPath, TMiddlewares, any, any>,
   TMethodType extends MethodTypes
 > = TAlreadyDefinedMethods extends object
   ? TAlreadyDefinedMethods & { [key in TMethodType]: THandler }
@@ -74,21 +89,26 @@ export type DefineAlreadyDefinedMethodsType<
  * This is responsible for extracting all handlers from a router, a handler is what will effectively be executed when a request is made.
  * This is used for knowing what type of request is expected for the handler and what type of response will it return for a given method.
  */
-export type ExtractAllHandlersType<TRouters extends DefaultRouterType[] | Omit<DefaultRouterType, never>[]> =
-  TRouters extends [infer TFirstRouter, ...infer TRestRouters]
-    ? TFirstRouter extends
-        | BaseRouter<any, infer TRouterChildren, any, any, infer TDefinedHandlers>
-        | Omit<BaseRouter<any, infer TRouterChildren, any, any, infer TDefinedHandlers>, never>
-      ?
-          | TDefinedHandlers[keyof TDefinedHandlers]
-          | (TRouterChildren extends DefaultRouterType[] | Omit<DefaultRouterType, never>[]
-              ? ExtractAllHandlersType<TRouterChildren>
-              : never)
-          | (TRestRouters extends DefaultRouterType[] | Omit<DefaultRouterType, never>[]
-              ? ExtractAllHandlersType<TRestRouters>
-              : never)
-      : never
-    : never;
+export type ExtractAllHandlersType<
+  TRouters extends DefaultRouterType[] | Omit<DefaultRouterType, never>[],
+  TFinalHandlers extends HandlerType<string, any> = never
+> = TRouters extends [infer TFirstRouter, ...infer TRestRouters]
+  ? TFirstRouter extends
+      | BaseRouter<any, infer TRouterChildren, any, any, infer TDefinedHandlers>
+      | Omit<BaseRouter<any, infer TRouterChildren, any, any, infer TDefinedHandlers>, never>
+    ?
+        | TDefinedHandlers[keyof TDefinedHandlers]
+        | TFinalHandlers
+        | ExtractAllHandlersType<
+            TRouterChildren extends DefaultRouterType[] | Omit<DefaultRouterType, never>[] ? TRouterChildren : [],
+            TFinalHandlers
+          >
+        | ExtractAllHandlersType<
+            TRestRouters extends DefaultRouterType[] | Omit<DefaultRouterType, never>[] ? TRestRouters : [],
+            TFinalHandlers
+          >
+    : TFinalHandlers
+  : TFinalHandlers;
 
 export type ExtractIncludes<
   TIncludes extends readonly (DefaultRouterType | Omit<DefaultRouterType, any>)[],

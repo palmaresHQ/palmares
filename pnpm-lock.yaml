@@ -160,6 +160,9 @@ importers:
       cors:
         specifier: ^2.8.5
         version: 2.8.5
+      zod:
+        specifier: ^3.18.0
+        version: 3.22.2
     devDependencies:
       '@types/qs':
         specifier: ^6.9.8

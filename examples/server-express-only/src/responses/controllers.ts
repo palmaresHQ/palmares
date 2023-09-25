@@ -1,4 +1,5 @@
-import { FileLike, pathNested, Response } from '@palmares/server';
+import { FileLike, pathNested, Response, middleware, path } from '@palmares/server';
+import * as z from 'zod';
 
 import type { blobRouter, jsonRouter, textRouter, streamRouter, arrayBufferRouter, errorRouter } from './routes';
 
@@ -39,6 +40,14 @@ export const fileController = pathNested<typeof streamRouter>()().get(async () =
   return Response.file(new FileLike(blob, 'hello.txt'));
 });
 
-export const errorController = pathNested<typeof errorRouter>()().get(async () => {
-  throw Response.json({ hello: 'error' }, { status: 400 });
-});
+export const errorController = pathNested<typeof errorRouter>()().get(
+  async (request) => {
+    return request.responses[404]('hey', 1);
+  },
+  {
+    responses: {
+      '400': (message: string) => Response.json({ message: message }, { status: 400 }),
+      '404': (message: string, userId: number) => Response.json({ message: message, userId }, { status: 404 }),
+    },
+  }
+);

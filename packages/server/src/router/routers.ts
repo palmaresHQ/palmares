@@ -1,5 +1,5 @@
-import type { Middleware } from '../middleware';
 import type { Narrow } from '@palmares/core';
+import type { Middleware } from '../middleware';
 import type {
   AlreadyDefinedMethodsType,
   DefaultRouterType,
@@ -12,6 +12,8 @@ import type {
   ValidatedMiddlewaresType,
   ExtractIncludes,
 } from './types';
+import type Response from '../response';
+import { StatusCodes } from '../response/status';
 
 /**
  * This is the core of the types and for the application to work.
@@ -501,9 +503,26 @@ export class MethodsRouter<
     | AlreadyDefinedMethodsType<TRootPath extends string ? TRootPath : '', readonly Middleware[]>
     | unknown = unknown
 > extends BaseRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, TAlreadyDefinedMethods> {
-  get<THandler extends HandlerType<TRootPath extends string ? TRootPath : string, TMiddlewares, 'GET'>>(
-    handler: THandler
-  ) {
+  get<
+    THandler extends HandlerType<
+      TRootPath extends string ? TRootPath : string,
+      TMiddlewares,
+      'GET',
+      TOptions['responses']
+    >,
+    TOptions extends {
+      responses?: {
+        [TKey in StatusCodes]?: (...args: any[]) => Response<
+          any,
+          {
+            context?: unknown;
+            headers?: Record<string, string> | unknown;
+            status: TKey;
+          }
+        >;
+      };
+    }
+  >(handler: THandler, options?: TOptions) {
     const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
     (this.__handlers as { get: THandler }) = {

@@ -65,7 +65,7 @@ export default class Response<
 
   statusText!: string;
   status!: TResponse['status'] extends StatusCodes ? TResponse['status'] : undefined;
-  body?: TBody;
+  body!: TBody;
   headers!: TResponse['headers'] extends object ? TResponse['headers'] : undefined;
   context!: TResponse['context'] extends object ? TResponse['context'] : undefined;
 
@@ -84,7 +84,7 @@ export default class Response<
       !(body instanceof Blob) &&
       !(body instanceof FileLike) &&
       !(body instanceof ArrayBuffer);
-    this.body = isAJsonObject ? (JSON.stringify(body) as unknown as TBody) : body;
+    this.body = isAJsonObject ? (JSON.stringify(body) as unknown as TBody) : (body as TBody);
     this.context = options?.context as TResponse['context'] extends object ? TResponse['context'] : undefined;
     this.headers = options?.headers as TResponse['headers'] extends object ? TResponse['headers'] : undefined;
     this.status = options?.status as TResponse['status'] extends StatusCodes ? TResponse['status'] : undefined;
@@ -125,7 +125,7 @@ export default class Response<
       headers: undefined;
       context: undefined;
     }
-  >(body: TBody, options?: TResponse & { statusText?: string }) {
+  >(body: TBody, options?: TResponse) {
     const isStatusNotDefined = typeof options?.status !== 'number';
     const hasNotDefinedJsonHeader =
       (options?.headers as any)?.[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] !==
@@ -135,7 +135,7 @@ export default class Response<
     if (isStatusNotDefined) {
       if (options) options.status = HTTP_200_OK;
       else options = { status: HTTP_200_OK } as TResponse;
-      options.statusText = typeof options.statusText === 'string' ? options.statusText : 'OK';
+      //options.statusText = typeof options.statusText === 'string' ? options.statusText : 'OK';
     }
 
     if (hasNotDefinedJsonHeader) {
@@ -153,7 +153,10 @@ export default class Response<
         } as TResponse;
     }
 
-    return new Response<TBody, TResponse>(JSON.stringify(body) as unknown as TBody, options);
+    return new Response<TBody, TResponse>(JSON.stringify(body) as unknown as TBody, options) as Response<
+      TBody,
+      TResponse
+    >;
   }
 
   /**

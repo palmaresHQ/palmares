@@ -8,6 +8,8 @@ import type {
   RequestMode,
   RequestRedirect,
 } from '../request/types';
+import Response from '../response';
+import { StatusCodes } from '../response/status';
 //import type Response from '../response';
 //import { DefaultRequestType } from '../request/types';
 
@@ -19,10 +21,32 @@ type Exact<A, B> = (<T>() => T extends A ? 1 : 0) extends <T>() => T extends B ?
     : false
   : false;
 
+/**
+ * This will extract the request type by inferring the return type (when they are {@link Request}) of the `request` function of the middlewares.
+ *
+ * @generics TPath - The path from the router, this is the full path by joining all the routers together.
+ * @generics TMiddlewares - All the middlewares used by the router, from the root router to the handler. This will be recursive, and it's used for inferring the request type.
+ * @generics TMethod - The method used for the handler. Eg. 'GET' | 'POST', etc.
+ * @generics TResponses - The responses that the handler can return. This is used for inferring the response type. Instead of using `Response.json()` the user will be able to use
+ * `Response.json()` and the type will be inferred.
+ * @generics TFinalRequest - This should not be defined, it's used for recursion.
+ */
 export type ExtractRequestsFromMiddlewaresForServer<
   TPath extends string,
   TMiddlewares extends readonly Middleware[],
   TMethod extends RequestMethodTypes = RequestMethodTypes,
+  TResponses extends
+    | {
+        [TKey in StatusCodes]?: (...args: any[]) => Response<
+          any,
+          {
+            context?: unknown;
+            headers?: Record<string, string> | unknown;
+            status: TKey;
+          }
+        >;
+      }
+    | undefined = undefined,
   TFinalRequest extends Request<any, any> = Request<
     TPath,
     {
@@ -34,6 +58,7 @@ export type ExtractRequestsFromMiddlewaresForServer<
       cache: RequestCache;
       credentials: RequestCredentials;
       integrity: string;
+      responses: TResponses extends object ? TResponses : undefined;
       destination: RequestDestination;
       referrer: string;
       referrerPolicy: ReferrerPolicy;
@@ -48,6 +73,7 @@ export type ExtractRequestsFromMiddlewaresForServer<
             TPath,
             TRestMiddlewares extends readonly Middleware[] ? TRestMiddlewares : [],
             TMethod,
+            TResponses,
             TPath extends string
               ? Request<
                   TPath,
@@ -55,6 +81,13 @@ export type ExtractRequestsFromMiddlewaresForServer<
                     body: TRequest['body'] & TFinalRequest['body'];
                     headers: TRequest['headers'] & TFinalRequest['headers'];
                     context: TRequest['context'] & TFinalRequest['context'];
+                    responses: TRequest['responses'] extends MiddlewareOptions['responses']
+                      ? TFinalRequest['responses'] extends MiddlewareOptions['responses']
+                        ? TRequest['responses'] & TFinalRequest['responses'] & TResponses
+                        : TRequest['responses'] & TResponses
+                      : TFinalRequest['responses'] extends MiddlewareOptions['responses']
+                      ? TFinalRequest['responses'] & TResponses
+                      : TRequest['responses'] & TFinalRequest['responses'] & TResponses;
                     method: TMethod;
                     mode: TRequest['mode'] extends RequestMode
                       ? TRequest['mode']
@@ -104,6 +137,7 @@ export type ExtractRequestsFromMiddlewaresForServer<
             TPath,
             TRestMiddlewares extends readonly Middleware[] ? TRestMiddlewares : [],
             TMethod,
+            TResponses,
             TPath extends string
               ? Request<
                   TPath,
@@ -111,6 +145,9 @@ export type ExtractRequestsFromMiddlewaresForServer<
                     method: TMethod;
                     mode: TFinalRequest['mode'];
                     body: TFinalRequest['body'];
+                    responses: undefined extends TResponses
+                      ? TFinalRequest['responses']
+                      : TResponses & TFinalRequest['responses'];
                     headers: TFinalRequest['headers'];
                     context: TFinalRequest['context'];
                     cache: TFinalRequest['cache'];
@@ -129,6 +166,7 @@ export type ExtractRequestsFromMiddlewaresForServer<
         TPath,
         TRestMiddlewares extends readonly Middleware[] ? TRestMiddlewares : [],
         TMethod,
+        TResponses,
         TPath extends string
           ? Request<
               TPath,
@@ -136,6 +174,9 @@ export type ExtractRequestsFromMiddlewaresForServer<
                 method: TMethod;
                 mode: TFinalRequest['mode'];
                 body: TFinalRequest['body'];
+                responses: undefined extends TResponses
+                  ? TFinalRequest['responses']
+                  : TResponses & TFinalRequest['responses'];
                 headers: TFinalRequest['headers'];
                 context: TFinalRequest['context'];
                 cache: TFinalRequest['cache'];
@@ -298,3 +339,20 @@ export type ExtractRequestsFromMiddlewaresForClient<
       : never
     : never
   : TFinalRequestClient;
+
+/**
+ * This defines the options for the middleware, those are custom options that you pass to your middleware that will either be available
+ * to the handler or to the {@link Request} or {@link Response} objects.
+ */
+export type MiddlewareOptions = {
+  responses?: {
+    [TKey in StatusCodes]?: (...args: any[]) => Response<
+      any,
+      {
+        context?: unknown;
+        headers?: Record<string, string> | unknown;
+        status: TKey;
+      }
+    >;
+  };
+};

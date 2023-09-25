@@ -19,6 +19,7 @@ import type {
   RequestRedirect,
 } from './types';
 import { AbortedRequestError } from './exceptions';
+import Response from '../response';
 
 export default class Request<
   TRoutePath extends string = string,
@@ -31,6 +32,7 @@ export default class Request<
     cache?: RequestCache;
     credentials?: RequestCredentials;
     integrity?: string;
+    responses?: Record<string, (...args: any[]) => Response<any, any> | Promise<Response<any, any>>> | undefined;
     destination?: RequestDestination;
     referrer?: string;
     redirect?: RequestRedirect;
@@ -44,6 +46,7 @@ export default class Request<
     cache: RequestCache;
     credentials: RequestCredentials;
     integrity: string;
+    responses: undefined;
     destination: RequestDestination;
     referrer: string;
     redirect: RequestRedirect;
@@ -92,6 +95,7 @@ export default class Request<
     controller: AbortController;
   };
   private __url?: { value: string };
+  private __responses?: { value: TRequest['responses'] };
 
   context: TRequest['context'];
 
@@ -219,6 +223,10 @@ export default class Request<
 
   get signal(): AbortSignal | undefined {
     return this.__signal?.signal;
+  }
+
+  get responses(): TRequest['responses'] {
+    return this.__responses?.value;
   }
 
   /**

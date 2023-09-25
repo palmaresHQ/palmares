@@ -3,6 +3,22 @@ import { middleware, nestedMiddleware } from './middleware';
 import { ExtractRequestsFromMiddlewaresForClient } from './middleware/types';
 import Request from './request';
 import Response from './response';
+import { request } from 'http';
+import { HTTP_200_OK } from './response/status';
+
+const addHeadersAndAuthenticateUser = nestedMiddleware<typeof rootRouter>()({
+  request: (request) => {
+    const customRequest = request.clone<{
+      headers: { 'x-custom-header': string };
+      context: { user: number };
+    }>();
+    return customRequest;
+  },
+  response: (response) => {
+    const modifiedResponse = response.clone();
+    return modifiedResponse;
+  },
+});
 
 const authenticateRequest = middleware({
   request: (
@@ -10,6 +26,9 @@ const authenticateRequest = middleware({
       string,
       {
         headers: { Authorization: string };
+        context: {
+          user: number;
+        };
       }
     >
   ) => {
@@ -26,40 +45,51 @@ const authenticateRequest = middleware({
   },
 });
 
-const addHeadersAndAuthenticateUser = nestedMiddleware<typeof rootRouter>()({
+export const rootRouter = path(
+  '/test/<hello: {\\d+}:number>/<userId: string>?hello={[\\d\\w]+}:number&world=string[]?'
+);
+
+const testRequestMiddleware = nestedMiddleware<typeof rootRouter>()({
   request: (request) => {
-    const customRequest = request.clone<{
-      headers: { 'x-custom-header': string };
-      context: { user: number };
-    }>();
-    return customRequest;
+    if (request.query) return request;
+    if (request.params) return request.responses['404'](1);
+    return request.responses['400']();
+  },
+  options: {
+    responses: {
+      '404': (teste: number) => Response.json({ message: 'hello' }, { status: 404 }),
+      '400': () => Response.json({ user: 'notFound' }, { status: 400 }),
+    },
   },
   response: (response) => {
-    const modifiedResponse = response.clone();
-    return modifiedResponse;
+    response.status === 400 ? response.body.user : response.status === 404 ? response.body.message : response;
+    //response.status === 404 ?
+    return response;
+    //response.status === 204 ? response.body : response.status === 400 ? response.body.user : response.body.message;
   },
 });
 
-const testMiddleware = nestedMiddleware<typeof rootRouter>()({
-  request: () => {
-    const response = new Response<
-      {
-        id: number;
-        firstName: string;
-        lastName: string;
-        username: string;
-      },
-      {
-        status: 200;
-      }
-    >();
+const testResponseMiddleware2 = nestedMiddleware<typeof testRouterWithController>()({
+  response: (response) => {
+    const value = response.status === 201 ? response.body : response;
     return response;
   },
 });
 
-export const rootRouter = path(
-  '/test/<hello: {\\d+}:number>/<userId: string>?hello={[\\d\\w]+}:number&world=string[]?'
-).middlewares([authenticateRequest]);
+const testRouter = path('/hey').middlewares([testRequestMiddleware]);
+const testController = pathNested<typeof testRouter>()('/<userId: string>').get(
+  (request) => {
+    return request.responses['201']();
+  },
+  {
+    responses: {
+      '201': () => Response.json({ message: 'hello' }, { status: 201 }),
+    },
+  }
+);
+
+const testRouterWithController = testRouter.nested([testController] as const);
+testRouterWithController.middlewares([testResponseMiddleware2]);
 
 const withMiddlewares = pathNested<typeof rootRouter>()('').middlewares([addHeadersAndAuthenticateUser]);
 
@@ -79,22 +109,16 @@ export const router = withMiddlewares.nested(
     [
       path('/<dateId: {\\d+}:number>?teste=(string | number)[]')
         .get(async (request) => {
-          if (request.query.teste)
-            return new Response<
-              unknown,
-              {
-                status: 200;
-                headers: {
-                  'x-header': string;
-                };
-              }
-            >();
-          return new Response<
+          const response = new Response<
             unknown,
             {
-              status: 404;
+              status: 200;
+              headers: {
+                'x-header': string;
+              };
             }
           >();
+          return response;
         })
         .post((request) => {
           return new Response<{
@@ -120,8 +144,9 @@ rootRouter.nested([withMiddlewares] as const); // this should not matter for the
 const testResponseMiddleware = nestedMiddleware<typeof router>()({
   response: (response) => {
     if (response.status === 200) {
-      return response.headers['x-header'];
+      const test = response.headers['x-header'];
     }
+    return response;
   },
 });
 
