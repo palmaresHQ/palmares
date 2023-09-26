@@ -101,7 +101,6 @@ const testController = pathNested<typeof testRouter>()('/<userId: string>').get(
 
 const testRouterWithController = testRouter.nested([testController]);
 testRouterWithController.middlewares([testResponseMiddleware2]);
-
 const withMiddlewares = pathNested<typeof rootRouter>()('').middlewares([addHeadersAndAuthenticateUser] as const);
 
 const controllers = pathNested<typeof withMiddlewares>()('/users').get(() => {
