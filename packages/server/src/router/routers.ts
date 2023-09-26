@@ -29,8 +29,9 @@ import { StatusCodes } from '../response/status';
  * We want to know which routes we can "call", and what are the headers, data and basically everything else we should send to them.
  *
  * For the application to work:
- * Pretty much a router is a tree. One router is connected to another router, that is connected to another router and so on. But basically
+ * - Pretty much a router is a tree. One router is connected to another router, that is connected to another router and so on. But basically
  * ALL applications will have just one route as entrypoint.
+ * - Understand that the root router will know all the handlers, so you don't need to traverse everything everytime.
  */
 export class BaseRouter<
   TParentRouter extends DefaultRouterType | undefined = undefined,
@@ -146,10 +147,10 @@ export class BaseRouter<
    */
   nested<TIncludes extends readonly (DefaultRouterType | Omit<DefaultRouterType, never>)[]>(
     children:
-      | TIncludes
       | ((
           router: ReturnType<IncludesRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, undefined>['child']>
-        ) => TIncludes)
+        ) => Narrow<TIncludes>)
+      | Narrow<TIncludes>
   ) {
     const newRouter = new IncludesRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, undefined>(this.path);
 

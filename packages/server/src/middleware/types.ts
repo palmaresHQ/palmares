@@ -10,8 +10,6 @@ import type {
 } from '../request/types';
 import Response from '../response';
 import { StatusCodes } from '../response/status';
-//import type Response from '../response';
-//import { DefaultRequestType } from '../request/types';
 
 type Exact<A, B> = (<T>() => T extends A ? 1 : 0) extends <T>() => T extends B ? 1 : 0
   ? A extends B
@@ -80,14 +78,8 @@ export type ExtractRequestsFromMiddlewaresForServer<
                   {
                     body: TRequest['body'] & TFinalRequest['body'];
                     headers: TRequest['headers'] & TFinalRequest['headers'];
-                    context: TRequest['context'] & TFinalRequest['context'];
-                    responses: TRequest['responses'] extends MiddlewareOptions['responses']
-                      ? TFinalRequest['responses'] extends MiddlewareOptions['responses']
-                        ? TRequest['responses'] & TFinalRequest['responses'] & TResponses
-                        : TRequest['responses'] & TResponses
-                      : TFinalRequest['responses'] extends MiddlewareOptions['responses']
-                      ? TFinalRequest['responses'] & TResponses
-                      : TRequest['responses'] & TFinalRequest['responses'] & TResponses;
+                    context: TMiddlewares;
+                    responses: TRequest['responses'] & TFinalRequest['responses'];
                     method: TMethod;
                     mode: TRequest['mode'] extends RequestMode
                       ? TRequest['mode']
@@ -147,6 +139,8 @@ export type ExtractRequestsFromMiddlewaresForServer<
                     body: TFinalRequest['body'];
                     responses: undefined extends TResponses
                       ? TFinalRequest['responses']
+                      : undefined extends TFinalRequest['responses']
+                      ? TResponses
                       : TResponses & TFinalRequest['responses'];
                     headers: TFinalRequest['headers'];
                     context: TFinalRequest['context'];
@@ -161,7 +155,7 @@ export type ExtractRequestsFromMiddlewaresForServer<
                 >
               : TFinalRequest
           >
-      : TFirstMiddie['request']
+      : TFinalRequest
     : ExtractRequestsFromMiddlewaresForServer<
         TPath,
         TRestMiddlewares extends readonly Middleware[] ? TRestMiddlewares : [],
@@ -176,6 +170,8 @@ export type ExtractRequestsFromMiddlewaresForServer<
                 body: TFinalRequest['body'];
                 responses: undefined extends TResponses
                   ? TFinalRequest['responses']
+                  : undefined extends TFinalRequest['responses']
+                  ? TResponses
                   : TResponses & TFinalRequest['responses'];
                 headers: TFinalRequest['headers'];
                 context: TFinalRequest['context'];
@@ -345,14 +341,16 @@ export type ExtractRequestsFromMiddlewaresForClient<
  * to the handler or to the {@link Request} or {@link Response} objects.
  */
 export type MiddlewareOptions = {
-  responses?: {
-    [TKey in StatusCodes]?: (...args: any[]) => Response<
-      any,
-      {
-        context?: unknown;
-        headers?: Record<string, string> | unknown;
-        status: TKey;
+  responses?:
+    | {
+        [TKey in StatusCodes]?: (...args: any[]) => Response<
+          any,
+          {
+            context?: unknown;
+            headers?: Record<string, string> | unknown;
+            status: TKey;
+          }
+        >;
       }
-    >;
-  };
+    | undefined;
 };

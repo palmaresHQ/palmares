@@ -3,7 +3,6 @@ import type { Middleware } from '../middleware';
 import type Request from '../request';
 import type { BaseRouter } from '../router/routers';
 import type { DefaultRouterType, ExtractAllHandlersType } from '../router/types';
-import { StatusCodes } from './status';
 
 // This is used to extract the Response modifier from the middlewares. When you return a response from `response` method/function
 // We understand that you are making a modification to the response. This means you are attaching stuff to that response.
@@ -52,9 +51,15 @@ export type ExtractResponsesFromMiddlewaresRequestAndRouterHandlers<
   | ExtractResponsesFromMiddlewaresRequestFromRouters<TRouters>
   | Response;
 
-// This will extract all of the responses from the middlewares of a tuple of routers.
-// You pass first a tuple of routers and then it will extract all of the responses from the `request` function
-// of those middlewares. It gets the children routers as well.
+/**
+ * This will extract all of the responses from the middlewares of a tuple of routers.
+ * You pass first a tuple of routers and then it will extract all of the responses from the `request` function of those middlewares. It gets the children routers as well.
+ *
+ * @generics TRouters - A tuple of routers that will be used for extracting the responses from the middlewares. We will traverse through the parent and all it's children.
+ * @generics TFinalResponses - The final type of the responses, this is used for recursion and should not be explicitly set.
+ *
+ * @returns - A union of {@link Response} instances
+ */
 export type ExtractResponsesFromMiddlewaresRequestFromRouters<
   TRouters extends DefaultRouterType[] | Omit<DefaultRouterType, never>[],
   TFinalResponses extends Response<any, any> = never

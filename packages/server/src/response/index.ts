@@ -34,10 +34,12 @@ export default class Response<
     | object = undefined,
   TResponse extends {
     status?: StatusCodes;
+    responses?: Record<string, (...args: any[]) => Response<any, any> | Promise<Response<any, any>>> | undefined;
     headers?: { [key: string]: string } | unknown;
     context?: object | unknown;
   } = {
     status: undefined;
+    responses: undefined;
     headers: undefined;
     context: undefined;
   }
@@ -63,6 +65,7 @@ export default class Response<
   readonly type: ResponseTypeType = 'basic';
   readonly bodyUsed: boolean = false;
 
+  readonly responses?: TResponse['responses'];
   statusText!: string;
   status!: TResponse['status'] extends StatusCodes ? TResponse['status'] : undefined;
   body!: TBody;
@@ -153,10 +156,14 @@ export default class Response<
         } as TResponse;
     }
 
-    return new Response<TBody, TResponse>(JSON.stringify(body) as unknown as TBody, options) as Response<
-      TBody,
-      TResponse
-    >;
+    const optionsFormatted = options as {
+      context: TResponse['context'] extends object ? TResponse['context'] : undefined;
+      headers: (TResponse['headers'] extends object ? TResponse['headers'] : object) & {
+        [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: string;
+      };
+      status: TResponse['status'] extends StatusCodes ? TResponse['status'] : 200 | 201;
+    };
+    return new Response<TBody, typeof optionsFormatted>(JSON.stringify(body) as unknown as TBody, optionsFormatted);
   }
 
   /**
@@ -221,7 +228,14 @@ export default class Response<
         } as TResponse;
     }
 
-    return new Response<TBody, TResponse>(body, options);
+    const optionsFormatted = options as {
+      context: TResponse['context'] extends object ? TResponse['context'] : undefined;
+      headers: (TResponse['headers'] extends object ? TResponse['headers'] : object) & {
+        [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: string;
+      };
+      status: TResponse['status'] extends StatusCodes ? TResponse['status'] : 200 | 201;
+    };
+    return new Response<TBody, typeof optionsFormatted>(body, optionsFormatted);
   }
 
   /**
@@ -326,9 +340,17 @@ export default class Response<
         } as TResponse;
     }
 
-    return new Response<TBody extends FileLike ? TBody['blob'] : TBody, TResponse>(
+    const optionsFormatted = options as {
+      context: TResponse['context'] extends object ? TResponse['context'] : undefined;
+      headers: (TResponse['headers'] extends object ? TResponse['headers'] : object) & {
+        [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: string;
+        [DEFAULT_RESPONSE_HEADERS_CONTENT_DISPOSITION_KEY]: string;
+      };
+      status: TResponse['status'] extends StatusCodes ? TResponse['status'] : 200 | 201;
+    };
+    return new Response<TBody extends FileLike ? TBody['blob'] : TBody, typeof optionsFormatted>(
       body as TBody extends FileLike ? TBody['blob'] : TBody,
-      options
+      optionsFormatted
     );
   }
 
@@ -370,7 +392,16 @@ export default class Response<
 
     options.status = HTTP_302_FOUND;
 
-    return new Response<undefined, TResponse>(undefined, options);
+    const optionsFormatted = options as {
+      context: TResponse['context'] extends object ? TResponse['context'] : undefined;
+      headers: TResponse['headers'] extends object
+        ? TResponse['headers']
+        : object & {
+            [DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY]: string;
+          };
+      status: TResponse['status'] extends StatusCodes ? TResponse['status'] : 302;
+    };
+    return new Response<undefined, typeof optionsFormatted>(undefined, optionsFormatted);
   }
 
   /**

@@ -27,12 +27,12 @@ export default class Request<
     method?: RequestMethodTypes;
     headers?: object | unknown;
     body?: unknown;
+    responses?: Record<string, (...args: any[]) => Response<any, any> | Promise<Response<any, any>>> | undefined;
     context?: unknown;
     mode?: RequestMode;
     cache?: RequestCache;
     credentials?: RequestCredentials;
     integrity?: string;
-    responses?: Record<string, (...args: any[]) => Response<any, any> | Promise<Response<any, any>>> | undefined;
     destination?: RequestDestination;
     referrer?: string;
     redirect?: RequestRedirect;

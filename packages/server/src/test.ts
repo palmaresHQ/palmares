@@ -59,6 +59,7 @@ const testRequestMiddleware = nestedMiddleware<typeof rootRouter>()({
     responses: {
       '404': (teste: number) => Response.json({ message: 'hello' }, { status: 404 }),
       '400': () => Response.json({ user: 'notFound' }, { status: 400 }),
+      '200': () => Response.json({ message: 'hello' }, { status: 200 }),
     },
   },
   response: (response) => {
@@ -79,7 +80,17 @@ const testResponseMiddleware2 = nestedMiddleware<typeof testRouterWithController
 const testRouter = path('/hey').middlewares([testRequestMiddleware]);
 const testController = pathNested<typeof testRouter>()('/<userId: string>').get(
   (request) => {
+    type ExpandRecursively<T> = T extends object
+      ? T extends infer O
+        ? { [K in keyof O]: ExpandRecursively<O[K]> }
+        : never
+      : T;
+    type Test = ExpandRecursively<typeof request.responses>;
+    request.responses['201']();
+    const res = Response.json({ body: 'hello' }, { status: 200 });
     return request.responses['201']();
+    //const response = Response.json({ body: 'hey' }, { status: 200 }); // should be error
+    // return response;
   },
   {
     responses: {
@@ -88,13 +99,13 @@ const testController = pathNested<typeof testRouter>()('/<userId: string>').get(
   }
 );
 
-const testRouterWithController = testRouter.nested([testController] as const);
+const testRouterWithController = testRouter.nested([testController]);
 testRouterWithController.middlewares([testResponseMiddleware2]);
 
-const withMiddlewares = pathNested<typeof rootRouter>()('').middlewares([addHeadersAndAuthenticateUser]);
+const withMiddlewares = pathNested<typeof rootRouter>()('').middlewares([addHeadersAndAuthenticateUser] as const);
 
 const controllers = pathNested<typeof withMiddlewares>()('/users').get(() => {
-  return new Response<
+  const resp = new Response<
     unknown,
     {
       headers: {
@@ -102,44 +113,42 @@ const controllers = pathNested<typeof withMiddlewares>()('/users').get(() => {
       };
     }
   >();
+  return resp;
 });
 
-export const router = withMiddlewares.nested(
-  (path) =>
-    [
-      path('/<dateId: {\\d+}:number>?teste=(string | number)[]')
-        .get(async (request) => {
-          const response = new Response<
-            unknown,
-            {
-              status: 200;
-              headers: {
-                'x-header': string;
-              };
-            }
-          >();
-          return response;
-        })
-        .post((request) => {
-          return new Response<{
-            id: number;
-            firstName: string;
-            lastName: string;
-            username: string;
-          }>();
-        }),
-      path('/').get((request) => {
-        return new Response<{
-          id: number;
-          firstName: string;
-          lastName: string;
-          username: string;
-        }>();
-      }),
-      controllers,
-    ] as const
-);
-rootRouter.nested([withMiddlewares] as const); // this should not matter for the output, need to fix this so when you define the handlers for the nested router the parent WILL be updated.
+export const router = withMiddlewares.nested((path) => [
+  path('/<dateId: {\\d+}:number>?teste=(string | number)[]')
+    .get(async (request) => {
+      const response = new Response<
+        unknown,
+        {
+          status: 200;
+          headers: {
+            'x-header': string;
+          };
+        }
+      >();
+      return response;
+    })
+    .post((request) => {
+      return new Response<{
+        id: number;
+        firstName: string;
+        lastName: string;
+        username: string;
+      }>();
+    }),
+  path('/').get((request) => {
+    return new Response<{
+      id: number;
+      firstName: string;
+      lastName: string;
+      username: string;
+    }>();
+  }),
+  controllers,
+]);
+rootRouter.nested([withMiddlewares]); // this should not matter for the output, need to fix this so when you define the handlers for the nested router the parent WILL be updated.
 
 const testResponseMiddleware = nestedMiddleware<typeof router>()({
   response: (response) => {
