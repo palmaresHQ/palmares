@@ -1,7 +1,7 @@
 import { Narrow } from '@palmares/core';
 import type { BaseRouter } from './routers';
 import type { Middleware } from '../middleware';
-import type { ExtractRequestsFromMiddlewaresForServer } from '../middleware/types';
+import type { ExtractRequestsFromMiddlewaresForServer, MiddlewareOptions } from '../middleware/types';
 import type Response from '../response';
 import type Request from '../request';
 import type { RequestMethodTypes } from '../request/types';
@@ -196,3 +196,5 @@ export type ExtractIncludes<
       : TRouters
     : TRouters
   : TRouters;
+
+export type RouterOptionsType = MiddlewareOptions

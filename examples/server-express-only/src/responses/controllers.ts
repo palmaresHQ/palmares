@@ -60,12 +60,11 @@ export const errorController = pathNested<typeof errorRouter>()().get(
     },
   }
 );
-
 export const testTypeOfResponseOnHandlerOnMiddlewaresAndResponseOptionsController = pathNested<typeof baseRouterType>()(
   '/<userId: string>'
 ).get(
   (request) => {
-    return request.responses['200']('hello');
+    return request.responses[200]('hello');
   },
   {
     responses: {
@@ -74,6 +73,7 @@ export const testTypeOfResponseOnHandlerOnMiddlewaresAndResponseOptionsControlle
   }
 );
 
+// Isso me permite criar coisas assim
 export const schemaValidatorMiddleware = <TInputSchema extends z.ZodType, TOutputSchema extends z.ZodType>(schemas: {
   input: TInputSchema;
   output: TOutputSchema;
@@ -107,5 +107,9 @@ path('')
   ])
   .get((request) => {
     request.body.userId;
-    return Response.json({ firstName: 'Nicolas', lastName: 'Melo', age: 28 }, { status: 200 });
+    return Response.json({
+      firstName: 'hey',
+      lastName: 'hey',
+      age: 1,
+    });
   });

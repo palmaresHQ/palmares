@@ -1,15 +1,14 @@
 import { domain } from '@palmares/core';
 
 import httpAppServer from '../app';
-import type { path } from '../router/functions';
 import type { ServersSettingsType } from '../types';
 import { BaseRouter } from '../router/routers';
 
 export const serverDomainModifier = domain<{
   getRoutes: () =>
-    | Promise<ReturnType<typeof path> | Omit<ReturnType<typeof path>, never>>
-    | ReturnType<typeof path>
-    | Omit<ReturnType<typeof path>, never>;
+    | Promise<BaseRouter<any, any, any, any, any>>
+    | BaseRouter<any, any, any, any, any>
+    | Omit<BaseRouter<any, any, any, any, any>, never>;
   /**
    * Router interceptors are used to retrieve the information metadata about all of the routes inside of the application, this way you can dynamically create
    * routers and paths when you start the application. Imagine building a swagger documentation, you can intercept it and build the json documentation before actually
