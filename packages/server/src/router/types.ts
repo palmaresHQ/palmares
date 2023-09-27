@@ -82,9 +82,12 @@ export type HandlerType<
   RequestOnHandlerType<TRootPath, TMiddlewares, TMethod, TResponses>['responses']
 >;
 
-type Test = unknown extends unknown ? true : false;
 /**
- * This is used for validating
+ * This is used for validating the response of the handler. If a response is defined on the handler or any of the middlewares, if the response
+ * of the handler is not the one defined, it will error out.
+ *
+ * This is useful for validation. Suppose we want to guarantee that a response always follow a certain structure, we can define it on the middlewares
+ * and the handler will be forced to follow that response.
  */
 type ExtractPossibleResponsesOfHandlerType<
   TPossibleResponses extends Record<string, (...args: any) => Response<any, any>>

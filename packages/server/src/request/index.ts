@@ -578,6 +578,7 @@ export default class Request<
               : TRequest['referrerPolicy'] extends ReferrerPolicy
               ? TRequest['referrerPolicy']
               : ReferrerPolicy;
+            responses: TRequest['responses'];
           }
         >();
     if (args?.body) newRequest.__body = Object.freeze({ value: args.body });

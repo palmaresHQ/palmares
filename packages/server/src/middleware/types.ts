@@ -11,6 +11,23 @@ import type {
 import Response from '../response';
 import { StatusCodes } from '../response/status';
 
+/**
+ * Remove the optional properties from an object.
+ *
+ * @example
+ * ```ts
+ * type Test = {
+ *   a?: string;
+ *   b: number;
+ *   c?: boolean;
+ * };
+ * type WithoutOptionals = RemoveOptionals<Test>; // { b: number }
+ * ```
+ */
+type RemoveOptionals<T> = {
+  [K in keyof T as undefined extends T[K] ? never : K]: T[K];
+};
+
 type Exact<A, B> = (<T>() => T extends A ? 1 : 0) extends <T>() => T extends B ? 1 : 0
   ? A extends B
     ? B extends A
@@ -22,12 +39,17 @@ type Exact<A, B> = (<T>() => T extends A ? 1 : 0) extends <T>() => T extends B ?
 /**
  * This will extract the request type by inferring the return type (when they are {@link Request}) of the `request` function of the middlewares.
  *
+ * Important: Take extra care when changing this type because it's used for inferring the request type on the handler but also on the
+ * middleware, so it's used in a lot of places and can break things.
+ *
  * @generics TPath - The path from the router, this is the full path by joining all the routers together.
  * @generics TMiddlewares - All the middlewares used by the router, from the root router to the handler. This will be recursive, and it's used for inferring the request type.
  * @generics TMethod - The method used for the handler. Eg. 'GET' | 'POST', etc.
  * @generics TResponses - The responses that the handler can return. This is used for inferring the response type. Instead of using `Response.json()` the user will be able to use
  * `Response.json()` and the type will be inferred.
  * @generics TFinalRequest - This should not be defined, it's used for recursion.
+ *
+ * @returns - A new inferred {@link Request} instance.
  */
 export type ExtractRequestsFromMiddlewaresForServer<
   TPath extends string,
@@ -65,8 +87,40 @@ export type ExtractRequestsFromMiddlewaresForServer<
   >
 > = TMiddlewares extends readonly [infer TFirstMiddie, ...infer TRestMiddlewares]
   ? TFirstMiddie extends Middleware
-    ? TFirstMiddie['request'] extends (request: Request<any, any>) => Promise<infer TRequest> | infer TRequest
-      ? TRequest extends Request<any, any>
+    // On this use case the user might not have defined the request function, so we need to check if it's defined. If we don't do this, it'll return never.
+    ? ReturnType<
+        TFirstMiddie['request'] extends (...args: any[]) => any ? TFirstMiddie['request'] : (...args: any[]) => never
+      > extends Promise<never> | never
+      ? ExtractRequestsFromMiddlewaresForServer<
+          TPath,
+          TRestMiddlewares extends readonly Middleware[] ? TRestMiddlewares : [],
+          TMethod,
+          TResponses,
+          TPath extends string
+            ? Request<
+              TPath,
+              {
+                method: TMethod;
+                mode: TFinalRequest['mode'];
+                body: TFinalRequest['body'];
+                responses: TFirstMiddie extends { options: { responses: infer TResponses extends MiddlewareOptions['responses'] } }
+                  ? RemoveOptionals<TResponses>
+                  : undefined;
+                headers: TFinalRequest['headers'];
+                context: TFinalRequest['context'];
+                cache: TFinalRequest['cache'];
+                credentials: TFinalRequest['credentials'];
+                integrity: TFinalRequest['integrity'];
+                destination: TFinalRequest['destination'];
+                referrer: TFinalRequest['referrer'];
+                referrerPolicy: TFinalRequest['referrerPolicy'];
+                redirect: TFinalRequest['redirect'];
+              }
+            >
+            : TFinalRequest
+        >
+      : TFirstMiddie['request'] extends (request: Request<any, any>) => Promise<infer TRequest> | infer TRequest
+      ? Extract<TRequest, Request<any, any>> extends Request<any, any>
         ? ExtractRequestsFromMiddlewaresForServer<
             TPath,
             TRestMiddlewares extends readonly Middleware[] ? TRestMiddlewares : [],
@@ -76,48 +130,49 @@ export type ExtractRequestsFromMiddlewaresForServer<
               ? Request<
                   TPath,
                   {
-                    body: TRequest['body'] & TFinalRequest['body'];
-                    headers: TRequest['headers'] & TFinalRequest['headers'];
-                    context: TMiddlewares;
-                    responses: TRequest['responses'] & TFinalRequest['responses'];
+                    body: Extract<TRequest, Request<any, any>>['body'] & TFinalRequest['body'];
+                    headers: Extract<TRequest, Request<any, any>>['headers'] & TFinalRequest['headers'];
+                    context: Extract<TRequest, Request<any, any>>['context'] & TFinalRequest['context'];
+                    responses: RemoveOptionals<Extract<TRequest, Request<any, any>>['responses']> &
+                      RemoveOptionals<TFinalRequest['responses']> & RemoveOptionals<TResponses>;
                     method: TMethod;
-                    mode: TRequest['mode'] extends RequestMode
-                      ? TRequest['mode']
+                    mode: Extract<TRequest, Request<any, any>>['mode'] extends RequestMode
+                      ? Extract<TRequest, Request<any, any>>['mode']
                       : TFinalRequest['mode'] extends RequestMode
                       ? TFinalRequest['mode']
                       : RequestMode;
-                    cache: TRequest['cache'] extends RequestCache
-                      ? TRequest['cache']
+                    cache: Extract<TRequest, Request<any, any>>['cache'] extends RequestCache
+                      ? Extract<TRequest, Request<any, any>>['cache']
                       : TFinalRequest['cache'] extends RequestCache
                       ? TFinalRequest['cache']
                       : RequestCache;
-                    credentials: TRequest['credentials'] extends RequestCredentials
-                      ? TRequest['credentials']
+                    credentials: Extract<TRequest, Request<any, any>>['credentials'] extends RequestCredentials
+                      ? Extract<TRequest, Request<any, any>>['credentials']
                       : TFinalRequest['credentials'] extends RequestCredentials
                       ? TFinalRequest['credentials']
                       : RequestCredentials;
-                    integrity: TRequest['integrity'] extends string
-                      ? TRequest['integrity']
+                    integrity: Extract<TRequest, Request<any, any>>['integrity'] extends string
+                      ? Extract<TRequest, Request<any, any>>['integrity']
                       : TFinalRequest['integrity'] extends string
                       ? TFinalRequest['integrity']
                       : string;
-                    destination: TRequest['destination'] extends RequestDestination
-                      ? TRequest['destination']
+                    destination: Extract<TRequest, Request<any, any>>['destination'] extends RequestDestination
+                      ? Extract<TRequest, Request<any, any>>['destination']
                       : TFinalRequest['destination'] extends RequestDestination
                       ? TFinalRequest['destination']
                       : RequestDestination;
-                    referrer: TRequest['referrer'] extends string
-                      ? TRequest['referrer']
+                    referrer: Extract<TRequest, Request<any, any>>['referrer'] extends string
+                      ? Extract<TRequest, Request<any, any>>['referrer']
                       : TFinalRequest['referrer'] extends string
                       ? TFinalRequest['referrer']
                       : string;
-                    referrerPolicy: TRequest['referrer'] extends ReferrerPolicy
-                      ? TRequest['referrer']
+                    referrerPolicy: Extract<TRequest, Request<any, any>>['referrer'] extends ReferrerPolicy
+                      ? Extract<TRequest, Request<any, any>>['referrer']
                       : TFinalRequest['referrer'] extends ReferrerPolicy
                       ? TFinalRequest['referrer']
                       : ReferrerPolicy;
-                    redirect: TRequest['redirect'] extends RequestRedirect
-                      ? TRequest['redirect']
+                    redirect: Extract<TRequest, Request<any, any>>['redirect'] extends RequestRedirect
+                      ? Extract<TRequest, Request<any, any>>['redirect']
                       : TFinalRequest['redirect'] extends RequestRedirect
                       ? TFinalRequest['redirect']
                       : RequestRedirect;
@@ -155,7 +210,36 @@ export type ExtractRequestsFromMiddlewaresForServer<
                 >
               : TFinalRequest
           >
-      : TFinalRequest
+      : ExtractRequestsFromMiddlewaresForServer<
+          TPath,
+          TRestMiddlewares extends readonly Middleware[] ? TRestMiddlewares : [],
+          TMethod,
+          TResponses,
+          TPath extends string
+            ? Request<
+                TPath,
+                {
+                  method: TMethod;
+                  mode: TFinalRequest['mode'];
+                  body: TFinalRequest['body'];
+                  responses: undefined extends TResponses
+                    ? TFinalRequest['responses']
+                    : undefined extends TFinalRequest['responses']
+                    ? TResponses
+                    : TResponses & TFinalRequest['responses'];
+                  headers: TFinalRequest['headers'];
+                  context: TFinalRequest['context'];
+                  cache: TFinalRequest['cache'];
+                  credentials: TFinalRequest['credentials'];
+                  integrity: TFinalRequest['integrity'];
+                  destination: TFinalRequest['destination'];
+                  referrer: TFinalRequest['referrer'];
+                  referrerPolicy: TFinalRequest['referrerPolicy'];
+                  redirect: TFinalRequest['redirect'];
+                }
+              >
+            : TFinalRequest
+        >
     : ExtractRequestsFromMiddlewaresForServer<
         TPath,
         TRestMiddlewares extends readonly Middleware[] ? TRestMiddlewares : [],

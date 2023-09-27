@@ -21,17 +21,7 @@ const addHeadersAndAuthenticateUser = nestedMiddleware<typeof rootRouter>()({
 });
 
 const authenticateRequest = middleware({
-  request: (
-    request: Request<
-      string,
-      {
-        headers: { Authorization: string };
-        context: {
-          user: number;
-        };
-      }
-    >
-  ) => {
+  request: (request) => {
     //if (request.headers.Authorization) return new Response<{ Status: 404 }>();
     const modifiedRequest = request.clone<{
       body: {
@@ -49,21 +39,27 @@ export const rootRouter = path(
   '/test/<hello: {\\d+}:number>/<userId: string>?hello={[\\d\\w]+}:number&world=string[]?'
 );
 
+const testRequestMiddleware1 = nestedMiddleware<typeof rootRouter>()({
+  options: {
+    responses: {
+      '200': (hello: string) => Response.json({ message: 'hello' }, { status: 200 }),
+    },
+  },
+});
+
 const testRequestMiddleware = nestedMiddleware<typeof rootRouter>()({
   request: (request) => {
     if (request.query) return request;
-    if (request.params) return request.responses['404'](1);
     return request.responses['400']();
   },
   options: {
     responses: {
       '404': (teste: number) => Response.json({ message: 'hello' }, { status: 404 }),
       '400': () => Response.json({ user: 'notFound' }, { status: 400 }),
-      '200': () => Response.json({ message: 'hello' }, { status: 200 }),
     },
   },
   response: (response) => {
-    response.status === 400 ? response.body.user : response.status === 404 ? response.body.message : response;
+    response.status === 400 ? response.body.user : response.status === 404 ? response.body.user : response;
     //response.status === 404 ?
     return response;
     //response.status === 204 ? response.body : response.status === 400 ? response.body.user : response.body.message;
@@ -72,29 +68,20 @@ const testRequestMiddleware = nestedMiddleware<typeof rootRouter>()({
 
 const testResponseMiddleware2 = nestedMiddleware<typeof testRouterWithController>()({
   response: (response) => {
-    const value = response.status === 201 ? response.body : response;
+    const value = response.status === 200 ? response.body : response;
     return response;
   },
 });
 
-const testRouter = path('/hey').middlewares([testRequestMiddleware]);
+const testRouter = path('/hey').middlewares([testRequestMiddleware1, testRequestMiddleware]);
 const testController = pathNested<typeof testRouter>()('/<userId: string>').get(
   (request) => {
-    type ExpandRecursively<T> = T extends object
-      ? T extends infer O
-        ? { [K in keyof O]: ExpandRecursively<O[K]> }
-        : never
-      : T;
-    type Test = ExpandRecursively<typeof request.responses>;
-    request.responses['201']();
-    const res = Response.json({ body: 'hello' }, { status: 200 });
-    return request.responses['201']();
-    //const response = Response.json({ body: 'hey' }, { status: 200 }); // should be error
-    // return response;
-  },
+    return request.responses['200']('hello');
+  }, //const response = Response.json({ body: 'hey' }, { status: 200 }); // should be error
+  // return response;
   {
     responses: {
-      '201': () => Response.json({ message: 'hello' }, { status: 201 }),
+      '201': () => Response.json({ body: 'hey' }, { status: 201 }),
     },
   }
 );

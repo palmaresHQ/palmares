@@ -1,7 +1,16 @@
-import { FileLike, pathNested, Response, middleware, path } from '@palmares/server';
+import { FileLike, pathNested, Response, middleware, path, Request } from '@palmares/server';
 import * as z from 'zod';
 
-import type { blobRouter, jsonRouter, textRouter, streamRouter, arrayBufferRouter, errorRouter } from './routes';
+import type {
+  blobRouter,
+  jsonRouter,
+  textRouter,
+  streamRouter,
+  arrayBufferRouter,
+  errorRouter,
+  baseRouter,
+  baseRouterType,
+} from './routes';
 
 export const blobResponseController = pathNested<typeof blobRouter>()().get(async () => {
   const blob = new Blob(['Hello, world!'], { type: 'text/plain;charset=utf-8' });
@@ -51,3 +60,52 @@ export const errorController = pathNested<typeof errorRouter>()().get(
     },
   }
 );
+
+export const testTypeOfResponseOnHandlerOnMiddlewaresAndResponseOptionsController = pathNested<typeof baseRouterType>()(
+  '/<userId: string>'
+).get(
+  (request) => {
+    return request.responses['200']('hello');
+  },
+  {
+    responses: {
+      '201': () => Response.json({ body: 'hey' }, { status: 201 }),
+    },
+  }
+);
+
+export const schemaValidatorMiddleware = <TInputSchema extends z.ZodType, TOutputSchema extends z.ZodType>(schemas: {
+  input: TInputSchema;
+  output: TOutputSchema;
+}) => {
+  return middleware({
+    request: (request) => {
+      const body = schemas.input.parse(request.body);
+      return request.clone({ body: body as z.infer<TInputSchema> });
+    },
+    options: {
+      responses: {
+        '200': (body: z.infer<TOutputSchema>) => Response.json({ ...body }, { status: 200 }),
+        '201': (body: z.infer<TOutputSchema>) => Response.json({ ...body }, { status: 201 }),
+      },
+    },
+  });
+};
+
+path('')
+  .middlewares([
+    schemaValidatorMiddleware({
+      input: z.object({
+        userId: z.number(),
+      }),
+      output: z.object({
+        firstName: z.string(),
+        lastName: z.string(),
+        age: z.number(),
+      }),
+    }),
+  ])
+  .get((request) => {
+    request.body.userId;
+    return Response.json({ firstName: 'Nicolas', lastName: 'Melo', age: 28 }, { status: 200 });
+  });
