@@ -13,9 +13,6 @@ import type {
   ExtractIncludes,
   RouterOptionsType,
 } from './types';
-import type Response from '../response';
-import { StatusCodes } from '../response/status';
-import { MiddlewareOptions } from '../middleware/types';
 import { RequestMethodTypes } from '../request/types';
 
 /**
@@ -92,7 +89,10 @@ export class BaseRouter<
       }[];
       router: BaseRouter;
       handlers: {
-        [method in MethodTypes]?: HandlerType<string, Middleware[]>;
+        [method in MethodTypes]?: {
+          handler: HandlerType<string, Middleware[]>;
+          options?: RouterOptionsType;
+        };
       };
     }
   >();
@@ -542,6 +542,7 @@ export class MethodsRouter<
           TMiddlewares,
           TAlreadyDefinedMethods,
           THandler,
+          TOptions,
           'get'
         >
       >,
@@ -584,6 +585,7 @@ export class MethodsRouter<
           TMiddlewares,
           TAlreadyDefinedMethods,
           THandler,
+          TOptions,
           'post'
         >
       >,
@@ -626,6 +628,7 @@ export class MethodsRouter<
           TMiddlewares,
           TAlreadyDefinedMethods,
           THandler,
+          TOptions,
           'delete'
         >
       >,
@@ -668,6 +671,7 @@ export class MethodsRouter<
           TMiddlewares,
           TAlreadyDefinedMethods,
           THandler,
+          TOptions,
           'options'
         >
       >,
@@ -710,6 +714,7 @@ export class MethodsRouter<
           TMiddlewares,
           TAlreadyDefinedMethods,
           THandler,
+          TOptions,
           'head'
         >
       >,
@@ -752,6 +757,7 @@ export class MethodsRouter<
           TMiddlewares,
           TAlreadyDefinedMethods,
           THandler,
+          TOptions,
           'put'
         >
       >,
@@ -794,6 +800,7 @@ export class MethodsRouter<
           TMiddlewares,
           TAlreadyDefinedMethods,
           THandler,
+          TOptions,
           'patch'
         >
       >,
@@ -840,6 +847,7 @@ export class MethodsRouter<
           TMiddlewares,
           TAlreadyDefinedMethods,
           THandler,
+          TOptions,
           MethodTypes
         >
       >,

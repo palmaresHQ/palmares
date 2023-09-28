@@ -15,7 +15,7 @@ import Response from '../response';
 import { HTTP_404_NOT_FOUND, isRedirect } from '../response/status';
 import { path } from '../router';
 import { BaseRouter } from '../router/routers';
-import { HandlerType, MethodTypes } from '../router/types';
+import { HandlerType, MethodTypes, RouterOptionsType } from '../router/types';
 import { AllServerSettingsType } from '../types';
 import {
   HandlerOrHandlersShouldBeDefinedOnRouterAdapterError,
@@ -75,7 +75,7 @@ async function* wrappedMiddlewareRequests(middlewares: Middleware[], request: Re
 
 async function* wrappedMiddlewareResponses(
   middlewares: Middleware[],
-  response: Response,
+  response: Response<any, any>,
   middlewareOnionIndex: number
 ) {
   for (let i = middlewareOnionIndex; i >= 0; i--) {
@@ -125,18 +125,29 @@ function appendTranslatorToRequest(
   serverRequestAdapter: ServerRequestAdapter,
   serverRequestAndResponseData: any,
   queryParams: BaseRouter['__queryParamsAndPath']['params'],
-  urlParams: BaseRouter['__urlParamsAndPath']['params']
+  urlParams: BaseRouter['__urlParamsAndPath']['params'],
+  options: RouterOptionsType | undefined
 ) {
   const requestWithoutPrivateMethods = request as unknown as Omit<
     Request<any, any>,
-    '__requestAdapter' | '__serverRequestAndResponseData' | '__queryParams' | '__urlParams' | '__serverAdapter'
+    | '__requestAdapter'
+    | '__serverRequestAndResponseData'
+    | '__queryParams'
+    | '__urlParams'
+    | '__serverAdapter'
+    | '__responses'
   > & {
     __serverAdapter: ServerAdapter;
     __requestAdapter: ServerRequestAdapter;
     __serverRequestAndResponseData: any;
     __queryParams: BaseRouter['__queryParamsAndPath']['params'];
     __urlParams: BaseRouter['__urlParamsAndPath']['params'];
+    __responses: Record<string, (...args: any[]) => Response<any, any> | undefined>;
   };
+  if (options?.responses)
+    requestWithoutPrivateMethods.__responses = Object.freeze({
+      value: options?.responses as any,
+    });
   requestWithoutPrivateMethods.__serverAdapter = serverAdapter;
   requestWithoutPrivateMethods.__serverRequestAndResponseData = serverRequestAndResponseData;
   requestWithoutPrivateMethods.__requestAdapter = serverRequestAdapter;
@@ -149,16 +160,22 @@ function appendTranslatorToResponse(
   response: Response<any, any>,
   serverAdapter: ServerAdapter,
   serverResponseAdapter: ServerResponseAdapter,
-  serverRequestAndResponseData: any
+  serverRequestAndResponseData: any,
+  options: RouterOptionsType | undefined
 ) {
   const responseWithoutPrivateMethods = response as unknown as Omit<
     Response<any, any>,
-    '__responseAdapter' | '__serverRequestAndResponseData' | '__serverAdapter'
+    '__responseAdapter' | '__serverRequestAndResponseData' | '__serverAdapter' | 'responses'
   > & {
+    responses: Record<string, (...args: any[]) => Response<any, any>>;
     __serverAdapter: ServerAdapter;
     __responseAdapter: ServerResponseAdapter;
     __serverRequestAndResponseData: any;
   };
+  if (options?.responses)
+    responseWithoutPrivateMethods.responses = Object.freeze({
+      value: options?.responses as any,
+    });
   responseWithoutPrivateMethods.__serverAdapter = serverAdapter;
   responseWithoutPrivateMethods.__serverRequestAndResponseData = serverRequestAndResponseData;
   responseWithoutPrivateMethods.__responseAdapter = serverResponseAdapter;
@@ -281,7 +298,8 @@ function wrapHandlerAndMiddlewares(
   middlewares: Middleware[],
   queryParams: BaseRouter['__queryParamsAndPath']['params'],
   urlParams: BaseRouter['__urlParamsAndPath']['params'],
-  handler: HandlerType<string, []>,
+  handler: HandlerType<string, any[]>,
+  options: RouterOptionsType | undefined,
   server: ServerAdapter,
   handler500?: AllServerSettingsType['servers'][string]['handler500']
 ) {
@@ -292,7 +310,8 @@ function wrapHandlerAndMiddlewares(
       server.request,
       serverRequestAndResponseData,
       queryParams,
-      urlParams
+      urlParams,
+      options
     );
 
     let response: Response | undefined = undefined;
@@ -310,7 +329,8 @@ function wrapHandlerAndMiddlewares(
             responseOrRequest,
             server,
             server.response,
-            serverRequestAndResponseData
+            serverRequestAndResponseData,
+            options
           );
         else
           request = appendTranslatorToRequest(
@@ -319,7 +339,8 @@ function wrapHandlerAndMiddlewares(
             server.request,
             serverRequestAndResponseData,
             queryParams,
-            urlParams
+            urlParams,
+            options
           );
       }
       // If the response is set, then we can just return it from the handler.
@@ -329,7 +350,8 @@ function wrapHandlerAndMiddlewares(
           await Promise.resolve(handler(request)),
           server,
           server.response,
-          serverRequestAndResponseData
+          serverRequestAndResponseData,
+          options
         );
     } catch (error) {
       const isResponseError = error instanceof Response;
@@ -339,12 +361,24 @@ function wrapHandlerAndMiddlewares(
         : DEFAULT_SERVER_ERROR_RESPONSE(errorAsError, server.settings, server.domains);
       wasErrorAlreadyHandledInRequestLifecycle = true;
 
-      errorResponse = appendTranslatorToResponse(errorResponse, server, server.response, serverRequestAndResponseData);
+      errorResponse = appendTranslatorToResponse(
+        errorResponse,
+        server,
+        server.response,
+        serverRequestAndResponseData,
+        options
+      );
 
       errorResponse = isResponseError
         ? errorResponse
         : await appendErrorToResponseAndReturnResponseOrThrow(errorResponse, errorAsError, handler500);
-      response = appendTranslatorToResponse(errorResponse, server, server.response, serverRequestAndResponseData);
+      response = appendTranslatorToResponse(
+        errorResponse,
+        server,
+        server.response,
+        serverRequestAndResponseData,
+        options
+      );
     }
 
     try {
@@ -360,7 +394,8 @@ function wrapHandlerAndMiddlewares(
               modifiedResponse,
               server,
               server.response,
-              serverRequestAndResponseData
+              serverRequestAndResponseData,
+              options
             );
           else throw new ResponseNotReturnedFromResponseOnMiddlewareError();
         }
@@ -378,14 +413,21 @@ function wrapHandlerAndMiddlewares(
           errorResponse,
           server,
           server.response,
-          serverRequestAndResponseData
+          serverRequestAndResponseData,
+          options
         );
 
         // It it's a ResponseError then we don't need to call the handler500, because it was already handled.
         errorResponse = isResponseError
           ? errorResponse
           : await appendErrorToResponseAndReturnResponseOrThrow(errorResponse, error as Error, handler500);
-        response = appendTranslatorToResponse(errorResponse, server, server.response, serverRequestAndResponseData);
+        response = appendTranslatorToResponse(
+          errorResponse,
+          server,
+          server.response,
+          serverRequestAndResponseData,
+          options
+        );
       }
       if (response) return translateResponseToServerResponse(response, method, server, serverRequestAndResponseData);
       else throw error;
@@ -414,22 +456,35 @@ export async function* getAllRouters(
 
     const translatedPath = translatePath(path, router.partsOfPath, router.urlParams);
 
-    const convertedHandlersToMap = handlerByMethod.reduce((accumulator, currentValue) => {
-      const [method, handler] = currentValue;
-      const wrappedHandler = wrapHandlerAndMiddlewares(
-        method as MethodTypes,
-        existsRootMiddlewares
-          ? (settings.middlewares as NonNullable<typeof settings.middlewares>).concat(router.middlewares)
-          : router.middlewares,
-        router.queryParams,
-        router.urlParams,
-        handler,
-        serverAdapter,
-        settings.handler500
-      );
-      accumulator.set(method as MethodTypes | 'all', wrappedHandler);
-      return accumulator;
-    }, new Map<MethodTypes | 'all', ReturnType<typeof wrapHandlerAndMiddlewares>>());
+    const convertedHandlersToMap = handlerByMethod.reduce(
+      (accumulator, currentValue) => {
+        const [method, handler] = currentValue;
+        const wrappedHandler = wrapHandlerAndMiddlewares(
+          method as MethodTypes,
+          existsRootMiddlewares
+            ? (settings.middlewares as NonNullable<typeof settings.middlewares>).concat(router.middlewares)
+            : router.middlewares,
+          router.queryParams,
+          router.urlParams,
+          handler.handler,
+          handler.options,
+          serverAdapter,
+          settings.handler500
+        );
+        accumulator.set(method as MethodTypes | 'all', {
+          handler: wrappedHandler,
+          options: handler?.options?.customRouterOptions,
+        });
+        return accumulator;
+      },
+      new Map<
+        MethodTypes | 'all',
+        {
+          handler: ReturnType<typeof wrapHandlerAndMiddlewares>;
+          options?: RouterOptionsType['customRouterOptions'];
+        }
+      >()
+    );
 
     yield {
       translatedPath,
@@ -462,13 +517,15 @@ export async function* getAllHandlers(
           : router.middlewares,
         router.queryParams,
         router.urlParams,
-        handler,
+        handler.handler,
+        handler.options,
         serverAdapter,
         settings.handler500
       );
       yield {
         path,
         method,
+        options: handler?.options?.customRouterOptions,
         handler: wrappedHandler,
         partsOfPath: router.partsOfPath,
         queryParams: router.queryParams,
@@ -490,7 +547,8 @@ export function wrap404HandlerAndRootMiddlewares(
       new Response(undefined, { status: HTTP_404_NOT_FOUND, statusText: DEFAULT_NOT_FOUND_STATUS_TEXT_MESSAGE }),
       serverAdapter,
       serverAdapter.response,
-      serverRequestAndResponseData
+      serverRequestAndResponseData,
+      undefined
     );
 
     try {
@@ -507,7 +565,8 @@ export function wrap404HandlerAndRootMiddlewares(
               modifiedResponse,
               serverAdapter,
               serverAdapter.response,
-              serverRequestAndResponseData
+              serverRequestAndResponseData,
+              undefined
             );
           else throw new ResponseNotReturnedFromResponseOnMiddlewareError();
         }
@@ -560,6 +619,7 @@ export async function initializeRouters(
         translatedPath,
         handler.method as MethodTypes | 'all',
         handler.handler,
+        handler.options,
         handler.queryParams
       );
     }

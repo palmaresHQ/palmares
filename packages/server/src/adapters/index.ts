@@ -17,20 +17,77 @@ export function serverAdapter<
   TCustomServerSettings extends typeof ServerAdapter['customServerSettings']
 >(args: {
   /**
-   * The request will hold all of the request data from the server, this way we can translate the original request to palmares request, everything is all lazy loaded.
+   * This is the {@link ServerRequestAdapter}. The request will hold all of the request data from the server, this way we can
+   * translate the original request to Palmares request, everything is all lazy loaded.
    */
   request: TServerRequestAdapter;
   /**
-   * This is the ServerResponseAdapter instance to be used by the server so we can translate Palmares's response to the server's response.
+   * This is the {@link ServerResponseAdapter} instance to be used by the server so we can translate Palmares's response to the server's response.
    */
   response: TServerResponseAdapter;
   /**
-   * This is the ServerRouterAdapter instance to be used by the server so we can translate Palmares's router to the server's router.
+   * This is the {@link ServerRouterAdapter} instance to be used by the server so we can translate Palmares's router to the server's router.
    */
   routers: TServerRouterAdapter;
   customServerSettings: TCustomServerSettings;
+  /**
+   * This is the function that will be called by Palmares to load the server. Usually you add the server constructor here. Notice that this function
+   * DOES NOT start the server, it will be used for adding middleware, custom logic, etc.
+   *
+   * You can use a global Map to store the server instance, this way you can access it later on the start function. Since this is functional and not class based.
+   *
+   * @example
+   * ```
+   * load: async (serverName, _domains: Domain[], settings: ServerSettingsTypeExpress) => {
+   *    let server: Express | undefined = servers.get(serverName)?.server;
+   *    if (!server) {
+   *      server = express();
+   *      servers.set(serverName, { server, settings });
+   *    }
+   *    if (settings?.customServerSettings?.middlewares) {
+   *      settings.customServerSettings.middlewares.forEach((middleware) => {
+   *      server?.use(middleware);
+   *    });
+   *  }
+   * },
+   * ```
+   *
+   * @param serverName - The name of the server, by default a palmares application can contain multiple servers.
+   * @param domains - All of the domains of the application, usually you will not need this, but can be useful.
+   * @param settings - The settings for the server.
+   */
   load: TLoadFunction;
+  /**
+   * This is the function that will be called by Palmares to start the server. Usually you start the server here.
+   * Most servers have a `.listen`, that's what you will call here.
+   *
+   * Use the logServerStart function to log to the user that the server has started.
+   *
+   * @example
+   * ```
+   * start: async (serverName, port, logServerStart) => {
+   *    const serverInstanceToStart = servers.get(serverName);
+   *    if (serverInstanceToStart) {
+   *     serverInstanceToStart.server.listen(port, () => logServerStart());
+   *   }
+   * },
+   * ```
+   *
+   * @param serverName - The name of the server, by default a palmares application can contain multiple servers.
+   * @param port - The port to start the server on.
+   * @param logServerStart - A function that you can call to log to the user that the server has started.
+   */
   start: TStartFunction;
+  /**
+   * Custom function to call when we receive a SIGINT or SIGTERM signal. With that you can close the server gracefully.
+   *
+   * @example
+   * ```
+   * close: async () => {
+   *   console.log('closing the server');
+   * },
+   * ```
+   */
   close: TCloseFunction;
 }) {
   class CustomServerAdapter extends ServerAdapter {
@@ -71,6 +128,32 @@ export default class ServerAdapter {
     this.domains = domains;
   }
 
+  /**
+   * This is the function that will be called by Palmares to load the server. Usually you add the server constructor here. Notice that this function
+   * DOES NOT start the server, it will be used for adding middleware, custom logic, etc.
+   *
+   * You can use a global Map to store the server instance, this way you can access it later on the start function. Since this is functional and not class based.
+   *
+   * @example
+   * ```
+   * load: async (serverName, _domains: Domain[], settings: ServerSettingsTypeExpress) => {
+   *    let server: Express | undefined = servers.get(serverName)?.server;
+   *    if (!server) {
+   *      server = express();
+   *      servers.set(serverName, { server, settings });
+   *    }
+   *    if (settings?.customServerSettings?.middlewares) {
+   *      settings.customServerSettings.middlewares.forEach((middleware) => {
+   *      server?.use(middleware);
+   *    });
+   *  }
+   * },
+   * ```
+   *
+   * @param serverName - The name of the server, by default a palmares application can contain multiple servers.
+   * @param domains - All of the domains of the application, usually you will not need this, but can be useful.
+   * @param settings - The settings for the server.
+   */
   async load(
     _serverName: string,
     _domains: Domain[],
@@ -79,10 +162,40 @@ export default class ServerAdapter {
     return undefined;
   }
 
+  /**
+   * This is the function that will be called by Palmares to start the server. Usually you start the server here.
+   * Most servers have a `.listen`, that's what you will call here.
+   *
+   * Use the logServerStart function to log to the user that the server has started.
+   *
+   * @example
+   * ```
+   * start: async (serverName, port, logServerStart) => {
+   *    const serverInstanceToStart = servers.get(serverName);
+   *    if (serverInstanceToStart) {
+   *     serverInstanceToStart.server.listen(port, () => logServerStart());
+   *   }
+   * },
+   * ```
+   *
+   * @param serverName - The name of the server, by default a palmares application can contain multiple servers.
+   * @param port - The port to start the server on.
+   * @param logServerStart - A function that you can call to log to the user that the server has started.
+   */
   async start(_serverName: string, _port: number, _logServerStart: () => void): Promise<void> {
     return undefined;
   }
 
+  /**
+   * Custom function to call when we receive a SIGINT or SIGTERM signal. With that you can close the server gracefully.
+   *
+   * @example
+   * ```
+   * close: async () => {
+   *   console.log('closing the server');
+   * },
+   * ```
+   */
   async close(): Promise<void> {
     return undefined;
   }

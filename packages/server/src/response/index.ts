@@ -1,4 +1,5 @@
 import {
+  DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML,
   DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON,
   DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_STREAM,
   DEFAULT_RESPONSE_HEADERS_CONTENT_DISPOSITION_KEY,
@@ -159,7 +160,7 @@ export default class Response<
     const optionsFormatted = options as {
       context: TResponse['context'] extends object ? TResponse['context'] : undefined;
       headers: (TResponse['headers'] extends object ? TResponse['headers'] : object) & {
-        [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: string;
+        [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: 'application/json';
       };
       status: TResponse['status'] extends StatusCodes ? TResponse['status'] : 200 | 201;
     };
@@ -231,7 +232,7 @@ export default class Response<
     const optionsFormatted = options as {
       context: TResponse['context'] extends object ? TResponse['context'] : undefined;
       headers: (TResponse['headers'] extends object ? TResponse['headers'] : object) & {
-        [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: string;
+        [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: 'application/octet-stream';
       };
       status: TResponse['status'] extends StatusCodes ? TResponse['status'] : 200 | 201;
     };
@@ -375,6 +376,7 @@ export default class Response<
    * @returns - A response with the status set to 302 and the location header set to the url passed as argument.
    */
   static redirect<
+    TUrl extends string,
     TResponse extends {
       status?: RedirectionStatusCodes;
       headers?: object | unknown;
@@ -384,7 +386,7 @@ export default class Response<
       headers: undefined;
       context: undefined;
     }
-  >(url: string, options?: TResponse) {
+  >(url: TUrl, options?: TResponse) {
     if (options) {
       if (options.headers) (options.headers as any)[DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY] = url;
       else options.headers = { [DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY]: url };
@@ -397,11 +399,75 @@ export default class Response<
       headers: TResponse['headers'] extends object
         ? TResponse['headers']
         : object & {
-            [DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY]: string;
+            [DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY]: TUrl;
           };
       status: TResponse['status'] extends StatusCodes ? TResponse['status'] : 302;
     };
     return new Response<undefined, typeof optionsFormatted>(undefined, optionsFormatted);
+  }
+
+  /**
+   * Factory method to create a response with a html body. This will set the content-type header to text/html.
+   *
+   * @example
+   * ```
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/users').get(async () => {
+   *    return Response.html('<h1>Hello World</h1>');
+   * });
+   * ```
+   *
+   * @param htmlBody - The html body to send as a string.
+   * @param options - The options to pass to the response object.
+   *
+   * @returns - A response with the status set to 200 and the content-type header set to text/html.
+   */
+  static html<
+    TResponse extends {
+      status?: StatusCodes;
+      headers?: object | unknown;
+      context?: object | unknown;
+    } = {
+      status: undefined;
+      headers: undefined;
+      context: undefined;
+    }
+  >(htmlBody: string, options?: TResponse & { statusText?: string }) {
+    const isStatusNotDefined = typeof options?.status !== 'number';
+    const hasNotDefinedJsonHeader =
+      (options?.headers as any)?.[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] !==
+      DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML;
+
+    if (isStatusNotDefined) {
+      if (options) options.status = HTTP_200_OK;
+      else options = { status: HTTP_200_OK } as TResponse;
+      options.statusText = typeof options.statusText === 'string' ? options.statusText : 'OK';
+    }
+
+    if (hasNotDefinedJsonHeader) {
+      if (options) {
+        if (options.headers)
+          (options.headers as any)[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] =
+            DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML;
+        else
+          options.headers = {
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML,
+          };
+      } else
+        options = {
+          headers: { [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML },
+        } as TResponse;
+    }
+
+    const optionsFormatted = options as {
+      context: TResponse['context'] extends object ? TResponse['context'] : undefined;
+      headers: (TResponse['headers'] extends object ? TResponse['headers'] : object) & {
+        [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: 'text/html';
+      };
+      status: TResponse['status'] extends StatusCodes ? TResponse['status'] : 200 | 201;
+    };
+    return new Response<string, typeof optionsFormatted>(htmlBody, optionsFormatted);
   }
 
   /**

@@ -16,15 +16,16 @@ export default serverRouterAdapter({
    */
   parseHandlers(server, path, handlers, _, handler404) {
     const initializedServer = servers.get(server.serverName)?.server;
+
     if (initializedServer) {
-      const optionsHandler = handlers.get('options');
-      const headHandler = handlers.get('head');
-      const deleteHandler = handlers.get('delete');
-      const getHandler = handlers.get('get');
-      const postHandler = handlers.get('post');
-      const putHandler = handlers.get('put');
-      const patchHandler = handlers.get('patch');
-      const allHandler = handlers.get('all');
+      const optionsHandler = handlers.get('options')?.handler;
+      const headHandler = handlers.get('head')?.handler;
+      const deleteHandler = handlers.get('delete')?.handler;
+      const getHandler = handlers.get('get')?.handler;
+      const postHandler = handlers.get('post')?.handler;
+      const putHandler = handlers.get('put')?.handler;
+      const patchHandler = handlers.get('patch')?.handler;
+      const allHandler = handlers.get('all')?.handler;
 
       // This will initialize the server routes.
       initializedServer.all(path, (req: Request, res: Response) => {

@@ -123,7 +123,10 @@ type ExtractPossibleResponsesOfHandlerType<
  * @returns - An object with all the methods defined in the router.
  */
 export type AlreadyDefinedMethodsType<TRootPath extends string, TMiddlewares extends readonly Middleware[]> = {
-  [key in MethodTypes]?: HandlerType<TRootPath, TMiddlewares>;
+  [key in MethodTypes]?: {
+    handler: HandlerType<TRootPath, TMiddlewares>;
+    options?: RouterOptionsType;
+  };
 };
 
 export type DefineAlreadyDefinedMethodsType<
@@ -131,10 +134,21 @@ export type DefineAlreadyDefinedMethodsType<
   TMiddlewares extends readonly Middleware[],
   TAlreadyDefinedMethods extends AlreadyDefinedMethodsType<TRootPath, TMiddlewares> | unknown,
   THandler extends HandlerType<TRootPath, TMiddlewares, any, any>,
+  TOptions extends RouterOptionsType,
   TMethodType extends MethodTypes
 > = TAlreadyDefinedMethods extends object
-  ? TAlreadyDefinedMethods & { [key in TMethodType]: THandler }
-  : { [key in TMethodType]: THandler };
+  ? TAlreadyDefinedMethods & {
+    [key in TMethodType]: {
+      handler: THandler;
+      options?: TOptions;
+    }
+  }
+  : {
+    [key in TMethodType]: {
+      handler: THandler;
+      options?: TOptions;
+    };
+  };
 
 /**
  * This is responsible for extracting all handlers from a router, a handler is what will effectively be executed when a request is made.
@@ -197,4 +211,6 @@ export type ExtractIncludes<
     : TRouters
   : TRouters;
 
-export type RouterOptionsType = MiddlewareOptions
+export type RouterOptionsType<TCustomRouterOptions = any> = MiddlewareOptions & {
+  customRouterOptions?: TCustomRouterOptions;
+}
