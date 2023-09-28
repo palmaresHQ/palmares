@@ -20,6 +20,7 @@ import type {
 } from './types';
 import { AbortedRequestError } from './exceptions';
 import Response from '../response';
+import { AllServerSettingsType } from '../types';
 
 export default class Request<
   TRoutePath extends string = string,
@@ -96,6 +97,7 @@ export default class Request<
   };
   private __url?: { value: string };
   private __responses?: { value: TRequest['responses'] };
+  private __validation?: AllServerSettingsType['servers'][string]['validation'];
 
   context: TRequest['context'];
 
@@ -395,6 +397,22 @@ export default class Request<
     } else return {} as ExtractUrlParamsFromPathType<TRoutePath>;
   }
 
+  private __validateQueryParamsAndThrow(
+    data: any,
+    type: Parameters<BaseRouter['__queryParamsAndPath']['params']['set']>[1]
+  ) {
+    const queryParamIsNotOptional = type?.isOptional !== true;
+    const isDataFromQueryUndefinedOrNull = data === undefined || data === null;
+    const isRequiredQueryParamUndefinedOrNull = isDataFromQueryUndefinedOrNull && queryParamIsNotOptional;
+    const isArrayQueryParamEmpty = queryParamIsNotOptional && Array.isArray(data) && type.isArray && data.length === 0;
+    const isStringQueryParamEmpty = queryParamIsNotOptional && typeof data === 'string' && data === '';
+
+    if (isRequiredQueryParamUndefinedOrNull || isArrayQueryParamEmpty || isStringQueryParamEmpty) {
+      if (this.__validation?.handler) throw this.__validation.handler?.(this);
+      else ''; //Throw default response when validation is not set.
+    }
+  }
+
   /**
    * This is an extraction of a piece of code that repeats inside of `query` getter.
    *
@@ -410,8 +428,12 @@ export default class Request<
       this.__serverRequestAndResponseData,
       key
     );
-    if (dataFromQuery) {
-      (target as any)[key] = parseQueryParams(dataFromQuery, parserData as NonNullable<typeof parserData>);
+    if (dataFromQuery && parserData) {
+      const parsedData = parseQueryParams(dataFromQuery, parserData as NonNullable<typeof parserData>);
+
+      this.__validateQueryParamsAndThrow(parsedData, parserData);
+
+      (target as any)[key] = parsedData;
     }
   }
 
@@ -618,6 +640,8 @@ export default class Request<
     if (args?.referrerPolicy) newRequest.__referrerPolicy = Object.freeze({ value: args.referrerPolicy });
     else newRequest.__referrerPolicy = this.__referrerPolicy as any;
 
+    newRequest.__validation = this.__validation;
+    newRequest.__responses = this.__responses;
     newRequest.__queryParams = this.__queryParams;
     newRequest.__urlParams = this.__urlParams;
     newRequest.__serverAdapter = this.__serverAdapter;

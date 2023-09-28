@@ -54,8 +54,9 @@ export class BaseRouter<
       string,
       {
         type: ('number' | 'string' | 'boolean')[];
+        isOptional: boolean;
         isArray: boolean;
-        regex: RegExp;
+        regex: RegExp | undefined;
       }
     >;
   } = {
@@ -68,7 +69,7 @@ export class BaseRouter<
       string,
       {
         type: ('number' | 'string' | 'boolean')[];
-        regex: RegExp;
+        regex: RegExp | undefined;
       }
     >;
   } = {

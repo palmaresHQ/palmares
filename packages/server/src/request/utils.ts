@@ -6,6 +6,8 @@ export function parseParamsValue(
     | (BaseRouter['__queryParamsAndPath']['params'] extends Map<any, infer TType> ? TType : any)
     | (BaseRouter['__urlParamsAndPath']['params'] extends Map<any, infer TType> ? TType : any)
 ) {
+  if (type.regex && !type.regex.test(value)) return undefined;
+
   if (type.type.includes('string') && typeof value === 'string') return value;
   else if (type.type.includes('string') && typeof value !== 'string') {
     if (value !== undefined && value !== null) return String(value);

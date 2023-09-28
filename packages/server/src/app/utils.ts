@@ -126,6 +126,7 @@ function appendTranslatorToRequest(
   serverRequestAndResponseData: any,
   queryParams: BaseRouter['__queryParamsAndPath']['params'],
   urlParams: BaseRouter['__urlParamsAndPath']['params'],
+  validation: AllServerSettingsType['servers'][string]['validation'],
   options: RouterOptionsType | undefined
 ) {
   const requestWithoutPrivateMethods = request as unknown as Omit<
@@ -136,6 +137,7 @@ function appendTranslatorToRequest(
     | '__urlParams'
     | '__serverAdapter'
     | '__responses'
+    | '__validation'
   > & {
     __serverAdapter: ServerAdapter;
     __requestAdapter: ServerRequestAdapter;
@@ -143,11 +145,13 @@ function appendTranslatorToRequest(
     __queryParams: BaseRouter['__queryParamsAndPath']['params'];
     __urlParams: BaseRouter['__urlParamsAndPath']['params'];
     __responses: Record<string, (...args: any[]) => Response<any, any> | undefined>;
+    __validation: AllServerSettingsType['servers'][string]['validation'];
   };
   if (options?.responses)
     requestWithoutPrivateMethods.__responses = Object.freeze({
       value: options?.responses as any,
     });
+  requestWithoutPrivateMethods.__validation = validation;
   requestWithoutPrivateMethods.__serverAdapter = serverAdapter;
   requestWithoutPrivateMethods.__serverRequestAndResponseData = serverRequestAndResponseData;
   requestWithoutPrivateMethods.__requestAdapter = serverRequestAdapter;
@@ -301,7 +305,8 @@ function wrapHandlerAndMiddlewares(
   handler: HandlerType<string, any[]>,
   options: RouterOptionsType | undefined,
   server: ServerAdapter,
-  handler500?: AllServerSettingsType['servers'][string]['handler500']
+  handler500?: AllServerSettingsType['servers'][string]['handler500'],
+  validation?: AllServerSettingsType['servers'][string]['validation']
 ) {
   const wrappedHandler = async (serverRequestAndResponseData: any) => {
     let request = appendTranslatorToRequest(
@@ -311,6 +316,7 @@ function wrapHandlerAndMiddlewares(
       serverRequestAndResponseData,
       queryParams,
       urlParams,
+      validation,
       options
     );
 
@@ -340,6 +346,7 @@ function wrapHandlerAndMiddlewares(
             serverRequestAndResponseData,
             queryParams,
             urlParams,
+            validation,
             options
           );
       }
@@ -469,7 +476,8 @@ export async function* getAllRouters(
           handler.handler,
           handler.options,
           serverAdapter,
-          settings.handler500
+          settings.handler500,
+          settings.validation
         );
         accumulator.set(method as MethodTypes | 'all', {
           handler: wrappedHandler,

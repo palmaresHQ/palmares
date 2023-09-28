@@ -21,7 +21,7 @@ export type ServerSettingsType<TCustomServerSettings = unknown> = {
   prefix?: string;
   handler404?: Required<Middleware>['response'];
   validation?: {
-    handler?: (request: Request<any, any>) => Promise<Response<any, any>> | Response<any, any>;
+    handler?: (request: Request<any, any>) => Response<any, any>;
     /**
      * Those options are used to configure how we will validate the query and the url parameters. By default we will use the `lazy` option.
      *
