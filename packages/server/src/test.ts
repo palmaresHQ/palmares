@@ -58,12 +58,6 @@ const testRequestMiddleware = nestedMiddleware<typeof rootRouter>()({
       '400': () => Response.json({ user: 'notFound' }, { status: 400 }),
     },
   },
-  response: (response) => {
-    response.status === 400 ? response.body.user : response.status === 404 ? response.body.user : response;
-    //response.status === 404 ?
-    return response;
-    //response.status === 204 ? response.body : response.status === 400 ? response.body.user : response.body.message;
-  },
 });
 
 const testResponseMiddleware2 = nestedMiddleware<typeof testRouterWithController>()({
@@ -86,7 +80,7 @@ const testController = pathNested<typeof testRouter>()('/<userId: string>').get(
   }
 );
 
-const testRouterWithController = testRouter.nested([testController]);
+const testRouterWithController = testRouter.nested([testController] as const);
 testRouterWithController.middlewares([testResponseMiddleware2]);
 const withMiddlewares = pathNested<typeof rootRouter>()('').middlewares([addHeadersAndAuthenticateUser] as const);
 

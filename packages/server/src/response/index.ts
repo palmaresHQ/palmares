@@ -160,7 +160,7 @@ export default class Response<
     const optionsFormatted = options as {
       context: TResponse['context'] extends object ? TResponse['context'] : undefined;
       headers: (TResponse['headers'] extends object ? TResponse['headers'] : object) & {
-        [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: 'application/json';
+        [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: string;
       };
       status: TResponse['status'] extends StatusCodes ? TResponse['status'] : 200 | 201;
     };
@@ -232,7 +232,7 @@ export default class Response<
     const optionsFormatted = options as {
       context: TResponse['context'] extends object ? TResponse['context'] : undefined;
       headers: (TResponse['headers'] extends object ? TResponse['headers'] : object) & {
-        [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: 'application/octet-stream';
+        [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: string;
       };
       status: TResponse['status'] extends StatusCodes ? TResponse['status'] : 200 | 201;
     };

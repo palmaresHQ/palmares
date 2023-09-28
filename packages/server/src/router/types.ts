@@ -167,7 +167,7 @@ export type ExtractAllHandlersType<
       | BaseRouter<any, infer TRouterChildren, any, any, infer TDefinedHandlers>
       | Omit<BaseRouter<any, infer TRouterChildren, any, any, infer TDefinedHandlers>, never>
     ?
-        | TDefinedHandlers[keyof TDefinedHandlers]
+        | (TDefinedHandlers[keyof TDefinedHandlers] extends { handler: any, options?: any } ? TDefinedHandlers[keyof TDefinedHandlers]['handler'] : never)
         | TFinalHandlers
         | ExtractAllHandlersType<
             TRouterChildren extends DefaultRouterType[] | Omit<DefaultRouterType, never>[] ? TRouterChildren : [],
