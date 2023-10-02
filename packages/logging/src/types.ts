@@ -1,7 +1,7 @@
 import LoggerAdapter from './adapter';
 
 export type LoggingTypes = 'debug' | 'log' | 'info' | 'warn' | 'error';
-export type SavedLoggingMessagesType = Record<string, { category: LoggingTypes; handler: (args?: object) => string }>;
+export type SavedLoggingMessagesType = Record<string, { category: LoggingTypes; handler: (args?: any) => string }>;
 export type LoggerArgumentsToFilterAndFormatters = {
   message: string;
   created: string;

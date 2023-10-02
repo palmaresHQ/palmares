@@ -1,11 +1,7 @@
 {
-  "name": "@palmares/server",
+  "name": "@palmares/console-logging",
   "version": "0.0.0",
-  "files": [
-    "dist",
-    "README.md"
-  ],
-  "description": "The server from palmares, this is what you will use generally to make HTTP requests",
+  "description": "This is the default implementation of the logger adapter, you can create others if you want to",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
   "types": "./dist/cjs/types/index.d.ts",
@@ -18,10 +14,6 @@
       "default": "./dist/esm/src/index.js"
     }
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/palmaresHQ/palmares.git"
-  },
   "scripts": {
     "clear": "rimraf ./dist",
     "build:types": "tsc --project tsconfig.types.json",
@@ -33,9 +25,15 @@
     "build:module:watch": "swc ./src -d ./dist/esm/src --config-file ../../build/.esm.swcrc --watch",
     "build:watch": "pnpm run build:cjs:watch & pnpm run build:module:watch & pnpm run build:types:watch"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/palmaresHQ/palmares.git"
+  },
   "keywords": [
+    "console",
+    "logging",
     "palmares",
-    "server"
+    "adapter"
   ],
   "author": "Nicolas Melo",
   "license": "MIT",
@@ -43,9 +41,7 @@
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
-  "dependencies": {
-    "@palmares/logging": "workspace:*",
-    "@palmares/core": "workspace:*",
-    "@palmares/std": "workspace:*"
+  "devDependencies": {
+    "@palmares/logging": "workspace:*"
   }
 }

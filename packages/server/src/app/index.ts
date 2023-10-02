@@ -3,11 +3,11 @@ import { appServer } from '@palmares/core';
 import { ServerAlreadyInitializedError } from './exceptions';
 import { initializeRouters } from './utils';
 import { DEFAULT_SERVER_PORT } from '../defaults';
+import { serverLogger } from '../logging';
 
 import type Server from '../adapters';
 import type { ServerSettingsType, AllServerSettingsType } from '../types';
 import type { ServerDomain } from '../domain/types';
-
 let serverInstances: Map<string, { server: Server; settings: ServerSettingsType }> = new Map();
 
 /**
@@ -45,7 +45,7 @@ export default appServer({
     for (const [serverName, { server, settings }] of serverInstances.entries()) {
       promises.push(
         server.start(serverName, settings.port || DEFAULT_SERVER_PORT, () => {
-          console.log(`Server ${serverName} started on port ${settings.port || DEFAULT_SERVER_PORT}`);
+          serverLogger.logMessage('START_SERVER', { port: settings.port || DEFAULT_SERVER_PORT, serverName });
         })
       );
     }

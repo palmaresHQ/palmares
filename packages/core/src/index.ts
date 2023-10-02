@@ -3,8 +3,6 @@ export * from './commands/types';
 export { Domain, domain } from './domain';
 export { initializeDomains, retrieveDomains } from './domain/utils';
 export * from './domain/types';
-export { default as logging } from './logging';
-export * from './logging/types';
 export { default as defineSettings } from './conf';
 export { getSettings } from './conf/settings';
 export * from './conf/types';

@@ -2,8 +2,7 @@ import { DomainHandlerFunctionArgs } from '../commands/types';
 import { SettingsType2 } from '../conf/types';
 import { CoreSettingsType } from '../conf/types';
 import Domain from '../domain/domain';
-import logging from '../logging';
-import { LOGGING_APP_STOP_SERVER } from '../utils';
+import { getLogger } from '../logging';
 
 let baseAppServerInstance: BaseAppServer | undefined = undefined;
 let appServerInstance: InstanceType<ReturnType<typeof appServer>> | AppServer | undefined = undefined;
@@ -63,12 +62,12 @@ export class BaseAppServer {
    * By default what this does is simply calling all of the `close` methods of the domains.
    */
   async #cleanup() {
-    const settingsAsCoreSettings = this.settings as SettingsType2 & CoreSettingsType;
     if (this.isClosingServer === false) {
       this.isClosingServer = true;
-      await logging.logMessage(LOGGING_APP_STOP_SERVER, {
-        appName: settingsAsCoreSettings.appName || 'palmares_app',
-      });
+
+      const logger = getLogger();
+      logger.info('Closing the app server');
+
       const promises = this.domains.map(async (domain) => {
         if (domain.__isClosed === false && domain.close) await domain.close();
       });

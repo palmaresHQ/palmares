@@ -3,11 +3,11 @@ import { domain } from '@palmares/core';
 import { setLoggerAtLevel } from './config';
 import { LoggingSettingsType, LoggingTypes } from './types';
 import LoggingAdapter from './adapter';
+import Logger from './logger';
 
 //@ts-ignore
 export default domain('@palmares/logging', __dirname || import.meta.url, {
   load: async (settings: LoggingSettingsType) => {
-    console.log(settings);
     if (settings.logger) {
       if (settings.logger instanceof Promise || Array.isArray(settings.logger) === false) {
         const logger = (
@@ -34,6 +34,7 @@ export default domain('@palmares/logging', __dirname || import.meta.url, {
           }
         }
       }
+      (settings as any).__logger = Logger;
     }
   },
 });

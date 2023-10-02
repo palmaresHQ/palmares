@@ -38,8 +38,8 @@ export default class Logger<TLoggingMessages extends SavedLoggingMessagesType> {
    *
    * @example
    * ```ts
-   * const logger = new Logger({ name: 'my-logger' });
-   * const childLogger = logger.getChildLogger('child-logger');
+   * const logger = new Logger({ domainName: 'my-custom-package' });
+   * const childLogger = logger.getChildLogger('migrations');
    * ```
    *
    * @param name - The name of the child logger.
@@ -118,10 +118,24 @@ export default class Logger<TLoggingMessages extends SavedLoggingMessagesType> {
    * @param name - The name of the logging message.
    * @param args - The arguments that will be passed to the handler function.
    */
-  logMessage<TName extends string>(name: TName, args: Parameters<TLoggingMessages[TName]['handler']>[0]) {
-    if (this.loggingMessages?.[name]) this.loggingMessages[name].handler(args);
+  logMessage<TName extends keyof TLoggingMessages>(
+    name: TName,
+    args: Parameters<TLoggingMessages[TName]['handler']>[0]
+  ) {
+    if (this.loggingMessages?.[name])
+      this.#log(this.loggingMessages[name].handler(args), this.loggingMessages[name].category);
   }
 
+  /**
+   * This is the main logging method. This will log the message to the console or to a file or a database, or even an api.
+   *
+   * With this method we can reuse the same logic over and over again on each logging type.
+   *
+   * @param message - The message to be logged.
+   * @param level - The level of the message to be logged.
+   *
+   * @private
+   */
   #log(message: string, level: LoggingTypes) {
     const data: LoggerArgumentsToFilterAndFormatters = {
       message,

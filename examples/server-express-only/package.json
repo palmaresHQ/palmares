@@ -9,6 +9,7 @@
   "author": "Nicolas Melo",
   "license": "MIT",
   "dependencies": {
+    "@palmares/console-logging": "workspace:*",
     "@palmares/logging": "workspace:*",
     "@palmares/core": "workspace:*",
     "@palmares/express-adapter": "workspace:*",

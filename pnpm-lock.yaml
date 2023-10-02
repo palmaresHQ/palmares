@@ -142,12 +142,18 @@ importers:
 
   examples/server-express-only:
     dependencies:
+      '@palmares/console-logging':
+        specifier: workspace:*
+        version: link:../../libs/console-logging
       '@palmares/core':
         specifier: workspace:*
         version: link:../../packages/core
       '@palmares/express-adapter':
         specifier: workspace:*
         version: link:../../libs/express-adapter
+      '@palmares/logging':
+        specifier: workspace:*
+        version: link:../../packages/logging
       '@palmares/node-std':
         specifier: workspace:*
         version: link:../../libs/node-std
@@ -170,6 +176,12 @@ importers:
       nodemon:
         specifier: ^2.0.20
         version: 2.0.22
+
+  libs/console-logging:
+    devDependencies:
+      '@palmares/logging':
+        specifier: workspace:*
+        version: link:../../packages/logging
 
   libs/eventemitter2-emitter:
     dependencies:
@@ -318,6 +330,9 @@ importers:
       '@palmares/core':
         specifier: workspace:*
         version: link:../core
+      '@palmares/logging':
+        specifier: workspace:*
+        version: link:../logging
       '@palmares/std':
         specifier: workspace:*
         version: link:../std

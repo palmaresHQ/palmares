@@ -1,6 +1,6 @@
 import { LoggingTypes } from './types';
 
-export const FRAMEWORK_NAME = 'Palmares';
+export const FRAMEWORK_NAME = 'palmares';
 
 export const stringByMessageType: Record<LoggingTypes, string> = {
   debug: '\x1b[35mDEBUG\x1b[0m',

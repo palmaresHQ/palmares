@@ -2,7 +2,9 @@ import CoreDomain, { defineSettings } from '@palmares/core';
 import { ExpressServerAdapter } from '@palmares/express-adapter';
 import StdDomain from '@palmares/std';
 import NodeStd from '@palmares/node-std';
-import ServerDomain, { Middleware, Response, middleware } from '@palmares/server';
+import LoggingDomain from '@palmares/logging';
+import ConsoleLogging from '@palmares/console-logging';
+import ServerDomain, { Response } from '@palmares/server';
 
 import { dirname, resolve } from 'path';
 import RequestsDomain from './requests';
@@ -13,6 +15,12 @@ import ResponsesDomain from './responses';
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
   installedDomains: [
+    [
+      LoggingDomain,
+      {
+        logger: ConsoleLogging,
+      },
+    ],
     [
       StdDomain,
       {

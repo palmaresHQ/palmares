@@ -5,6 +5,8 @@ import { initializeDomains } from '../domain/utils';
 import { setSettings } from '../conf/settings';
 import { AppServer, appServer } from '../app';
 import { initializeApp } from '../app/utils';
+import { getDefaultFormattedMessage, getLogger, setLogger } from '../logging';
+import { PACKAGE_NAME } from '../utils';
 
 let cachedCommands = {} as DefaultCommandType;
 
@@ -58,6 +60,10 @@ function getValueFromType(type: 'boolean' | 'number' | 'string' | string[] | rea
  * }
  *
  * handleCommands({ installedDomains: [testDomain] }, ['testCommand', 'test', '--test=test']);
+ * ```
+ *
+ * @param command - The command object that will be used to format the arguments.
+ * @param args - The arguments that will be formatted.
  */
 async function formatArgs(command: DefaultCommandType[string], args: string[]) {
   const isArgAKeywordParameter = (arg: string) => arg.startsWith('--') || arg.startsWith('-');
@@ -140,10 +146,27 @@ export async function handleCommands(
       },
   args: string[]
 ): Promise<void> {
+  let logger = getLogger();
+  logger.info(new Date().toISOString());
+  logger.info('Loading the settings and domains...');
   const commandType = args[0];
   const settings = await setSettings(settingsOrSettingsPath);
 
   const { domains, commands: availableCommands } = await initializeDomains(settings);
+
+  // the '@palmares/logging' package sends a new logger constructor through the settings, if that exist we will use it, otherwise it'll just be a default `console.info`
+  const loggerConstructorFromPalmaresLoggingPackage = (settings as any)?.__logger as
+    | (new (args: { name?: string; domainName?: string }) => {
+        log: (message: string) => void;
+        info: (message: string) => void;
+        debug: (message: string) => void;
+        warn: (message: string) => void;
+        error: (message: string) => void;
+      })
+    | undefined;
+  if (loggerConstructorFromPalmaresLoggingPackage)
+    setLogger(new loggerConstructorFromPalmaresLoggingPackage({ domainName: PACKAGE_NAME }));
+  logger = getLogger();
 
   cachedCommands = availableCommands;
 
@@ -158,6 +181,9 @@ export async function handleCommands(
 
   if (isCommandDefined) {
     formattedCommandLineArgs = await formatArgs(availableCommands[commandType], args.slice(1, args.length));
+
+    logger.info(`Domains loaded, running the command [${commandType}]`);
+
     returnOfCommand = await Promise.resolve(
       availableCommands[commandType].handler({
         settings,
@@ -171,6 +197,9 @@ export async function handleCommands(
 
   // This will start the app server if your command returns an app server class. Please, don't try to run the app server manually, unless you REALLY know
   // what you are doing, since it has it's own lifecycle.
-  if (returnOfCommand?.prototype instanceof AppServer)
+  if (returnOfCommand?.prototype instanceof AppServer) {
+    logger.info(`Command wants to start the app server, starting it...`);
+
     initializeApp(domains, settings, formattedCommandLineArgs, returnOfCommand);
+  }
 }
