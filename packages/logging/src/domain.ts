@@ -21,17 +21,19 @@ export default domain('@palmares/logging', __dirname || import.meta.url, {
         setLoggerAtLevel('error', loggerData);
       } else if (Array.isArray(settings.logger)) {
         for (const logger of settings.logger) {
+          const initializedLogger = Array.isArray(logger.logger)
+            ? logger.logger.map((loggerConstructor) => {
+                console.log(loggerConstructor);
+                return new loggerConstructor();
+              })
+            : new logger.logger();
+          (logger as any).logger = initializedLogger;
           const loggingLevels: LoggingTypes[] = Array.isArray(logger.level)
             ? logger.level
             : typeof logger.level === 'string'
             ? [logger.level]
             : ['debug', 'log', 'info', 'warn', 'error'];
-          for (const level of loggingLevels) {
-            (logger as any).logger = Array.isArray(logger.logger)
-              ? logger.logger.map((loggerConstructor) => new loggerConstructor())
-              : new logger.logger();
-            setLoggerAtLevel(level, logger as typeof logger & { logger: LoggingAdapter | LoggingAdapter[] });
-          }
+          for (const level of loggingLevels) setLoggerAtLevel(level, logger as any);
         }
       }
       (settings as any).__logger = Logger;

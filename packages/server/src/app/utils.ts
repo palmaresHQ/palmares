@@ -25,6 +25,7 @@ import {
 
 import type ServerRouterAdapter from '../adapters/routers';
 import { AsyncGeneratorFunction, FileLike, GeneratorFunction } from '../response/utils';
+import { serverLogger } from '../logging';
 
 /**
  * By default we don't know how to handle the routes by itself. Pretty much MethodsRouter does everything that we need here during runtime.
@@ -319,6 +320,7 @@ function wrapHandlerAndMiddlewares(
       validation,
       options
     );
+    serverLogger.logMessage('REQUEST_RECEIVED', { method: request.method, url: request.url });
 
     let response: Response | undefined = undefined;
     let wasErrorAlreadyHandledInRequestLifecycle = false;

@@ -52,7 +52,10 @@ export default appServer({
     await Promise.all(promises.concat(configureCleanup()));
   },
   close: async () => {
-    for (const [, { server }] of serverInstances.entries()) {
+    for (const [serverName, { server }] of serverInstances.entries()) {
+      serverLogger.logMessage('STOP_SERVER', {
+        serverName,
+      });
       await server.close();
     }
   },
