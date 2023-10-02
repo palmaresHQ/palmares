@@ -6,7 +6,7 @@ export type EngineInitializedModels<M = unknown> = {
 };
 
 export type EngineType = {
-  databaseName: string;
+  connectionName: string;
   fields: EngineFields;
 };
 

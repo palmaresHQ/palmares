@@ -1,8 +1,4 @@
-import {
-  ON_DELETE,
-  ForeignKeyFieldParamsType,
-  ClassConstructor,
-} from './types';
+import { ON_DELETE, ForeignKeyFieldParamsType, ClassConstructor } from './types';
 import Field from './field';
 import type { TModel } from '../types';
 import { ForeignKeyFieldRequiredParamsMissingError } from './exceptions';
@@ -68,22 +64,7 @@ export default class ForeignKeyField<
   relationName: RNN;
   _originalRelatedName?: string;
 
-  constructor(
-    params: ForeignKeyFieldParamsType<
-      F,
-      TLazyDefaultValue,
-      D,
-      U,
-      N,
-      A,
-      CA,
-      T,
-      M,
-      RF,
-      RN,
-      RNN
-    >
-  ) {
+  constructor(params: ForeignKeyFieldParamsType<F, TLazyDefaultValue, D, U, N, A, CA, T, M, RF, RN, RNN>) {
     super(params);
 
     let relatedToAsString: string = params.relatedTo as string;
@@ -96,8 +77,7 @@ export default class ForeignKeyField<
     if (isRelationNameDefined) {
       this.relationName = params.relationName as RNN;
     } else {
-      this.relationName = (relatedToAsString.charAt(0).toLowerCase() +
-        relatedToAsString.slice(1)) as RNN;
+      this.relationName = (relatedToAsString.charAt(0).toLowerCase() + relatedToAsString.slice(1)) as RNN;
     }
     this.relatedTo = relatedToAsString;
     this.customName = params.customName;
@@ -138,63 +118,24 @@ export default class ForeignKeyField<
     RF extends string = any,
     RN extends string = any,
     RNN extends string = any
-  >(
-    this: I,
-    params: ForeignKeyFieldParamsType<
-      InstanceType<I>,
-      TLazyDefaultValue,
-      D,
-      U,
-      N,
-      A,
-      CA,
-      T,
-      M,
-      RF,
-      RN,
-      RNN
-    >
-  ) {
-    return new this(params) as ForeignKeyField<
-      InstanceType<I>,
-      TLazyDefaultValue,
-      D,
-      U,
-      N,
-      A,
-      CA,
-      T,
-      M,
-      RF,
-      RN,
-      RNN
-    >;
+  >(this: I, params: ForeignKeyFieldParamsType<InstanceType<I>, TLazyDefaultValue, D, U, N, A, CA, T, M, RF, RN, RNN>) {
+    return new this(params) as ForeignKeyField<InstanceType<I>, TLazyDefaultValue, D, U, N, A, CA, T, M, RF, RN, RNN>;
   }
 
-  async init(
-    fieldName: string,
-    model: TModel,
-    engineInstance?: Engine
-  ): Promise<void> {
-    const isRelatedToAndOnDeleteNotDefined =
-      typeof this.relatedTo !== 'string' && typeof this.onDelete !== 'string';
+  async init(fieldName: string, model: TModel, engineInstance?: Engine): Promise<void> {
+    const isRelatedToAndOnDeleteNotDefined = typeof this.relatedTo !== 'string' && typeof this.onDelete !== 'string';
 
-    if (isRelatedToAndOnDeleteNotDefined)
-      throw new ForeignKeyFieldRequiredParamsMissingError(this.fieldName);
+    if (isRelatedToAndOnDeleteNotDefined) throw new ForeignKeyFieldRequiredParamsMissingError(this.fieldName);
 
     const hasNotIncludesAssociation =
-      (model.associations[this.relatedTo] || []).some(
-        (association) => association.fieldName === fieldName
-      ) === false;
+      (model.associations[this.relatedTo] || []).some((association) => association.fieldName === fieldName) === false;
     if (hasNotIncludesAssociation) {
-      model.associations[this.relatedTo] =
-        model.associations[this.relatedTo] || [];
+      model.associations[this.relatedTo] = model.associations[this.relatedTo] || [];
       model.associations[this.relatedTo].push(this);
     }
 
     // Appends to the model the other models this model is related to.
-    model.directlyRelatedTo[this.relatedTo] =
-      model.directlyRelatedTo[this.relatedTo] || [];
+    model.directlyRelatedTo[this.relatedTo] = model.directlyRelatedTo[this.relatedTo] || [];
     model.directlyRelatedTo[this.relatedTo].push(this.relationName);
 
     // this will update the indirectly related models of the engine instance.
@@ -203,28 +144,20 @@ export default class ForeignKeyField<
     // Because of this we update this value on the engine instance. Updating the array on the engine instance
     // will also reflect on the `relatedTo` array in the model instance.
     if (engineInstance && this._originalRelatedName) {
-      engineInstance._indirectlyRelatedModels[this.relatedTo] =
-        engineInstance._indirectlyRelatedModels[this.relatedTo] || {};
-      engineInstance._indirectlyRelatedModels[this.relatedTo][
-        model.originalName
-      ] =
-        engineInstance._indirectlyRelatedModels[this.relatedTo][
-          model.originalName
-        ] || [];
-      engineInstance._indirectlyRelatedModels[this.relatedTo][
-        model.originalName
-      ].push(this._originalRelatedName);
+      engineInstance.__indirectlyRelatedModels[this.relatedTo] =
+        engineInstance.__indirectlyRelatedModels[this.relatedTo] || {};
+      engineInstance.__indirectlyRelatedModels[this.relatedTo][model.originalName] =
+        engineInstance.__indirectlyRelatedModels[this.relatedTo][model.originalName] || [];
+      engineInstance.__indirectlyRelatedModels[this.relatedTo][model.originalName].push(this._originalRelatedName);
     }
     await super.init(fieldName, model);
 
     const wasRelatedNameDefined: boolean = typeof this.relatedName === 'string';
 
     if (wasRelatedNameDefined === false) {
-      const relatedToWithFirstStringLower: string =
-        this.relatedTo.charAt(0).toLowerCase() + this.relatedTo.slice(1);
+      const relatedToWithFirstStringLower: string = this.relatedTo.charAt(0).toLowerCase() + this.relatedTo.slice(1);
       const originalModelNameWithFirstStringUpper: string =
-        model.originalName.charAt(0).toUpperCase() +
-        model.originalName.slice(1);
+        model.originalName.charAt(0).toUpperCase() + model.originalName.slice(1);
       this._originalRelatedName = `${relatedToWithFirstStringLower}${originalModelNameWithFirstStringUpper}s`;
     }
   }
@@ -271,19 +204,15 @@ export default class ForeignKeyField<
    * @returns - Returns an array where the first item is if the relatedmodel is from the engine instance (false if not) and the field it should
    * change to.
    */
-  async isRelatedModelFromEngineInstance(
-    engineInstance: Engine
-  ): Promise<[boolean, Field?]> {
-    const relatedModel = engineInstance._modelsOfEngine[this.relatedTo];
+  async isRelatedModelFromEngineInstance(engineInstance: Engine): Promise<[boolean, Field?]> {
+    const relatedModel = engineInstance.__modelsOfEngine[this.relatedTo];
 
     if (relatedModel !== undefined) return [true, undefined];
     else {
-      const modelRelatedTo =
-        engineInstance._modelsFilteredOutOfEngine[this.relatedTo];
+      const modelRelatedTo = engineInstance.__modelsFilteredOutOfEngine[this.relatedTo];
       if (modelRelatedTo === undefined) return [true, undefined];
       else {
-        const modelRelatedToInitialized =
-          await new modelRelatedTo().initializeBasic(engineInstance);
+        const modelRelatedToInitialized = await new modelRelatedTo().initializeBasic(engineInstance);
         const fieldRelatedTo = modelRelatedToInitialized.fields[this.toField];
         const clonedField = await fieldRelatedTo.clone();
         clonedField.model = this.model;
@@ -316,8 +245,7 @@ export default class ForeignKeyField<
   get relatedName() {
     const isModelDefined = this.model !== undefined;
     const isModelAStateModel = isModelDefined && this.model._isState === true;
-    if (isModelAStateModel)
-      return `${generateUUID()}-${this._originalRelatedName}`;
+    if (isModelAStateModel) return `${generateUUID()}-${this._originalRelatedName}`;
     else return this._originalRelatedName;
   }
 
@@ -332,16 +260,10 @@ export default class ForeignKeyField<
       `${ident}relatedTo: "${this.relatedTo}",\n` +
         `${ident}toField: "${this.toField}",\n` +
         `${ident}onDelete: models.fields.ON_DELETE.${this.onDelete.toUpperCase()},\n` +
-        `${ident}customName: ${
-          typeof this.customName === 'string'
-            ? `"${this.customName}"`
-            : this.customName
-        },\n` +
+        `${ident}customName: ${typeof this.customName === 'string' ? `"${this.customName}"` : this.customName},\n` +
         `${ident}relationName: "${this.relationName}",\n` +
         `${ident}relatedName: ${
-          typeof this._originalRelatedName === 'string'
-            ? `"${this._originalRelatedName}",`
-            : this._originalRelatedName
+          typeof this._originalRelatedName === 'string' ? `"${this._originalRelatedName}",` : this._originalRelatedName
         }`
     );
   }

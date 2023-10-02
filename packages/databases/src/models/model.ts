@@ -268,9 +268,9 @@ export class Model<T = any> {
     const managerValues = Object.values(managers);
 
     for (const manager of managerValues) {
-      manager._setModel(engineInstance.databaseName, this);
-      if (modelInstance) manager._setInstance(engineInstance.databaseName, modelInstance);
-      manager._setEngineInstance(engineInstance.databaseName, engineInstance);
+      manager._setModel(engineInstance.connectionName, this);
+      if (modelInstance) manager._setInstance(engineInstance.connectionName, modelInstance);
+      manager._setEngineInstance(engineInstance.connectionName, engineInstance);
     }
   }
 
@@ -285,9 +285,9 @@ export class Model<T = any> {
   async #initializeRelatedToModels(engineInstance?: Engine) {
     if (engineInstance) {
       const relatedTo: Record<string, string[]> = {};
-      engineInstance._indirectlyRelatedModels[this.originalName] =
-        engineInstance._indirectlyRelatedModels[this.originalName] || relatedTo;
-      this.indirectlyRelatedTo = engineInstance._indirectlyRelatedModels[this.originalName];
+      engineInstance.__indirectlyRelatedModels[this.originalName] =
+        engineInstance.__indirectlyRelatedModels[this.originalName] || relatedTo;
+      this.indirectlyRelatedTo = engineInstance.__indirectlyRelatedModels[this.originalName];
     }
   }
 
@@ -304,7 +304,7 @@ export class Model<T = any> {
     if (!engineInstance) return;
     if (!engineInstance.databaseSettings.events?.emitter) return;
 
-    const existingEngineInstanceName = engineInstance.databaseName;
+    const existingEngineInstanceName = engineInstance.connectionName;
 
     for (const operationType of ['onSet', 'onRemove'] as const) {
       const eventHandler =
@@ -389,7 +389,7 @@ export class Model<T = any> {
     }
     await this.#initializeManagers(engineInstance, modelInstance);
     (this.constructor as typeof Model)._isInitialized = {
-      [engineInstance.databaseName]: true,
+      [engineInstance.connectionName]: true,
     };
     return modelInstance;
   }

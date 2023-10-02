@@ -5,6 +5,7 @@ import ServerAdapter from '../adapters';
 import {
   DEFAULT_REQUEST_CONTENT_HEADER_VALUE_URLENCODED,
   DEFAULT_REQUEST_HEADERS_CONTENT_HEADER_KEY,
+  DEFAULT_SERVER_ERROR_INVALID_QUERY_OR_PARAMS,
 } from '../defaults';
 
 import type {
@@ -94,6 +95,24 @@ export default class Request<
   private __signal: {
     signal: AbortSignal;
     controller: AbortController;
+  };
+  private __validationErrors?: {
+    query?: Record<
+      keyof ExtractQueryParamsFromPathType<TRoutePath>,
+      {
+        data: any;
+        errorOn: keyof Parameters<BaseRouter['__queryParamsAndPath']['params']['set']>[1][];
+        type: Parameters<BaseRouter['__queryParamsAndPath']['params']['set']>[1];
+      }
+    >;
+    url?: Record<
+      keyof ExtractUrlParamsFromPathType<TRoutePath>,
+      {
+        data: any;
+        errorOn: keyof Parameters<BaseRouter['__urlParamsAndPath']['params']['set']>[1][];
+        type: Parameters<BaseRouter['__urlParamsAndPath']['params']['set']>[1];
+      }
+    >;
   };
   private __url?: { value: string };
   private __responses?: { value: TRequest['responses'] };
@@ -232,6 +251,34 @@ export default class Request<
   }
 
   /**
+   * This will show the errors that happened on the request. This way you can validate them during the request response lifecycle.
+   *
+   * By default we give you the data parsed, we just parse the data when you use it. So in other words. If the request is made and you don't use the data we just don't validate.
+   *
+   * This is nice to keep your application fast and don't get in your way.
+   */
+  get validationErrors() {
+    return this.__validationErrors as unknown as {
+      query?: Record<
+        keyof ExtractQueryParamsFromPathType<TRoutePath>,
+        {
+          data: any;
+          errorOn: keyof Parameters<BaseRouter['__queryParamsAndPath']['params']['set']>[1][];
+          type: Parameters<BaseRouter['__queryParamsAndPath']['params']['set']>[1];
+        }
+      >;
+      url?: Record<
+        keyof ExtractUrlParamsFromPathType<TRoutePath>,
+        {
+          data: any;
+          errorOn: keyof Parameters<BaseRouter['__urlParamsAndPath']['params']['set']>[1][];
+          type: Parameters<BaseRouter['__urlParamsAndPath']['params']['set']>[1];
+        }
+      >;
+    };
+  }
+
+  /**
    * This will cancel the request lifecycle and will return an 500 error to the client.
    *
    * @example
@@ -329,13 +376,18 @@ export default class Request<
   private __appendUrlParamParsedToTarget(target: any, key: string) {
     if (!this.__urlParams) return undefined;
     const nonNullableRequestAdapter = this.__requestAdapter as NonNullable<typeof this.__requestAdapter>;
-    const parsedData = this.__urlParams.get(key);
+    const parserData = this.__urlParams.get(key);
     const dataFromUrl = nonNullableRequestAdapter.params(
       this.__serverAdapter as NonNullable<Request['__serverAdapter']>,
       this.__serverRequestAndResponseData,
       key
     );
-    if (dataFromUrl) (target as any)[key] = parseParamsValue(dataFromUrl, parsedData as NonNullable<typeof parsedData>);
+    if (dataFromUrl && parserData) {
+      const parsedData = parseParamsValue(dataFromUrl, parserData);
+
+      this.__validateParamsAndThrow(key, parsedData, parserData);
+      (target as any)[key] = parsedData;
+    }
   }
 
   /**
@@ -398,6 +450,7 @@ export default class Request<
   }
 
   private __validateQueryParamsAndThrow(
+    name: string,
     data: any,
     type: Parameters<BaseRouter['__queryParamsAndPath']['params']['set']>[1]
   ) {
@@ -406,10 +459,49 @@ export default class Request<
     const isRequiredQueryParamUndefinedOrNull = isDataFromQueryUndefinedOrNull && queryParamIsNotOptional;
     const isArrayQueryParamEmpty = queryParamIsNotOptional && Array.isArray(data) && type.isArray && data.length === 0;
     const isStringQueryParamEmpty = queryParamIsNotOptional && typeof data === 'string' && data === '';
+    const errorsOn = [];
+    if (isArrayQueryParamEmpty) errorsOn.push('isArray');
+    if (isRequiredQueryParamUndefinedOrNull) errorsOn.push('isOptional', 'type');
+    if (type.regex) errorsOn.push('regex');
 
     if (isRequiredQueryParamUndefinedOrNull || isArrayQueryParamEmpty || isStringQueryParamEmpty) {
+      const errorData = {
+        [name]: {
+          data,
+          errorsOn,
+          type,
+        },
+      };
+      (this.__validationErrors as any) = Object.freeze({
+        query: errorData,
+      });
       if (this.__validation?.handler) throw this.__validation.handler?.(this);
-      else ''; //Throw default response when validation is not set.
+      else throw DEFAULT_SERVER_ERROR_INVALID_QUERY_OR_PARAMS();
+    }
+  }
+
+  private __validateParamsAndThrow(
+    name: string,
+    data: any,
+    type: Parameters<BaseRouter['__urlParamsAndPath']['params']['set']>[1]
+  ) {
+    const isDataFromParamUndefinedOrNull = data === undefined || data === null;
+    const isStringParamEmpty = typeof data === 'string' && data === '';
+
+    if (isDataFromParamUndefinedOrNull || isStringParamEmpty) {
+      const errorData = {
+        [name]: {
+          data,
+          errorsOn: type.regex ? ['type', 'regex'] : ['type'],
+          type,
+        },
+      };
+
+      (this.__validationErrors as any) = Object.freeze({
+        url: errorData,
+      });
+      if (this.__validation?.handler) throw this.__validation.handler?.(this);
+      else throw DEFAULT_SERVER_ERROR_INVALID_QUERY_OR_PARAMS();
     }
   }
 
@@ -431,7 +523,7 @@ export default class Request<
     if (dataFromQuery && parserData) {
       const parsedData = parseQueryParams(dataFromQuery, parserData as NonNullable<typeof parserData>);
 
-      this.__validateQueryParamsAndThrow(parsedData, parserData);
+      this.__validateQueryParamsAndThrow(key, parsedData, parserData);
 
       (target as any)[key] = parsedData;
     }

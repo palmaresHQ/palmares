@@ -18,24 +18,16 @@ export default class EngineModels {
   }
 
   async translateOptions(model: Model): Promise<any> {
-    if (this.engine._ignoreNotImplementedErrors !== true)
-      throw new NotImplementedEngineException('translateOptions');
+    if (this.engine.__ignoreNotImplementedErrors !== true) throw new NotImplementedEngineException('translateOptions');
   }
 
-  async translateFields(
-    fieldEntriesOfModel: [string, Field][],
-    model: Model
-  ): Promise<any> {
-    if (this.engine._ignoreNotImplementedErrors !== true)
-      throw new NotImplementedEngineException('translateFields');
+  async translateFields(fieldEntriesOfModel: [string, Field][], model: Model): Promise<any> {
+    if (this.engine.__ignoreNotImplementedErrors !== true) throw new NotImplementedEngineException('translateFields');
   }
 
   async translate(model: Model): Promise<any> {
     const options = await this.translateOptions(model);
-    const fields = await this.translateFields(
-      Object.entries(model.fields),
-      model
-    );
+    const fields = await this.translateFields(Object.entries(model.fields), model);
 
     return {
       options,

@@ -29,6 +29,7 @@ export class Photo extends models.Model<Photo>() {
     }),
   };
 }
+
 /*Photo.default.set(
   {},
   {

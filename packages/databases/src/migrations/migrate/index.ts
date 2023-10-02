@@ -2,14 +2,8 @@ import { logging } from '@palmares/core';
 
 import { PalmaresMigrations } from '../../defaults/models';
 import Engine from '../../engine';
-import {
-  DatabaseSettingsType,
-  InitializedEngineInstancesType,
-} from '../../types';
-import {
-  LOGGING_MIGRATIONS_NO_NEW_MIGRATIONS,
-  LOGGING_MIGRATIONS_RUNNING_FILE_NAME,
-} from '../../utils';
+import { DatabaseSettingsType, InitializedEngineInstancesType } from '../../types';
+import { LOGGING_MIGRATIONS_NO_NEW_MIGRATIONS, LOGGING_MIGRATIONS_RUNNING_FILE_NAME } from '../../utils';
 import { FoundMigrationsFileType } from '../types';
 import Migration from './migration';
 import { MigrationsToAddAfterIterationType } from './type';
@@ -42,18 +36,14 @@ export default class Migrate {
    */
   async saveMigration(migrationName: string, engineName: string) {
     this.migrationsToAddAfterIteration.push({ migrationName, engineName });
-    const newMigrationsToAddAfterIteration: MigrationsToAddAfterIterationType[] =
-      [];
-    for (const migrationToAddAfterIteration of this
-      .migrationsToAddAfterIteration) {
+    const newMigrationsToAddAfterIteration: MigrationsToAddAfterIterationType[] = [];
+    for (const migrationToAddAfterIteration of this.migrationsToAddAfterIteration) {
       try {
-        const createdMigration =
-          await PalmaresMigrations.migrations.createMigration(
-            migrationToAddAfterIteration.migrationName,
-            migrationToAddAfterIteration.engineName
-          );
-        if (!createdMigration)
-          newMigrationsToAddAfterIteration.push(migrationToAddAfterIteration);
+        const createdMigration = await PalmaresMigrations.migrations.createMigration(
+          migrationToAddAfterIteration.migrationName,
+          migrationToAddAfterIteration.engineName
+        );
+        if (!createdMigration) newMigrationsToAddAfterIteration.push(migrationToAddAfterIteration);
       } catch {
         newMigrationsToAddAfterIteration.push(migrationToAddAfterIteration);
       }
@@ -69,10 +59,8 @@ export default class Migrate {
    */
   async getLastMigration(engineName: string) {
     try {
-      const lastMigrationName =
-        await PalmaresMigrations.migrations.getLastMigrationName(engineName);
-      const isAValidMigrationName =
-        typeof lastMigrationName === 'string' && lastMigrationName !== '';
+      const lastMigrationName = await PalmaresMigrations.migrations.getLastMigrationName(engineName);
+      const isAValidMigrationName = typeof lastMigrationName === 'string' && lastMigrationName !== '';
       if (isAValidMigrationName) return lastMigrationName;
     } catch {
       return null;
@@ -88,17 +76,10 @@ export default class Migrate {
    * @param allMigrationsOfDatabase - All of the migration files that are available to be used inside of
    * this database.
    */
-  private async _run(
-    engineInstance: Engine,
-    allMigrationsOfDatabase: FoundMigrationsFileType[]
-  ) {
-    const lastMigrationName = await this.getLastMigration(
-      engineInstance.databaseName
-    );
+  private async _run(engineInstance: Engine, allMigrationsOfDatabase: FoundMigrationsFileType[]) {
+    const lastMigrationName = await this.getLastMigration(engineInstance.connectionName);
     const startIndexOfFilter =
-      allMigrationsOfDatabase.findIndex(
-        (migration) => migration.migration.name === lastMigrationName
-      ) + 1;
+      allMigrationsOfDatabase.findIndex((migration) => migration.migration.name === lastMigrationName) + 1;
     const filteredMigrationsOfDatabase = allMigrationsOfDatabase.slice(
       startIndexOfFilter,
       allMigrationsOfDatabase.length
@@ -112,16 +93,12 @@ export default class Migrate {
           title: migrationName,
         });
 
-        await Migration.buildFromFile(
-          engineInstance,
-          migrationFile,
-          allMigrationsOfDatabase
-        );
-        await this.saveMigration(migrationName, engineInstance.databaseName);
+        await Migration.buildFromFile(engineInstance, migrationFile, allMigrationsOfDatabase);
+        await this.saveMigration(migrationName, engineInstance.connectionName);
       }
     } else {
       logging.logMessage(LOGGING_MIGRATIONS_NO_NEW_MIGRATIONS, {
-        databaseName: engineInstance.databaseName,
+        databaseName: engineInstance.connectionName,
       });
     }
   }
@@ -139,13 +116,8 @@ export default class Migrate {
     migrations: FoundMigrationsFileType[],
     initializedEngineInstances: InitializedEngineInstancesType
   ) {
-    const initializedEngineInstancesEntries = Object.entries(
-      initializedEngineInstances
-    );
-    for (const [
-      database,
-      { engineInstance },
-    ] of initializedEngineInstancesEntries) {
+    const initializedEngineInstancesEntries = Object.entries(initializedEngineInstances);
+    for (const [database, { engineInstance }] of initializedEngineInstancesEntries) {
       const filteredMigrationsOfDatabase = migrations.filter((migration) =>
         [database, '*'].includes(migration.migration.database)
       );

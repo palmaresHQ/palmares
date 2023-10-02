@@ -1,4 +1,4 @@
-import { getSettings, retrieveDomains } from '@palmares/core';
+import { getSettings, logging, retrieveDomains } from '@palmares/core';
 import { EventEmitter } from '@palmares/events';
 
 import {
@@ -15,6 +15,7 @@ import Engine from './engine';
 import { Model } from './models';
 import Migrations from './migrations';
 import model from './models/model';
+import { LOGGING_DATABASE_CLOSING, LOGGING_DATABASE_IS_NOT_CONNECTED } from './utils';
 
 export default class Databases {
   settings!: DatabaseSettingsType;
@@ -48,28 +49,16 @@ export default class Databases {
    * @param settings - The settings that we want to use.
    * @param domains - The domains of the application.
    */
-  async lazyInitializeEngine(
-    engineName: string,
-    settings: DatabaseSettingsType,
-    domains: DatabaseDomainInterface[]
-  ) {
+  async lazyInitializeEngine(engineName: string, settings: DatabaseSettingsType, domains: DatabaseDomainInterface[]) {
     if (this.isInitialized === false && this.isInitializing === false) {
-      const isDatabaseDefined: boolean =
-        settings.DATABASES !== undefined &&
-        typeof settings.DATABASES === 'object';
+      const isDatabaseDefined: boolean = settings.DATABASES !== undefined && typeof settings.DATABASES === 'object';
 
       const engineNameToUse: string | undefined =
-        engineName === ''
-          ? Object.keys(settings.DATABASES || {})[0]
-          : engineName;
+        engineName === '' ? Object.keys(settings.DATABASES || {})[0] : engineName;
       const isEngineNameDefined = engineNameToUse in (settings.DATABASES || {});
       if (isDatabaseDefined && isEngineNameDefined) {
         const databaseSettings = settings.DATABASES[engineNameToUse];
-        await this.initializeDatabase(
-          engineNameToUse,
-          databaseSettings,
-          domains
-        );
+        await this.initializeDatabase(engineNameToUse, databaseSettings, domains);
       }
     }
   }
@@ -79,21 +68,16 @@ export default class Databases {
    *
    * @param settings - The settings object from the file itself.
    */
-  async init(
-    settings: DatabaseSettingsType,
-    domains: DatabaseDomainInterface[]
-  ) {
+  async init(settings: DatabaseSettingsType, domains: DatabaseDomainInterface[]) {
     if (this.isInitialized === false && this.isInitializing === false) {
       this.settings = settings;
       this.isInitializing = true;
       const isDatabaseDefined: boolean =
-        this.settings.DATABASES !== undefined &&
-        typeof settings.DATABASES === 'object';
+        this.settings.DATABASES !== undefined && typeof settings.DATABASES === 'object';
       if (isDatabaseDefined) {
-        const databaseEntries: [
-          string,
-          DatabaseConfigurationType<string, object>
-        ][] = Object.entries(settings.DATABASES);
+        const databaseEntries: [string, DatabaseConfigurationType<string, object>][] = Object.entries(
+          settings.DATABASES
+        );
         const existsEventEmitterForAllEngines =
           settings?.DATABASES_EVENT_EMITTER instanceof EventEmitter ||
           (settings?.DATABASES_EVENT_EMITTER || {}) instanceof Promise;
@@ -103,20 +87,11 @@ export default class Databases {
             databaseSettings.events?.emitter instanceof EventEmitter ||
             databaseSettings.events?.emitter instanceof Promise;
 
-          if (
-            existsEventEmitterForSpecificEngine === false &&
-            existsEventEmitterForAllEngines
-          )
+          if (existsEventEmitterForSpecificEngine === false && existsEventEmitterForAllEngines)
             databaseSettings.events = {
-              emitter: settings.DATABASES_EVENT_EMITTER as
-                | EventEmitter
-                | Promise<EventEmitter>,
+              emitter: settings.DATABASES_EVENT_EMITTER as EventEmitter | Promise<EventEmitter>,
             };
-          await this.initializeDatabase(
-            databaseName,
-            databaseSettings,
-            domains
-          );
+          await this.initializeDatabase(databaseName, databaseSettings, domains);
         }
         this.isInitialized = true;
       }
@@ -138,10 +113,7 @@ export default class Databases {
   ) {
     await this.init(settings, domains);
     const migrations = new Migrations(settings, domains);
-    await migrations.makeMigrations(
-      this.initializedEngineInstances,
-      optionalArgs
-    );
+    await migrations.makeMigrations(this.initializedEngineInstances, optionalArgs);
   }
 
   /**
@@ -150,10 +122,7 @@ export default class Databases {
    * @param settings - The settings defined by the user in settings.js/ts file.
    * @param domains - The domains defined by the user so we can fetch all of the models and migrations.
    */
-  async migrate(
-    settings: DatabaseSettingsType,
-    domains: DatabaseDomainInterface[]
-  ) {
+  async migrate(settings: DatabaseSettingsType, domains: DatabaseDomainInterface[]) {
     await this.init(settings, domains);
     const migrations = new Migrations(settings, domains);
     await migrations.migrate(this.initializedEngineInstances);
@@ -163,14 +132,13 @@ export default class Databases {
    * Closes the database connection on all of the initialized engine instances.
    */
   async close(): Promise<void> {
-    const initializedEngineEntries = Object.values(
-      this.initializedEngineInstances
-    );
-    const promises = initializedEngineEntries.map(
-      async ({ engineInstance }) => {
-        await engineInstance.close();
-      }
-    );
+    const initializedEngineEntries = Object.values(this.initializedEngineInstances);
+    const promises = initializedEngineEntries.map(async ({ engineInstance }) => {
+      logging.logMessage(LOGGING_DATABASE_CLOSING, {
+        databaseName: engineInstance.connectionName,
+      });
+      if (engineInstance.close) await engineInstance.close(engineInstance, engineInstance.connectionName);
+    });
 
     await Promise.all(promises);
   }
@@ -190,12 +158,10 @@ export default class Databases {
     const doesAnEngineInstanceAlreadyExist =
       engineName in this.initializedEngineInstances &&
       this.initializedEngineInstances[engineName].engineInstance !== undefined;
-    const isProbablyAnEngineInstanceDefinedForDatabase =
-      databaseSettings.engine !== undefined;
-    const isEngineInstanceAPromise =
-      isProbablyAnEngineInstanceDefinedForDatabase
-        ? databaseSettings.engine instanceof Promise
-        : false;
+    const isProbablyAnEngineInstanceDefinedForDatabase = databaseSettings.engine !== undefined;
+    const isEngineInstanceAPromise = isProbablyAnEngineInstanceDefinedForDatabase
+      ? databaseSettings.engine instanceof Promise
+      : false;
     const engineToUse = isEngineInstanceAPromise
       ? (
           (await Promise.resolve(databaseSettings.engine)) as unknown as {
@@ -203,26 +169,20 @@ export default class Databases {
           }
         ).default
       : (databaseSettings.engine as typeof Engine);
-    const isAnEngineInstanceDefinedForDatabase =
-      isProbablyAnEngineInstanceDefinedForDatabase
-        ? engineToUse.prototype instanceof Engine
-        : false;
+    const isAnEngineInstanceDefinedForDatabase = isProbablyAnEngineInstanceDefinedForDatabase
+      ? engineToUse.prototype instanceof Engine
+      : false;
 
     if (doesAnEngineInstanceAlreadyExist) {
-      engineInstance =
-        this.initializedEngineInstances[engineName].engineInstance;
+      engineInstance = this.initializedEngineInstances[engineName].engineInstance;
     } else if (isAnEngineInstanceDefinedForDatabase) {
-      engineInstance = await (engineToUse as any).new(
-        engineName,
-        databaseSettings
-      );
+      const engineConstructor = engineToUse as typeof Engine;
+      engineInstance = await engineConstructor.new(engineConstructor, engineName, databaseSettings);
     } else {
       throw new Error('You must define an engine for the database.');
     }
 
-    const models: FoundModelType[] = Object.values(
-      await this.getModels(domains)
-    );
+    const models: FoundModelType[] = Object.values(await this.getModels(domains));
 
     const onlyTheModelsFiltered: {
       [modelName: string]: ReturnType<typeof model>;
@@ -240,15 +200,9 @@ export default class Databases {
           modelInstance.options?.databases?.includes(engineName) === true);
       const modelName = modelInstance.name || modelInstance.constructor.name;
 
-      if (isModelManagedByEngine)
-        onlyTheModelsFiltered[modelName] = foundModel.model;
+      if (isModelManagedByEngine) onlyTheModelsFiltered[modelName] = foundModel.model;
       else {
-        await modelInstance._init(
-          engineInstance,
-          foundModel.domainName,
-          foundModel.domainPath,
-          false
-        );
+        await modelInstance._init(engineInstance, foundModel.domainName, foundModel.domainPath, false);
         onlyTheModelsNotOnTheEngine[modelName] = foundModel.model;
       }
 
@@ -256,32 +210,37 @@ export default class Databases {
     });
     await Promise.all(promises);
 
-    const isDatabaseConnected = await Promise.resolve(
-      engineInstance.isConnected()
-    );
+    await new Promise((resolve) => {
+      Promise.resolve(engineInstance.isConnected()).then((isDatabaseConnected) => {
+        if (isDatabaseConnected) resolve(true);
+        else {
+          logging.logMessage(LOGGING_DATABASE_IS_NOT_CONNECTED, {
+            databaseName: engineInstance.connectionName,
+          });
+          setTimeout(() => {}, 10);
+        }
+      });
+    });
+    const isDatabaseConnected = await Promise.resolve(engineInstance.isConnected());
+
     // Append all of the models to the engine instance.
-    await engineInstance._appendModelsOfEngineAndFilteredOut(
-      onlyTheModelsFiltered,
-      onlyTheModelsNotOnTheEngine
-    );
+    await engineInstance._appendModelsOfEngineAndFilteredOut(onlyTheModelsFiltered, onlyTheModelsNotOnTheEngine);
 
     if (isDatabaseConnected) {
-      const { projectModels } = await this.initializeModels(
-        engineInstance,
-        modelsFilteredForDatabase
+      const { projectModels } = await this.initializeModels(engineInstance, modelsFilteredForDatabase);
+      const mergedProjectModels = (this.initializedEngineInstances[engineName]?.projectModels || []).concat(
+        projectModels
       );
-      const mergedProjectModels = (
-        this.initializedEngineInstances[engineName]?.projectModels || []
-      ).concat(projectModels);
 
       this.initializedEngineInstances[engineName] = {
         engineInstance,
         projectModels: mergedProjectModels,
       };
     } else {
-      throw new Error(
-        `The database engine ${engineName} was not able to connect to the database.`
-      );
+      logging.logMessage(LOGGING_DATABASE_IS_NOT_CONNECTED, {
+        databaseName: engineInstance.connectionName,
+      });
+      throw new Error(`The database engine ${engineName} was not able to connect to the database.`);
     }
   }
 
@@ -303,14 +262,8 @@ export default class Databases {
     const initializedProjectModels: InitializedModelsType[] = [];
     for (const { domainPath, domainName, model } of projectModels) {
       const modelInstance = new model();
-      const initializedModel = await modelInstance._init(
-        engineInstance,
-        domainName,
-        domainPath
-      );
-      if (
-        modelInstance.options.databases?.includes(engineInstance.databaseName)
-      ) {
+      const initializedModel = await modelInstance._init(engineInstance, domainName, domainPath);
+      if (modelInstance.options.databases?.includes(engineInstance.connectionName)) {
         initializedProjectModels.push({
           domainName,
           domainPath,
@@ -342,15 +295,12 @@ export default class Databases {
   async getModels(domains?: DatabaseDomainInterface[]) {
     const settings = getSettings();
     if (domains === undefined && settings)
-      domains = (await retrieveDomains(settings)).map(
-        (domainClass) => new domainClass() as DatabaseDomainInterface
-      );
+      domains = (await retrieveDomains(settings)).map((domainClass) => new domainClass() as DatabaseDomainInterface);
     const cachedFoundModels = Object.values(this.#cachedModelsByModelName);
     const existsCachedFoundModels = cachedFoundModels.length > 0;
     if (existsCachedFoundModels === false && domains) {
       const promises: Promise<void>[] = domains.map(async (domain) => {
-        const hasGetModelsMethodDefined =
-          typeof domain.getModels === 'function';
+        const hasGetModelsMethodDefined = typeof domain.getModels === 'function';
         if (hasGetModelsMethodDefined) {
           const models = await Promise.resolve(domain.getModels());
           if (Array.isArray(models)) {

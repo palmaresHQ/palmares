@@ -34,6 +34,11 @@ export default defineSettings({
           default: {
             server: ExpressServerAdapter,
             port: 4000,
+            validation: {
+              handler: () => {
+                return Response.json({ message: 'query params invalid' });
+              },
+            },
             handler404: () =>
               Response.json({
                 status: 404,

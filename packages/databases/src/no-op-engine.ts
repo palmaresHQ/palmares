@@ -27,12 +27,9 @@ import { DatabaseConfigurationType } from './types';
  * but primarily connecting multiple databases together.
  */
 export default class NoOpEngine extends Engine {
-  _ignoreNotImplementedErrors = true;
+  __ignoreNotImplementedErrors = true;
 
-  constructor(
-    databaseName: string,
-    databaseSettings: DatabaseConfigurationType<any, any>
-  ) {
+  constructor(databaseName: string, databaseSettings: DatabaseConfigurationType<any, any>) {
     super(
       databaseName,
       databaseSettings,
@@ -63,10 +60,7 @@ export default class NoOpEngine extends Engine {
     );
   }
 
-  static async new(
-    databaseName: string,
-    databaseSettings: DatabaseConfigurationType<string, object>
-  ): Promise<Engine> {
+  static async new(databaseName: string, databaseSettings: DatabaseConfigurationType<string, object>): Promise<Engine> {
     return new this(databaseName, databaseSettings);
   }
 

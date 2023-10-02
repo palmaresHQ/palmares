@@ -3,10 +3,7 @@ import { logging } from '@palmares/core';
 
 import { NotImplementedEngineException } from './exceptions';
 import { DatabaseConfigurationType } from '../types';
-import {
-  LOGGING_DATABASE_IS_NOT_CONNECTED,
-  LOGGING_DATABASE_CLOSING,
-} from '../utils';
+import { LOGGING_DATABASE_IS_NOT_CONNECTED, LOGGING_DATABASE_CLOSING } from '../utils';
 import { EngineType, EngineInitializedModels } from './types';
 import EngineFields, {
   EngineFieldParser,
@@ -48,7 +45,7 @@ import EngineModels from './model';
  * in the class instance.
  */
 export default class Engine<TModel extends Model = any> implements EngineType {
-  databaseName: string;
+  connectionName: string;
   databaseSettings: DatabaseConfigurationType<any, any>;
   initializedModels: EngineInitializedModels = {};
   models: EngineModels;
@@ -57,10 +54,10 @@ export default class Engine<TModel extends Model = any> implements EngineType {
   migrations: EngineMigrations;
   ModelType: any;
   instance: any;
-  _ignoreNotImplementedErrors = false;
-  _modelsFilteredOutOfEngine!: { [modelName: string]: typeof Model };
-  _modelsOfEngine!: { [modelName: string]: typeof Model };
-  _indirectlyRelatedModels: {
+  __ignoreNotImplementedErrors = false;
+  __modelsFilteredOutOfEngine!: { [modelName: string]: typeof Model };
+  __modelsOfEngine!: { [modelName: string]: typeof Model };
+  __indirectlyRelatedModels: {
     [modelName: string]: { [relatedModelName: string]: string[] };
   } = {};
 
@@ -92,7 +89,7 @@ export default class Engine<TModel extends Model = any> implements EngineType {
     models: typeof EngineModels,
     migration: typeof EngineMigrations
   ) {
-    this.databaseName = databaseName;
+    this.connectionName = databaseName;
     this.databaseSettings = databaseSettings;
     this.fields = new fields.fields(this, {
       field: fields.field,
@@ -107,14 +104,7 @@ export default class Engine<TModel extends Model = any> implements EngineType {
       text: fields.text,
       uuid: fields.uuid,
     });
-    this.query = new query.query(
-      this,
-      query.get,
-      query.set,
-      query.remove,
-      query.ordering,
-      query.search
-    );
+    this.query = new query.query(this, query.get, query.set, query.remove, query.ordering, query.search);
     this.models = new models(this, this.fields);
     this.migrations = new migration(this, this.fields);
   }
@@ -122,10 +112,45 @@ export default class Engine<TModel extends Model = any> implements EngineType {
   /**
    * Factory function for creating a new Engine instance. Your engine should always implement this function
    * as static and return a new instance of your engine.
+   *
+   * @example
+   * ```ts
+   * static async new(
+   *    constructor: typeof SequelizeEngine,
+   *    databaseName: string,
+   *    databaseSettings: DatabaseConfigurationType<Dialect, Options>
+   * ): Promise<Engine> {
+   *    const isUrlDefined: boolean = typeof databaseSettings.url === 'string';
+   *    if (isUrlDefined) {
+   *      const databaseUrl: string = databaseSettings.url || '';
+   *      const sequelizeInstance = new Sequelize(databaseUrl, databaseSettings.extraOptions);
+   *      return new constructor(databaseName, databaseSettings, sequelizeInstance);
+   *    }
+   *    const sequelizeInstance = new Sequelize(
+   *      databaseSettings.databaseName,
+   *      databaseSettings.username,
+   *      databaseSettings.password,
+   *      {
+   *        host: databaseSettings.host,
+   *        port: databaseSettings.port,
+   *        dialect: databaseSettings.dialect,
+   *        ...databaseSettings.extraOptions,
+   *      }
+   *    );
+   *    return new constructor(databaseName, databaseSettings, sequelizeInstance);
+   * }
+   * ```
+   *
+   * @param _constructor - Use this constructor to build a new engine instance.
+   * @param _databaseName - The database name to use. One can connect to more than one database.
+   * @param _databaseSettings - The database settings, this is the settings to connect to this specific database.
+   *
+   * @returns - Will return a new engine instance.
    */
   static async new(
-    databaseName: string,
-    databaseSettings: DatabaseConfigurationType<string, object>
+    _constructor: typeof Engine,
+    _databaseName: string,
+    _databaseSettings: DatabaseConfigurationType<string, object>
   ): Promise<Engine> {
     throw new NotImplementedEngineException('new');
   }
@@ -135,22 +160,22 @@ export default class Engine<TModel extends Model = any> implements EngineType {
    * you will not need to worry too much about this, this is used more on migrations so we can keep the state
    * models separated from the original models.
    *
+   * @example
+   * ```ts
+   * async duplicate(getNewEngine: () => Promise<Engine>) {
+   *    const duplicatedEngine = await getNewEngine();
+   *    await duplicatedEngine.connection.close();
+   *    await duplicatedEngine.connection.connect();
+   *    return duplicatedEngine;
+   * }
+   * ```
+   *
+   * @param _getNewEngine - Default duplicate function, this should be called or it will throw an error.
+   *
    * @returns - A new engine instance after calling `.new` static method.
    */
-  async duplicate(): Promise<Engine> {
-    const newInstance = await (this.constructor as typeof Engine).new(
-      this.databaseName,
-      this.databaseSettings
-    );
-    newInstance.initializedModels = { ...this.initializedModels };
-    newInstance._modelsOfEngine = { ...this._modelsOfEngine };
-    newInstance._modelsFilteredOutOfEngine = {
-      ...this._modelsFilteredOutOfEngine,
-    };
-    newInstance._indirectlyRelatedModels = {
-      ...this._indirectlyRelatedModels,
-    };
-    return newInstance;
+  async duplicate?(_getNewEngine: () => Promise<Engine>): Promise<Engine> {
+    throw new NotImplementedEngineException('duplicate');
   }
 
   /**
@@ -161,22 +186,20 @@ export default class Engine<TModel extends Model = any> implements EngineType {
    * @return - Return true if the database is connected or false otherwise.
    */
   async isConnected(): Promise<boolean> {
-    await logging.logMessage(LOGGING_DATABASE_IS_NOT_CONNECTED, {
-      databaseName: this.databaseName,
-    });
-    return false;
+    throw new NotImplementedEngineException('isConnected');
   }
 
   /**
    * Called when we want to close all of the connections to the database, if your engine can close the connection automatically
    * this don't need to be used.
    *
-   * Please, call the this with `super.close()`, so we can log to the user that we are closing the database connection.
+   * @example
+   * ```ts
+   *
+   * ```
    */
-  async close(): Promise<void> {
-    await logging.logMessage(LOGGING_DATABASE_CLOSING, {
-      databaseName: this.databaseName,
-    });
+  async close?(_engine: Engine, _connectionName: string): Promise<void> {
+    throw new NotImplementedEngineException('close');
   }
 
   /**
@@ -235,8 +258,8 @@ export default class Engine<TModel extends Model = any> implements EngineType {
       [modelName: string]: typeof Model;
     }
   ) {
-    this._modelsOfEngine = modelsOfEngine;
-    this._modelsFilteredOutOfEngine = modelsFilteredOutOfEngine;
+    this.__modelsOfEngine = modelsOfEngine;
+    this.__modelsFilteredOutOfEngine = modelsFilteredOutOfEngine;
   }
 
   /**

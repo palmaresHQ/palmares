@@ -3,7 +3,7 @@ import { AllServerSettingsType } from '../types';
 import { getErrorId } from '../handlers';
 
 import type { Domain } from '@palmares/core';
-import { HTTP_500_INTERNAL_SERVER_ERROR } from '../response/status';
+import { HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR } from '../response/status';
 
 export const DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY = 'Content-Type';
 // Used for sending the file names, see: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition
@@ -122,5 +122,20 @@ export const DEFAULT_SERVER_ERROR_RESPONSE = (error: Error, settings: AllServerS
       statusText: DEFAULT_SERVER_ERROR_STATUS_TEXT_MESSAGE,
       headers: { [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML },
     }
+  );
+};
+export const DEFAULT_SERVER_ERROR_INVALID_QUERY_OR_PARAMS = () => {
+  return Response.html(
+    `
+    <head>
+    <meta charset="utf-8">
+    <title>[Palmares] - Bad Request Error</title>
+    <link href="https://fonts.googleapis.com/css?family=Mooli" rel="stylesheet">
+    </head>
+    <body>
+
+    </body>
+`,
+    { status: HTTP_400_BAD_REQUEST, statusText: 'Query params or Url Params invalid' }
   );
 };

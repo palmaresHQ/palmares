@@ -294,6 +294,12 @@ importers:
         specifier: workspace:*
         version: link:../core
 
+  packages/logging:
+    dependencies:
+      '@palmares/core':
+        specifier: workspace:*
+        version: link:../core
+
   packages/serializers:
     dependencies:
       '@palmares/core':

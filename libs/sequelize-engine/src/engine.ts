@@ -99,6 +99,7 @@ export default class SequelizeEngine<M extends models.BaseModel = any> extends E
   }
 
   static async new(
+    constructor: typeof SequelizeEngine,
     databaseName: string,
     databaseSettings: DatabaseConfigurationType<Dialect, Options>
   ): Promise<Engine> {
@@ -106,7 +107,7 @@ export default class SequelizeEngine<M extends models.BaseModel = any> extends E
     if (isUrlDefined) {
       const databaseUrl: string = databaseSettings.url || '';
       const sequelizeInstance = new Sequelize(databaseUrl, databaseSettings.extraOptions);
-      return new this(databaseName, databaseSettings, sequelizeInstance);
+      return new constructor(databaseName, databaseSettings, sequelizeInstance);
     }
     const sequelizeInstance = new Sequelize(
       databaseSettings.databaseName,
@@ -119,7 +120,7 @@ export default class SequelizeEngine<M extends models.BaseModel = any> extends E
         ...databaseSettings.extraOptions,
       }
     );
-    return new this(databaseName, databaseSettings, sequelizeInstance);
+    return new constructor(databaseName, databaseSettings, sequelizeInstance);
   }
 
   async isConnected(): Promise<boolean> {
@@ -138,7 +139,7 @@ export default class SequelizeEngine<M extends models.BaseModel = any> extends E
       if (this.#isConnected) return this.#isConnected;
     }
     this.instance = null;
-    return await super.isConnected();
+    return false;
   }
 
   async initializeModel(model: models.BaseModel): Promise<ModelCtor<Model> | undefined> {

@@ -80,15 +80,14 @@ export default class EngineFieldParser {
   }
 
   async _foreignKeyFieldParser(field: ForeignKeyField): Promise<any> {
-    const [isRelatedModelFromEngine, fieldToChangeRelationTo] =
-      await field.isRelatedModelFromEngineInstance(
-        this.engineFields.engineInstance
-      );
+    const [isRelatedModelFromEngine, fieldToChangeRelationTo] = await field.isRelatedModelFromEngineInstance(
+      this.engineFields.engineInstance
+    );
     if (isRelatedModelFromEngine === false) {
       if (fieldToChangeRelationTo) return fieldToChangeRelationTo;
       else
         throw new RelatedModelFromForeignKeyIsNotFromEngineException(
-          this.engineFields.engineInstance.databaseName,
+          this.engineFields.engineInstance.connectionName,
           field.relatedTo,
           field.fieldName,
           field.model.name,
@@ -110,8 +109,7 @@ export default class EngineFieldParser {
       this.integer !== undefined &&
       this.text !== undefined &&
       this.uuid !== undefined;
-    if (existAllFieldsSoProbablyTheEngineFieldParserInstance === false)
-      return await this.translate(field);
+    if (existAllFieldsSoProbablyTheEngineFieldParserInstance === false) return await this.translate(field);
     switch (field.typeName) {
       case AutoField.name:
         return await this.auto?._internalParse(field);
@@ -126,9 +124,7 @@ export default class EngineFieldParser {
       case DecimalField.name:
         return await this.decimal?._internalParse(field);
       case ForeignKeyField.name: {
-        const fieldToParse = await this._foreignKeyFieldParser(
-          field as ForeignKeyField
-        );
+        const fieldToParse = await this._foreignKeyFieldParser(field as ForeignKeyField);
         if (fieldToParse instanceof ForeignKeyField)
           return await this.foreignKey?._internalParse(fieldToParse as Field);
         else return this._internalParse(fieldToParse);
@@ -143,7 +139,7 @@ export default class EngineFieldParser {
         return await (field as TranslatableField).translate(this.engineFields);
       default:
         throw new EngineDoesNotSupportFieldTypeException(
-          this.engineFields.engineInstance.databaseName,
+          this.engineFields.engineInstance.connectionName,
           field.typeName
         );
     }

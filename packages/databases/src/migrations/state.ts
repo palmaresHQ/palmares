@@ -1,12 +1,10 @@
-import {
-  FoundMigrationsFileType,
-  StateModelsType,
-  OriginalOrStateModelsByNameType,
-} from './types';
+import { FoundMigrationsFileType, StateModelsType, OriginalOrStateModelsByNameType } from './types';
 import model, { Model } from '../models/model';
 import { InitializedModelsType } from '../types';
 import Engine from '../engine';
 import { TModel } from '../models/types';
+import { defaultEngineDuplicate } from '../engine/utils';
+import { DefaultDuplicateFunctionNotCalledOnEngine } from './exceptions';
 
 /**
  * The state is used to keep track how the models were for every migration file. On the migration files
@@ -95,9 +93,7 @@ export default class State {
    *
    * @param engineInstance - The engine instance to use to initialize the models.
    */
-  async initializeStateModels(
-    engineInstance: Engine
-  ): Promise<InitializedModelsType[]> {
+  async initializeStateModels(engineInstance: Engine): Promise<InitializedModelsType[]> {
     const modelsInState = Object.values(this.modelsByName);
     const initializedStateModels: InitializedModelsType[] = [];
     for (const model of modelsInState) {
@@ -105,11 +101,7 @@ export default class State {
         domainName: model.instance.domainName,
         domainPath: model.instance.domainPath,
         class: model.class,
-        initialized: await model.instance._init(
-          engineInstance,
-          model.instance.domainName,
-          model.instance.domainPath
-        ),
+        initialized: await model.instance._init(engineInstance, model.instance.domainName, model.instance.domainPath),
         original: model.instance,
       });
     }
@@ -134,10 +126,19 @@ export default class State {
    * instance.
    */
   async geInitializedModelsByName(engineInstance: Engine) {
-    const duplicatedEngineInstance = await engineInstance.duplicate();
-    const closeEngineInstance = duplicatedEngineInstance.close.bind(
-      duplicatedEngineInstance
-    );
+    let duplicatedEngineInstance: undefined | Engine = undefined;
+
+    if (engineInstance.duplicate) {
+      const wasDefaultDuplicateCalled = { value: false };
+      duplicatedEngineInstance = await engineInstance.duplicate(
+        defaultEngineDuplicate(engineInstance, wasDefaultDuplicateCalled)
+      );
+      if (wasDefaultDuplicateCalled.value === false) throw new DefaultDuplicateFunctionNotCalledOnEngine();
+    } else {
+      duplicatedEngineInstance = await defaultEngineDuplicate(engineInstance)();
+    }
+
+    const closeEngineInstance = duplicatedEngineInstance.close.bind(duplicatedEngineInstance);
 
     const wasInitialized = Object.keys(this.initializedModelsByName).length > 0;
     if (wasInitialized)
@@ -146,12 +147,9 @@ export default class State {
         closeEngineInstance,
       };
 
-    const initializedModels = await this.initializeStateModels(
-      duplicatedEngineInstance
-    );
+    const initializedModels = await this.initializeStateModels(duplicatedEngineInstance);
     for (const initializedModel of initializedModels) {
-      this.initializedModelsByName[initializedModel.original.originalName] =
-        initializedModel;
+      this.initializedModelsByName[initializedModel.original.originalName] = initializedModel;
     }
     return {
       initializedModels: this.initializedModelsByName,
@@ -189,20 +187,14 @@ export default class State {
     const state = new this();
 
     for (const foundMigration of foundMigrations) {
-      const isToBuildStateUntilThisMigration =
-        foundMigration.migration.name === untilMigration;
+      const isToBuildStateUntilThisMigration = foundMigration.migration.name === untilMigration;
 
       for (let i = 0; i < foundMigration.migration.operations.length; i++) {
         const isToBuildUntilOperationIndex = i === untilOperationIndex;
-        if (isToBuildStateUntilThisMigration && isToBuildUntilOperationIndex)
-          return state;
+        if (isToBuildStateUntilThisMigration && isToBuildUntilOperationIndex) return state;
 
         const operation = foundMigration.migration.operations[i];
-        await operation.stateForwards(
-          state,
-          foundMigration.domainName,
-          foundMigration.domainPath
-        );
+        await operation.stateForwards(state, foundMigration.domainName, foundMigration.domainPath);
       }
 
       if (isToBuildStateUntilThisMigration) return state;
