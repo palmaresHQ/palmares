@@ -99,15 +99,27 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
    */
   async verifyIfNotInitializedAndInitializeModels(engineName: string) {
     const database = new Databases();
+
+    console.log(this.isLazyInitializing, database.isInitialized, database.isInitializing);
     const canInitializeTheModels =
       this.isLazyInitializing === false && database.isInitialized === false && database.isInitializing === false;
     this.isLazyInitializing = true;
+
     if (canInitializeTheModels) {
       const settings = getSettings() as unknown as DatabaseSettingsType;
       const { domains } = await initializeDomains(settings as unknown as SettingsType2);
       await database.lazyInitializeEngine(engineName, settings, domains as DatabaseDomainInterface[]);
       return true;
     }
+    if (this.isLazyInitializing)
+      return await await new Promise((resolve) => {
+        const verifyIfInitialized = () => {
+          const doesInstanceExists = this.instances[engineName] !== undefined;
+          if (doesInstanceExists) return resolve(true);
+          setTimeout(() => verifyIfInitialized(), 100);
+        };
+        verifyIfInitialized();
+      });
     return false;
   }
 
@@ -302,6 +314,7 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
         >,
     args?: {
       isToPreventEvents?: boolean;
+      transaction?: any;
       /**
        * This is enabled by default if you are inserting more than one element or if you use includes, it can make you code slower, but
        * it will guarantee that the data is consistent.
@@ -314,10 +327,12 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
     engineName?: string
   ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]> {
     const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
-    const engineInstanceName = engineName || this.defaultEngineInstanceName;
+    let engineInstanceName = engineName || this.defaultEngineInstanceName;
 
     // Promise.all here will not work, we need to do this sequentially.
     const engineInstance = await this.getEngineInstance(engineName);
+
+    engineInstanceName = engineName || this.defaultEngineInstanceName;
     const dataAsAnArray = Array.isArray(data)
       ? data
       : ([data] as ModelFieldsWithIncludes<
@@ -339,6 +354,7 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
       {
         model: this.getModel(engineInstanceName) as unknown as TModel,
         engine: engineInstance,
+        transaction: args?.transaction,
         includes: (args?.includes || []) as TIncludes,
       }
     );
@@ -382,9 +398,10 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
     const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
     const shouldRemove = typeof args?.shouldRemove === 'boolean' ? args.shouldRemove : true;
     const isValidEngineName = typeof engineName === 'string' && engineName !== '';
-    const engineInstanceName = isValidEngineName ? engineName : this.defaultEngineInstanceName;
+    let engineInstanceName = isValidEngineName ? engineName : this.defaultEngineInstanceName;
     // Promise.all here will not work, we need to do this sequentially.
     const engineInstance = await this.getEngineInstance(engineInstanceName);
+    engineInstanceName = engineName || this.defaultEngineInstanceName;
 
     const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName = isValidEngineName
       ? engineName

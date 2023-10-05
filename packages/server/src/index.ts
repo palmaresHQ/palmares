@@ -11,3 +11,4 @@ export { FileLike } from './response/utils';
 export { default as Request } from './request';
 export { formDataLikeFactory } from './request/utils';
 export { default as default, serverDomainModifier } from './domain';
+export * from './response/status';

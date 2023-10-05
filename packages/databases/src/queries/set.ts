@@ -48,7 +48,8 @@ export default async function setQuery<
   const isUseTransactionDefined = typeof args.useTransaction === 'boolean' ? args.useTransaction : true;
   const isTransactionNeededForQuery =
     data.length > 1 || (internal.includes !== undefined && internal.includes.length > 0);
-  const isToUseTransaction = isUseTransactionDefined && isTransactionNeededForQuery ? true : false;
+  const isToUseTransaction =
+    isUseTransactionDefined && isTransactionNeededForQuery && internal.transaction === undefined ? true : false;
   const palmaresTransaction = args.usePalmaresTransaction ? new Transaction('set') : undefined;
 
   // used to retrieve the results of the query, we separate this in a function so

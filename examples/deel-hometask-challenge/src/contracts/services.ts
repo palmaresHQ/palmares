@@ -1,5 +1,5 @@
-import { ModelFields, ModelType } from '@palmares/databases';
-import SequelizeEngine, { SequelizeModel } from '@palmares/sequelize-engine';
+import { ModelFields } from '@palmares/databases';
+import { SequelizeModel } from '@palmares/sequelize-engine';
 import { Op } from 'sequelize';
 
 import { Profile } from '../auth/models';
@@ -9,6 +9,7 @@ type ProfileType = ModelFields<Profile>;
 
 export async function getContractByIdAndProfileId(contractId: number, profileId: ProfileType['id']) {
   const contractSequelizeInstance = (await Contract.default.getInstance()) as SequelizeModel<Contract>;
+
   const contract = (await contractSequelizeInstance.findOne({
     where: {
       id: contractId,

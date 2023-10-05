@@ -12,6 +12,7 @@ import CoreDomain from './core';
 import AuthDomain from './auth';
 import ContractsDomain from './contracts';
 import JobsDomain from './jobs';
+import AdminDomain from './admin';
 import { dirname, resolve } from 'path';
 
 export default defineSettings({
@@ -82,5 +83,6 @@ export default defineSettings({
     AuthDomain,
     ContractsDomain,
     JobsDomain,
+    AdminDomain,
   ],
 });

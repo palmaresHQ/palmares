@@ -520,9 +520,11 @@ export default class Request<
       this.__serverRequestAndResponseData,
       key
     );
-    if (dataFromQuery && parserData) {
-      const parsedData = parseQueryParams(dataFromQuery, parserData as NonNullable<typeof parserData>);
+    if (parserData) {
+      if (dataFromQuery === undefined && parserData.isOptional !== true)
+        this.__validateQueryParamsAndThrow(key, dataFromQuery, parserData);
 
+      const parsedData = parseQueryParams(dataFromQuery, parserData as NonNullable<typeof parserData>);
       this.__validateQueryParamsAndThrow(key, parsedData, parserData);
 
       (target as any)[key] = parsedData;

@@ -12,7 +12,7 @@ export default class DateField<
   AN extends boolean = false,
   ANA extends boolean = false
 > extends Field<F, D, U, N, AN extends true ? true : ANA extends true ? true : A, CA> {
-  declare _type: Date;
+  declare _type: string;
   typeName: string = DateField.name;
   autoNow: AN;
   autoNowAdd: ANA;

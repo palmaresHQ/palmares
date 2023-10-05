@@ -4,7 +4,6 @@ import { Profile } from './models';
 export const getProfileMiddleware = middleware({
   request: async (request) => {
     const requestWithHeaders = request as Request<string, { headers: { profile_id: string } }>;
-    console.log(requestWithHeaders.headers['profile_id']);
 
     const profiles = await Profile.default.get({
       search: { id: parseInt(requestWithHeaders.headers['profile_id']) || 0 },
