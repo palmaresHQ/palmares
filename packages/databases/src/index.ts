@@ -32,7 +32,6 @@ export * as actions from './migrations/actions';
 export { default as Migration } from './migrations/migrate/migration';
 export { default as Database } from './databases';
 export { DatabaseDomainInterface } from './interfaces';
-export { default as NoOpEngine } from './no-op-engine';
 export { databaseDomainModifier } from './domain';
 
 export default DatabasesDomain;

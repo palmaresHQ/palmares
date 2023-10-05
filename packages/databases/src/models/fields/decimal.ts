@@ -4,15 +4,13 @@ import type { DecimalFieldParamsType } from './types';
 
 export default class DecimalField<
   F extends Field = any,
-  D extends N extends true
-    ? F['type'] | undefined | null
-    : F['type'] | undefined = undefined,
+  D extends N extends true ? F['type'] | undefined | null : F['type'] | undefined = undefined,
   U extends boolean = false,
   N extends boolean = false,
   A extends boolean = false,
   CA = any
 > extends Field<F, D, U, N, A, CA> {
-  type!: number;
+  declare type: number;
   typeName: string = DecimalField.name;
   maxDigits: number;
   decimalPlaces: number;
@@ -41,8 +39,7 @@ export default class DecimalField<
     const ident = '  '.repeat(indentation + 1);
     return super.toString(
       indentation,
-      `${ident}maxDigits: ${this.maxDigits},\n` +
-        `${ident}decimalPlaces: ${this.decimalPlaces}`
+      `${ident}maxDigits: ${this.maxDigits},\n` + `${ident}decimalPlaces: ${this.decimalPlaces}`
     );
   }
 

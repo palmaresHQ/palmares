@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { logging } from '@palmares/core';
-
 import { NotImplementedEngineException } from './exceptions';
 import { DatabaseConfigurationType } from '../types';
-import { LOGGING_DATABASE_IS_NOT_CONNECTED, LOGGING_DATABASE_CLOSING } from '../utils';
 import { EngineType, EngineInitializedModels } from './types';
 import EngineFields, {
   EngineFieldParser,
@@ -28,6 +25,8 @@ import EngineQuery, {
 } from './query';
 import { Model } from '../models/model';
 import EngineModels from './model';
+import { Field } from '../models/fields';
+import type { factoryFunctionForDefaultModelTranslateCallback } from '../models/utils';
 
 /**
  * Instead of creating our own ORM for the framework we wrap any orm we want to use inside of this class. This allow
@@ -44,16 +43,17 @@ import EngineModels from './model';
  * the base class with `super.initializeModel(model, theInstanceOfYourCustomModel)` so we can save it on the `initializedModels` object
  * in the class instance.
  */
-export default class Engine<TModel extends Model = any> implements EngineType {
-  connectionName: string;
-  databaseSettings: DatabaseConfigurationType<any, any>;
+export default class Engine {
+  connectionName!: string;
+  databaseSettings!: DatabaseConfigurationType;
   initializedModels: EngineInitializedModels = {};
-  models: EngineModels;
-  fields: EngineFields;
-  query: EngineQuery;
-  migrations: EngineMigrations;
+  models!: EngineModels;
+  fields!: EngineFields;
+  query!: EngineQuery;
+  migrations!: EngineMigrations;
   ModelType: any;
   instance: any;
+  __argumentsUsed!: any;
   __ignoreNotImplementedErrors = false;
   __modelsFilteredOutOfEngine!: { [modelName: string]: typeof Model };
   __modelsOfEngine!: { [modelName: string]: typeof Model };
@@ -61,97 +61,13 @@ export default class Engine<TModel extends Model = any> implements EngineType {
     [modelName: string]: { [relatedModelName: string]: string[] };
   } = {};
 
-  constructor(
-    databaseName: string,
-    databaseSettings: DatabaseConfigurationType<any, any>,
-    fields: {
-      fields: typeof EngineFields;
-      field?: typeof EngineFieldParser;
-      auto: typeof EngineAutoFieldParser;
-      bigAuto: typeof EngineBigAutoFieldParser;
-      bigInteger: typeof EngineBigIntegerFieldParser;
-      char: typeof EngineCharFieldParser;
-      date: typeof EngineDateFieldParser;
-      decimal: typeof EngineDecimalFieldParser;
-      foreignKey: typeof EngineForeignKeyFieldParser;
-      integer: typeof EngineIntegerFieldParser;
-      text: typeof EngineTextFieldParser;
-      uuid: typeof EngineUuidFieldParser;
-    },
-    query: {
-      query: typeof EngineQuery;
-      get: typeof EngineGetQuery;
-      set: typeof EngineSetQuery;
-      remove: typeof EngineRemoveQuery;
-      search: typeof EngineQuerySearch;
-      ordering: typeof EngineQueryOrdering;
-    },
-    models: typeof EngineModels,
-    migration: typeof EngineMigrations
-  ) {
-    this.connectionName = databaseName;
-    this.databaseSettings = databaseSettings;
-    this.fields = new fields.fields(this, {
-      field: fields.field,
-      auto: fields.auto,
-      bigAuto: fields.bigAuto,
-      bigInteger: fields.bigInteger,
-      char: fields.char,
-      date: fields.date,
-      decimal: fields.decimal,
-      foreignKey: fields.foreignKey,
-      integer: fields.integer,
-      text: fields.text,
-      uuid: fields.uuid,
-    });
-    this.query = new query.query(this, query.get, query.set, query.remove, query.ordering, query.search);
-    this.models = new models(this, this.fields);
-    this.migrations = new migration(this, this.fields);
-  }
-
   /**
    * Factory function for creating a new Engine instance. Your engine should always implement this function
    * as static and return a new instance of your engine.
    *
-   * @example
-   * ```ts
-   * static async new(
-   *    constructor: typeof SequelizeEngine,
-   *    databaseName: string,
-   *    databaseSettings: DatabaseConfigurationType<Dialect, Options>
-   * ): Promise<Engine> {
-   *    const isUrlDefined: boolean = typeof databaseSettings.url === 'string';
-   *    if (isUrlDefined) {
-   *      const databaseUrl: string = databaseSettings.url || '';
-   *      const sequelizeInstance = new Sequelize(databaseUrl, databaseSettings.extraOptions);
-   *      return new constructor(databaseName, databaseSettings, sequelizeInstance);
-   *    }
-   *    const sequelizeInstance = new Sequelize(
-   *      databaseSettings.databaseName,
-   *      databaseSettings.username,
-   *      databaseSettings.password,
-   *      {
-   *        host: databaseSettings.host,
-   *        port: databaseSettings.port,
-   *        dialect: databaseSettings.dialect,
-   *        ...databaseSettings.extraOptions,
-   *      }
-   *    );
-   *    return new constructor(databaseName, databaseSettings, sequelizeInstance);
-   * }
-   * ```
-   *
-   * @param _constructor - Use this constructor to build a new engine instance.
-   * @param _databaseName - The database name to use. One can connect to more than one database.
-   * @param _databaseSettings - The database settings, this is the settings to connect to this specific database.
-   *
    * @returns - Will return a new engine instance.
    */
-  static async new(
-    _constructor: typeof Engine,
-    _databaseName: string,
-    _databaseSettings: DatabaseConfigurationType<string, object>
-  ): Promise<Engine> {
+  static async new(..._args: any[]): Promise<[any, Engine]> {
     throw new NotImplementedEngineException('new');
   }
 
@@ -174,7 +90,7 @@ export default class Engine<TModel extends Model = any> implements EngineType {
    *
    * @returns - A new engine instance after calling `.new` static method.
    */
-  async duplicate?(_getNewEngine: () => Promise<Engine>): Promise<Engine> {
+  async duplicate(_getNewEngine: (...args: Parameters<typeof Engine['new']>) => Promise<Engine>): Promise<Engine> {
     throw new NotImplementedEngineException('duplicate');
   }
 
@@ -244,22 +160,12 @@ export default class Engine<TModel extends Model = any> implements EngineType {
    *
    * @returns - The instance of the translated model.
    */
-  async initializeModel(model: Model): Promise<any> {
-    const modelInstance = await this.models.translate(model);
-    this.initializedModels[model.name] = modelInstance;
-    return modelInstance;
-  }
-
-  async _appendModelsOfEngineAndFilteredOut(
-    modelsOfEngine: {
-      [modelName: string]: typeof Model;
-    },
-    modelsFilteredOutOfEngine: {
-      [modelName: string]: typeof Model;
-    }
-  ) {
-    this.__modelsOfEngine = modelsOfEngine;
-    this.__modelsFilteredOutOfEngine = modelsFilteredOutOfEngine;
+  async initializeModel(
+    _engine: Engine,
+    _model: Model,
+    _defaultInitializeModelCallback: ReturnType<typeof factoryFunctionForDefaultModelTranslateCallback>
+  ): Promise<any> {
+    new NotImplementedEngineException('initializeModel');
   }
 
   /**
@@ -286,10 +192,10 @@ export default class Engine<TModel extends Model = any> implements EngineType {
    *
    * @return - The return value of the callback.
    */
-  async transaction<P extends Array<any>, R>(
-    callback: (transaction: any, ...args: P) => R | Promise<R>,
-    ...args: P
-  ): Promise<R> {
+  async transaction<TParameters extends Array<any>, TResult>(
+    callback: (transaction: any, ...args: TParameters) => TResult | Promise<TResult>,
+    ...args: TParameters
+  ): Promise<TResult> {
     const transact = undefined;
     return await Promise.resolve(callback(transact, ...args));
   }

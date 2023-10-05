@@ -1,5 +1,6 @@
 import { EngineGetQuery, Includes, models, ForeignKeyField } from '@palmares/databases';
 import { Includeable, Model, ModelCtor, Order } from 'sequelize';
+import SequelizeEngine from '../engine';
 
 export default class SequelizeEngineGetQuery extends EngineGetQuery {
   /**
@@ -16,13 +17,16 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
    * @param formattedIncludesStatement - The include statement formatted to something that sequelize can understand.
    */
   async #parseSearchWithIncludes(
+    engine: SequelizeEngine,
     parentModel: models.BaseModel<any>,
     search: any,
     includes: Includes<{ fields: readonly string[] }>,
+    defaultParseSearchCallback: (model: models.BaseModel<any>, search: any) => Promise<any>,
     formattedIncludesStatement: Includeable[] = []
   ) {
+    console.log(parentModel);
     const parentModelName = parentModel.name;
-    const engineName = this.engineQueryInstance.engineInstance.databaseName;
+    const engineName = engine.databaseName;
     for (const include of includes || []) {
       const includedModelName = include.model.name;
       const modelInstance = include.model.default.getModel(engineName) as models.BaseModel<any>;
@@ -46,13 +50,20 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
         };
 
         if (whereClause) {
-          formattedInclude.where = await this.engineQueryInstance.search.parseSearch(modelInstance, whereClause);
+          formattedInclude.where = await defaultParseSearchCallback(modelInstance, whereClause);
           formattedInclude.required = true;
         }
         if (include.fields) formattedInclude.attributes = include.fields as string[];
         if (include.includes) {
           const includesOfIncludes: Includeable[] = [];
-          await this.#parseSearchWithIncludes(modelInstance, whereClause, include.includes, includesOfIncludes);
+          await this.#parseSearchWithIncludes(
+            engine,
+            modelInstance,
+            whereClause,
+            include.includes,
+            defaultParseSearchCallback,
+            includesOfIncludes
+          );
           formattedInclude.include = includesOfIncludes;
         }
         formattedIncludesStatement.push(formattedInclude);
@@ -61,22 +72,26 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
     return formattedIncludesStatement;
   }
 
-  override async queryDataNatively(
+  /*async queryDataNatively(
+    engine: SequelizeEngine,
     modelConstructor: ReturnType<typeof models.Model>,
     search: any,
     fields: readonly string[],
-    includes: Includes<{ fields: readonly string[] }>
+    includes: Includes<{ fields: readonly string[] }>,
+    defaultParseSearch: (model: models.BaseModel<any>, search: any) => Promise<any>
   ) {
-    const engineName = this.engineQueryInstance.engineInstance.databaseName;
+    const engineName = engine.databaseName;
     const sequelizeModelInstance: ModelCtor<Model> = await modelConstructor.default.getInstance(engineName);
     const modelInstance = modelConstructor.default.getModel(engineName);
     const formattedIncludesStatement = await this.#parseSearchWithIncludes(
+      engine,
       modelConstructor.default.getModel(engineName),
       search,
-      includes
+      includes,
+      defaultParseSearch
     );
 
-    const rootLevelWhereClause = await this.engineQueryInstance.search.parseSearch(modelInstance, search);
+    const rootLevelWhereClause = await defaultParseSearch(modelInstance, search);
 
     return (
       await sequelizeModelInstance.findAll({
@@ -85,16 +100,19 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
         include: formattedIncludesStatement,
       })
     ).map((data) => data.toJSON());
-  }
+  }*/
 
-  override async queryData(args: {
-    modelOfEngineInstance: ModelCtor<Model>;
-    search: any;
-    fields: readonly string[];
-    ordering?: Order;
-    limit?: number;
-    offset?: number | string;
-  }) {
+  async queryData(
+    _engine: SequelizeEngine,
+    args: {
+      modelOfEngineInstance: ModelCtor<Model>;
+      search: any;
+      fields: readonly string[];
+      ordering?: Order;
+      limit?: number;
+      offset?: number | string;
+    }
+  ) {
     const findAllOptions: Parameters<ModelCtor<Model>['findAll']>[0] = {
       attributes: args.fields as string[],
       where: args.search,

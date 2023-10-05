@@ -18,6 +18,7 @@ import Manager, { DefaultManager } from './manager';
 import { getUniqueCustomImports, hashString } from '../utils';
 import { CustomImportsForFieldType } from './fields/types';
 import { ForeignKeyField } from './fields';
+import { factoryFunctionForDefaultModelTranslateCallback } from './utils';
 
 /**
  * This class is used for initializing a model. This will work similar to django except that instead of
@@ -302,7 +303,7 @@ export class Model<T = any> {
    */
   async #initializeEvents(engineInstance: Engine) {
     if (!engineInstance) return;
-    if (!engineInstance.databaseSettings.events?.emitter) return;
+    if (!engineInstance.databaseSettings?.events?.emitter) return;
 
     const existingEngineInstanceName = engineInstance.connectionName;
 
@@ -382,7 +383,11 @@ export class Model<T = any> {
     if (isManaged) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const [initializedModelInstance, _] = await Promise.all([
-        engineInstance.initializeModel(this),
+        engineInstance.initializeModel(
+          engineInstance,
+          this,
+          factoryFunctionForDefaultModelTranslateCallback(engineInstance, this)
+        ),
         this.#initializeEvents(engineInstance),
       ]);
       modelInstance = initializedModelInstance;

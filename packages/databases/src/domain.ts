@@ -1,6 +1,5 @@
 import { DomainReadyFunctionArgs, DomainHandlerFunctionArgs, domain } from '@palmares/core';
 
-import buildLogging from './logging';
 import { DatabaseSettingsType } from './types';
 import { makeMigrations, migrate } from './commands';
 import defaultSettings from './settings';
@@ -40,7 +39,6 @@ export default domain('@palmares/database', __dirname, {
       },
       handler: async (options: DomainHandlerFunctionArgs) => {
         const [databases] = loadDatabases();
-        await buildLogging();
         await makeMigrations(databases, options);
       },
     },
@@ -51,7 +49,6 @@ export default domain('@palmares/database', __dirname, {
       keywordArgs: undefined,
       handler: async (options: DomainHandlerFunctionArgs) => {
         const [databases] = loadDatabases();
-        await buildLogging();
         await migrate(databases, options);
       },
     },
@@ -59,7 +56,6 @@ export default domain('@palmares/database', __dirname, {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   load: async (_: DatabaseSettingsType) => {
     return async (options: DomainReadyFunctionArgs<DatabaseSettingsType, any>) => {
-      await buildLogging();
       const databaseDomains = options.domains as DatabaseDomainInterface[];
       loadDatabases(databaseDomains);
     };
@@ -74,5 +70,7 @@ export default domain('@palmares/database', __dirname, {
     if (databases) await Promise.all([databases.close()]);
   },
   getMigrations: async () => defaultMigrations,
-  getModels: async () => defaultModels,
+  getModels: async () => {
+    return defaultModels;
+  },
 });

@@ -44,3 +44,15 @@ export type RelatedModelToEvaluateAfterType = {
 };
 
 export type SequelizeModel<TModel extends models.BaseModel<any>> = ModelCtor<Model<ModelFieldsInQueries<TModel>>>;
+
+class Base {
+  async test(base: Base) {
+    return base;
+  }
+}
+
+class Child extends Base {
+  async test(child: Child) {
+    return child;
+  }
+}

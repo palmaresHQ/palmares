@@ -46,7 +46,7 @@ export default class ForeignKeyField<
   RN extends string = any,
   RNN extends string = any
 > extends Field<F, D, U, N, A, CA> {
-  type!: TLazyDefaultValue extends undefined
+  declare type: TLazyDefaultValue extends undefined
     ? T extends undefined
       ? M extends Model<infer ThisModel>
         ? ThisModel extends InstanceType<ReturnType<typeof model>> | Model

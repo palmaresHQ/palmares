@@ -1,5 +1,5 @@
 import { EngineModels, Field, models } from '@palmares/databases';
-import { Model, ModelAttributeColumnOptions, ModelCtor, ModelOptions, OrderItem } from 'sequelize';
+import { Model, ModelAttributeColumnOptions, ModelAttributes, ModelCtor, ModelOptions, OrderItem } from 'sequelize';
 
 import SequelizeEngine from './engine';
 import SequelizeEngineFields from './fields';
@@ -9,11 +9,9 @@ import { ModelTranslatorIndexesType } from './types';
  * This class is used to create a sequelize model from the default model definition.
  */
 export default class SequelizeEngineModels extends EngineModels {
-  engine!: SequelizeEngine;
-  engineFields!: SequelizeEngineFields;
   #indexes: ModelTranslatorIndexesType = {};
 
-  async translateOptions(model: models.BaseModel): Promise<ModelOptions> {
+  async translateOptions(engine: SequelizeEngine, model: models.BaseModel): Promise<ModelOptions> {
     const modelName = model.name;
     const options = model.options;
     const indexes = this.#indexes[modelName] ? this.#indexes[modelName] : [];
@@ -44,22 +42,32 @@ export default class SequelizeEngineModels extends EngineModels {
     }
   }
 
-  async translateFields(fieldEntriesOfModel: [string, Field][]) {
+  async translateFields(
+    engine: SequelizeEngine,
+    fieldEntriesOfModel: [string, Field][],
+    _: models.BaseModel,
+    defaultGetTranslatedFieldCallback: (field: Field) => Promise<ModelAttributeColumnOptions>
+  ) {
     const fieldAttributes: { [key: string]: ModelAttributeColumnOptions } = {};
     for (const [fieldName, field] of fieldEntriesOfModel) {
-      const translatedAttributes = await this.engineFields.get(field);
+      const translatedAttributes = await engine.fields.get(engine, field, defaultGetTranslatedFieldCallback);
       const isTranslatedAttributeDefined = translatedAttributes !== null && typeof translatedAttributes === 'object';
       if (isTranslatedAttributeDefined) fieldAttributes[fieldName] = translatedAttributes;
     }
     return fieldAttributes;
   }
 
-  async translate(model: models.BaseModel): Promise<ModelCtor<Model> | undefined> {
-    const { options: translatedOptions, fields: translatedAttributes } = await super.translate(model);
+  async translate(
+    engine: SequelizeEngine,
+    model: models.BaseModel,
+    defaultTranslateCallback: () => Promise<{ options: ModelOptions; fields: ModelAttributes<any> }>,
+    _: (_field: Field) => Promise<any>
+  ): Promise<ModelCtor<Model> | undefined> {
+    const { options: translatedOptions, fields: translatedAttributes } = await defaultTranslateCallback();
 
-    translatedOptions.indexes = await this.engineFields.getIndexes(model.name);
+    translatedOptions.indexes = await engine.fields.getIndexes(model.name);
 
-    const translatedModel = this.engine.instance?.define(model.name, translatedAttributes, translatedOptions);
+    const translatedModel = engine.instance?.define(model.name, translatedAttributes, translatedOptions);
     if (translatedModel !== undefined) await this.#translateOrdering(model, translatedModel);
     return translatedModel;
   }

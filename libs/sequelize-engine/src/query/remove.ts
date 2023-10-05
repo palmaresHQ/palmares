@@ -1,14 +1,18 @@
 import { EngineRemoveQuery } from '@palmares/databases';
 
 import { Model, ModelCtor, Transaction } from 'sequelize';
+import SequelizeEngine from '../engine';
 
 export default class SequelizeEngineRemoveQuery extends EngineRemoveQuery {
-  async queryData(args: {
-    modelOfEngineInstance: ModelCtor<Model>;
-    search: any;
-    shouldReturnData?: boolean;
-    transaction?: Transaction;
-  }) {
+  async queryData(
+    _: SequelizeEngine,
+    args: {
+      modelOfEngineInstance: ModelCtor<Model>;
+      search: any;
+      shouldReturnData?: boolean;
+      transaction?: Transaction;
+    }
+  ) {
     async function remove() {
       return args.modelOfEngineInstance.destroy({
         where: args.search,

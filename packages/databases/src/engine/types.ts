@@ -9,7 +9,3 @@ export type EngineType = {
   connectionName: string;
   fields: EngineFields;
 };
-
-export type EngineFieldsType = {
-  engineInstance: Engine;
-};

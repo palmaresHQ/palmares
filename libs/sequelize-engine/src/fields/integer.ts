@@ -1,11 +1,25 @@
-import { Field } from '@palmares/databases';
-import { DataTypes } from 'sequelize';
+import { EngineAutoFieldParser, Field, IntegerField } from '@palmares/databases';
+import { DataTypes, ModelAttributeColumnOptions } from 'sequelize';
 
 import SequelizeEngineFieldParser from './field';
+import SequelizeEngine from '../engine';
 
 export default class SequelizeEngineIntegerFieldParser extends SequelizeEngineFieldParser {
-  override async translate(field: Field) {
-    const defaultOptions = await super.translate(field);
+  auto = undefined;
+  bigAuto = undefined;
+  bigInt = undefined;
+  char = undefined;
+  date = undefined;
+  decimal = undefined;
+  foreignKey = undefined;
+  integer = undefined;
+  text = undefined;
+  uuid = undefined;
+
+  translatable = true;
+
+  async translate(engine: SequelizeEngine, field: IntegerField): Promise<ModelAttributeColumnOptions> {
+    const defaultOptions = await super.translate(engine, field);
     defaultOptions.type = DataTypes.INTEGER;
     defaultOptions.validate = defaultOptions.validate || {};
     defaultOptions.validate.isNumeric = true;

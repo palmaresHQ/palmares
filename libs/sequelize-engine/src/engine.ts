@@ -2,33 +2,21 @@ import { DatabaseConfigurationType, Engine, EngineInitializedModels, ModelFields
 import { Dialect, Model, ModelCtor, Op, Options, Sequelize, Transaction } from 'sequelize';
 
 import SequelizeEngineFields from './fields';
-import SequelizeEngineAutoFieldParser from './fields/auto';
-import SequelizeEngineBigAutoFieldParser from './fields/big-auto';
-import SequelizeEngineBigIntegerFieldParser from './fields/big-integer';
-import SequelizeEngineCharFieldParser from './fields/char';
-import SequelizeEngineDateFieldParser from './fields/date';
-import SequelizeEngineDecimalFieldParser from './fields/decimal';
-import SequelizeEngineFieldParser from './fields/field';
-import SequelizeEngineForeignKeyFieldParser from './fields/foreign-key';
-import SequelizeEngineIntegerFieldParser from './fields/integer';
-import SequelizeEngineTextFieldParser from './fields/text';
-import SequelizeEngineUuidFieldParser from './fields/uuid';
 import SequelizeMigrations from './migrations';
 import SequelizeEngineModels from './model';
 import SequelizeEngineQuery from './query';
-import SequelizeEngineGetQuery from './query/get';
-import SequelizeEngineQueryOrdering from './query/ordering';
-import SequelizeEngineRemoveQuery from './query/remove';
-import SequelizeEngineSearchQuery from './query/search';
-import SequelizeEngineSetQuery from './query/set';
 
 export default class SequelizeEngine<M extends models.BaseModel = any> extends Engine {
+  databaseName!: string;
   #isConnected: boolean | null = null;
-  initializedModels!: EngineInitializedModels<ModelCtor<Model<ModelFields<M>>>>;
-  instance!: Sequelize | null;
-  fields!: SequelizeEngineFields;
+  declare initializedModels: EngineInitializedModels<ModelCtor<Model<ModelFields<M>>>>;
+  declare instance: Sequelize | null;
+  fields = new SequelizeEngineFields();
+  migrations = new SequelizeMigrations();
+  models = new SequelizeEngineModels();
+  query = new SequelizeEngineQuery();
 
-  ModelType!: ModelCtor<Model<ModelFields<M>>>;
+  declare ModelType: ModelCtor<Model<ModelFields<M>>>;
 
   operations = {
     and: Op.and,
@@ -62,65 +50,20 @@ export default class SequelizeEngine<M extends models.BaseModel = any> extends E
     match: Op.match,
   };
 
-  constructor(
-    databaseName: string,
-    databaseSettings: DatabaseConfigurationType<Dialect, Options>,
-    sequelizeInstance: Sequelize
-  ) {
-    super(
-      databaseName,
-      databaseSettings,
-      {
-        fields: SequelizeEngineFields,
-        field: SequelizeEngineFieldParser,
-        auto: SequelizeEngineAutoFieldParser,
-        bigAuto: SequelizeEngineBigAutoFieldParser,
-        bigInteger: SequelizeEngineBigIntegerFieldParser,
-        char: SequelizeEngineCharFieldParser,
-        date: SequelizeEngineDateFieldParser,
-        decimal: SequelizeEngineDecimalFieldParser,
-        foreignKey: SequelizeEngineForeignKeyFieldParser,
-        integer: SequelizeEngineIntegerFieldParser,
-        text: SequelizeEngineTextFieldParser,
-        uuid: SequelizeEngineUuidFieldParser,
-      },
-      {
-        query: SequelizeEngineQuery,
-        get: SequelizeEngineGetQuery,
-        set: SequelizeEngineSetQuery,
-        remove: SequelizeEngineRemoveQuery,
-        search: SequelizeEngineSearchQuery,
-        ordering: SequelizeEngineQueryOrdering,
-      },
-      SequelizeEngineModels,
-      SequelizeMigrations
-    );
-    this.instance = sequelizeInstance;
-  }
-
-  static async new(
-    constructor: typeof SequelizeEngine,
-    databaseName: string,
-    databaseSettings: DatabaseConfigurationType<Dialect, Options>
-  ): Promise<Engine> {
-    const isUrlDefined: boolean = typeof databaseSettings.url === 'string';
+  static async new<TArgs extends Options & { url?: string }>(args: TArgs): Promise<[TArgs, Engine]> {
+    const isUrlDefined: boolean = typeof args.url === 'string';
     if (isUrlDefined) {
-      const databaseUrl: string = databaseSettings.url || '';
-      const sequelizeInstance = new Sequelize(databaseUrl, databaseSettings.extraOptions);
-      return new constructor(databaseName, databaseSettings, sequelizeInstance);
+      const databaseUrl: string = args.url || '';
+      const sequelizeInstance = new Sequelize(databaseUrl, args);
+      const engineInstance = new this();
+      engineInstance.instance = sequelizeInstance;
+      return [args, engineInstance];
     }
-    const sequelizeInstance = new Sequelize(
-      databaseSettings.databaseName,
-      databaseSettings.username,
-      databaseSettings.password,
-      {
-        host: databaseSettings.host,
-        port: databaseSettings.port,
-        dialect: databaseSettings.dialect,
-        ...databaseSettings.extraOptions,
-      }
-    );
-    return new constructor(databaseName, databaseSettings, sequelizeInstance);
+
+    const sequelizeInstance = new Sequelize(args);
+    const engineInstance = new this();
+    engineInstance.instance = sequelizeInstance;
+    return [args, engineInstance];
   }
 
   async isConnected(): Promise<boolean> {
@@ -142,16 +85,20 @@ export default class SequelizeEngine<M extends models.BaseModel = any> extends E
     return false;
   }
 
-  async initializeModel(model: models.BaseModel): Promise<ModelCtor<Model> | undefined> {
-    const modelInstance = await super.initializeModel(model);
+  async initializeModel(
+    _: SequelizeEngine<any>,
+    model: models.BaseModel,
+    defaultInitializeModelCallback: () => Promise<ModelCtor<Model>>
+  ): Promise<ModelCtor<Model> | undefined> {
+    const modelInstance = await defaultInitializeModelCallback();
     await this.fields.afterModelCreation(model.name);
     return modelInstance;
   }
 
-  async transaction<P extends Array<any>, R>(
-    callback: (transaction: Transaction, ...args: P) => R | Promise<R>,
-    ...args: P
-  ): Promise<R> {
+  async transaction<TParameters extends Array<any>, TResult>(
+    callback: (transaction: Transaction, ...args: TParameters) => TResult | Promise<TResult>,
+    ...args: TParameters
+  ): Promise<TResult> {
     return new Promise((resolve, reject) => {
       try {
         this.instance?.transaction(async (transaction) => {
@@ -165,6 +112,10 @@ export default class SequelizeEngine<M extends models.BaseModel = any> extends E
         reject(e);
       }
     });
+  }
+
+  async duplicate(getNewEngine: () => Promise<Engine>): Promise<Engine> {
+    return getNewEngine();
   }
 
   async close(): Promise<void> {

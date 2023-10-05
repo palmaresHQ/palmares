@@ -17,6 +17,9 @@ import { Model, default as model } from './model';
 import Databases from '../databases';
 import { DatabaseSettingsType } from '../types';
 import { DatabaseDomainInterface } from '../interfaces';
+import removeQuery from '../queries/remove';
+import getQuery from '../queries/get';
+import setQuery from '../queries/set';
 
 /**
  * Managers define how you make queries on the database. Instead of making queries everywhere in your application
@@ -62,7 +65,7 @@ import { DatabaseDomainInterface } from '../interfaces';
  * For example: one could create a framework that enables `bull.js` tasks to be defined on the database instead
  * of the code. This way we could update the tasks dynamically.
  */
-export default class Manager<M extends Model = Model, EI extends Engine<M> | null = null> {
+export default class Manager<TModel extends Model = Model, EI extends Engine | null = null> {
   instances: ManagerInstancesType;
   engineInstances: ManagerEngineInstancesType;
   defaultEngineInstanceName: string;
@@ -78,12 +81,12 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
     this.defaultEngineInstanceName = '';
   }
 
-  _setModel(engineName: string, model: M) {
-    this.models[engineName] = model as M;
+  _setModel(engineName: string, model: TModel) {
+    this.models[engineName] = model as TModel;
   }
 
   getModel(engineName: string) {
-    return this.models[engineName] as M;
+    return this.models[engineName] as TModel;
   }
 
   /**
@@ -203,7 +206,6 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
    * @return - An array of instances retrieved by this query.
    */
   async get<
-    TModel extends Model<any> = M,
     TIncludes extends Includes<{
       fields?: readonly string[];
       ordering?: readonly (string | `-${string}`)[];
@@ -236,7 +238,7 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
     const allFieldsOfModel = Object.keys(
       this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName)['fields']
     );
-    return engineInstance.query.get.run(
+    return getQuery(
       {
         fields: (args?.fields || allFieldsOfModel) as unknown as TFields,
         search: (args?.search || {}) as ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true>,
@@ -246,6 +248,7 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
       },
       {
         model: this.models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName] as TModel,
+        engine: engineInstance,
         includes: (args?.includes || []) as TIncludes,
       }
     ) as Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]>;
@@ -273,7 +276,6 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
    * @return - Return the created instance or undefined if something went wrong, or boolean if it's an update.
    */
   async set<
-    TModel extends Model = M,
     TIncludes extends Includes = undefined,
     TSearch extends
       | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
@@ -327,7 +329,7 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
           TSearch extends undefined ? false : true,
           false
         >[]);
-    return engineInstance.query.set.run(
+    return setQuery(
       dataAsAnArray,
       {
         isToPreventEvents,
@@ -336,6 +338,7 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
       },
       {
         model: this.getModel(engineInstanceName) as unknown as TModel,
+        engine: engineInstance,
         includes: (args?.includes || []) as TIncludes,
       }
     );
@@ -351,7 +354,6 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
    * @return - Returns true if everything went fine and false otherwise.
    */
   async remove<
-    TModel extends Model = M,
     TIncludes extends Includes<{
       isToPreventRemove?: true;
     }> = undefined
@@ -388,7 +390,7 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
       ? engineName
       : this.defaultEngineInstanceName;
 
-    return engineInstance.query.remove.run<
+    return removeQuery<
       TModel,
       TIncludes,
       ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
@@ -410,6 +412,7 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
       },
       {
         model: this.models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName] as TModel,
+        engine: engineInstance,
         includes: (args?.includes || []) as TIncludes,
       }
     ) as Promise<ModelFieldsWithIncludes<TModel, TIncludes>[]>;

@@ -3,17 +3,8 @@ import type { EventEmitter } from '@palmares/events';
 import { Model } from './models';
 import Engine from './engine';
 
-export interface DatabaseConfigurationType<DialectOptions, ExtraOptions> {
-  engine: new (...args: any) => Engine | { default: new (...args: any) => Engine };
-  url?: string | undefined;
-  dialect: DialectOptions;
-  databaseName: string;
-  username: string;
-  password: string;
-  host: string;
-  protocol?: string;
-  port: number;
-  extraOptions?: ExtraOptions;
+export interface DatabaseConfigurationType {
+  engine: Promise<[any, Engine]> | { default: Promise<[any, Engine]> };
   events?: {
     emitter: EventEmitter | Promise<EventEmitter>;
     channels?: string[];
@@ -44,11 +35,11 @@ export type InitializedModelsType<M = any> = {
 };
 
 export type DatabaseSettingsType = {
-  DATABASES: {
-    [key: string]: DatabaseConfigurationType<string, object>;
+  databases: {
+    [key: string]: DatabaseConfigurationType;
   };
-  DATABASES_EVENT_EMITTER?: EventEmitter;
-  DATABASES_DISMISS_NO_MIGRATIONS_LOG: boolean;
+  eventEmitter?: EventEmitter;
+  dismissNoMigrationsLog?: boolean;
 };
 
 export type OptionalMakemigrationsArgsType = {

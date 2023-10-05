@@ -1,12 +1,10 @@
-import { logging } from '@palmares/core';
-
 import { PalmaresMigrations } from '../../defaults/models';
 import Engine from '../../engine';
 import { DatabaseSettingsType, InitializedEngineInstancesType } from '../../types';
-import { LOGGING_MIGRATIONS_NO_NEW_MIGRATIONS, LOGGING_MIGRATIONS_RUNNING_FILE_NAME } from '../../utils';
 import { FoundMigrationsFileType } from '../types';
 import Migration from './migration';
 import { MigrationsToAddAfterIterationType } from './type';
+import { databaseLogger } from '../../logging';
 
 /**
  * This class holds the logic for evaluating migrations, usually evaluating migrations is simple because we just
@@ -58,8 +56,13 @@ export default class Migrate {
    * @param engineName - The name of the engine to use, usually it will be the `default`.
    */
   async getLastMigration(engineName: string) {
+    const lastMigrationName = await PalmaresMigrations.migrations.getLastMigrationName(engineName);
+    console.log(lastMigrationName);
+    const isAValidMigrationName = typeof lastMigrationName === 'string' && lastMigrationName !== '';
+    if (isAValidMigrationName) return lastMigrationName;
     try {
       const lastMigrationName = await PalmaresMigrations.migrations.getLastMigrationName(engineName);
+      console.log(lastMigrationName);
       const isAValidMigrationName = typeof lastMigrationName === 'string' && lastMigrationName !== '';
       if (isAValidMigrationName) return lastMigrationName;
     } catch {
@@ -89,7 +92,7 @@ export default class Migrate {
       for (const migrationFile of filteredMigrationsOfDatabase) {
         const migrationName = migrationFile.migration.name;
 
-        logging.logMessage(LOGGING_MIGRATIONS_RUNNING_FILE_NAME, {
+        databaseLogger.logMessage('MIGRATIONS_RUNNING_FILE_NAME', {
           title: migrationName,
         });
 
@@ -97,7 +100,7 @@ export default class Migrate {
         await this.saveMigration(migrationName, engineInstance.connectionName);
       }
     } else {
-      logging.logMessage(LOGGING_MIGRATIONS_NO_NEW_MIGRATIONS, {
+      databaseLogger.logMessage('MIGRATIONS_NO_NEW_MIGRATIONS', {
         databaseName: engineInstance.connectionName,
       });
     }

@@ -1,12 +1,12 @@
-import { ERR_MODULE_NOT_FOUND, logging } from '@palmares/core';
+import { ERR_MODULE_NOT_FOUND } from '@palmares/core';
 import { getDefaultStd } from '@palmares/std';
 
 import { DatabaseDomainInterface } from '../interfaces';
 import { DatabaseSettingsType, InitializedEngineInstancesType, OptionalMakemigrationsArgsType } from '../types';
 import { FoundMigrationsFileType, MigrationFileType } from './types';
-import { LOGGING_MIGRATIONS_NOT_FOUND } from '../utils';
 import MakeMigrations from './makemigrations';
 import Migrate from './migrate';
+import { databaseLogger } from '../logging';
 
 /**
  * Used for working with anything related to migrations inside of the project, from the automatic creation of migrations
@@ -95,8 +95,8 @@ export default class Migrations {
           const error: any = e;
           const couldNotFindFileOrDirectory = error.message.startsWith('ENOENT: no such file or directory, scandir');
           if (error.code === ERR_MODULE_NOT_FOUND || couldNotFindFileOrDirectory) {
-            if (this.settings.DATABASES_DISMISS_NO_MIGRATIONS_LOG !== true)
-              await logging.logMessage(LOGGING_MIGRATIONS_NOT_FOUND, {
+            if (this.settings.dismissNoMigrationsLog !== false)
+              databaseLogger.logMessage('MIGRATIONS_NOT_FOUND', {
                 domainName: domain.name,
               });
           } else {

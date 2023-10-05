@@ -35,11 +35,7 @@ export class Operation {
    * @param domainName - The name of the domain where this model was defined.
    * @param domainPath - The path of the domain where this model exists so we can add the migration file there.
    */
-  async stateForwards(
-    state: State,
-    domainName: string,
-    domainPath: string
-  ): Promise<void> {}
+  async stateForwards(_state: State, _domainName: string, _domainPath: string): Promise<void> {}
 
   /**
    * Method that runs when a migration is running on a migration file, when this happens we will call the exact
@@ -72,27 +68,17 @@ export class Operation {
     };
   }
 
-  static async toString(
-    indentation = 0,
-    data: ActionToGenerateType<any>
-  ): Promise<ToStringFunctionReturnType> {
+  static async toString(indentation = 0, data: ActionToGenerateType<any>): Promise<ToStringFunctionReturnType> {
     return {
       asString: '',
     };
   }
 
-  static async defaultToString(
-    indentation = 0,
-    customAttributesOfAction = ''
-  ): Promise<string> {
+  static async defaultToString(indentation = 0, customAttributesOfAction = ''): Promise<string> {
     const ident = '  '.repeat(indentation);
     return (
       `${ident}new actions.${this.name}(` +
-      `${
-        customAttributesOfAction !== ''
-          ? `\n${customAttributesOfAction}\n${ident}`
-          : ''
-      }` +
+      `${customAttributesOfAction !== '' ? `\n${customAttributesOfAction}\n${ident}` : ''}` +
       `)`
     );
   }

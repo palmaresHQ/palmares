@@ -13,7 +13,8 @@ import Engine from '../engine';
 export function defaultEngineDuplicate(engine: Engine, wasCalled = { value: false }) {
   return async () => {
     const engineConstructor = engine.constructor as typeof Engine;
-    const newInstance = await engineConstructor.new(engineConstructor, engine.connectionName, engine.databaseSettings);
+    const [argsForNewInstance, newInstance] = await engineConstructor.new(engine.__argumentsUsed);
+    newInstance.__argumentsUsed = argsForNewInstance;
     newInstance.initializedModels = { ...engine.initializedModels };
     newInstance.__modelsOfEngine = { ...engine.__modelsOfEngine };
     newInstance.__modelsFilteredOutOfEngine = {

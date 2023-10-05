@@ -28,6 +28,7 @@
     "build:watch": "turbo run build:watch --parallel",
     "dev": "turbo run dev --parallel",
     "examples:server-express-only": "turbo run dev --parallel --filter=@examples/server-express-only --filter=@palmares/*",
+    "examples:deel-hometask-challenge": "turbo run dev --parallel --filter=@examples/deel-hometask-challenge --filter=@palmares/*",
     "setup": "bash ./scripts/setup.sh",
     "debug": "eslint --debug .eslintrc.js"
   },

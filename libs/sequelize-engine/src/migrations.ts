@@ -1,20 +1,8 @@
-import {
-  EngineMigrations,
-  Migration,
-  InitializedModelsType,
-  models,
-} from '@palmares/databases';
-import {
-  ModelCtor,
-  Model,
-  QueryInterface,
-  QueryInterfaceIndexOptions,
-  Sequelize,
-} from 'sequelize';
+import { EngineMigrations, Migration, InitializedModelsType, models } from '@palmares/databases';
+import { ModelCtor, Model, QueryInterface, QueryInterfaceIndexOptions, Sequelize } from 'sequelize';
 import type { SetRequired } from 'sequelize/types/utils/set-required';
 
 import SequelizeEngine from './engine';
-import SequelizeEngineFields from './fields';
 import {
   CircularDependenciesInMigrationType,
   GetForeignKeyReferencesForTableReturnType,
@@ -23,8 +11,6 @@ import {
 } from './types';
 
 export default class SequelizeMigrations extends EngineMigrations {
-  engine!: SequelizeEngine;
-  fields!: SequelizeEngineFields;
   #circularDependenciesInMigration: CircularDependenciesInMigrationType[] = [];
   #queryInterface!: QueryInterface;
   #indexesToAddOnNextIteration: IndexesToAddOnNextIterationType[] = [];
@@ -33,9 +19,8 @@ export default class SequelizeMigrations extends EngineMigrations {
    * This is based on the lifecycle of migrations, first we initialize the migration creating a query interface and
    * a transaction.
    */
-  async init(): Promise<void> {
-    this.#queryInterface =
-      this.engine.instance?.getQueryInterface() as QueryInterface;
+  async init(engine: SequelizeEngine): Promise<void> {
+    this.#queryInterface = engine.instance?.getQueryInterface() as QueryInterface;
   }
   /**
    * When the model references itself we need to evaluate it lazily. What this does is: First check if it has a circular dependency,
@@ -85,6 +70,7 @@ export default class SequelizeMigrations extends EngineMigrations {
    * @param options - The models of how it was before and how it will be after this migration operation runs.
    */
   async #handleCircularDependencies(
+    engine: SequelizeEngine,
     migration: Migration,
     {
       toModel,
@@ -94,25 +80,21 @@ export default class SequelizeMigrations extends EngineMigrations {
       fromModel?: MigrationModelType;
     }
   ) {
-    const sequelizeInstance = this.engine.instance as Sequelize;
-    for (const { fromModel, toModel, fieldName, relatedToName } of this
-      .#circularDependenciesInMigration) {
+    const sequelizeInstance = engine.instance as Sequelize;
+    for (const { fromModel, toModel, fieldName, relatedToName } of this.#circularDependenciesInMigration) {
       const doesColumnDoNotExistInTheModel =
         toModel.initialized.getAttributes()[fieldName] === undefined ||
-        this.engine.initializedModels[relatedToName] !== undefined;
+        engine.initializedModels[relatedToName] !== undefined;
       if (doesColumnDoNotExistInTheModel) {
         toModel.initialized = sequelizeInstance.model(toModel.initialized.name);
-        await this.addField(toModel, fromModel, fieldName, migration);
+        await this.addField(engine, toModel, fromModel, fieldName, migration);
       }
     }
 
     const allFieldsOfModel = Object.values(toModel?.original?.fields || {});
     for (const fieldDefinition of allFieldsOfModel) {
-      const isAForeignKeyField =
-        fieldDefinition instanceof models.fields.ForeignKeyField;
-      const fieldDoesNotExist =
-        isAForeignKeyField &&
-        this.engine.initializedModels[fieldDefinition.relatedTo] === undefined;
+      const isAForeignKeyField = fieldDefinition instanceof models.fields.ForeignKeyField;
+      const fieldDoesNotExist = isAForeignKeyField && engine.initializedModels[fieldDefinition.relatedTo] === undefined;
       if (fieldDoesNotExist) {
         this.#circularDependenciesInMigration.push({
           fromModel: fromModel !== undefined ? fromModel : toModel,
@@ -145,24 +127,18 @@ export default class SequelizeMigrations extends EngineMigrations {
     const toModelIndexes = toModel.initialized.options.indexes || [];
     const fromModelIndexes = fromModel?.initialized?.options?.indexes || [];
     const toModelName = toModel.initialized.options.tableName as string;
-    const toModelDatabaseColumnNames = Object.keys(
-      toModel.initialized.rawAttributes
-    ).map(
-      (attributeName) =>
-        toModel.initialized.getAttributes()[attributeName].field
+    const toModelDatabaseColumnNames = Object.keys(toModel.initialized.rawAttributes).map(
+      (attributeName) => toModel.initialized.getAttributes()[attributeName].field
     );
 
     for (const toModelIndex of toModelIndexes) {
       const stringifiedToModelIndex = JSON.stringify(toModelIndex);
       const indexDoesNotExistInDbYet =
-        fromModelIndexes.find(
-          (fromModelIndex) =>
-            JSON.stringify(fromModelIndex) === stringifiedToModelIndex
-        ) === undefined;
+        fromModelIndexes.find((fromModelIndex) => JSON.stringify(fromModelIndex) === stringifiedToModelIndex) ===
+        undefined;
       if (indexDoesNotExistInDbYet) {
-        const hasTheSameFieldsInTheIndexName = toModelIndex.fields?.every(
-          (indexColumnName) =>
-            toModelDatabaseColumnNames.includes(indexColumnName as string)
+        const hasTheSameFieldsInTheIndexName = toModelIndex.fields?.every((indexColumnName) =>
+          toModelDatabaseColumnNames.includes(indexColumnName as string)
         );
         if (hasTheSameFieldsInTheIndexName) {
           try {
@@ -175,9 +151,7 @@ export default class SequelizeMigrations extends EngineMigrations {
             const error = e as Error;
             const isRelationAlreadyExistsError =
               error.name === 'SequelizeDatabaseError' &&
-              new RegExp('^relation "\\w+" already exists$').test(
-                'relation "palmares_migrations_id" already exists'
-              );
+              new RegExp('^relation "\\w+" already exists$').test('relation "palmares_migrations_id" already exists');
             if (isRelationAlreadyExistsError) null;
             else throw e;
           }
@@ -192,10 +166,8 @@ export default class SequelizeMigrations extends EngineMigrations {
       for (const fromModelIndex of fromModelIndexes) {
         const stringifiedFromModelIndex = JSON.stringify(fromModelIndex);
         const indexDoesExistInDb =
-          toModelIndexes.find(
-            (toModelIndex) =>
-              JSON.stringify(toModelIndex) === stringifiedFromModelIndex
-          ) === undefined;
+          toModelIndexes.find((toModelIndex) => JSON.stringify(toModelIndex) === stringifiedFromModelIndex) ===
+          undefined;
         if (indexDoesExistInDb) {
           await this.#queryInterface.removeIndex(
             toModel.initialized.options.tableName as string,
@@ -205,17 +177,13 @@ export default class SequelizeMigrations extends EngineMigrations {
         }
       }
 
-      for (const toTryToAddOnThisIteration of this
-        .#indexesToAddOnNextIteration) {
+      for (const toTryToAddOnThisIteration of this.#indexesToAddOnNextIteration) {
         try {
           const optionsToAddIndex = Object.assign(
             { transaction: migration.transaction },
             toTryToAddOnThisIteration.index
           ) as SetRequired<QueryInterfaceIndexOptions, 'fields'>;
-          await this.#queryInterface.addIndex(
-            toTryToAddOnThisIteration.tableName,
-            optionsToAddIndex
-          );
+          await this.#queryInterface.addIndex(toTryToAddOnThisIteration.tableName, optionsToAddIndex);
         } catch (e) {
           failedIndexesForNextIteration.push(toTryToAddOnThisIteration);
         }
@@ -231,6 +199,7 @@ export default class SequelizeMigrations extends EngineMigrations {
    * @param migration - The migration instance with all of the operations
    */
   async addModel(
+    engine: SequelizeEngine,
     toModel: InitializedModelsType<ModelCtor<Model>>,
     migration: Migration
   ): Promise<void> {
@@ -242,7 +211,7 @@ export default class SequelizeMigrations extends EngineMigrations {
         transaction: migration.transaction,
       })
     );
-    await this.#handleCircularDependencies(migration.transaction, { toModel });
+    await this.#handleCircularDependencies(engine, migration.transaction, { toModel });
     await this.#handleIndexes(migration.transaction, { toModel });
   }
 
@@ -253,6 +222,7 @@ export default class SequelizeMigrations extends EngineMigrations {
    * @param migration - The migration instance with all of the operations
    */
   async removeModel(
+    _: SequelizeEngine,
     fromModel: InitializedModelsType<ModelCtor<Model>>,
     migration: Migration
   ): Promise<void> {
@@ -267,6 +237,7 @@ export default class SequelizeMigrations extends EngineMigrations {
    * more than that here.
    */
   async changeModel(
+    engine: SequelizeEngine,
     toModel: InitializedModelsType<ModelCtor<Model>>,
     fromModel: InitializedModelsType<ModelCtor<Model>>,
     migration: Migration
@@ -280,11 +251,12 @@ export default class SequelizeMigrations extends EngineMigrations {
         transaction: migration.transaction,
       });
     }
-    await this.#handleCircularDependencies(migration, { fromModel, toModel });
+    await this.#handleCircularDependencies(engine, migration, { fromModel, toModel });
     await this.#handleIndexes(migration, { fromModel, toModel });
   }
 
   async addField(
+    engine: SequelizeEngine,
     toModel: InitializedModelsType<ModelCtor<Model>>,
     fromModel: InitializedModelsType<ModelCtor<Model>>,
     fieldName: string,
@@ -303,18 +275,18 @@ export default class SequelizeMigrations extends EngineMigrations {
       sequelizeAttribute,
       { transaction: migration.transaction }
     );
-    await this.#handleCircularDependencies(migration, { fromModel, toModel });
+    await this.#handleCircularDependencies(engine, migration, { fromModel, toModel });
     await this.#handleIndexes(migration, { fromModel, toModel });
   }
 
   async removeField(
+    engine: SequelizeEngine,
     toModel: InitializedModelsType<ModelCtor<Model>>,
     fromModel: InitializedModelsType<ModelCtor<Model>>,
     fieldName: string,
     migration: Migration
   ): Promise<void> {
-    const columnName = fromModel.initialized.getAttributes()[fieldName]
-      .field as string;
+    const columnName = fromModel.initialized.getAttributes()[fieldName].field as string;
     const tableName = fromModel.initialized.options.tableName as string;
     await this.#queryInterface.removeColumn(tableName, columnName, {
       transaction: migration.transaction,
@@ -323,28 +295,21 @@ export default class SequelizeMigrations extends EngineMigrations {
   }
 
   async renameField(
+    engine: SequelizeEngine,
     toModel: InitializedModelsType<ModelCtor<Model>>,
     fromModel: InitializedModelsType<ModelCtor<Model>>,
     fieldNameBefore: string,
     fieldNameAfter: string,
     migration: Migration
   ): Promise<void> {
-    const databaseNameAfter = toModel.initialized.getAttributes()[
-      fieldNameAfter
-    ].field as string;
-    const databaseNameBefore = toModel.initialized.getAttributes()[
-      fieldNameBefore
-    ].field as string;
-    const tableNameWhereRenameHappened = toModel.initialized.options
-      .tableName as string;
+    const databaseNameAfter = toModel.initialized.getAttributes()[fieldNameAfter].field as string;
+    const databaseNameBefore = toModel.initialized.getAttributes()[fieldNameBefore].field as string;
+    const tableNameWhereRenameHappened = toModel.initialized.options.tableName as string;
 
-    await this.#queryInterface.renameColumn(
-      tableNameWhereRenameHappened,
-      databaseNameBefore,
-      databaseNameAfter,
-      { transaction: migration.transaction }
-    );
-    await this.#handleCircularDependencies(migration, { fromModel, toModel });
+    await this.#queryInterface.renameColumn(tableNameWhereRenameHappened, databaseNameBefore, databaseNameAfter, {
+      transaction: migration.transaction,
+    });
+    await this.#handleCircularDependencies(engine, migration, { fromModel, toModel });
     await this.#handleIndexes(migration, { toModel, fromModel });
   }
 
@@ -359,31 +324,25 @@ export default class SequelizeMigrations extends EngineMigrations {
    * @param migration - The migration instance.
    */
   async changeField(
+    engine: SequelizeEngine,
     toModel: InitializedModelsType<ModelCtor<Model>>,
     fromModel: InitializedModelsType<ModelCtor<Model>>,
     fieldBefore: models.fields.Field,
     fieldAfter: models.fields.Field,
     migration: Migration
   ): Promise<void> {
-    const attributesAsArray = Object.values(
-      toModel.initialized.getAttributes()
-    );
-    const initializedAttribute = attributesAsArray.find(
-      (attribute) => attribute.field === fieldAfter.databaseName
-    );
+    const attributesAsArray = Object.values(toModel.initialized.getAttributes());
+    const initializedAttribute = attributesAsArray.find((attribute) => attribute.field === fieldAfter.databaseName);
     const tableName = toModel.initialized.options.tableName as string;
     if (initializedAttribute) {
-      const isOfTypeRelation =
-        fieldBefore instanceof models.fields.ForeignKeyField;
+      const isOfTypeRelation = fieldBefore instanceof models.fields.ForeignKeyField;
       // This removes the constraint, when we change the column sequelize automatically creates a new constraint
       // because of that we remove the old one.
       if (isOfTypeRelation) {
-        const constraints:
-          | GetForeignKeyReferencesForTableReturnType[]
-          | undefined = (await this.#queryInterface.getForeignKeyReferencesForTable(
-          tableName,
-          { transaction: migration.transaction }
-        )) as GetForeignKeyReferencesForTableReturnType[] | undefined;
+        const constraints: GetForeignKeyReferencesForTableReturnType[] | undefined =
+          (await this.#queryInterface.getForeignKeyReferencesForTable(tableName, {
+            transaction: migration.transaction,
+          })) as GetForeignKeyReferencesForTableReturnType[] | undefined;
 
         if (constraints) {
           const constraintsToRemove = constraints?.filter(
@@ -391,23 +350,18 @@ export default class SequelizeMigrations extends EngineMigrations {
           );
 
           for (const constraintToRemove of constraintsToRemove) {
-            await this.#queryInterface.removeConstraint(
-              tableName,
-              constraintToRemove.constraintName as string,
-              { transaction: migration.transaction }
-            );
+            await this.#queryInterface.removeConstraint(tableName, constraintToRemove.constraintName as string, {
+              transaction: migration.transaction,
+            });
           }
         }
       }
     }
 
-    await this.#queryInterface.changeColumn(
-      tableName,
-      fieldAfter.databaseName,
-      initializedAttribute,
-      { transaction: migration.transaction }
-    );
-    await this.#handleCircularDependencies(migration, { fromModel, toModel });
+    await this.#queryInterface.changeColumn(tableName, fieldAfter.databaseName, initializedAttribute, {
+      transaction: migration.transaction,
+    });
+    await this.#handleCircularDependencies(engine, migration, { fromModel, toModel });
     await this.#handleIndexes(migration, { toModel, fromModel });
   }
 }

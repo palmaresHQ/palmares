@@ -1,14 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { EngineQuery, ModelFields, models } from '@palmares/databases';
-import {
-  Includeable,
-  Model,
-  ModelCtor,
-  // eslint-disable-next-line import/no-unresolved
-} from 'sequelize/types';
-// eslint-disable-next-line import/no-unresolved
+import { Includeable, Model, ModelCtor } from 'sequelize/types';
+import SequelizeEngineGetQuery from './get';
+import SequelizeEngineSetQuery from './set';
+import SequelizeEngineRemoveQuery from './remove';
+import SequelizeEngineSearchQuery from './search';
+import SequelizeEngineQueryOrdering from './ordering';
 
 export default class SequelizeEngineQuery extends EngineQuery {
+  get = new SequelizeEngineGetQuery();
+  set = new SequelizeEngineSetQuery();
+  remove = new SequelizeEngineRemoveQuery();
+  search = new SequelizeEngineSearchQuery();
+  ordering = new SequelizeEngineQueryOrdering();
+
   /**
    * This is a recursive function used to retrieve the includes of the queries.
    * What we try to do is to not enable recursive calls. For example:

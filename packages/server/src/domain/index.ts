@@ -30,7 +30,7 @@ export default domain('@palmares/server', __dirname, {
         },
       },
       positionalArgs: undefined,
-      handler: async (options) => {
+      handler: async () => {
         return httpAppServer;
       },
     },

@@ -29,30 +29,24 @@ type OrderingOfModelOptions<TFields> =
   | keyof { [F in TFields as F extends string ? `-${F}` : never]: F }
   | keyof { [F in TFields as F extends string ? `${F}` : never]: F };
 
-export type ExtractFieldNames<TFieldsAndAbstracts, TModelAbstracts> =
-  TFieldsAndAbstracts extends { fields: infer TFields }
-    ?
-        | keyof TFields
-        | (TModelAbstracts extends readonly [
-            infer TAbstract,
-            ...infer TRestAbstracts
-          ]
-            ? TAbstract extends
-                | { fields: any }
-                | { fields: any; abstracts: infer TAbstractsOfAbstract }
-              ?
-                  | ExtractFieldNames<TAbstract, TAbstractsOfAbstract>
-                  | ExtractFieldNames<
-                      TFieldsAndAbstracts,
-                      TRestAbstracts extends
-                        | { fields: any }
-                        | { fields: any; abstracts: readonly any[] }
-                        ? TRestAbstracts
-                        : never[]
-                    >
-              : never
-            : never)
-    : never;
+export type ExtractFieldNames<TFieldsAndAbstracts, TModelAbstracts> = TFieldsAndAbstracts extends {
+  fields: infer TFields;
+}
+  ?
+      | keyof TFields
+      | (TModelAbstracts extends readonly [infer TAbstract, ...infer TRestAbstracts]
+          ? TAbstract extends { fields: any } | { fields: any; abstracts: infer TAbstractsOfAbstract }
+            ?
+                | ExtractFieldNames<TAbstract, TAbstractsOfAbstract>
+                | ExtractFieldNames<
+                    TFieldsAndAbstracts,
+                    TRestAbstracts extends { fields: any } | { fields: any; abstracts: readonly any[] }
+                      ? TRestAbstracts
+                      : never[]
+                  >
+            : never
+          : never)
+  : never;
 
 type ExtractFieldTypes<
   TFieldsAndAbstracts,
@@ -78,20 +72,13 @@ type ExtractFieldTypes<
               : never
             : never;
         }) &
-      (TModelAbstracts extends readonly [
-        infer TAbstract,
-        ...infer TRestAbstracts
-      ]
-        ? TAbstract extends
-            | { fields: any }
-            | { fields: any; abstracts: infer TAbstractsOfAbstract }
+      (TModelAbstracts extends readonly [infer TAbstract, ...infer TRestAbstracts]
+        ? TAbstract extends { fields: any } | { fields: any; abstracts: infer TAbstractsOfAbstract }
           ?
               | ExtractFieldTypes<TAbstract, TAbstractsOfAbstract>
               | ExtractFieldTypes<
                   TFieldsAndAbstracts,
-                  TRestAbstracts extends
-                    | { fields: any }
-                    | { fields: any; abstracts: readonly any[] }
+                  TRestAbstracts extends { fields: any } | { fields: any; abstracts: readonly any[] }
                     ? TRestAbstracts
                     : never[]
                 >
@@ -100,16 +87,8 @@ type ExtractFieldTypes<
   : unknown;
 
 export type onSetFunction<M = any> = (args: {
-  data: ExtractFieldTypes<
-    M,
-    M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
-    false
-  >;
-  search: ExtractFieldTypes<
-    M,
-    M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
-    true
-  >;
+  data: ExtractFieldTypes<M, M extends { abstracts: infer TAbstracts } ? TAbstracts : never[], false>;
+  search: ExtractFieldTypes<M, M extends { abstracts: infer TAbstracts } ? TAbstracts : never[], true>;
 }) => Promise<any[]>;
 
 export type onRemoveFunction<M = any> = (args: {
@@ -117,27 +96,13 @@ export type onRemoveFunction<M = any> = (args: {
   shouldRemove?: boolean;
   /** Should you return the data that you are removing? By default yes, you should, in case this is false you should not. */
   shouldReturnData?: boolean;
-  search: ExtractFieldTypes<
-    M,
-    M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
-    true
-  >;
+  search: ExtractFieldTypes<M, M extends { abstracts: infer TAbstracts } ? TAbstracts : never[], true>;
 }) => Promise<any[]>;
 
 export type ModelOptionsType<M = any> = {
-  indexes?: ModelIndexType<
-    ExtractFieldNames<
-      M,
-      M extends { abstracts: infer TAbstracts } ? TAbstracts : never[]
-    >
-  >[];
+  indexes?: ModelIndexType<ExtractFieldNames<M, M extends { abstracts: infer TAbstracts } ? TAbstracts : never[]>>[];
   ordering?:
-    | OrderingOfModelOptions<
-        ExtractFieldNames<
-          M,
-          M extends { abstracts: infer TAbstracts } ? TAbstracts : never[]
-        >
-      >[]
+    | OrderingOfModelOptions<ExtractFieldNames<M, M extends { abstracts: infer TAbstracts } ? TAbstracts : never[]>>[]
     | string[];
   abstract?: boolean;
   underscored?: boolean;
@@ -146,20 +111,10 @@ export type ModelOptionsType<M = any> = {
   databases?: string[];
   customOptions?: any;
   onGet?: (args: {
-    search: ExtractFieldTypes<
-      M,
-      M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
-      true
-    >;
-    fields: readonly ExtractFieldNames<
-      M,
-      M extends { abstracts: infer TAbstracts } ? TAbstracts : never[]
-    >[];
+    search: ExtractFieldTypes<M, M extends { abstracts: infer TAbstracts } ? TAbstracts : never[], true>;
+    fields: readonly ExtractFieldNames<M, M extends { abstracts: infer TAbstracts } ? TAbstracts : never[]>[];
     ordering?: OrderingOfModelOptions<
-      ExtractFieldNames<
-        M,
-        M extends { abstracts: infer TAbstracts } ? TAbstracts : never[]
-      >
+      ExtractFieldNames<M, M extends { abstracts: infer TAbstracts } ? TAbstracts : never[]>
     >[];
     limit?: number;
     offset?: number | string;
@@ -193,7 +148,7 @@ export interface ModelType {
   options: ModelOptionsType;
   name: string;
   abstracts: typeof Model[];
-  instances?: Map<keyof DatabaseSettingsType['DATABASES'], any>;
+  instances?: Map<keyof DatabaseSettingsType['databases'], any>;
 }
 
 export type TModel = InstanceType<ReturnType<typeof model>>;
@@ -203,9 +158,7 @@ type HasDefaultValueFields<M extends ModelFieldsType> = {
 };
 
 type OptionalFields<M extends Model> = {
-  [F in keyof HasDefaultValueFields<M['fields']>]?: AddNull<
-    M['fields'][F extends string ? F : never]
-  >;
+  [F in keyof HasDefaultValueFields<M['fields']>]?: AddNull<M['fields'][F extends string ? F : never]>;
 };
 
 type DoNotHaveDefaultValueFields<M extends ModelFieldsType> = {
@@ -213,38 +166,24 @@ type DoNotHaveDefaultValueFields<M extends ModelFieldsType> = {
 };
 
 type RequiredFields<M extends Model> = {
-  [F in keyof DoNotHaveDefaultValueFields<M['fields']>]: AddNull<
-    M['fields'][F extends string ? F : never]
-  >;
+  [F in keyof DoNotHaveDefaultValueFields<M['fields']>]: AddNull<M['fields'][F extends string ? F : never]>;
 };
 
-type AddNull<F extends Field<any, boolean>> = F['allowNull'] extends true
-  ? F['type'] | null
-  : F['type'];
+type AddNull<F extends Field<any, boolean>> = F['allowNull'] extends true ? F['type'] | null : F['type'];
 
-type AbstractsAsFields2<U> = (
-  U extends Model ? (k: U) => void : never
-) extends (k: infer I) => void
+type AbstractsAsFields2<U> = (U extends Model ? (k: U) => void : never) extends (k: infer I) => void
   ? I extends Model
     ? OptionalFields<I> & RequiredFields<I>
     : never
   : never;
-type AbstractsAsFields1<U> = (
-  U extends Model ? (k: U) => void : never
-) extends (k: infer I) => void
+type AbstractsAsFields1<U> = (U extends Model ? (k: U) => void : never) extends (k: infer I) => void
   ? I extends Model
-    ? OptionalFields<I> &
-        RequiredFields<I> &
-        AbstractsAsFields2<I['abstracts'][number]>
+    ? OptionalFields<I> & RequiredFields<I> & AbstractsAsFields2<I['abstracts'][number]>
     : never
   : never;
-type AbstractsAsFields<U> = (U extends Model ? (k: U) => void : never) extends (
-  k: infer I
-) => void
+type AbstractsAsFields<U> = (U extends Model ? (k: U) => void : never) extends (k: infer I) => void
   ? I extends Model
-    ? OptionalFields<I> &
-        RequiredFields<I> &
-        AbstractsAsFields1<I['abstracts'][number]>
+    ? OptionalFields<I> & RequiredFields<I> & AbstractsAsFields1<I['abstracts'][number]>
     : never
   : never;
 

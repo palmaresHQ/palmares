@@ -11,9 +11,7 @@ import type { This } from '../../types';
  */
 export default class Field<
   F extends Field = any,
-  D extends N extends true
-    ? F['type'] | undefined | null
-    : F['type'] | undefined = undefined,
+  D extends N extends true ? F['type'] | undefined | null : F['type'] | undefined = undefined,
   U extends boolean = false,
   N extends boolean = false,
   A extends boolean = false,
@@ -21,7 +19,7 @@ export default class Field<
 > {
   isAuto!: A;
   hasDefaultValue!: D extends undefined ? false : true;
-  type!: any;
+  declare type: any;
   primaryKey: boolean;
   defaultValue?: D;
   allowNull: N;
@@ -35,15 +33,11 @@ export default class Field<
   fieldName!: string;
 
   constructor(params: FieldDefaultParamsType<F, D, U, N, A, CA> = {}) {
-    this.primaryKey =
-      typeof params.primaryKey === 'boolean' ? params.primaryKey : false;
+    this.primaryKey = typeof params.primaryKey === 'boolean' ? params.primaryKey : false;
     this.defaultValue = params.defaultValue as D;
-    this.allowNull =
-      typeof params.allowNull === 'boolean' ? params.allowNull : (false as N);
-    this.unique =
-      typeof params.unique === 'boolean' ? params.unique : (false as U);
-    this.isAuto =
-      typeof params.isAuto === 'boolean' ? params.isAuto : (false as A);
+    this.allowNull = typeof params.allowNull === 'boolean' ? params.allowNull : (false as N);
+    this.unique = typeof params.unique === 'boolean' ? params.unique : (false as U);
+    this.isAuto = typeof params.isAuto === 'boolean' ? params.isAuto : (false as A);
     this.dbIndex = typeof params.dbIndex === 'boolean' ? params.dbIndex : false;
     this.databaseName = params.databaseName || '';
     this.underscored = params.underscored || false;
@@ -65,38 +59,29 @@ export default class Field<
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async init(fieldName: string, model: TModel, engineInstance?: Engine) {
-    const isUnderscored: boolean =
-      (this.underscored || model.options.underscored) === true;
+    const isUnderscored: boolean = (this.underscored || model.options.underscored) === true;
     this.fieldName = fieldName;
     this.model = model;
 
     if (this.primaryKey) this.model.primaryKeys.push(this.fieldName);
-    if (isUnderscored)
-      this.databaseName = utils.camelCaseToHyphenOrSnakeCase(this.fieldName);
+    if (isUnderscored) this.databaseName = utils.camelCaseToHyphenOrSnakeCase(this.fieldName);
     else this.databaseName = this.fieldName;
   }
 
-  async toString(
-    indentation = 0,
-    customParams: string | undefined = undefined
-  ): Promise<string> {
+  async toString(indentation = 0, customParams: string | undefined = undefined): Promise<string> {
     const ident = '  '.repeat(indentation);
     const fieldParamsIdent = '  '.repeat(indentation + 1);
     return (
       `${ident}models.fields.${this.constructor.name}.new({` +
       `${customParams ? `\n${customParams}` : ''}\n` +
       `${fieldParamsIdent}primaryKey: ${this.primaryKey},\n` +
-      `${fieldParamsIdent}defaultValue: ${JSON.stringify(
-        this.defaultValue
-      )},\n` +
+      `${fieldParamsIdent}defaultValue: ${JSON.stringify(this.defaultValue)},\n` +
       `${fieldParamsIdent}allowNull: ${this.allowNull},\n` +
       `${fieldParamsIdent}unique: ${this.unique},\n` +
       `${fieldParamsIdent}dbIndex: ${this.dbIndex},\n` +
       `${fieldParamsIdent}databaseName: "${this.databaseName}",\n` +
       `${fieldParamsIdent}underscored: ${this.underscored},\n` +
-      `${fieldParamsIdent}customAttributes: ${JSON.stringify(
-        this.customAttributes
-      )}\n` +
+      `${fieldParamsIdent}customAttributes: ${JSON.stringify(this.customAttributes)}\n` +
       `${ident}})`
     );
   }
@@ -127,8 +112,7 @@ export default class Field<
     return (
       field.typeName === this.typeName &&
       field.allowNull === this.allowNull &&
-      JSON.stringify(field.customAttributes) ===
-        JSON.stringify(this.customAttributes) &&
+      JSON.stringify(field.customAttributes) === JSON.stringify(this.customAttributes) &&
       field.primaryKey === this.primaryKey &&
       field.defaultValue === this.defaultValue &&
       field.unique === this.unique &&

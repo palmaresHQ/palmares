@@ -8,6 +8,7 @@ import { serverLogger } from '../logging';
 import type Server from '../adapters';
 import type { ServerSettingsType, AllServerSettingsType } from '../types';
 import type { ServerDomain } from '../domain/types';
+
 let serverInstances: Map<string, { server: Server; settings: ServerSettingsType }> = new Map();
 
 /**

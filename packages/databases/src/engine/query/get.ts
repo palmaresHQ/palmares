@@ -10,15 +10,12 @@ import type {
   FieldsOfModelOptionsType,
 } from '../../models/types';
 import { NotImplementedEngineException } from '../exceptions';
+import Engine from '..';
+import parseSearch from '../../queries/search';
+import { BaseModel } from '../../models';
 
 /** This class is used to run `.get` queries, so when we want to retrieve a value from the database to the user. */
 export default class EngineGetQuery {
-  engineQueryInstance: EngineQuery;
-
-  constructor(engineQuery: EngineQuery) {
-    this.engineQueryInstance = engineQuery;
-  }
-
   /**
    * This is a simple query, by default you should always implement this function in your EngineGetQuery.
    *
@@ -34,79 +31,28 @@ export default class EngineGetQuery {
    * @param search - The search argument to search on the database.
    * @param fields - The fields to be included in the search and the output.
    */
-  async queryData(args: {
-    modelOfEngineInstance: any;
-    search: any;
-    fields: readonly string[];
-    ordering?: any;
-    limit?: number;
-    offset?: number | string;
-  }): Promise<any[]> {
+  async queryData(
+    _engine: Engine,
+    _args: {
+      modelOfEngineInstance: any;
+      search: any;
+      fields: readonly string[];
+      ordering?: any;
+      limit?: number;
+      offset?: number | string;
+    }
+  ): Promise<any[]> {
     return [];
   }
 
   async queryDataNatively(
-    modelConstructor: ReturnType<typeof model>,
-    search: any,
-    fields: readonly string[],
-    includes: Includes
+    _engine: Engine,
+    _modelConstructor: ReturnType<typeof model>,
+    _search: any,
+    _fields: readonly string[],
+    _includes: Includes,
+    _defaultParseSearch: (model: BaseModel<any>, search: any) => Promise<any>
   ): Promise<any[]> {
     throw new NotImplementedEngineException('queryDataNatively');
-  }
-
-  async run<
-    TModel extends InstanceType<ReturnType<typeof model>>,
-    TIncludes extends Includes = undefined,
-    TFieldsOfModel extends Function.Narrow<
-      FieldsOFModelType<InstanceType<ReturnType<typeof model>>>
-    > = FieldsOFModelType<InstanceType<ReturnType<typeof model>>>,
-    TSearch extends
-      | ModelFieldsWithIncludes<TModel, TIncludes, TFieldsOfModel, false, false, true, true>
-      | undefined = undefined
-  >(
-    args: {
-      ordering?: OrderingOfModelsType<
-        FieldsOfModelOptionsType<TModel> extends string ? FieldsOfModelOptionsType<TModel> : string
-      >;
-      limit?: number;
-      offset?: number | string;
-      fields?: TFieldsOfModel;
-      search?: TSearch;
-    },
-    internal: {
-      model: TModel;
-      includes: TIncludes;
-    }
-  ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFieldsOfModel>[]> {
-    const result: ModelFieldsWithIncludes<TModel, TIncludes, TFieldsOfModel>[] = [];
-    const selectedFields = (args.fields || Object.keys(internal.model.fields)) as TFieldsOfModel;
-    try {
-      return await this.queryDataNatively(
-        internal.model.constructor as ReturnType<typeof model>,
-        args.search,
-        selectedFields as unknown as string[],
-        internal.includes
-      );
-    } catch (e) {
-      if ((e as Error).name === NotImplementedEngineException.name)
-        await this.engineQueryInstance.getResultsWithIncludes(
-          internal.model as TModel,
-          selectedFields as TFieldsOfModel,
-          internal.includes as TIncludes,
-          args.search as TSearch,
-          result,
-          this.queryData.bind(this),
-          false,
-          false,
-          args.ordering,
-          args.limit,
-          args.offset,
-          undefined,
-          undefined,
-          undefined
-        );
-      else throw e;
-    }
-    return result;
   }
 }

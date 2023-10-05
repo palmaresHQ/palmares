@@ -128,17 +128,13 @@ export default class State {
   async geInitializedModelsByName(engineInstance: Engine) {
     let duplicatedEngineInstance: undefined | Engine = undefined;
 
-    if (engineInstance.duplicate) {
-      const wasDefaultDuplicateCalled = { value: false };
-      duplicatedEngineInstance = await engineInstance.duplicate(
-        defaultEngineDuplicate(engineInstance, wasDefaultDuplicateCalled)
-      );
-      if (wasDefaultDuplicateCalled.value === false) throw new DefaultDuplicateFunctionNotCalledOnEngine();
-    } else {
-      duplicatedEngineInstance = await defaultEngineDuplicate(engineInstance)();
-    }
+    const wasDefaultDuplicateCalled = { value: false };
+    duplicatedEngineInstance = await engineInstance.duplicate(
+      defaultEngineDuplicate(engineInstance, wasDefaultDuplicateCalled)
+    );
+    if (wasDefaultDuplicateCalled.value === false) throw new DefaultDuplicateFunctionNotCalledOnEngine();
 
-    const closeEngineInstance = duplicatedEngineInstance.close.bind(duplicatedEngineInstance);
+    const closeEngineInstance = duplicatedEngineInstance.close?.bind(duplicatedEngineInstance);
 
     const wasInitialized = Object.keys(this.initializedModelsByName).length > 0;
     if (wasInitialized)
@@ -185,7 +181,6 @@ export default class State {
     untilOperationIndex?: number
   ) {
     const state = new this();
-
     for (const foundMigration of foundMigrations) {
       const isToBuildStateUntilThisMigration = foundMigration.migration.name === untilMigration;
 

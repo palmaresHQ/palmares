@@ -4,15 +4,13 @@ import type { This } from '../../types';
 
 export default class IntegerField<
   F extends Field = any,
-  D extends N extends true
-    ? F['type'] | undefined | null
-    : F['type'] | undefined = undefined,
+  D extends N extends true ? F['type'] | undefined | null : F['type'] | undefined = undefined,
   U extends boolean = false,
   N extends boolean = false,
   A extends boolean = false,
   CA = any
 > extends Field<F, D, U, N, A, CA> {
-  type!: number;
+  declare type: number;
   typeName: string = IntegerField.name;
 
   constructor(params: FieldDefaultParamsType<F, D, U, N, A, CA> = {}) {
@@ -28,10 +26,7 @@ export default class IntegerField<
     N extends boolean = false,
     A extends boolean = false,
     CA = any
-  >(
-    this: I,
-    params: FieldDefaultParamsType<InstanceType<I>, D, U, N, A, CA> = {}
-  ) {
+  >(this: I, params: FieldDefaultParamsType<InstanceType<I>, D, U, N, A, CA> = {}) {
     return new this(params) as IntegerField<InstanceType<I>, D, U, N, A, CA>;
   }
 }

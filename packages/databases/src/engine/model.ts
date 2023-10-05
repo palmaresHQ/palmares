@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import Engine from '.';
+import type Engine from '.';
 import { Field } from '../models/fields';
 import { Model } from '../models/model';
 import { NotImplementedEngineException } from './exceptions';
@@ -9,29 +9,25 @@ import EngineFields from './fields';
  * Used for translating a model from palmares to a model of the engine.
  */
 export default class EngineModels {
-  engine: Engine;
-  engineFields: EngineFields;
-
-  constructor(engine: Engine, engineFields: EngineFields) {
-    this.engine = engine;
-    this.engineFields = engineFields;
+  async translateOptions(_engine: Engine, _model: Model): Promise<any> {
+    throw new NotImplementedEngineException('translateOptions');
   }
 
-  async translateOptions(model: Model): Promise<any> {
-    if (this.engine.__ignoreNotImplementedErrors !== true) throw new NotImplementedEngineException('translateOptions');
+  async translateFields(
+    _engine: Engine,
+    _fieldEntriesOfModel: [string, Field][],
+    _model: Model,
+    _defaultGetTranslatedFieldCallback: (_field: Field) => Promise<any>
+  ): Promise<any> {
+    throw new NotImplementedEngineException('translateFields');
   }
 
-  async translateFields(fieldEntriesOfModel: [string, Field][], model: Model): Promise<any> {
-    if (this.engine.__ignoreNotImplementedErrors !== true) throw new NotImplementedEngineException('translateFields');
-  }
-
-  async translate(model: Model): Promise<any> {
-    const options = await this.translateOptions(model);
-    const fields = await this.translateFields(Object.entries(model.fields), model);
-
-    return {
-      options,
-      fields,
-    };
+  async translate(
+    _engine: Engine,
+    _model: Model,
+    _defaultTranslateCallback: () => Promise<{ options: any; fields: any }>,
+    _defaultGetTranslatedFieldCallback: (_field: Field) => Promise<any>
+  ): Promise<any> {
+    throw new NotImplementedEngineException('translate');
   }
 }

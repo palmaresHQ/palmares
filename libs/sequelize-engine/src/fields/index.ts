@@ -1,4 +1,4 @@
-import { EngineFields, Field, models } from '@palmares/databases';
+import { EngineAutoFieldParser, EngineFields, Field, models } from '@palmares/databases';
 
 import {
   ModelAttributeColumnOptions,
@@ -13,10 +13,7 @@ import {
 
 import type SequelizeEngine from '../engine';
 import { PreventForeignKeyError } from '../exceptions';
-import {
-  ModelTranslatorIndexesType,
-  RelatedModelToEvaluateAfterType,
-} from '../types';
+import { ModelTranslatorIndexesType, RelatedModelToEvaluateAfterType } from '../types';
 import SequelizeEngineFieldParser from './field';
 import SequelizeEngineAutoFieldParser from './auto';
 import SequelizeEngineBigAutoFieldParser from './big-auto';
@@ -27,6 +24,7 @@ import SequelizeEngineDecimalFieldParser from './decimal';
 import SequelizeEngineTextFieldParser from './text';
 import SequelizeEngineUuidFieldParser from './uuid';
 import SequelizeEngineForeignKeyFieldParser from './foreign-key';
+import SequelizeEngineIntegerFieldParser from './integer';
 
 /**
  * This class is used to translate the fields of a model to the attributes of a sequelize model.
@@ -35,6 +33,18 @@ import SequelizeEngineForeignKeyFieldParser from './foreign-key';
  * itself.
  */
 export default class SequelizeEngineFields extends EngineFields {
+  declare fieldsParser: SequelizeEngineFieldParser;
+  autoFieldParser = new SequelizeEngineAutoFieldParser();
+  bigAutoFieldParser = new SequelizeEngineBigAutoFieldParser();
+  bigIntegerFieldParser = new SequelizeEngineBigIntegerFieldParser();
+  charFieldParser = new SequelizeEngineCharFieldParser();
+  dateFieldParser = new SequelizeEngineDateFieldParser();
+  decimalFieldParser = new SequelizeEngineDecimalFieldParser();
+  foreignKeyFieldParser = new SequelizeEngineForeignKeyFieldParser();
+  integerFieldParser = new SequelizeEngineIntegerFieldParser();
+  textFieldParser = new SequelizeEngineTextFieldParser();
+  uuidFieldParser = new SequelizeEngineUuidFieldParser();
+
   engineInstance!: SequelizeEngine;
   #dateFieldsAsAutoNowToAddHooks = new Map<string, string[]>();
   #indexes: ModelTranslatorIndexesType = {};
@@ -47,23 +57,18 @@ export default class SequelizeEngineFields extends EngineFields {
     [models.fields.ON_DELETE.DO_NOTHING]: 'DO NOTHING',
   };
 
-  constructor(
-    engineInstance: SequelizeEngine<any>,
-    fields: {
-      field?: typeof SequelizeEngineFieldParser;
-      auto: typeof SequelizeEngineAutoFieldParser;
-      bigAuto: typeof SequelizeEngineBigAutoFieldParser;
-      bigInteger: typeof SequelizeEngineBigIntegerFieldParser;
-      char: typeof SequelizeEngineCharFieldParser;
-      date: typeof SequelizeEngineDateFieldParser;
-      decimal: typeof SequelizeEngineDecimalFieldParser;
-      foreignKey: typeof SequelizeEngineForeignKeyFieldParser;
-      integer: typeof SequelizeEngineFieldParser;
-      text: typeof SequelizeEngineTextFieldParser;
-      uuid: typeof SequelizeEngineUuidFieldParser;
-    }
-  ) {
-    super(engineInstance, fields);
+  constructor() {
+    super(new SequelizeEngineFieldParser());
+    this.fieldsParser.auto = this.autoFieldParser;
+    this.fieldsParser.bigAuto = this.bigAutoFieldParser;
+    this.fieldsParser.bigInt = this.bigIntegerFieldParser;
+    this.fieldsParser.char = this.charFieldParser;
+    this.fieldsParser.date = this.dateFieldParser;
+    this.fieldsParser.decimal = this.decimalFieldParser;
+    this.fieldsParser.foreignKey = this.foreignKeyFieldParser;
+    this.fieldsParser.integer = this.integerFieldParser;
+    this.fieldsParser.text = this.textFieldParser;
+    this.fieldsParser.uuid = this.uuidFieldParser;
   }
 
   /**
@@ -96,15 +101,10 @@ export default class SequelizeEngineFields extends EngineFields {
     field: models.fields.ForeignKeyField,
     fieldAttributes: ModelAttributeColumnOptions
   ) {
-    const isModelAlreadyInitialized =
-      this.engineInstance.initializedModels[field.relatedTo] !== undefined;
-    const modelNameToHandleRelation = isModelAlreadyInitialized
-      ? field.model.name
-      : field.relatedTo;
-    const isModelAlreadyInObject =
-      this.#relatedFieldsToEvaluate[modelNameToHandleRelation] !== undefined;
-    if (isModelAlreadyInObject === false)
-      this.#relatedFieldsToEvaluate[modelNameToHandleRelation] = [];
+    const isModelAlreadyInitialized = this.engineInstance.initializedModels[field.relatedTo] !== undefined;
+    const modelNameToHandleRelation = isModelAlreadyInitialized ? field.model.name : field.relatedTo;
+    const isModelAlreadyInObject = this.#relatedFieldsToEvaluate[modelNameToHandleRelation] !== undefined;
+    if (isModelAlreadyInObject === false) this.#relatedFieldsToEvaluate[modelNameToHandleRelation] = [];
     this.#relatedFieldsToEvaluate[modelNameToHandleRelation].push({
       field: field,
       fieldAttributes: fieldAttributes,
@@ -121,9 +121,7 @@ export default class SequelizeEngineFields extends EngineFields {
       unique: (field.unique as boolean) === true,
       fields: [field.databaseName],
     };
-    const doesFieldIndexForModelNameExists = Array.isArray(
-      this.#indexes[field.model.name]
-    );
+    const doesFieldIndexForModelNameExists = Array.isArray(this.#indexes[field.model.name]);
     if (doesFieldIndexForModelNameExists) {
       this.#indexes[field.model.name].push(index);
     } else {
@@ -147,14 +145,10 @@ export default class SequelizeEngineFields extends EngineFields {
   }
 
   async #handleHooksToUpdateDateFieldsAfterModelCreation(modelName: string) {
-    const hasDateFieldToUpdateForModelName =
-      this.#dateFieldsAsAutoNowToAddHooks.has(modelName);
+    const hasDateFieldToUpdateForModelName = this.#dateFieldsAsAutoNowToAddHooks.has(modelName);
     if (hasDateFieldToUpdateForModelName) {
-      const modelToAddHook: ModelCtor<Model> = this.engineInstance
-        .initializedModels[modelName] as ModelCtor<Model>;
-      const dateFieldsToUpdate = this.#dateFieldsAsAutoNowToAddHooks.get(
-        modelName
-      ) as string[];
+      const modelToAddHook: ModelCtor<Model> = this.engineInstance.initializedModels[modelName] as ModelCtor<Model>;
+      const dateFieldsToUpdate = this.#dateFieldsAsAutoNowToAddHooks.get(modelName) as string[];
       modelToAddHook.beforeSave((instance: Model) => {
         for (const updateDateHook of dateFieldsToUpdate) {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -166,14 +160,11 @@ export default class SequelizeEngineFields extends EngineFields {
   }
 
   async #handleRelatedFieldsAfterModelCreation(modelName: string) {
-    const hasRelatedFieldsToEvaluateForModelName = Array.isArray(
-      this.#relatedFieldsToEvaluate[modelName]
-    );
+    const hasRelatedFieldsToEvaluateForModelName = Array.isArray(this.#relatedFieldsToEvaluate[modelName]);
     if (hasRelatedFieldsToEvaluateForModelName) {
       this.#relatedFieldsToEvaluate[modelName] = await Promise.all(
         this.#relatedFieldsToEvaluate[modelName].filter(
-          async ({ field, fieldAttributes }) =>
-            await this.#handleRelatedField(field, fieldAttributes)
+          async ({ field, fieldAttributes }) => await this.#handleRelatedField(field, fieldAttributes)
         )
       );
     }
@@ -183,25 +174,23 @@ export default class SequelizeEngineFields extends EngineFields {
     field: models.fields.ForeignKeyField,
     fieldAttributes: ModelAttributeColumnOptions & ForeignKeyOptions
   ) {
-    const modelWithForeignKeyField: ModelCtor<Model> = this.engineInstance
-      .initializedModels[field.model.name] as ModelCtor<Model>;
-    const relatedToModel: ModelCtor<Model> = this.engineInstance
-      .initializedModels[field.relatedTo] as ModelCtor<Model>;
+    const modelWithForeignKeyField: ModelCtor<Model> = this.engineInstance.initializedModels[
+      field.model.name
+    ] as ModelCtor<Model>;
+    const relatedToModel: ModelCtor<Model> = this.engineInstance.initializedModels[field.relatedTo] as ModelCtor<Model>;
     const isRelatedModelAndModelOfForeignDefined =
       relatedToModel !== undefined && modelWithForeignKeyField !== undefined;
 
     if (isRelatedModelAndModelOfForeignDefined) {
-      const translatedOnDelete: string =
-        this.#onDeleteOperations[field.onDelete];
+      const translatedOnDelete: string = this.#onDeleteOperations[field.onDelete];
 
       fieldAttributes.name = field.fieldName;
-      const relationOptions: HasManyOptions | BelongsToOptions | HasOneOptions =
-        {
-          foreignKey: fieldAttributes,
-          hooks: true,
-          onDelete: translatedOnDelete,
-          sourceKey: field.toField,
-        };
+      const relationOptions: HasManyOptions | BelongsToOptions | HasOneOptions = {
+        foreignKey: fieldAttributes,
+        hooks: true,
+        onDelete: translatedOnDelete,
+        sourceKey: field.toField,
+      };
       switch (field.typeName) {
         case models.fields.ForeignKeyField.name:
           relationOptions.as = field.relatedName as string;
@@ -219,11 +208,9 @@ export default class SequelizeEngineFields extends EngineFields {
     modelAttributes: ModelAttributeColumnOptions,
     field: models.fields.Field
   ): Promise<void> {
-    const isFieldAIndexOrIsFieldUnique =
-      field.dbIndex === true || (field.unique as boolean) === true;
+    const isFieldAIndexOrIsFieldUnique = field.dbIndex === true || (field.unique as boolean) === true;
     if (isFieldAIndexOrIsFieldUnique) await this.appendIndexes(field);
-    if (modelAttributes.defaultValue === undefined)
-      modelAttributes.defaultValue = field.defaultValue;
+    if (modelAttributes.defaultValue === undefined) modelAttributes.defaultValue = field.defaultValue;
     modelAttributes.primaryKey = field.primaryKey;
     modelAttributes.allowNull = field.allowNull;
     modelAttributes.unique = field.unique;
@@ -232,8 +219,7 @@ export default class SequelizeEngineFields extends EngineFields {
 
     const customAttributesEntries = Object.entries(field.customAttributes);
     for (const [key, value] of customAttributesEntries) {
-      const keyAsTypeofModelColumnOption =
-        key as keyof ModelAttributeColumnOptions;
+      const keyAsTypeofModelColumnOption = key as keyof ModelAttributeColumnOptions;
       modelAttributes[keyAsTypeofModelColumnOption] = value as never;
     }
   }
@@ -244,9 +230,13 @@ export default class SequelizeEngineFields extends EngineFields {
     return [];
   }
 
-  async get(field: Field): Promise<ModelAttributeColumnOptions | null> {
+  async get(
+    _: SequelizeEngine,
+    field: Field,
+    defaultGetCallback: (field: Field) => Promise<any>
+  ): Promise<ModelAttributeColumnOptions | null> {
     try {
-      return await super.get(field);
+      return await defaultGetCallback(field);
     } catch (e) {
       const error = e as Error;
       switch (error.name) {
