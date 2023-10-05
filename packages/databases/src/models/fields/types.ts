@@ -2,6 +2,8 @@ import Field from './field';
 import Engine, { EngineFields } from '../../engine';
 import { Model } from '../model';
 
+import type { Narrow } from '@palmares/core';
+
 export enum ON_DELETE {
   CASCADE = 'cascade',
   SET_NULL = 'set_null',
@@ -17,10 +19,7 @@ export type CustomImportsForFieldType = {
 
 export interface TranslatableFieldType {
   translate?(engine: Engine, engineFields: EngineFields): Promise<any>;
-  toString(
-    indentation: number,
-    customParams: string | undefined
-  ): Promise<string>;
+  toString(indentation: number, customParams: string | undefined): Promise<string>;
 }
 
 export type ClassConstructor<T> = {
@@ -29,9 +28,7 @@ export type ClassConstructor<T> = {
 
 export interface FieldDefaultParamsType<
   F extends Field<any, any, any, any, any, any>,
-  D extends N extends true
-    ? F['type'] | undefined | null
-    : F['type'] | undefined = undefined,
+  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
   U extends boolean = false,
   N extends boolean = false,
   A extends boolean = false,
@@ -50,9 +47,7 @@ export interface FieldDefaultParamsType<
 
 export type DecimalFieldParamsType<
   F extends Field,
-  D extends N extends true
-    ? F['type'] | undefined | null
-    : F['type'] | undefined = undefined,
+  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
   U extends boolean = false,
   N extends boolean = false,
   A extends boolean = false,
@@ -62,11 +57,23 @@ export type DecimalFieldParamsType<
   decimalPlaces: number;
 } & FieldDefaultParamsType<F, D, U, N, A, CA>;
 
+export type EnumFieldParamsType<
+  TField extends Field,
+  TDefaultValue extends TNull extends true
+    ? TField['_type'] | undefined | null
+    : TField['_type'] | undefined = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  CA = any,
+  TEnumChoices extends string[] = string[]
+> = {
+  choices: Narrow<TEnumChoices>;
+} & FieldDefaultParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, CA>;
+
 export type TextFieldParamsType<
   F extends Field,
-  D extends N extends true
-    ? F['type'] | undefined | null
-    : F['type'] | undefined = undefined,
+  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
   U extends boolean = false,
   N extends boolean = false,
   A extends boolean = false,
@@ -77,9 +84,7 @@ export type TextFieldParamsType<
 
 export type CharFieldParamsType<
   F extends Field,
-  D extends N extends true
-    ? F['type'] | undefined | null
-    : F['type'] | undefined = undefined,
+  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
   U extends boolean = false,
   N extends boolean = false,
   A extends boolean = false,
@@ -90,9 +95,7 @@ export type CharFieldParamsType<
 
 export type UUIDFieldParamsType<
   F extends Field,
-  D extends N extends true
-    ? F['type'] | undefined | null
-    : F['type'] | undefined = undefined,
+  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
   U extends boolean = false,
   N extends boolean = false,
   A extends boolean = false,
@@ -105,9 +108,7 @@ export type UUIDFieldParamsType<
 
 export type DateFieldParamsType<
   F extends Field,
-  D extends N extends true
-    ? F['type'] | undefined | null
-    : F['type'] | undefined = undefined,
+  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
   U extends boolean = false,
   N extends boolean = false,
   A extends boolean = false,
@@ -127,7 +128,7 @@ export type ForeignKeyFieldParamsType<
         | (TLazyDefaultValue extends undefined
             ? T extends undefined
               ? M extends Model<any>
-                ? M['fields'][RF]['type']
+                ? M['fields'][RF]['_type']
                 : T
               : T
             : TLazyDefaultValue)
@@ -137,7 +138,7 @@ export type ForeignKeyFieldParamsType<
         | (TLazyDefaultValue extends undefined
             ? T extends undefined
               ? M extends Model<any>
-                ? M['fields'][RF]['type']
+                ? M['fields'][RF]['_type']
                 : T
               : T
             : TLazyDefaultValue)

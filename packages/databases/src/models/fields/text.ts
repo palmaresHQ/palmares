@@ -4,13 +4,13 @@ import type { TextFieldParamsType } from './types';
 
 export default class TextField<
   F extends Field = any,
-  D extends N extends true ? F['type'] | undefined | null : F['type'] | undefined = undefined,
+  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
   U extends boolean = false,
   N extends boolean = false,
   A extends boolean = false,
   CA = any
 > extends Field<F, D, U, N, A, CA> {
-  declare type: string;
+  declare _type: string;
   typeName: string = TextField.name;
   allowBlank: boolean;
 
@@ -22,8 +22,8 @@ export default class TextField<
   static new<
     I extends This<typeof TextField>,
     D extends N extends true
-      ? InstanceType<I>['type'] | undefined | null
-      : InstanceType<I>['type'] | undefined = undefined,
+      ? InstanceType<I>['_type'] | undefined | null
+      : InstanceType<I>['_type'] | undefined = undefined,
     U extends boolean = false,
     N extends boolean = false,
     A extends boolean = false,

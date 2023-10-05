@@ -1,4 +1,4 @@
-import { InitializedModelsType, ModelFieldsInQueries, models } from '@palmares/databases';
+import { InitializedModelsType, ModelFields, ModelFieldsInQueries, TModel, models } from '@palmares/databases';
 import { IndexesOptions, Model, ModelAttributeColumnOptions, ModelCtor, ModelStatic } from 'sequelize';
 
 export type IndexesToAddOnNextIterationType = {
@@ -43,7 +43,7 @@ export type RelatedModelToEvaluateAfterType = {
   [key: string]: RelatedFieldsToEvaluateType[];
 };
 
-export type SequelizeModel<TModel extends models.BaseModel<any>> = ModelCtor<Model<ModelFieldsInQueries<TModel>>>;
+export type SequelizeModel<TypeModel extends TModel> = ModelCtor<Model<ModelFields<TypeModel>>>;
 
 class Base {
   async test(base: Base) {

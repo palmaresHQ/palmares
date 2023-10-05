@@ -492,7 +492,7 @@ export class Model<T = any> {
 export default function model<M>() {
   let defaultManagerInstance: any = null;
 
-  return class DefaultModel extends Model<M> {
+  const classToReturn = class DefaultModel extends Model<M> {
     static get default() {
       if (defaultManagerInstance === null) {
         defaultManagerInstance = new DefaultManager<M extends DefaultModel ? M : any>();
@@ -501,6 +501,8 @@ export default function model<M>() {
       return defaultManagerInstance as DefaultManager<M extends DefaultModel ? M : any>;
     }
   };
+
+  return classToReturn;
 }
 
 /**

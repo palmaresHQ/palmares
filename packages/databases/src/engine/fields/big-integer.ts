@@ -11,5 +11,8 @@ export default class EngineBigIntegerFieldParser extends EngineFieldParser {
   integer = undefined;
   text = undefined;
   uuid = undefined;
+  enum = undefined;
+  boolean = undefined;
+
   translatable = true;
 }

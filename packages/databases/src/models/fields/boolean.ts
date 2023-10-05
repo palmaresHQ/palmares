@@ -7,36 +7,34 @@ import type { This } from '../../types';
  */
 export default class BooleanField<
   TField extends Field = any,
-  TDefaultValue extends TNull extends true ? TField['type'] | undefined | null : TField['type'] | undefined = undefined,
-  TUnique extends boolean = true,
+  TDefaultValue extends TNull extends true
+    ? TField['_type'] | undefined | null
+    : TField['_type'] | undefined = undefined,
+  TUnique extends boolean = false,
   TNull extends boolean = false,
-  TAuto extends boolean = true,
+  TAuto extends boolean = false,
   CA = any
 > extends Field<TField, TDefaultValue, TUnique, TNull, TAuto, CA> {
-  declare type: boolean;
+  declare _type: boolean;
   typeName: string = BooleanField.name;
 
   constructor(params: FieldDefaultParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, CA> = {}) {
-    super({
-      ...params,
-      primaryKey: true,
-      allowNull: false as TNull,
-      unique: true as TUnique,
-      dbIndex: true,
-      isAuto: true as TAuto,
-    });
+    super(params);
   }
 
   static new<
-    I extends This<typeof BooleanField>,
-    D extends N extends true
-      ? InstanceType<I>['type'] | undefined | null
-      : InstanceType<I>['type'] | undefined = undefined,
-    U extends boolean = true,
-    N extends boolean = false,
-    A extends boolean = true,
+    TFieldInstance extends This<typeof BooleanField>,
+    TDefaultValue extends TNull extends true
+      ? InstanceType<TFieldInstance>['_type'] | undefined | null
+      : InstanceType<TFieldInstance>['_type'] | undefined = undefined,
+    TUnique extends boolean = true,
+    TNull extends boolean = false,
+    TAuto extends boolean = true,
     CA = any
-  >(this: I, params: FieldDefaultParamsType<InstanceType<I>, D, U, N, A, CA> = {}) {
-    return new this(params) as BooleanField<InstanceType<I>, D, U, N, A, CA>;
+  >(
+    this: TFieldInstance,
+    params: FieldDefaultParamsType<InstanceType<TFieldInstance>, TDefaultValue, TUnique, TNull, TAuto, CA> = {}
+  ) {
+    return new this(params) as BooleanField<InstanceType<TFieldInstance>, TDefaultValue, TUnique, TNull, TAuto, CA>;
   }
 }

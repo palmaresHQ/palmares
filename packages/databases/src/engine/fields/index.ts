@@ -11,6 +11,8 @@ import EngineUuidFieldParser from './uuid';
 import EngineDecimalFieldParser from './decimal';
 import EngineCharFieldParser from './char';
 import EngineTextFieldParser from './text';
+import EngineEnumFieldParser from './enum';
+import EngineBooleanFieldParser from './boolean';
 import { NotImplementedEngineFieldsException } from '../exceptions';
 
 /**
@@ -30,6 +32,8 @@ export default class EngineFields {
   integerFieldParser: EngineIntegerFieldParser = new EngineIntegerFieldParser();
   textFieldParser: EngineTextFieldParser = new EngineTextFieldParser();
   uuidFieldParser: EngineUuidFieldParser = new EngineUuidFieldParser();
+  enumFieldParser: EngineEnumFieldParser = new EngineEnumFieldParser();
+  booleanFieldParser: EngineBooleanFieldParser = new EngineBooleanFieldParser();
 
   constructor(fieldsParser?: EngineFieldParser) {
     this.fieldsParser = fieldsParser ? fieldsParser : new EngineFieldParser();
@@ -43,6 +47,8 @@ export default class EngineFields {
     this.fieldsParser.integer = this.integerFieldParser;
     this.fieldsParser.text = this.textFieldParser;
     this.fieldsParser.uuid = this.uuidFieldParser;
+    this.fieldsParser.enum = this.enumFieldParser;
+    this.fieldsParser.boolean = this.booleanFieldParser;
   }
 
   /**
@@ -69,4 +75,6 @@ export {
   EngineDecimalFieldParser,
   EngineBigIntegerFieldParser,
   EngineForeignKeyFieldParser,
+  EngineEnumFieldParser,
+  EngineBooleanFieldParser,
 };

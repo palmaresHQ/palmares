@@ -4,7 +4,7 @@ import type { DateFieldParamsType } from './types';
 
 export default class DateField<
   F extends Field = any,
-  D extends N extends true ? F['type'] | undefined | null : F['type'] | undefined = undefined,
+  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
   U extends boolean = false,
   N extends boolean = false,
   A extends boolean = false,
@@ -12,7 +12,7 @@ export default class DateField<
   AN extends boolean = false,
   ANA extends boolean = false
 > extends Field<F, D, U, N, AN extends true ? true : ANA extends true ? true : A, CA> {
-  declare type: Date;
+  declare _type: Date;
   typeName: string = DateField.name;
   autoNow: AN;
   autoNowAdd: ANA;
@@ -28,8 +28,8 @@ export default class DateField<
   static new<
     I extends This<typeof DateField>,
     D extends N extends true
-      ? InstanceType<I>['type'] | undefined | null
-      : InstanceType<I>['type'] | undefined = undefined,
+      ? InstanceType<I>['_type'] | undefined | null
+      : InstanceType<I>['_type'] | undefined = undefined,
     U extends boolean = false,
     N extends boolean = false,
     A extends boolean = false,
@@ -67,7 +67,7 @@ export default class DateField<
     customParams: string | undefined = undefined
   ) {
     const ident = '  '.repeat(indentation + 1);
-    return super.toString(indentation, `${ident}autoNow: ${this.autoNow},\n${ident}autoNowAdd: ${this.autoNowAdd}`);
+    return super.toString(indentation, `${ident}autoNow: ${this.autoNow},\n${ident}autoNowAdd: ${this.autoNowAdd},`);
   }
 
   async compare(field: Field): Promise<boolean> {

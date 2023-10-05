@@ -15,11 +15,14 @@ export default class SequelizeEngineAutoFieldParser extends SequelizeEngineField
   integer = undefined;
   text = undefined;
   uuid = undefined;
+  enum = undefined;
+  boolean = undefined;
 
   translatable = true;
 
   async translate(engine: SequelizeEngine, field: Field): Promise<ModelAttributeColumnOptions> {
     const defaultOptions = await super.translate(engine, field);
+    defaultOptions.primaryKey = true;
     defaultOptions.autoIncrement = true;
     defaultOptions.autoIncrementIdentity = true;
     defaultOptions.type = DataTypes.INTEGER;

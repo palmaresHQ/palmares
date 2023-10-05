@@ -11,5 +11,6 @@ export default class EngineCharFieldParser extends EngineFieldParser {
   integer = undefined;
   text = undefined;
   uuid = undefined;
+
   translatable = true;
 }

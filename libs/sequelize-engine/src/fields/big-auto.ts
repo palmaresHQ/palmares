@@ -15,6 +15,8 @@ export default class SequelizeEngineBigAutoFieldParser extends SequelizeEngineFi
   integer = undefined;
   text = undefined;
   uuid = undefined;
+  enum = undefined;
+  boolean = undefined;
 
   translatable = true;
 

@@ -13,6 +13,8 @@ import EngineForeignKeyFieldParser from './foreign-key';
 import EngineIntegerFieldParser from './integer';
 import EngineTextFieldParser from './text';
 import EngineUuidFieldParser from './uuid';
+import EngineEnumFieldParser from './enum';
+import EngineBooleanFieldParser from './boolean';
 
 /**
  * This will be used to parse the fields that are going to be used in the model in the database, for every field we will call this class.
@@ -33,6 +35,8 @@ export default class EngineFieldParser {
   integer?: EngineIntegerFieldParser;
   text?: EngineTextFieldParser;
   uuid?: EngineUuidFieldParser;
+  enum?: EngineEnumFieldParser;
+  boolean?: EngineBooleanFieldParser;
 
   translatable = false;
 

@@ -21,7 +21,7 @@ export default class ForeignKeyField<
         | (TLazyDefaultValue extends undefined
             ? T extends undefined
               ? M extends Model
-                ? M['fields'][RF]['type']
+                ? M['fields'][RF]['_type']
                 : T
               : T
             : TLazyDefaultValue)
@@ -31,7 +31,7 @@ export default class ForeignKeyField<
         | (TLazyDefaultValue extends undefined
             ? T extends undefined
               ? M extends Model
-                ? M['fields'][RF]['type']
+                ? M['fields'][RF]['_type']
                 : T
               : T
             : TLazyDefaultValue)
@@ -46,15 +46,19 @@ export default class ForeignKeyField<
   RN extends string = any,
   RNN extends string = any
 > extends Field<F, D, U, N, A, CA> {
-  declare type: TLazyDefaultValue extends undefined
+  declare _type: TLazyDefaultValue extends undefined
     ? T extends undefined
-      ? M extends Model<infer ThisModel>
-        ? ThisModel extends InstanceType<ReturnType<typeof model>> | Model
-          ? ThisModel['fields'][RF]['type']
-          : T
-        : T
-      : T
-    : TLazyDefaultValue;
+      ? M extends {
+          fields: infer TFields;
+        }
+        ? RF extends keyof TFields
+          ? TFields[RF] extends Field<any, any, any, any, any, any>
+            ? TFields[RF]['_type']
+            : TFields[RF]
+          : never
+        : never
+      : never
+    : never;
   modelRelatedTo!: M extends Model<infer ThisModel> ? ThisModel : M;
   typeName: string = ForeignKeyField.name;
   relatedTo!: string;
@@ -94,7 +98,7 @@ export default class ForeignKeyField<
           | (TLazyDefaultValue extends undefined
               ? T extends undefined
                 ? M extends Model
-                  ? M['fields'][RF]['type']
+                  ? M['fields'][RF]['_type']
                   : T
                 : T
               : TLazyDefaultValue)
@@ -104,7 +108,7 @@ export default class ForeignKeyField<
           | (TLazyDefaultValue extends undefined
               ? T extends undefined
                 ? M extends Model
-                  ? M['fields'][RF]['type']
+                  ? M['fields'][RF]['_type']
                   : T
                 : T
               : TLazyDefaultValue)
@@ -206,7 +210,6 @@ export default class ForeignKeyField<
    */
   async isRelatedModelFromEngineInstance(engineInstance: Engine): Promise<[boolean, Field?]> {
     const relatedModel = engineInstance.__modelsOfEngine[this.relatedTo];
-
     if (relatedModel !== undefined) return [true, undefined];
     else {
       const modelRelatedTo = engineInstance.__modelsFilteredOutOfEngine[this.relatedTo];
@@ -252,7 +255,7 @@ export default class ForeignKeyField<
   async toString(
     indentation = 0,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    customParams: string | undefined = undefined
+    _customParams: string | undefined = undefined
   ) {
     const ident = '  '.repeat(indentation + 1);
     return super.toString(

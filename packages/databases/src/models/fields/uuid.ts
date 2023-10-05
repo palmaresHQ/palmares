@@ -6,14 +6,14 @@ import TextField from './text';
 
 export default class UUIDField<
   F extends Field = any,
-  D extends N extends true ? F['type'] | undefined | null : F['type'] | undefined = undefined,
+  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
   U extends boolean = false,
   N extends boolean = false,
   A extends boolean = false,
   CA = any,
   AG extends boolean = false
 > extends CharField<F, D, U, N, AG extends true ? true : A, CA> {
-  declare type: string;
+  declare _type: string;
   typeName: string = UUIDField.name;
   autoGenerate: AG;
 
@@ -29,8 +29,8 @@ export default class UUIDField<
   static new<
     I extends This<typeof TextField>,
     D extends N extends true
-      ? InstanceType<I>['type'] | undefined | null
-      : InstanceType<I>['type'] | undefined = undefined,
+      ? InstanceType<I>['_type'] | undefined | null
+      : InstanceType<I>['_type'] | undefined = undefined,
     U extends boolean = false,
     N extends boolean = false,
     A extends boolean = false,

@@ -15,6 +15,8 @@ export default class SequelizeEngineTextFieldParser extends SequelizeEngineField
   integer = undefined;
   text = undefined;
   uuid = undefined;
+  enum = undefined;
+  boolean = undefined;
 
   translatable = true;
 

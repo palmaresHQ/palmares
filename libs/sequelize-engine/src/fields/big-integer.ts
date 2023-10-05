@@ -15,6 +15,8 @@ export default class SequelizeEngineBigIntegerFieldParser extends SequelizeEngin
   integer = undefined;
   text = undefined;
   uuid = undefined;
+  enum = undefined;
+  boolean = undefined;
 
   translatable = true;
 

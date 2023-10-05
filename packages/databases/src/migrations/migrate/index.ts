@@ -56,10 +56,6 @@ export default class Migrate {
    * @param engineName - The name of the engine to use, usually it will be the `default`.
    */
   async getLastMigration(engineName: string) {
-    const lastMigrationName = await PalmaresMigrations.migrations.getLastMigrationName(engineName);
-    console.log(lastMigrationName);
-    const isAValidMigrationName = typeof lastMigrationName === 'string' && lastMigrationName !== '';
-    if (isAValidMigrationName) return lastMigrationName;
     try {
       const lastMigrationName = await PalmaresMigrations.migrations.getLastMigrationName(engineName);
       console.log(lastMigrationName);

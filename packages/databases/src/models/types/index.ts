@@ -55,20 +55,20 @@ type ExtractFieldTypes<
 > = TFieldsAndAbstracts extends { fields: infer TFields }
   ? (TIsAllOptional extends true
       ? {
-          [TFieldName in keyof TFields]?: 'type' extends keyof TFields[TFieldName]
+          [TFieldName in keyof TFields]?: '_type' extends keyof TFields[TFieldName]
             ? 'allowNull' extends keyof TFields[TFieldName]
               ? TFields[TFieldName]['allowNull'] extends true
-                ? TFields[TFieldName]['type'] | null
-                : TFields[TFieldName]['type']
+                ? TFields[TFieldName]['_type'] | null
+                : TFields[TFieldName]['_type']
               : never
             : never;
         }
       : {
-          [TFieldName in keyof TFields]: 'type' extends keyof TFields[TFieldName]
+          [TFieldName in keyof TFields]: '_type' extends keyof TFields[TFieldName]
             ? 'allowNull' extends keyof TFields[TFieldName]
               ? TFields[TFieldName]['allowNull'] extends true
-                ? TFields[TFieldName]['type'] | null
-                : TFields[TFieldName]['type']
+                ? TFields[TFieldName]['_type'] | null
+                : TFields[TFieldName]['_type']
               : never
             : never;
         }) &
@@ -169,7 +169,7 @@ type RequiredFields<M extends Model> = {
   [F in keyof DoNotHaveDefaultValueFields<M['fields']>]: AddNull<M['fields'][F extends string ? F : never]>;
 };
 
-type AddNull<F extends Field<any, boolean>> = F['allowNull'] extends true ? F['type'] | null : F['type'];
+type AddNull<F extends Field<any, boolean>> = F['allowNull'] extends true ? F['_type'] | null : F['_type'];
 
 type AbstractsAsFields2<U> = (U extends Model ? (k: U) => void : never) extends (k: infer I) => void
   ? I extends Model
@@ -187,7 +187,7 @@ type AbstractsAsFields<U> = (U extends Model ? (k: U) => void : never) extends (
     : never
   : never;
 
-export type ModelFields<M extends Model> = OptionalFields<M> &
+export type ModelFields<M extends TModel | Model> = OptionalFields<M> &
   RequiredFields<M> &
   AbstractsAsFields<M['abstracts'][number]>;
 

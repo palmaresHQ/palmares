@@ -6,16 +6,13 @@ export type PalmaresTransactionsType = {
   data: any[];
 };
 
-export type FieldsOfModelOptionsType<TModel extends Model> =
-  keyof (TModel['fields'] & AbstractsAsFields<TModel['abstracts']>);
+export type FieldsOfModelOptionsType<TModel extends Model> = keyof (TModel['fields'] &
+  AbstractsAsFields<TModel['abstracts']>);
 
-export type FieldsOFModelType<TModel extends Model> =
-  readonly (keyof (TModel['fields'] &
-    AbstractsAsFields<TModel['abstracts']>))[];
+export type FieldsOFModelType<TModel extends Model> = readonly (keyof (TModel['fields'] &
+  AbstractsAsFields<TModel['abstracts']>))[];
 
-export type OrderingOfModelsType<TFields extends string> = readonly (
-  | TFields
-  | TFields extends string
+export type OrderingOfModelsType<TFields extends string> = readonly (TFields | TFields extends string
   ? TFields | `-${TFields}`
   : never)[];
 
@@ -102,9 +99,7 @@ export type Include<TCustomData extends object = object> = {
   relationNames?: readonly string[];
 } & TCustomData;
 
-export type Includes<TCustomData extends object = object> =
-  | readonly Include<TCustomData>[]
-  | undefined;
+export type Includes<TCustomData extends object = object> = readonly Include<TCustomData>[] | undefined;
 
 type ValueOf<T> = T[keyof T];
 
@@ -135,23 +130,15 @@ export type IncludesValidated<
                     TCustomData
                   >;
                   engineName?: string;
-                  relationNames?: readonly ExtractRelationsNames<
-                    TParentModel,
-                    InstanceType<TInferedModel>
-                  >[];
+                  relationNames?: readonly ExtractRelationsNames<TParentModel, InstanceType<TInferedModel>>[];
                 } & TCustomData
               : {
                   model: ValidateModelsOfIncludes<TParentModel, TInferedModel>;
                   fields?: FieldsOFModelType<InstanceType<TInferedModel>>;
                   engineName?: string;
-                  relationNames?: readonly ExtractRelationsNames<
-                    TParentModel,
-                    InstanceType<TInferedModel>
-                  >[];
+                  relationNames?: readonly ExtractRelationsNames<TParentModel, InstanceType<TInferedModel>>[];
                   ordering?: OrderingOfModelsType<
-                    FieldsOfModelOptionsType<
-                      InstanceType<TInferedModel>
-                    > extends string
+                    FieldsOfModelOptionsType<InstanceType<TInferedModel>> extends string
                       ? FieldsOfModelOptionsType<InstanceType<TInferedModel>>
                       : string
                   >;
@@ -169,23 +156,15 @@ export type IncludesValidated<
             ? {
                 model: ValidateModelsOfIncludes<TParentModel, TInferedModel>;
                 engineName?: string;
-                relationNames?: readonly ExtractRelationsNames<
-                  TParentModel,
-                  InstanceType<TInferedModel>
-                >[];
+                relationNames?: readonly ExtractRelationsNames<TParentModel, InstanceType<TInferedModel>>[];
               } & TCustomData
             : {
                 model: ValidateModelsOfIncludes<TParentModel, TInferedModel>;
                 fields?: FieldsOFModelType<InstanceType<TInferedModel>>;
                 engineName?: string;
-                relationNames?: ExtractRelationsNames<
-                  TParentModel,
-                  InstanceType<TInferedModel>
-                >;
+                relationNames?: ExtractRelationsNames<TParentModel, InstanceType<TInferedModel>>;
                 ordering?: OrderingOfModelsType<
-                  FieldsOfModelOptionsType<
-                    InstanceType<TInferedModel>
-                  > extends string
+                  FieldsOfModelOptionsType<InstanceType<TInferedModel>> extends string
                     ? FieldsOfModelOptionsType<InstanceType<TInferedModel>>
                     : string
                 >;
@@ -194,12 +173,7 @@ export type IncludesValidated<
                 offset?: number | string;
               } & TCustomData,
           ...(TInferedRestIncludes extends Includes
-            ? IncludesValidated<
-                TParentModel,
-                TInferedRestIncludes,
-                TIsCreateOrUpdateData,
-                TCustomData
-              >
+            ? IncludesValidated<TParentModel, TInferedRestIncludes, TIsCreateOrUpdateData, TCustomData>
             : readonly [])
         ]
     : readonly []
@@ -278,15 +252,11 @@ type DoNotHaveDefaultValueFieldsOrIsNotAuto<TModel extends Model> = {
 };
 
 type HasNullFields<TModel extends Model> = {
-  [F in keyof TModel['fields'] as TModel['fields'][F]['allowNull'] extends true
-    ? F
-    : never]: TModel['fields'][F];
+  [F in keyof TModel['fields'] as TModel['fields'][F]['allowNull'] extends true ? F : never]: TModel['fields'][F];
 };
 
 type DoesNotHaveNullFields<TModel extends Model> = {
-  [F in keyof TModel['fields'] as TModel['fields'][F]['allowNull'] extends true
-    ? never
-    : F]: TModel['fields'][F];
+  [F in keyof TModel['fields'] as TModel['fields'][F]['allowNull'] extends true ? never : F]: TModel['fields'][F];
 };
 
 type OptionalFields<
@@ -296,25 +266,11 @@ type OptionalFields<
   TIsCreateOrUpdate extends boolean = false,
   TIsForSearch extends boolean = false
 > = {
-  [F in TIsCreateOrUpdate extends true
-    ? keyof HasDefaultValueFieldsOrIsAuto<M>
-    : keyof HasNullFields<M> as F extends TFieldsToConsider[number] | undefined
-    ? TRelationsToIgnore extends readonly InstanceType<
-        ReturnType<typeof model>
-      >[]
-      ? M['fields'][F] extends ForeignKeyField<
-          any,
-          any,
-          any,
-          any,
-          any,
-          any,
-          undefined,
-          any,
-          any,
-          any,
-          any
-        >
+  [F in TIsCreateOrUpdate extends true ? keyof HasDefaultValueFieldsOrIsAuto<M> : keyof HasNullFields<M> as F extends
+    | TFieldsToConsider[number]
+    | undefined
+    ? TRelationsToIgnore extends readonly InstanceType<ReturnType<typeof model>>[]
+      ? M['fields'][F] extends ForeignKeyField<any, any, any, any, any, any, undefined, any, any, any, any>
         ? M['fields'][F]['modelRelatedTo'] extends TRelationsToIgnore[number]
           ? never
           : F
@@ -332,25 +288,9 @@ type RequiredFields<
 > = {
   [F in TIsCreateOrUpdate extends true
     ? keyof DoNotHaveDefaultValueFieldsOrIsNotAuto<M>
-    : keyof DoesNotHaveNullFields<M> as F extends
-    | TFieldsToConsider[number]
-    | undefined
-    ? TRelationsToIgnore extends readonly InstanceType<
-        ReturnType<typeof model>
-      >[]
-      ? M['fields'][F] extends ForeignKeyField<
-          any,
-          any,
-          any,
-          any,
-          any,
-          any,
-          undefined,
-          any,
-          any,
-          any,
-          any
-        >
+    : keyof DoesNotHaveNullFields<M> as F extends TFieldsToConsider[number] | undefined
+    ? TRelationsToIgnore extends readonly InstanceType<ReturnType<typeof model>>[]
+      ? M['fields'][F] extends ForeignKeyField<any, any, any, any, any, any, undefined, any, any, any, any>
         ? M['fields'][F]['modelRelatedTo'] extends TRelationsToIgnore[number]
           ? never
           : F
@@ -407,10 +347,7 @@ type AddOperation<TFieldType, TIsSearch extends boolean = true> =
   | (TIsSearch extends true
       ? Pick<
           FieldWithOperationType<TFieldType>,
-          | OperatorsOfQuery.is
-          | OperatorsOfQuery.or
-          | OperatorsOfQuery.and
-          | OperatorsOfQuery.in
+          OperatorsOfQuery.is | OperatorsOfQuery.or | OperatorsOfQuery.and | OperatorsOfQuery.in
         > &
           (TFieldType extends number | Date
             ? Pick<
@@ -426,11 +363,8 @@ type AddOperation<TFieldType, TIsSearch extends boolean = true> =
             : unknown)
       : never);
 
-type AddNull<
-  F extends Field<any, boolean>,
-  TIsSearch extends boolean = true
-> = AddOperation<
-  F['allowNull'] extends true ? F['type'] | null : F['type'],
+type AddNull<F extends Field<any, boolean>, TIsSearch extends boolean = true> = AddOperation<
+  F['allowNull'] extends true ? F['_type'] | null : F['_type'],
   TIsSearch
 >;
 
@@ -442,20 +376,8 @@ type AbstractsAsFields<
   TIsForSearch extends boolean = false
 > = TAbstracts extends readonly [infer TAbstract, ...infer TRestAbstracts]
   ? TAbstract extends Model
-    ? OptionalFields<
-        TAbstract,
-        FieldsOFModelType<TAbstract>,
-        TRelationsToIgnore,
-        TIsCreateOrUpdate,
-        TIsForSearch
-      > &
-        RequiredFields<
-          TAbstract,
-          FieldsOFModelType<TAbstract>,
-          TRelationsToIgnore,
-          TIsCreateOrUpdate,
-          TIsForSearch
-        > &
+    ? OptionalFields<TAbstract, FieldsOFModelType<TAbstract>, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch> &
+        RequiredFields<TAbstract, FieldsOFModelType<TAbstract>, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch> &
         AbstractsAsFields<
           TAbstract['abstracts'],
           TFieldsToConsider,
@@ -464,13 +386,7 @@ type AbstractsAsFields<
           TIsForSearch
         > &
         (TRestAbstracts extends readonly Model[]
-          ? AbstractsAsFields<
-              TRestAbstracts,
-              TFieldsToConsider,
-              TRelationsToIgnore,
-              TIsCreateOrUpdate,
-              TIsForSearch
-            >
+          ? AbstractsAsFields<TRestAbstracts, TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch>
           : unknown)
     : unknown
   : unknown;
@@ -481,27 +397,9 @@ type BaseModelFieldsInQueries<
   TRelationsToIgnore extends Model[] | undefined = undefined,
   TIsCreateOrUpdate extends boolean = false,
   TIsForSearch extends boolean = false
-> = OptionalFields<
-  TModel,
-  TFieldsToConsider,
-  TRelationsToIgnore,
-  TIsCreateOrUpdate,
-  TIsForSearch
-> &
-  RequiredFields<
-    TModel,
-    TFieldsToConsider,
-    TRelationsToIgnore,
-    TIsCreateOrUpdate,
-    TIsForSearch
-  > &
-  AbstractsAsFields<
-    TModel['abstracts'],
-    TFieldsToConsider,
-    TRelationsToIgnore,
-    TIsCreateOrUpdate,
-    TIsForSearch
-  >;
+> = OptionalFields<TModel, TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch> &
+  RequiredFields<TModel, TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch> &
+  AbstractsAsFields<TModel['abstracts'], TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch>;
 
 export type ModelFieldsInQueries<
   TModel extends Model,
@@ -512,32 +410,10 @@ export type ModelFieldsInQueries<
   TIsAllOptional extends boolean = false,
   TIsForSearch extends boolean = false
 > = TIsAllRequired extends true
-  ? Required<
-      BaseModelFieldsInQueries<
-        TModel,
-        TFieldsToConsider,
-        TRelationsToIgnore,
-        TIsCreateOrUpdate,
-        TIsForSearch
-      >
-    >
+  ? Required<BaseModelFieldsInQueries<TModel, TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch>>
   : TIsAllOptional extends true
-  ? Partial<
-      BaseModelFieldsInQueries<
-        TModel,
-        TFieldsToConsider,
-        TRelationsToIgnore,
-        TIsCreateOrUpdate,
-        TIsForSearch
-      >
-    >
-  : BaseModelFieldsInQueries<
-      TModel,
-      TFieldsToConsider,
-      TRelationsToIgnore,
-      TIsCreateOrUpdate,
-      TIsForSearch
-    >;
+  ? Partial<BaseModelFieldsInQueries<TModel, TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch>>
+  : BaseModelFieldsInQueries<TModel, TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch>;
 
 // -------------- From this line below it is related to the relation fields ------------------
 
@@ -573,22 +449,8 @@ type RelatedFieldOfModelOptional<
           : never
         : never
       : never
-    : never]?: TModel['fields'][K] extends ForeignKeyField<
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    undefined,
-    any,
-    any,
-    any,
-    any
-  >
-    ? TModel['fields'][K]['modelRelatedTo'] extends InstanceType<
-        ReturnType<typeof model>
-      >
+    : never]?: TModel['fields'][K] extends ForeignKeyField<any, any, any, any, any, any, undefined, any, any, any, any>
+    ? TModel['fields'][K]['modelRelatedTo'] extends InstanceType<ReturnType<typeof model>>
       ? IncludesRelatedModels<
           ModelFieldsInQueries<
             TModel['fields'][K]['modelRelatedTo'],
@@ -643,22 +505,8 @@ type RelatedFieldOfModelRequired<
           : never
         : never
       : never
-    : never]: TModel['fields'][K] extends ForeignKeyField<
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    undefined,
-    any,
-    any,
-    any,
-    any
-  >
-    ? TModel['fields'][K]['modelRelatedTo'] extends InstanceType<
-        ReturnType<typeof model>
-      >
+    : never]: TModel['fields'][K] extends ForeignKeyField<any, any, any, any, any, any, undefined, any, any, any, any>
+    ? TModel['fields'][K]['modelRelatedTo'] extends InstanceType<ReturnType<typeof model>>
       ? IncludesRelatedModels<
           ModelFieldsInQueries<
             TModel['fields'][K]['modelRelatedTo'],
@@ -915,14 +763,10 @@ export type IncludesRelatedModels<
               TModel,
               TFirstIncludes,
               TFirstModelIncludes,
-              TFirstFieldsOfModel extends FieldsOFModelType<
-                InstanceType<TFirstIncludes>
-              >
+              TFirstFieldsOfModel extends FieldsOFModelType<InstanceType<TFirstIncludes>>
                 ? TFirstFieldsOfModel
                 : FieldsOFModelType<InstanceType<TFirstIncludes>>,
-              TFirstRelationNames extends readonly string[]
-                ? TFirstRelationNames
-                : readonly string[],
+              TFirstRelationNames extends readonly string[] ? TFirstRelationNames : readonly string[],
               TIsCreateOrUpdate,
               TIsAllRequired,
               TIsAllOptional,
@@ -944,14 +788,10 @@ export type IncludesRelatedModels<
               TModel,
               TFirstIncludes,
               [],
-              TFirstFieldsOfModel extends FieldsOFModelType<
-                InstanceType<TFirstIncludes>
-              >
+              TFirstFieldsOfModel extends FieldsOFModelType<InstanceType<TFirstIncludes>>
                 ? TFirstFieldsOfModel
                 : FieldsOFModelType<InstanceType<TFirstIncludes>>,
-              TFirstRelationNames extends readonly string[]
-                ? TFirstRelationNames
-                : readonly string[],
+              TFirstRelationNames extends readonly string[] ? TFirstRelationNames : readonly string[],
               TIsCreateOrUpdate,
               TIsAllRequired,
               TIsAllOptional,

@@ -15,6 +15,8 @@ export default class SequelizeEngineDateFieldParser extends SequelizeEngineField
   integer = undefined;
   text = undefined;
   uuid = undefined;
+  enum = undefined;
+  boolean = undefined;
 
   translatable = true;
 

@@ -10,4 +10,6 @@ export { default as ForeignKeyField } from './foreign-key';
 export { default as AutoField } from './auto';
 export { default as BigAutoField } from './big-auto';
 export { default as TranslatableField } from './translatable';
+export { default as BooleanField } from './boolean';
+export { default as EnumField } from './enum';
 export { ON_DELETE } from './types';

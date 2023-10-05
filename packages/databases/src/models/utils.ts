@@ -11,6 +11,8 @@ import {
   TextField,
   UUIDField,
   TranslatableField,
+  EnumField,
+  BooleanField,
 } from './fields';
 import {
   EngineDoesNotSupportFieldTypeException,
@@ -22,7 +24,6 @@ import { Model } from './model';
 
 async function foreignKeyFieldParser(engine: Engine, field: ForeignKeyField): Promise<any> {
   const [isRelatedModelFromEngine, fieldToChangeRelationTo] = await field.isRelatedModelFromEngineInstance(engine);
-
   if (isRelatedModelFromEngine === false) {
     if (fieldToChangeRelationTo) return fieldToChangeRelationTo;
     else
@@ -47,39 +48,45 @@ export async function parse(engine: Engine, engineFieldsParser: EngineFieldParse
   switch (field.typeName) {
     case AutoField.name:
       if (engineFieldsParser.auto) return await parse(engine, engineFieldsParser.auto, field);
-      else return;
+      else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
     case BigAutoField.name:
       if (engineFieldsParser.bigAuto) return await parse(engine, engineFieldsParser.bigAuto, field);
-      else return;
+      else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
     case BigIntegerField.name:
       if (engineFieldsParser.bigInt) return await parse(engine, engineFieldsParser.bigInt, field);
-      else return;
+      else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
     case CharField.name:
       if (engineFieldsParser.char) return await parse(engine, engineFieldsParser.char, field);
-      else return;
+      else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
     case DateField.name:
       if (engineFieldsParser.date) return await parse(engine, engineFieldsParser.date, field);
-      else return;
+      else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
     case DecimalField.name:
       if (engineFieldsParser.decimal) return await parse(engine, engineFieldsParser.decimal, field);
-      else return;
+      else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
     case ForeignKeyField.name: {
       if (engineFieldsParser.foreignKey) {
         const fieldToParse = await foreignKeyFieldParser(engine, field as ForeignKeyField);
-        if (fieldToParse instanceof ForeignKeyField)
+        if (fieldToParse instanceof ForeignKeyField) {
           return parse(engine, engineFieldsParser.foreignKey, fieldToParse as ForeignKeyField);
-        else return await parse(engine, engineFieldsParser, fieldToParse as Field);
-      } else return;
+        } else return await parse(engine, engineFieldsParser, fieldToParse as Field);
+      } else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
     }
     case IntegerField.name:
       if (engineFieldsParser.integer) return await parse(engine, engineFieldsParser.integer, field);
-      else return;
+      else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
     case TextField.name:
       if (engineFieldsParser.text) return await parse(engine, engineFieldsParser.text, field);
-      else return;
+      else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
     case UUIDField.name:
       if (engineFieldsParser.uuid) return await parse(engine, engineFieldsParser.uuid, field);
-      else return;
+      else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
+    case EnumField.name:
+      if (engineFieldsParser.enum) return await parse(engine, engineFieldsParser.enum, field);
+      else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
+    case BooleanField.name:
+      if (engineFieldsParser.boolean) return await parse(engine, engineFieldsParser.boolean, field);
+      else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
     case TranslatableField.name:
       return await (field as TranslatableField).translate(engine);
     default:

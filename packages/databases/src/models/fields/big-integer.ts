@@ -4,13 +4,13 @@ import type { This } from '../../types';
 
 export default class BigIntegerField<
   F extends Field = any,
-  D extends N extends true ? F['type'] | undefined | null : F['type'] | undefined = undefined,
+  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
   U extends boolean = false,
   N extends boolean = false,
   A extends boolean = false,
   CA = any
 > extends Field<F, D, U, N, A, CA> {
-  declare type: number;
+  declare _type: number;
   typeName: string = BigIntegerField.name;
 
   constructor(params: FieldDefaultParamsType<F, D, U, N, A, CA> = {}) {
@@ -20,8 +20,8 @@ export default class BigIntegerField<
   static new<
     I extends This<typeof BigIntegerField>,
     D extends N extends true
-      ? InstanceType<I>['type'] | undefined | null
-      : InstanceType<I>['type'] | undefined = undefined,
+      ? InstanceType<I>['_type'] | undefined | null
+      : InstanceType<I>['_type'] | undefined = undefined,
     U extends boolean = false,
     N extends boolean = false,
     A extends boolean = false,

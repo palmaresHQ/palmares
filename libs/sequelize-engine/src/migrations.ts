@@ -204,6 +204,7 @@ export default class SequelizeMigrations extends EngineMigrations {
     migration: Migration
   ): Promise<void> {
     const model = toModel.initialized;
+
     await this.#queryInterface.createTable(
       model.options.tableName as string,
       model.getAttributes(),

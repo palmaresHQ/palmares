@@ -1,7 +1,6 @@
-import { CharField, EngineAutoFieldParser, EngineFieldParser, Field, TextField, UUIDField } from '@palmares/databases';
+import { CharField, EngineFieldParser, Field, TextField, UUIDField } from '@palmares/databases';
 import { ModelAttributeColumnOptions } from 'sequelize';
 
-import SequelizeEngineFields from '.';
 import SequelizeEngineAutoFieldParser from './auto';
 import SequelizeEngineBigAutoFieldParser from './big-auto';
 import SequelizeEngineBigIntegerFieldParser from './big-integer';
@@ -12,12 +11,14 @@ import SequelizeEngineForeignKeyFieldParser from './foreign-key';
 import SequelizeEngineIntegerFieldParser from './integer';
 import SequelizeEngineTextFieldParser from './text';
 import SequelizeEngineUuidFieldParser from './uuid';
+import SequelizeEngineEnumFieldParser from './enum';
+import SequelizeEngineBooleanFieldParser from './boolean';
 import SequelizeEngine from '../engine';
 
 export default class SequelizeEngineFieldParser extends EngineFieldParser {
   auto: SequelizeEngineAutoFieldParser | undefined = undefined;
-  bigAuto?: SequelizeEngineBigAutoFieldParser | undefined = undefined;
-  bigInt?: SequelizeEngineBigIntegerFieldParser | undefined = undefined;
+  bigAuto: SequelizeEngineBigAutoFieldParser | undefined = undefined;
+  bigInt: SequelizeEngineBigIntegerFieldParser | undefined = undefined;
   char: SequelizeEngineCharFieldParser | undefined = undefined;
   date: SequelizeEngineDateFieldParser | undefined = undefined;
   decimal: SequelizeEngineDecimalFieldParser | undefined = undefined;
@@ -25,6 +26,8 @@ export default class SequelizeEngineFieldParser extends EngineFieldParser {
   integer: SequelizeEngineIntegerFieldParser | undefined = undefined;
   text: SequelizeEngineTextFieldParser | undefined = undefined;
   uuid: SequelizeEngineUuidFieldParser | undefined = undefined;
+  boolean: SequelizeEngineBooleanFieldParser | undefined = undefined;
+  enum: SequelizeEngineEnumFieldParser | undefined = undefined;
 
   translatable = false;
 

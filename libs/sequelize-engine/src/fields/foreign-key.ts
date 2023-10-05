@@ -16,12 +16,14 @@ export default class SequelizeEngineForeignKeyFieldParser extends SequelizeEngin
   integer = undefined;
   text = undefined;
   uuid = undefined;
+  enum = undefined;
+  boolean = undefined;
 
   translatable = true;
 
   async translate(engine: SequelizeEngine, field: ForeignKeyField): Promise<ModelAttributeColumnOptions> {
     const defaultOptions = await super.translate(engine, field);
-    await engine.fields.addRelatedFieldToEvaluateAfter(field, defaultOptions);
+    await engine.fields.addRelatedFieldToEvaluateAfter(engine, field, defaultOptions);
     throw new PreventForeignKeyError();
   }
 }

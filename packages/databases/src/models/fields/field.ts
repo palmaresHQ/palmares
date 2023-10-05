@@ -11,7 +11,7 @@ import type { This } from '../../types';
  */
 export default class Field<
   F extends Field = any,
-  D extends N extends true ? F['type'] | undefined | null : F['type'] | undefined = undefined,
+  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
   U extends boolean = false,
   N extends boolean = false,
   A extends boolean = false,
@@ -19,7 +19,7 @@ export default class Field<
 > {
   isAuto!: A;
   hasDefaultValue!: D extends undefined ? false : true;
-  declare type: any;
+  declare _type: any;
   primaryKey: boolean;
   defaultValue?: D;
   allowNull: N;
@@ -47,8 +47,8 @@ export default class Field<
   static new<
     I extends This<typeof Field>,
     D extends N extends true
-      ? InstanceType<I>['type'] | undefined | null
-      : InstanceType<I>['type'] | undefined = undefined,
+      ? InstanceType<I>['_type'] | undefined | null
+      : InstanceType<I>['_type'] | undefined = undefined,
     U extends boolean = false,
     N extends boolean = false,
     A extends boolean = false,
@@ -58,7 +58,7 @@ export default class Field<
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async init(fieldName: string, model: TModel, engineInstance?: Engine) {
+  async init(fieldName: string, model: TModel, _engineInstance?: Engine) {
     const isUnderscored: boolean = (this.underscored || model.options.underscored) === true;
     this.fieldName = fieldName;
     this.model = model;

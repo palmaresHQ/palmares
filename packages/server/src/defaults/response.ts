@@ -10,6 +10,7 @@ export const DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY = 'Content-Type';
 export const DEFAULT_RESPONSE_HEADERS_CONTENT_DISPOSITION_KEY = 'Content-Disposition';
 export const DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON = 'application/json';
 export const DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML = 'text/html';
+export const DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_TEXT = 'plain/text';
 export const DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_STREAM = 'application/octet-stream';
 export const DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY = 'Location';
 export const DEFAULT_NOT_FOUND_STATUS_TEXT_MESSAGE = 'Not Found';

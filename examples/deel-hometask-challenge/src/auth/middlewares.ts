@@ -1,0 +1,17 @@
+import { middleware, Request, Response } from '@palmares/server';
+import { Profile } from './models';
+
+export const getProfileMiddleware = middleware({
+  request: async (request) => {
+    const requestWithHeaders = request as Request<string, { headers: { profile_id: string } }>;
+    console.log(requestWithHeaders.headers['profile_id']);
+
+    const profiles = await Profile.default.get({
+      search: { id: parseInt(requestWithHeaders.headers['profile_id']) || 0 },
+    });
+    if (!profiles || profiles.length == 0) return Response.text('', { status: 401 });
+
+    const clonedRequest = request.clone({ context: { profile: profiles[0] } });
+    return clonedRequest;
+  },
+});

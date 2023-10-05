@@ -9,6 +9,9 @@ import SequelizeEngine from '@palmares/sequelize-engine';
 import ServerDomain, { Response } from '@palmares/server';
 
 import CoreDomain from './core';
+import AuthDomain from './auth';
+import ContractsDomain from './contracts';
+import JobsDomain from './jobs';
 import { dirname, resolve } from 'path';
 
 export default defineSettings({
@@ -76,5 +79,8 @@ export default defineSettings({
     ],
     // We have just created this custom domain, and it defines our routes.
     CoreDomain,
+    AuthDomain,
+    ContractsDomain,
+    JobsDomain,
   ],
 });

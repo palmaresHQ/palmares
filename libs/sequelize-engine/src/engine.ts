@@ -1,5 +1,5 @@
-import { DatabaseConfigurationType, Engine, EngineInitializedModels, ModelFields, models } from '@palmares/databases';
-import { Dialect, Model, ModelCtor, Op, Options, Sequelize, Transaction } from 'sequelize';
+import { Engine, EngineInitializedModels, ModelFields, models } from '@palmares/databases';
+import { Model, ModelCtor, Op, Options, Sequelize, Transaction } from 'sequelize';
 
 import SequelizeEngineFields from './fields';
 import SequelizeMigrations from './migrations';
@@ -86,12 +86,12 @@ export default class SequelizeEngine<M extends models.BaseModel = any> extends E
   }
 
   async initializeModel(
-    _: SequelizeEngine<any>,
+    engine: SequelizeEngine<any>,
     model: models.BaseModel,
     defaultInitializeModelCallback: () => Promise<ModelCtor<Model>>
   ): Promise<ModelCtor<Model> | undefined> {
     const modelInstance = await defaultInitializeModelCallback();
-    await this.fields.afterModelCreation(model.name);
+    await this.fields.afterModelCreation(engine, model.name);
     return modelInstance;
   }
 

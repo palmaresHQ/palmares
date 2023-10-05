@@ -25,6 +25,8 @@ import SequelizeEngineTextFieldParser from './text';
 import SequelizeEngineUuidFieldParser from './uuid';
 import SequelizeEngineForeignKeyFieldParser from './foreign-key';
 import SequelizeEngineIntegerFieldParser from './integer';
+import SequelizeEngineEnumFieldParser from './enum';
+import SequelizeEngineBooleanFieldParser from './boolean';
 
 /**
  * This class is used to translate the fields of a model to the attributes of a sequelize model.
@@ -44,6 +46,8 @@ export default class SequelizeEngineFields extends EngineFields {
   integerFieldParser = new SequelizeEngineIntegerFieldParser();
   textFieldParser = new SequelizeEngineTextFieldParser();
   uuidFieldParser = new SequelizeEngineUuidFieldParser();
+  enumFieldParser = new SequelizeEngineEnumFieldParser();
+  booleanFieldParser = new SequelizeEngineBooleanFieldParser();
 
   engineInstance!: SequelizeEngine;
   #dateFieldsAsAutoNowToAddHooks = new Map<string, string[]>();
@@ -69,6 +73,8 @@ export default class SequelizeEngineFields extends EngineFields {
     this.fieldsParser.integer = this.integerFieldParser;
     this.fieldsParser.text = this.textFieldParser;
     this.fieldsParser.uuid = this.uuidFieldParser;
+    this.fieldsParser.enum = this.enumFieldParser;
+    this.fieldsParser.boolean = this.booleanFieldParser;
   }
 
   /**
@@ -98,10 +104,11 @@ export default class SequelizeEngineFields extends EngineFields {
    * we need to wait until `Post` is defined to assign the related value, on this case the relatedTo will finish
    */
   async addRelatedFieldToEvaluateAfter(
+    engine: SequelizeEngine,
     field: models.fields.ForeignKeyField,
     fieldAttributes: ModelAttributeColumnOptions
   ) {
-    const isModelAlreadyInitialized = this.engineInstance.initializedModels[field.relatedTo] !== undefined;
+    const isModelAlreadyInitialized = engine.initializedModels[field.relatedTo] !== undefined;
     const modelNameToHandleRelation = isModelAlreadyInitialized ? field.model.name : field.relatedTo;
     const isModelAlreadyInObject = this.#relatedFieldsToEvaluate[modelNameToHandleRelation] !== undefined;
     if (isModelAlreadyInObject === false) this.#relatedFieldsToEvaluate[modelNameToHandleRelation] = [];
@@ -137,17 +144,17 @@ export default class SequelizeEngineFields extends EngineFields {
    * @param modelName - The name of the model that was created so we can fetch it on the `#initializedModels`
    * object.
    */
-  async afterModelCreation(modelName: string) {
+  async afterModelCreation(engine: SequelizeEngine, modelName: string) {
     await Promise.all([
-      this.#handleHooksToUpdateDateFieldsAfterModelCreation(modelName),
-      this.#handleRelatedFieldsAfterModelCreation(modelName),
+      this.#handleHooksToUpdateDateFieldsAfterModelCreation(engine, modelName),
+      this.#handleRelatedFieldsAfterModelCreation(engine, modelName),
     ]);
   }
 
-  async #handleHooksToUpdateDateFieldsAfterModelCreation(modelName: string) {
+  async #handleHooksToUpdateDateFieldsAfterModelCreation(engine: SequelizeEngine, modelName: string) {
     const hasDateFieldToUpdateForModelName = this.#dateFieldsAsAutoNowToAddHooks.has(modelName);
     if (hasDateFieldToUpdateForModelName) {
-      const modelToAddHook: ModelCtor<Model> = this.engineInstance.initializedModels[modelName] as ModelCtor<Model>;
+      const modelToAddHook: ModelCtor<Model> = engine.initializedModels[modelName] as ModelCtor<Model>;
       const dateFieldsToUpdate = this.#dateFieldsAsAutoNowToAddHooks.get(modelName) as string[];
       modelToAddHook.beforeSave((instance: Model) => {
         for (const updateDateHook of dateFieldsToUpdate) {
@@ -159,25 +166,24 @@ export default class SequelizeEngineFields extends EngineFields {
     }
   }
 
-  async #handleRelatedFieldsAfterModelCreation(modelName: string) {
+  async #handleRelatedFieldsAfterModelCreation(engine: SequelizeEngine, modelName: string) {
     const hasRelatedFieldsToEvaluateForModelName = Array.isArray(this.#relatedFieldsToEvaluate[modelName]);
     if (hasRelatedFieldsToEvaluateForModelName) {
       this.#relatedFieldsToEvaluate[modelName] = await Promise.all(
         this.#relatedFieldsToEvaluate[modelName].filter(
-          async ({ field, fieldAttributes }) => await this.#handleRelatedField(field, fieldAttributes)
+          async ({ field, fieldAttributes }) => await this.#handleRelatedField(engine, field, fieldAttributes)
         )
       );
     }
   }
 
   async #handleRelatedField(
+    engine: SequelizeEngine,
     field: models.fields.ForeignKeyField,
     fieldAttributes: ModelAttributeColumnOptions & ForeignKeyOptions
   ) {
-    const modelWithForeignKeyField: ModelCtor<Model> = this.engineInstance.initializedModels[
-      field.model.name
-    ] as ModelCtor<Model>;
-    const relatedToModel: ModelCtor<Model> = this.engineInstance.initializedModels[field.relatedTo] as ModelCtor<Model>;
+    const modelWithForeignKeyField: ModelCtor<Model> = engine.initializedModels[field.model.name] as ModelCtor<Model>;
+    const relatedToModel: ModelCtor<Model> = engine.initializedModels[field.relatedTo] as ModelCtor<Model>;
     const isRelatedModelAndModelOfForeignDefined =
       relatedToModel !== undefined && modelWithForeignKeyField !== undefined;
 

@@ -4,20 +4,11 @@ import model, { Model } from '../model';
 import { Includes, ExtractModelFromIncludesType } from './queries';
 
 type HasDefaultValueFieldsOrIsAuto<M extends ModelFieldsType> = {
-  [F in keyof M as M[F]['hasDefaultValue'] extends true
-    ? F
-    : M[F]['isAuto'] extends true
-    ? F
-    : never]: M[F];
+  [F in keyof M as M[F]['hasDefaultValue'] extends true ? F : M[F]['isAuto'] extends true ? F : never]: M[F];
 };
 
-type OptionalFields<
-  M extends Model,
-  TRelationsToIgnore extends Model[] | undefined = undefined
-> = {
-  [F in keyof HasDefaultValueFieldsOrIsAuto<
-    M['fields']
-  > as TRelationsToIgnore extends readonly InstanceType<
+type OptionalFields<M extends Model, TRelationsToIgnore extends Model[] | undefined = undefined> = {
+  [F in keyof HasDefaultValueFieldsOrIsAuto<M['fields']> as TRelationsToIgnore extends readonly InstanceType<
     ReturnType<typeof model>
   >[]
     ? M['fields'][F] extends ForeignKeyField<
@@ -41,20 +32,11 @@ type OptionalFields<
 };
 
 type DoNotHaveDefaultValueFieldsOrIsNotAuto<M extends ModelFieldsType> = {
-  [F in keyof M as M[F]['hasDefaultValue'] extends false
-    ? M[F]['isAuto'] extends false
-      ? F
-      : never
-    : never]: M[F];
+  [F in keyof M as M[F]['hasDefaultValue'] extends false ? (M[F]['isAuto'] extends false ? F : never) : never]: M[F];
 };
 
-type RequiredFields<
-  M extends Model,
-  TRelationsToIgnore extends Model[] | undefined = undefined
-> = {
-  [F in keyof DoNotHaveDefaultValueFieldsOrIsNotAuto<
-    M['fields']
-  > as TRelationsToIgnore extends readonly InstanceType<
+type RequiredFields<M extends Model, TRelationsToIgnore extends Model[] | undefined = undefined> = {
+  [F in keyof DoNotHaveDefaultValueFieldsOrIsNotAuto<M['fields']> as TRelationsToIgnore extends readonly InstanceType<
     ReturnType<typeof model>
   >[]
     ? M['fields'][F] extends ForeignKeyField<
@@ -77,9 +59,7 @@ type RequiredFields<
     : F]: AddNull<M['fields'][F extends string ? F : never]>;
 };
 
-type AddNull<F extends Field<any, boolean>> = F['allowNull'] extends true
-  ? F['type'] | null
-  : F['type'];
+type AddNull<F extends Field<any, boolean>> = F['allowNull'] extends true ? F['_type'] | null : F['_type'];
 
 type AbstractsAsFields<
   TAbstracts extends readonly Model[],
@@ -89,9 +69,7 @@ type AbstractsAsFields<
     ? OptionalFields<TAbstract, TRelationsToIgnore> &
         RequiredFields<TAbstract, TRelationsToIgnore> &
         AbstractsAsFields<TAbstract['abstracts'], TRelationsToIgnore> &
-        (TRestAbstracts extends readonly Model[]
-          ? AbstractsAsFields<TRestAbstracts, TRelationsToIgnore>
-          : unknown)
+        (TRestAbstracts extends readonly Model[] ? AbstractsAsFields<TRestAbstracts, TRelationsToIgnore> : unknown)
     : unknown
   : unknown;
 
@@ -102,10 +80,7 @@ export type CreateOrUpdateModelFields<
   RequiredFields<M, TRelationsToIgnore> &
   AbstractsAsFields<M['abstracts'], TRelationsToIgnore>;
 
-type RelatedFieldOfModelOnCreateOrUpdateOptional<
-  M extends Model,
-  I extends Includes
-> = {
+type RelatedFieldOfModelOnCreateOrUpdateOptional<M extends Model, I extends Includes> = {
   [K in keyof M['fields'] as M['fields'][K] extends ForeignKeyField<
     any,
     any,
@@ -145,11 +120,7 @@ type RelatedFieldOfModelOnCreateOrUpdateOptional<
     : never;
 };
 
-type RelatedFieldOfModelOnCreateOrUpdateRequired<
-  M extends Model,
-  TRelatedModel extends Model,
-  I extends Includes
-> = {
+type RelatedFieldOfModelOnCreateOrUpdateRequired<M extends Model, TRelatedModel extends Model, I extends Includes> = {
   [K in keyof M['fields'] as M['fields'][K] extends ForeignKeyField<
     any,
     any,
@@ -181,14 +152,9 @@ type RelatedFieldOfModelOnCreateOrUpdateRequired<
     any,
     any
   >
-    ? TRelatedModelInForeignKeyField extends InstanceType<
-        ReturnType<typeof model>
-      >
+    ? TRelatedModelInForeignKeyField extends InstanceType<ReturnType<typeof model>>
       ? IncludesRelatedModelsForCreateOrUpdate<
-          CreateOrUpdateModelFields<
-            TRelatedModelInForeignKeyField,
-            ExtractModelFromIncludesType<I, []>
-          >,
+          CreateOrUpdateModelFields<TRelatedModelInForeignKeyField, ExtractModelFromIncludesType<I, []>>,
           TRelatedModelInForeignKeyField,
           I
         >
@@ -196,11 +162,7 @@ type RelatedFieldOfModelOnCreateOrUpdateRequired<
     : never;
 };
 
-type RelatedFieldToModelOnCreateOrUpdate<
-  M extends Model,
-  RM extends Model,
-  I extends Includes
-> = {
+type RelatedFieldToModelOnCreateOrUpdate<M extends Model, RM extends Model, I extends Includes> = {
   [K in keyof RM['fields'] as RM['fields'][K] extends ForeignKeyField<
     any,
     any,
@@ -238,31 +200,19 @@ export type RelatedFieldsTypeWithoutModelRelation<
 > = I extends ReturnType<typeof model>
   ? T &
       RelatedFieldOfModelOnCreateOrUpdateOptional<M, ToInclude> &
-      RelatedFieldOfModelOnCreateOrUpdateRequired<
-        M,
-        InstanceType<I>,
-        ToInclude
-      > &
+      RelatedFieldOfModelOnCreateOrUpdateRequired<M, InstanceType<I>, ToInclude> &
       RelatedFieldToModelOnCreateOrUpdate<M, InstanceType<I>, ToInclude>
   : T;
 
-export type IncludesRelatedModelsForCreateOrUpdate<
-  T,
-  M extends Model,
-  I extends Includes
-> = I extends
+export type IncludesRelatedModelsForCreateOrUpdate<T, M extends Model, I extends Includes> = I extends
   | readonly [{ model: infer FI; includes: infer FMI }, ...infer RI]
   | readonly [{ model: infer FI }, ...infer RI]
   | readonly [{ model: infer FI }]
   ? FI extends ReturnType<typeof model>
     ? RI extends Includes
       ? FMI extends Includes
-        ? T &
-            RelatedFieldsTypeWithoutModelRelation<T, M, FI, FMI> &
-            IncludesRelatedModelsForCreateOrUpdate<T, M, RI>
-        : T &
-            RelatedFieldsTypeWithoutModelRelation<T, M, FI, []> &
-            IncludesRelatedModelsForCreateOrUpdate<T, M, RI>
+        ? T & RelatedFieldsTypeWithoutModelRelation<T, M, FI, FMI> & IncludesRelatedModelsForCreateOrUpdate<T, M, RI>
+        : T & RelatedFieldsTypeWithoutModelRelation<T, M, FI, []> & IncludesRelatedModelsForCreateOrUpdate<T, M, RI>
       : never
     : never
   : T;

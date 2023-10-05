@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { NotImplementedEngineException } from './exceptions';
 import { DatabaseConfigurationType } from '../types';
-import { EngineType, EngineInitializedModels } from './types';
+import { EngineInitializedModels } from './types';
 import EngineFields, {
   EngineFieldParser,
   EngineAutoFieldParser,
@@ -14,6 +14,8 @@ import EngineFields, {
   EngineIntegerFieldParser,
   EngineTextFieldParser,
   EngineUuidFieldParser,
+  EngineEnumFieldParser,
+  EngineBooleanFieldParser,
 } from './fields';
 import EngineMigrations from './migrations';
 import EngineQuery, {
@@ -221,5 +223,8 @@ export {
   EngineIntegerFieldParser,
   EngineTextFieldParser,
   EngineUuidFieldParser,
+  EngineEnumFieldParser,
+  EngineBooleanFieldParser,
+  Engine,
   EngineModels,
 };

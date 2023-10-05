@@ -15,6 +15,8 @@ export default class SequelizeEngineDecimalFieldParser extends SequelizeEngineFi
   integer = undefined;
   text = undefined;
   uuid = undefined;
+  enum = undefined;
+  boolean = undefined;
 
   translatable = true;
 
