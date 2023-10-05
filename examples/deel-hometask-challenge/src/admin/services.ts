@@ -65,7 +65,7 @@ export async function getBestClients(start: Date, end: Date, limit?: number) {
       [sequelize.col('contract.client.profession'), 'profession'],
       [sequelize.col('contract.client.balance'), 'balance'],
       [sequelize.col('contract.client.type'), 'type'],
-      [sequelize.fn('SUM', sequelize.col('price')), 'totalPrice'],
+      [sequelize.fn('SUM', sequelize.col('price')), 'totalPaid'],
     ],
     where: {
       paid: true,
@@ -87,9 +87,9 @@ export async function getBestClients(start: Date, end: Date, limit?: number) {
     ],
     group: ['contract.client.id'],
     limit,
-    order: [['totalPrice', 'DESC']],
+    order: [['totalPaid', 'DESC']],
     raw: true,
-  })) as unknown as ModelFields<Profile>[];
+  })) as unknown as (ModelFields<Profile> & { totalPaid: number })[];
 
   return aggregatedPaidJobsSum;
 }
