@@ -1,18 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import model from '../../models/model';
-import type { Function } from 'ts-toolbelt';
-import type EngineQuery from '.';
-import type {
-  Includes,
-  ModelFieldsWithIncludes,
-  FieldsOFModelType,
-  OrderingOfModelsType,
-  FieldsOfModelOptionsType,
-} from '../../models/types';
 import { NotImplementedEngineException } from '../exceptions';
 import Engine from '..';
-import parseSearch from '../../queries/search';
 import { BaseModel } from '../../models';
+
+import type {
+  Includes,
+} from '../../models/types';
 
 /** This class is used to run `.get` queries, so when we want to retrieve a value from the database to the user. */
 export default class EngineGetQuery {

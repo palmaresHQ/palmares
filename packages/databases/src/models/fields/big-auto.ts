@@ -1,43 +1,174 @@
 import Field from './field';
-import type { FieldDefaultParamsType } from './types';
+import type { FieldDefaultParamsType, MaybeNull } from './types';
 import type { This } from '../../types';
 
 /**
- * Same as the `AutoField` except that this is a big integer field so it accepts bigger numbers.
- * By default it is an auto-incrementing integer field, it is the primary key and it is unique.
+ * Functional approach for the creation of an BigAutoField instance. An BigAutoField is a field that is used as the primary key of the database.
+ *
+ * A bigAuto field is similar to an AutoField, except that it should support bigger numbers.
+ *
+ * We recommend just using one BigAutoField per model (or BigAutoField) because you might face some issues with certain ORM's. For ALL use cases, this
+ * field should be an integer.
+ *
+ * @example
+ * ```ts
+ * const bigAutoField = bigAuto();
+ * ```
+ *
+ * @example
+ * ```
+ * const bigAutoField = bigAuto({ databaseName: 'user_id' });
+ * ```
+ */
+export function bigAuto<
+  TDefaultValue extends MaybeNull<BigAutoField['_type']['input'] | undefined, TNull> = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
+>(
+  params: Omit<
+    FieldDefaultParamsType<BigAutoField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>,
+    'primaryKey' | 'allowNull' | 'unique' | 'dbIndex' | 'isAuto'
+  > = {}
+) {
+  return BigAutoField.new(params);
+}
+
+/**
+ * We recommend just using one BigAutoField per model (or AutoField) because you might face some issues with certain ORM's. For ALL use cases, this
+ * field should be an integer.
+ *
+ * A BigAutoField is similar to an AutoField, except that it should support bigger numbers.
+ *
+ * @example
+ * ```ts
+ * const bigAutoField = BigAutoField.new();
+ * ```
+ *
+ * @example
+ * ```
+ * const bigAutoField = BigAutoField.new({ databaseName: 'user_id' });
+ * ```
  */
 export default class BigAutoField<
-  F extends Field = any,
-  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
-  U extends boolean = true,
-  N extends boolean = false,
-  A extends boolean = true,
-  CA = any
-> extends Field<F, D, U, N, A, CA> {
-  declare _type: number;
+  TType extends { input: bigint | number; output: bigint | number } = {
+    input: bigint | number;
+    output: bigint | number;
+  },
+  TField extends Field = any,
+  TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
+> extends Field<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
+  declare _type: TType;
   typeName: string = BigAutoField.name;
 
-  constructor(params: FieldDefaultParamsType<F, D, U, N, A, CA> = {}) {
+  /**
+   * @deprecated Either use the `bigAuto` function or the `BigAutoField.new` static method. Never create an instance of this class directly.
+   */
+  constructor(
+    params: Omit<
+      FieldDefaultParamsType<BigAutoField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>,
+      'defaultValue' | 'primaryKey' | 'allowNull' | 'unique' | 'dbIndex' | 'isAuto'
+    > = {}
+  ) {
     super({
       ...params,
       primaryKey: true,
-      allowNull: false as N,
-      unique: true as U,
+      allowNull: false as TNull,
+      unique: true as TUnique,
       dbIndex: true,
-      isAuto: true as A,
+      isAuto: true as TAuto,
     });
   }
 
+  /**
+   * This method can be used to override the type of a field. This is useful for library maintainers that want to support the field type but the default type provided by palmares
+   * is not the one that the database engine supports.
+   *
+   * @example
+   * ```ts
+   * const MyCustomDatabaseAutoField = BigAutoField.overrideType<string>();
+   *
+   * // then the user can use as normal:
+   *
+   * const bigAutoField = MyCustomDatabaseAutoField.new();
+   *
+   * // now the type inferred for the field will be a string instead of a number.
+   * ```
+   *
+   * @example
+   * ```ts
+   * class MyCustomDatabaseEngineBigAutoFieldParser extends EngineBigAutoFieldParser {
+   *    static getFieldClass() {
+   *       return BigAutoField.overrideType<string>();
+   *    }
+   * }
+   *
+   * // then the user can use like:
+   *
+   * const bigAutoField = MyCustomDatabaseEngineBigAutoFieldParser.getFieldClass().new();
+   * ```
+   *
+   * ### Note
+   *
+   * Your library should provide documentation of the fields that are supported.
+   */
+  static overrideType<TNewType extends { input: any; output: any }>() {
+    return this as unknown as {
+      new: <
+        TDefaultValue extends MaybeNull<TNewType['input'] | undefined, TNull> = undefined,
+        TUnique extends boolean = false,
+        TNull extends boolean = false,
+        TAuto extends boolean = false,
+        TDatabaseName extends string | null | undefined = undefined,
+        TCustomAttributes = any,
+      >(
+        params?: Omit<
+          FieldDefaultParamsType<BigAutoField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>,
+          'defaultValue' | 'primaryKey' | 'allowNull' | 'unique' | 'dbIndex' | 'isAuto'
+        >
+      ) => BigAutoField<TNewType, BigAutoField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;
+    };
+  }
+
   static new<
-    I extends This<typeof BigAutoField>,
-    D extends N extends true
-      ? InstanceType<I>['_type'] | undefined | null
-      : InstanceType<I>['_type'] | undefined = undefined,
-    U extends boolean = true,
-    N extends boolean = false,
-    A extends boolean = true,
-    CA = any
-  >(this: I, params: FieldDefaultParamsType<InstanceType<I>, D, U, N, A, CA> = {}) {
-    return new this(params) as BigAutoField<InstanceType<I>, D, U, N, A, CA>;
+    TFieldInstance extends This<typeof BigAutoField>,
+    TDefaultValue extends MaybeNull<InstanceType<TFieldInstance>['_type']['input'] | undefined, TNull> = undefined,
+    TUnique extends boolean = true,
+    TNull extends boolean = false,
+    TAuto extends boolean = true,
+    TDatabaseName extends string | null | undefined = undefined,
+    TCustomAttributes = any,
+  >(
+    this: TFieldInstance,
+    params: Omit<
+      FieldDefaultParamsType<
+        InstanceType<TFieldInstance>,
+        TDefaultValue,
+        TUnique,
+        TNull,
+        TAuto,
+        TDatabaseName,
+        TCustomAttributes
+      >,
+      'defaultValue' | 'primaryKey' | 'allowNull' | 'unique' | 'dbIndex' | 'isAuto'
+    > = {}
+  ) {
+    return new this(params) as BigAutoField<
+      { input: bigint | number; output: bigint | number },
+      InstanceType<TFieldInstance>,
+      TDefaultValue,
+      TUnique,
+      TNull,
+      TAuto,
+      TDatabaseName,
+      TCustomAttributes
+    >;
   }
 }

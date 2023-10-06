@@ -1,75 +1,269 @@
 import Field from './field';
 import type { This } from '../../types';
-import type { DateFieldParamsType } from './types';
+import type { DateFieldParamsType, MaybeNull } from './types';
 
+/**
+ * Functional approach for the creation of a DateField.
+ *
+ * A DateField is a field is used to store dates. It can be used to store dates and times or just dates. It depends on the database engine.
+ * We support both `Date` and `string` as the input and output types.
+ *
+ * @example
+ * ```ts
+ * const updatedAt = date({ autoNow: true });
+ * ```
+ *
+ * @example
+ * ```
+ * const updatedAt = date({ autoNow: true });
+ * const createdAt = date({ autoNowAdd: true });
+ * ```
+ */
+export function date<
+  TDefaultValue extends MaybeNull<DateField['_type']['input'] | undefined, TNull> = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
+  TAutoNow extends boolean = false,
+  TAutoNowAdd extends boolean = false,
+>(
+  params: DateFieldParamsType<
+    DateField,
+    TDefaultValue,
+    TUnique,
+    TNull,
+    TAutoNow extends true ? true : TAutoNowAdd extends true ? true : TAuto,
+    TDatabaseName,
+    TCustomAttributes,
+    TAutoNow,
+    TAutoNowAdd
+  > = {}
+) {
+  return DateField.new(params);
+}
+
+/**
+ * A DateField is a field is used to store dates. It can be used to store dates and times or just dates. It depends on the database engine.
+ * We support both `Date` and `string` as the input and output types.
+ *
+ * @example
+ * ```ts
+ * const updatedAt = DateField.new({ autoNow: true });
+ * ```
+ *
+ * @example
+ * ```
+ * const updatedAt = DateField.new({ autoNow: true });
+ * const createdAt = DateField.new({ autoNowAdd: true });
+ * ```
+ */
 export default class DateField<
-  F extends Field = any,
-  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
-  U extends boolean = false,
-  N extends boolean = false,
-  A extends boolean = false,
-  CA = any,
-  AN extends boolean = false,
-  ANA extends boolean = false
-> extends Field<F, D, U, N, AN extends true ? true : ANA extends true ? true : A, CA> {
-  declare _type: string;
+  TType extends { input: string | Date; output: string | Date } = {
+    input: string | Date;
+    output: string | Date;
+  },
+  TField extends Field = any,
+  TDefaultValue extends MaybeNull<Field['_type']['input'] | undefined, TNull> = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
+  TAutoNow extends boolean = false,
+  TAutoNowAdd extends boolean = false,
+> extends Field<
+  TType,
+  TField,
+  TDefaultValue,
+  TUnique,
+  TNull,
+  TAutoNow extends true ? true : TAutoNowAdd extends true ? true : TAuto,
+  TDatabaseName,
+  TCustomAttributes
+> {
+  declare _type: TType;
   typeName: string = DateField.name;
-  autoNow: AN;
-  autoNowAdd: ANA;
+  autoNow: TAutoNow;
+  autoNowAdd: TAutoNowAdd;
 
+  /**
+   * @deprecated Either use the `date` function or the `DateField.new` static method. Never create an instance of this class directly.
+   */
   constructor(
-    params: DateFieldParamsType<F, D, U, N, AN extends true ? true : ANA extends true ? true : A, CA, AN, ANA> = {}
+    params: DateFieldParamsType<
+      TField,
+      TDefaultValue,
+      TUnique,
+      TNull,
+      TAutoNow extends true ? true : TAutoNowAdd extends true ? true : TAuto,
+      TDatabaseName,
+      TCustomAttributes,
+      TAutoNow,
+      TAutoNowAdd
+    > = {}
   ) {
     super(params);
-    this.autoNow = params.autoNow || (false as AN);
-    this.autoNowAdd = params.autoNowAdd || (false as ANA);
+    this.autoNow = params.autoNow || (false as TAutoNow);
+    this.autoNowAdd = params.autoNowAdd || (false as TAutoNowAdd);
   }
 
   static new<
-    I extends This<typeof DateField>,
-    D extends N extends true
-      ? InstanceType<I>['_type'] | undefined | null
-      : InstanceType<I>['_type'] | undefined = undefined,
-    U extends boolean = false,
-    N extends boolean = false,
-    A extends boolean = false,
-    CA = any,
-    AN extends boolean = false,
-    ANA extends boolean = false
+    TField extends This<typeof DateField>,
+    TDefaultValue extends MaybeNull<InstanceType<TField>['_type']['input'] | undefined, TNull> = undefined,
+    TUnique extends boolean = false,
+    TNull extends boolean = false,
+    TAuto extends boolean = false,
+    TDatabaseName extends string | null | undefined = undefined,
+    TCustomAttributes = any,
+    TAutoNow extends boolean = false,
+    TAutoNowAdd extends boolean = false,
   >(
-    this: I,
+    this: TField,
     params?: DateFieldParamsType<
-      InstanceType<I>,
-      D,
-      U,
-      N,
-      AN extends true ? true : ANA extends true ? true : A,
-      CA,
-      AN,
-      ANA
+      InstanceType<TField>,
+      TDefaultValue,
+      TUnique,
+      TNull,
+      TAutoNow extends true ? true : TAutoNowAdd extends true ? true : TAuto,
+      TDatabaseName,
+      TCustomAttributes,
+      TAutoNow,
+      TAutoNowAdd
     >
   ) {
     return new this(params) as DateField<
-      InstanceType<I>,
-      D,
-      U,
-      N,
-      AN extends true ? true : ANA extends true ? true : A,
-      CA,
-      AN,
-      ANA
+      {
+        input: string | Date;
+        output: string | Date;
+      },
+      InstanceType<TField>,
+      TDefaultValue,
+      TUnique,
+      TNull,
+      TAutoNow extends true ? true : TAutoNowAdd extends true ? true : TAuto,
+      TDatabaseName,
+      TCustomAttributes,
+      TAutoNow,
+      TAutoNowAdd
     >;
   }
 
-  async toString(
-    indentation = 0,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    customParams: string | undefined = undefined
-  ) {
+  /**
+   * This method can be used to override the type of a field. This is useful for library maintainers that want to support the field type but the default type provided by palmares
+   * is not the one that the database engine supports.
+   *
+   * @example
+   * ```ts
+   * const MyCustomDatabaseDateField = DateField.overrideType<string>();
+   *
+   * // then the user can use as normal:
+   *
+   * const DateField = MyCustomDatabaseDateField.new();
+   *
+   * // now the type inferred for the field will be a BigInt instead of a number.
+   * ```
+   *
+   * @example
+   * ```ts
+   * class MyCustomDatabaseEngineDateFieldParser extends EngineDateFieldParser {
+   *    static getFieldClass() {
+   *       return DateField.overrideType<BigInt>();
+   *    }
+   * }
+   *
+   * // then the user can use like:
+   *
+   * const dateField = MyCustomDatabaseEngineDateFieldParser.getFieldClass().new();
+   * ```
+   *
+   * ### Note
+   *
+   * Your library should provide documentation of the fields that are supported.
+   */
+  static overrideType<TNewType extends { input: any; output: any }>() {
+    return this as unknown as {
+      new: <
+        TDefaultValue extends MaybeNull<TNewType['input'] | undefined, TNull> = undefined,
+        TUnique extends boolean = false,
+        TNull extends boolean = false,
+        TAuto extends boolean = false,
+        TDatabaseName extends string | null | undefined = undefined,
+        TCustomAttributes = any,
+        TAutoNow extends boolean = false,
+        TAutoNowAdd extends boolean = false,
+      >(
+        params?: DateFieldParamsType<
+          DateField,
+          TDefaultValue,
+          TUnique,
+          TNull,
+          TAutoNow extends true ? true : TAutoNowAdd extends true ? true : TAuto,
+          TDatabaseName,
+          TCustomAttributes
+        >
+      ) => DateField<
+        TNewType,
+        DateField,
+        TDefaultValue,
+        TUnique,
+        TNull,
+        TAutoNow extends true ? true : TAutoNowAdd extends true ? true : TAuto,
+        TDatabaseName,
+        TCustomAttributes,
+        TAutoNow,
+        TAutoNowAdd
+      >;
+    };
+  }
+  /**
+   * This is mostly used internally by the engine to stringify the contents of the field on migrations. But you can override this if you want to extend the DateField class.
+   *
+   * @example
+   * ```
+   * class CustomDateField extends DateField {
+   *   aCustomValue: string;
+   *
+   *   async toString(indentation = 0, customParams: string | undefined = undefined) {
+   *    const ident = '  '.repeat(indentation + 1);
+   *    const customParamsString = customParams ? `\n${customParams}` : '';
+   *    return super.toString(indentation, `${ident}aCustomValue: ${this.aCustomValue},` + `${customParamsString}`);
+   *   }
+   * }
+   * ```
+   *
+   * On this example, your custom DateField instance defines a `aCustomValue` property that will be added on the migrations. It is useful if you have created a custom field and wants to
+   * implement a custom logic during migrations.
+   *
+   * @param indentation - The number of spaces to use for indentation. Use `'  '.repeat(indentation + 1);`
+   * @param customParams - Custom parameters to append to the stringified field.
+   *
+   * @returns The stringified field.
+   */
+  async toString(indentation = 0, _customParams: string | undefined = undefined) {
     const ident = '  '.repeat(indentation + 1);
     return super.toString(indentation, `${ident}autoNow: ${this.autoNow},\n${ident}autoNowAdd: ${this.autoNowAdd},`);
   }
 
+  /**
+   * This is used internally by the engine to compare if the field is equal to another field. You can override this if you want to extend the DateField class.
+   *
+   * @example
+   * ```
+   * class CustomDateField extends DateField {
+   *   aCustomValue: string;
+   *
+   *   async compare(field:Field) {
+   *      return (await super.compare(field)) && fieldAsText.aCustomValue === this.aCustomValue;
+   *   }
+   * }
+   * ```
+   *
+   * @param field - The field to compare.
+   *
+   * @returns A promise that resolves to a boolean indicating if the field is equal to the other field.
+   */
   async compare(field: Field): Promise<boolean> {
     const fieldAsDate = field as DateField;
     return (
@@ -77,6 +271,28 @@ export default class DateField<
     );
   }
 
+  /**
+   * This is used internally by the engine for cloning the field to a new instance. By doing that you are able to get the constructor options of the field.
+   *
+   * @example
+   * ```
+   * class CustomDateField extends DateField {
+   *  aCustomValue: string;
+   *
+   * async constructorOptions(field?: DateField) {
+   *   if (!field) field = this as DateField;
+   *   const defaultConstructorOptions = await super.constructorOptions(field);
+   *   return {
+   *     ...defaultConstructorOptions,
+   *     aCustomValue: field.aCustomValue,
+   *   };
+   * }
+   * ```
+   *
+   * @param field - The field to get the constructor options from. If not provided it will use the current field.
+   *
+   * @returns The constructor options of the field.
+   */
   async constructorOptions(field?: DateField) {
     if (!field) field = this as DateField;
     const defaultConstructorOptions = await super.constructorOptions(field);

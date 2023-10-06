@@ -1,9 +1,12 @@
 {
   "extends": "../../build/tsconfig.types.json",
   "compilerOptions": {
-    "declaration": true, /* Generate d.ts files */
+    "declaration": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "rootDir": "./src",
-    "outDir": "./dist/cjs/types"
+    "outDir": "./dist/cjs/types",
+    "types": ["sequelize", "node"],
   },
   "include": ["src/**/*"]
 }

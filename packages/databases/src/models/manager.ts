@@ -1,5 +1,5 @@
 import { getSettings, initializeDomains, SettingsType2 } from '@palmares/core';
-import type { Function } from 'ts-toolbelt';
+
 import {
   ManagerInstancesType,
   ManagerEngineInstancesType,
@@ -20,6 +20,8 @@ import { DatabaseDomainInterface } from '../interfaces';
 import removeQuery from '../queries/remove';
 import getQuery from '../queries/get';
 import setQuery from '../queries/set';
+
+import type { Narrow } from '@palmares/core';
 
 /**
  * Managers define how you make queries on the database. Instead of making queries everywhere in your application
@@ -227,8 +229,8 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
     TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>
   >(
     args?: {
-      includes?: Function.Narrow<IncludesValidated<TModel, TIncludes>>;
-      fields?: Function.Narrow<TFields>;
+      includes?: Narrow<IncludesValidated<TModel, TIncludes>>;
+      fields?: Narrow<TFields>;
       search?: ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true> | undefined;
       ordering?: OrderingOfModelsType<
         FieldsOfModelOptionsType<TModel> extends string ? FieldsOfModelOptionsType<TModel> : string
@@ -321,7 +323,7 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
        */
       useTransaction?: boolean;
       usePalmaresTransaction?: boolean;
-      includes?: Function.Narrow<IncludesValidated<TModel, TIncludes, true>>;
+      includes?: Narrow<IncludesValidated<TModel, TIncludes, true>>;
       search?: TSearch;
     },
     engineName?: string
@@ -378,7 +380,7 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
       usePalmaresTransaction?: boolean;
       useTransaction?: boolean;
       isToPreventEvents?: boolean;
-      includes?: Function.Narrow<
+      includes?: Narrow<
         IncludesValidated<
           TModel,
           TIncludes,

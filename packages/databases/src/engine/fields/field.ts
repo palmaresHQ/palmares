@@ -1,6 +1,6 @@
 import { EngineDoesNotSupportFieldTypeException } from '../../models/exceptions';
 
-import type { Field } from '../../models/fields';
+import { Field } from '../../models/fields';
 import type EngineFields from '.';
 import type Engine from '..';
 import EngineAutoFieldParser from './auto';
@@ -40,7 +40,13 @@ export default class EngineFieldParser {
 
   translatable = false;
 
-  async translate(_engine: Engine, _field: Field): Promise<any> {
-    throw new EngineDoesNotSupportFieldTypeException(_engine.constructor.name, _field.constructorOptions.name);
+  async translate(
+    _engine: Engine,
+    _field: ConstructorParameters<typeof Field>[0],
+    _defaultTranslateCallback: (
+      _field: ConstructorParameters<typeof Field>[0]
+    ) => ReturnType<EngineFieldParser['translate']>
+  ): Promise<any> {
+    throw new EngineDoesNotSupportFieldTypeException(_engine.constructor.name, Field.name);
   }
 }
