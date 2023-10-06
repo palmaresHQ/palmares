@@ -26,7 +26,7 @@
     "@palmares/events": "*"
   },
   "dependencies": {
-    "redis": "^4.4.0"
+    "redis": "^4.6.10"
   },
   "devDependencies": {
     "typescript": "^5.2.2"
