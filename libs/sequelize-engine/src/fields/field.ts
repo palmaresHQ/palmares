@@ -48,6 +48,8 @@ export default class SequelizeEngineFieldParser extends EngineFieldParser {
     const hasNotYetSetDefaultValueForField = defaultOptions.defaultValue === undefined;
     if (hasNotYetSetDefaultValueForField) defaultOptions.defaultValue = field.defaultValue;
 
+    defaultOptions.autoIncrement = field.isAuto;
+    defaultOptions.autoIncrementIdentity = field.isAuto;
     defaultOptions.primaryKey = field.primaryKey;
     defaultOptions.allowNull = field.allowNull;
     defaultOptions.unique = field.unique;

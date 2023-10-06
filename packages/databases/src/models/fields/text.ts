@@ -3,33 +3,60 @@ import type { This } from '../../types';
 import type { TextFieldParamsType } from './types';
 
 export default class TextField<
-  F extends Field = any,
-  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
-  U extends boolean = false,
-  N extends boolean = false,
-  A extends boolean = false,
-  CA = any
-> extends Field<F, D, U, N, A, CA> {
-  declare _type: string;
+  TType extends { input: any; output: any } = { input: string; output: string },
+  TField extends Field = any,
+  TDefaultValue extends TNull extends true
+    ? TField['_type']['input'] | undefined | null
+    : TField['_type']['input'] | undefined = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
+> extends Field<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
+  declare _type: TType;
   typeName: string = TextField.name;
   allowBlank: boolean;
 
-  constructor(params: TextFieldParamsType<F, D, U, N, A, CA>) {
+  constructor(
+    params: TextFieldParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>
+  ) {
     super(params);
     this.allowBlank = typeof params.allowBlank === 'boolean' ? params.allowBlank : true;
   }
 
   static new<
-    I extends This<typeof TextField>,
-    D extends N extends true
-      ? InstanceType<I>['_type'] | undefined | null
-      : InstanceType<I>['_type'] | undefined = undefined,
-    U extends boolean = false,
-    N extends boolean = false,
-    A extends boolean = false,
-    CA = any
-  >(this: I, params: TextFieldParamsType<InstanceType<I>, D, U, N, A, CA> = {}) {
-    return new this(params) as TextField<InstanceType<I>, D, U, N, A, CA>;
+    TField extends This<typeof TextField>,
+    TDefaultValue extends TNull extends true
+      ? InstanceType<TField>['_type']['input'] | undefined | null
+      : InstanceType<TField>['_type']['input'] | undefined = undefined,
+    TUnique extends boolean = false,
+    TNull extends boolean = false,
+    TAuto extends boolean = false,
+    TDatabaseName extends string | null | undefined = undefined,
+    TCustomAttributes = any,
+  >(
+    this: TField,
+    params: TextFieldParamsType<
+      InstanceType<TField>,
+      TDefaultValue,
+      TUnique,
+      TNull,
+      TAuto,
+      TDatabaseName,
+      TCustomAttributes
+    > = {}
+  ) {
+    return new this(params) as TextField<
+      { input: string; output: string },
+      InstanceType<TField>,
+      TDefaultValue,
+      TUnique,
+      TNull,
+      TAuto,
+      TDatabaseName,
+      TCustomAttributes
+    >;
   }
 
   async toString(indentation = 0, customParams: string | undefined = undefined) {

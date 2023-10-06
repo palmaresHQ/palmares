@@ -1,6 +1,6 @@
 import { utils } from '@palmares/core';
 
-import { FieldDefaultParamsType, CustomImportsForFieldType } from './types';
+import { FieldDefaultParamsType, CustomImportsForFieldType, MaybeNull } from './types';
 import Engine from '../../engine';
 import type { TModel } from '../types';
 import type { This } from '../../types';
@@ -10,51 +10,138 @@ import type { This } from '../../types';
  * Generally we do not offer any translation to this type of field.
  */
 export default class Field<
-  F extends Field = any,
-  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
-  U extends boolean = false,
-  N extends boolean = false,
-  A extends boolean = false,
-  CA = any
+  TType extends { input: any; output: any } = { input: any; output: any },
+  TField extends Field = any,
+  TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
 > {
-  isAuto!: A;
-  hasDefaultValue!: D extends undefined ? false : true;
-  declare _type: any;
+  isAuto!: TAuto;
+  hasDefaultValue!: TDefaultValue extends undefined ? false : true;
+  _type!: TType;
   primaryKey: boolean;
-  defaultValue?: D;
-  allowNull: N;
-  unique: U;
+  defaultValue?: TDefaultValue;
+  allowNull: TNull;
+  unique: TUnique;
   dbIndex: boolean;
-  databaseName: string;
+  databaseName: TDatabaseName;
   underscored: boolean;
   typeName: string = Field.name;
-  customAttributes: CA;
+  customAttributes: TCustomAttributes;
   model!: TModel;
   fieldName!: string;
 
-  constructor(params: FieldDefaultParamsType<F, D, U, N, A, CA> = {}) {
+  constructor(
+    params: FieldDefaultParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> = {}
+  ) {
     this.primaryKey = typeof params.primaryKey === 'boolean' ? params.primaryKey : false;
-    this.defaultValue = params.defaultValue as D;
-    this.allowNull = typeof params.allowNull === 'boolean' ? params.allowNull : (false as N);
-    this.unique = typeof params.unique === 'boolean' ? params.unique : (false as U);
-    this.isAuto = typeof params.isAuto === 'boolean' ? params.isAuto : (false as A);
+    this.defaultValue = params.defaultValue as TDefaultValue;
+    this.allowNull = typeof params.allowNull === 'boolean' ? params.allowNull : (false as TNull);
+    this.unique = typeof params.unique === 'boolean' ? params.unique : (false as TUnique);
+    this.isAuto = typeof params.isAuto === 'boolean' ? params.isAuto : (false as TAuto);
     this.dbIndex = typeof params.dbIndex === 'boolean' ? params.dbIndex : false;
-    this.databaseName = params.databaseName || '';
+    this.databaseName = params.databaseName || ('' as TDatabaseName);
     this.underscored = params.underscored || false;
-    this.customAttributes = params.customAttributes || ({} as CA);
+    this.customAttributes = params.customAttributes || ({} as TCustomAttributes);
   }
 
   static new<
-    I extends This<typeof Field>,
-    D extends N extends true
-      ? InstanceType<I>['_type'] | undefined | null
-      : InstanceType<I>['_type'] | undefined = undefined,
-    U extends boolean = false,
-    N extends boolean = false,
-    A extends boolean = false,
-    CA = any
-  >(params: FieldDefaultParamsType<InstanceType<I>, D, U, N, A, CA> = {}) {
-    return new this(params) as Field<InstanceType<I>, D, U, N, A, CA>;
+    TFieldInstance extends This<typeof Field>,
+    TDefaultValue extends TNull extends true
+      ? InstanceType<TFieldInstance>['_type']['input'] | undefined | null
+      : InstanceType<TFieldInstance>['_type']['input'] | undefined = undefined,
+    TUnique extends boolean = false,
+    TNull extends boolean = false,
+    TAuto extends boolean = false,
+    TDatabaseName extends string | null | undefined = undefined,
+    TCustomAttributes = any,
+  >(
+    params: FieldDefaultParamsType<
+      InstanceType<TFieldInstance>,
+      TDefaultValue,
+      TUnique,
+      TNull,
+      TAuto,
+      TDatabaseName,
+      TCustomAttributes
+    > = {}
+  ) {
+    return new this(params) as Field<
+      { input: any; output: any },
+      InstanceType<TFieldInstance>,
+      TDefaultValue,
+      TUnique,
+      TNull,
+      TAuto,
+      TDatabaseName,
+      TCustomAttributes
+    >;
+  }
+
+  /**
+   * This method can be used to override the type of a field. This is useful for library maintainers that want to support the field type but the default type provided by palmares
+   * is not the one that the user want to use.
+   *
+   * @example
+   * ```ts
+   * const MyCustomDatabaseAutoField = AutoField.overrideType<{ input: string; output: string }>();
+   *
+   * // then the user can use as normal:
+   *
+   * const autoField = MyCustomDatabaseAutoField.new();
+   *
+   * // now the type inferred for the field will be a string instead of a number.
+   * ```
+   *
+   * ### Note
+   *
+   * Your library should provide documentation of the fields that are supported.
+   */
+  static overrideType<TNewType extends { input: any; output: any }>() {
+    return this as unknown as {
+      new: <
+        TFieldInstance extends This<typeof Field>,
+        TDefaultValue extends MaybeNull<InstanceType<TFieldInstance>['_type']['input'] | undefined, TNull> = undefined,
+        TUnique extends boolean = false,
+        TNull extends boolean = false,
+        TAuto extends boolean = false,
+        TDatabaseName extends string | null | undefined = undefined,
+        TCustomAttributes = any,
+      >(
+        params?: FieldDefaultParamsType<
+          InstanceType<TFieldInstance>,
+          TDefaultValue,
+          TUnique,
+          TNull,
+          TAuto,
+          TDatabaseName,
+          TCustomAttributes
+        >
+      ) => Field<
+        TNewType,
+        InstanceType<TFieldInstance>,
+        TDefaultValue,
+        TUnique,
+        TNull,
+        TAuto,
+        TDatabaseName,
+        TCustomAttributes
+      >;
+    };
+  }
+
+  /**
+   * This method enables the framework to automatically import the files when generating the migrations.
+   *
+   * This is generally useful for custom field types.
+   *
+   * @return - Returns a list of packages that we want to import in the migration file.
+   */
+  async customImports(): Promise<CustomImportsForFieldType[]> {
+    return [];
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -64,8 +151,8 @@ export default class Field<
     this.model = model;
 
     if (this.primaryKey) this.model.primaryKeys.push(this.fieldName);
-    if (isUnderscored) this.databaseName = utils.camelCaseToHyphenOrSnakeCase(this.fieldName);
-    else this.databaseName = this.fieldName;
+    if (isUnderscored) this.databaseName = utils.camelCaseToHyphenOrSnakeCase(this.fieldName) as TDatabaseName;
+    else this.databaseName = this.fieldName as TDatabaseName;
   }
 
   async toString(indentation = 0, customParams: string | undefined = undefined): Promise<string> {
@@ -84,17 +171,6 @@ export default class Field<
       `${fieldParamsIdent}customAttributes: ${JSON.stringify(this.customAttributes)}\n` +
       `${ident}})`
     );
-  }
-
-  /**
-   * This method enables the framework to automatically import the files when generating the migrations.
-   *
-   * This is generally useful for custom field types.
-   *
-   * @return - Returns a list of packages that we want to import in the migration file.
-   */
-  async customImports(): Promise<CustomImportsForFieldType[]> {
-    return [];
   }
 
   /**

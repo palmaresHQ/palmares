@@ -1,37 +1,66 @@
 import Field from './field';
 import type { This } from '../../types';
-import type { DecimalFieldParamsType } from './types';
+import type { DecimalFieldParamsType, MaybeNull } from './types';
 
 export default class DecimalField<
-  F extends Field = any,
-  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
-  U extends boolean = false,
-  N extends boolean = false,
-  A extends boolean = false,
-  CA = any
-> extends Field<F, D, U, N, A, CA> {
-  declare _type: number;
+  TType extends { input: number; output: number } = {
+    input: number;
+    output: number;
+  },
+  TField extends Field = any,
+  TDefaultValue extends MaybeNull<Field['_type']['input'] | undefined, TNull> = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
+> extends Field<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
+  declare _type: TType;
   typeName: string = DecimalField.name;
   maxDigits: number;
   decimalPlaces: number;
 
-  constructor(params: DecimalFieldParamsType<F, D, U, N, A, CA>) {
+  /**
+   * @deprecated Either use the `decimal` function or the `DecimalField.new` static method. Never create an instance of this class directly.
+   */
+  constructor(
+    params: DecimalFieldParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>
+  ) {
     super(params);
     this.maxDigits = params.maxDigits;
     this.decimalPlaces = params.decimalPlaces;
   }
 
   static new<
-    I extends This<typeof DecimalField>,
-    D extends N extends true
-      ? InstanceType<I>['_type'] | undefined | null
-      : InstanceType<I>['_type'] | undefined = undefined,
-    U extends boolean = false,
-    N extends boolean = false,
-    A extends boolean = false,
-    CA = any
-  >(this: I, params: DecimalFieldParamsType<InstanceType<I>, D, U, N, A, CA>) {
-    return new this(params) as DecimalField<InstanceType<I>, D, U, N, A, CA>;
+    TField extends This<typeof DecimalField>,
+    TDefaultValue extends MaybeNull<InstanceType<TField>['_type']['input'] | undefined, TNull> = undefined,
+    TUnique extends boolean = false,
+    TNull extends boolean = false,
+    TAuto extends boolean = false,
+    TDatabaseName extends string | null | undefined = undefined,
+    TCustomAttributes = any,
+  >(
+    this: TField,
+    params: DecimalFieldParamsType<
+      InstanceType<TField>,
+      TDefaultValue,
+      TUnique,
+      TNull,
+      TAuto,
+      TDatabaseName,
+      TCustomAttributes
+    >
+  ) {
+    return new this(params) as DecimalField<
+      { input: number; output: number },
+      InstanceType<TField>,
+      TDefaultValue,
+      TUnique,
+      TNull,
+      TAuto,
+      TDatabaseName,
+      TCustomAttributes
+    >;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
