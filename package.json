@@ -52,7 +52,7 @@
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-security": "^1.5.0",
-    "prettier": "2.6.2",
+    "prettier": "3.0.3",
     "rimraf": "^5.0.1",
     "swc": "^1.0.11",
     "tsx": "^3.12.8",
