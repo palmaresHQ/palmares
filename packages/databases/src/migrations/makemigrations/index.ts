@@ -66,11 +66,11 @@ export default class MakeMigrations {
     this.#stateModelsByName = {};
 
     for (const originalModel of originalModels) {
-      this.#originalModelsByName[originalModel.original.originalName] = originalModel;
+      this.#originalModelsByName[originalModel.class.originalName()] = originalModel;
     }
 
     for (const stateModel of stateModels) {
-      this.#stateModelsByName[stateModel.original.originalName] = stateModel;
+      this.#stateModelsByName[stateModel.class.originalName()] = stateModel;
     }
   }
 
@@ -296,7 +296,7 @@ export default class MakeMigrations {
         return actions.RenameField.toGenerate(
           originalField.model.domainName,
           originalField.model.domainPath,
-          originalField.model.originalName,
+          originalField.model.originalName(),
           {
             fieldDefinition: originalField,
             fieldNameAfter: renamedTo,
@@ -328,7 +328,7 @@ export default class MakeMigrations {
         return actions.DeleteField.toGenerate(
           stateField.model.domainName,
           stateField.model.domainPath,
-          stateField.model.originalName,
+          stateField.model.originalName(),
           {
             fieldName: fieldOrModelName,
           }
@@ -376,7 +376,7 @@ export default class MakeMigrations {
           originalField.defaultValue === undefined && originalField.allowNull === false;
         if (isDefaultValueNotDefinedAndFieldDoesNotAllowNull) {
           const answer = await Asker.theNewAttributeCantHaveNullDoYouWishToContinue(
-            originalField.model.originalName,
+            originalField.model.originalName(),
             fieldName
           );
           if (answer === false) {
@@ -386,7 +386,7 @@ export default class MakeMigrations {
         return actions.CreateField.toGenerate(
           originalField.model.domainName,
           originalField.model.domainPath,
-          originalField.model.originalName,
+          originalField.model.originalName(),
           {
             fieldDefinition: originalField,
             fieldName: fieldName,
@@ -401,7 +401,7 @@ export default class MakeMigrations {
           fieldOrModelName,
           {
             fields: originalInitializedModel.original.fields,
-            options: originalInitializedModel.original.options,
+            options: originalInitializedModel.original.options || {},
           }
         );
     }
@@ -421,8 +421,8 @@ export default class MakeMigrations {
         originalInitializedModel.domainPath,
         modelName,
         {
-          optionsAfter: originalInitializedModel.original.options,
-          optionsBefore: stateInitializedModel.original.options,
+          optionsAfter: originalInitializedModel.original.options || {},
+          optionsBefore: stateInitializedModel.original.options || {},
         }
       );
     }
@@ -435,13 +435,17 @@ export default class MakeMigrations {
     return response;
   }
 
-  async #fieldWasUpdated(fieldName: string, stateField: Field, originalField: Field) {
+  async #fieldWasUpdated(
+    fieldName: string,
+    stateField: Field<any, any, any, any, any, any, any, any>,
+    originalField: Field<any, any, any, any, any, any, any, any>
+  ) {
     const areFieldsEqual = await originalField.compare(stateField);
     if (!areFieldsEqual) {
       return actions.ChangeField.toGenerate(
         originalField.model.domainName,
         originalField.model.domainPath,
-        originalField.model.originalName,
+        originalField.model.originalName(),
         {
           fieldDefinitionAfter: originalField,
           fieldDefinitionBefore: stateField,
@@ -481,13 +485,13 @@ export default class MakeMigrations {
           this.#originalModelsByName[operationToProcess.modelName] !== undefined
             ? this.#originalModelsByName[operationToProcess.modelName]
             : this.#stateModelsByName[operationToProcess.modelName];
-        const hasNoDependencies = Object.keys(modelOfOperationToProcess.original.indirectlyRelatedTo).length === 0;
+        const hasNoDependencies = Object.keys(modelOfOperationToProcess.class.directlyRelatedTo).length === 0;
 
         const addedModels = new Set(reorderedOperations.map((operation) => operation.modelName));
 
-        const dependenciesAlreadyAdded = Object.keys(modelOfOperationToProcess.original.directlyRelatedTo).every(
+        const dependenciesAlreadyAdded = Object.keys(modelOfOperationToProcess.class.directlyRelatedTo).every(
           (dependencyOfModel: string) =>
-            addedModels.has(dependencyOfModel) || dependencyOfModel === modelOfOperationToProcess.original.originalName // For circular relations.
+            addedModels.has(dependencyOfModel) || dependencyOfModel === modelOfOperationToProcess.class.originalName() // For circular relations.
         );
 
         // this means it is the last run so we must add any pending migrations.

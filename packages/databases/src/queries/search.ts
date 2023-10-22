@@ -1,5 +1,5 @@
 import Engine from '../engine';
-import { BaseModel } from '../models';
+import { BaseModel, model } from '../models';
 import { FieldWithOperationType, OperatorsOfQuery } from '../models/types';
 
 /**
@@ -132,7 +132,11 @@ async function parseSearchField(engine: Engine, fieldData: FieldWithOperationTyp
  *
  * @returns The parsed search, translated to the database engine so we can make a query.
  */
-export default async function parseSearch(engine: Engine, modelInstance: BaseModel<any>, search: any) {
+export default async function parseSearch(
+  engine: Engine,
+  modelInstance: InstanceType<ReturnType<typeof model>>,
+  search: any
+) {
   if (search) {
     const fieldsInModelInstance = Object.keys(modelInstance.fields);
     const fieldsInSearch = Object.keys(search);

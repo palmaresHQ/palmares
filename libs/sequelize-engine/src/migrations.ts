@@ -1,4 +1,4 @@
-import { EngineMigrations, Migration, InitializedModelsType, models } from '@palmares/databases';
+import { EngineMigrations, Migration, InitializedModelsType, ForeignKeyField, Field } from '@palmares/databases';
 import { ModelCtor, Model, QueryInterface, QueryInterfaceIndexOptions, Sequelize } from 'sequelize';
 import type { SetRequired } from 'sequelize/types/utils/set-required';
 
@@ -93,14 +93,15 @@ export default class SequelizeMigrations extends EngineMigrations {
 
     const allFieldsOfModel = Object.values(toModel?.original?.fields || {});
     for (const fieldDefinition of allFieldsOfModel) {
-      const isAForeignKeyField = fieldDefinition instanceof models.fields.ForeignKeyField;
-      const fieldDoesNotExist = isAForeignKeyField && engine.initializedModels[fieldDefinition.relatedTo] === undefined;
+      const isAForeignKeyField = fieldDefinition instanceof ForeignKeyField;
+      const relatedTo = (fieldDefinition as ForeignKeyField).relatedTo;
+      const fieldDoesNotExist = isAForeignKeyField && engine.initializedModels[relatedTo] === undefined;
       if (fieldDoesNotExist) {
         this.#circularDependenciesInMigration.push({
           fromModel: fromModel !== undefined ? fromModel : toModel,
           toModel: toModel,
           fieldName: fieldDefinition.fieldName,
-          relatedToName: fieldDefinition.relatedTo,
+          relatedToName: relatedTo,
         });
       }
     }
@@ -328,15 +329,15 @@ export default class SequelizeMigrations extends EngineMigrations {
     engine: SequelizeEngine,
     toModel: InitializedModelsType<ModelCtor<Model>>,
     fromModel: InitializedModelsType<ModelCtor<Model>>,
-    fieldBefore: models.fields.Field,
-    fieldAfter: models.fields.Field,
+    fieldBefore: Field<any, any, any, any, any, any, any, any>,
+    fieldAfter: Field<any, any, any, any, any, any, any, any>,
     migration: Migration
   ): Promise<void> {
     const attributesAsArray = Object.values(toModel.initialized.getAttributes());
     const initializedAttribute = attributesAsArray.find((attribute) => attribute.field === fieldAfter.databaseName);
     const tableName = toModel.initialized.options.tableName as string;
     if (initializedAttribute) {
-      const isOfTypeRelation = fieldBefore instanceof models.fields.ForeignKeyField;
+      const isOfTypeRelation = fieldBefore instanceof ForeignKeyField;
       // This removes the constraint, when we change the column sequelize automatically creates a new constraint
       // because of that we remove the old one.
       if (isOfTypeRelation) {
@@ -359,9 +360,14 @@ export default class SequelizeMigrations extends EngineMigrations {
       }
     }
 
-    await this.#queryInterface.changeColumn(tableName, fieldAfter.databaseName, initializedAttribute, {
-      transaction: migration.transaction,
-    });
+    await this.#queryInterface.changeColumn(
+      tableName,
+      fieldAfter.databaseName as unknown as string,
+      initializedAttribute,
+      {
+        transaction: migration.transaction,
+      }
+    );
     await this.#handleCircularDependencies(engine, migration, { fromModel, toModel });
     await this.#handleIndexes(migration, { toModel, fromModel });
   }

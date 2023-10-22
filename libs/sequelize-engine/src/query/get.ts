@@ -1,4 +1,10 @@
-import { EngineGetQuery, Includes, models, ForeignKeyField } from '@palmares/databases';
+import {
+  EngineGetQuery,
+  Includes,
+  ForeignKeyField,
+  ModelBaseClass,
+  InternalModelClass_DoNotUse,
+} from '@palmares/databases';
 import { Includeable, Model, ModelCtor, Order } from 'sequelize';
 import SequelizeEngine from '../engine';
 
@@ -18,25 +24,27 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
    */
   async #parseSearchWithIncludes(
     engine: SequelizeEngine,
-    parentModel: models.BaseModel<any>,
+    parentModel: ModelBaseClass,
     search: any,
     includes: Includes<{ fields: readonly string[] }>,
-    defaultParseSearchCallback: (model: models.BaseModel<any>, search: any) => Promise<any>,
+    defaultParseSearchCallback: (model: ModelBaseClass, search: any) => Promise<any>,
     formattedIncludesStatement: Includeable[] = []
   ) {
-    console.log(parentModel);
-    const parentModelName = parentModel.name;
+    const parentModelConstructor = parentModel.constructor as unknown as typeof InternalModelClass_DoNotUse;
+    const parentModelName = parentModelConstructor.getName() as string;
     const engineName = engine.databaseName;
     for (const include of includes || []) {
       const includedModelName = include.model.name;
-      const modelInstance = include.model.default.getModel(engineName) as models.BaseModel<any>;
+      const modelInstance = include.model.default.getModel(engineName) as ModelBaseClass;
+      const modelConstructor = modelInstance.constructor as unknown as typeof InternalModelClass_DoNotUse;
+
       const sequelizeModelInstance: ModelCtor<Model> = await include.model.default.getInstance(engineName);
 
       const directlyRelatedAssociations: [boolean, ForeignKeyField][] = (
-        parentModel.associations[includedModelName] || []
+        parentModelConstructor.associations[includedModelName] || []
       ).map((directlyRelatedAssociation) => [true, directlyRelatedAssociation]);
       const indirectlyRelatedAssociations: [boolean, ForeignKeyField][] = (
-        modelInstance.associations[parentModelName] || []
+        modelConstructor.associations[parentModelName] || []
       ).map((indirectlyRelatedAssociation) => [false, indirectlyRelatedAssociation]);
       const allAssociations: [boolean, ForeignKeyField][] =
         directlyRelatedAssociations.concat(indirectlyRelatedAssociations);

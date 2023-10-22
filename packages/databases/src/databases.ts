@@ -14,15 +14,16 @@ import { DatabaseDomainInterface } from './interfaces';
 import Engine from './engine';
 import { Model } from './models';
 import Migrations from './migrations';
-import model from './models/model';
+import model, { BaseModel } from './models/model';
 import { databaseLogger } from './logging';
+import { initializeModels } from './models/utils';
 
 export default class Databases {
   settings!: DatabaseSettingsType;
   isInitializing = false;
   isInitialized = false;
   initializedEngineInstances: InitializedEngineInstancesType = {};
-  obligatoryModels: ReturnType<typeof Model>[] = [];
+  obligatoryModels: ReturnType<typeof model>[] = [];
   #cachedModelsByModelName: {
     [modelName: string]: FoundModelType;
   } = {};
@@ -192,18 +193,14 @@ export default class Databases {
     const promises = models.map(async (foundModel) => {
       const modelInstance = new foundModel.model();
       const isModelManagedByEngine =
-        modelInstance.options.managed !== false &&
-        foundModel.model._isInitialized[engineName] !== true &&
+        modelInstance.options?.managed !== false &&
         (Array.isArray(modelInstance.options?.databases) === false ||
           modelInstance.options?.databases?.includes(engineName) === true);
-      const modelName = modelInstance.name || modelInstance.constructor.name;
+      const modelName =
+        (foundModel.model as unknown as typeof BaseModel & typeof Model).getName() || modelInstance.constructor.name;
 
       if (isModelManagedByEngine) onlyTheModelsFiltered[modelName] = foundModel.model;
-      else {
-        await modelInstance._init(engineInstance, foundModel.domainName, foundModel.domainPath, false);
-        onlyTheModelsNotOnTheEngine[modelName] = foundModel.model;
-      }
-
+      else onlyTheModelsNotOnTheEngine[modelName] = foundModel.model;
       if (isModelManagedByEngine) modelsFilteredForDatabase.push(foundModel);
     });
     await Promise.all(promises);
@@ -258,21 +255,14 @@ export default class Databases {
     engineInstance: Engine,
     projectModels: FoundModelType[]
   ): Promise<InitializedEngineInstanceWithModelsType> {
-    const initializedProjectModels: InitializedModelsType[] = [];
-    for (const { domainPath, domainName, model } of projectModels) {
-      const modelInstance = new model();
-      const initializedModel = await modelInstance._init(engineInstance, domainName, domainPath);
-
-      if (modelInstance.options.databases?.includes(engineInstance.connectionName)) {
-        initializedProjectModels.push({
-          domainName,
-          domainPath,
-          class: model,
-          initialized: initializedModel,
-          original: modelInstance,
-        });
-      }
-    }
+    const initializedProjectModels = await initializeModels(
+      engineInstance,
+      projectModels.map(({ domainPath, domainName, model }) => {
+        model.domainName = domainName;
+        model.domainPath = domainPath;
+        return model;
+      })
+    );
 
     return {
       engineInstance,
@@ -308,7 +298,7 @@ export default class Databases {
               this.#cachedModelsByModelName[model.name] = {
                 domainPath: domain.path,
                 domainName: domain.name,
-                model,
+                model: model as typeof BaseModel & typeof model,
               };
             }
           } else {
@@ -317,7 +307,7 @@ export default class Databases {
               this.#cachedModelsByModelName[modelName] = {
                 domainName: domain.path,
                 domainPath: domain.path,
-                model: modelKls,
+                model: modelKls as typeof BaseModel & typeof modelKls,
               };
             }
           }

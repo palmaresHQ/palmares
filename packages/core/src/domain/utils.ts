@@ -8,7 +8,7 @@ import type { DefaultCommandType } from '../commands/types';
 import type { DomainReadyFunctionArgs } from './types';
 import type { CoreSettingsType, SettingsType2 } from '../conf/types';
 
-let cachedDomains: typeof Domain[] | null = null;
+let cachedDomains: (typeof Domain)[] | null = null;
 let cachedInitializedDomains: Domain<any>[] | null = null;
 
 /**
@@ -19,13 +19,13 @@ let cachedInitializedDomains: Domain<any>[] | null = null;
  *
  * @returns - Returns all of the domains from the settings.
  */
-export async function retrieveDomains(settings: CoreSettingsType & SettingsType2): Promise<typeof Domain[]> {
-  const isNotDynamicDomains = settings.isDynamicDomains !== true;
+export async function retrieveDomains(settings: CoreSettingsType & SettingsType2): Promise<(typeof Domain)[]> {
+  const isNotDynamicDomains = settings?.isDynamicDomains !== true;
   if (cachedDomains && isNotDynamicDomains) return cachedDomains;
 
   const mergedSettings: any = settings;
-  const domainClasses: typeof Domain[] = [];
-  for (const domain of settings.installedDomains) {
+  const domainClasses: (typeof Domain)[] = [];
+  for (const domain of mergedSettings?.installedDomains || []) {
     let domainKls = domain as
       | (typeof Domain | Promise<{ default: typeof Domain }>)
       | readonly [typeof Domain | Promise<{ default: typeof Domain }>, any];

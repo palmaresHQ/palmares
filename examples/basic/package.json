@@ -30,6 +30,6 @@
   },
   "devDependencies": {
     "@types/cors": "^2.8.12",
-    "nodemon": "^2.0.20"
+    "nodemon": "^3.0.1"
   }
 }

@@ -1,5 +1,6 @@
 import {
-  models,
+  Model,
+  fields,
   AutoField,
   TextField,
   ModelOptionsType,
@@ -10,7 +11,7 @@ import {
 } from '@palmares/databases';
 import { Contract } from '../contracts/models';
 
-export class Jobs extends models.Model<Jobs>() {
+export class Jobs extends Model<Jobs>() {
   fields = {
     id: AutoField.new(),
     description: TextField.new(),
@@ -19,7 +20,7 @@ export class Jobs extends models.Model<Jobs>() {
     paymentDate: DateField.new({ autoNow: true, autoNowAdd: true }),
     contractId: ForeignKeyField.new({
       relatedTo: Contract,
-      onDelete: models.fields.ON_DELETE.CASCADE,
+      onDelete: fields.ON_DELETE.CASCADE,
       toField: 'id',
       relatedName: 'jobContracts',
       relationName: 'contract',

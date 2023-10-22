@@ -1,4 +1,5 @@
 import Engine from '..';
+import { model } from '../../models';
 import { EngineDoesNotSupportFieldTypeException } from '../../models/exceptions';
 import { AutoField } from '../../models/fields';
 import EngineFieldParser from './field';
@@ -84,49 +85,6 @@ export function adapterAutoFieldParser<
  * - `translate` should be implemented
  */
 export default class EngineAutoFieldParser extends EngineFieldParser {
-  auto = undefined;
-  bigAuto = undefined;
-  bigInt = undefined;
-  char = undefined;
-  date = undefined;
-  decimal = undefined;
-  foreignKey = undefined;
-  integer = undefined;
-  text = undefined;
-  uuid = undefined;
-  enum = undefined;
-  boolean = undefined;
-
-  translatable = true;
-
-  /**
-   * This function is used for translating the fields to something that the database is able to understand. Auto field is special because usually it should be used as
-   * the primary key of the database.
-   *
-   * @example
-   * ```ts
-   * async translate(engine, field) {
-   *    const defaultOptions = await baseFieldTranslate(engine, field);
-   *    defaultOptions.primaryKey = true;
-   *    defaultOptions.autoIncrement = true;
-   *    defaultOptions.autoIncrementIdentity = true;
-   *    defaultOptions.type = DataTypes.INTEGER;
-   *    defaultOptions.validate = defaultOptions.validate || {};
-   *    defaultOptions.validate.isNumeric = true;
-   *    defaultOptions.validate.isInt = true;
-   *    return defaultOptions;
-   * }
-   * ```
-   *
-   * @param _engine - The engine instance that is being used.
-   * @param _field - The AutoField instance that is being translated. (we are just retrieving the constructor options from it)
-   *
-   * @returns The translated field.
-   */
-  async translate(_engine: Engine, _field: ConstructorParameters<typeof AutoField>[0]): Promise<any> {
-    throw new EngineDoesNotSupportFieldTypeException(_engine.constructor.name, AutoField.name);
-  }
-
   /**
    * This static method is used for getting a custom field class for the AutoField. This is used for the `engine` to be able to override the existing behavior of the fields.
    *

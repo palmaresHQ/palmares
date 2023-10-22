@@ -2,8 +2,10 @@ import { utils } from '@palmares/core';
 
 import { FieldDefaultParamsType, CustomImportsForFieldType, MaybeNull } from './types';
 import Engine from '../../engine';
-import type { TModel } from '../types';
+
 import type { This } from '../../types';
+import type { ModelType } from '../types';
+import { BaseModel, Model } from '../model';
 
 /**
  * This is the default field of the model, every other field type should override this one but this one SHOULDN't be called directly.
@@ -31,7 +33,7 @@ export default class Field<
   underscored: boolean;
   typeName: string = Field.name;
   customAttributes: TCustomAttributes;
-  model!: TModel;
+  model!: ModelType;
   fieldName!: string;
 
   constructor(
@@ -103,33 +105,15 @@ export default class Field<
   static overrideType<TNewType extends { input: any; output: any }>() {
     return this as unknown as {
       new: <
-        TFieldInstance extends This<typeof Field>,
-        TDefaultValue extends MaybeNull<InstanceType<TFieldInstance>['_type']['input'] | undefined, TNull> = undefined,
+        TDefaultValue extends MaybeNull<Field['_type']['input'] | undefined, TNull> = undefined,
         TUnique extends boolean = false,
         TNull extends boolean = false,
         TAuto extends boolean = false,
         TDatabaseName extends string | null | undefined = undefined,
         TCustomAttributes = any,
       >(
-        params?: FieldDefaultParamsType<
-          InstanceType<TFieldInstance>,
-          TDefaultValue,
-          TUnique,
-          TNull,
-          TAuto,
-          TDatabaseName,
-          TCustomAttributes
-        >
-      ) => Field<
-        TNewType,
-        InstanceType<TFieldInstance>,
-        TDefaultValue,
-        TUnique,
-        TNull,
-        TAuto,
-        TDatabaseName,
-        TCustomAttributes
-      >;
+        params?: FieldDefaultParamsType<Field, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>
+      ) => Field<TNewType, Field, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;
     };
   }
 
@@ -145,12 +129,16 @@ export default class Field<
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async init(fieldName: string, model: TModel, _engineInstance?: Engine) {
-    const isUnderscored: boolean = (this.underscored || model.options.underscored) === true;
+  init(fieldName: string, model: ModelType) {
+    const isAlreadyInitialized = this.model !== undefined && typeof this.fieldName === 'string';
+    if (isAlreadyInitialized) return;
+
+    const modelInstance = new model() as Model & BaseModel;
+    const isUnderscored: boolean = (this.underscored || model._options()?.underscored) === true;
     this.fieldName = fieldName;
     this.model = model;
 
-    if (this.primaryKey) this.model.primaryKeys.push(this.fieldName);
+    if (this.primaryKey) model.primaryKeys.push(this.fieldName);
     if (isUnderscored) this.databaseName = utils.camelCaseToHyphenOrSnakeCase(this.fieldName) as TDatabaseName;
     else this.databaseName = this.fieldName as TDatabaseName;
   }
@@ -231,5 +219,40 @@ export default class Field<
     if (!field) field = this as Field;
     const constructorOptions = await this.constructorOptions(field);
     return (field.constructor as typeof Field).new(constructorOptions);
+  }
+}
+
+/**
+ * Used internally so we can override the internal behavior of Field when extending this field.
+ *
+ * **THIS SHOULD NOT BE USED DIRECTLY. IT DOES NOT OFFER ANY REAL FUNCTIONALITY, TYPESCRIPT ONLY.**
+ */
+export class UnopinionatedField<
+  TType extends { input: any; output: any } = { input: any; output: any },
+  TField extends Field = any,
+  TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
+> extends Field<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
+  constructor(params: any) {
+    super(params);
+  }
+
+  static overrideType<TNewType extends { input: any; output: any }>() {
+    return this as unknown as {
+      new: <
+        TDefaultValue extends MaybeNull<Field['_type']['input'] | undefined, TNull> = undefined,
+        TUnique extends boolean = false,
+        TNull extends boolean = false,
+        TAuto extends boolean = false,
+        TDatabaseName extends string | null | undefined = undefined,
+        TCustomAttributes = any,
+      >(
+        params?: any
+      ) => UnopinionatedField<TNewType, Field, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;
+    };
   }
 }

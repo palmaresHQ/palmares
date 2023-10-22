@@ -147,18 +147,28 @@ export default class BigAutoField<
     TCustomAttributes = any,
   >(
     this: TFieldInstance,
-    params: Omit<
-      FieldDefaultParamsType<
-        InstanceType<TFieldInstance>,
-        TDefaultValue,
-        TUnique,
-        TNull,
-        TAuto,
-        TDatabaseName,
-        TCustomAttributes
-      >,
-      'defaultValue' | 'primaryKey' | 'allowNull' | 'unique' | 'dbIndex' | 'isAuto'
-    > = {}
+    params:
+      | Omit<
+          FieldDefaultParamsType<
+            InstanceType<TFieldInstance>,
+            TDefaultValue,
+            TUnique,
+            TNull,
+            TAuto,
+            TDatabaseName,
+            TCustomAttributes
+          >,
+          'defaultValue' | 'primaryKey' | 'allowNull' | 'unique' | 'dbIndex' | 'isAuto'
+        >
+      | FieldDefaultParamsType<
+          InstanceType<TFieldInstance>,
+          TDefaultValue,
+          TUnique,
+          TNull,
+          TAuto,
+          TDatabaseName,
+          TCustomAttributes
+        > = {}
   ) {
     return new this(params) as BigAutoField<
       { input: bigint | number; output: bigint | number },

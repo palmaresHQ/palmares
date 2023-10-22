@@ -1,27 +1,19 @@
-import { TextField } from '@palmares/databases';
+import { EngineTextFieldParser, Model, TextField } from '@palmares/databases';
 import { DataTypes, ModelAttributeColumnOptions } from 'sequelize';
 
 import SequelizeEngineFieldParser from './field';
 import SequelizeEngine from '../engine';
 
-export default class SequelizeEngineTextFieldParser extends SequelizeEngineFieldParser {
-  auto = undefined;
-  bigAuto = undefined;
-  bigInt = undefined;
-  char = undefined;
-  date = undefined;
-  decimal = undefined;
-  foreignKey = undefined;
-  integer = undefined;
-  text = undefined;
-  uuid = undefined;
-  enum = undefined;
-  boolean = undefined;
-
-  translatable = true;
-
-  async translate(engine: SequelizeEngine, field: TextField): Promise<ModelAttributeColumnOptions> {
-    const defaultOptions = await super.translate(engine, field);
+export default class SequelizeEngineTextFieldParser extends EngineTextFieldParser {
+  async translate(args: {
+    engine: SequelizeEngine;
+    field: TextField;
+    fieldParser: SequelizeEngineFieldParser;
+    modelName: string;
+    model: InstanceType<ReturnType<typeof Model>>;
+    lazyEvaluate: (translatedField: ModelAttributeColumnOptions) => void;
+  }): Promise<ModelAttributeColumnOptions> {
+    const defaultOptions = await args.fieldParser.translate(args);
     defaultOptions.type = DataTypes.STRING;
     return defaultOptions;
   }

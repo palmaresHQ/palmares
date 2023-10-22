@@ -12,18 +12,16 @@ import type {
   OrderingOfModelsType,
   FieldsOfModelOptionsType,
 } from '../models/types';
-import { BaseModel } from '../models';
+import { BaseModel, Model } from '../models';
 import parseSearch from './search';
 
 export default async function getQuery<
-  TModel extends InstanceType<ReturnType<typeof model>>,
+  TModel,
   TIncludes extends Includes = undefined,
-  TFieldsOfModel extends Narrow<FieldsOFModelType<InstanceType<ReturnType<typeof model>>>> = FieldsOFModelType<
-    InstanceType<ReturnType<typeof model>>
-  >,
+  TFieldsOfModel extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>,
   TSearch extends
     | ModelFieldsWithIncludes<TModel, TIncludes, TFieldsOfModel, false, false, true, true>
-    | undefined = undefined
+    | undefined = undefined,
 >(
   args: {
     ordering?: OrderingOfModelsType<
@@ -40,16 +38,19 @@ export default async function getQuery<
     includes: TIncludes;
   }
 ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFieldsOfModel>[]> {
+  const modelInstanceAsModel = internal.model as InstanceType<ReturnType<typeof model>>;
+
   const result: ModelFieldsWithIncludes<TModel, TIncludes, TFieldsOfModel>[] = [];
-  const selectedFields = (args.fields || Object.keys(internal.model.fields)) as TFieldsOfModel;
+  const selectedFields = (args.fields || Object.keys(modelInstanceAsModel.fields)) as TFieldsOfModel;
   try {
     return await internal.engine.query.get.queryDataNatively(
       internal.engine,
-      internal.model.constructor as ReturnType<typeof model>,
+      modelInstanceAsModel.constructor as ReturnType<typeof model>,
       args.search,
       selectedFields as unknown as string[],
       internal.includes,
-      async (model: BaseModel<any>, search: any) => parseSearch(internal.engine, model, search)
+      async (modelInstance: InstanceType<ReturnType<typeof model>>, search: any) =>
+        parseSearch(internal.engine, modelInstance, search)
     );
   } catch (e) {
     if ((e as Error).name === NotImplementedEngineException.name)
