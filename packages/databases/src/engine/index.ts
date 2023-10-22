@@ -25,10 +25,10 @@ import EngineQuery, {
   EngineRemoveQuery,
   EngineQueryOrdering,
 } from './query';
-import { Model } from '../models/model';
 import EngineModels from './model';
-import { Field } from '../models/fields';
-import type { factoryFunctionForDefaultModelTranslateCallback } from '../models/utils';
+
+//import type { factoryFunctionForDefaultModelTranslateCallback } from '../models/utils';
+import type model from '../models/model';
 
 /**
  * Instead of creating our own ORM for the framework we wrap any orm we want to use inside of this class. This allow
@@ -57,8 +57,8 @@ export default class Engine {
   instance: any;
   __argumentsUsed!: any;
   __ignoreNotImplementedErrors = false;
-  __modelsFilteredOutOfEngine!: { [modelName: string]: typeof Model };
-  __modelsOfEngine!: { [modelName: string]: typeof Model };
+  __modelsFilteredOutOfEngine!: { [modelName: string]: ReturnType<typeof model> };
+  __modelsOfEngine!: { [modelName: string]: ReturnType<typeof model> };
   __indirectlyRelatedModels: {
     [modelName: string]: { [relatedModelName: string]: string[] };
   } = {};
@@ -92,7 +92,7 @@ export default class Engine {
    *
    * @returns - A new engine instance after calling `.new` static method.
    */
-  async duplicate(_getNewEngine: (...args: Parameters<typeof Engine['new']>) => Promise<Engine>): Promise<Engine> {
+  async duplicate(_getNewEngine: (...args: Parameters<(typeof Engine)['new']>) => Promise<Engine>): Promise<Engine> {
     throw new NotImplementedEngineException('duplicate');
   }
 
@@ -118,56 +118,6 @@ export default class Engine {
    */
   async close?(_engine: Engine, _connectionName: string): Promise<void> {
     throw new NotImplementedEngineException('close');
-  }
-
-  /**
-   * `initializeModel` will be called to translate the model to a instance of something that your engine can understand.
-   * For that you should use the `EngineFields`. `EngineFields`, as explained in the class, is for translating each particular field
-   * of the model to something that the orm can understand. This should return the model translated so the user can use it.
-   *
-   * On Palmares, the user will almost never make queries using our `ORM`, cause we don't have one, an instance is just the object
-   * that the user can use to make queries.
-   *
-   * Example:
-   * - Sequelize this would be the `User` on this example:
-   * ```
-   * const { Sequelize, Model, DataTypes } = require("sequelize");
-   * const sequelize = new Sequelize("sqlite::memory:");
-   *
-   * const User = sequelize.define("user", {
-   *    name: DataTypes.TEXT,
-   *    favoriteColor: {
-   *      type: DataTypes.TEXT,
-   *      defaultValue: 'green'
-   *    },
-   *    age: DataTypes.INTEGER,
-   *    cash: DataTypes.INTEGER
-   * });
-   *
-   * ```
-   * - On prisma, this would be `prisma.user`
-   * ```
-   * const { PrismaClient } = require('@prisma/client')
-   *
-   * const prisma = new PrismaClient()
-   *
-   * const users = await prisma.user.findMany() // here prisma.user is what we would need to return.
-   * ```
-   *
-   * P.S.: Don't forget to call the base class with `super.initializeModel(model, theInstanceOfYourCustomModel)` so we can save it
-   * on the `initializedModels` object n the class instance.
-   *
-   * @param model - The Palmares model instance so we can translate it.
-   * @param modelInstance - The instance of the model translated (this is not needed when overriding this function)
-   *
-   * @returns - The instance of the translated model.
-   */
-  async initializeModel(
-    _engine: Engine,
-    _model: Model,
-    _defaultInitializeModelCallback: ReturnType<typeof factoryFunctionForDefaultModelTranslateCallback>
-  ): Promise<any> {
-    new NotImplementedEngineException('initializeModel');
   }
 
   /**

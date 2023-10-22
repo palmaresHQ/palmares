@@ -7,11 +7,11 @@ import type Engine from '../engine';
 import type { Includes, ModelFieldsWithIncludes, FieldsOFModelType } from '../models/types';
 
 export default async function setQuery<
-  TModel extends InstanceType<ReturnType<typeof model>>,
+  TModel,
   TIncludes extends Includes = undefined,
   TSearch extends
     | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
-    | undefined = undefined
+    | undefined = undefined,
 >(
   data: ModelFieldsWithIncludes<
     TModel,
@@ -56,7 +56,8 @@ export default async function setQuery<
   // we can use it in the transaction and outside of it
   async function getResults(transaction: any) {
     const results = [] as ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[];
-    const fields = Object.keys(internal.model.fields);
+    const internalModelAsModel = internal.model as InstanceType<ReturnType<typeof model>>;
+    const fields = Object.keys(internalModelAsModel.fields) as unknown as FieldsOFModelType<TModel>;
     const doesSearchExist = args.search !== undefined;
     if (doesSearchExist) {
       const allResultsOfSearch = await getQuery<TModel, TIncludes, FieldsOFModelType<TModel>, TSearch>(
@@ -73,7 +74,7 @@ export default async function setQuery<
       await getResultsWithIncludes(
         internal.engine,
         internal.model,
-        fields as FieldsOFModelType<TModel>,
+        fields,
         internal.includes,
         args.search as TSearch,
         results,
@@ -98,7 +99,7 @@ export default async function setQuery<
       await getResultsWithIncludes(
         internal.engine,
         internal.model,
-        fields as FieldsOFModelType<TModel>,
+        fields,
         internal.includes,
         args.search as TSearch,
         results,

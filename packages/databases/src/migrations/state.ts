@@ -1,10 +1,10 @@
 import { FoundMigrationsFileType, StateModelsType, OriginalOrStateModelsByNameType } from './types';
-import model, { Model } from '../models/model';
+import model, { BaseModel, Model } from '../models/model';
 import { InitializedModelsType } from '../types';
 import Engine from '../engine';
-import { TModel } from '../models/types';
 import { defaultEngineDuplicate } from '../engine/utils';
 import { DefaultDuplicateFunctionNotCalledOnEngine } from './exceptions';
+import { initializeModels } from '../models/utils';
 
 /**
  * The state is used to keep track how the models were for every migration file. On the migration files
@@ -34,10 +34,10 @@ export default class State {
    *
    * @returns - Returns a model instance with all of the fields and options.
    */
-  async get(modelName: string): Promise<TModel> {
-    const model = this.modelsByName[modelName];
-    const doesModelExist = model && model.instance instanceof Model;
-    if (doesModelExist) return model.instance;
+  async get(modelName: string): Promise<BaseModel & InstanceType<ReturnType<typeof model>>> {
+    const modelInstance = this.modelsByName[modelName];
+    const doesModelExist = modelInstance && modelInstance.instance instanceof Model;
+    if (doesModelExist) return modelInstance.instance;
     else return await this.newModel(modelName);
   }
 
@@ -48,7 +48,7 @@ export default class State {
    * @param modelName - The name of the model to set.
    * @param modifiedModel - The modified model instance to set.
    */
-  async set(modelName: string, modifiedModel: TModel) {
+  async set(modelName: string, modifiedModel: BaseModel & InstanceType<ReturnType<typeof model>>) {
     this.modelsByName[modelName].instance = modifiedModel;
   }
 
@@ -65,14 +65,19 @@ export default class State {
    * @return - Returns the newly created model. We use the .get method because if we have any side effects to the
    * model we will also run them.
    */
-  async newModel(modelName: string): Promise<Model> {
-    const ModelClass = class StateModel extends model() {};
-    const newModel = new ModelClass();
-    newModel.name = modelName;
-    newModel._isState = true;
+  async newModel(modelName: string): Promise<BaseModel & InstanceType<ReturnType<typeof model>>> {
+    const ModelClass = class StateModel extends model() {
+      static isState = true;
+      static __cachedName: string = modelName;
+
+      fields = {};
+      options = {};
+    };
+    const newModelInstance = new ModelClass() as InstanceType<ReturnType<typeof model>> & BaseModel;
+
     this.modelsByName[modelName] = {
-      class: ModelClass,
-      instance: newModel,
+      class: ModelClass as unknown as ReturnType<typeof model> & typeof BaseModel,
+      instance: newModelInstance,
     };
     return this.get(modelName);
   }
@@ -95,17 +100,10 @@ export default class State {
    */
   async initializeStateModels(engineInstance: Engine): Promise<InitializedModelsType[]> {
     const modelsInState = Object.values(this.modelsByName);
-    const initializedStateModels: InitializedModelsType[] = [];
-    for (const model of modelsInState) {
-      initializedStateModels.push({
-        domainName: model.instance.domainName,
-        domainPath: model.instance.domainPath,
-        class: model.class,
-        initialized: await model.instance._init(engineInstance, model.instance.domainName, model.instance.domainPath),
-        original: model.instance,
-      });
-    }
-    return initializedStateModels;
+    return initializeModels(
+      engineInstance,
+      modelsInState.map((model) => model.class)
+    );
   }
 
   /**
@@ -145,7 +143,7 @@ export default class State {
 
     const initializedModels = await this.initializeStateModels(duplicatedEngineInstance);
     for (const initializedModel of initializedModels) {
-      this.initializedModelsByName[initializedModel.original.originalName] = initializedModel;
+      this.initializedModelsByName[initializedModel.class.originalName()] = initializedModel;
     }
     return {
       initializedModels: this.initializedModelsByName,

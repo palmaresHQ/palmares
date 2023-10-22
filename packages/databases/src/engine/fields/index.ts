@@ -37,18 +37,17 @@ export default class EngineFields {
 
   constructor(fieldsParser?: EngineFieldParser) {
     this.fieldsParser = fieldsParser ? fieldsParser : new EngineFieldParser();
-    this.fieldsParser.auto = this.autoFieldParser;
-    this.fieldsParser.bigAuto = this.bigAutoFieldParser;
-    this.fieldsParser.bigInt = this.bigIntegerFieldParser;
-    this.fieldsParser.char = this.charFieldParser;
-    this.fieldsParser.date = this.dateFieldParser;
-    this.fieldsParser.decimal = this.decimalFieldParser;
-    this.fieldsParser.foreignKey = this.foreignKeyFieldParser;
-    this.fieldsParser.integer = this.integerFieldParser;
-    this.fieldsParser.text = this.textFieldParser;
-    this.fieldsParser.uuid = this.uuidFieldParser;
-    this.fieldsParser.enum = this.enumFieldParser;
-    this.fieldsParser.boolean = this.booleanFieldParser;
+  }
+
+  /** */
+  async lazyEvaluateField(
+    _engine: Engine,
+    _modelName: string,
+    _translatedModel: any,
+    _field: Field,
+    _fieldTranslated: any
+  ): Promise<any> {
+    throw new NotImplementedEngineFieldsException('lazyEvaluateField');
   }
 
   /**
@@ -58,7 +57,11 @@ export default class EngineFields {
    *
    * @returns The field translated to something that the ORM can understand.
    */
-  async get(_engine: Engine, _field: Field, _defaultGetCallback: (_field: Field) => Promise<any>): Promise<any> {
+  async translateField?(
+    _engine: Engine,
+    _field: Field,
+    _defaultGetCallback: (_field: Field) => Promise<any>
+  ): Promise<any> {
     throw new NotImplementedEngineFieldsException('get');
   }
 }

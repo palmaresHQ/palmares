@@ -1,12 +1,8 @@
-
 import model from '../../models/model';
 import { NotImplementedEngineException } from '../exceptions';
 import Engine from '..';
-import { BaseModel } from '../../models';
 
-import type {
-  Includes,
-} from '../../models/types';
+import type { Includes } from '../../models/types';
 
 /** This class is used to run `.get` queries, so when we want to retrieve a value from the database to the user. */
 export default class EngineGetQuery {
@@ -45,7 +41,7 @@ export default class EngineGetQuery {
     _search: any,
     _fields: readonly string[],
     _includes: Includes,
-    _defaultParseSearch: (model: BaseModel<any>, search: any) => Promise<any>
+    _defaultParseSearch: (modelConstructor: InstanceType<ReturnType<typeof model>>, search: any) => Promise<any>
   ): Promise<any[]> {
     throw new NotImplementedEngineException('queryDataNatively');
   }

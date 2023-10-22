@@ -12,6 +12,7 @@ import {
 import { OriginalOrStateModelsByNameType } from '../types';
 import Migration from '../migrate/migration';
 import State from '../state';
+import { BaseModel } from '../../models';
 
 /**
  * This operation is used when a new field is created on a specific model. If the hole model is created
@@ -31,8 +32,9 @@ export class CreateField extends Operation {
 
   async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {
     const model = await state.get(this.modelName);
-    model.domainName = domainName;
-    model.domainPath = domainPath;
+    const modelConstructor = model.constructor as typeof BaseModel;
+    modelConstructor.domainName = domainName;
+    modelConstructor.domainPath = domainPath;
     model.fields[this.fieldName] = this.fieldDefinition;
     await state.set(this.modelName, model);
   }
@@ -94,8 +96,9 @@ export class ChangeField extends Operation {
 
   async stateForwards(state: State, domainName: string, domainPath: string) {
     const model = await state.get(this.modelName);
-    model.domainName = domainName;
-    model.domainPath = domainPath;
+    const modelConstructor = model.constructor as typeof BaseModel;
+    modelConstructor.domainName = domainName;
+    modelConstructor.domainPath = domainPath;
     model.fields[this.fieldName] = this.fieldDefinitionAfter;
     await state.set(this.modelName, model);
   }
@@ -167,8 +170,9 @@ export class RenameField extends Operation {
 
   async stateForwards(state: State, domainName: string, domainPath: string) {
     const model = await state.get(this.modelName);
-    model.domainName = domainName;
-    model.domainPath = domainPath;
+    const modelConstructor = model.constructor as typeof BaseModel;
+    modelConstructor.domainName = domainName;
+    modelConstructor.domainPath = domainPath;
 
     const hasNamesReallyChanged = this.fieldNameAfter !== this.fieldNameBefore;
     if (hasNamesReallyChanged) {
@@ -235,8 +239,10 @@ export class DeleteField extends Operation {
 
   async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {
     const model = await state.get(this.modelName);
-    model.domainName = domainName;
-    model.domainPath = domainPath;
+    const modelConstructor = model.constructor as typeof BaseModel;
+    modelConstructor.domainName = domainName;
+    modelConstructor.domainPath = domainPath;
+
     delete model.fields[this.fieldName];
     await state.set(this.modelName, model);
   }

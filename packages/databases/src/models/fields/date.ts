@@ -217,6 +217,7 @@ export default class DateField<
       >;
     };
   }
+
   /**
    * This is mostly used internally by the engine to stringify the contents of the field on migrations. But you can override this if you want to extend the DateField class.
    *

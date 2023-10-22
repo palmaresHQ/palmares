@@ -29,7 +29,7 @@ export interface TranslatableFieldType {
 export type ClassConstructor<T> = {
   new (...args: unknown[]): T;
 };
-export interface FieldDefaultParamsType<
+export type FieldDefaultParamsType<
   TField extends DefaultFieldType,
   TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,
   TUnique extends boolean = false,
@@ -37,7 +37,8 @@ export interface FieldDefaultParamsType<
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
   TCustomAttributes = any,
-> {
+  TFieldSpecificParams = object,
+> = {
   /**
    * Specifies if this field should be considered the primary key of the model. (default: false)
    */
@@ -74,13 +75,11 @@ export interface FieldDefaultParamsType<
    * Custom attributes that will be passed to the field for the engine to use.
    */
   customAttributes?: TCustomAttributes;
-}
+} & TFieldSpecificParams;
 
 export type DecimalFieldParamsType<
   TField extends DefaultFieldType,
-  TDefaultValue extends TNull extends true
-    ? TField['_type'] | undefined | null
-    : TField['_type'] | undefined = undefined,
+  TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,
   TUnique extends boolean = false,
   TNull extends boolean = false,
   TAuto extends boolean = false,
@@ -95,13 +94,20 @@ export type DecimalFieldParamsType<
    * The maximum number of decimal places allowed in the numbers.
    */
   decimalPlaces: number;
-} & FieldDefaultParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;
+} & FieldDefaultParamsType<
+  TField,
+  TDefaultValue,
+  TUnique,
+  TNull,
+  TAuto,
+  TDatabaseName,
+  TCustomAttributes,
+  { maxDigits: number; decimalPlaces: number }
+>;
 
 export type EnumFieldParamsType<
   TField extends DefaultFieldType,
-  TDefaultValue extends TNull extends true
-    ? TField['_type'] | undefined | null
-    : TField['_type'] | undefined = undefined,
+  TDefaultValue extends MaybeNull<TEnumChoices[number] | undefined, TNull> = undefined,
   TUnique extends boolean = false,
   TNull extends boolean = false,
   TAuto extends boolean = false,
@@ -138,7 +144,7 @@ export type CharFieldParamsType<
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
   TCustomAttributes = any,
-  TMaxLength extends number = 255,
+  TMaxLength extends number = number,
 > = {
   /**
    * The maximum length of the string. (default: 255)
@@ -196,48 +202,38 @@ export type DateFieldParamsType<
 } & FieldDefaultParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;
 
 export type ForeignKeyFieldParamsType<
-  F extends Field,
-  TLazyDefaultValue = undefined,
-  D extends N extends true
-    ?
-        | (TLazyDefaultValue extends undefined
-            ? T extends undefined
-              ? M extends Model<any>
-                ? M['fields'][RF]['_type']
-                : T
-              : T
-            : TLazyDefaultValue)
-        | undefined
-        | null
-    :
-        | (TLazyDefaultValue extends undefined
-            ? T extends undefined
-              ? M extends Model<any>
-                ? M['fields'][RF]['_type']
-                : T
-              : T
-            : TLazyDefaultValue)
-        | undefined = undefined,
-  U extends boolean = false,
-  N extends boolean = false,
-  A extends boolean = false,
-  CA = any,
-  T = undefined,
-  M = Model,
-  RF extends string = any,
-  RN extends string = any,
-  RNN extends string = any,
+  TField extends Field,
+  TDefaultValue extends MaybeNull<
+    | (TCustomType extends undefined
+        ? TRelatedToModel extends typeof Model
+          ? InstanceType<TRelatedToModel>['fields'][TRelatedField] extends Field<any, any, any, any, any, any, any, any>
+            ? InstanceType<TRelatedToModel>['fields'][TRelatedField]['_type']['input']
+            : TCustomType
+          : TCustomType
+        : TCustomType)
+    | undefined,
+    TNull
+  > = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
+  TCustomType = undefined,
+  TRelatedToModel = typeof Model,
+  TRelatedField extends string = any,
+  TRelatedName extends string = any,
+  TRelationName extends string = any,
 > = {
-  relatedTo: ClassConstructor<M> | string;
+  relatedTo: TRelatedToModel;
   /** To which field of the `relatedTo` model does this field relates to? */
-  toField: RF;
+  toField: TRelatedField;
   /** Name of the field of the relation in the related model. In other words: "the `relatedTo` model contains `${relatedName}`" */
-  relatedName: RN;
+  relatedName: TRelatedName;
   /** Name of the field of the relation in the model you are creating the relation on  */
-  relationName: RNN;
+  relationName: TRelationName;
   /** What will we do when you delete an instance from the database, this relates to the remove query, and is internal for the database,
    * palmares by itself does not control cascading deletes */
   onDelete: ON_DELETE;
   customName?: string;
-  lazyDefaultValueType?: TLazyDefaultValue;
-} & FieldDefaultParamsType<F, D, U, N, A, CA>;
+} & FieldDefaultParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;

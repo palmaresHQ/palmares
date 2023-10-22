@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { EngineQuery, ModelFields, models } from '@palmares/databases';
+import { EngineQuery, ModelBaseClass, ModelFields } from '@palmares/databases';
 import { Includeable, Model, ModelCtor } from 'sequelize/types';
 import SequelizeEngineGetQuery from './get';
 import SequelizeEngineSetQuery from './set';
@@ -41,7 +41,7 @@ export default class SequelizeEngineQuery extends EngineQuery {
    *
    * @returns - Returns an array, this array is the include statement to be used inside of the query.
    */
-  async getIncludeStatement<M extends models.BaseModel>(
+  async getIncludeStatement<M extends ModelBaseClass>(
     model: ModelCtor<Model<ModelFields<M>>>,
     includes: ModelCtor<Model<ModelFields<M>>>[],
     includeStatement: Includeable[] = [],

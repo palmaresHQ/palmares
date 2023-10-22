@@ -1,6 +1,6 @@
 import type { EventEmitter } from '@palmares/events';
 
-import { Model } from './models';
+import { BaseModel, model } from './models';
 import Engine from './engine';
 
 export interface DatabaseConfigurationType {
@@ -23,15 +23,15 @@ export type InitializedEngineInstanceWithModelsType = {
 export type FoundModelType = {
   domainName: string;
   domainPath: string;
-  model: ReturnType<typeof Model>;
+  model: ReturnType<typeof model> & typeof BaseModel;
 };
 
-export type InitializedModelsType<M = any> = {
+export type InitializedModelsType<TModel = any> = {
   domainName: string;
   domainPath: string;
-  class: ReturnType<typeof Model>;
-  initialized: M;
-  original: InstanceType<ReturnType<typeof Model>>;
+  class: ReturnType<typeof model> & typeof BaseModel;
+  initialized: TModel;
+  original: InstanceType<ReturnType<typeof model>> & BaseModel;
 };
 
 export type DatabaseSettingsType = {

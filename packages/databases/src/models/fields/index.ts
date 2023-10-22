@@ -5,7 +5,7 @@ export { default as IntegerField } from './integer';
 export { default as BigIntegerField } from './big-integer';
 export { default as CharField } from './char';
 export { default as TextField } from './text';
-export { default as UUIDField } from './uuid';
+export { default as UuidField } from './uuid';
 export { default as ForeignKeyField } from './foreign-key';
 export { default as AutoField } from './auto';
 export { default as BigAutoField } from './big-auto';

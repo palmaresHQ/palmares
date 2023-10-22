@@ -10,6 +10,7 @@ export async function getBestProfession(start: Date, end: Date) {
   const JobsSequelizeModel = (await Jobs.default.getInstance()) as SequelizeModel<Jobs>;
   const ContractSequelizeModel = (await Contract.default.getInstance()) as SequelizeModel<Contract>;
   const ProfileSequelizeModel = (await Profile.default.getInstance()) as SequelizeModel<Profile>;
+
   const aggregatedPaidJobsSum = (await JobsSequelizeModel.findAll({
     attributes: [
       'contract.contractor.id',

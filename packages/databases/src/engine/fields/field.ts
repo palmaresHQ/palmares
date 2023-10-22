@@ -1,20 +1,8 @@
 import { EngineDoesNotSupportFieldTypeException } from '../../models/exceptions';
 
 import { Field } from '../../models/fields';
-import type EngineFields from '.';
 import type Engine from '..';
-import EngineAutoFieldParser from './auto';
-import EngineBigAutoFieldParser from './big-auto';
-import EngineBigIntegerFieldParser from './big-integer';
-import EngineCharFieldParser from './char';
-import EngineDateFieldParser from './date';
-import EngineDecimalFieldParser from './decimal';
-import EngineForeignKeyFieldParser from './foreign-key';
-import EngineIntegerFieldParser from './integer';
-import EngineTextFieldParser from './text';
-import EngineUuidFieldParser from './uuid';
-import EngineEnumFieldParser from './enum';
-import EngineBooleanFieldParser from './boolean';
+import { model } from '../../models';
 
 /**
  * This will be used to parse the fields that are going to be used in the model in the database, for every field we will call this class.
@@ -25,28 +13,23 @@ import EngineBooleanFieldParser from './boolean';
  * in the `Engine` class constructor.
  */
 export default class EngineFieldParser {
-  auto?: EngineAutoFieldParser;
-  bigAuto?: EngineBigAutoFieldParser;
-  bigInt?: EngineBigIntegerFieldParser;
-  char?: EngineCharFieldParser;
-  date?: EngineDateFieldParser;
-  decimal?: EngineDecimalFieldParser;
-  foreignKey?: EngineForeignKeyFieldParser;
-  integer?: EngineIntegerFieldParser;
-  text?: EngineTextFieldParser;
-  uuid?: EngineUuidFieldParser;
-  enum?: EngineEnumFieldParser;
-  boolean?: EngineBooleanFieldParser;
-
-  translatable = false;
-
-  async translate(
-    _engine: Engine,
-    _field: ConstructorParameters<typeof Field>[0],
-    _defaultTranslateCallback: (
-      _field: ConstructorParameters<typeof Field>[0]
-    ) => ReturnType<EngineFieldParser['translate']>
-  ): Promise<any> {
-    throw new EngineDoesNotSupportFieldTypeException(_engine.constructor.name, Field.name);
+  async translate(args: {
+    engine: Engine;
+    field: ConstructorParameters<typeof Field>[0];
+    fieldParser: EngineFieldParser;
+    modelName: string;
+    model: InstanceType<ReturnType<typeof model>>;
+    lazyEvaluate: (translatedField: any) => void;
+  }): Promise<any> {
+    throw new EngineDoesNotSupportFieldTypeException(args.engine.constructor.name, Field.name);
   }
+
+  async inputParser?(args: {
+    engine: Engine;
+    field: ConstructorParameters<typeof Field>[0];
+    fieldParser: EngineFieldParser;
+    modelName: string;
+    model: InstanceType<ReturnType<typeof model>>;
+    value: any;
+  }) {}
 }

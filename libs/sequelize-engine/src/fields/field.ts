@@ -1,36 +1,10 @@
-import { CharField, EngineFieldParser, Field, TextField, UUIDField } from '@palmares/databases';
+import { CharField, EngineFieldParser, Field, TextField, UuidField, Model, Engine } from '@palmares/databases';
 import { ModelAttributeColumnOptions } from 'sequelize';
 
-import SequelizeEngineAutoFieldParser from './auto';
-import SequelizeEngineBigAutoFieldParser from './big-auto';
-import SequelizeEngineBigIntegerFieldParser from './big-integer';
-import SequelizeEngineCharFieldParser from './char';
-import SequelizeEngineDateFieldParser from './date';
-import SequelizeEngineDecimalFieldParser from './decimal';
-import SequelizeEngineForeignKeyFieldParser from './foreign-key';
-import SequelizeEngineIntegerFieldParser from './integer';
-import SequelizeEngineTextFieldParser from './text';
-import SequelizeEngineUuidFieldParser from './uuid';
-import SequelizeEngineEnumFieldParser from './enum';
-import SequelizeEngineBooleanFieldParser from './boolean';
 import SequelizeEngine from '../engine';
+import { appendIndexes } from '../utils';
 
 export default class SequelizeEngineFieldParser extends EngineFieldParser {
-  auto: SequelizeEngineAutoFieldParser | undefined = undefined;
-  bigAuto: SequelizeEngineBigAutoFieldParser | undefined = undefined;
-  bigInt: SequelizeEngineBigIntegerFieldParser | undefined = undefined;
-  char: SequelizeEngineCharFieldParser | undefined = undefined;
-  date: SequelizeEngineDateFieldParser | undefined = undefined;
-  decimal: SequelizeEngineDecimalFieldParser | undefined = undefined;
-  foreignKey: SequelizeEngineForeignKeyFieldParser | undefined = undefined;
-  integer: SequelizeEngineIntegerFieldParser | undefined = undefined;
-  text: SequelizeEngineTextFieldParser | undefined = undefined;
-  uuid: SequelizeEngineUuidFieldParser | undefined = undefined;
-  boolean: SequelizeEngineBooleanFieldParser | undefined = undefined;
-  enum: SequelizeEngineEnumFieldParser | undefined = undefined;
-
-  translatable = false;
-
   async textFieldValidations(field: CharField | TextField) {
     return {
       validate: {
@@ -39,11 +13,22 @@ export default class SequelizeEngineFieldParser extends EngineFieldParser {
     } as ModelAttributeColumnOptions;
   }
 
-  async translate(engine: SequelizeEngine, field: Field): Promise<ModelAttributeColumnOptions> {
+  async translate({
+    engine,
+    field,
+    modelName,
+  }: {
+    engine: SequelizeEngine;
+    field: Field;
+    fieldParser: SequelizeEngineFieldParser;
+    modelName: string;
+    model: InstanceType<ReturnType<typeof Model>>;
+    lazyEvaluate: (translatedField: any) => void;
+  }): Promise<ModelAttributeColumnOptions> {
     const defaultOptions = {} as ModelAttributeColumnOptions;
     const isFieldAIndexOrIsFieldUnique = field.dbIndex === true || (field.unique as boolean) === true;
 
-    if (isFieldAIndexOrIsFieldUnique) await engine.fields.appendIndexes(field);
+    if (isFieldAIndexOrIsFieldUnique) appendIndexes(engine.connectionName, modelName, field);
 
     const hasNotYetSetDefaultValueForField = defaultOptions.defaultValue === undefined;
     if (hasNotYetSetDefaultValueForField) defaultOptions.defaultValue = field.defaultValue;
@@ -64,7 +49,7 @@ export default class SequelizeEngineFieldParser extends EngineFieldParser {
     }
 
     const isFieldOfTypeText =
-      field.typeName === TextField.name || field.typeName === CharField.name || field.typeName === UUIDField.name;
+      field.typeName === TextField.name || field.typeName === CharField.name || field.typeName === UuidField.name;
     if (isFieldOfTypeText) this.textFieldValidations(field as TextField);
 
     return defaultOptions;

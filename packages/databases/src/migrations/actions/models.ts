@@ -33,10 +33,12 @@ export class CreateModel extends Operation {
     this.options = options;
   }
 
-  async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {
+  async stateForwards(state: State, domainName: string, domainPath: string) {
     const model = await state.get(this.modelName);
-    model.domainName = domainName;
-    model.domainPath = domainPath;
+    const modelConstructor = model.constructor as typeof BaseModel;
+
+    modelConstructor.domainName = domainName;
+    modelConstructor.domainPath = domainPath;
     model.fields = this.fields;
     model.options = this.options;
   }
@@ -140,8 +142,10 @@ export class ChangeModel extends Operation {
 
   async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {
     const model = await state.get(this.modelName);
-    model.domainName = domainName;
-    model.domainPath = domainPath;
+    const modelConstructor = model.constructor as typeof BaseModel;
+
+    modelConstructor.domainName = domainName;
+    modelConstructor.domainPath = domainPath;
     model.options = this.optionsAfter;
   }
 
@@ -196,9 +200,12 @@ export class RenameModel extends Operation {
 
   async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {
     const model = await state.get(this.oldModelName);
-    model.name = this.newModelName;
-    model.domainName = domainName;
-    model.domainPath = domainPath;
+    const modelConstructor = model.constructor as typeof BaseModel;
+
+    (modelConstructor as any).__cachedName = this.newModelName;
+    modelConstructor.domainName = domainName;
+    modelConstructor.domainPath = domainPath;
+
     await Promise.all([state.set(this.newModelName, model), state.remove(this.oldModelName)]);
   }
 

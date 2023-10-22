@@ -10,6 +10,8 @@ import {
   FieldsOFModelType,
   OrderingOfModelsType,
   FieldsOfModelOptionsType,
+  RelatedFieldToModel,
+  ModelType,
 } from './types';
 import { ManagerEngineInstanceNotFoundError } from './exceptions';
 import Engine from '../engine';
@@ -67,11 +69,11 @@ import type { Narrow } from '@palmares/core';
  * For example: one could create a framework that enables `bull.js` tasks to be defined on the database instead
  * of the code. This way we could update the tasks dynamically.
  */
-export default class Manager<TModel extends Model = Model, EI extends Engine | null = null> {
+export default class Manager<TModel = Model, EI extends Engine | null = null> {
   instances: ManagerInstancesType;
   engineInstances: ManagerEngineInstancesType;
   defaultEngineInstanceName: string;
-  models: { [engineName: string]: Model };
+  models: { [engineName: string]: TModel };
   modelKls!: { new (...args: unknown[]): any };
   isLazyInitializing = false;
 
@@ -102,7 +104,6 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
   async verifyIfNotInitializedAndInitializeModels(engineName: string) {
     const database = new Databases();
 
-    console.log(this.isLazyInitializing, database.isInitialized, database.isInitializing);
     const canInitializeTheModels =
       this.isLazyInitializing === false && database.isInitialized === false && database.isInitializing === false;
     this.isLazyInitializing = true;
@@ -226,9 +227,12 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
       limit?: number;
       offset?: number | string;
     }> = undefined,
-    TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>
+    TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>,
   >(
     args?: {
+      /**
+       * Includes is used for making relations. Because everything is inferred and you define your relationName directly on the ForeignKeyField
+       */
       includes?: Narrow<IncludesValidated<TModel, TIncludes>>;
       fields?: Narrow<TFields>;
       search?: ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true> | undefined;
@@ -249,9 +253,9 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
       ? engineName
       : this.defaultEngineInstanceName;
 
-    const allFieldsOfModel = Object.keys(
-      this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName)['fields']
-    );
+    const modelInstance = this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName) as Model;
+    const modelConstructor = modelInstance.constructor as ModelType;
+    const allFieldsOfModel = Object.keys(modelConstructor._fields());
     return getQuery(
       {
         fields: (args?.fields || allFieldsOfModel) as unknown as TFields,
@@ -293,7 +297,7 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
     TIncludes extends Includes = undefined,
     TSearch extends
       | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
-      | undefined = undefined
+      | undefined = undefined,
   >(
     data:
       | ModelFieldsWithIncludes<
@@ -374,7 +378,7 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
   async remove<
     TIncludes extends Includes<{
       isToPreventRemove?: true;
-    }> = undefined
+    }> = undefined,
   >(
     args?: {
       usePalmaresTransaction?: boolean;

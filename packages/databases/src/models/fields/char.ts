@@ -41,12 +41,12 @@ export function char<
  *
  * @example
  * ```ts
- * const charField = CharField.new();
+ * const charField = CharField.new({ maxLength: 255 });
  * ```
  *
  * @example
  * ```
- * const charField = CharField.new({ defaultValue: false });
+ * const charField = CharField.new({ maxLength: 140, defaultValue: false });
  * ```
  */
 export default class CharField<

@@ -1,6 +1,11 @@
-import { Model as model } from '../models';
+import { BaseModel, model } from '../models';
 import Engine from '../engine';
+import { extractDefaultEventsHandlerFromModel } from './utils';
+import { UnmanagedModelsShouldImplementSpecialMethodsException } from './exceptions';
+import { ForeignKeyField } from '../models/fields';
+import parseSearch from './search';
 
+import type { QueryDataFnType } from './types';
 import type Transaction from '../transaction';
 import type {
   Includes,
@@ -8,23 +13,8 @@ import type {
   FieldsOFModelType,
   OrderingOfModelsType,
   FieldsOfModelOptionsType,
-  ExtractFieldNames,
   Include,
 } from '../models/types';
-import { QueryDataFnType } from './types';
-import { extractDefaultEventsHandlerFromModel } from './utils';
-import { UnmanagedModelsShouldImplementSpecialMethodsException } from './exceptions';
-import { ForeignKeyField } from '../models/fields';
-import parseSearch from './search';
-
-/**
- * Retrieve the model instance so we can query from it from the default manager.
- *
- * @param modelToRetrieve - The model to retrieve the instance from.
- */
-function getModelInstance(engine: Engine, modelToRetrieve: ReturnType<typeof model>) {
-  return (modelToRetrieve.constructor as any).default.getInstance(engine.connectionName);
-}
 
 /**
  * The data parser is used to parse the data that we will use to save it to the database.
@@ -101,7 +91,7 @@ async function storePalmaresTransaction<
     InstanceType<TModelConstructor>,
     Includes,
     FieldsOFModelType<InstanceType<TModelConstructor>>
-  >[]
+  >[],
 >(
   engine: Engine,
   palmaresTransaction: Transaction | undefined,
@@ -128,7 +118,7 @@ async function storePalmaresTransaction<
  * With this you can have side effects on your application. But we do not recommend using too much side effects because it can be hard to debug.
  */
 async function fireEventsAfterQueryDataFn<
-  TModel extends InstanceType<ReturnType<typeof model>>,
+  TModel,
   TSearch extends
     | ModelFieldsWithIncludes<TModel, Includes, FieldsOFModelType<TModel>, false, false, true, true>
     | undefined = undefined,
@@ -142,7 +132,7 @@ async function fireEventsAfterQueryDataFn<
         TSearch extends undefined ? false : true,
         false
       >[]
-    | undefined = undefined
+    | undefined = undefined,
 >(
   engine: Engine,
   args: {
@@ -156,6 +146,9 @@ async function fireEventsAfterQueryDataFn<
     parsedSearch: TSearch;
   }
 ) {
+  const modelInstanceAsModel = args.modelInstance as InstanceType<ReturnType<typeof model>> & BaseModel;
+  const modelConstructor = modelInstanceAsModel.constructor as ReturnType<typeof model> & typeof BaseModel;
+
   const shouldCallEvents =
     engine.databaseSettings?.events?.emitter &&
     (args.isRemoveOperation || args.isSetOperation) &&
@@ -171,7 +164,7 @@ async function fireEventsAfterQueryDataFn<
       shouldReturnData: args.shouldReturnData,
     });
 
-    const isDataTheSameReceivedThroughEvent = args.modelInstance.stringfiedArgumentsOfEvents.has(
+    const isDataTheSameReceivedThroughEvent = modelInstanceAsModel.stringfiedArgumentsOfEvents.has(
       JSON.stringify(dataForFunction)
     );
 
@@ -179,23 +172,23 @@ async function fireEventsAfterQueryDataFn<
       if (eventEmitter.hasLayer) {
         eventEmitter.emitToChannel(
           engine.databaseSettings?.events.channels ? engine.databaseSettings?.events.channels : eventEmitter.channels,
-          `${args.modelInstance.hashedName}.${operationName}`,
+          `${modelConstructor.hashedName()}.${operationName}`,
           engine.connectionName,
           dataForFunction
         );
       } else {
-        eventEmitter.emit(`${args.modelInstance.hashedName}.${operationName}`, engine.connectionName, dataForFunction);
+        eventEmitter.emit(`${modelConstructor.hashedName()}.${operationName}`, engine.connectionName, dataForFunction);
       }
     }
   }
 }
 
 /**
- * Calls the query data function to retrieve the results of the
+ * Calls the query data function to retrieve the results of the query. Query data function can be for either `set`, `remove` or `get` operations
  */
 async function callQueryDataFn<
-  TModel extends InstanceType<ReturnType<typeof model>>,
-  TFields extends FieldsOFModelType<TModel> = readonly (keyof TModel['fields'])[],
+  TModel,
+  TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>,
   TSearch extends ModelFieldsWithIncludes<TModel, Includes, TFields, false, false, true, true> | undefined = undefined,
   TData extends
     | ModelFieldsWithIncludes<
@@ -212,7 +205,7 @@ async function callQueryDataFn<
     TModel,
     Includes,
     TFields
-  >[]
+  >[],
 >(
   engine: Engine,
   args: {
@@ -250,19 +243,22 @@ async function callQueryDataFn<
     resultToMergeWithData,
   } = args;
 
-  const fields = (args.fields || Object.keys(modelInstance.fields)) as TFields;
+  const modelInstanceAsModel = modelInstance as InstanceType<ReturnType<typeof model>> & BaseModel;
+  const modelConstructor = modelInstanceAsModel.constructor as ReturnType<typeof model> & typeof BaseModel;
+  const fields = (args.fields || Object.keys(modelInstanceAsModel.fields)) as TFields;
 
-  const modelConstructor = modelInstance.constructor as ReturnType<typeof model>;
   const mergedSearchForData =
     resultToMergeWithData !== undefined ? Object.assign(search ? search : {}, resultToMergeWithData) : search;
 
   const mergedData = (
     resultToMergeWithData !== undefined
       ? Array.isArray(data)
-        ? data.map((dataToAdd) => ({
-            ...resultToMergeWithData,
-            ...dataToAdd,
-          }))
+        ? await Promise.all(
+            data.map(async (dataToAdd) => ({
+              ...resultToMergeWithData,
+              ...dataToAdd,
+            }))
+          )
         : [{ ...resultToMergeWithData, ...(data as any) }]
       : Array.isArray(data)
       ? data
@@ -280,8 +276,8 @@ async function callQueryDataFn<
     | undefined;
 
   const [parsedSearch, parsedData, parsedOrdering] = await Promise.all([
-    parseSearch(engine, modelInstance, mergedSearchForData),
-    parseData(modelInstance, mergedData),
+    parseSearch(engine, modelInstance as InstanceType<ReturnType<typeof model>>, mergedSearchForData),
+    parseData(modelInstanceAsModel, mergedData),
     (async () => {
       if (Array.isArray(ordering))
         return engine.query.ordering.parseOrdering(ordering as (`${string}` | `${string}`)[]);
@@ -305,8 +301,8 @@ async function callQueryDataFn<
   }
 
   async function fetchFromExternalSource() {
-    if (args.isSetOperation && modelInstance.options.onSet) {
-      const onSetHandler = extractDefaultEventsHandlerFromModel(modelInstance, 'onSet');
+    if (args.isSetOperation && modelInstanceAsModel.options?.onSet) {
+      const onSetHandler = extractDefaultEventsHandlerFromModel(modelInstanceAsModel, 'onSet');
       if (onSetHandler) {
         const dataForFunction = await getDataForOnSetOrOnRemoveOptionFunctions('onSet', {
           data: parsedData,
@@ -316,8 +312,8 @@ async function callQueryDataFn<
         });
         return onSetHandler(dataForFunction as any);
       }
-    } else if (args.isRemoveOperation && modelInstance.options.onRemove) {
-      const onRemoveHandler = extractDefaultEventsHandlerFromModel(modelInstance, 'onRemove');
+    } else if (args.isRemoveOperation && modelInstanceAsModel.options?.onRemove) {
+      const onRemoveHandler = extractDefaultEventsHandlerFromModel(modelInstanceAsModel, 'onRemove');
       if (onRemoveHandler) {
         const dataForFunction = await getDataForOnSetOrOnRemoveOptionFunctions('onRemove', {
           data: parsedData,
@@ -327,22 +323,22 @@ async function callQueryDataFn<
         });
         return onRemoveHandler(dataForFunction);
       }
-    } else if (modelInstance.options.onGet)
-      return modelInstance.options.onGet({
+    } else if (modelInstanceAsModel.options?.onGet)
+      return modelInstanceAsModel.options.onGet({
         search: parsedSearch as any,
-        fields: fields as ExtractFieldNames<TModel, TModel['abstracts']>,
+        fields: fields as any,
         ordering: parsedOrdering,
         offset,
         limit,
       });
     else
       throw new UnmanagedModelsShouldImplementSpecialMethodsException(
-        modelInstance.name,
+        modelConstructor.getName(),
         args.isRemoveOperation ? 'onRemove' : args.isSetOperation ? 'onSet' : 'onGet'
       );
   }
 
-  const isToFetchExternally = modelInstance.options.managed === false;
+  const isToFetchExternally = modelInstanceAsModel.options?.managed === false;
   const queryDataResults = isToFetchExternally ? await fetchFromExternalSource() : await fetchFromDatabase();
 
   await Promise.all([
@@ -350,11 +346,9 @@ async function callQueryDataFn<
       isToPreventEvents: args.isToPreventEvents || false,
       isRemoveOperation: args.isRemoveOperation || false,
       isSetOperation: args.isSetOperation || false,
-      modelInstance,
-      parsedSearch: parsedSearch as
-        | ModelFieldsWithIncludes<TModel, Includes, FieldsOFModelType<TModel>, false, false, true, true>
-        | undefined,
-      parsedData: parsedData as TData,
+      modelInstance: modelInstanceAsModel,
+      parsedSearch: parsedSearch,
+      parsedData: parsedData,
       shouldRemove: args.shouldRemove || false,
       shouldReturnData: args.shouldReturnData || false,
     }),
@@ -364,9 +358,11 @@ async function callQueryDataFn<
   if (Array.isArray(args.results)) {
     if (args.isSetOperation)
       args.results.push(
-        ...queryDataResults.map(
-          (eachResult: [boolean, ModelFieldsWithIncludes<TModel, undefined, TFields>]) => eachResult[1]
-        )
+        ...(await Promise.all(
+          queryDataResults.map(
+            async (eachResult: [boolean, ModelFieldsWithIncludes<TModel, undefined, TFields>]) => eachResult[1]
+          )
+        ))
       );
     else args.results.push(...queryDataResults);
   }
@@ -407,7 +403,7 @@ function getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName<
   TToField extends string,
   TRelatedName extends string,
   TRelationName extends string,
-  TIsDirectlyRelated extends boolean | undefined = undefined
+  TIsDirectlyRelated extends boolean | undefined = undefined,
 >(
   relatedField: ForeignKeyField<any, any, any, any, any, any, any, any, any, TToField, TRelatedName, TRelationName>,
   isDirectlyRelated?: TIsDirectlyRelated
@@ -431,10 +427,10 @@ function getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName<
 
 async function resultsFromRelatedModelWithSearch<
   TRelatedField extends ForeignKeyField,
-  TModel extends InstanceType<ReturnType<typeof model>>,
-  TIncludedModel extends InstanceType<ReturnType<typeof model>>,
-  TFields extends FieldsOFModelType<TModel> = readonly (keyof TModel['fields'])[],
-  TFieldsOfIncluded extends FieldsOFModelType<TIncludedModel> = readonly (keyof TIncludedModel['fields'])[],
+  TModel,
+  TIncludedModel,
+  TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>,
+  TFieldsOfIncluded extends FieldsOFModelType<TIncludedModel> = FieldsOFModelType<TIncludedModel>,
   TSearch extends ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true> | undefined = undefined,
   TSearchOfIncluded extends
     | ModelFieldsWithIncludes<TIncludedModel, TIncludesOfIncludes, TFieldsOfIncluded, false, false, true, true>
@@ -445,7 +441,7 @@ async function resultsFromRelatedModelWithSearch<
     TModel,
     TIncludes,
     TFields
-  >[]
+  >[],
 >(
   engine: Engine,
   args: {
@@ -573,7 +569,7 @@ async function resultsFromRelatedModelWithSearch<
       queryDataFn: args.queryData,
       shouldReturnData: false,
       shouldRemove: args.shouldRemove,
-      ordering: args.ordering,
+      ordering: args.ordering as any,
       offset: args.offset,
       limit: args.limit,
       transaction: args.transaction,
@@ -585,10 +581,10 @@ async function resultsFromRelatedModelWithSearch<
 
 async function resultsFromRelatedModelsWithoutSearch<
   TRelatedField extends ForeignKeyField,
-  TModel extends InstanceType<ReturnType<typeof model>>,
-  TIncludedModel extends InstanceType<ReturnType<typeof model>>,
-  TFields extends FieldsOFModelType<TModel> = readonly (keyof TModel['fields'])[],
-  TFieldsOfIncluded extends FieldsOFModelType<TIncludedModel> = readonly (keyof TIncludedModel['fields'])[],
+  TModel,
+  TIncludedModel,
+  TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>,
+  TFieldsOfIncluded extends FieldsOFModelType<TIncludedModel> = FieldsOFModelType<TIncludedModel>,
   TSearch extends ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true> | undefined = undefined,
   TData extends
     | ModelFieldsWithIncludes<
@@ -607,7 +603,7 @@ async function resultsFromRelatedModelsWithoutSearch<
     TModel,
     TIncludes,
     TFields
-  >[]
+  >[],
 >(
   engine: Engine,
   args: {
@@ -728,13 +724,15 @@ async function resultsFromRelatedModelsWithoutSearch<
     const resultOfIncludes: ModelFieldsWithIncludes<TIncludedModel, TIncludesOfIncludes, TFieldsOfIncluded>[] = [];
     const resultToMergeWithDataToAdd = ((args.resultToMergeWithData || {}) as any)[relationName];
     const allDataToAdd = ((args.data || {}) as any)[relationName];
-    const dataToAdd = (Array.isArray(allDataToAdd) ? allDataToAdd : [allDataToAdd]).map((dataToMerge: any) =>
-      result && (result as any)[parentFieldName]
-        ? {
-            ...dataToMerge,
-            [fieldNameOfRelationInIncludedModel]: (result as any)[parentFieldName],
-          }
-        : dataToMerge
+    const dataToAdd = await Promise.all(
+      (Array.isArray(allDataToAdd) ? allDataToAdd : [allDataToAdd]).map(async (dataToMerge: any) =>
+        result && (result as any)[parentFieldName]
+          ? {
+              ...dataToMerge,
+              [fieldNameOfRelationInIncludedModel]: (result as any)[parentFieldName],
+            }
+          : dataToMerge
+      )
     );
 
     await getResultsWithIncludes(
@@ -846,10 +844,10 @@ async function resultsFromRelatedModelsWithoutSearch<
 }
 
 async function resultsFromRelatedModels<
-  TModel extends InstanceType<ReturnType<typeof model>>,
-  TIncludedModel extends InstanceType<ReturnType<typeof model>>,
-  TFields extends FieldsOFModelType<TModel> = readonly (keyof TModel['fields'])[],
-  TFieldsOfIncluded extends FieldsOFModelType<TIncludedModel> = readonly (keyof TIncludedModel['fields'])[],
+  TModel,
+  TIncludedModel,
+  TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>,
+  TFieldsOfIncluded extends FieldsOFModelType<TIncludedModel> = FieldsOFModelType<TIncludedModel>,
   TSearch extends ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true> | undefined = undefined,
   TData extends
     | ModelFieldsWithIncludes<
@@ -869,7 +867,7 @@ async function resultsFromRelatedModels<
     TIncludes,
     TFields
   >[],
-  TIsDirectlyRelated extends boolean = false
+  TIsDirectlyRelated extends boolean = false,
 >(
   engine: Engine,
   modelInstance: TModel,
@@ -905,19 +903,25 @@ async function resultsFromRelatedModels<
   transaction = undefined,
   palmaresTransaction: Transaction | undefined = undefined
 ) {
+  const modelInstanceAsModel = modelInstance as InstanceType<ReturnType<typeof model>> & BaseModel;
+  const modelConstructor = modelInstanceAsModel.constructor as ReturnType<typeof model> & typeof BaseModel;
+  const includedModelInstanceAsModel = includedModelInstance as InstanceType<ReturnType<typeof model>> & BaseModel;
+  const includedModelConstructor = includedModelInstanceAsModel.constructor as ReturnType<typeof model> &
+    typeof BaseModel;
+
   const fieldToUseToGetRelationName = isDirectlyRelated ? 'relationName' : 'relatedName';
   const relatedNamesDirectlyOrIndirectlyRelatedToModel =
     (isDirectlyRelated
-      ? modelInstance.directlyRelatedTo[includedModelInstance.originalName]
-      : modelInstance.indirectlyRelatedTo[includedModelInstance.originalName]) || [];
+      ? modelConstructor.directlyRelatedTo[includedModelConstructor.originalName()]
+      : modelConstructor.indirectlyRelatedTo[includedModelConstructor.originalName()]) || [];
   const filteredRelatedNamesDirectlyOrIndirectlyRelatedToModel = Array.isArray(includesRelationNames)
     ? relatedNamesDirectlyOrIndirectlyRelatedToModel.filter((relationName) =>
         includesRelationNames.includes(relationName)
       )
     : relatedNamesDirectlyOrIndirectlyRelatedToModel;
   const associationsOfIncludedModel = isDirectlyRelated
-    ? modelInstance.associations[includedModelInstance.originalName] || []
-    : includedModelInstance.associations[modelInstance.originalName] || [];
+    ? modelConstructor.associations[includedModelConstructor.originalName()] || []
+    : includedModelConstructor.associations[modelConstructor.originalName()] || [];
 
   const promises = filteredRelatedNamesDirectlyOrIndirectlyRelatedToModel.map(async (relationNameOrRelatedName) => {
     const searchForRelatedModel:
@@ -981,8 +985,8 @@ async function resultsFromRelatedModels<
  * we append this to the original object.
  */
 export default async function getResultsWithIncludes<
-  TModel extends InstanceType<ReturnType<typeof model>>,
-  TFields extends FieldsOFModelType<TModel> = readonly (keyof TModel['fields'])[],
+  TModel,
+  TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>,
   TSearch extends ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true> | undefined = undefined,
   TData extends
     | ModelFieldsWithIncludes<
@@ -1000,7 +1004,7 @@ export default async function getResultsWithIncludes<
     TModel,
     TIncludes,
     TFields
-  >[]
+  >[],
 >(
   engine: Engine,
   modelInstance: TModel,
@@ -1033,21 +1037,31 @@ export default async function getResultsWithIncludes<
       | undefined,
     safeIncludes = includes as TIncludes
   ) {
+    const modelInstanceAsModel = modelInstance as InstanceType<ReturnType<typeof model>> & BaseModel;
+    const modelConstructor = modelInstanceAsModel.constructor as ReturnType<typeof model> & typeof BaseModel;
+
     const safeSearch = Object.keys(search || {}).length > 0 ? search : undefined;
     const hasIncludes = (safeIncludes || []).length > 0;
     if (hasIncludes && safeIncludes) {
       const include = safeIncludes[0];
       const engineNameToUse = typeof include.engineName === 'string' ? include.engineName : engine.connectionName;
-      const includedModelInstance = include.model.default.getModel(engineNameToUse);
+      const includedModelInstance = include.model.default.getModel(engineNameToUse) as InstanceType<
+        ReturnType<typeof model>
+      > &
+        BaseModel;
+      const includedModelConstructor = includedModelInstance.constructor as ReturnType<typeof model> & typeof BaseModel;
+
       const allFieldsOfIncludedModel = Object.keys(includedModelInstance['fields']);
-      const isDirectlyRelatedModel = modelInstance.directlyRelatedTo[includedModelInstance.originalName] !== undefined;
+      const isDirectlyRelatedModel =
+        modelConstructor.directlyRelatedTo[includedModelConstructor.originalName()] !== undefined;
       const relatedNamesDirectlyOrIndirectlyRelatedToModel =
         (isDirectlyRelatedModel
-          ? modelInstance.directlyRelatedTo[includedModelInstance.originalName]
-          : modelInstance.indirectlyRelatedTo[includedModelInstance.originalName]) || [];
+          ? modelConstructor.directlyRelatedTo[includedModelConstructor.originalName()]
+          : modelConstructor.indirectlyRelatedTo[includedModelConstructor.originalName()]) || [];
       const isToFetchAnyRelatedNames = Array.isArray(include.relationNames)
-        ? relatedNamesDirectlyOrIndirectlyRelatedToModel.some((relatedNameDirectlyOrIndirectlyRelatedToModel) =>
-            include.relationNames?.includes(relatedNameDirectlyOrIndirectlyRelatedToModel)
+        ? relatedNamesDirectlyOrIndirectlyRelatedToModel.some(
+            (relatedNameDirectlyOrIndirectlyRelatedToModel: string) =>
+              include.relationNames?.includes(relatedNameDirectlyOrIndirectlyRelatedToModel)
           )
         : true;
       if (isToFetchAnyRelatedNames) {
@@ -1068,7 +1082,7 @@ export default async function getResultsWithIncludes<
           include.includes,
           include.relationNames,
           (includesForGet.fields ||
-            allFieldsOfIncludedModel) as readonly (keyof typeof includedModelInstance['fields'])[],
+            allFieldsOfIncludedModel) as readonly (keyof (typeof includedModelInstance)['fields'])[],
           fields,
           safeSearch,
           results as TResult,

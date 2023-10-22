@@ -6,11 +6,11 @@ import type Engine from '../engine';
 import type { Includes, ModelFieldsWithIncludes, FieldsOFModelType } from '../models/types';
 
 export default async function removeQuery<
-  TModel extends InstanceType<ReturnType<typeof model>>,
+  TModel,
   TIncludes extends Includes = undefined,
   TSearch extends
     | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
-    | undefined = undefined
+    | undefined = undefined,
 >(
   args: {
     isToPreventEvents?: boolean;
@@ -32,7 +32,8 @@ export default async function removeQuery<
 
   async function getResults(transaction: any) {
     const results = [] as ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[];
-    const selectedFields = Object.keys(internal.model.fields) as FieldsOFModelType<TModel>;
+    const internalModelAsModel = internal.model as InstanceType<ReturnType<typeof model>>;
+    const selectedFields = Object.keys(internalModelAsModel.fields) as unknown as FieldsOFModelType<TModel>;
 
     await getResultsWithIncludes(
       internal.engine,
