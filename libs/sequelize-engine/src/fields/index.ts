@@ -1,22 +1,8 @@
-import { EngineAutoFieldParser, EngineFields, Field, ForeignKeyField } from '@palmares/databases';
+import { EngineFields, Field, ForeignKeyField } from '@palmares/databases';
 
-import {
-  ModelAttributeColumnOptions,
-  Model,
-  ModelCtor,
-  HasManyOptions,
-  BelongsToOptions,
-  HasOneOptions,
-  ForeignKeyOptions,
-  IndexesOptions,
-} from 'sequelize';
+import { Model, ModelCtor } from 'sequelize';
 
-import type SequelizeEngine from '../engine';
-import {
-  ModelTranslatorIndexesType,
-  RelatedModelToEvaluateAfterType,
-  TranslatedFieldToEvaluateAfterType,
-} from '../types';
+import { TranslatedFieldToEvaluateAfterType } from '../types';
 import SequelizeEngineFieldParser from './field';
 import SequelizeEngineAutoFieldParser from './auto';
 import SequelizeEngineBigAutoFieldParser from './big-auto';
@@ -31,6 +17,8 @@ import SequelizeEngineIntegerFieldParser from './integer';
 import SequelizeEngineEnumFieldParser from './enum';
 import SequelizeEngineBooleanFieldParser from './boolean';
 import { handleRelatedField } from '../utils';
+
+import type SequelizeEngine from '../engine';
 
 /**
  * This class is used to translate the fields of a model to the attributes of a sequelize model.

@@ -16,8 +16,8 @@ import {
 } from './exceptions';
 import Manager, { DefaultManager } from './manager';
 import { getUniqueCustomImports, hashString } from '../utils';
-import { CustomImportsForFieldType } from './fields/types';
-import { Field, ForeignKeyField } from './fields';
+import { CustomImportsForFieldType, ON_DELETE } from './fields/types';
+import { AutoField, CharField, Field, ForeignKeyField, IntegerField, UuidField } from './fields';
 import { defaultModelOptions, indirectlyRelatedModels, factoryFunctionForModelTranslate } from './utils';
 
 export class BaseModel {
@@ -27,6 +27,15 @@ export class BaseModel {
 
   static isState = false;
 
+  // It would be kinda bad on performance if we always looped through all of the fields of a model to parse them. So we store the fields that have parsers here and we will
+  // loop through it here.
+  static fieldParsersByEngine = new Map<
+    string,
+    {
+      input: string[];
+      output: string[];
+    }
+  >();
   static associations: {
     [modelName: string]: ForeignKeyField<any, any, any, any, any, any, any, any, any>[];
   } = {};
@@ -659,3 +668,70 @@ ExtendedProfile.default.get({
     },
   ],
 });*/
+
+export class User extends model<User>() {
+  fields = {
+    id: AutoField.new(),
+    firstName: CharField.new({
+      maxLength: 255,
+      dbIndex: true,
+      allowNull: false,
+      defaultValue: '',
+    }),
+    pokemonId: ForeignKeyField.new({
+      relatedTo: Pokemon,
+      onDelete: ON_DELETE.CASCADE,
+      toField: 'id',
+      relatedName: 'pokemonUsers',
+      relationName: 'pokemon',
+      defaultValue: undefined,
+    }),
+    lastName: CharField.new({ maxLength: 255, allowNull: true }),
+    uuid: UuidField.new({ autoGenerate: true, unique: true }),
+  };
+
+  options: ModelOptionsType<User> = {
+    tableName: 'user',
+    onSet: {
+      preventCallerToBeTheHandled: false,
+      handler: async ({ data }) => {
+        await User.default.set(data);
+        return [data];
+      },
+    },
+  };
+}
+
+export class Pokemon extends model<Pokemon>() {
+  fields = {
+    id: IntegerField.new({ unique: true }),
+    name: CharField.new({ maxLength: 255 }),
+    weight: IntegerField.new({ allowNull: true }),
+  };
+
+  options: ModelOptionsType<Pokemon> = {
+    managed: false,
+    onGet: async ({ search }) => {
+      const data = await fetch(`https://pokeapi.co/api/v2/pokemon/${search.name || search.id}`);
+      const json = await data.json();
+      return [{ id: json.id, name: json.name, weight: json.weight }];
+    },
+  };
+}
+
+User.default.set(
+  [
+    {
+      id: 1,
+      firstName: 'Jane',
+      lastName: 'Doe',
+      uuid: '123',
+      pokemonId: 1,
+    },
+  ],
+  {
+    search: {
+      id: 1,
+    },
+  }
+);
