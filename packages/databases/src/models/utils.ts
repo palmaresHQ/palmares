@@ -84,6 +84,35 @@ async function foreignKeyFieldParser(engine: Engine, field: ForeignKeyField): Pr
   } else return field;
 }
 
+function callTranslateAndAppendInputAndOutputParsersToField(
+  connectionName: string,
+  field: Field,
+  engineFieldParser: EngineFieldParser,
+  args: Parameters<EngineFieldParser['translate']>[0]
+) {
+  if (engineFieldParser) {
+    if (engineFieldParser.inputParser) {
+      field.inputParsers.set(connectionName, engineFieldParser.inputParser);
+      const inputParserFieldsOfEngine = field.model.fieldParsersByEngine.get(connectionName)?.input || [];
+      inputParserFieldsOfEngine.push(field.fieldName);
+      field.model.fieldParsersByEngine.set(connectionName, {
+        input: inputParserFieldsOfEngine,
+        output: field.model.fieldParsersByEngine.get(connectionName)?.output || [],
+      });
+    }
+    if (engineFieldParser.outputParser) {
+      field.outputParsers.set(connectionName, engineFieldParser.outputParser);
+      const inputParserFieldsOfEngine = field.model.fieldParsersByEngine.get(connectionName)?.input || [];
+      inputParserFieldsOfEngine.push(field.fieldName);
+      field.model.fieldParsersByEngine.set(connectionName, {
+        input: inputParserFieldsOfEngine,
+        output: field.model.fieldParsersByEngine.get(connectionName)?.output || [],
+      });
+    }
+    return engineFieldParser.translate(args);
+  } else throw new EngineDoesNotSupportFieldTypeException(connectionName, field.typeName);
+}
+
 /**
  * This is used for the engine to parse the fields that are going to be used in the model in the database. For every field of a model we will call this function.
  *
@@ -124,57 +153,95 @@ export async function parse(
 
   switch (field.typeName) {
     case AutoField.name:
-      if (engineFields.autoFieldParser) {
-        return engineFields.autoFieldParser.translate(args);
-      } else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
+      return callTranslateAndAppendInputAndOutputParsersToField(
+        engine.connectionName,
+        field,
+        engineFields.autoFieldParser,
+        args
+      );
     case BigAutoField.name:
-      if (engineFields.bigAutoFieldParser) {
-        return engineFields.bigAutoFieldParser.translate(args);
-      } else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
+      return callTranslateAndAppendInputAndOutputParsersToField(
+        engine.connectionName,
+        field,
+        engineFields.bigAutoFieldParser,
+        args
+      );
     case BigIntegerField.name:
-      if (engineFields.bigIntegerFieldParser) {
-        return engineFields.bigIntegerFieldParser.translate(args);
-      } else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
+      return callTranslateAndAppendInputAndOutputParsersToField(
+        engine.connectionName,
+        field,
+        engineFields.bigIntegerFieldParser,
+        args
+      );
     case CharField.name:
-      if (engineFields.charFieldParser) {
-        return engineFields.charFieldParser.translate(args);
-      } else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
+      return callTranslateAndAppendInputAndOutputParsersToField(
+        engine.connectionName,
+        field,
+        engineFields.charFieldParser,
+        args
+      );
     case DateField.name:
-      if (engineFields.dateFieldParser) {
-        return engineFields.dateFieldParser.translate(args);
-      } else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
+      return callTranslateAndAppendInputAndOutputParsersToField(
+        engine.connectionName,
+        field,
+        engineFields.dateFieldParser,
+        args
+      );
     case DecimalField.name:
-      if (engineFields.decimalFieldParser) {
-        return engineFields.decimalFieldParser.translate(args);
-      } else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
+      return callTranslateAndAppendInputAndOutputParsersToField(
+        engine.connectionName,
+        field,
+        engineFields.decimalFieldParser,
+        args
+      );
     case ForeignKeyField.name: {
       if (engineFields.foreignKeyFieldParser) {
         const fieldToParse = await foreignKeyFieldParser(engine, field as ForeignKeyField);
         if (fieldToParse instanceof ForeignKeyField) {
-          return engineFields.foreignKeyFieldParser.translate(args);
+          return callTranslateAndAppendInputAndOutputParsersToField(
+            engine.connectionName,
+            fieldToParse as Field,
+            engineFields.foreignKeyFieldParser,
+            args
+          );
         } else return parse(engine, engineFields, fieldToParse as Field, callbackForLazyEvaluation);
       } else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
     }
     case IntegerField.name:
-      if (engineFields.integerFieldParser) {
-        return engineFields.decimalFieldParser.translate(args);
-      } else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
+      return callTranslateAndAppendInputAndOutputParsersToField(
+        engine.connectionName,
+        field,
+        engineFields.integerFieldParser,
+        args
+      );
     case TextField.name:
-      if (engineFields.textFieldParser) {
-        return engineFields.textFieldParser.translate(args);
-      } else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
+      return callTranslateAndAppendInputAndOutputParsersToField(
+        engine.connectionName,
+        field,
+        engineFields.textFieldParser,
+        args
+      );
     case UuidField.name:
-      if (engineFields.uuidFieldParser) {
-        return engineFields.uuidFieldParser.translate(args);
-      } else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
+      return callTranslateAndAppendInputAndOutputParsersToField(
+        engine.connectionName,
+        field,
+        engineFields.uuidFieldParser,
+        args
+      );
     case EnumField.name:
-      if (engineFields.enumFieldParser) {
-        return engineFields.enumFieldParser.translate(args);
-      } else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
+      return callTranslateAndAppendInputAndOutputParsersToField(
+        engine.connectionName,
+        field,
+        engineFields.enumFieldParser,
+        args
+      );
     case BooleanField.name:
-      if (engineFields.booleanFieldParser) {
-        return engineFields.booleanFieldParser.translate(args);
-      } else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
+      return callTranslateAndAppendInputAndOutputParsersToField(
+        engine.connectionName,
+        field,
+        engineFields.booleanFieldParser,
+        args
+      );
     case TranslatableField.name:
       return await (field as TranslatableField).translate(engine);
     default:

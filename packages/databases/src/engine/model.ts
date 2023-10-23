@@ -453,7 +453,7 @@ export default class AdapterModels {
    * const users = await prisma.user.findMany() // here prisma.user is what we would need you to return.
    * ```
    *
-   * Prisma, actually has a `gotcha` there. Because you might want to transform the data to a string before actually returning the actual model implementation. That's why we have the `afterModelsTranslation`
+   * Prisma, actually has a `gotcha` there. Because you might want to transform the data to a string before actually returning the actual model implementation. That's why we have the {@link AdapterModels['afterModelsTranslation']}
    * method. You can return a string from here, and on the `afterModelsTranslation` method you can build the schema file and run the `prisma generate` command to generate the models. And just
    * after that return the models.
    *

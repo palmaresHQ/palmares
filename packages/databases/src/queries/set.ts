@@ -25,6 +25,19 @@ export default async function setQuery<
   args: {
     isToPreventEvents?: boolean;
     usePalmaresTransaction?: boolean;
+    /**
+     * This object is used to specify if we should try to parse the data on input or output. Or both.
+     * By default we always parse the data.
+     *
+     * What is parsing the data? It's guaranteeing that the data is in the right format that you expect. Like on Prisma, a decimal might be Decimal.js, but on palmares, we try
+     * to guarantee it's always a number.
+     * By default we loop through the data retrieved and we parse it to the right format. Some fields can implement their parser, others might not.
+     * The problem is that we will always loop through the fields so it can bring some performance issues.
+     */
+    useParsers?: {
+      input?: boolean;
+      output?: boolean;
+    };
     useTransaction?: boolean;
     search?: TSearch;
   },
@@ -59,6 +72,11 @@ export default async function setQuery<
     const internalModelAsModel = internal.model as InstanceType<ReturnType<typeof model>>;
     const fields = Object.keys(internalModelAsModel.fields) as unknown as FieldsOFModelType<TModel>;
     const doesSearchExist = args.search !== undefined;
+    const useParsers = {
+      input: typeof args.useParsers?.input === 'boolean' ? args.useParsers.input : true,
+      output: typeof args.useParsers?.output === 'boolean' ? args.useParsers.output : true,
+    };
+
     if (doesSearchExist) {
       const allResultsOfSearch = await getQuery<TModel, TIncludes, FieldsOFModelType<TModel>, TSearch>(
         {
@@ -74,6 +92,7 @@ export default async function setQuery<
       await getResultsWithIncludes(
         internal.engine,
         internal.model,
+        useParsers,
         fields,
         internal.includes,
         args.search as TSearch,
@@ -99,6 +118,7 @@ export default async function setQuery<
       await getResultsWithIncludes(
         internal.engine,
         internal.model,
+        useParsers,
         fields,
         internal.includes,
         args.search as TSearch,

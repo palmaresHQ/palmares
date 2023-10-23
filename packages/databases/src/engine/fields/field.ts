@@ -24,6 +24,9 @@ export default class EngineFieldParser {
     throw new EngineDoesNotSupportFieldTypeException(args.engine.constructor.name, Field.name);
   }
 
+  /**
+   * Used to parse the input value before it is sent to the database on your `AdapterQuery` implementation.
+   */
   async inputParser?(args: {
     engine: Engine;
     field: ConstructorParameters<typeof Field>[0];
@@ -31,5 +34,18 @@ export default class EngineFieldParser {
     modelName: string;
     model: InstanceType<ReturnType<typeof model>>;
     value: any;
-  }) {}
+  }) {
+    return args.value;
+  }
+
+  async outputParser?(args: {
+    engine: Engine;
+    field: ConstructorParameters<typeof Field>[0];
+    fieldParser: EngineFieldParser;
+    modelName: string;
+    model: InstanceType<ReturnType<typeof model>>;
+    value: any;
+  }) {
+    return args.value;
+  }
 }

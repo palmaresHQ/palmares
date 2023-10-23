@@ -1,11 +1,11 @@
 import { utils } from '@palmares/core';
 
 import { FieldDefaultParamsType, CustomImportsForFieldType, MaybeNull } from './types';
-import Engine from '../../engine';
 
 import type { This } from '../../types';
+import type EngineFieldParser from '../../engine/fields/field';
 import type { ModelType } from '../types';
-import { BaseModel, Model } from '../model';
+import type { BaseModel, Model } from '../model';
 
 /**
  * This is the default field of the model, every other field type should override this one but this one SHOULDN't be called directly.
@@ -21,6 +21,8 @@ export default class Field<
   TDatabaseName extends string | null | undefined = undefined,
   TCustomAttributes = any,
 > {
+  inputParsers = new Map<string, Required<EngineFieldParser>['inputParser']>();
+  outputParsers = new Map<string, Required<EngineFieldParser>['outputParser']>();
   isAuto!: TAuto;
   hasDefaultValue!: TDefaultValue extends undefined ? false : true;
   _type!: TType;

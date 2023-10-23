@@ -2,8 +2,8 @@
 import model from '../models/model';
 import { NotImplementedEngineException } from '../engine/exceptions';
 import getResultsWithIncludes from '.';
+import parseSearch from './search';
 
-import type { Narrow } from '@palmares/core';
 import type Engine from '../engine';
 import type {
   Includes,
@@ -12,8 +12,6 @@ import type {
   OrderingOfModelsType,
   FieldsOfModelOptionsType,
 } from '../models/types';
-import { BaseModel, Model } from '../models';
-import parseSearch from './search';
 
 export default async function getQuery<
   TModel,
@@ -27,6 +25,16 @@ export default async function getQuery<
     ordering?: OrderingOfModelsType<
       FieldsOfModelOptionsType<TModel> extends string ? FieldsOfModelOptionsType<TModel> : string
     >;
+    /**
+     * This object is used to specify if we should try to parse the data on input or output. Or both.
+     * By default we always parse the data.
+     *
+     * What is parsing the data? It's guaranteeing that the data is in the right format that you expect. Like on Prisma, a decimal might be Decimal.js, but on palmares, we try
+     * to guarantee it's always a number.
+     * By default we loop through the data retrieved and we parse it to the right format. Some fields can implement their parser, others might not.
+     * The problem is that we will always loop through the fields so it can bring some performance issues.
+     */
+    useParsers?: boolean;
     limit?: number;
     offset?: number | string;
     fields?: TFieldsOfModel;
@@ -42,6 +50,11 @@ export default async function getQuery<
 
   const result: ModelFieldsWithIncludes<TModel, TIncludes, TFieldsOfModel>[] = [];
   const selectedFields = (args.fields || Object.keys(modelInstanceAsModel.fields)) as TFieldsOfModel;
+  const useParsers = {
+    input: true,
+    output: typeof args.useParsers === 'boolean' ? args.useParsers : true,
+  };
+
   try {
     return await internal.engine.query.get.queryDataNatively(
       internal.engine,
@@ -57,6 +70,7 @@ export default async function getQuery<
       await getResultsWithIncludes(
         internal.engine,
         internal.model as TModel,
+        useParsers,
         selectedFields as TFieldsOfModel,
         internal.includes as TIncludes,
         args.search as TSearch,

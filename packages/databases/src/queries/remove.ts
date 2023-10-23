@@ -14,6 +14,16 @@ export default async function removeQuery<
 >(
   args: {
     isToPreventEvents?: boolean;
+    /**
+     * This object is used to specify if we should try to parse the data on input or output. Or both.
+     * By default we always parse the data.
+     *
+     * What is parsing the data? It's guaranteeing that the data is in the right format that you expect. Like on Prisma, a decimal might be Decimal.js, but on palmares, we try
+     * to guarantee it's always a number.
+     * By default we loop through the data retrieved and we parse it to the right format. Some fields can implement their parser, others might not.
+     * The problem is that we will always loop through the fields so it can bring some performance issues.
+     */
+    useParsers?: boolean;
     usePalmaresTransaction?: boolean;
     useTransaction?: boolean;
     search?: TSearch;
@@ -34,10 +44,15 @@ export default async function removeQuery<
     const results = [] as ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[];
     const internalModelAsModel = internal.model as InstanceType<ReturnType<typeof model>>;
     const selectedFields = Object.keys(internalModelAsModel.fields) as unknown as FieldsOFModelType<TModel>;
+    const useParsers = {
+      input: true,
+      output: typeof args.useParsers === 'boolean' ? args.useParsers : true,
+    };
 
     await getResultsWithIncludes(
       internal.engine,
       internal.model as TModel,
+      useParsers,
       selectedFields as FieldsOFModelType<TModel>,
       internal.includes as TIncludes,
       args.search as TSearch,

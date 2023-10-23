@@ -10,12 +10,8 @@ import {
 
 import { z } from 'zod';
 
-type Null<T extends z.ZodTypeAny, N extends boolean> = N extends true
-  ? z.ZodNullable<T>
-  : T;
-type Undefined<T extends z.ZodTypeAny, R extends boolean> = R extends false
-  ? z.ZodOptional<T>
-  : T;
+type Null<T extends z.ZodTypeAny, N extends boolean> = N extends true ? z.ZodNullable<T> : T;
+type Undefined<T extends z.ZodTypeAny, R extends boolean> = R extends false ? z.ZodOptional<T> : T;
 export default class ZodSchema extends Schema {
   async getField<
     I extends Field,
@@ -24,7 +20,7 @@ export default class ZodSchema extends Schema {
     R extends boolean,
     RO extends boolean,
     WO extends boolean,
-    C = any
+    C = any,
   >(
     field: Field<I, D, N, R, RO, WO, C>,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -34,8 +30,7 @@ export default class ZodSchema extends Schema {
     const fieldConstructor = constructor || z.any();
     if (!field.required) fieldConstructor.optional();
     if (!field.allowNull) fieldConstructor.nullable();
-    if (field.defaultValue !== undefined)
-      fieldConstructor.default(field.defaultValue);
+    if (field.defaultValue !== undefined) fieldConstructor.default(field.defaultValue);
     return fieldConstructor as Null<Undefined<z.ZodType, R>, N>;
   }
 
@@ -46,7 +41,7 @@ export default class ZodSchema extends Schema {
     R extends boolean,
     RO extends boolean,
     WO extends boolean,
-    C = any
+    C = any,
   >(field: NumberField<I, D, N, R, RO, WO, C>, isIn?: boolean): Promise<any> {
     const numberConstructor = z.number();
     if (field.min) numberConstructor.min(field.min);
@@ -65,7 +60,7 @@ export default class ZodSchema extends Schema {
     R extends boolean,
     RO extends boolean,
     WO extends boolean,
-    C = any
+    C = any,
   >(field: StringField<I, D, N, R, RO, WO, C>, isIn = true) {
     const stringConstructor = z.string();
     if (field.minLength) stringConstructor.min(field.minLength);
@@ -84,11 +79,8 @@ export default class ZodSchema extends Schema {
     WO extends boolean,
     T extends readonly any[],
     F extends readonly any[],
-    C = any
-  >(
-    field: BooleanField<I, D, N, R, RO, WO, C, T, F>,
-    isIn?: boolean
-  ): Promise<any> {
+    C = any,
+  >(field: BooleanField<I, D, N, R, RO, WO, C, T, F>, isIn?: boolean): Promise<any> {
     const booleanConstructor = z.boolean();
     await this.getField(field, isIn, booleanConstructor);
     return booleanConstructor as Null<Undefined<z.ZodBoolean, R>, N>;
@@ -102,7 +94,7 @@ export default class ZodSchema extends Schema {
     N extends boolean,
     R extends boolean,
     RO extends boolean,
-    WO extends boolean
+    WO extends boolean,
   >(field: Serializer<I, M, C, D, N, R, RO, WO>, isIn = true) {
     const schemaFields: { [key: string]: z.ZodType } = {};
     const fieldsEntries = Object.entries(field.fields);
@@ -113,11 +105,7 @@ export default class ZodSchema extends Schema {
     });
     await Promise.all(promises);
     const objectConstructor = z.object(schemaFields);
-    await this.getField(
-      field as Field<I, D, N, R, RO, WO>,
-      isIn,
-      objectConstructor
-    );
+    await this.getField(field as Field<I, D, N, R, RO, WO>, isIn, objectConstructor);
     return objectConstructor;
   }
 }

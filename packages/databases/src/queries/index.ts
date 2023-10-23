@@ -2,7 +2,7 @@ import { BaseModel, model } from '../models';
 import Engine from '../engine';
 import { extractDefaultEventsHandlerFromModel } from './utils';
 import { UnmanagedModelsShouldImplementSpecialMethodsException } from './exceptions';
-import { ForeignKeyField } from '../models/fields';
+import { Field, ForeignKeyField } from '../models/fields';
 import parseSearch from './search';
 
 import type { QueryDataFnType } from './types';
@@ -17,24 +17,88 @@ import type {
 } from '../models/types';
 
 /**
+ * Used for parsing the values of each field of the result of the query. With that the value that the user expects will be exactly what is returned from the query.
+ */
+async function parseResults(
+  engine: Engine,
+  modelName: string,
+  modelInstance: InstanceType<ReturnType<typeof model>>,
+  fieldsWithParserInModel: string[],
+  fields: NonNullable<(typeof BaseModel)['__cachedFields']>,
+  data: object
+) {
+  if (typeof data === 'object') {
+    const keysOfData = Object.keys(data);
+    const fieldKeysToParse = fieldsWithParserInModel.length > keysOfData.length ? keysOfData : fieldsWithParserInModel;
+    await Promise.all(
+      fieldKeysToParse.map(async (key) => {
+        const value = (data as any)[key];
+        const field = fields[key];
+        if (field) {
+          const fieldHasOutputParser = field.outputParsers.has(engine.connectionName);
+          if (fieldHasOutputParser) {
+            const parsedValue = await field.outputParsers.get(engine.connectionName)?.({
+              value,
+              field,
+              engine,
+              fieldParser: engine.fields.fieldsParser,
+              model: modelInstance as InstanceType<ReturnType<typeof model>> & BaseModel,
+              modelName: modelName,
+            });
+            (data as any)[key] = parsedValue;
+          }
+        }
+      })
+    );
+  }
+  return data;
+}
+
+/**
  * The data parser is used to parse the data that we will use to save it to the database.
  */
-async function parseData(modelInstance: InstanceType<ReturnType<typeof model>>, data: any) {
+async function parseData(
+  engine: Engine,
+  useInputParser: boolean,
+  modelInstance: InstanceType<ReturnType<typeof model>>,
+  data: any
+) {
   if (data) {
-    const dataAsArray = Array.isArray(data) ? data : [data];
-    const formattedData = dataAsArray.map((eachDataToFormat) => {
-      const fieldsInModelInstance = Object.keys(modelInstance.fields);
-      const fieldsInData = Object.keys(eachDataToFormat);
+    const connectionName = engine.connectionName;
+    const modelConstructor = modelInstance.constructor as ReturnType<typeof model> & typeof BaseModel;
+    const fieldsInModel = modelConstructor._fields();
+    const fieldNamesInModel = Object.keys(fieldsInModel);
 
-      const formattedData: Record<string, any> = {};
-      for (const key of fieldsInData) {
-        if (fieldsInModelInstance.includes(key)) {
-          formattedData[key] = eachDataToFormat[key];
-        }
-      }
-      return formattedData;
-    });
-    return formattedData;
+    const dataAsArray = Array.isArray(data) ? data : [data];
+
+    return Promise.all(
+      dataAsArray.map(async (eachDataToFormat) => {
+        const fieldsInData = Object.keys(eachDataToFormat);
+
+        const formattedData: Record<string, any> = {};
+        await Promise.all(
+          fieldsInData.map(async (key) => {
+            if (fieldNamesInModel.includes(key)) {
+              // This will pretty much format the data so that it can be saved on a custom orm. Sometimes a ORM might define a custom field value. Like Prisma. Prisma uses
+              // Decimal.js instead of normal numbers. Because of that we need to guarantee that the data is properly formatted before saving it to the database.
+              formattedData[key] =
+                fieldsInModel?.[key]?.inputParsers?.has(connectionName) && useInputParser
+                  ? await fieldsInModel?.[key]?.inputParsers.get(connectionName)?.({
+                      value: eachDataToFormat[key],
+                      field: fieldsInModel?.[key] as Field,
+                      engine,
+                      fieldParser: engine.fields.fieldsParser,
+                      model: modelInstance,
+                      modelName: modelConstructor.getName(),
+                    })
+                  : eachDataToFormat[key];
+            }
+          })
+        );
+
+        return formattedData;
+      })
+    );
   }
   return undefined;
 }
@@ -211,6 +275,10 @@ async function callQueryDataFn<
   args: {
     isSetOperation?: boolean;
     isRemoveOperation?: boolean;
+    useParsers: {
+      input: boolean;
+      output: boolean;
+    };
     shouldRemove?: boolean;
     modelInstance: TModel;
     search?: TSearch;
@@ -258,7 +326,7 @@ async function callQueryDataFn<
               ...resultToMergeWithData,
               ...dataToAdd,
             }))
-          )
+          ) // trust me, doing this async is faster than doing it sync
         : [{ ...resultToMergeWithData, ...(data as any) }]
       : Array.isArray(data)
       ? data
@@ -277,7 +345,7 @@ async function callQueryDataFn<
 
   const [parsedSearch, parsedData, parsedOrdering] = await Promise.all([
     parseSearch(engine, modelInstance as InstanceType<ReturnType<typeof model>>, mergedSearchForData),
-    parseData(modelInstanceAsModel, mergedData),
+    parseData(engine, args.useParsers.input, modelInstanceAsModel, mergedData),
     (async () => {
       if (Array.isArray(ordering))
         return engine.query.ordering.parseOrdering(ordering as (`${string}` | `${string}`)[]);
@@ -355,16 +423,47 @@ async function callQueryDataFn<
     storePalmaresTransaction(engine, args.palmaresTransaction, modelConstructor, parsedSearch, queryDataResults),
   ]);
 
+  const modelName = modelConstructor.getName();
+  const modelFields = modelConstructor._fields();
+  const fieldsToParseOutput = modelConstructor.fieldParsersByEngine.get(engine.connectionName)?.output;
+
   if (Array.isArray(args.results)) {
     if (args.isSetOperation)
       args.results.push(
         ...(await Promise.all(
-          queryDataResults.map(
-            async (eachResult: [boolean, ModelFieldsWithIncludes<TModel, undefined, TFields>]) => eachResult[1]
+          queryDataResults.map(async (eachResult: [boolean, ModelFieldsWithIncludes<TModel, undefined, TFields>]) =>
+            args.useParsers.output && Array.isArray(fieldsToParseOutput) && fieldsToParseOutput.length > 0
+              ? await parseResults(
+                  engine,
+                  modelName,
+                  modelInstanceAsModel,
+                  fieldsToParseOutput,
+                  modelFields,
+                  eachResult[1]
+                )
+              : eachResult[1]
           )
         ))
       );
-    else args.results.push(...queryDataResults);
+    else {
+      if (args.useParsers.output && Array.isArray(fieldsToParseOutput) && fieldsToParseOutput.length > 0) {
+        await Promise.all(
+          queryDataResults.map(async (eachResult: any) => {
+            const parsedOutputData = await parseResults(
+              engine,
+              modelName,
+              modelInstanceAsModel,
+              fieldsToParseOutput,
+              modelFields,
+              eachResult
+            );
+            args.results?.push(parsedOutputData as any);
+          })
+        );
+      } else {
+        args.results.push(...queryDataResults);
+      }
+    }
   }
 }
 
@@ -447,6 +546,10 @@ async function resultsFromRelatedModelWithSearch<
   args: {
     relatedField: TRelatedField;
     modelInstance: TModel;
+    useParsers: {
+      input: boolean;
+      output: boolean;
+    };
     includedModelInstance: TIncludedModel;
     includesOfModel: TIncludes;
     includesOfIncluded: TIncludesOfIncludes;
@@ -492,6 +595,7 @@ async function resultsFromRelatedModelWithSearch<
   await getResultsWithIncludes(
     engine,
     args.includedModelInstance as TIncludedModel,
+    args.useParsers,
     fieldsOfIncludedModelWithFieldsFromRelation as TFieldsOfIncluded,
     args.includesOfIncluded as TIncludesOfIncludes,
     args.searchForRelatedModel,
@@ -527,6 +631,7 @@ async function resultsFromRelatedModelWithSearch<
       await getResultsWithIncludes(
         engine,
         args.modelInstance as TModel,
+        args.useParsers,
         args.fieldsOfModel as TFields,
         args.includesOfModel as TIncludes,
         nextSearch,
@@ -564,6 +669,7 @@ async function resultsFromRelatedModelWithSearch<
     >(engine, {
       isSetOperation: args.isSetOperation,
       isRemoveOperation: args.isRemoveOperation,
+      useParsers: args.useParsers,
       modelInstance: args.includedModelInstance,
       search: args.searchForRelatedModel,
       queryDataFn: args.queryData,
@@ -609,6 +715,10 @@ async function resultsFromRelatedModelsWithoutSearch<
   args: {
     relatedField: TRelatedField;
     modelInstance: TModel;
+    useParsers: {
+      input: boolean;
+      output: boolean;
+    };
     includedModelInstance: TIncludedModel;
     includesOfModel: TIncludes;
     includesOfIncluded: TIncludesOfIncludes;
@@ -671,6 +781,7 @@ async function resultsFromRelatedModelsWithoutSearch<
     await getResultsWithIncludes(
       engine,
       args.modelInstance as TModel,
+      args.useParsers,
       fieldsOfModelWithFieldsFromRelations as TFields,
       args.includesOfModel as TIncludes,
       args.search as TSearch,
@@ -738,6 +849,7 @@ async function resultsFromRelatedModelsWithoutSearch<
     await getResultsWithIncludes(
       engine,
       args.includedModelInstance as TIncludedModel,
+      args.useParsers,
       args.fieldsOfIncludedModel as TFieldsOfIncluded,
       args.includesOfIncluded as TIncludesOfIncludes,
       nextSearch,
@@ -781,6 +893,7 @@ async function resultsFromRelatedModelsWithoutSearch<
     >(engine, {
       isSetOperation: args.isSetOperation,
       isRemoveOperation: args.isRemoveOperation,
+      useParsers: args.useParsers,
       modelInstance: args.modelInstance,
       search: args.search,
       queryDataFn: args.queryData,
@@ -800,6 +913,7 @@ async function resultsFromRelatedModelsWithoutSearch<
     await getResultsWithIncludes(
       engine,
       args.modelInstance as TModel,
+      args.useParsers,
       fieldsOfModelWithFieldsFromRelations as TFields,
       args.includesOfModel as TIncludes,
       args.search as TSearch,
@@ -871,6 +985,7 @@ async function resultsFromRelatedModels<
 >(
   engine: Engine,
   modelInstance: TModel,
+  useParsers: { input: boolean; output: boolean },
   includedModelInstance: TIncludedModel,
   includesOfModel: TIncludes,
   includesOfIncluded: TIncludesOfIncluded,
@@ -937,6 +1052,7 @@ async function resultsFromRelatedModels<
     const parametersForResultsFromRelatedModelsWithAndWithoutSearch = {
       relatedField: foreignKeyFieldRelatedToModel as ForeignKeyField,
       modelInstance: modelInstance as TModel,
+      useParsers: useParsers,
       includedModelInstance: includedModelInstance as TIncludedModel,
       includesOfModel: includesOfModel as TIncludes,
       includesOfIncluded: includesOfIncluded as TIncludesOfIncluded,
@@ -1008,6 +1124,7 @@ export default async function getResultsWithIncludes<
 >(
   engine: Engine,
   modelInstance: TModel,
+  useParsers: { input: boolean; output: boolean },
   fields: TFields,
   includes: TIncludes,
   search: TSearch,
@@ -1077,6 +1194,7 @@ export default async function getResultsWithIncludes<
         await resultsFromRelatedModels(
           engine,
           modelInstance,
+          useParsers,
           includedModelInstance,
           safeIncludes.slice(1),
           include.includes,
@@ -1133,6 +1251,7 @@ export default async function getResultsWithIncludes<
     >(engine, {
       isSetOperation: isSetOperation,
       isRemoveOperation: isRemoveOperation,
+      useParsers,
       modelInstance,
       search: safeSearch,
       queryDataFn: queryData,

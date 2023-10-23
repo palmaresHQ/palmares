@@ -55,20 +55,6 @@ export function adapterAutoFieldParser<
   getFieldClass?: TGetFieldClassFunction;
 }) {
   const returnedClass = class CustomAdapterAutoFieldParser extends EngineFieldParser {
-    auto = undefined;
-    bigAuto = undefined;
-    bigInt = undefined;
-    char = undefined;
-    date = undefined;
-    decimal = undefined;
-    foreignKey = undefined;
-    integer = undefined;
-    text = undefined;
-    uuid = undefined;
-    enum = undefined;
-    boolean = undefined;
-    translatable = true;
-
     translate = args.translate as TTranslatorFunction;
   };
 
