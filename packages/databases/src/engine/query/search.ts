@@ -1,9 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-// eslint-disable-next-line import/no-named-as-default
-import type EngineQuery from '.';
-import { BaseModel } from '../../models';
-import model from '../../models/model';
-import { FieldWithOperationType, OperatorsOfQuery } from '../../models/types';
+import { OperatorsOfQuery } from '../../models/types';
 
 /**
  * This engine query interface is used for the search arguments of a query, when making a query we should parse the search so we support stuff like

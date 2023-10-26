@@ -2,7 +2,6 @@ import { AdapterFieldParserTranslateArgs, adapterDecimalFieldParser } from '@pal
 import { DataTypes, ModelAttributeColumnOptions } from 'sequelize';
 
 import SequelizeEngineFieldParser from './field';
-import SequelizeEngine from '../engine';
 import { TranslatedFieldToEvaluateAfterType } from '../types';
 
 export default adapterDecimalFieldParser({

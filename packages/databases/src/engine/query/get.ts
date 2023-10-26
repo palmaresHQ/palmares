@@ -4,8 +4,23 @@ import DatabaseAdapter from '..';
 
 import type { Includes } from '../../models/types';
 
+/**
+ * This class is used to run `.get` queries, so when we want to retrieve a value from the database to the user.
+ */
+export function adapterGetQuery<TFunctionQueryData extends AdapterGetQuery['queryData']>(args: {
+  queryData: TFunctionQueryData;
+}) {
+  class CustomAdapterGetQuery extends AdapterGetQuery {
+    queryData = args.queryData as TFunctionQueryData;
+  }
+
+  return CustomAdapterGetQuery as typeof AdapterGetQuery & {
+    new (): AdapterGetQuery & { queryData: TFunctionQueryData };
+  };
+}
+
 /** This class is used to run `.get` queries, so when we want to retrieve a value from the database to the user. */
-export default class EngineGetQuery {
+export default class AdapterGetQuery {
   /**
    * This is a simple query, by default you should always implement this function in your EngineGetQuery.
    *
@@ -35,7 +50,7 @@ export default class EngineGetQuery {
     return [];
   }
 
-  async queryDataNatively(
+  async queryDataNatively?(
     _engine: DatabaseAdapter,
     _modelConstructor: ReturnType<typeof model>,
     _search: any,
