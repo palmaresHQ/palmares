@@ -45,6 +45,7 @@ async function parseResults(
               model: modelInstance as InstanceType<ReturnType<typeof model>> & BaseModel,
               modelName: modelName,
             });
+            console.log('parsedValue', parsedValue);
             (data as any)[key] = parsedValue;
           }
         }
@@ -426,7 +427,6 @@ async function callQueryDataFn<
   const modelName = modelConstructor.getName();
   const modelFields = modelConstructor._fields();
   const fieldsToParseOutput = modelConstructor.fieldParsersByEngine.get(engine.connectionName)?.output;
-
   if (Array.isArray(args.results)) {
     if (args.isSetOperation)
       args.results.push(

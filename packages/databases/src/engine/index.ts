@@ -14,10 +14,6 @@ import AdapterModels from './model';
 
 import type model from '../models/model';
 
-/**
- * @param {object} args
- * @param {AdapterFields} args.fields
- */
 export function databaseAdapter<
   TFieldsAdapter extends AdapterFields,
   TModelsAdapter extends AdapterModels,
@@ -54,6 +50,7 @@ export function databaseAdapter<
 
     static new = args.new as TFunctionNew;
     duplicate = args.duplicate as TFunctionDuplicate;
+    isConnected = args.isConnected as TFunctionIsConnected;
     close = args.close as TFunctionClose;
     transaction = args.transaction as TFunctionTransaction;
   }

@@ -105,11 +105,11 @@ function callTranslateAndAppendInputAndOutputParsersToField(
     }
     if (engineFieldParser.outputParser) {
       field.outputParsers.set(connectionName, engineFieldParser.outputParser);
-      const inputParserFieldsOfEngine = field.model.fieldParsersByEngine.get(connectionName)?.input || [];
-      inputParserFieldsOfEngine.push(field.fieldName);
+      const outputParserFieldsOfEngine = field.model.fieldParsersByEngine.get(connectionName)?.output || [];
+      outputParserFieldsOfEngine.push(field.fieldName);
       field.model.fieldParsersByEngine.set(connectionName, {
-        input: inputParserFieldsOfEngine,
-        output: field.model.fieldParsersByEngine.get(connectionName)?.output || [],
+        input: field.model.fieldParsersByEngine.get(connectionName)?.input || [],
+        output: outputParserFieldsOfEngine,
       });
     }
     return engineFieldParser.translate(args);
