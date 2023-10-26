@@ -11,7 +11,7 @@ import {
   OptionalMakemigrationsArgsType,
 } from './types';
 import { DatabaseDomainInterface } from './interfaces';
-import Engine from './engine';
+import DatabaseAdapter from './engine';
 import { Model } from './models';
 import Migrations from './migrations';
 import model, { BaseModel } from './models/model';
@@ -135,7 +135,7 @@ export default class Databases {
       databaseLogger.logMessage('DATABASE_CLOSING', {
         databaseName: engineInstance.connectionName,
       });
-      if (engineInstance.close) await engineInstance.close(engineInstance, engineInstance.connectionName);
+      if (engineInstance.close) await engineInstance.close(engineInstance);
     });
 
     await Promise.all(promises);
@@ -152,7 +152,7 @@ export default class Databases {
     databaseSettings: DatabaseConfigurationType,
     domains: DatabaseDomainInterface[]
   ) {
-    let engineInstance: Engine;
+    let engineInstance: DatabaseAdapter;
     let argumentsToPassOnNew: any;
     const doesAnEngineInstanceAlreadyExist =
       engineName in this.initializedEngineInstances &&
@@ -173,7 +173,7 @@ export default class Databases {
       }
 
       const isAnEngineInstanceDefinedForDatabase = isProbablyAnEngineInstanceDefinedForDatabase
-        ? engineInstance.constructor.prototype instanceof Engine
+        ? engineInstance.constructor.prototype instanceof DatabaseAdapter
         : false;
       if (!isAnEngineInstanceDefinedForDatabase) throw new Error('You must define an engine for the database.');
     }
@@ -206,7 +206,7 @@ export default class Databases {
     await Promise.all(promises);
 
     await new Promise((resolve) => {
-      Promise.resolve(engineInstance.isConnected()).then((isDatabaseConnected) => {
+      Promise.resolve(engineInstance.isConnected(engineInstance)).then((isDatabaseConnected) => {
         if (isDatabaseConnected) resolve(true);
         else {
           databaseLogger.logMessage('DATABASE_IS_NOT_CONNECTED', {
@@ -216,7 +216,7 @@ export default class Databases {
         }
       });
     });
-    const isDatabaseConnected = await Promise.resolve(engineInstance.isConnected());
+    const isDatabaseConnected = await Promise.resolve(engineInstance.isConnected(engineInstance));
 
     // Append all of the models to the engine instance.
     engineInstance.__modelsOfEngine = onlyTheModelsFiltered;
@@ -252,7 +252,7 @@ export default class Databases {
    * and the internal models.
    */
   async initializeModels(
-    engineInstance: Engine,
+    engineInstance: DatabaseAdapter,
     projectModels: FoundModelType[]
   ): Promise<InitializedEngineInstanceWithModelsType> {
     const initializedProjectModels = await initializeModels(

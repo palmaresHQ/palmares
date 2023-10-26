@@ -1,10 +1,10 @@
 import type { EventEmitter } from '@palmares/events';
 
 import { BaseModel, model } from './models';
-import Engine from './engine';
+import DatabaseAdapter from './engine';
 
 export interface DatabaseConfigurationType {
-  engine: Promise<[any, Engine]> | { default: Promise<[any, Engine]> };
+  engine: Promise<[any, DatabaseAdapter]> | { default: Promise<[any, DatabaseAdapter]> };
   events?: {
     emitter: EventEmitter | Promise<EventEmitter>;
     channels?: string[];
@@ -16,7 +16,7 @@ export type InitializedEngineInstancesType = {
 };
 
 export type InitializedEngineInstanceWithModelsType = {
-  engineInstance: Engine;
+  engineInstance: DatabaseAdapter;
   projectModels: InitializedModelsType[];
 };
 

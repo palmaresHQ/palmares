@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import Engine from '../engine';
+import DatabaseAdapter from '../engine';
 import {
   ModelFieldsType,
   ModelOptionsType,
@@ -69,7 +69,11 @@ export class BaseModel {
     return newInstance;
   }
 
-  async #initializeManagers(engineInstance: Engine, modelInstance: Model & BaseModel, translatedModelInstance: any) {
+  async #initializeManagers(
+    engineInstance: DatabaseAdapter,
+    modelInstance: Model & BaseModel,
+    translatedModelInstance: any
+  ) {
     const modelConstructor = this.constructor as ModelType;
     const managers: ManagersOfInstanceType = modelConstructor.__getManagers(modelConstructor);
     const managerValues = Object.values(managers);
@@ -90,7 +94,7 @@ export class BaseModel {
    *
    * @param engineInstance - The current engine instance we are initializing this model instance
    */
-  async #initializeEvents(engineInstance: Engine) {
+  async #initializeEvents(engineInstance: DatabaseAdapter) {
     if (!engineInstance) return;
     if (!engineInstance.databaseSettings?.events?.emitter) return;
 
@@ -142,7 +146,7 @@ export class BaseModel {
    * Initializes the model and returns the model instance for the current engine instance that is being used.
    */
   static async _init(
-    engineInstance: Engine,
+    engineInstance: DatabaseAdapter,
     domainName: string,
     domainPath: string,
     lazyLoadFieldsCallback: (field: Field, translatedField: any) => void
@@ -668,70 +672,3 @@ ExtendedProfile.default.get({
     },
   ],
 });*/
-
-export class User extends model<User>() {
-  fields = {
-    id: AutoField.new(),
-    firstName: CharField.new({
-      maxLength: 255,
-      dbIndex: true,
-      allowNull: false,
-      defaultValue: '',
-    }),
-    pokemonId: ForeignKeyField.new({
-      relatedTo: Pokemon,
-      onDelete: ON_DELETE.CASCADE,
-      toField: 'id',
-      relatedName: 'pokemonUsers',
-      relationName: 'pokemon',
-      defaultValue: undefined,
-    }),
-    lastName: CharField.new({ maxLength: 255, allowNull: true }),
-    uuid: UuidField.new({ autoGenerate: true, unique: true }),
-  };
-
-  options: ModelOptionsType<User> = {
-    tableName: 'user',
-    onSet: {
-      preventCallerToBeTheHandled: false,
-      handler: async ({ data }) => {
-        await User.default.set(data);
-        return [data];
-      },
-    },
-  };
-}
-
-export class Pokemon extends model<Pokemon>() {
-  fields = {
-    id: IntegerField.new({ unique: true }),
-    name: CharField.new({ maxLength: 255 }),
-    weight: IntegerField.new({ allowNull: true }),
-  };
-
-  options: ModelOptionsType<Pokemon> = {
-    managed: false,
-    onGet: async ({ search }) => {
-      const data = await fetch(`https://pokeapi.co/api/v2/pokemon/${search.name || search.id}`);
-      const json = await data.json();
-      return [{ id: json.id, name: json.name, weight: json.weight }];
-    },
-  };
-}
-
-User.default.set(
-  [
-    {
-      id: 1,
-      firstName: 'Jane',
-      lastName: 'Doe',
-      uuid: '123',
-      pokemonId: 1,
-    },
-  ],
-  {
-    search: {
-      id: 1,
-    },
-  }
-);

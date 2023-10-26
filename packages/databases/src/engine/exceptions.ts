@@ -1,16 +1,16 @@
-export class NotImplementedEngineException extends Error {
+export class NotImplementedAdapterException extends Error {
   constructor(methodName: string) {
-    super(`Method ${methodName} was not implemented in your engine, it should be in order to fully work.`);
-    this.name = NotImplementedEngineException.name;
+    super(`Method ${methodName} was not implemented in your Adapter, it should be in order to fully work.`);
+    this.name = NotImplementedAdapterException.name;
   }
 }
 
-export class NotImplementedEngineFieldsException extends Error {
+export class NotImplementedAdapterFieldsException extends Error {
   constructor(methodName: string) {
     super(
-      `Method ${methodName} was not implemented in your engine fields and it ` +
+      `Method ${methodName} was not implemented in your Adapter fields and it ` +
         `should be implemented in order to work properly.`
     );
-    this.name = NotImplementedEngineFieldsException.name;
+    this.name = NotImplementedAdapterFieldsException.name;
   }
 }

@@ -1,21 +1,21 @@
-import { DateField, EngineDateFieldParser, Model } from '@palmares/databases';
+import { AdapterFieldParserTranslateArgs, adapterDateFieldParser } from '@palmares/databases';
 import { DataTypes, ModelAttributeColumnOptions } from 'sequelize';
 
 import SequelizeEngineFieldParser from './field';
 import SequelizeEngine from '../engine';
 import { TranslatedFieldToEvaluateAfterType } from '../types';
 
-export default class SequelizeEngineDateFieldParser extends EngineDateFieldParser {
-  async translate(args: {
-    engine: SequelizeEngine;
-    field: DateField;
-    fieldParser: SequelizeEngineFieldParser;
-    modelName: string;
-    model: InstanceType<ReturnType<typeof Model>>;
-    lazyEvaluate: (translatedField: TranslatedFieldToEvaluateAfterType) => void;
-  }): Promise<ModelAttributeColumnOptions> {
-    const isAutoNow = (args.field.autoNow as boolean) === true;
-    const hasAutoNowOrAutoNowAdd = (args.field.autoNowAdd as boolean) === true || isAutoNow;
+export default adapterDateFieldParser({
+  translate: async (
+    args: AdapterFieldParserTranslateArgs<
+      'date',
+      any,
+      InstanceType<typeof SequelizeEngineFieldParser>,
+      TranslatedFieldToEvaluateAfterType
+    >
+  ): Promise<ModelAttributeColumnOptions> => {
+    const isAutoNow = (args.field?.autoNow as boolean) === true;
+    const hasAutoNowOrAutoNowAdd = (args.field?.autoNowAdd as boolean) === true || isAutoNow;
 
     const defaultOptions = await args.fieldParser.translate(args);
     defaultOptions.type = DataTypes.DATE;
@@ -27,5 +27,5 @@ export default class SequelizeEngineDateFieldParser extends EngineDateFieldParse
       } as TranslatedFieldToEvaluateAfterType);
 
     return defaultOptions;
-  }
-}
+  },
+});

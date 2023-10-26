@@ -2,7 +2,7 @@ import model from '../models/model';
 import getResultsWithIncludes from '.';
 import Transaction from '../transaction';
 
-import type Engine from '../engine';
+import type DatabaseAdapter from '../engine';
 import type { Includes, ModelFieldsWithIncludes, FieldsOFModelType } from '../models/types';
 
 export default async function removeQuery<
@@ -32,7 +32,7 @@ export default async function removeQuery<
   internal: {
     model: TModel;
     includes: TIncludes;
-    engine: Engine;
+    engine: DatabaseAdapter;
     transaction?: any;
   }
 ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]> {
@@ -74,7 +74,7 @@ export default async function removeQuery<
   }
   try {
     if (isToUseTransaction) {
-      return internal.engine.transaction(async (transaction) => getResults(transaction));
+      return internal.engine.useTransaction(async (transaction) => getResults(transaction));
     } else return getResults(internal.transaction);
   } catch (error) {
     if (palmaresTransaction) {

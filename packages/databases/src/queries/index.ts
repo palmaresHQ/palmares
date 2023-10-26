@@ -1,5 +1,5 @@
 import { BaseModel, model } from '../models';
-import Engine from '../engine';
+import DatabaseAdapter from '../engine';
 import { extractDefaultEventsHandlerFromModel } from './utils';
 import { UnmanagedModelsShouldImplementSpecialMethodsException } from './exceptions';
 import { Field, ForeignKeyField } from '../models/fields';
@@ -20,7 +20,7 @@ import type {
  * Used for parsing the values of each field of the result of the query. With that the value that the user expects will be exactly what is returned from the query.
  */
 async function parseResults(
-  engine: Engine,
+  engine: DatabaseAdapter,
   modelName: string,
   modelInstance: InstanceType<ReturnType<typeof model>>,
   fieldsWithParserInModel: string[],
@@ -58,7 +58,7 @@ async function parseResults(
  * The data parser is used to parse the data that we will use to save it to the database.
  */
 async function parseData(
-  engine: Engine,
+  engine: DatabaseAdapter,
   useInputParser: boolean,
   modelInstance: InstanceType<ReturnType<typeof model>>,
   data: any
@@ -157,7 +157,7 @@ async function storePalmaresTransaction<
     FieldsOFModelType<InstanceType<TModelConstructor>>
   >[],
 >(
-  engine: Engine,
+  engine: DatabaseAdapter,
   palmaresTransaction: Transaction | undefined,
   modelConstructor: TModelConstructor,
   search: TSearch,
@@ -198,7 +198,7 @@ async function fireEventsAfterQueryDataFn<
       >[]
     | undefined = undefined,
 >(
-  engine: Engine,
+  engine: DatabaseAdapter,
   args: {
     modelInstance: TModel;
     isSetOperation: boolean;
@@ -271,7 +271,7 @@ async function callQueryDataFn<
     TFields
   >[],
 >(
-  engine: Engine,
+  engine: DatabaseAdapter,
   args: {
     isSetOperation?: boolean;
     isRemoveOperation?: boolean;
@@ -542,7 +542,7 @@ async function resultsFromRelatedModelWithSearch<
     TFields
   >[],
 >(
-  engine: Engine,
+  engine: DatabaseAdapter,
   args: {
     relatedField: TRelatedField;
     modelInstance: TModel;
@@ -711,7 +711,7 @@ async function resultsFromRelatedModelsWithoutSearch<
     TFields
   >[],
 >(
-  engine: Engine,
+  engine: DatabaseAdapter,
   args: {
     relatedField: TRelatedField;
     modelInstance: TModel;
@@ -983,7 +983,7 @@ async function resultsFromRelatedModels<
   >[],
   TIsDirectlyRelated extends boolean = false,
 >(
-  engine: Engine,
+  engine: DatabaseAdapter,
   modelInstance: TModel,
   useParsers: { input: boolean; output: boolean },
   includedModelInstance: TIncludedModel,
@@ -1122,7 +1122,7 @@ export default async function getResultsWithIncludes<
     TFields
   >[],
 >(
-  engine: Engine,
+  engine: DatabaseAdapter,
   modelInstance: TModel,
   useParsers: { input: boolean; output: boolean },
   fields: TFields,

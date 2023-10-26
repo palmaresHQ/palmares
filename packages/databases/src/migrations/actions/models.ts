@@ -1,4 +1,4 @@
-import Engine from '../../engine';
+import DatabaseAdapter from '../../engine';
 import { Operation } from './operation';
 import { ModelFieldsType, ModelOptionsType } from '../../models/types';
 import {
@@ -45,12 +45,13 @@ export class CreateModel extends Operation {
 
   async run(
     migration: Migration,
-    engineInstance: Engine,
+    engineInstance: DatabaseAdapter,
     _: OriginalOrStateModelsByNameType,
-    toState: OriginalOrStateModelsByNameType
+    toState: OriginalOrStateModelsByNameType,
+    returnOfInit: any
   ): Promise<void> {
     const toModel = toState[this.modelName];
-    await engineInstance.migrations.addModel(engineInstance, toModel, migration);
+    await engineInstance.migrations.addModel(engineInstance, toModel, migration, returnOfInit);
   }
 
   static async toGenerate(domainName: string, domainPath: string, modelName: string, data: CreateModelToGenerateData) {
@@ -98,12 +99,13 @@ export class DeleteModel extends Operation {
 
   async run(
     migration: Migration,
-    engineInstance: Engine,
+    engineInstance: DatabaseAdapter,
     fromState: OriginalOrStateModelsByNameType,
-    _toState: OriginalOrStateModelsByNameType
+    _toState: OriginalOrStateModelsByNameType,
+    returnOfInit: any
   ): Promise<void> {
     const fromModel = fromState[this.modelName];
-    await engineInstance.migrations.removeModel(engineInstance, fromModel, migration);
+    await engineInstance.migrations.removeModel(engineInstance, fromModel, migration, returnOfInit);
   }
 
   static async toGenerate(domainName: string, domainPath: string, modelName: string) {
@@ -151,13 +153,14 @@ export class ChangeModel extends Operation {
 
   async run(
     migration: Migration,
-    engineInstance: Engine,
+    engineInstance: DatabaseAdapter,
     fromState: OriginalOrStateModelsByNameType,
-    toState: OriginalOrStateModelsByNameType
+    toState: OriginalOrStateModelsByNameType,
+    returnOfInit: any
   ) {
     const toModel = toState[this.modelName];
     const fromModel = fromState[this.modelName];
-    await engineInstance.migrations.changeModel(engineInstance, toModel, fromModel, migration);
+    await engineInstance.migrations.changeModel(engineInstance, toModel, fromModel, migration, returnOfInit);
   }
 
   static async toGenerate(domainName: string, domainPath: string, modelName: string, data: ChangeModelToGenerateData) {

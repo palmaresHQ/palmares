@@ -1,6 +1,6 @@
 import model from '../../models/model';
-import { NotImplementedEngineException } from '../exceptions';
-import Engine from '..';
+import { NotImplementedAdapterException } from '../exceptions';
+import DatabaseAdapter from '..';
 
 import type { Includes } from '../../models/types';
 
@@ -22,7 +22,7 @@ export default class EngineGetQuery {
    * @param fields - The fields to be included in the search and the output.
    */
   async queryData(
-    _engine: Engine,
+    _engine: DatabaseAdapter,
     _args: {
       modelOfEngineInstance: any;
       search: any;
@@ -36,13 +36,13 @@ export default class EngineGetQuery {
   }
 
   async queryDataNatively(
-    _engine: Engine,
+    _engine: DatabaseAdapter,
     _modelConstructor: ReturnType<typeof model>,
     _search: any,
     _fields: readonly string[],
     _includes: Includes,
     _defaultParseSearch: (modelConstructor: InstanceType<ReturnType<typeof model>>, search: any) => Promise<any>
   ): Promise<any[]> {
-    throw new NotImplementedEngineException('queryDataNatively');
+    throw new NotImplementedAdapterException('queryDataNatively');
   }
 }

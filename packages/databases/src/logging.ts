@@ -56,6 +56,11 @@ export const databaseLogger = new Logger(
       category: 'info',
       handler: ({ title }: { title: string }) => `Running migration: \x1b[36m${title}`,
     },
+    MIGRATION_RUNNING_IN_BATCH: {
+      category: 'info',
+      handler: ({ databaseName }: { databaseName: string }) =>
+        `The engine that you are using for '${databaseName}' implements a batch migrations, this means that instead of running each migration file one by one, we will let the chosen engine handle the migration runner.`,
+    },
     MIGRATIONS_ACTION_DESCRIPTION: {
       category: 'info',
       handler: ({ description }: { description: string }) => `  • ${description}`,

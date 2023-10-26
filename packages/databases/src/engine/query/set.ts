@@ -1,4 +1,4 @@
-import type Engine from '..';
+import type DatabaseAdapter from '..';
 export default class EngineSetQuery {
   /**
    * This is a simple query, by default you should always implement this function in your EngineGetQuery.
@@ -16,7 +16,7 @@ export default class EngineSetQuery {
    * @param fields - The fields to be included in the search and the output.
    */
   async queryData(
-    _engine: Engine,
+    _engine: DatabaseAdapter,
     _args: {
       modelOfEngineInstance: any;
       search: any;

@@ -1,11 +1,10 @@
-import { EngineRemoveQuery } from '@palmares/databases';
+import { EngineRemoveQuery, DatabaseAdapter } from '@palmares/databases';
 
 import { Model, ModelCtor, Transaction } from 'sequelize';
-import SequelizeEngine from '../engine';
 
 export default class SequelizeEngineRemoveQuery extends EngineRemoveQuery {
   async queryData(
-    _: SequelizeEngine,
+    _: DatabaseAdapter,
     args: {
       modelOfEngineInstance: ModelCtor<Model>;
       search: any;

@@ -1,7 +1,7 @@
 import { FoundMigrationsFileType, StateModelsType, OriginalOrStateModelsByNameType } from './types';
 import model, { BaseModel, Model } from '../models/model';
 import { InitializedModelsType } from '../types';
-import Engine from '../engine';
+import DatabaseAdapter from '../engine';
 import { defaultEngineDuplicate } from '../engine/utils';
 import { DefaultDuplicateFunctionNotCalledOnEngine } from './exceptions';
 import { initializeModels } from '../models/utils';
@@ -98,7 +98,7 @@ export default class State {
    *
    * @param engineInstance - The engine instance to use to initialize the models.
    */
-  async initializeStateModels(engineInstance: Engine): Promise<InitializedModelsType[]> {
+  async initializeStateModels(engineInstance: DatabaseAdapter): Promise<InitializedModelsType[]> {
     const modelsInState = Object.values(this.modelsByName);
     return initializeModels(
       engineInstance,
@@ -123,8 +123,8 @@ export default class State {
    * @return - Returns an object with the models that were initialized in the state and the engine
    * instance.
    */
-  async geInitializedModelsByName(engineInstance: Engine) {
-    let duplicatedEngineInstance: undefined | Engine = undefined;
+  async geInitializedModelsByName(engineInstance: DatabaseAdapter) {
+    let duplicatedEngineInstance: undefined | DatabaseAdapter = undefined;
 
     const wasDefaultDuplicateCalled = { value: false };
     duplicatedEngineInstance = await engineInstance.duplicate(

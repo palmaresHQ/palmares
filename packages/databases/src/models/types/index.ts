@@ -2,7 +2,7 @@ import { Field } from '../fields';
 import { Model, BaseModel } from '../model';
 import Manager from '../manager';
 import { DatabaseSettingsType } from '../../types';
-import Engine from '../../engine';
+import DatabaseAdapter from '../../engine';
 import { FieldsOFModelType, ModelFieldsInQueries } from './queries';
 
 export type ModelType = typeof BaseModel & typeof Model;
@@ -12,7 +12,7 @@ export type ManagerInstancesType = {
 };
 
 export type ManagerEngineInstancesType = {
-  [engineName: string]: Engine;
+  [engineName: string]: DatabaseAdapter;
 };
 
 export type ModelFieldsType = {

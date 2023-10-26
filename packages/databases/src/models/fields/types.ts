@@ -1,5 +1,6 @@
 import Field from './field';
-import Engine, { EngineFields } from '../../engine';
+import DatabaseAdapter from '../../engine';
+import AdapterFields from '../../engine/fields';
 import { Model } from '../model';
 
 import type { Narrow } from '@palmares/core';
@@ -22,7 +23,7 @@ export type CustomImportsForFieldType = {
 };
 
 export interface TranslatableFieldType {
-  translate?(engine: Engine, engineFields: EngineFields): Promise<any>;
+  translate?(engine: DatabaseAdapter, engineFields: AdapterFields): Promise<any>;
   toString(indentation: number, customParams: string | undefined): Promise<string>;
 }
 

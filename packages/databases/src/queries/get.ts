@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import model from '../models/model';
-import { NotImplementedEngineException } from '../engine/exceptions';
+import { NotImplementedAdapterException } from '../engine/exceptions';
 import getResultsWithIncludes from '.';
 import parseSearch from './search';
 
-import type Engine from '../engine';
+import type DatabaseAdapter from '../engine';
 import type {
   Includes,
   ModelFieldsWithIncludes,
@@ -42,7 +42,7 @@ export default async function getQuery<
   },
   internal: {
     model: TModel;
-    engine: Engine;
+    engine: DatabaseAdapter;
     includes: TIncludes;
   }
 ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFieldsOfModel>[]> {
@@ -66,7 +66,7 @@ export default async function getQuery<
         parseSearch(internal.engine, modelInstance, search)
     );
   } catch (e) {
-    if ((e as Error).name === NotImplementedEngineException.name)
+    if ((e as Error).name === NotImplementedAdapterException.name)
       await getResultsWithIncludes(
         internal.engine,
         internal.model as TModel,

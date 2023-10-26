@@ -1,30 +1,36 @@
-import { CharField, EngineFieldParser, Field, TextField, UuidField, Model, Engine } from '@palmares/databases';
+import {
+  CharField,
+  TextField,
+  UuidField,
+  Model,
+  adapterFieldParser,
+  AdapterFieldParserTranslateArgs,
+} from '@palmares/databases';
 import { ModelAttributeColumnOptions } from 'sequelize';
 
 import SequelizeEngine from '../engine';
 import { appendIndexes } from '../utils';
+import { TranslatedFieldToEvaluateAfterType } from '../types';
 
-export default class SequelizeEngineFieldParser extends EngineFieldParser {
-  async textFieldValidations(field: CharField | TextField) {
-    return {
-      validate: {
-        notEmpty: typeof field.allowBlank === 'boolean' ? !field.allowBlank : false,
-      },
-    } as ModelAttributeColumnOptions;
-  }
+async function textFieldValidations(field: CharField | TextField) {
+  return {
+    validate: {
+      notEmpty: typeof field.allowBlank === 'boolean' ? !field.allowBlank : false,
+    },
+  } as ModelAttributeColumnOptions;
+}
 
-  async translate({
+export default adapterFieldParser({
+  translate: async ({
     engine,
     field,
     modelName,
-  }: {
-    engine: SequelizeEngine;
-    field: Field;
-    fieldParser: SequelizeEngineFieldParser;
-    modelName: string;
-    model: InstanceType<ReturnType<typeof Model>>;
-    lazyEvaluate: (translatedField: any) => void;
-  }): Promise<ModelAttributeColumnOptions> {
+  }: AdapterFieldParserTranslateArgs<
+    any,
+    any,
+    any,
+    TranslatedFieldToEvaluateAfterType
+  >): Promise<ModelAttributeColumnOptions> => {
     const defaultOptions = {} as ModelAttributeColumnOptions;
     const isFieldAIndexOrIsFieldUnique = field.dbIndex === true || (field.unique as boolean) === true;
 
@@ -50,8 +56,8 @@ export default class SequelizeEngineFieldParser extends EngineFieldParser {
 
     const isFieldOfTypeText =
       field.typeName === TextField.name || field.typeName === CharField.name || field.typeName === UuidField.name;
-    if (isFieldOfTypeText) this.textFieldValidations(field as TextField);
+    if (isFieldOfTypeText) await textFieldValidations(field as TextField);
 
     return defaultOptions;
-  }
-}
+  },
+});

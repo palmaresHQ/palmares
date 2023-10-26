@@ -1,18 +1,19 @@
-import { EngineAutoFieldParser, Field, Model } from '@palmares/databases';
+import { adapterAutoFieldParser, AdapterFieldParserTranslateArgs } from '@palmares/databases';
 import { DataTypes, ModelAttributeColumnOptions } from 'sequelize';
 
-import SequelizeEngineFieldParser from './field';
-import SequelizeEngine from '../engine';
+import type SequelizeEngineFieldParser from './field';
+import type { TranslatedFieldToEvaluateAfterType } from '../types';
+import type SequelizeEngine from '../engine';
 
-export default class SequelizeEngineAutoFieldParser extends EngineAutoFieldParser {
-  async translate(args: {
-    engine: SequelizeEngine;
-    field: Field;
-    fieldParser: SequelizeEngineFieldParser;
-    modelName: string;
-    model: InstanceType<ReturnType<typeof Model>>;
-    lazyEvaluate: (translatedField: ModelAttributeColumnOptions) => void;
-  }): Promise<ModelAttributeColumnOptions> {
+export default adapterAutoFieldParser({
+  translate: async (
+    args: AdapterFieldParserTranslateArgs<
+      'auto',
+      any,
+      InstanceType<typeof SequelizeEngineFieldParser>,
+      TranslatedFieldToEvaluateAfterType
+    >
+  ): Promise<ModelAttributeColumnOptions> => {
     const defaultOptions = await args.fieldParser.translate(args);
     defaultOptions.primaryKey = true;
     defaultOptions.autoIncrement = true;
@@ -22,5 +23,5 @@ export default class SequelizeEngineAutoFieldParser extends EngineAutoFieldParse
     defaultOptions.validate.isNumeric = true;
     defaultOptions.validate.isInt = true;
     return defaultOptions;
-  }
-}
+  },
+});

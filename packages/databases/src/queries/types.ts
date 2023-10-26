@@ -1,12 +1,12 @@
-import Engine from '../engine';
+import DatabaseAdapter from '../engine';
 
 export type QueryDataFnType =
   | ((
-      engine: Engine,
+      engine: DatabaseAdapter,
       args: { modelOfEngineInstance: any; search: any; data: any; transaction?: any }
     ) => Promise<[boolean, any][]>)
   | ((
-      engine: Engine,
+      engine: DatabaseAdapter,
       args: {
         modelOfEngineInstance: any;
         search: any;
@@ -16,7 +16,7 @@ export type QueryDataFnType =
       }
     ) => Promise<any>)
   | ((
-      engine: Engine,
+      engine: DatabaseAdapter,
       args: {
         modelOfEngineInstance: any;
         search: any;

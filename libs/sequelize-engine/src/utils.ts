@@ -1,5 +1,4 @@
 import { Field, ForeignKeyField, fields } from '@palmares/databases';
-import { ModelTranslatorIndexesType } from './types';
 import {
   BelongsToOptions,
   ForeignKeyOptions,
@@ -65,7 +64,7 @@ export function getIndexes(engineName: string, modelName: string): IndexesOption
  * @param fieldAttributes - The attributes of the field.
  */
 export function handleRelatedField(
-  engine: SequelizeEngine,
+  engine: InstanceType<typeof SequelizeEngine>,
   field: ForeignKeyField,
   fieldAttributes: ModelAttributeColumnOptions & ForeignKeyOptions
 ) {

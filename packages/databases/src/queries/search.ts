@@ -1,4 +1,4 @@
-import Engine from '../engine';
+import DatabaseAdapter from '../engine';
 import { BaseModel, model } from '../models';
 import { FieldWithOperationType, OperatorsOfQuery } from '../models/types';
 
@@ -9,7 +9,7 @@ import { FieldWithOperationType, OperatorsOfQuery } from '../models/types';
  *
  * We return either the value of the field or the object with the parsed data.
  */
-async function parseSearchField(engine: Engine, fieldData: FieldWithOperationType<unknown>) {
+async function parseSearchField(engine: DatabaseAdapter, fieldData: FieldWithOperationType<unknown>) {
   if (typeof fieldData === 'object') {
     const dataOfFieldToUseInQuery: any = {};
 
@@ -133,7 +133,7 @@ async function parseSearchField(engine: Engine, fieldData: FieldWithOperationTyp
  * @returns The parsed search, translated to the database engine so we can make a query.
  */
 export default async function parseSearch(
-  engine: Engine,
+  engine: DatabaseAdapter,
   modelInstance: InstanceType<ReturnType<typeof model>>,
   search: any
 ) {

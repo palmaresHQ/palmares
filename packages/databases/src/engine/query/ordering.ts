@@ -1,7 +1,7 @@
-import { NotImplementedEngineException } from '../exceptions';
+import { NotImplementedAdapterException } from '../exceptions';
 
 export default class EngineOrdering {
   async parseOrdering(ordering: (`${string}` | `-${string}`)[]): Promise<any> {
-    throw new NotImplementedEngineException('parseOrdering');
+    throw new NotImplementedAdapterException('parseOrdering');
   }
 }

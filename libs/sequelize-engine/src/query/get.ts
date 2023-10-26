@@ -4,8 +4,10 @@ import {
   ForeignKeyField,
   ModelBaseClass,
   InternalModelClass_DoNotUse,
+  DatabaseAdapter,
 } from '@palmares/databases';
 import { Includeable, Model, ModelCtor, Order } from 'sequelize';
+
 import SequelizeEngine from '../engine';
 
 export default class SequelizeEngineGetQuery extends EngineGetQuery {
@@ -23,7 +25,7 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
    * @param formattedIncludesStatement - The include statement formatted to something that sequelize can understand.
    */
   async #parseSearchWithIncludes(
-    engine: SequelizeEngine,
+    engine: InstanceType<typeof SequelizeEngine>,
     parentModel: ModelBaseClass,
     search: any,
     includes: Includes<{ fields: readonly string[] }>,
@@ -32,7 +34,7 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
   ) {
     const parentModelConstructor = parentModel.constructor as unknown as typeof InternalModelClass_DoNotUse;
     const parentModelName = parentModelConstructor.getName() as string;
-    const engineName = engine.databaseName;
+    const engineName = engine.connectionName;
     for (const include of includes || []) {
       const includedModelName = include.model.name;
       const modelInstance = include.model.default.getModel(engineName) as ModelBaseClass;
@@ -111,7 +113,7 @@ export default class SequelizeEngineGetQuery extends EngineGetQuery {
   }*/
 
   async queryData(
-    _engine: SequelizeEngine,
+    _engine: DatabaseAdapter,
     args: {
       modelOfEngineInstance: ModelCtor<Model>;
       search: any;

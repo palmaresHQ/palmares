@@ -17,12 +17,15 @@ import {
   EngineDoesNotSupportFieldTypeException,
   RelatedModelFromForeignKeyIsNotFromEngineException,
 } from './exceptions';
-import type EngineFieldParser from '../engine/fields/field';
-import type Engine from '../engine';
 import model, { BaseModel, Model } from './model';
-import { ModelType } from './types';
-import { EngineFields, InitializedModelsType, ModelOptionsType } from '..';
+import { InitializedModelsType } from '../types';
 import UuidField from './fields/uuid';
+import AdapterFields from '../engine/fields';
+
+import type DatabaseAdapter from '../engine';
+import type { ModelType } from './types';
+import type EngineFieldParser from '../engine/fields/field';
+import type { ModelOptionsType } from './types';
 
 /**
  * This is used to store the models that are related to each other. IT IS NOT direct relations. A direct relation would be when a model defines a ForeignKeyField to another model.
@@ -69,7 +72,7 @@ export const defaultModelOptions = {
  * What we do is that we convert the value of the foreign key field to the value of the field that is going to be used by the engine. So instead of a foreign key field
  * we will be parsing, let's say, a normal integer field.
  */
-async function foreignKeyFieldParser(engine: Engine, field: ForeignKeyField): Promise<any> {
+async function foreignKeyFieldParser(engine: DatabaseAdapter, field: ForeignKeyField): Promise<any> {
   const [isRelatedModelFromEngine, fieldToChangeRelationTo] = await field.isRelatedModelFromEngineInstance(engine);
   if (isRelatedModelFromEngine === false) {
     if (fieldToChangeRelationTo) return fieldToChangeRelationTo;
@@ -119,8 +122,8 @@ function callTranslateAndAppendInputAndOutputParsersToField(
  * The special use case is ForeignKeyFields, ForeignKeyFields can be attached to a ForeignKeyField, so we need to retrieve the field that is going to be used.
  */
 export async function parse(
-  engine: Engine,
-  engineFields: EngineFields,
+  engine: DatabaseAdapter,
+  engineFields: AdapterFields,
   field: Field,
   callbackForLazyEvaluation: (translatedField: any, shouldReturnData?: boolean, field?: Field) => void
 ): Promise<any> {
@@ -254,7 +257,10 @@ export async function parse(
  * the engine can understand. By default engines (like Sequelize, Prisma, etc) does not understand the Palmares models, it understands their own model implementations. That's exactly
  * what this does is that it takes the Palmares models and, with the engine, we translate them to something that the engine can understand.
  */
-export async function initializeModels(engine: Engine, models: (typeof BaseModel & ReturnType<typeof model>)[]) {
+export async function initializeModels(
+  engine: DatabaseAdapter,
+  models: (typeof BaseModel & ReturnType<typeof model>)[]
+) {
   const initializedModels: InitializedModelsType[] = [];
   const auxiliaryIndexByModelName: Record<string, number> = {};
   const fieldsToEvaluateAfter: {
@@ -335,7 +341,7 @@ export async function initializeModels(engine: Engine, models: (typeof BaseModel
  * This factory function is used to create a default model translate callback. A library user can call this function at any time to run the default behavior of the model translation.
  */
 export function factoryFunctionForModelTranslate(
-  engine: Engine,
+  engine: DatabaseAdapter,
   model: Model,
   callbackToParseAfterAllModelsAreTranslated: (field: Field, translatedField: any) => void
 ) {
