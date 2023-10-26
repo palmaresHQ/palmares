@@ -1,4 +1,4 @@
-import type Engine from '..';
+import type DatabaseAdapter from '..';
 export default class EngineRemoveQuery {
   /**
    * Should return the data removed from the database, this way we are able to revert the changes if something fails.
@@ -6,7 +6,7 @@ export default class EngineRemoveQuery {
    * @param modelOfEngineInstance - The model instance to query.
    */
   async queryData(
-    _engine: Engine,
+    _engine: DatabaseAdapter,
     _args: {
       modelOfEngineInstance: any;
       search: any;

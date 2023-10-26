@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import State from '../state';
 import Migration from '../migrate/migration';
-import Engine from '../../engine';
+import DatabaseAdapter from '../../engine';
 import { ActionToGenerateType, ToStringFunctionReturnType } from './types';
 import { OriginalOrStateModelsByNameType } from '../types';
 
@@ -45,10 +45,11 @@ export class Operation {
    * before running the migration and `toState` will be state AFTER running the migration
    */
   async run(
-    migration: Migration,
-    engineInstance: Engine,
-    fromState: OriginalOrStateModelsByNameType,
-    toState: OriginalOrStateModelsByNameType
+    _migration: Migration,
+    _engineInstance: DatabaseAdapter,
+    _fromState: OriginalOrStateModelsByNameType,
+    _toState: OriginalOrStateModelsByNameType,
+    _returnOfInit: any
   ): Promise<void> {}
 
   static async defaultToGenerate<T>(

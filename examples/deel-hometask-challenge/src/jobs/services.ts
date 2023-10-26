@@ -82,7 +82,7 @@ export async function payJobId(
   const contractorId = job.contract.contractor.id;
   const contractorBalance = job.contract.contractor.balance || 0;
 
-  await engineInstance.transaction(async (transaction) => {
+  await engineInstance.useTransaction(async (transaction) => {
     await Promise.all([
       Profile.default.set(
         {

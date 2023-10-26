@@ -14,7 +14,7 @@ import {
   ModelType,
 } from './types';
 import { ManagerEngineInstanceNotFoundError } from './exceptions';
-import Engine from '../engine';
+import DatabaseAdapter from '../engine';
 import { Model, default as model } from './model';
 import Databases from '../databases';
 import { DatabaseSettingsType } from '../types';
@@ -69,7 +69,7 @@ import type { Narrow } from '@palmares/core';
  * For example: one could create a framework that enables `bull.js` tasks to be defined on the database instead
  * of the code. This way we could update the tasks dynamically.
  */
-export default class Manager<TModel = Model, EI extends Engine | null = null> {
+export default class Manager<TModel = Model, EI extends DatabaseAdapter | null = null> {
   instances: ManagerInstancesType;
   engineInstances: ManagerEngineInstancesType;
   defaultEngineInstanceName: string;
@@ -137,9 +137,9 @@ export default class Manager<TModel = Model, EI extends Engine | null = null> {
    *
    * @return - The instance of the the model inside that engine instance
    */
-  async getInstance<T extends Engine = Engine>(
+  async getInstance<T extends DatabaseAdapter = DatabaseAdapter>(
     engineName?: string
-  ): Promise<EI extends Engine ? EI['ModelType'] : T['ModelType']> {
+  ): Promise<EI extends DatabaseAdapter ? EI['ModelType'] : T['ModelType']> {
     const engineInstanceName = engineName || this.defaultEngineInstanceName;
     const doesInstanceExists = this.instances[engineInstanceName] !== undefined;
     if (doesInstanceExists) return this.instances[engineInstanceName];
@@ -157,16 +157,18 @@ export default class Manager<TModel = Model, EI extends Engine | null = null> {
     this.instances[engineName] = instance;
   }
 
-  async getEngineInstance<T extends Engine = Engine>(engineName?: string): Promise<EI extends Engine ? EI : T> {
+  async getEngineInstance<T extends DatabaseAdapter = DatabaseAdapter>(
+    engineName?: string
+  ): Promise<EI extends DatabaseAdapter ? EI : T> {
     const engineInstanceName: string = engineName || this.defaultEngineInstanceName;
     const doesInstanceExists = this.engineInstances[engineInstanceName] !== undefined;
-    if (doesInstanceExists) return this.engineInstances[engineInstanceName] as EI extends Engine ? EI : T;
+    if (doesInstanceExists) return this.engineInstances[engineInstanceName] as EI extends DatabaseAdapter ? EI : T;
     const hasLazilyInitialized = await this.verifyIfNotInitializedAndInitializeModels(engineInstanceName);
     if (hasLazilyInitialized) return this.getEngineInstance(engineName);
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }
 
-  _setEngineInstance(engineName: string, instance: Engine) {
+  _setEngineInstance(engineName: string, instance: DatabaseAdapter) {
     const isDefaultEngineInstanceNameEmpty = this.defaultEngineInstanceName === '';
     if (isDefaultEngineInstanceNameEmpty) this.defaultEngineInstanceName = engineName;
     this.engineInstances[engineName] = instance;

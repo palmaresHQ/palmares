@@ -1,7 +1,7 @@
 import { ON_DELETE, ForeignKeyFieldParamsType, ClassConstructor, MaybeNull } from './types';
 import Field, { UnopinionatedField } from './field';
 import { ForeignKeyFieldRequiredParamsMissingError } from './exceptions';
-import Engine from '../../engine';
+import DatabaseAdapter from '../../engine';
 import { generateUUID } from '../../utils';
 import { This } from '../../types';
 import { Model } from '../model';
@@ -562,7 +562,7 @@ export default class ForeignKeyField<
    * @returns - Returns an array where the first item is if the relatedmodel is from the engine instance (false if not) and the field it should
    * change to.
    */
-  async isRelatedModelFromEngineInstance(engineInstance: Engine): Promise<[boolean, Field?]> {
+  async isRelatedModelFromEngineInstance(engineInstance: DatabaseAdapter): Promise<[boolean, Field?]> {
     const relatedToAsString = this.relatedTo as string;
     const relatedModel = engineInstance.__modelsOfEngine[relatedToAsString];
     if (relatedModel !== undefined) return [true, undefined];

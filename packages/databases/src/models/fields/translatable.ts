@@ -1,5 +1,5 @@
 import Field from './field';
-import Engine from '../../engine';
+import DatabaseAdapter from '../../engine';
 
 /**
  * Enables developers to create custom fields while also being able to translate them dynamically for a specific engine.
@@ -16,7 +16,7 @@ import Engine from '../../engine';
  * class MyCustomField extends TranslatableField {
  *    typeName: string = 'MyCustomField';
  *
- *    async translate(engine: Engine): Promise<ModelAttributeColumnOptions> {
+ *    async translate(engine: DatabaseAdapter): Promise<ModelAttributeColumnOptions> {
  *       return {
  *         type: engine.DataTypes.STRING,
  *        allowNull: false,
@@ -28,7 +28,7 @@ import Engine from '../../engine';
 export default class TranslatableField extends Field {
   typeName: string = TranslatableField.name;
 
-  async translate(_engine: Engine): Promise<any> {
+  async translate(_engine: DatabaseAdapter): Promise<any> {
     return undefined;
   }
 }

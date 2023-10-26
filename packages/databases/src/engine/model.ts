@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import type Engine from '.';
+import type DatabaseAdapter from '.';
 import { ModelOptionsType } from '..';
 import { Field } from '../models/fields';
 import { Model } from '../models/model';
-import { NotImplementedEngineException } from './exceptions';
+import { NotImplementedAdapterException } from './exceptions';
 
 /**
  * Functional approach to creating a model adapter instead of the default class/inheritance approach.
@@ -63,7 +63,7 @@ export function adapterModels<
    * @example
    * ```ts
    * async function translateFields(
-   *   engine: Engine,
+   *   engine: DatabaseAdapter,
    *   modelName: string,
    *   fieldEntriesOfModel: [string, Field][],
    *   model: Model,
@@ -87,7 +87,7 @@ export function adapterModels<
    * @example
    * ```ts
    * async function translateFields(
-   *   engine: Engine,
+   *   engine: DatabaseAdapter,
    *   modelName: string,
    *   fieldEntriesOfModel: [string, Field][],
    *   model: Model,
@@ -111,7 +111,7 @@ export function adapterModels<
    * @example
    * ```ts
    * async function translateFields(
-   *   _engine: Engine,
+   *   _engine: DatabaseAdapter,
    *   _modelName: string,
    *   _fieldEntriesOfModel: [string, Field][],
    *   _model: Model,
@@ -211,7 +211,7 @@ export function adapterModels<
    * }
    * ```
    *
-   * @param engine - The instance of your Engine.
+   * @param engine - The instance of your DatabaseAdapter.
    * @param modelName - The name of the model that is being translated.
    * @param model - The Palmares model instance so we can translate it.
    * @param fieldEntriesOfModel - The field entries of the model. It's an array of tuples where the first element is the field name and the second is the field.
@@ -234,7 +234,7 @@ export function adapterModels<
    *
    * @example
    * ```ts
-   * async afterModelsTranslation(_engine: Engine, _models: [string, any][]): Promise<[string, any][] | undefined> {
+   * async afterModelsTranslation(_engine: DatabaseAdapter, _models: [string, any][]): Promise<[string, any][] | undefined> {
    *   spawn('npx', ['prisma', 'generate'], { stdio: 'inherit' });
    *   return undefined;
    * }
@@ -262,7 +262,7 @@ export function adapterModels<
     static customOptions = args.customOptions as TCustomOptionsFunction;
   }
 
-  return CustomAdapterModel as {
+  return CustomAdapterModel as typeof AdapterModels & {
     customOptions: TCustomOptionsFunction;
     new (): AdapterModels & {
       translateOptions: TTranslateOptionsFunction;
@@ -303,8 +303,8 @@ export default class AdapterModels {
    * @param modelName - The name of the model that is being translated.
    * @param modelOptions - The options of the model that is being translated.
    */
-  async translateOptions(_engine: Engine, _modelName: string, _modelOptions: ModelOptionsType): Promise<any> {
-    throw new NotImplementedEngineException('translateOptions');
+  async translateOptions(_engine: DatabaseAdapter, _modelName: string, _modelOptions: ModelOptionsType): Promise<any> {
+    throw new NotImplementedAdapterException('translateOptions');
   }
 
   /**
@@ -327,7 +327,7 @@ export default class AdapterModels {
    * @example
    * ```ts
    * async function translateFields(
-   *   engine: Engine,
+   *   engine: DatabaseAdapter,
    *   modelName: string,
    *   fieldEntriesOfModel: [string, Field][],
    *   model: Model,
@@ -351,7 +351,7 @@ export default class AdapterModels {
    * @example
    * ```ts
    * async function translateFields(
-   *   engine: Engine,
+   *   engine: DatabaseAdapter,
    *   modelName: string,
    *   fieldEntriesOfModel: [string, Field][],
    *   model: Model,
@@ -375,7 +375,7 @@ export default class AdapterModels {
    * @example
    * ```ts
    * async function translateFields(
-   *   _engine: Engine,
+   *   _engine: DatabaseAdapter,
    *   _modelName: string,
    *   _fieldEntriesOfModel: [string, Field][],
    *   _model: Model,
@@ -404,14 +404,14 @@ export default class AdapterModels {
    * @returns - An object where the keys are the field names and the values are the translated values.
    */
   async translateFields?(
-    _engine: Engine,
+    _engine: DatabaseAdapter,
     _modelName: string,
     _fieldEntriesOfModel: [string, Field][],
     _model: Model,
     _defaultTranslateFieldCallback: (_field: Field) => Promise<any>,
     _defaultTranslateFieldsCallback: () => Promise<{ [key: string]: any }>
   ): Promise<{ [key: string]: any }> {
-    throw new NotImplementedEngineException('translateFields');
+    throw new NotImplementedAdapterException('translateFields');
   }
 
   /**
@@ -484,7 +484,7 @@ export default class AdapterModels {
    * }
    * ```
    *
-   * @param engine - The instance of your Engine.
+   * @param engine - The instance of your DatabaseAdapter.
    * @param modelName - The name of the model that is being translated.
    * @param model - The Palmares model instance so we can translate it.
    * @param fieldEntriesOfModel - The field entries of the model. It's an array of tuples where the first element is the field name and the second is the field.
@@ -497,7 +497,7 @@ export default class AdapterModels {
    * @returns - The instance of the translated model.
    */
   async translate(
-    _engine: Engine,
+    _engine: DatabaseAdapter,
     _modelName: string,
     _model: Model,
     _fieldEntriesOfModel: [string, Field][],
@@ -506,7 +506,7 @@ export default class AdapterModels {
     _defaultTranslateFieldCallback: (_field: Field) => Promise<any>,
     _defaultTranslateFieldsCallback: () => Promise<{ [key: string]: any }>
   ): Promise<any> {
-    throw new NotImplementedEngineException('translate');
+    throw new NotImplementedAdapterException('translate');
   }
 
   /**
@@ -519,7 +519,7 @@ export default class AdapterModels {
    *
    * @example
    * ```ts
-   * async afterModelsTranslation(_engine: Engine, _models: [string, any][]): Promise<[string, any][] | undefined> {
+   * async afterModelsTranslation(_engine: DatabaseAdapter, _models: [string, any][]): Promise<[string, any][] | undefined> {
    *   spawn('npx', ['prisma', 'generate'], { stdio: 'inherit' });
    *   return undefined;
    * }
@@ -530,12 +530,19 @@ export default class AdapterModels {
    *
    * @returns - An array of tuples where the first value is the modelName and the second is the value returned from `translate` method, or undefined if you don't want to modify the models.
    */
-  async afterModelsTranslation?(_engine: Engine, _models: [string, any][]): Promise<[string, any][] | undefined> {
-    throw new NotImplementedEngineException('afterModelsTranslation');
+  async afterModelsTranslation?(
+    _engine: DatabaseAdapter,
+    _models: [string, any][]
+  ): Promise<[string, any][] | undefined> {
+    throw new NotImplementedAdapterException('afterModelsTranslation');
   }
 
-  async getModelInstanceForCustomHooks?(_engine: Engine, _modelName: string, _translatedModel: any): Promise<any> {
-    throw new NotImplementedEngineException('getModelInstanceForCustomHooks');
+  async getModelInstanceForCustomHooks?(
+    _engine: DatabaseAdapter,
+    _modelName: string,
+    _translatedModel: any
+  ): Promise<any> {
+    throw new NotImplementedAdapterException('getModelInstanceForCustomHooks');
   }
 
   /**

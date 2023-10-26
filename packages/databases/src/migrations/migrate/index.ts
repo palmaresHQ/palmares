@@ -1,10 +1,11 @@
 import { PalmaresMigrations } from '../../defaults/models';
-import Engine from '../../engine';
+import DatabaseAdapter from '../../engine';
 import { DatabaseSettingsType, InitializedEngineInstancesType } from '../../types';
 import { FoundMigrationsFileType } from '../types';
 import Migration from './migration';
 import { MigrationsToAddAfterIterationType } from './type';
 import { databaseLogger } from '../../logging';
+import State from '../state';
 
 /**
  * This class holds the logic for evaluating migrations, usually evaluating migrations is simple because we just
@@ -70,12 +71,16 @@ export default class Migrate {
   /**
    * This is the main method that is used to run the migrations in the specific database.
    *
+   * There are 2 ways to run the migrations:
+   * - Either we batch them into a single migration that just gets the current state and let the ORM handle the rest.
+   * - Run each migration file individually and each migration action one by one.
+   *
    * @param engineInstance - The engine instance that is being used to run all of the migrations
    * in the database.
    * @param allMigrationsOfDatabase - All of the migration files that are available to be used inside of
    * this database.
    */
-  private async _run(engineInstance: Engine, allMigrationsOfDatabase: FoundMigrationsFileType[]) {
+  private async _run(engineInstance: DatabaseAdapter, allMigrationsOfDatabase: FoundMigrationsFileType[]) {
     const lastMigrationName = await this.getLastMigration(engineInstance.connectionName);
     const startIndexOfFilter =
       allMigrationsOfDatabase.findIndex((migration) => migration.migration.name === lastMigrationName) + 1;
@@ -85,14 +90,35 @@ export default class Migrate {
     );
 
     if (filteredMigrationsOfDatabase.length > 0) {
+      // Run the migrations in batch, so just get the current state and let the ORM handle the rest.
+      if (engineInstance.migrations.batchAll) {
+        databaseLogger.logMessage('MIGRATION_RUNNING_IN_BATCH', {
+          databaseName: engineInstance.connectionName,
+        });
+
+        let returnOfInit: any = undefined;
+        if (engineInstance.migrations.init) returnOfInit = await engineInstance.migrations.init(engineInstance);
+        const currentState = await State.buildState(filteredMigrationsOfDatabase);
+        const initializedModelsByName = await currentState.geInitializedModelsByName(engineInstance);
+        const formattedModelsByName: { [modelName: string]: any } = {};
+
+        for (const [modelName, model] of Object.entries(initializedModelsByName.initializedModels))
+          formattedModelsByName[modelName] = model.initialized;
+
+        await engineInstance.migrations.batchAll(engineInstance, formattedModelsByName, returnOfInit);
+      }
+
+      // Run the migrations one by one. Default Approach. We always run this because we need to save that the migration file was evaluated to the database.
       for (const migrationFile of filteredMigrationsOfDatabase) {
         const migrationName = migrationFile.migration.name;
 
-        databaseLogger.logMessage('MIGRATIONS_RUNNING_FILE_NAME', {
-          title: migrationName,
-        });
+        if (engineInstance.migrations.batchAll === undefined) {
+          databaseLogger.logMessage('MIGRATIONS_RUNNING_FILE_NAME', {
+            title: migrationName,
+          });
+          await Migration.buildFromFile(engineInstance, migrationFile, allMigrationsOfDatabase);
+        }
 
-        await Migration.buildFromFile(engineInstance, migrationFile, allMigrationsOfDatabase);
         await this.saveMigration(migrationName, engineInstance.connectionName);
       }
     } else {

@@ -1,8 +1,8 @@
-import Engine from "../../engine";
-import Migration from "../migrate/migration";
-import { StateModelsConstructorType, OriginalOrStateModelsByNameType } from "../types";
-import { Operation } from "./operation";
-import { CodeFunctionType } from "./types";
+import DatabaseAdapter from '../../engine';
+import Migration from '../migrate/migration';
+import { StateModelsConstructorType, OriginalOrStateModelsByNameType } from '../types';
+import { Operation } from './operation';
+import { CodeFunctionType } from './types';
 
 /**
  * Run a Javascript function action, this action can make queries or requests.
@@ -53,15 +53,18 @@ export class RunJs extends Operation {
 
   async run(
     migration: Migration,
-    engineInstance: Engine,
+    engineInstance: DatabaseAdapter,
     _: OriginalOrStateModelsByNameType,
-    toState: OriginalOrStateModelsByNameType
+    toState: OriginalOrStateModelsByNameType,
+    returnOfInit: any
   ): Promise<void> {
     const stateModels = {} as StateModelsConstructorType;
     const modelNamesAlreadyAvailable = Object.keys(toState);
     for (const modelName of modelNamesAlreadyAvailable) {
       stateModels[modelName] = toState[modelName].class;
     }
-    await Promise.resolve(this.code(migration, engineInstance, stateModels as StateModelsConstructorType));
+    await Promise.resolve(
+      this.code(migration, engineInstance, stateModels as StateModelsConstructorType, returnOfInit)
+    );
   }
 }

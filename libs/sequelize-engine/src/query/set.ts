@@ -1,10 +1,9 @@
-import { EngineSetQuery } from '@palmares/databases';
+import { EngineSetQuery, DatabaseAdapter } from '@palmares/databases';
 import { Model, ModelCtor, Transaction } from 'sequelize';
-import SequelizeEngine from '../engine';
 
 export default class SequelizeEngineSetQuery extends EngineSetQuery {
   async queryData(
-    _: SequelizeEngine,
+    _: DatabaseAdapter,
     args: {
       modelOfEngineInstance: ModelCtor<Model>;
       search: any;

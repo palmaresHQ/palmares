@@ -1,4 +1,4 @@
-import { EngineFields, Field, ForeignKeyField } from '@palmares/databases';
+import { adapterFields, Field, ForeignKeyField } from '@palmares/databases';
 
 import { Model, ModelCtor } from 'sequelize';
 
@@ -26,31 +26,31 @@ import type SequelizeEngine from '../engine';
  * or sometimes we need to translate stuff outside of the fields for example the indexes that are from the model
  * itself.
  */
-export default class SequelizeEngineFields extends EngineFields {
-  fieldsParser = new SequelizeEngineFieldParser();
-  autoFieldParser = new SequelizeEngineAutoFieldParser();
-  bigAutoFieldParser = new SequelizeEngineBigAutoFieldParser();
-  bigIntegerFieldParser = new SequelizeEngineBigIntegerFieldParser();
-  charFieldParser = new SequelizeEngineCharFieldParser();
-  dateFieldParser = new SequelizeEngineDateFieldParser();
-  decimalFieldParser = new SequelizeEngineDecimalFieldParser();
-  foreignKeyFieldParser = new SequelizeEngineForeignKeyFieldParser();
-  integerFieldParser = new SequelizeEngineIntegerFieldParser();
-  textFieldParser = new SequelizeEngineTextFieldParser();
-  uuidFieldParser = new SequelizeEngineUuidFieldParser();
-  enumFieldParser = new SequelizeEngineEnumFieldParser();
-  booleanFieldParser = new SequelizeEngineBooleanFieldParser();
+export default adapterFields({
+  fieldsParser: new SequelizeEngineFieldParser(),
+  autoFieldParser: new SequelizeEngineAutoFieldParser(),
+  bigAutoFieldParser: new SequelizeEngineBigAutoFieldParser(),
+  bigIntegerFieldParser: new SequelizeEngineBigIntegerFieldParser(),
+  charFieldParser: new SequelizeEngineCharFieldParser(),
+  dateFieldParser: new SequelizeEngineDateFieldParser(),
+  decimalFieldParser: new SequelizeEngineDecimalFieldParser(),
+  foreignKeyFieldParser: new SequelizeEngineForeignKeyFieldParser(),
+  integerFieldParser: new SequelizeEngineIntegerFieldParser(),
+  textFieldParser: new SequelizeEngineTextFieldParser(),
+  uuidFieldParser: new SequelizeEngineUuidFieldParser(),
+  enumFieldParser: new SequelizeEngineEnumFieldParser(),
+  booleanFieldParser: new SequelizeEngineBooleanFieldParser(),
 
-  async lazyEvaluateField(
-    engine: SequelizeEngine,
+  lazyEvaluateField: async (
+    engine,
     _modelName: string,
     translatedModel: ModelCtor<Model>,
     field: Field,
     fieldTranslated: TranslatedFieldToEvaluateAfterType
-  ): Promise<any> {
+  ) => {
     switch (fieldTranslated.type) {
       case 'foreign-key':
-        handleRelatedField(engine, field as ForeignKeyField, fieldTranslated);
+        handleRelatedField(engine as InstanceType<typeof SequelizeEngine>, field as ForeignKeyField, fieldTranslated);
         break;
       case 'date':
         translatedModel.addHook('beforeSave', `${field.fieldName}AutoNow`, (instance: Model) => {
@@ -61,5 +61,5 @@ export default class SequelizeEngineFields extends EngineFields {
         break;
     }
     return translatedModel;
-  }
-}
+  },
+});

@@ -3,7 +3,7 @@ import getResultsWithIncludes from '.';
 import Transaction from '../transaction';
 import getQuery from './get';
 
-import type Engine from '../engine';
+import type DatabaseAdapter from '../engine';
 import type { Includes, ModelFieldsWithIncludes, FieldsOFModelType } from '../models/types';
 
 export default async function setQuery<
@@ -42,7 +42,7 @@ export default async function setQuery<
     search?: TSearch;
   },
   internal: {
-    engine: Engine;
+    engine: DatabaseAdapter;
     transaction?: any;
     model: TModel;
     includes: TIncludes;
@@ -141,7 +141,7 @@ export default async function setQuery<
   }
   try {
     if (isToUseTransaction) {
-      return internal.engine.transaction(async (transaction) => getResults(transaction));
+      return internal.engine.useTransaction(async (transaction) => getResults(transaction));
     } else return getResults(internal.transaction);
   } catch (error) {
     if (palmaresTransaction) {

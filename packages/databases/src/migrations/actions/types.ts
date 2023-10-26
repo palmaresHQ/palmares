@@ -1,4 +1,4 @@
-import Engine from '../../engine';
+import DatabaseAdapter from '../../engine';
 import { Field } from '../../models/fields';
 import { CustomImportsForFieldType } from '../../models/fields/types';
 import { ModelFieldsType, ModelOptionsType } from '../../models/types';
@@ -54,8 +54,9 @@ export type DeleteFieldToGenerateData = {
 
 export type CodeFunctionType = (
   migration: Migration,
-  engineInstance: Engine,
-  stateModels: StateModelsConstructorType
+  engineInstance: DatabaseAdapter,
+  stateModels: StateModelsConstructorType,
+  returnOfInit: any
 ) => Promise<void> | void;
 
 export type ToStringFunctionReturnType = {
