@@ -4,11 +4,26 @@ import { OperatorsOfQuery } from '../../models/types';
  * This engine query interface is used for the search arguments of a query, when making a query we should parse the search so we support stuff like
  * `like`, `in`, `is`, `between` and so on.
  */
-export default class EngineQuerySearch {
+export function adapterQuerySearch<
+  TFunctionParseSearchFieldValue extends AdapterQuerySearch['parseSearchFieldValue'],
+>(args: { parseSearchFieldValue: TFunctionParseSearchFieldValue }) {
+  class CustomAdapterQuerySearch extends AdapterQuerySearch {
+    parseSearchFieldValue = args.parseSearchFieldValue as TFunctionParseSearchFieldValue;
+  }
+
+  return CustomAdapterQuerySearch as typeof AdapterQuerySearch & {
+    new (): AdapterQuerySearch & { parseSearchFieldValue: TFunctionParseSearchFieldValue };
+  };
+}
+/**
+ * This engine query interface is used for the search arguments of a query, when making a query we should parse the search so we support stuff like
+ * `like`, `in`, `is`, `between` and so on.
+ */
+export default class AdapterQuerySearch {
   async parseSearchFieldValue<OperationType extends OperatorsOfQuery>(
     _operationType: OperationType,
     /**
-     * This is the value of the query
+     * This is the value of the query, if the operation is `or`, `and`, `in` or `between` this will be an array of values.
      */
     _value?: OperationType extends 'or' | 'and' | 'in' | 'between' ? unknown[] : unknown,
     /**
