@@ -417,42 +417,41 @@ type RequiredFields<
     : never;
 };
 
-export enum OperatorsOfQuery {
-  is = 'is',
-  or = 'or',
-  and = 'and',
-  in = 'in',
-  greaterThan = 'greaterThan',
-  greaterThanOrEqual = 'greaterThanOrEqual',
-  lessThan = 'lessThan',
-  lessThanOrEqual = 'lessThanOrEqual',
-  between = 'between',
-  like = 'like',
-}
+export type OperatorsOfQuery =
+  | 'is'
+  | 'or'
+  | 'and'
+  | 'in'
+  | 'greaterThan'
+  | 'greaterThanOrEqual'
+  | 'lessThan'
+  | 'lessThanOrEqual'
+  | 'between'
+  | 'like';
 
 export type FieldWithOperationType<TFieldType> = {
-  [OperatorsOfQuery.is]?:
+  ['is']?:
     | {
         not: TFieldType;
       }
     | TFieldType;
-  [OperatorsOfQuery.or]?: TFieldType[];
-  [OperatorsOfQuery.and]?: TFieldType[];
-  [OperatorsOfQuery.in]?:
+  ['or']?: TFieldType[];
+  ['and']?: TFieldType[];
+  ['in']?:
     | {
         not: TFieldType[];
       }
     | TFieldType[];
-  [OperatorsOfQuery.greaterThan]?: NonNullable<TFieldType>;
-  [OperatorsOfQuery.greaterThanOrEqual]?: NonNullable<TFieldType>;
-  [OperatorsOfQuery.lessThan]?: NonNullable<TFieldType>;
-  [OperatorsOfQuery.lessThanOrEqual]?: NonNullable<TFieldType>;
-  [OperatorsOfQuery.between]?:
+  ['greaterThan']?: NonNullable<TFieldType>;
+  ['greaterThanOrEqual']?: NonNullable<TFieldType>;
+  ['lessThan']?: NonNullable<TFieldType>;
+  ['lessThanOrEqual']?: NonNullable<TFieldType>;
+  ['between']?:
     | {
         not: [NonNullable<TFieldType>, NonNullable<TFieldType>];
       }
     | [NonNullable<TFieldType>, NonNullable<TFieldType>];
-  [OperatorsOfQuery.like]?:
+  ['like']?:
     | {
         not: { ignoreCase: NonNullable<TFieldType> } | NonNullable<TFieldType>;
       }
@@ -463,21 +462,14 @@ export type FieldWithOperationType<TFieldType> = {
 type AddOperation<TFieldType, TIsSearch extends boolean = true> =
   | TFieldType
   | (TIsSearch extends true
-      ? Pick<
-          FieldWithOperationType<TFieldType>,
-          OperatorsOfQuery.is | OperatorsOfQuery.or | OperatorsOfQuery.and | OperatorsOfQuery.in
-        > &
+      ? Pick<FieldWithOperationType<TFieldType>, 'is' | 'or' | 'and' | 'in'> &
           (TFieldType extends number | Date
             ? Pick<
                 FieldWithOperationType<TFieldType>,
-                | OperatorsOfQuery.greaterThan
-                | OperatorsOfQuery.greaterThanOrEqual
-                | OperatorsOfQuery.lessThan
-                | OperatorsOfQuery.lessThanOrEqual
-                | OperatorsOfQuery.between
+                'greaterThan' | 'greaterThanOrEqual' | 'lessThan' | 'lessThanOrEqual' | 'between'
               >
             : TFieldType extends string
-            ? Pick<FieldWithOperationType<TFieldType>, OperatorsOfQuery.like>
+            ? Pick<FieldWithOperationType<TFieldType>, 'like'>
             : unknown)
       : never);
 
