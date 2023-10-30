@@ -1,0 +1,10 @@
+{
+  "extends": "../../build/tsconfig.types.json",
+  "compilerOptions": {
+    "declaration": true, /* Generate d.ts files */
+    "rootDir": "./src",
+    "outDir": "./dist/cjs/types",
+    "types": ["node"]
+  },
+  "include": ["src/**/*"]
+}
