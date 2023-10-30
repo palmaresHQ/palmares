@@ -3,7 +3,13 @@ import { model as Model, Model as ModelBaseClass } from './models';
 import * as fields from './models/fields';
 
 export * from './types';
-export * from './engine';
+export { default as DatabaseAdapter, databaseAdapter } from './engine';
+export { default as AdapterQuery, adapterQuery } from './engine/query';
+export { default as AdapterOrderingQuery, adapterOrderingQuery } from './engine/query/ordering';
+export { default as AdapterSearchQuery, adapterSearchQuery } from './engine/query/search';
+export { default as AdapterGetQuery, adapterGetQuery } from './engine/query/get';
+export { default as AdapterSetQuery, adapterSetQuery } from './engine/query/set';
+export { default as AdapterRemoveQuery, adapterRemoveQuery } from './engine/query/remove';
 export { default as AdapterModels, adapterModels } from './engine/model';
 export { default as AdapterFields, adapterFields } from './engine/fields';
 export { default as AdapterMigrations, adapterMigrations } from './engine/migrations';

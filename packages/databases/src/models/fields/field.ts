@@ -5,7 +5,6 @@ import { FieldDefaultParamsType, CustomImportsForFieldType, MaybeNull } from './
 import type { This } from '../../types';
 import type EngineFieldParser from '../../engine/fields/field';
 import type { ModelType } from '../types';
-import type { BaseModel, Model } from '../model';
 
 /**
  * This is the default field of the model, every other field type should override this one but this one SHOULDN't be called directly.
@@ -135,7 +134,6 @@ export default class Field<
     const isAlreadyInitialized = this.model !== undefined && typeof this.fieldName === 'string';
     if (isAlreadyInitialized) return;
 
-    const modelInstance = new model() as Model & BaseModel;
     const isUnderscored: boolean = (this.underscored || model._options()?.underscored) === true;
     this.fieldName = fieldName;
     this.model = model;

@@ -3,13 +3,7 @@ import { DatabaseConfigurationType } from '../types';
 import { EngineInitializedModels } from './types';
 import AdapterFields from './fields';
 import AdapterMigrations from './migrations';
-import EngineQuery, {
-  EngineGetQuery,
-  EngineQuerySearch,
-  EngineSetQuery,
-  EngineRemoveQuery,
-  EngineQueryOrdering,
-} from './query';
+import AdapterQuery from './query';
 import AdapterModels from './model';
 
 import type model from '../models/model';
@@ -17,7 +11,7 @@ import type model from '../models/model';
 export function databaseAdapter<
   TFieldsAdapter extends AdapterFields,
   TModelsAdapter extends AdapterModels,
-  TQueryAdapter extends EngineQuery,
+  TQueryAdapter extends AdapterQuery,
   TMigrationsAdapter extends AdapterMigrations,
   TFunctionNew extends (typeof DatabaseAdapter)['new'],
   TFunctionDuplicate extends DatabaseAdapter['duplicate'],
@@ -94,7 +88,7 @@ export default class DatabaseAdapter<
   TInstanceType = any,
   TFieldsAdapter extends AdapterFields = AdapterFields,
   TModelsAdapter extends AdapterModels = AdapterModels,
-  TQueryAdapter extends EngineQuery = EngineQuery,
+  TQueryAdapter extends AdapterQuery = AdapterQuery,
   TMigrationsAdapter extends AdapterMigrations = AdapterMigrations,
 > {
   connectionName!: string;
@@ -222,13 +216,3 @@ export default class DatabaseAdapter<
     return await this.transaction(this, callback, ...args);
   }
 }
-
-export {
-  EngineQuery,
-  EngineGetQuery,
-  EngineSetQuery,
-  EngineRemoveQuery,
-  EngineQuerySearch,
-  EngineQueryOrdering,
-  DatabaseAdapter,
-};

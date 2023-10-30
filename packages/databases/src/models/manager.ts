@@ -237,7 +237,10 @@ export default class Manager<TModel = Model, EI extends DatabaseAdapter | null =
        */
       includes?: Narrow<IncludesValidated<TModel, TIncludes>>;
       fields?: Narrow<TFields>;
-      search?: ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true> | undefined;
+      search?:
+        | ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true>
+        | ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true>[]
+        | undefined;
       ordering?: OrderingOfModelsType<
         FieldsOfModelOptionsType<TModel> extends string ? FieldsOfModelOptionsType<TModel> : string
       >;

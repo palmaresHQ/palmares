@@ -45,7 +45,6 @@ async function parseResults(
               model: modelInstance as InstanceType<ReturnType<typeof model>> & BaseModel,
               modelName: modelName,
             });
-            console.log('parsedValue', parsedValue);
             (data as any)[key] = parsedValue;
           }
         }
@@ -345,7 +344,12 @@ async function callQueryDataFn<
     | undefined;
 
   const [parsedSearch, parsedData, parsedOrdering] = await Promise.all([
-    parseSearch(engine, modelInstance as InstanceType<ReturnType<typeof model>>, mergedSearchForData),
+    parseSearch(
+      engine,
+      modelInstance as InstanceType<ReturnType<typeof model>>,
+      mergedSearchForData,
+      typeof args.useParsers.input === 'boolean' ? args.useParsers.input : true
+    ),
     parseData(engine, args.useParsers.input, modelInstanceAsModel, mergedData),
     (async () => {
       if (Array.isArray(ordering))

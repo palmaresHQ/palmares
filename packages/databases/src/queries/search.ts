@@ -9,7 +9,11 @@ import { FieldWithOperationType } from '../models/types';
  *
  * We return either the value of the field or the object with the parsed data.
  */
-async function parseSearchField(engine: DatabaseAdapter, fieldData: FieldWithOperationType<unknown>) {
+async function parseSearchField(
+  engine: DatabaseAdapter,
+  fieldData: FieldWithOperationType<unknown>,
+  inputFieldParser: (value: any) => Promise<any>
+) {
   if (typeof fieldData === 'object') {
     const dataOfFieldToUseInQuery: any = {};
 
@@ -17,7 +21,7 @@ async function parseSearchField(engine: DatabaseAdapter, fieldData: FieldWithOpe
       if ((fieldData?.like as any)?.ignoreCase) {
         await engine.query.search.parseSearchFieldValue(
           'like',
-          (fieldData?.like as any)?.ignoreCase,
+          await inputFieldParser((fieldData?.like as any)?.ignoreCase),
           dataOfFieldToUseInQuery,
           {
             ignoreCase: true,
@@ -28,7 +32,7 @@ async function parseSearchField(engine: DatabaseAdapter, fieldData: FieldWithOpe
         if (typeof fieldData?.like?.not === 'object') {
           await engine.query.search.parseSearchFieldValue(
             'like',
-            (fieldData?.like?.not as any).ignoreCase,
+            await inputFieldParser((fieldData?.like?.not as any).ignoreCase),
             dataOfFieldToUseInQuery,
             {
               isNot: true,
@@ -36,54 +40,106 @@ async function parseSearchField(engine: DatabaseAdapter, fieldData: FieldWithOpe
             }
           );
         } else {
-          await engine.query.search.parseSearchFieldValue('like', fieldData?.like.not, dataOfFieldToUseInQuery, {
-            isNot: true,
-          });
+          await engine.query.search.parseSearchFieldValue(
+            'like',
+            await inputFieldParser(fieldData?.like.not),
+            dataOfFieldToUseInQuery,
+            {
+              isNot: true,
+            }
+          );
         }
       } else {
-        await engine.query.search.parseSearchFieldValue('like', fieldData?.like, dataOfFieldToUseInQuery);
+        await engine.query.search.parseSearchFieldValue(
+          'like',
+          await inputFieldParser(fieldData?.like),
+          dataOfFieldToUseInQuery
+        );
       }
     }
     if (Array.isArray(fieldData?.and)) {
-      await engine.query.search.parseSearchFieldValue('and', fieldData?.and, dataOfFieldToUseInQuery);
+      await engine.query.search.parseSearchFieldValue(
+        'and',
+        await inputFieldParser(fieldData?.and),
+        dataOfFieldToUseInQuery
+      );
     }
     if (Array.isArray(fieldData?.or)) {
-      await engine.query.search.parseSearchFieldValue('or', fieldData?.or, dataOfFieldToUseInQuery);
+      await engine.query.search.parseSearchFieldValue(
+        'or',
+        await inputFieldParser(fieldData?.or),
+        dataOfFieldToUseInQuery
+      );
     }
     if (Array.isArray(fieldData?.in)) {
-      await engine.query.search.parseSearchFieldValue('in', fieldData?.in, dataOfFieldToUseInQuery);
+      await engine.query.search.parseSearchFieldValue(
+        'in',
+        await inputFieldParser(fieldData?.in),
+        dataOfFieldToUseInQuery
+      );
     } else if (typeof fieldData?.in === 'object') {
-      await engine.query.search.parseSearchFieldValue('in', fieldData?.in.not, dataOfFieldToUseInQuery, {
-        isNot: true,
-      });
+      await engine.query.search.parseSearchFieldValue(
+        'in',
+        await inputFieldParser(fieldData?.in.not),
+        dataOfFieldToUseInQuery,
+        {
+          isNot: true,
+        }
+      );
     }
     if (Array.isArray(fieldData?.between)) {
-      await engine.query.search.parseSearchFieldValue('between', fieldData?.between, dataOfFieldToUseInQuery);
+      await engine.query.search.parseSearchFieldValue(
+        'between',
+        await inputFieldParser(fieldData?.between),
+        dataOfFieldToUseInQuery
+      );
     } else if (typeof fieldData?.between === 'object') {
-      await engine.query.search.parseSearchFieldValue('between', fieldData?.between.not, dataOfFieldToUseInQuery, {
-        isNot: true,
-      });
+      await engine.query.search.parseSearchFieldValue(
+        'between',
+        await inputFieldParser(fieldData?.between.not),
+        dataOfFieldToUseInQuery,
+        {
+          isNot: true,
+        }
+      );
     }
     if (fieldData?.is !== undefined) {
-      await engine.query.search.parseSearchFieldValue('is', fieldData?.is, dataOfFieldToUseInQuery);
+      await engine.query.search.parseSearchFieldValue(
+        'is',
+        await inputFieldParser(fieldData?.is),
+        dataOfFieldToUseInQuery
+      );
     } else if (typeof fieldData?.is === 'object')
-      await engine.query.search.parseSearchFieldValue('is', (fieldData?.is as any).not, dataOfFieldToUseInQuery, {
-        isNot: true,
-      });
+      await engine.query.search.parseSearchFieldValue(
+        'is',
+        await inputFieldParser((fieldData?.is as any).not),
+        dataOfFieldToUseInQuery,
+        {
+          isNot: true,
+        }
+      );
     if (fieldData?.greaterThan !== undefined)
-      await engine.query.search.parseSearchFieldValue('greaterThan', fieldData?.greaterThan, dataOfFieldToUseInQuery);
+      await engine.query.search.parseSearchFieldValue(
+        'greaterThan',
+        await inputFieldParser(fieldData?.greaterThan),
+        dataOfFieldToUseInQuery
+      );
     if (fieldData?.greaterThanOrEqual !== undefined)
       await engine.query.search.parseSearchFieldValue(
         'greaterThanOrEqual',
-        fieldData?.greaterThanOrEqual,
+        await inputFieldParser(fieldData?.greaterThanOrEqual),
         dataOfFieldToUseInQuery
       );
     if (fieldData?.lessThan !== undefined)
-      await engine.query.search.parseSearchFieldValue('lessThan', fieldData?.lessThan, dataOfFieldToUseInQuery);
+      await engine.query.search.parseSearchFieldValue(
+        'lessThan',
+        await inputFieldParser(fieldData?.lessThan),
+        dataOfFieldToUseInQuery
+      );
     if (fieldData?.lessThanOrEqual !== undefined)
       await engine.query.search.parseSearchFieldValue(
         'lessThanOrEqual',
-        fieldData?.lessThanOrEqual,
+        await inputFieldParser(fieldData?.lessThanOrEqual),
         dataOfFieldToUseInQuery
       );
 
@@ -104,15 +160,30 @@ async function parseSearchField(engine: DatabaseAdapter, fieldData: FieldWithOpe
 export default async function parseSearch(
   engine: DatabaseAdapter,
   modelInstance: InstanceType<ReturnType<typeof model>>,
-  search: any
+  search: any,
+  useInputParser: boolean = true
 ) {
   if (search) {
+    const modelConstructor = modelInstance.constructor as ReturnType<typeof model> & typeof BaseModel;
     const fieldsInModelInstance = Object.keys(modelInstance.fields);
     const fieldsInSearch = Object.keys(search);
 
     const formattedSearch: Record<string, any> = {};
     const promises = fieldsInSearch.map(async (key) => {
-      if (fieldsInModelInstance.includes(key)) formattedSearch[key] = await parseSearchField(engine, search[key]);
+      const fieldInputParserFunction =
+        useInputParser && modelInstance.fields[key]?.inputParsers.has(engine.connectionName)
+          ? async (value: any) =>
+              modelInstance.fields[key]?.inputParsers.get(engine.connectionName)?.({
+                engine,
+                field: modelInstance.fields[key],
+                fieldParser: engine.fields.fieldsParser,
+                model: modelInstance,
+                modelName: modelConstructor.getName(),
+                value,
+              })
+          : async (value: any) => value;
+      if (fieldsInModelInstance.includes(key))
+        formattedSearch[key] = await parseSearchField(engine, search[key], fieldInputParserFunction);
     });
     await Promise.all(promises);
     return formattedSearch;
