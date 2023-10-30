@@ -1,0 +1,27 @@
+{
+  "name": "@examples/cache-only",
+  "version": "0.0.1",
+  "description": "TODO",
+  "main": "manage.ts",
+  "scripts": {
+    "dev": "nodemon --watch 'src/' --watch '../../packages/*/dist/**' --watch '../../libs/*/dist/**' --exec ' tsx manage.ts runserver' -e ts"
+  },
+  "author": "Mateus Vinícius",
+  "license": "MIT",
+  "dependencies": {
+    "@palmares/cache": "workspace:*",
+    "@palmares/console-logging": "workspace:*",
+    "@palmares/logging": "workspace:*",
+    "@palmares/core": "workspace:*",
+    "@palmares/express-adapter": "workspace:*",
+    "@palmares/node-std": "workspace:*",
+    "@palmares/server": "workspace:*",
+    "@palmares/std": "workspace:*",
+    "cors": "^2.8.5",
+    "zod": "^3.18.0"
+  },
+  "devDependencies": {
+    "@types/qs": "^6.9.8",
+    "nodemon": "^2.0.20"
+  }
+}

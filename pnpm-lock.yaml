@@ -140,6 +140,46 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
 
+  examples/cache-only:
+    dependencies:
+      '@palmares/cache':
+        specifier: workspace:*
+        version: link:../../packages/cache
+      '@palmares/console-logging':
+        specifier: workspace:*
+        version: link:../../libs/console-logging
+      '@palmares/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@palmares/express-adapter':
+        specifier: workspace:*
+        version: link:../../libs/express-adapter
+      '@palmares/logging':
+        specifier: workspace:*
+        version: link:../../packages/logging
+      '@palmares/node-std':
+        specifier: workspace:*
+        version: link:../../libs/node-std
+      '@palmares/server':
+        specifier: workspace:*
+        version: link:../../packages/server
+      '@palmares/std':
+        specifier: workspace:*
+        version: link:../../packages/std
+      cors:
+        specifier: ^2.8.5
+        version: 2.8.5
+      zod:
+        specifier: ^3.18.0
+        version: 3.22.2
+    devDependencies:
+      '@types/qs':
+        specifier: ^6.9.8
+        version: 6.9.8
+      nodemon:
+        specifier: ^2.0.20
+        version: 2.0.22
+
   examples/deel-hometask-challenge:
     dependencies:
       '@palmares/console-logging':
@@ -326,6 +366,12 @@ importers:
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
+
+  packages/cache:
+    dependencies:
+      '@palmares/core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/core:
     devDependencies:
