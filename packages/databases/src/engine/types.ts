@@ -119,7 +119,7 @@ export type AdapterFieldParserInputAndOutputArgs<
 > = {
   /** The engine instance. */
   engine: TEngine;
-  /** The field parser instance so we can call the `translate` method on other field types */
+  /** The field parser instance so we can call the `inputParse` or `outputParse` method on other field types */
   fieldParser: TFieldParser;
   /** The model name. */
   modelName: string;

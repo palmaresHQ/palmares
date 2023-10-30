@@ -1,17 +1,7 @@
-import { EngineRemoveQuery, DatabaseAdapter } from '@palmares/databases';
+import { adapterRemoveQuery } from '@palmares/databases';
 
-import { Model, ModelCtor, Transaction } from 'sequelize';
-
-export default class SequelizeEngineRemoveQuery extends EngineRemoveQuery {
-  async queryData(
-    _: DatabaseAdapter,
-    args: {
-      modelOfEngineInstance: ModelCtor<Model>;
-      search: any;
-      shouldReturnData?: boolean;
-      transaction?: Transaction;
-    }
-  ) {
+export default adapterRemoveQuery({
+  queryData: async (_, args) => {
     async function remove() {
       return args.modelOfEngineInstance.destroy({
         where: args.search,
@@ -24,9 +14,9 @@ export default class SequelizeEngineRemoveQuery extends EngineRemoveQuery {
         transaction: args.transaction,
       });
       await remove();
-      return deleted.map((data) => data.toJSON());
+      return deleted.map((data: any) => data.toJSON());
     }
     await remove();
     return [];
-  }
-}
+  },
+});

@@ -15,7 +15,7 @@ let runningEventsServer: EventsServer<Emitter>;
  * idea is that this should not need to be tied to palmares and could work outside of it normally.
  */
 export class EventsServer<E extends Emitter> extends EventEmitter<E> {
-  #interval!: NodeJS.Timer;
+  #interval!: NodeJS.Timeout;
   #addEventListenerPromises: Promise<any>[] = [];
 
   /**
@@ -32,12 +32,8 @@ export class EventsServer<E extends Emitter> extends EventEmitter<E> {
    * This is used for appending the promise of adding the event listener to an array so when we initialize the server
    * we can wait for all the callbacks to be appended and listen for events.
    */
-  addEventListenerWithoutResult(
-    ...params: Parameters<EventEmitter['addEventListenerWithoutResult']>
-  ) {
-    const addEventListenerPromise = super.addEventListenerWithoutResult(
-      ...params
-    );
+  addEventListenerWithoutResult(...params: Parameters<EventEmitter['addEventListenerWithoutResult']>) {
+    const addEventListenerPromise = super.addEventListenerWithoutResult(...params);
     this.#addEventListenerPromises.push(addEventListenerPromise);
     return addEventListenerPromise;
   }
@@ -73,17 +69,13 @@ export class EventsServer<E extends Emitter> extends EventEmitter<E> {
   }
 }
 
-export default async function eventsServer<
-  E extends typeof Emitter = typeof Emitter
->(
+export default async function eventsServer<E extends typeof Emitter = typeof Emitter>(
   emitter: Promise<{ default: E }> | E,
   options?: EventEmitterOptionsType & {
     emitterParams?: Parameters<E['new']>;
   }
 ) {
-  return EventsServer.new<E>(emitter, options) as Promise<
-    EventsServer<InstanceType<E>>
-  >;
+  return EventsServer.new<E>(emitter, options) as Promise<EventsServer<InstanceType<E>>>;
 }
 
 export function setEventsServer(server: EventsServer<Emitter>) {

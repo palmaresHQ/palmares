@@ -1,7 +1,20 @@
 import type DatabaseAdapter from '..';
-export default class EngineRemoveQuery {
+
+export function adapterRemoveQuery<TFunctionQueryData extends AdapterRemoveQuery['queryData']>(args: {
+  queryData: TFunctionQueryData;
+}) {
+  class CustomAdapterRemoveQuery extends AdapterRemoveQuery {
+    queryData = args.queryData as TFunctionQueryData;
+  }
+
+  return CustomAdapterRemoveQuery as typeof AdapterRemoveQuery & {
+    new (): AdapterRemoveQuery & { queryData: TFunctionQueryData };
+  };
+}
+
+export default class AdapterRemoveQuery {
   /**
-   * Should return the data removed from the database, this way we are able to revert the changes if something fails.
+   * This query is used to remove a certain data from the database.
    *
    * @param modelOfEngineInstance - The model instance to query.
    */
