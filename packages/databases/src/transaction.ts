@@ -66,7 +66,7 @@ export default class Transaction {
     const firstModelToProcess = this.dataThatWasInsertedOrRemoved.get(currentIndexToProcess);
     const engineToUse = await firstModelToProcess?.model.default.getEngineInstance(firstModelToProcess?.engineName);
     if (!engineToUse || !firstModelToProcess) return;
-    await engineToUse.transaction(async (transaction) => {
+    await engineToUse.useTransaction(async (transaction) => {
       let dataToProcess = this.dataThatWasInsertedOrRemoved.get(currentIndexToProcess);
       while (dataToProcess && dataToProcess.engineName === firstModelToProcess.engineName) {
         const promises: Promise<void>[] = [];

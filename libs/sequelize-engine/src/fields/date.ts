@@ -1,33 +1,31 @@
-import { DateField } from '@palmares/databases';
+import { AdapterFieldParserTranslateArgs, adapterDateFieldParser } from '@palmares/databases';
 import { DataTypes, ModelAttributeColumnOptions } from 'sequelize';
 
 import SequelizeEngineFieldParser from './field';
 import SequelizeEngine from '../engine';
+import { TranslatedFieldToEvaluateAfterType } from '../types';
 
-export default class SequelizeEngineDateFieldParser extends SequelizeEngineFieldParser {
-  auto = undefined;
-  bigAuto = undefined;
-  bigInt = undefined;
-  char = undefined;
-  date = undefined;
-  decimal = undefined;
-  foreignKey = undefined;
-  integer = undefined;
-  text = undefined;
-  uuid = undefined;
-  enum = undefined;
-  boolean = undefined;
+export default adapterDateFieldParser({
+  translate: async (
+    args: AdapterFieldParserTranslateArgs<
+      'date',
+      any,
+      InstanceType<typeof SequelizeEngineFieldParser>,
+      TranslatedFieldToEvaluateAfterType
+    >
+  ): Promise<ModelAttributeColumnOptions> => {
+    const isAutoNow = (args.field?.autoNow as boolean) === true;
+    const hasAutoNowOrAutoNowAdd = (args.field?.autoNowAdd as boolean) === true || isAutoNow;
 
-  translatable = true;
-
-  async translate(engine: SequelizeEngine, field: DateField): Promise<ModelAttributeColumnOptions> {
-    const isAutoNow = (field.autoNow as boolean) === true;
-    const hasAutoNowOrAutoNowAdd = (field.autoNowAdd as boolean) === true || isAutoNow;
-
-    const defaultOptions = await super.translate(engine, field);
+    const defaultOptions = await args.fieldParser.translate(args);
     defaultOptions.type = DataTypes.DATE;
     if (hasAutoNowOrAutoNowAdd) defaultOptions.defaultValue = DataTypes.NOW;
-    if (isAutoNow) await engine.fields.addHooksToUpdateDateFields(field.model.name, field.fieldName);
+    if (isAutoNow)
+      args.lazyEvaluate({
+        fieldAttributes: defaultOptions,
+        type: 'date',
+      } as TranslatedFieldToEvaluateAfterType);
+
     return defaultOptions;
-  }
-}
+  },
+});

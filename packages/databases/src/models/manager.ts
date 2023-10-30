@@ -1,5 +1,5 @@
 import { getSettings, initializeDomains, SettingsType2 } from '@palmares/core';
-import type { Function } from 'ts-toolbelt';
+
 import {
   ManagerInstancesType,
   ManagerEngineInstancesType,
@@ -10,9 +10,11 @@ import {
   FieldsOFModelType,
   OrderingOfModelsType,
   FieldsOfModelOptionsType,
+  RelatedFieldToModel,
+  ModelType,
 } from './types';
 import { ManagerEngineInstanceNotFoundError } from './exceptions';
-import Engine from '../engine';
+import DatabaseAdapter from '../engine';
 import { Model, default as model } from './model';
 import Databases from '../databases';
 import { DatabaseSettingsType } from '../types';
@@ -20,6 +22,8 @@ import { DatabaseDomainInterface } from '../interfaces';
 import removeQuery from '../queries/remove';
 import getQuery from '../queries/get';
 import setQuery from '../queries/set';
+
+import type { Narrow } from '@palmares/core';
 
 /**
  * Managers define how you make queries on the database. Instead of making queries everywhere in your application
@@ -65,11 +69,11 @@ import setQuery from '../queries/set';
  * For example: one could create a framework that enables `bull.js` tasks to be defined on the database instead
  * of the code. This way we could update the tasks dynamically.
  */
-export default class Manager<TModel extends Model = Model, EI extends Engine | null = null> {
+export default class Manager<TModel = Model, EI extends DatabaseAdapter | null = null> {
   instances: ManagerInstancesType;
   engineInstances: ManagerEngineInstancesType;
   defaultEngineInstanceName: string;
-  models: { [engineName: string]: Model };
+  models: { [engineName: string]: TModel };
   modelKls!: { new (...args: unknown[]): any };
   isLazyInitializing = false;
 
@@ -100,7 +104,6 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
   async verifyIfNotInitializedAndInitializeModels(engineName: string) {
     const database = new Databases();
 
-    console.log(this.isLazyInitializing, database.isInitialized, database.isInitializing);
     const canInitializeTheModels =
       this.isLazyInitializing === false && database.isInitialized === false && database.isInitializing === false;
     this.isLazyInitializing = true;
@@ -134,9 +137,9 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
    *
    * @return - The instance of the the model inside that engine instance
    */
-  async getInstance<T extends Engine = Engine>(
+  async getInstance<T extends DatabaseAdapter = DatabaseAdapter>(
     engineName?: string
-  ): Promise<EI extends Engine ? EI['ModelType'] : T['ModelType']> {
+  ): Promise<EI extends DatabaseAdapter ? EI['ModelType'] : T['ModelType']> {
     const engineInstanceName = engineName || this.defaultEngineInstanceName;
     const doesInstanceExists = this.instances[engineInstanceName] !== undefined;
     if (doesInstanceExists) return this.instances[engineInstanceName];
@@ -154,16 +157,18 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
     this.instances[engineName] = instance;
   }
 
-  async getEngineInstance<T extends Engine = Engine>(engineName?: string): Promise<EI extends Engine ? EI : T> {
+  async getEngineInstance<T extends DatabaseAdapter = DatabaseAdapter>(
+    engineName?: string
+  ): Promise<EI extends DatabaseAdapter ? EI : T> {
     const engineInstanceName: string = engineName || this.defaultEngineInstanceName;
     const doesInstanceExists = this.engineInstances[engineInstanceName] !== undefined;
-    if (doesInstanceExists) return this.engineInstances[engineInstanceName] as EI extends Engine ? EI : T;
+    if (doesInstanceExists) return this.engineInstances[engineInstanceName] as EI extends DatabaseAdapter ? EI : T;
     const hasLazilyInitialized = await this.verifyIfNotInitializedAndInitializeModels(engineInstanceName);
     if (hasLazilyInitialized) return this.getEngineInstance(engineName);
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }
 
-  _setEngineInstance(engineName: string, instance: Engine) {
+  _setEngineInstance(engineName: string, instance: DatabaseAdapter) {
     const isDefaultEngineInstanceNameEmpty = this.defaultEngineInstanceName === '';
     if (isDefaultEngineInstanceNameEmpty) this.defaultEngineInstanceName = engineName;
     this.engineInstances[engineName] = instance;
@@ -224,12 +229,18 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
       limit?: number;
       offset?: number | string;
     }> = undefined,
-    TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>
+    TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>,
   >(
     args?: {
-      includes?: Function.Narrow<IncludesValidated<TModel, TIncludes>>;
-      fields?: Function.Narrow<TFields>;
-      search?: ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true> | undefined;
+      /**
+       * Includes is used for making relations. Because everything is inferred and you define your relationName directly on the ForeignKeyField
+       */
+      includes?: Narrow<IncludesValidated<TModel, TIncludes>>;
+      fields?: Narrow<TFields>;
+      search?:
+        | ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true>
+        | ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true>[]
+        | undefined;
       ordering?: OrderingOfModelsType<
         FieldsOfModelOptionsType<TModel> extends string ? FieldsOfModelOptionsType<TModel> : string
       >;
@@ -247,9 +258,9 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
       ? engineName
       : this.defaultEngineInstanceName;
 
-    const allFieldsOfModel = Object.keys(
-      this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName)['fields']
-    );
+    const modelInstance = this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName) as Model;
+    const modelConstructor = modelInstance.constructor as ModelType;
+    const allFieldsOfModel = Object.keys(modelConstructor._fields());
     return getQuery(
       {
         fields: (args?.fields || allFieldsOfModel) as unknown as TFields,
@@ -291,7 +302,7 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
     TIncludes extends Includes = undefined,
     TSearch extends
       | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
-      | undefined = undefined
+      | undefined = undefined,
   >(
     data:
       | ModelFieldsWithIncludes<
@@ -321,7 +332,7 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
        */
       useTransaction?: boolean;
       usePalmaresTransaction?: boolean;
-      includes?: Function.Narrow<IncludesValidated<TModel, TIncludes, true>>;
+      includes?: Narrow<IncludesValidated<TModel, TIncludes, true>>;
       search?: TSearch;
     },
     engineName?: string
@@ -372,13 +383,13 @@ export default class Manager<TModel extends Model = Model, EI extends Engine | n
   async remove<
     TIncludes extends Includes<{
       isToPreventRemove?: true;
-    }> = undefined
+    }> = undefined,
   >(
     args?: {
       usePalmaresTransaction?: boolean;
       useTransaction?: boolean;
       isToPreventEvents?: boolean;
-      includes?: Function.Narrow<
+      includes?: Narrow<
         IncludesValidated<
           TModel,
           TIncludes,

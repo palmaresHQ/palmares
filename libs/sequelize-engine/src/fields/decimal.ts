@@ -1,30 +1,22 @@
-import { DecimalField } from '@palmares/databases';
+import { AdapterFieldParserTranslateArgs, adapterDecimalFieldParser } from '@palmares/databases';
 import { DataTypes, ModelAttributeColumnOptions } from 'sequelize';
 
 import SequelizeEngineFieldParser from './field';
-import SequelizeEngine from '../engine';
+import { TranslatedFieldToEvaluateAfterType } from '../types';
 
-export default class SequelizeEngineDecimalFieldParser extends SequelizeEngineFieldParser {
-  auto = undefined;
-  bigAuto = undefined;
-  bigInt = undefined;
-  char = undefined;
-  date = undefined;
-  decimal = undefined;
-  foreignKey = undefined;
-  integer = undefined;
-  text = undefined;
-  uuid = undefined;
-  enum = undefined;
-  boolean = undefined;
-
-  translatable = true;
-
-  async translate(engine: SequelizeEngine, field: DecimalField): Promise<ModelAttributeColumnOptions> {
-    const defaultOptions = await super.translate(engine, field);
-    defaultOptions.type = DataTypes.DECIMAL(field.maxDigits, field.decimalPlaces);
+export default adapterDecimalFieldParser({
+  translate: async (
+    args: AdapterFieldParserTranslateArgs<
+      'decimal',
+      any,
+      InstanceType<typeof SequelizeEngineFieldParser>,
+      TranslatedFieldToEvaluateAfterType
+    >
+  ): Promise<ModelAttributeColumnOptions> => {
+    const defaultOptions = await args.fieldParser.translate(args);
+    defaultOptions.type = DataTypes.DECIMAL(args.field.maxDigits, args.field.decimalPlaces);
     defaultOptions.validate = defaultOptions.validate || {};
     defaultOptions.validate.isDecimal = true;
     return defaultOptions;
-  }
-}
+  },
+});

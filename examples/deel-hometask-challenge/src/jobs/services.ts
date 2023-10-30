@@ -53,7 +53,7 @@ export async function payJobId(
 ) {
   const profileBalanceAsNumber: number = profileBalance || 0;
   if (profileBalanceAsNumber < amountToPay) return false;
-  const engineInstance = await Jobs.default.getEngineInstance<SequelizeEngine>();
+  const engineInstance = await Jobs.default.getEngineInstance<InstanceType<typeof SequelizeEngine>>();
   const jobs = await Jobs.default.get({
     search: {
       id: jobId,
@@ -82,7 +82,7 @@ export async function payJobId(
   const contractorId = job.contract.contractor.id;
   const contractorBalance = job.contract.contractor.balance || 0;
 
-  await engineInstance.transaction(async (transaction) => {
+  await engineInstance.useTransaction(async (transaction) => {
     await Promise.all([
       Profile.default.set(
         {

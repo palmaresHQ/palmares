@@ -1,107 +1,85 @@
-import { Engine, EngineInitializedModels, ModelFields, models } from '@palmares/databases';
-import { Model, ModelCtor, Op, Options, Sequelize, Transaction } from 'sequelize';
+import { DatabaseAdapter, databaseAdapter } from '@palmares/databases';
+import { Options, Sequelize, Transaction } from 'sequelize';
 
 import SequelizeEngineFields from './fields';
 import SequelizeMigrations from './migrations';
 import SequelizeEngineModels from './model';
 import SequelizeEngineQuery from './query';
 
-export default class SequelizeEngine<M extends models.BaseModel = any> extends Engine {
-  databaseName!: string;
-  #isConnected: boolean | null = null;
-  declare initializedModels: EngineInitializedModels<ModelCtor<Model<ModelFields<M>>>>;
-  declare instance: Sequelize | null;
-  fields = new SequelizeEngineFields();
-  migrations = new SequelizeMigrations();
-  models = new SequelizeEngineModels();
-  query = new SequelizeEngineQuery();
+const instancesByConnectionNames = new Map<
+  string,
+  {
+    instance: Sequelize;
+    isConnected: boolean | undefined;
+  }
+>();
 
-  declare ModelType: ModelCtor<Model<ModelFields<M>>>;
+const checkIfInstanceSavedOrSave = (
+  connectionName: string,
+  sequelizeInstance: Sequelize
+): {
+  instance: Sequelize;
+  isConnected: boolean | undefined;
+} => {
+  const instance = instancesByConnectionNames.get(connectionName);
+  if (instance !== undefined) return instance;
 
-  operations = {
-    and: Op.and,
-    or: Op.or,
-    eq: Op.eq,
-    ne: Op.ne,
-    is: Op.is,
-    not: Op.not,
-    col: Op.col,
-    gt: Op.gt,
-    gte: Op.gte,
-    lt: Op.lt,
-    lte: Op.lte,
-    between: Op.between,
-    notBetween: Op.notBetween,
-    all: Op.all,
-    in: Op.in,
-    notIn: Op.notIn,
-    like: Op.like,
-    notLike: Op.notLike,
-    startsWith: Op.startsWith,
-    endsWith: Op.endsWith,
-    substring: Op.substring,
-    iLike: Op.iLike,
-    notILike: Op.notILike,
-    regexp: Op.regexp,
-    notRegexp: Op.notRegexp,
-    iRegexp: Op.iRegexp,
-    notIRegexp: Op.notIRegexp,
-    any: Op.any,
-    match: Op.match,
+  const toSave = {
+    instance: sequelizeInstance,
+    isConnected: undefined,
   };
+  instancesByConnectionNames.set(connectionName, toSave);
+  return toSave;
+};
 
-  static async new<TArgs extends Options & { url?: string }>(args: TArgs): Promise<[TArgs, Engine]> {
+const sequelizeDatabaseAdapter = databaseAdapter({
+  fields: new SequelizeEngineFields(),
+  migrations: new SequelizeMigrations(),
+  models: new SequelizeEngineModels(),
+  query: new SequelizeEngineQuery(),
+  new: async <TArgs extends Options & { url?: string }>(args: TArgs): Promise<[TArgs, DatabaseAdapter]> => {
     const isUrlDefined: boolean = typeof args.url === 'string';
     if (isUrlDefined) {
       const databaseUrl: string = args.url || '';
       const sequelizeInstance = new Sequelize(databaseUrl, args);
-      const engineInstance = new this();
+      const engineInstance = new sequelizeDatabaseAdapter();
       engineInstance.instance = sequelizeInstance;
       return [args, engineInstance];
     }
 
     const sequelizeInstance = new Sequelize(args);
-    const engineInstance = new this();
+    const engineInstance = new sequelizeDatabaseAdapter();
     engineInstance.instance = sequelizeInstance;
     return [args, engineInstance];
-  }
+  },
+  isConnected: async (databaseAdapter): Promise<boolean> => {
+    const instanceData = checkIfInstanceSavedOrSave(databaseAdapter.connectionName, databaseAdapter.instance);
+    if (typeof instanceData.isConnected === 'boolean') return instanceData.isConnected ? true : false;
 
-  async isConnected(): Promise<boolean> {
-    const isConnectedDefined: boolean = typeof this.#isConnected === 'boolean';
-    if (isConnectedDefined) return this.#isConnected ? true : false;
-    const isSequelizeInstanceDefined = this.instance instanceof Sequelize;
+    const isSequelizeInstanceDefined = instanceData.instance instanceof Sequelize;
 
     if (isSequelizeInstanceDefined) {
       try {
-        await this.instance?.authenticate();
-        this.#isConnected = true;
+        await instanceData.instance?.authenticate();
+        instanceData.isConnected = true;
       } catch (error) {
-        this.#isConnected = false;
+        instanceData.isConnected = false;
       }
 
-      if (this.#isConnected) return this.#isConnected;
+      if (instanceData.isConnected) return instanceData.isConnected;
     }
-    this.instance = null;
     return false;
-  }
-
-  async initializeModel(
-    engine: SequelizeEngine<any>,
-    model: models.BaseModel,
-    defaultInitializeModelCallback: () => Promise<ModelCtor<Model>>
-  ): Promise<ModelCtor<Model> | undefined> {
-    const modelInstance = await defaultInitializeModelCallback();
-    await this.fields.afterModelCreation(engine, model.name);
-    return modelInstance;
-  }
-
-  async transaction<TParameters extends Array<any>, TResult>(
+  },
+  transaction: async <TParameters extends Array<any>, TResult>(
+    databaseAdapter: DatabaseAdapter,
     callback: (transaction: Transaction, ...args: TParameters) => TResult | Promise<TResult>,
     ...args: TParameters
-  ): Promise<TResult> {
+  ): Promise<TResult> => {
+    const instanceData = checkIfInstanceSavedOrSave(databaseAdapter.connectionName, databaseAdapter.instance);
+
     return new Promise((resolve, reject) => {
       try {
-        this.instance?.transaction(async (transaction) => {
+        instanceData.instance?.transaction(async (transaction) => {
           try {
             resolve(await callback(transaction, ...args));
           } catch (e) {
@@ -112,13 +90,14 @@ export default class SequelizeEngine<M extends models.BaseModel = any> extends E
         reject(e);
       }
     });
-  }
-
-  async duplicate(getNewEngine: () => Promise<Engine>): Promise<Engine> {
+  },
+  duplicate: async (getNewEngine: () => Promise<DatabaseAdapter>): Promise<DatabaseAdapter> => {
     return getNewEngine();
-  }
+  },
+  close: async (databaseAdapter): Promise<void> => {
+    const instanceData = checkIfInstanceSavedOrSave(databaseAdapter.connectionName, databaseAdapter.instance);
+    await Promise.resolve(instanceData.instance?.close());
+  },
+});
 
-  async close(): Promise<void> {
-    await Promise.resolve(this.instance?.close());
-  }
-}
+export default sequelizeDatabaseAdapter;

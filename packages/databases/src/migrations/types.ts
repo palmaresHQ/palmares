@@ -1,12 +1,12 @@
+import { BaseModel } from '../models';
 import model from '../models/model';
-import { TModel } from '../models/types';
 import { InitializedModelsType } from '../types';
 import { Operation } from './actions';
 
 export type StateModelsType = {
   [modelName: string]: {
-    class: ReturnType<typeof model>;
-    instance: TModel;
+    class: ReturnType<typeof model> & typeof BaseModel;
+    instance: InstanceType<ReturnType<typeof model>> & BaseModel;
   };
 };
 

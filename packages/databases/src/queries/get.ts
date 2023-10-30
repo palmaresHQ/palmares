@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import model from '../models/model';
-import { NotImplementedEngineException } from '../engine/exceptions';
+import { NotImplementedAdapterException } from '../engine/exceptions';
 import getResultsWithIncludes from '.';
+import parseSearch from './search';
 
-import type { Narrow } from '@palmares/core';
-import type Engine from '../engine';
+import type DatabaseAdapter from '../engine';
 import type {
   Includes,
   ModelFieldsWithIncludes,
@@ -12,23 +12,29 @@ import type {
   OrderingOfModelsType,
   FieldsOfModelOptionsType,
 } from '../models/types';
-import { BaseModel } from '../models';
-import parseSearch from './search';
 
 export default async function getQuery<
-  TModel extends InstanceType<ReturnType<typeof model>>,
+  TModel,
   TIncludes extends Includes = undefined,
-  TFieldsOfModel extends Narrow<FieldsOFModelType<InstanceType<ReturnType<typeof model>>>> = FieldsOFModelType<
-    InstanceType<ReturnType<typeof model>>
-  >,
+  TFieldsOfModel extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>,
   TSearch extends
     | ModelFieldsWithIncludes<TModel, TIncludes, TFieldsOfModel, false, false, true, true>
-    | undefined = undefined
+    | undefined = undefined,
 >(
   args: {
     ordering?: OrderingOfModelsType<
       FieldsOfModelOptionsType<TModel> extends string ? FieldsOfModelOptionsType<TModel> : string
     >;
+    /**
+     * This object is used to specify if we should try to parse the data on input or output. Or both.
+     * By default we always parse the data.
+     *
+     * What is parsing the data? It's guaranteeing that the data is in the right format that you expect. Like on Prisma, a decimal might be Decimal.js, but on palmares, we try
+     * to guarantee it's always a number.
+     * By default we loop through the data retrieved and we parse it to the right format. Some fields can implement their parser, others might not.
+     * The problem is that we will always loop through the fields so it can bring some performance issues.
+     */
+    useParsers?: boolean;
     limit?: number;
     offset?: number | string;
     fields?: TFieldsOfModel;
@@ -36,26 +42,35 @@ export default async function getQuery<
   },
   internal: {
     model: TModel;
-    engine: Engine;
+    engine: DatabaseAdapter;
     includes: TIncludes;
   }
 ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFieldsOfModel>[]> {
+  const modelInstanceAsModel = internal.model as InstanceType<ReturnType<typeof model>>;
+
   const result: ModelFieldsWithIncludes<TModel, TIncludes, TFieldsOfModel>[] = [];
-  const selectedFields = (args.fields || Object.keys(internal.model.fields)) as TFieldsOfModel;
+  const selectedFields = (args.fields || Object.keys(modelInstanceAsModel.fields)) as TFieldsOfModel;
+  const useParsers = {
+    input: true,
+    output: typeof args.useParsers === 'boolean' ? args.useParsers : true,
+  };
+
   try {
     return await internal.engine.query.get.queryDataNatively(
       internal.engine,
-      internal.model.constructor as ReturnType<typeof model>,
+      modelInstanceAsModel.constructor as ReturnType<typeof model>,
       args.search,
       selectedFields as unknown as string[],
       internal.includes,
-      async (model: BaseModel<any>, search: any) => parseSearch(internal.engine, model, search)
+      async (modelInstance: InstanceType<ReturnType<typeof model>>, search: any) =>
+        parseSearch(internal.engine, modelInstance, search)
     );
   } catch (e) {
-    if ((e as Error).name === NotImplementedEngineException.name)
+    if ((e as Error).name === NotImplementedAdapterException.name)
       await getResultsWithIncludes(
         internal.engine,
         internal.model as TModel,
+        useParsers,
         selectedFields as TFieldsOfModel,
         internal.includes as TIncludes,
         args.search as TSearch,

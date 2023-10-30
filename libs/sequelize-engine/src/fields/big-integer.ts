@@ -1,31 +1,26 @@
-import { Field } from '@palmares/databases';
+import { AdapterFieldParserTranslateArgs, adapterBigIntegerFieldParser } from '@palmares/databases';
 import { DataTypes, ModelAttributeColumnOptions } from 'sequelize';
 
 import SequelizeEngineFieldParser from './field';
 import SequelizeEngine from '../engine';
+import { TranslatedFieldToEvaluateAfterType } from '../types';
 
-export default class SequelizeEngineBigIntegerFieldParser extends SequelizeEngineFieldParser {
-  auto = undefined;
-  bigAuto = undefined;
-  bigInt = undefined;
-  char = undefined;
-  date = undefined;
-  decimal = undefined;
-  foreignKey = undefined;
-  integer = undefined;
-  text = undefined;
-  uuid = undefined;
-  enum = undefined;
-  boolean = undefined;
-
-  translatable = true;
-
-  async translate(engine: SequelizeEngine, field: Field): Promise<ModelAttributeColumnOptions> {
-    const defaultOptions = await super.translate(engine, field);
+export default adapterBigIntegerFieldParser({
+  translate: async (
+    args: AdapterFieldParserTranslateArgs<
+      'big-integer',
+      any,
+      InstanceType<typeof SequelizeEngineFieldParser>,
+      TranslatedFieldToEvaluateAfterType
+    >
+  ): Promise<ModelAttributeColumnOptions> => {
+    const defaultOptions = await args.fieldParser.translate(args);
+    defaultOptions.autoIncrement = true;
+    defaultOptions.autoIncrementIdentity = true;
     defaultOptions.type = DataTypes.BIGINT;
     defaultOptions.validate = defaultOptions.validate || {};
     defaultOptions.validate.isNumeric = true;
     defaultOptions.validate.isInt = true;
     return defaultOptions;
-  }
-}
+  },
+});

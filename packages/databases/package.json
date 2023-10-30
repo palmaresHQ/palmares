@@ -44,8 +44,5 @@
     "@palmares/core": "workspace:*",
     "@palmares/std": "workspace:*",
     "@palmares/events": "workspace:*"
-  },
-  "devDependencies": {
-    "ts-toolbelt": "^9.6.0"
   }
 }

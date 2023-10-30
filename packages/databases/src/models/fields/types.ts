@@ -1,8 +1,13 @@
 import Field from './field';
-import Engine, { EngineFields } from '../../engine';
+import DatabaseAdapter from '../../engine';
+import AdapterFields from '../../engine/fields';
 import { Model } from '../model';
 
 import type { Narrow } from '@palmares/core';
+
+export type DefaultFieldType = Field<any, any, any, any, any, any, any, any>;
+
+export type MaybeNull<Type, IsNull extends boolean> = IsNull extends true ? Type | null | undefined : Type;
 
 export enum ON_DELETE {
   CASCADE = 'cascade',
@@ -18,151 +23,218 @@ export type CustomImportsForFieldType = {
 };
 
 export interface TranslatableFieldType {
-  translate?(engine: Engine, engineFields: EngineFields): Promise<any>;
+  translate?(engine: DatabaseAdapter, engineFields: AdapterFields): Promise<any>;
   toString(indentation: number, customParams: string | undefined): Promise<string>;
 }
 
 export type ClassConstructor<T> = {
   new (...args: unknown[]): T;
 };
-
-export interface FieldDefaultParamsType<
-  F extends Field<any, any, any, any, any, any>,
-  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
-  U extends boolean = false,
-  N extends boolean = false,
-  A extends boolean = false,
-  CA = any
-> {
-  primaryKey?: boolean;
-  unique?: U;
-  dbIndex?: boolean;
-  underscored?: boolean;
-  databaseName?: string | null;
-  defaultValue?: D;
-  allowNull?: N;
-  isAuto?: A;
-  customAttributes?: CA;
-}
-
-export type DecimalFieldParamsType<
-  F extends Field,
-  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
-  U extends boolean = false,
-  N extends boolean = false,
-  A extends boolean = false,
-  CA = any
-> = {
-  maxDigits: number;
-  decimalPlaces: number;
-} & FieldDefaultParamsType<F, D, U, N, A, CA>;
-
-export type EnumFieldParamsType<
-  TField extends Field,
-  TDefaultValue extends TNull extends true
-    ? TField['_type'] | undefined | null
-    : TField['_type'] | undefined = undefined,
+export type FieldDefaultParamsType<
+  TField extends DefaultFieldType,
+  TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,
   TUnique extends boolean = false,
   TNull extends boolean = false,
   TAuto extends boolean = false,
-  CA = any,
-  TEnumChoices extends string[] = string[]
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
+  TFieldSpecificParams = object,
 > = {
+  /**
+   * Specifies if this field should be considered the primary key of the model. (default: false)
+   */
+  primaryKey?: boolean;
+  /**
+   * If this field should be unique or not. (default: false)
+   */
+  unique?: TUnique;
+  /**
+   * On relational database we can create an index. This specifies if we should create an index for this field on the database (default: false). Be aware, this is mostly for relational databases.
+   */
+  dbIndex?: boolean;
+  /**
+   * If the field name should be underscored on the database or not. Like `firstName` will be converted to `first_name` on the database. This is ignored if `databaseName` is set. (default: true)
+   */
+  underscored?: boolean;
+  /**
+   *  The name of the field on the database. If this is not set, we will use either the field name or the underscored version of the field name.
+   */
+  databaseName?: TDatabaseName;
+  /**
+   * The default value for this field. (default: undefined)
+   */
+  defaultValue?: TDefaultValue;
+  /**
+   * If this field can be null or not. (default: false)
+   */
+  allowNull?: TNull;
+  /**
+   * An auto field is automatically incremented by the database engine. (default: false)
+   */
+  isAuto?: TAuto;
+  /**
+   * Custom attributes that will be passed to the field for the engine to use.
+   */
+  customAttributes?: TCustomAttributes;
+} & TFieldSpecificParams;
+
+export type DecimalFieldParamsType<
+  TField extends DefaultFieldType,
+  TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
+> = {
+  /**
+   * The maximum number of digits allowed in the numbers.
+   */
+  maxDigits: number;
+  /**
+   * The maximum number of decimal places allowed in the numbers.
+   */
+  decimalPlaces: number;
+} & FieldDefaultParamsType<
+  TField,
+  TDefaultValue,
+  TUnique,
+  TNull,
+  TAuto,
+  TDatabaseName,
+  TCustomAttributes,
+  { maxDigits: number; decimalPlaces: number }
+>;
+
+export type EnumFieldParamsType<
+  TField extends DefaultFieldType,
+  TDefaultValue extends MaybeNull<TEnumChoices[number] | undefined, TNull> = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
+  TEnumChoices extends string[] = string[],
+> = {
+  /**
+   * The choices that this field can have.
+   */
   choices: Narrow<TEnumChoices>;
-} & FieldDefaultParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, CA>;
+} & FieldDefaultParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;
 
 export type TextFieldParamsType<
-  F extends Field,
-  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
-  U extends boolean = false,
-  N extends boolean = false,
-  A extends boolean = false,
-  CA = any
+  TField extends DefaultFieldType,
+  TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
 > = {
+  /**
+   * If this field can be blank: '' (empty string) or not. (default: false)
+   */
   allowBlank?: boolean;
-} & FieldDefaultParamsType<F, D, U, N, A, CA>;
+} & FieldDefaultParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;
 
 export type CharFieldParamsType<
-  F extends Field,
-  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
-  U extends boolean = false,
-  N extends boolean = false,
-  A extends boolean = false,
-  CA = any
+  TField extends DefaultFieldType,
+  TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
+  TMaxLength extends number = number,
 > = {
-  maxLength?: number;
-} & TextFieldParamsType<F, D, U, N, A, CA>;
+  /**
+   * The maximum length of the string. (default: 255)
+   */
+  maxLength?: TMaxLength;
+} & TextFieldParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;
 
 export type UUIDFieldParamsType<
-  F extends Field,
-  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
-  U extends boolean = false,
-  N extends boolean = false,
-  A extends boolean = false,
-  CA = any,
-  AG extends boolean = A
+  TField extends DefaultFieldType,
+  TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
+  TAutoGenerate extends boolean = TAuto,
 > = {
-  autoGenerate?: AG;
+  /**
+   * If this field should be automatically generated by the engine or not. (default: false)
+   */
+  autoGenerate?: TAutoGenerate;
+  /**
+   * The maximum length of the uuid string. (default: 32)
+   */
   maxLength?: number;
-} & TextFieldParamsType<F, D, U, N, AG extends true ? true : A, CA>;
+} & TextFieldParamsType<
+  TField,
+  TDefaultValue,
+  TUnique,
+  TNull,
+  TAutoGenerate extends true ? true : TAuto,
+  TDatabaseName,
+  TCustomAttributes
+>;
 
 export type DateFieldParamsType<
-  F extends Field,
-  D extends N extends true ? F['_type'] | undefined | null : F['_type'] | undefined = undefined,
-  U extends boolean = false,
-  N extends boolean = false,
-  A extends boolean = false,
-  CA = any,
-  AN extends boolean = false,
-  ANA extends boolean = false
+  TField extends Field,
+  TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
+  TAutoNow extends boolean = false,
+  TAutoNowAdd extends boolean = false,
 > = {
-  autoNow?: AN;
-  autoNowAdd?: ANA;
-} & FieldDefaultParamsType<F, D, U, N, A, CA>;
+  /**
+   *  If this is set to true, the field will be automatically set to the current date and time every time the model is saved. It's useful for `updatedAt` fields (default: false)
+   */
+  autoNow?: TAutoNow;
+  /**
+   * If this is set to true, the field will be automatically set to the current date and time when the model is first created. It's useful for `createdAt` fields (default: false)
+   */
+  autoNowAdd?: TAutoNowAdd;
+} & FieldDefaultParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;
 
 export type ForeignKeyFieldParamsType<
-  F extends Field,
-  TLazyDefaultValue = undefined,
-  D extends N extends true
-    ?
-        | (TLazyDefaultValue extends undefined
-            ? T extends undefined
-              ? M extends Model<any>
-                ? M['fields'][RF]['_type']
-                : T
-              : T
-            : TLazyDefaultValue)
-        | undefined
-        | null
-    :
-        | (TLazyDefaultValue extends undefined
-            ? T extends undefined
-              ? M extends Model<any>
-                ? M['fields'][RF]['_type']
-                : T
-              : T
-            : TLazyDefaultValue)
-        | undefined = undefined,
-  U extends boolean = false,
-  N extends boolean = false,
-  A extends boolean = false,
-  CA = any,
-  T = undefined,
-  M = Model,
-  RF extends string = any,
-  RN extends string = any,
-  RNN extends string = any
+  TField extends Field,
+  TDefaultValue extends MaybeNull<
+    | (TCustomType extends undefined
+        ? TRelatedToModel extends typeof Model
+          ? InstanceType<TRelatedToModel>['fields'][TRelatedField] extends Field<any, any, any, any, any, any, any, any>
+            ? InstanceType<TRelatedToModel>['fields'][TRelatedField]['_type']['input']
+            : TCustomType
+          : TCustomType
+        : TCustomType)
+    | undefined,
+    TNull
+  > = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
+  TCustomType = undefined,
+  TRelatedToModel = typeof Model,
+  TRelatedField extends string = any,
+  TRelatedName extends string = any,
+  TRelationName extends string = any,
 > = {
-  relatedTo: ClassConstructor<M> | string;
+  relatedTo: TRelatedToModel;
   /** To which field of the `relatedTo` model does this field relates to? */
-  toField: RF;
+  toField: TRelatedField;
   /** Name of the field of the relation in the related model. In other words: "the `relatedTo` model contains `${relatedName}`" */
-  relatedName: RN;
+  relatedName: TRelatedName;
   /** Name of the field of the relation in the model you are creating the relation on  */
-  relationName: RNN;
+  relationName: TRelationName;
   /** What will we do when you delete an instance from the database, this relates to the remove query, and is internal for the database,
    * palmares by itself does not control cascading deletes */
   onDelete: ON_DELETE;
   customName?: string;
-  lazyDefaultValueType?: TLazyDefaultValue;
-} & FieldDefaultParamsType<F, D, U, N, A, CA>;
+} & FieldDefaultParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;

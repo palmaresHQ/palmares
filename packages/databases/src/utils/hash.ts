@@ -1,6 +1,4 @@
-export default async function hashString(
-  stringToHash: string
-): Promise<string> {
+export default function hashString(stringToHash: string): string {
   // P and M
   const p = 53;
   const m = 1e9 + 9;
@@ -12,10 +10,7 @@ export default async function hashString(
   // javascript's ord() function is `.charCodeAt`
   // reference: https://stackoverflow.com/a/40100290
   for (let i = 0; i < stringToHash.length; i++) {
-    hashValue =
-      (hashValue +
-        (stringToHash[i].charCodeAt(0) - 'a'.charCodeAt(0) + 1) * powerOfP) %
-      m;
+    hashValue = (hashValue + (stringToHash[i].charCodeAt(0) - 'a'.charCodeAt(0) + 1) * powerOfP) % m;
     powerOfP = (powerOfP * p) % m;
   }
 

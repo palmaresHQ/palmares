@@ -1,4 +1,4 @@
-import Engine from '../../engine';
+import DatabaseAdapter from '../../engine';
 import { Operation } from './operation';
 import { ModelFieldsType, ModelOptionsType } from '../../models/types';
 import {
@@ -33,22 +33,25 @@ export class CreateModel extends Operation {
     this.options = options;
   }
 
-  async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {
+  async stateForwards(state: State, domainName: string, domainPath: string) {
     const model = await state.get(this.modelName);
-    model.domainName = domainName;
-    model.domainPath = domainPath;
+    const modelConstructor = model.constructor as typeof BaseModel;
+
+    modelConstructor.domainName = domainName;
+    modelConstructor.domainPath = domainPath;
     model.fields = this.fields;
     model.options = this.options;
   }
 
   async run(
     migration: Migration,
-    engineInstance: Engine,
+    engineInstance: DatabaseAdapter,
     _: OriginalOrStateModelsByNameType,
-    toState: OriginalOrStateModelsByNameType
+    toState: OriginalOrStateModelsByNameType,
+    returnOfInit: any
   ): Promise<void> {
     const toModel = toState[this.modelName];
-    await engineInstance.migrations.addModel(engineInstance, toModel, migration);
+    await engineInstance.migrations.addModel(engineInstance, toModel, migration, returnOfInit);
   }
 
   static async toGenerate(domainName: string, domainPath: string, modelName: string, data: CreateModelToGenerateData) {
@@ -96,12 +99,13 @@ export class DeleteModel extends Operation {
 
   async run(
     migration: Migration,
-    engineInstance: Engine,
+    engineInstance: DatabaseAdapter,
     fromState: OriginalOrStateModelsByNameType,
-    _toState: OriginalOrStateModelsByNameType
+    _toState: OriginalOrStateModelsByNameType,
+    returnOfInit: any
   ): Promise<void> {
     const fromModel = fromState[this.modelName];
-    await engineInstance.migrations.removeModel(engineInstance, fromModel, migration);
+    await engineInstance.migrations.removeModel(engineInstance, fromModel, migration, returnOfInit);
   }
 
   static async toGenerate(domainName: string, domainPath: string, modelName: string) {
@@ -140,20 +144,23 @@ export class ChangeModel extends Operation {
 
   async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {
     const model = await state.get(this.modelName);
-    model.domainName = domainName;
-    model.domainPath = domainPath;
+    const modelConstructor = model.constructor as typeof BaseModel;
+
+    modelConstructor.domainName = domainName;
+    modelConstructor.domainPath = domainPath;
     model.options = this.optionsAfter;
   }
 
   async run(
     migration: Migration,
-    engineInstance: Engine,
+    engineInstance: DatabaseAdapter,
     fromState: OriginalOrStateModelsByNameType,
-    toState: OriginalOrStateModelsByNameType
+    toState: OriginalOrStateModelsByNameType,
+    returnOfInit: any
   ) {
     const toModel = toState[this.modelName];
     const fromModel = fromState[this.modelName];
-    await engineInstance.migrations.changeModel(engineInstance, toModel, fromModel, migration);
+    await engineInstance.migrations.changeModel(engineInstance, toModel, fromModel, migration, returnOfInit);
   }
 
   static async toGenerate(domainName: string, domainPath: string, modelName: string, data: ChangeModelToGenerateData) {
@@ -196,9 +203,12 @@ export class RenameModel extends Operation {
 
   async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {
     const model = await state.get(this.oldModelName);
-    model.name = this.newModelName;
-    model.domainName = domainName;
-    model.domainPath = domainPath;
+    const modelConstructor = model.constructor as typeof BaseModel;
+
+    (modelConstructor as any).__cachedName = this.newModelName;
+    modelConstructor.domainName = domainName;
+    modelConstructor.domainPath = domainPath;
+
     await Promise.all([state.set(this.newModelName, model), state.remove(this.oldModelName)]);
   }
 

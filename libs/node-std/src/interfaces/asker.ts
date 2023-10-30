@@ -2,9 +2,7 @@ import { Asker, ImportsError, imports } from '@palmares/std';
 
 export default class AskerNode implements Asker {
   async ask(question: string): Promise<string> {
-    const createInterface = await imports<
-      typeof import('readline').createInterface
-    >('readline', {
+    const createInterface = await imports<typeof import('readline').createInterface>('readline', {
       apiName: 'createInterface',
     });
     const [input, output] = await Promise.all([
@@ -27,8 +25,6 @@ export default class AskerNode implements Asker {
         });
       });
     }
-    throw new ImportsError(
-      'nodejs readline createInterface or process stdin or stdout'
-    );
+    throw new ImportsError('nodejs readline createInterface or process stdin or stdout');
   }
 }

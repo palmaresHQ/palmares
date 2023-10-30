@@ -14,7 +14,7 @@ export function serverAdapter<
   TLoadFunction extends ServerAdapter['load'],
   TStartFunction extends ServerAdapter['start'],
   TCloseFunction extends ServerAdapter['close'],
-  TCustomServerSettings extends typeof ServerAdapter['customServerSettings']
+  TCustomServerSettings extends (typeof ServerAdapter)['customServerSettings'],
 >(args: {
   /**
    * This is the {@link ServerRequestAdapter}. The request will hold all of the request data from the server, this way we can

@@ -1,10 +1,7 @@
 import * as models from '../models';
 import { PalmaresMigrations } from './models';
 
-export default class PalmaresMigrationsManager extends models.Manager<
-  PalmaresMigrations,
-  any
-> {
+export default class PalmaresMigrationsManager extends models.Manager<PalmaresMigrations> {
   /**
    * Creates a new migration in the database. This way we can know what migrations have was evaluated and what migration
    * still needs to be evaluated.
@@ -33,10 +30,7 @@ export default class PalmaresMigrationsManager extends models.Manager<
    * @return - An empty '' string or the name of the last migration.
    */
   async getLastMigrationName(engineName: string) {
-    const allMigrations = await this.get(
-      { search: { engineName } },
-      engineName
-    );
+    const allMigrations = await this.get({ search: { engineName } }, engineName);
     return allMigrations.length > 0 ? allMigrations[0].migrationName : '';
   }
 }

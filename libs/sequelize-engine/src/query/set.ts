@@ -1,17 +1,7 @@
-import { EngineSetQuery } from '@palmares/databases';
-import { Model, ModelCtor, Transaction } from 'sequelize';
-import SequelizeEngine from '../engine';
+import { adapterSetQuery } from '@palmares/databases';
 
-export default class SequelizeEngineSetQuery extends EngineSetQuery {
-  async queryData(
-    _: SequelizeEngine,
-    args: {
-      modelOfEngineInstance: ModelCtor<Model>;
-      search: any;
-      data?: any;
-      transaction?: Transaction;
-    }
-  ): Promise<[boolean, any][]> {
+export default adapterSetQuery({
+  queryData: async (_, args) => {
     return Promise.all(
       args.data.map(async (eachData: any) => {
         if (args.search === undefined)
@@ -30,5 +20,5 @@ export default class SequelizeEngineSetQuery extends EngineSetQuery {
         return [hasCreated ? hasCreated : false, instance.toJSON()];
       })
     );
-  }
-}
+  },
+});

@@ -1,21 +1,21 @@
-import { models, AutoField, TextField, ModelOptionsType, EnumField, ForeignKeyField } from '@palmares/databases';
+import { Model, fields, AutoField, TextField, ModelOptionsType, EnumField, ForeignKeyField } from '@palmares/databases';
 import { Profile } from '../auth/models';
 
-export class Contract extends models.Model<Contract>() {
+export class Contract extends Model<Contract>() {
   fields = {
     id: AutoField.new(),
     terms: TextField.new(),
-    status: EnumField.new({ isAuto: true, allowNull: true, choices: ['new', 'in_progress', 'terminated'] }),
+    status: EnumField.new({ allowNull: true, choices: ['new', 'in_progress', 'terminated'] }),
     contractorId: ForeignKeyField.new({
       relatedTo: Profile,
-      onDelete: models.fields.ON_DELETE.CASCADE,
+      onDelete: fields.ON_DELETE.CASCADE,
       toField: 'id',
       relatedName: 'contractorContracts',
       relationName: 'contractor',
     }),
     clientId: ForeignKeyField.new({
       relatedTo: Profile,
-      onDelete: models.fields.ON_DELETE.CASCADE,
+      onDelete: fields.ON_DELETE.CASCADE,
       toField: 'id',
       relatedName: 'clientContracts',
       relationName: 'client',
@@ -26,12 +26,3 @@ export class Contract extends models.Model<Contract>() {
     tableName: 'contract',
   };
 }
-
-const teste = ForeignKeyField.new({
-  relatedTo: Profile,
-  onDelete: models.fields.ON_DELETE.CASCADE,
-  toField: 'id',
-  relatedName: 'contractorContracts',
-  relationName: 'contractor',
-});
-type Teste = typeof teste['_type'];
