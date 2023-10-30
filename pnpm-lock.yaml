@@ -267,8 +267,8 @@ importers:
         specifier: 4.17.20
         version: 4.17.20
       '@types/express-serve-static-core':
-        specifier: 4.17.30
-        version: 4.17.30
+        specifier: 4.17.39
+        version: 4.17.39
       '@types/multer':
         specifier: ^1.4.9
         version: 1.4.9
@@ -1422,14 +1422,6 @@ packages:
     dependencies:
       '@types/ms': 0.7.31
     dev: false
-
-  /@types/express-serve-static-core@4.17.30:
-    resolution: {integrity: sha512-gstzbTWro2/nFed1WXtf+TtrpwxH7Ggs4RLYTLbeVgIkUQOI3WG/JKjgeOU1zXDvezllupjrf8OPIdvTbIaVOQ==}
-    dependencies:
-      '@types/node': 20.8.9
-      '@types/qs': 6.9.8
-      '@types/range-parser': 1.2.4
-    dev: true
 
   /@types/express-serve-static-core@4.17.39:
     resolution: {integrity: sha512-BiEUfAiGCOllomsRAZOiMFP7LAnrifHpt56pc4Z7l9K6ACyN06Ns1JLMBxwkfLOjJRlSf06NwWsT7yzfpaVpyQ==}
