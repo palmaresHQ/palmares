@@ -16,6 +16,10 @@ export class Schema<
     this.__validationSchema = validationSchema;
   }
 
+  validate(value: TType['input']) {
+    return this.__validationSchema.validate(value);
+  }
+
   toRepresentation<TOutput>(toRepresentationCallback: (value: TType['output']) => TOutput) {
     this.__toRepresentation = toRepresentationCallback;
     return this as unknown as Schema<TDefinitions, { input: TType['input']; output: TOutput }>;
@@ -32,8 +36,6 @@ export class Schema<
     return new Schema<TDefinitions, TType>(undefined);
   }
 }
-
-const teste = Schema.new({}).toRepresentation((value) => 'teste' as const);
 
 export class NumberSchema<
   TDefinitions,

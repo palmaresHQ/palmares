@@ -1,15 +1,11 @@
 {
-  "name": "@examples/deel-hometask-challenge",
+  "name": "@examples/bench",
   "version": "0.0.1",
-  "description": "This is the home task challenge solution for deel",
+  "description": "asdasdasd",
   "main": "manage.ts",
   "scripts": {
-    "seed": "tsx manage.ts seedDb",
-    "help": "tsx manage.ts help",
-    "dev": "nodemon --watch 'src/' --watch '../../packages/*/dist/**' --watch '../../libs/*/dist/**' --exec ' tsx manage.ts runserver' -e ts",
-    "makemigrations": "tsx manage.ts makemigrations",
-    "migrate": "tsx manage.ts migrate",
-    "express": "node bench.js"
+    "dev": "tsx manage.ts runserver",
+    "express": "tsx express.ts"
   },
   "keywords": [
     "Deel",
@@ -31,6 +27,7 @@
     "autocannon": "^7.12.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "fastify": "^4.24.3",
     "sequelize": "^6.21.0",
     "sqlite3": "^5.1.6",
     "zod": "^3.18.0"

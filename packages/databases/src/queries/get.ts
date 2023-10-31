@@ -54,38 +54,44 @@ export default async function getQuery<
     input: true,
     output: typeof args.useParsers === 'boolean' ? args.useParsers : true,
   };
-
-  try {
-    return await internal.engine.query.get.queryDataNatively(
-      internal.engine,
-      modelInstanceAsModel.constructor as ReturnType<typeof model>,
-      args.search,
-      selectedFields as unknown as string[],
-      internal.includes,
-      async (modelInstance: InstanceType<ReturnType<typeof model>>, search: any) =>
-        parseSearch(internal.engine, modelInstance, search)
-    );
-  } catch (e) {
-    if ((e as Error).name === NotImplementedAdapterException.name)
-      await getResultsWithIncludes(
+  let hasRun = false;
+  if (internal.engine.query.get?.queryDataNatively) {
+    try {
+      hasRun = true;
+      return await internal.engine.query.get?.queryDataNatively?.(
         internal.engine,
-        internal.model as TModel,
-        useParsers,
-        selectedFields as TFieldsOfModel,
-        internal.includes as TIncludes,
-        args.search as TSearch,
-        result,
-        internal.engine.query.get.queryData.bind(internal.engine.query.get),
-        false,
-        false,
-        args.ordering,
-        args.limit,
-        args.offset,
-        undefined,
-        undefined,
-        undefined
+        modelInstanceAsModel.constructor as ReturnType<typeof model>,
+        args.search,
+        selectedFields as unknown as string[],
+        internal.includes,
+        async (modelInstance: InstanceType<ReturnType<typeof model>>, search: any) =>
+          parseSearch(internal.engine, modelInstance, search)
       );
-    else throw e;
+    } catch (e) {
+      if ((e as Error).name === NotImplementedAdapterException.name) hasRun = false;
+      else throw e;
+    }
+  }
+
+  if (!hasRun) {
+    await getResultsWithIncludes(
+      internal.engine,
+      internal.model as TModel,
+      useParsers,
+      selectedFields as TFieldsOfModel,
+      internal.includes as TIncludes,
+      args.search as TSearch,
+      result,
+      internal.engine.query.get.queryData.bind(internal.engine.query.get),
+      false,
+      false,
+      args.ordering,
+      args.limit,
+      args.offset,
+      undefined,
+      undefined,
+      undefined
+    );
   }
   return result;
 }
