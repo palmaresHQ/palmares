@@ -3,17 +3,17 @@ import * as z from 'zod';
 
 export default class ZodNumberFieldSchemaAdapter extends NumberAdapter<z.ZodNumber> {
   translate(_fieldAdapter: FieldAdapter<any>, args: NumberAdapterTranslateArgs) {
-    const result = z.number();
+    let result = z.number();
     if (args.max) {
-      if (args.max.inclusive) result.lte(args.max.value, args.max.message);
-      else result.lt(args.max.value, args.max.message);
+      if (args.max.inclusive) result = result.lte(args.max.value, args.max.message);
+      else result = result.lt(args.max.value, args.max.message);
     }
     if (args.min) {
-      if (args.min.inclusive) result.gte(args.min.value, args.min.message);
-      else result.gt(args.min.value, args.min.message);
+      if (args.min.inclusive) result = result.gte(args.min.value, args.min.message);
+      else result = result.gt(args.min.value, args.min.message);
     }
-    if (args.allowNegative) result.negative(args.allowNegative.message);
-    if (args.allowPositive) result.positive(args.allowPositive.message);
+    if (args.allowNegative) result = result.negative(args.allowNegative.message);
+    if (args.allowPositive) result = result.positive(args.allowPositive.message);
     return result;
   }
 
@@ -21,8 +21,9 @@ export default class ZodNumberFieldSchemaAdapter extends NumberAdapter<z.ZodNumb
     try {
       const parsed = await result.parseAsync(_value);
       return { errors: null, parsed };
-    } catch (e) {
-      return { errors: 'hey', parsed: null };
+    } catch (error) {
+      if (error instanceof z.ZodError) return { errors: error.errors, parsed: null };
+      else throw error;
     }
   }
 }

@@ -2,9 +2,9 @@
   "name": "@examples/schemas",
   "version": "0.0.1",
   "description": "asdasdasd",
-  "main": "./src/settings.ts",
+  "main": "./src/index.ts",
   "scripts": {
-    "dev": "tsx ./src/settings.ts"
+    "dev": "tsx ./src/index.ts"
   },
   "keywords": [
     "Deel",

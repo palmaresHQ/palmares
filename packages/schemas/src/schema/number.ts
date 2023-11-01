@@ -1,7 +1,8 @@
-import Adapter from '../adapter';
+import SchemaAdapter from '../adapter';
 import Schema from './schema';
+import { getDefaultAdapter } from '../conf';
 
-export class NumberSchema<
+export default class NumberSchema<
   TType extends {
     input: any;
     output: any;
@@ -11,7 +12,7 @@ export class NumberSchema<
   },
   TDefinitions = any,
 > extends Schema<TType> {
-  protected __adapter!: Adapter;
+  protected __adapter!: SchemaAdapter;
   protected __max!: {
     value: number;
     inclusive: boolean;
@@ -40,6 +41,7 @@ export class NumberSchema<
         allowNegative: this.__allowNegative,
         allowPositive: this.__allowPositive,
       });
+
     return this.__adapter.number.parse(this.__adapter, this.__adapter.number.__result, value);
   }
 
@@ -92,12 +94,10 @@ export class NumberSchema<
 
   static new<TType extends { input: any; output: any }>() {
     const returnValue = new NumberSchema<TType, any>(undefined);
-    const adapterInstance = new Adapter();
+    const adapterInstance = new (getDefaultAdapter())();
 
     returnValue.__adapter = adapterInstance;
 
     return returnValue;
   }
 }
-
-const number = NumberSchema.new().min(123, true).max(600, true).negative().positive();

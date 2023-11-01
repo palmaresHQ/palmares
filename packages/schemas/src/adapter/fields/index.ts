@@ -1,3 +1,4 @@
+import SchemaAdapter from '../index';
 import { SchemaAdapterNotImplementedError } from '../../exceptions';
 import { AdapterTranslateArgs } from '../types';
 
