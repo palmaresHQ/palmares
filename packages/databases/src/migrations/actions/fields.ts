@@ -1,4 +1,4 @@
-import Engine from '../../engine';
+import DatabaseAdapter from '../../engine';
 import { Operation } from './operation';
 import { Field } from '../../models/fields';
 import {
@@ -12,6 +12,7 @@ import {
 import { OriginalOrStateModelsByNameType } from '../types';
 import Migration from '../migrate/migration';
 import State from '../state';
+import { BaseModel } from '../../models';
 
 /**
  * This operation is used when a new field is created on a specific model. If the hole model is created
@@ -22,51 +23,42 @@ export class CreateField extends Operation {
   fieldName: string;
   fieldDefinition: Field<any, any, any, any, any, any>;
 
-  constructor(
-    modelName: string,
-    fieldName: string,
-    fieldDefinition: Field<any, any, any, any, any, any>
-  ) {
+  constructor(modelName: string, fieldName: string, fieldDefinition: Field<any, any, any, any, any, any>) {
     super();
     this.modelName = modelName;
     this.fieldName = fieldName;
     this.fieldDefinition = fieldDefinition;
   }
 
-  async stateForwards(
-    state: State,
-    domainName: string,
-    domainPath: string
-  ): Promise<void> {
+  async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {
     const model = await state.get(this.modelName);
-    model.domainName = domainName;
-    model.domainPath = domainPath;
+    const modelConstructor = model.constructor as typeof BaseModel;
+    modelConstructor.domainName = domainName;
+    modelConstructor.domainPath = domainPath;
     model.fields[this.fieldName] = this.fieldDefinition;
     await state.set(this.modelName, model);
   }
 
   async run(
     migration: Migration,
-    engineInstance: Engine,
+    engineInstance: DatabaseAdapter,
     fromState: OriginalOrStateModelsByNameType,
-    toState: OriginalOrStateModelsByNameType
+    toState: OriginalOrStateModelsByNameType,
+    returnOfInit: any
   ) {
     const toModel = toState[this.modelName];
     const fromModel = fromState[this.modelName];
     await engineInstance.migrations.addField(
+      engineInstance,
       toModel,
       fromModel,
       this.fieldName,
-      migration
+      migration,
+      returnOfInit
     );
   }
 
-  static async toGenerate(
-    domainName: string,
-    domainPath: string,
-    modelName: string,
-    data: CreateFieldToGenerateData
-  ) {
+  static async toGenerate(domainName: string, domainPath: string, modelName: string, data: CreateFieldToGenerateData) {
     return super.defaultToGenerate(domainName, domainPath, modelName, data);
   }
 
@@ -86,9 +78,7 @@ export class CreateField extends Operation {
     };
   }
 
-  static async describe(
-    data: ActionToGenerateType<CreateFieldToGenerateData>
-  ): Promise<string> {
+  static async describe(data: ActionToGenerateType<CreateFieldToGenerateData>): Promise<string> {
     return `Created the field '${data.data.fieldName}' on the '${data.modelName}' model`;
   }
 }
@@ -114,35 +104,34 @@ export class ChangeField extends Operation {
 
   async stateForwards(state: State, domainName: string, domainPath: string) {
     const model = await state.get(this.modelName);
-    model.domainName = domainName;
-    model.domainPath = domainPath;
+    const modelConstructor = model.constructor as typeof BaseModel;
+    modelConstructor.domainName = domainName;
+    modelConstructor.domainPath = domainPath;
     model.fields[this.fieldName] = this.fieldDefinitionAfter;
     await state.set(this.modelName, model);
   }
 
   async run(
     migration: Migration,
-    engineInstance: Engine,
+    engineInstance: DatabaseAdapter,
     fromState: OriginalOrStateModelsByNameType,
-    toState: OriginalOrStateModelsByNameType
+    toState: OriginalOrStateModelsByNameType,
+    returnOfInit: any
   ) {
     const fromModel = fromState[this.modelName];
     const toModel = toState[this.modelName];
     await engineInstance.migrations.changeField(
+      engineInstance,
       toModel,
       fromModel,
       this.fieldDefinitionBefore,
       this.fieldDefinitionAfter,
-      migration
+      migration,
+      returnOfInit
     );
   }
 
-  static async toGenerate(
-    domainName: string,
-    domainPath: string,
-    modelName: string,
-    data: ChangeFieldToGenerateData
-  ) {
+  static async toGenerate(domainName: string, domainPath: string, modelName: string, data: ChangeFieldToGenerateData) {
     return super.defaultToGenerate(domainName, domainPath, modelName, data);
   }
 
@@ -159,15 +148,13 @@ export class ChangeField extends Operation {
           `${await data.data.fieldDefinitionBefore.toString(indentation)},\n` +
           `${await data.data.fieldDefinitionAfter.toString(indentation)}`
       ),
-      customImports: (
-        await data.data.fieldDefinitionBefore.customImports()
-      ).concat(await data.data.fieldDefinitionAfter.customImports()),
+      customImports: (await data.data.fieldDefinitionBefore.customImports()).concat(
+        await data.data.fieldDefinitionAfter.customImports()
+      ),
     };
   }
 
-  static async describe(
-    data: ActionToGenerateType<ChangeFieldToGenerateData>
-  ): Promise<string> {
+  static async describe(data: ActionToGenerateType<ChangeFieldToGenerateData>): Promise<string> {
     return `Changed one of the attributes of the '${data.data.fieldName}' field on the '${data.modelName}' model`;
   }
 }
@@ -193,8 +180,9 @@ export class RenameField extends Operation {
 
   async stateForwards(state: State, domainName: string, domainPath: string) {
     const model = await state.get(this.modelName);
-    model.domainName = domainName;
-    model.domainPath = domainPath;
+    const modelConstructor = model.constructor as typeof BaseModel;
+    modelConstructor.domainName = domainName;
+    modelConstructor.domainPath = domainPath;
 
     const hasNamesReallyChanged = this.fieldNameAfter !== this.fieldNameBefore;
     if (hasNamesReallyChanged) {
@@ -207,27 +195,25 @@ export class RenameField extends Operation {
 
   async run(
     migration: Migration,
-    engineInstance: Engine,
+    engineInstance: DatabaseAdapter,
     fromState: OriginalOrStateModelsByNameType,
-    toState: OriginalOrStateModelsByNameType
+    toState: OriginalOrStateModelsByNameType,
+    returnOfInit: any
   ): Promise<void> {
     const fromModel = fromState[this.modelName];
     const toModel = toState[this.modelName];
     await engineInstance.migrations.renameField(
+      engineInstance,
       toModel,
       fromModel,
       this.fieldNameBefore,
       this.fieldNameAfter,
-      migration
+      migration,
+      returnOfInit
     );
   }
 
-  static async toGenerate(
-    domainName: string,
-    domainPath: string,
-    modelName: string,
-    data: RenameFieldToGenerateData
-  ) {
+  static async toGenerate(domainName: string, domainPath: string, modelName: string, data: RenameFieldToGenerateData) {
     return super.defaultToGenerate(domainName, domainPath, modelName, data);
   }
 
@@ -248,9 +234,7 @@ export class RenameField extends Operation {
     };
   }
 
-  static async describe(
-    data: ActionToGenerateType<RenameFieldToGenerateData>
-  ): Promise<string> {
+  static async describe(data: ActionToGenerateType<RenameFieldToGenerateData>): Promise<string> {
     return `Renamed the field '${data.data.fieldNameBefore}' to '${data.data.fieldNameAfter}' on the '${data.modelName}' model`;
   }
 }
@@ -265,40 +249,36 @@ export class DeleteField extends Operation {
     this.fieldName = fieldName;
   }
 
-  async stateForwards(
-    state: State,
-    domainName: string,
-    domainPath: string
-  ): Promise<void> {
+  async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {
     const model = await state.get(this.modelName);
-    model.domainName = domainName;
-    model.domainPath = domainPath;
+    const modelConstructor = model.constructor as typeof BaseModel;
+    modelConstructor.domainName = domainName;
+    modelConstructor.domainPath = domainPath;
+
     delete model.fields[this.fieldName];
     await state.set(this.modelName, model);
   }
 
   async run(
     migration: Migration,
-    engineInstance: Engine,
+    engineInstance: DatabaseAdapter,
     fromState: OriginalOrStateModelsByNameType,
-    toState: OriginalOrStateModelsByNameType
+    toState: OriginalOrStateModelsByNameType,
+    returnOfInit: any
   ) {
     const fromModel = fromState[this.modelName];
     const toModel = toState[this.modelName];
     await engineInstance.migrations.removeField(
+      engineInstance,
       toModel,
       fromModel,
       this.fieldName,
-      migration
+      migration,
+      returnOfInit
     );
   }
 
-  static async toGenerate(
-    domainName: string,
-    domainPath: string,
-    modelName: string,
-    data: DeleteFieldToGenerateData
-  ) {
+  static async toGenerate(domainName: string, domainPath: string, modelName: string, data: DeleteFieldToGenerateData) {
     return super.defaultToGenerate(domainName, domainPath, modelName, data);
   }
 
@@ -315,9 +295,7 @@ export class DeleteField extends Operation {
     };
   }
 
-  static async describe(
-    data: ActionToGenerateType<DeleteFieldToGenerateData>
-  ): Promise<string> {
+  static async describe(data: ActionToGenerateType<DeleteFieldToGenerateData>): Promise<string> {
     return `Removed the field '${data.data.fieldName}' on the '${data.modelName}' model`;
   }
 }

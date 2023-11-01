@@ -1,4 +1,4 @@
-import { InitializedModelsType, ModelFieldsInQueries, models } from '@palmares/databases';
+import { InitializedModelsType, Model as PalmaresModel, ModelFields, fields } from '@palmares/databases';
 import { IndexesOptions, Model, ModelAttributeColumnOptions, ModelCtor, ModelStatic } from 'sequelize';
 
 export type IndexesToAddOnNextIterationType = {
@@ -35,7 +35,7 @@ export type ModelTranslatorIndexesType = {
 };
 
 type RelatedFieldsToEvaluateType = {
-  field: models.fields.ForeignKeyField;
+  field: fields.ForeignKeyField;
   fieldAttributes: ModelAttributeColumnOptions;
 };
 
@@ -43,4 +43,11 @@ export type RelatedModelToEvaluateAfterType = {
   [key: string]: RelatedFieldsToEvaluateType[];
 };
 
-export type SequelizeModel<TModel extends models.BaseModel<any>> = ModelCtor<Model<ModelFieldsInQueries<TModel>>>;
+export type SequelizeModel<TypeModel extends InstanceType<ReturnType<typeof PalmaresModel>>> = ModelCtor<
+  Model<ModelFields<TypeModel>>
+>;
+
+export type TranslatedFieldToEvaluateAfterType = {
+  fieldAttributes: ModelAttributeColumnOptions<Model<any, any>>;
+  type: 'foreign-key' | 'date' | 'indexes';
+};

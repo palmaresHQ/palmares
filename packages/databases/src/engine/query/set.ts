@@ -1,188 +1,121 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import model from '../../models/model';
-import {
-  Includes,
-  FieldsOFModelType,
-  ModelFieldsWithIncludes,
-} from '../../models/types';
-import type EngineQuery from '.';
-import Transaction from '../../transaction';
+import type DatabaseAdapter from '..';
 
-export default class EngineSetQuery {
-  engineQueryInstance: EngineQuery;
-
-  constructor(engineQuery: EngineQuery) {
-    this.engineQueryInstance = engineQuery;
-  }
-
+export function adapterSetQuery<TFunctionQueryData extends AdapterSetQuery['queryData']>(args: {
   /**
-   * This is a simple query, by default you should always implement this function in your EngineGetQuery.
+   * This is a simple upsert query, by default you should always implement this function in your AdapterSetQuery.
    *
-   * This will guarantee that you are able to retrieve the data, it's not much performatic because it will do
-   * many small queries to the database, which might slow things down, but you will be guaranteed to work 100%
-   * with the types.
+   * _Note_: If `args.search` is not null or undefined, you should update the data, otherwise you should create it.
+   * _Note 2_: You should return an array, the first argument is true if the data was created, false otherwise. The second argument is the data that was created or updated.
    *
-   * For a more performatic approach you should implement `queryDataNatively`. That will translate the query to the
-   * native query, but the second can be harder to implement since it relies on knowing about palmares objects and
-   * model structure.
+   * @example
+   * ```ts
+   * async queryData(
+   *   _: DatabaseAdapter,
+   *   args: {
+   *     modelOfEngineInstance: ModelCtor<Model>;
+   *     search: any;
+   *     data?: any;
+   *     transaction?: Transaction;
+   *   }
+   * ): Promise<[boolean, any][]> {
+   *   return Promise.all(
+   *     args.data.map(async (eachData: any) => {
+   *       if (args.search === undefined)
+   *         return [
+   *           true,
+   *           (
+   *             await args.modelOfEngineInstance.create(eachData, {
+   *               transaction: args.transaction,
+   *             })
+   *           ).toJSON(),
+   *         ];
+   *       const [instance, hasCreated] = await args.modelOfEngineInstance.upsert(eachData, {
+   *         transaction: args.transaction,
+   *         returning: true,
+   *       });
+   *       return [hasCreated ? hasCreated : false, instance.toJSON()];
+   *     })
+   *   );
+   * }
+   * ```
    *
-   * @param modelConstructor - The model instance to query.
-   * @param search - The search argument to search on the database.
-   * @param fields - The fields to be included in the search and the output.
+   * @param _engine - The engine instance that is running the query.
+   * @param _args - The arguments of the query.
+   * @param _args.modelOfEngineInstance - The model instance to query, this is what your ORM has translated on `AdapterModel.translate` function.
+   * @param _args.search - The search argument to search on the database.
+   * @param _args.data - The data to be inserted or updated.
+   * @param _args.transaction - The transaction to use to run the query, That's what you pass to the callback function on `DatabaseAdapter.transaction`.
+   *
+   * @returns - Returns an array of tuples, the first argument is true if the data was created, false otherwise. The second argument is the data that was created or updated.
    */
-  async queryData(args: {
-    modelOfEngineInstance: any;
-    search: any;
-    data: any;
-    transaction?: any;
-  }): Promise<[boolean, any][]> {
-    return args.data.map((eachData: any) => [true, { ...eachData }]);
+  queryData: TFunctionQueryData;
+}) {
+  class CustomAdapterSetQuery extends AdapterSetQuery {
+    queryData = args.queryData as TFunctionQueryData;
   }
 
-  async run<
-    TModel extends InstanceType<ReturnType<typeof model>>,
-    TIncludes extends Includes = undefined,
-    TSearch extends
-      | ModelFieldsWithIncludes<
-          TModel,
-          TIncludes,
-          FieldsOFModelType<TModel>,
-          false,
-          false,
-          true,
-          true
-        >
-      | undefined = undefined
-  >(
-    data: ModelFieldsWithIncludes<
-      TModel,
-      TIncludes,
-      FieldsOFModelType<TModel>,
-      true,
-      false,
-      TSearch extends undefined ? false : true,
-      false
-    >[],
-    args: {
-      isToPreventEvents?: boolean;
-      usePalmaresTransaction?: boolean;
-      useTransaction?: boolean;
-      search?: TSearch;
-    },
-    internal: {
+  return CustomAdapterSetQuery as typeof AdapterSetQuery & {
+    new (): AdapterSetQuery & { queryData: TFunctionQueryData };
+  };
+}
+
+export default class AdapterSetQuery {
+  /**
+   * This is a simple upsert query, by default you should always implement this function in your AdapterSetQuery.
+   *
+   * _Note_: If `args.search` is not null or undefined, you should update the data, otherwise you should create it.
+   * _Note 2_: You should return an array, the first argument is true if the data was created, false otherwise. The second argument is the data that was created or updated.
+   *
+   * @example
+   * ```ts
+   * async queryData(
+   *   _: DatabaseAdapter,
+   *   args: {
+   *     modelOfEngineInstance: ModelCtor<Model>;
+   *     search: any;
+   *     data?: any;
+   *     transaction?: Transaction;
+   *   }
+   * ): Promise<[boolean, any][]> {
+   *   return Promise.all(
+   *     args.data.map(async (eachData: any) => {
+   *       if (args.search === undefined)
+   *         return [
+   *           true,
+   *           (
+   *             await args.modelOfEngineInstance.create(eachData, {
+   *               transaction: args.transaction,
+   *             })
+   *           ).toJSON(),
+   *         ];
+   *       const [instance, hasCreated] = await args.modelOfEngineInstance.upsert(eachData, {
+   *         transaction: args.transaction,
+   *         returning: true,
+   *       });
+   *       return [hasCreated ? hasCreated : false, instance.toJSON()];
+   *     })
+   *   );
+   * }
+   * ```
+   *
+   * @param _engine - The engine instance that is running the query.
+   * @param _args - The arguments of the query.
+   * @param _args.modelOfEngineInstance - The model instance to query, this is what your ORM has translated on `AdapterModel.translate` function.
+   * @param _args.search - The search argument to search on the database.
+   * @param _args.data - The data to be inserted or updated.
+   * @param _args.transaction - The transaction to use to run the query, That's what you pass to the callback function on `DatabaseAdapter.transaction`.
+   *
+   * @returns - Returns an array of tuples, the first argument is true if the data was created, false otherwise. The second argument is the data that was created or updated.
+   */
+  async queryData(
+    _engine: DatabaseAdapter,
+    _args: {
+      modelOfEngineInstance: any;
+      search: any;
+      data: any;
       transaction?: any;
-      model: TModel;
-      includes: TIncludes;
     }
-  ): Promise<
-    ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]
-  > {
-    type TData = ModelFieldsWithIncludes<
-      TModel,
-      TIncludes,
-      FieldsOFModelType<TModel>,
-      true,
-      false,
-      TSearch extends undefined ? false : true,
-      false
-    >[];
-
-    const isUseTransactionDefined =
-      typeof args.useTransaction === 'boolean' ? args.useTransaction : true;
-    const isTransactionNeededForQuery =
-      data.length > 1 ||
-      (internal.includes !== undefined && internal.includes.length > 0);
-    const isToUseTransaction =
-      isUseTransactionDefined && isTransactionNeededForQuery ? true : false;
-    const palmaresTransaction = args.usePalmaresTransaction
-      ? new Transaction('set')
-      : undefined;
-
-    // used to retrieve the results of the query, we separate this in a function so
-    // we can use it in the transaction and outside of it
-    async function getResults(this: EngineSetQuery, transaction: any) {
-      const results = [] as ModelFieldsWithIncludes<
-        TModel,
-        TIncludes,
-        FieldsOFModelType<TModel>
-      >[];
-      const fields = Object.keys(internal.model.fields);
-      const doesSearchExist = args.search !== undefined;
-      if (doesSearchExist) {
-        const allResultsOfSearch = await this.engineQueryInstance.get.run<
-          TModel,
-          TIncludes,
-          FieldsOFModelType<TModel>,
-          TSearch
-        >(
-          {
-            fields: fields,
-            search: args.search as TSearch,
-          },
-          {
-            model: internal.model,
-            includes: internal.includes,
-          }
-        );
-        await this.engineQueryInstance.getResultsWithIncludes(
-          internal.model,
-          fields as FieldsOFModelType<TModel>,
-          internal.includes,
-          args.search as TSearch,
-          results,
-          this.queryData.bind(this),
-          true,
-          true,
-          undefined,
-          undefined,
-          undefined,
-          false,
-          (allResultsOfSearch.length > 0
-            ? allResultsOfSearch
-            : undefined) as ModelFieldsWithIncludes<
-            TModel,
-            TIncludes,
-            FieldsOFModelType<TModel>
-          >,
-          data as TData,
-          args.isToPreventEvents,
-          transaction,
-          palmaresTransaction
-        );
-      } else {
-        await this.engineQueryInstance.getResultsWithIncludes(
-          internal.model,
-          fields as FieldsOFModelType<TModel>,
-          internal.includes,
-          args.search as TSearch,
-          results,
-          this.queryData.bind(this),
-          true,
-          false,
-          undefined,
-          undefined,
-          undefined,
-          false,
-          undefined,
-          data as TData,
-          args.isToPreventEvents,
-          transaction,
-          palmaresTransaction
-        );
-      }
-      return results;
-    }
-    try {
-      if (isToUseTransaction) {
-        return this.engineQueryInstance.engineInstance.transaction(
-          async (transaction) => getResults.bind(this)(transaction)
-        );
-      } else return getResults.bind(this)(internal.transaction);
-    } catch (error) {
-      if (palmaresTransaction) {
-        palmaresTransaction.rollback();
-        return [];
-      } else throw error;
-    }
+  ): Promise<[boolean, any][]> {
+    return _args.data.map((eachData: any) => [true, { ...eachData }]);
   }
 }

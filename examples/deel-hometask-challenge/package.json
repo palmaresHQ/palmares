@@ -1,0 +1,39 @@
+{
+  "name": "@examples/deel-hometask-challenge",
+  "version": "0.0.1",
+  "description": "This is the home task challenge solution for deel",
+  "main": "manage.ts",
+  "scripts": {
+    "seed": "tsx manage.ts seedDb",
+    "help": "tsx manage.ts help",
+    "dev": "nodemon --watch 'src/' --watch '../../packages/*/dist/**' --watch '../../libs/*/dist/**' --exec ' tsx manage.ts runserver' -e ts",
+    "makemigrations": "tsx manage.ts makemigrations",
+    "migrate": "tsx manage.ts migrate"
+  },
+  "keywords": [
+    "Deel",
+    "Hometask",
+    "Challenge"
+  ],
+  "author": "Nicolas Melo",
+  "license": "MIT",
+  "dependencies": {
+    "@palmares/console-logging": "workspace:*",
+    "@palmares/core": "workspace:*",
+    "@palmares/databases": "workspace:*",
+    "@palmares/express-adapter": "workspace:*",
+    "@palmares/logging": "workspace:*",
+    "@palmares/node-std": "workspace:*",
+    "@palmares/sequelize-engine": "workspace:*",
+    "@palmares/server": "workspace:*",
+    "@palmares/std": "workspace:*",
+    "cors": "^2.8.5",
+    "sequelize": "^6.21.0",
+    "sqlite3": "^5.1.6",
+    "zod": "^3.18.0"
+  },
+  "devDependencies": {
+    "@types/qs": "^6.9.8",
+    "nodemon": "^3.0.1"
+  }
+}

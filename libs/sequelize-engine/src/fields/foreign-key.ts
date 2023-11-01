@@ -1,18 +1,22 @@
-import { ForeignKeyField } from '@palmares/databases';
-import { ModelAttributeColumnOptions } from 'sequelize';
+import { AdapterFieldParserTranslateArgs, adapterForeignKeyFieldParser } from '@palmares/databases';
 
 import SequelizeEngineFieldParser from './field';
-import { PreventForeignKeyError } from '../exceptions';
+import { TranslatedFieldToEvaluateAfterType } from '../types';
 
-export default class SequelizeEngineForeignKeyFieldParser extends SequelizeEngineFieldParser {
-  override async translate(
-    field: ForeignKeyField
-  ): Promise<ModelAttributeColumnOptions> {
-    const defaultOptions = await super.translate(field);
-    await this.engineFields.addRelatedFieldToEvaluateAfter(
-      field,
-      defaultOptions
-    );
-    throw new PreventForeignKeyError();
-  }
-}
+export default adapterForeignKeyFieldParser({
+  translate: async (
+    args: AdapterFieldParserTranslateArgs<
+      'foreign-key',
+      any,
+      InstanceType<typeof SequelizeEngineFieldParser>,
+      TranslatedFieldToEvaluateAfterType
+    >
+  ): Promise<undefined> => {
+    const defaultOptions = await args.fieldParser.translate(args);
+
+    args.lazyEvaluate({
+      fieldAttributes: defaultOptions,
+      type: 'foreign-key',
+    } as TranslatedFieldToEvaluateAfterType);
+  },
+});

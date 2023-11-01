@@ -1,6 +1,6 @@
 {
   "name": "@palmares/redis-emitter",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "The default implementation for redis to act as pub/sub for palmares. It's specially useful as a layer.",
   "main": "src/index.ts",
   "scripts": {
@@ -26,9 +26,9 @@
     "@palmares/events": "*"
   },
   "dependencies": {
-    "redis": "^4.4.0"
+    "redis": "^4.6.10"
   },
   "devDependencies": {
-    "typescript": "^4.9.5"
+    "typescript": "^5.2.2"
   }
 }

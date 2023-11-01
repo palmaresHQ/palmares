@@ -1,52 +1,25 @@
-import { Request as ERequest, Response, NextFunction } from 'express';
-import {
-  OptionsJson,
-  Options,
-  OptionsText,
-  OptionsUrlencoded,
-} from 'body-parser';
-import { Request } from '@palmares/server';
+import { ServerSettingsType } from '@palmares/server';
 
-export type HTTPMethodTypes =
-  | 'get'
-  | 'post'
-  | 'put'
-  | 'delete'
-  | 'patch'
-  | 'head'
-  | 'options'
-  | 'trace'
-  | 'connect';
+import type { IRouterHandler, Express, json, raw, text, urlencoded } from 'express';
+import type multer from 'multer';
 
-export type ExpressSettingsType = {
-  JSON_OPTIONS?: OptionsJson;
-  RAW_OPTIONS?: Options;
-  TEXT_OPTIONS?: OptionsText;
-  URLENCODED_OPTIONS?: OptionsUrlencoded;
+export type ToFormDataOptions<TType extends keyof ReturnType<typeof multer>> = {
+  type: TType;
+  options?: Parameters<ReturnType<typeof multer>[TType]>;
 };
 
-export type ExpressMiddlewareHandlerType = (
-  req: ERequest,
-  res: Response,
-  next: NextFunction
-) => Promise<void> | void;
-
-type RequestType = {
-  R?: any;
-  V?: any;
-  P?: any;
-  Q?: any;
-  D?: any;
-  O?: any;
+export type CustomSettingsForExpress = {
+  middlewares: Parameters<IRouterHandler<any>>[0][];
+  jsonOptions?: Parameters<typeof json>[0];
+  textOptions?: Parameters<typeof text>[0];
+  bodyRawOptions?: Parameters<typeof raw>[0];
+  /**
+   * This is used for defining custom options for the `urlencoded` method from express.
+   * Generally urlencoded is used when you want to parse the body of a request that is sent with the `application/x-www-form-urlencoded` content type.
+   * You can get this data by using the `toBlob` method on the `Request` object.
+   */
+  urlEncodedOptions?: Parameters<typeof urlencoded>[0];
+  multerOptions?: Parameters<typeof multer>[0];
+  additionalBehaviour?: (app: Express) => void;
 };
-
-export type ExpressRequest<
-  R extends RequestType = { R: ERequest; V: any; P: any; Q: any; D: any }
-> = Request<{
-  R: ERequest;
-  V: { res: Response } & R['V'];
-  P: R['P'];
-  Q: R['Q'];
-  D: R['D'];
-  O: R['O'];
-}>;
+export type ServerSettingsTypeExpress = ServerSettingsType<CustomSettingsForExpress>;

@@ -1,13 +1,10 @@
 # @palmares/serializers
 
-## 1.0.0
-
-### Minor Changes
-
-- 374b4a4: Só testando
+## 0.0.1
 
 ### Patch Changes
 
-- Updated dependencies [374b4a4]
-  - @palmares/databases@0.1.0
-  - @palmares/core@0.1.0
+- 4752bb1: Fixing dependencies versions
+- Updated dependencies [4752bb1]
+  - @palmares/core@0.0.3
+  - @palmares/databases@0.0.1

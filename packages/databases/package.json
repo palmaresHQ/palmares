@@ -1,6 +1,6 @@
 {
   "name": "@palmares/databases",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Add support for working with databases with palmares framework",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
@@ -15,7 +15,7 @@
     }
   },
   "scripts": {
-    "clear": "rm -rf ./dist",
+    "clear": "rimraf ./dist",
     "build:types": "tsc --project tsconfig.types.json",
     "build:cjs": "swc ./src -d ./dist/cjs/src --config-file ../../build/.commonjs.swcrc",
     "build:module": "swc ./src -d ./dist/esm/src --config-file ../../build/.esm.swcrc",
@@ -40,11 +40,9 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
+    "@palmares/logging": "workspace:*",
     "@palmares/core": "workspace:*",
     "@palmares/std": "workspace:*",
     "@palmares/events": "workspace:*"
-  },
-  "devDependencies": {
-    "ts-toolbelt": "^9.6.0"
   }
 }

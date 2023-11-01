@@ -1,12 +1,10 @@
-import {
-  FoundMigrationsFileType,
-  StateModelsType,
-  OriginalOrStateModelsByNameType,
-} from './types';
-import model, { Model } from '../models/model';
+import { FoundMigrationsFileType, StateModelsType, OriginalOrStateModelsByNameType } from './types';
+import model, { BaseModel, Model } from '../models/model';
 import { InitializedModelsType } from '../types';
-import Engine from '../engine';
-import { TModel } from '../models/types';
+import DatabaseAdapter from '../engine';
+import { defaultEngineDuplicate } from '../engine/utils';
+import { DefaultDuplicateFunctionNotCalledOnEngine } from './exceptions';
+import { initializeModels } from '../models/utils';
 
 /**
  * The state is used to keep track how the models were for every migration file. On the migration files
@@ -36,10 +34,10 @@ export default class State {
    *
    * @returns - Returns a model instance with all of the fields and options.
    */
-  async get(modelName: string): Promise<TModel> {
-    const model = this.modelsByName[modelName];
-    const doesModelExist = model && model.instance instanceof Model;
-    if (doesModelExist) return model.instance;
+  async get(modelName: string): Promise<BaseModel & InstanceType<ReturnType<typeof model>>> {
+    const modelInstance = this.modelsByName[modelName];
+    const doesModelExist = modelInstance && modelInstance.instance instanceof Model;
+    if (doesModelExist) return modelInstance.instance;
     else return await this.newModel(modelName);
   }
 
@@ -50,7 +48,7 @@ export default class State {
    * @param modelName - The name of the model to set.
    * @param modifiedModel - The modified model instance to set.
    */
-  async set(modelName: string, modifiedModel: TModel) {
+  async set(modelName: string, modifiedModel: BaseModel & InstanceType<ReturnType<typeof model>>) {
     this.modelsByName[modelName].instance = modifiedModel;
   }
 
@@ -67,14 +65,19 @@ export default class State {
    * @return - Returns the newly created model. We use the .get method because if we have any side effects to the
    * model we will also run them.
    */
-  async newModel(modelName: string): Promise<Model> {
-    const ModelClass = class StateModel extends model() {};
-    const newModel = new ModelClass();
-    newModel.name = modelName;
-    newModel._isState = true;
+  async newModel(modelName: string): Promise<BaseModel & InstanceType<ReturnType<typeof model>>> {
+    const ModelClass = class StateModel extends model() {
+      static isState = true;
+      static __cachedName: string = modelName;
+
+      fields = {};
+      options = {};
+    };
+    const newModelInstance = new ModelClass() as InstanceType<ReturnType<typeof model>> & BaseModel;
+
     this.modelsByName[modelName] = {
-      class: ModelClass,
-      instance: newModel,
+      class: ModelClass as unknown as ReturnType<typeof model> & typeof BaseModel,
+      instance: newModelInstance,
     };
     return this.get(modelName);
   }
@@ -95,25 +98,12 @@ export default class State {
    *
    * @param engineInstance - The engine instance to use to initialize the models.
    */
-  async initializeStateModels(
-    engineInstance: Engine
-  ): Promise<InitializedModelsType[]> {
+  async initializeStateModels(engineInstance: DatabaseAdapter): Promise<InitializedModelsType[]> {
     const modelsInState = Object.values(this.modelsByName);
-    const initializedStateModels: InitializedModelsType[] = [];
-    for (const model of modelsInState) {
-      initializedStateModels.push({
-        domainName: model.instance.domainName,
-        domainPath: model.instance.domainPath,
-        class: model.class,
-        initialized: await model.instance._init(
-          engineInstance,
-          model.instance.domainName,
-          model.instance.domainPath
-        ),
-        original: model.instance,
-      });
-    }
-    return initializedStateModels;
+    return initializeModels(
+      engineInstance,
+      modelsInState.map((model) => model.class)
+    );
   }
 
   /**
@@ -133,11 +123,16 @@ export default class State {
    * @return - Returns an object with the models that were initialized in the state and the engine
    * instance.
    */
-  async geInitializedModelsByName(engineInstance: Engine) {
-    const duplicatedEngineInstance = await engineInstance.duplicate();
-    const closeEngineInstance = duplicatedEngineInstance.close.bind(
-      duplicatedEngineInstance
+  async geInitializedModelsByName(engineInstance: DatabaseAdapter) {
+    let duplicatedEngineInstance: undefined | DatabaseAdapter = undefined;
+
+    const wasDefaultDuplicateCalled = { value: false };
+    duplicatedEngineInstance = await engineInstance.duplicate(
+      defaultEngineDuplicate(engineInstance, wasDefaultDuplicateCalled)
     );
+    if (wasDefaultDuplicateCalled.value === false) throw new DefaultDuplicateFunctionNotCalledOnEngine();
+
+    const closeEngineInstance = duplicatedEngineInstance.close?.bind(duplicatedEngineInstance);
 
     const wasInitialized = Object.keys(this.initializedModelsByName).length > 0;
     if (wasInitialized)
@@ -146,12 +141,9 @@ export default class State {
         closeEngineInstance,
       };
 
-    const initializedModels = await this.initializeStateModels(
-      duplicatedEngineInstance
-    );
+    const initializedModels = await this.initializeStateModels(duplicatedEngineInstance);
     for (const initializedModel of initializedModels) {
-      this.initializedModelsByName[initializedModel.original.originalName] =
-        initializedModel;
+      this.initializedModelsByName[initializedModel.class.originalName()] = initializedModel;
     }
     return {
       initializedModels: this.initializedModelsByName,
@@ -187,22 +179,15 @@ export default class State {
     untilOperationIndex?: number
   ) {
     const state = new this();
-
     for (const foundMigration of foundMigrations) {
-      const isToBuildStateUntilThisMigration =
-        foundMigration.migration.name === untilMigration;
+      const isToBuildStateUntilThisMigration = foundMigration.migration.name === untilMigration;
 
       for (let i = 0; i < foundMigration.migration.operations.length; i++) {
         const isToBuildUntilOperationIndex = i === untilOperationIndex;
-        if (isToBuildStateUntilThisMigration && isToBuildUntilOperationIndex)
-          return state;
+        if (isToBuildStateUntilThisMigration && isToBuildUntilOperationIndex) return state;
 
         const operation = foundMigration.migration.operations[i];
-        await operation.stateForwards(
-          state,
-          foundMigration.domainName,
-          foundMigration.domainPath
-        );
+        await operation.stateForwards(state, foundMigration.domainName, foundMigration.domainPath);
       }
 
       if (isToBuildStateUntilThisMigration) return state;

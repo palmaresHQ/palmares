@@ -1,32 +1,35 @@
 {
   "name": "@example/basic",
-  "version": "0.1.0",
+  "version": "0.0.1",
+  "private": true,
   "description": "This is a basic example application, just to test if everything works as expected",
   "main": "manage.ts",
   "author": "Nicolas Melo",
   "license": "MIT",
   "scripts": {
-    "start": "ts-node dist/manage.js dev",
-    "dev": "nodemon --watch 'src/' --watch '../packages' --watch '../libs' --exec ' ts-node manage.ts dev' -e ts",
-    "events": "ts-node manage.ts eventsServer",
+    "start": "tsx dist/manage.js dev",
+    "dev": "nodemon --watch 'src/' --watch '../../packages/*/dist/**' --watch '../../libs/*/dist/**' --exec ' tsx manage.ts runserver' -e ts",
+    "events": "tsx manage.ts eventsServer",
     "help": "npx tsx manage.ts help",
-    "models": "ts-node src/core/models.ts",
-    "test": "ts-node teste.ts",
-    "events1": "ts-node src/events1.ts",
-    "events2": "ts-node src/events2.ts",
-    "makemigrations": "ts-node manage.ts makemigrations",
-    "migrate": "ts-node manage.ts migrate"
+    "models": "tsx src/core/models.ts",
+    "test": "tsx teste.ts",
+    "events1": "tsx src/events1.ts",
+    "events2": "tsx src/events2.ts",
+    "makemigrations": "tsx manage.ts makemigrations",
+    "migrate": "tsx manage.ts migrate"
   },
   "dependencies": {
     "@palmares/core": "workspace:*",
     "@palmares/std": "workspace:*",
     "@palmares/databases": "workspace:*",
+    "@palmares/server": "workspace:*",
+    "@palmares/express-adapter": "workspace:*",
     "@palmares/sequelize-engine": "workspace:*",
     "cors": "^2.8.5",
     "pg": "^8.7.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.12",
-    "nodemon": "^2.0.20"
+    "nodemon": "^3.0.1"
   }
 }

@@ -1,6 +1,6 @@
 import { MigrationFileType } from '../migrations/types';
-import * as actions from '../migrations/actions';
-import * as models from '../models';
+import { BigAutoField, CharField } from '../models/fields';
+import { CreateModel } from '../migrations/actions';
 
 /**
  * Here we just create the `palmares_migrations` table in the database.
@@ -11,10 +11,10 @@ const migrations: MigrationFileType[] = [
     database: '*',
     dependsOn: '',
     operations: [
-      new actions.CreateModel(
+      new CreateModel(
         'PalmaresMigrations',
         {
-          id: models.fields.BigAutoField.new({
+          id: BigAutoField.new({
             primaryKey: true,
             defaultValue: undefined,
             allowNull: false,
@@ -24,7 +24,7 @@ const migrations: MigrationFileType[] = [
             underscored: false,
             customAttributes: {},
           }),
-          migrationName: models.fields.CharField.new({
+          migrationName: CharField.new({
             allowBlank: true,
             maxLength: 150,
             primaryKey: false,
@@ -36,7 +36,7 @@ const migrations: MigrationFileType[] = [
             underscored: false,
             customAttributes: {},
           }),
-          engineName: models.fields.CharField.new({
+          engineName: CharField.new({
             allowBlank: true,
             maxLength: 150,
             primaryKey: false,

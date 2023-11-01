@@ -1,5 +1,5 @@
 import { getSettings, initializeDomains, SettingsType2 } from '@palmares/core';
-import type { Function } from 'ts-toolbelt';
+
 import {
   ManagerInstancesType,
   ManagerEngineInstancesType,
@@ -10,13 +10,20 @@ import {
   FieldsOFModelType,
   OrderingOfModelsType,
   FieldsOfModelOptionsType,
+  RelatedFieldToModel,
+  ModelType,
 } from './types';
 import { ManagerEngineInstanceNotFoundError } from './exceptions';
-import Engine from '../engine';
+import DatabaseAdapter from '../engine';
 import { Model, default as model } from './model';
 import Databases from '../databases';
 import { DatabaseSettingsType } from '../types';
 import { DatabaseDomainInterface } from '../interfaces';
+import removeQuery from '../queries/remove';
+import getQuery from '../queries/get';
+import setQuery from '../queries/set';
+
+import type { Narrow } from '@palmares/core';
 
 /**
  * Managers define how you make queries on the database. Instead of making queries everywhere in your application
@@ -62,11 +69,11 @@ import { DatabaseDomainInterface } from '../interfaces';
  * For example: one could create a framework that enables `bull.js` tasks to be defined on the database instead
  * of the code. This way we could update the tasks dynamically.
  */
-export default class Manager<M extends Model = Model, EI extends Engine<M> | null = null> {
+export default class Manager<TModel = Model, EI extends DatabaseAdapter | null = null> {
   instances: ManagerInstancesType;
   engineInstances: ManagerEngineInstancesType;
   defaultEngineInstanceName: string;
-  models: { [engineName: string]: Model };
+  models: { [engineName: string]: TModel };
   modelKls!: { new (...args: unknown[]): any };
   isLazyInitializing = false;
 
@@ -78,12 +85,12 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
     this.defaultEngineInstanceName = '';
   }
 
-  _setModel(engineName: string, model: M) {
-    this.models[engineName] = model as M;
+  _setModel(engineName: string, model: TModel) {
+    this.models[engineName] = model as TModel;
   }
 
   getModel(engineName: string) {
-    return this.models[engineName] as M;
+    return this.models[engineName] as TModel;
   }
 
   /**
@@ -96,15 +103,26 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
    */
   async verifyIfNotInitializedAndInitializeModels(engineName: string) {
     const database = new Databases();
+
     const canInitializeTheModels =
       this.isLazyInitializing === false && database.isInitialized === false && database.isInitializing === false;
     this.isLazyInitializing = true;
+
     if (canInitializeTheModels) {
       const settings = getSettings() as unknown as DatabaseSettingsType;
       const { domains } = await initializeDomains(settings as unknown as SettingsType2);
       await database.lazyInitializeEngine(engineName, settings, domains as DatabaseDomainInterface[]);
       return true;
     }
+    if (this.isLazyInitializing)
+      return await await new Promise((resolve) => {
+        const verifyIfInitialized = () => {
+          const doesInstanceExists = this.instances[engineName] !== undefined;
+          if (doesInstanceExists) return resolve(true);
+          setTimeout(() => verifyIfInitialized(), 100);
+        };
+        verifyIfInitialized();
+      });
     return false;
   }
 
@@ -119,9 +137,9 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
    *
    * @return - The instance of the the model inside that engine instance
    */
-  async getInstance<T extends Engine = Engine>(
+  async getInstance<T extends DatabaseAdapter = DatabaseAdapter>(
     engineName?: string
-  ): Promise<EI extends Engine ? EI['ModelType'] : T['ModelType']> {
+  ): Promise<EI extends DatabaseAdapter ? EI['ModelType'] : T['ModelType']> {
     const engineInstanceName = engineName || this.defaultEngineInstanceName;
     const doesInstanceExists = this.instances[engineInstanceName] !== undefined;
     if (doesInstanceExists) return this.instances[engineInstanceName];
@@ -139,16 +157,18 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
     this.instances[engineName] = instance;
   }
 
-  async getEngineInstance<T extends Engine = Engine>(engineName?: string): Promise<EI extends Engine ? EI : T> {
+  async getEngineInstance<T extends DatabaseAdapter = DatabaseAdapter>(
+    engineName?: string
+  ): Promise<EI extends DatabaseAdapter ? EI : T> {
     const engineInstanceName: string = engineName || this.defaultEngineInstanceName;
     const doesInstanceExists = this.engineInstances[engineInstanceName] !== undefined;
-    if (doesInstanceExists) return this.engineInstances[engineInstanceName] as EI extends Engine ? EI : T;
+    if (doesInstanceExists) return this.engineInstances[engineInstanceName] as EI extends DatabaseAdapter ? EI : T;
     const hasLazilyInitialized = await this.verifyIfNotInitializedAndInitializeModels(engineInstanceName);
     if (hasLazilyInitialized) return this.getEngineInstance(engineName);
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }
 
-  _setEngineInstance(engineName: string, instance: Engine) {
+  _setEngineInstance(engineName: string, instance: DatabaseAdapter) {
     const isDefaultEngineInstanceNameEmpty = this.defaultEngineInstanceName === '';
     if (isDefaultEngineInstanceNameEmpty) this.defaultEngineInstanceName = engineName;
     this.engineInstances[engineName] = instance;
@@ -203,19 +223,24 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
    * @return - An array of instances retrieved by this query.
    */
   async get<
-    TModel extends Model<any> = M,
     TIncludes extends Includes<{
       fields?: readonly string[];
       ordering?: readonly (string | `-${string}`)[];
       limit?: number;
       offset?: number | string;
     }> = undefined,
-    TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>
+    TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>,
   >(
     args?: {
-      includes?: Function.Narrow<IncludesValidated<TModel, TIncludes>>;
-      fields?: Function.Narrow<TFields>;
-      search?: ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true> | undefined;
+      /**
+       * Includes is used for making relations. Because everything is inferred and you define your relationName directly on the ForeignKeyField
+       */
+      includes?: Narrow<IncludesValidated<TModel, TIncludes>>;
+      fields?: Narrow<TFields>;
+      search?:
+        | ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true>
+        | ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true>[]
+        | undefined;
       ordering?: OrderingOfModelsType<
         FieldsOfModelOptionsType<TModel> extends string ? FieldsOfModelOptionsType<TModel> : string
       >;
@@ -233,10 +258,10 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
       ? engineName
       : this.defaultEngineInstanceName;
 
-    const allFieldsOfModel = Object.keys(
-      this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName)['fields']
-    );
-    return engineInstance.query.get.run(
+    const modelInstance = this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName) as Model;
+    const modelConstructor = modelInstance.constructor as ModelType;
+    const allFieldsOfModel = Object.keys(modelConstructor._fields());
+    return getQuery(
       {
         fields: (args?.fields || allFieldsOfModel) as unknown as TFields,
         search: (args?.search || {}) as ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true>,
@@ -246,6 +271,7 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
       },
       {
         model: this.models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName] as TModel,
+        engine: engineInstance,
         includes: (args?.includes || []) as TIncludes,
       }
     ) as Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]>;
@@ -273,11 +299,10 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
    * @return - Return the created instance or undefined if something went wrong, or boolean if it's an update.
    */
   async set<
-    TModel extends Model = M,
     TIncludes extends Includes = undefined,
     TSearch extends
       | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
-      | undefined = undefined
+      | undefined = undefined,
   >(
     data:
       | ModelFieldsWithIncludes<
@@ -300,22 +325,25 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
         >,
     args?: {
       isToPreventEvents?: boolean;
+      transaction?: any;
       /**
        * This is enabled by default if you are inserting more than one element or if you use includes, it can make you code slower, but
        * it will guarantee that the data is consistent.
        */
       useTransaction?: boolean;
       usePalmaresTransaction?: boolean;
-      includes?: Function.Narrow<IncludesValidated<TModel, TIncludes, true>>;
+      includes?: Narrow<IncludesValidated<TModel, TIncludes, true>>;
       search?: TSearch;
     },
     engineName?: string
   ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]> {
     const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
-    const engineInstanceName = engineName || this.defaultEngineInstanceName;
+    let engineInstanceName = engineName || this.defaultEngineInstanceName;
 
     // Promise.all here will not work, we need to do this sequentially.
     const engineInstance = await this.getEngineInstance(engineName);
+
+    engineInstanceName = engineName || this.defaultEngineInstanceName;
     const dataAsAnArray = Array.isArray(data)
       ? data
       : ([data] as ModelFieldsWithIncludes<
@@ -327,7 +355,7 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
           TSearch extends undefined ? false : true,
           false
         >[]);
-    return engineInstance.query.set.run(
+    return setQuery(
       dataAsAnArray,
       {
         isToPreventEvents,
@@ -336,6 +364,8 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
       },
       {
         model: this.getModel(engineInstanceName) as unknown as TModel,
+        engine: engineInstance,
+        transaction: args?.transaction,
         includes: (args?.includes || []) as TIncludes,
       }
     );
@@ -351,16 +381,15 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
    * @return - Returns true if everything went fine and false otherwise.
    */
   async remove<
-    TModel extends Model = M,
     TIncludes extends Includes<{
       isToPreventRemove?: true;
-    }> = undefined
+    }> = undefined,
   >(
     args?: {
       usePalmaresTransaction?: boolean;
       useTransaction?: boolean;
       isToPreventEvents?: boolean;
-      includes?: Function.Narrow<
+      includes?: Narrow<
         IncludesValidated<
           TModel,
           TIncludes,
@@ -380,15 +409,16 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
     const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
     const shouldRemove = typeof args?.shouldRemove === 'boolean' ? args.shouldRemove : true;
     const isValidEngineName = typeof engineName === 'string' && engineName !== '';
-    const engineInstanceName = isValidEngineName ? engineName : this.defaultEngineInstanceName;
+    let engineInstanceName = isValidEngineName ? engineName : this.defaultEngineInstanceName;
     // Promise.all here will not work, we need to do this sequentially.
     const engineInstance = await this.getEngineInstance(engineInstanceName);
+    engineInstanceName = engineName || this.defaultEngineInstanceName;
 
     const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName = isValidEngineName
       ? engineName
       : this.defaultEngineInstanceName;
 
-    return engineInstance.query.remove.run<
+    return removeQuery<
       TModel,
       TIncludes,
       ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
@@ -410,6 +440,7 @@ export default class Manager<M extends Model = Model, EI extends Engine<M> | nul
       },
       {
         model: this.models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName] as TModel,
+        engine: engineInstance,
         includes: (args?.includes || []) as TIncludes,
       }
     ) as Promise<ModelFieldsWithIncludes<TModel, TIncludes>[]>;

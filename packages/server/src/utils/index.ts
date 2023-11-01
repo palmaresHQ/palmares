@@ -1,1 +1,1 @@
-export * from './constants';
+export { generateErrorId } from './error-id';

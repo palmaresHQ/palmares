@@ -1,4 +1,3 @@
-import { MessageCategories, MessagesCallbackType } from '../logging/types';
 import Domain from '../domain/domain';
 import { DomainReadyFunctionArgs } from '../domain/types';
 import { Narrow } from '../utils';
@@ -118,12 +117,6 @@ export type SettingsType = {
   USE_TS?: boolean;
   BASE_PATH: string;
   INSTALLED_DOMAINS: InstalledDomainsType;
-  LOGGING?: {
-    [key: string]: {
-      category: MessageCategories;
-      callback: MessagesCallbackType;
-    };
-  };
   SOCKETS?: {
     ROOT_URLCONF: string;
     ENGINE: string;

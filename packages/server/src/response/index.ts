@@ -1,485 +1,818 @@
-import { utils } from '@palmares/core';
-
 import {
-  isSuccess,
-  isServerError,
-  isClientError,
+  DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML,
+  DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON,
+  DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_STREAM,
+  DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_TEXT,
+  DEFAULT_RESPONSE_HEADERS_CONTENT_DISPOSITION_KEY,
+  DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY,
+  DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY,
+} from '../defaults';
+import { formDataLikeFactory } from '../request/utils';
+import {
+  HTTP_200_OK,
+  HTTP_302_FOUND,
+  HTTP_500_INTERNAL_SERVER_ERROR,
+  RedirectionStatusCodes,
   StatusCodes,
-} from '../status';
-import {
-  InvalidCookie,
-  UseSetBodyInstead,
-  UseSetCookieInstead,
-  DoNotCallResponseDirectly,
-} from './exceptions';
-import { CookiesType, CookieOptionsType, BodyTypes } from './types';
-import Mimes from '../mimes';
+  isRedirect,
+  isServerError,
+  isSuccess,
+} from './status';
+import { FileLike } from './utils';
 
-export default class Response<O = any> {
-  readonly cookies: CookiesType = {};
-  readonly headers: any = {};
-  readonly contentType!: string;
-  options = {} as O; // This is how you pass custom params on the response lifecycle
-  #toDecodeStatus = 321; // This is kinda dumb but a way we got to "force" the user into using '.new'
-  // instead of creating a new response directly.
-  #ok!: boolean;
-  #error!: boolean;
-  #warn!: boolean;
-  #status!: StatusCodes;
-  #body!: BodyTypes;
+import type { ResponseTypeType } from './types';
+import type { FormDataLike } from '../request/types';
+import type Request from '../request';
 
-  private constructor(status: StatusCodes) {
-    const isInvalidStatusCode = status <= 599;
-    if (isInvalidStatusCode) throw new DoNotCallResponseDirectly();
-    const statusCode = status / this.#toDecodeStatus;
-    this.status = statusCode;
+export default class Response<
+  TBody extends
+    | unknown
+    | undefined
+    | ArrayBuffer
+    | Blob
+    | FileLike
+    | (() => AsyncGenerator<any, any, any> | Generator<any, any, any>)
+    | string
+    | object = undefined,
+  TResponse extends {
+    status?: StatusCodes;
+    responses?: Record<string, (...args: any[]) => Response<any, any> | Promise<Response<any, any>>> | undefined;
+    headers?: { [key: string]: string } | unknown;
+    context?: object | unknown;
+  } = {
+    status: undefined;
+    responses: undefined;
+    headers: undefined;
+    context: undefined;
+  }
+> {
+  /**
+   * This is data sent by the server, you can use it to translate your request and response during the lifecycle of Request/Response.
+   *
+   * Think like that, on express:
+   *
+   * ```ts
+   * app.use((req, res, next) => {
+   *   const serverRequestAndResponseData = { req, res };
+   *   await wrappedHandler(serverRequestAndResponseData);
+   * });
+   * ```
+   */
+  private __serverRequestAndResponseData: any = undefined;
+  private __error: Error | undefined = undefined;
+
+  readonly url: string = '';
+  readonly ok: boolean = false;
+  readonly redirected: boolean = false;
+  readonly type: ResponseTypeType = 'basic';
+  readonly bodyUsed: boolean = false;
+
+  readonly responses?: TResponse['responses'];
+  statusText!: string;
+  status!: TResponse['status'] extends StatusCodes ? TResponse['status'] : undefined;
+  body!: TBody;
+  headers!: TResponse['headers'] extends object ? TResponse['headers'] : undefined;
+  context!: TResponse['context'] extends object ? TResponse['context'] : undefined;
+
+  /**
+   * # IMPORTANT
+   * We advise you to use the static methods instead of this constructor directly, it will not set the headers and status correctly so it can lead to unexpected behavior.
+   * Need to clone a response? Use the {@link Response.clone} method instead.
+   *
+   * @param body - The body of the response, it doesn't support FormData, but it supports Blob, ArrayBuffer, string and object.
+   * @param options - The options of the response.
+   */
+  constructor(body?: TBody, options?: TResponse & { statusText?: string }) {
+    const isAJsonObject =
+      typeof body === 'object' &&
+      body !== null &&
+      !(body instanceof Blob) &&
+      !(body instanceof FileLike) &&
+      !(body instanceof ArrayBuffer);
+    this.body = isAJsonObject ? (JSON.stringify(body) as unknown as TBody) : (body as TBody);
+    this.context = options?.context as TResponse['context'] extends object ? TResponse['context'] : undefined;
+    this.headers = options?.headers as TResponse['headers'] extends object ? TResponse['headers'] : undefined;
+    this.status = options?.status as TResponse['status'] extends StatusCodes ? TResponse['status'] : undefined;
+    this.statusText = options?.statusText as string;
+    this.ok = options?.status ? isSuccess(options?.status) : false;
+    this.redirected = options?.status ? isRedirect(options.status) : false;
+    this.type = options?.status ? (isServerError(options.status) ? 'error' : 'basic') : 'basic';
   }
 
   /**
-   * I don't know much about how headers work on browsers i know mostly that they are defined
-   * in with a `Set-Cookie` header and that they have some arguments to it.
+   * This method is a factory method that should be used to send a response with a json body.
    *
-   * You can see a full reference for the cookies here:
-   * https://developer.mozilla.org/en-Us/docs/Web/HTTP/Headers/Set-Cookie
+   * By default, it will set the status to 200 and set the content-type header to application/json.
    *
-   * By parsing them it should be easy to work with them in the response instance during the
-   * request/response lifecycle, specially on middlewares.
+   * @example
+   * ```ts
+   * import { Response, path } from '@palmares/server';
    *
-   * This should receive the cookies like `['cookieName1=cookieName1Value', 'cookieName2=cookieName2Value']`
-   * send it as raw as possible so we are able to parse it inside of the req/res lifecycle.
+   * path('/users').get(async () => {
+   *   const users = await getUsers();
+   *   return Response.json(users);
+   * });
+   * ```
    *
-   * You might prefer to use the `setCookie` method.
+   * @param body - The body to send as json.
+   * @param options - The options to pass to the response.
    *
-   * @param rawCookies - The cookies in the `['cookieName1=cookieName1Value; Path=/; Secure', 'cookieName2=cookieName2Value']`
-   * format.
+   * @returns - A response with the status set to 200 and the content-type header set to application/json.
    */
-  async parseCookies(rawCookies: string[]) {
-    for (const rawCookie of rawCookies) {
-      let cookieKey: string | undefined = undefined;
-      const splittedRawCookie = rawCookie.split(';');
-      const cookieData = {} as CookieOptionsType;
-
-      for (const cookie of splittedRawCookie) {
-        const splittedCookie = cookie.split('=');
-        const key = splittedCookie[0];
-        const isPath = key === 'Path' || key === ' Path';
-        const isExpires = key === 'Expires' || key === ' Expires';
-        const isMaxAge = key === 'Max-Age' || key === ' Max-Age';
-        const isDomain = key === 'Domain' || key === ' Domain';
-        const isSecure = key === 'Secure' || key === ' Secure';
-        const isHTTPOnly = key === 'HttpOnly' || key === ' HttpOnly';
-        const isSameSite = key === 'SameSite' || key === ' SameSite';
-        if (isPath) cookieData.path = splittedCookie[1];
-        else if (isExpires) cookieData.expires = new Date(splittedCookie[1]);
-        else if (isMaxAge) cookieData.maxAge = parseInt(splittedCookie[1]);
-        else if (isDomain) cookieData.domain = splittedCookie[1];
-        else if (isSecure) cookieData.secure = true;
-        else if (isHTTPOnly) cookieData.httpOnly = true;
-        else if (isSameSite)
-          cookieData.sameSite = splittedCookie[1] as
-            | boolean
-            | 'lax'
-            | 'strict'
-            | 'none';
-        else {
-          const formattedKey = key
-            .replace(/^(__Secure-)/, '')
-            .replace(/^(__Host-)/, '');
-          cookieKey = formattedKey;
-          this.cookies[formattedKey] = Object.assign(
-            this.cookies[formattedKey] || {},
-            {
-              value: splittedCookie[1],
-            }
-          );
-        }
-      }
-      const isCookieKeyNotDefined = typeof cookieKey !== 'string';
-      if (isCookieKeyNotDefined) throw new InvalidCookie();
-      const existingDataOnCookieKey = this.cookies[cookieKey as string];
-      this.cookies[cookieKey as string] = {
-        ...existingDataOnCookieKey,
-        ...cookieData,
-      };
+  static json<
+    TBody extends object | object[],
+    TResponse extends {
+      status?: StatusCodes;
+      headers?: object | unknown;
+      context?: object | unknown;
+    } = {
+      status: undefined;
+      headers: undefined;
+      context: undefined;
     }
-  }
+  >(body: TBody, options?: TResponse) {
+    const isStatusNotDefined = typeof options?.status !== 'number';
+    const hasNotDefinedJsonHeader =
+      (options?.headers as any)?.[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] !==
+      DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON;
 
-  /**
-   * Sets the cookie on the response lifecycle, if a cookie exists for this key we will override it, if
-   * it does not exist, creates a new one.
-   *
-   * @param key - The key of the cookie.
-   * @param value - The value of the cookie.
-   * @param options - (optional) Custom options for the cookie like it's max age, the expiration date
-   * and so on.
-   */
-  async setCookie(
-    key: string,
-    value: string,
-    options: CookieOptionsType = { path: '/' }
-  ) {
-    this.cookies[key] = {
-      value,
-      ...options,
+    // Define default status and statusText.
+    if (isStatusNotDefined) {
+      if (options) options.status = HTTP_200_OK;
+      else options = { status: HTTP_200_OK } as TResponse;
+      //options.statusText = typeof options.statusText === 'string' ? options.statusText : 'OK';
+    }
+
+    if (hasNotDefinedJsonHeader) {
+      if (options) {
+        if (options.headers)
+          (options.headers as any)[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] =
+            DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON;
+        else
+          options.headers = {
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON,
+          };
+      } else
+        options = {
+          headers: { [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON },
+        } as TResponse;
+    }
+
+    const optionsFormatted = options as {
+      context: TResponse['context'] extends object ? TResponse['context'] : undefined;
+      headers: (TResponse['headers'] extends object ? TResponse['headers'] : object) & {
+        [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: string;
+      };
+      status: TResponse['status'] extends StatusCodes ? TResponse['status'] : 200 | 201;
     };
+    return new Response<TBody, typeof optionsFormatted>(JSON.stringify(body) as unknown as TBody, optionsFormatted);
   }
 
   /**
-   * If the response is okay this will be true, a response okay is something that is not an `4xx` or `5xx` errors.
+   * Streams a response back to the client. Instead of using a ReadableStream (which is not Supported by things like React Native.) We opted to use a generator function instead.
+   * You just need to return a generator function that yields chunks of data, and we will stream it back to the client. Seems easy enough, right?
    *
-   * @returns true if the response is okay, false otherwise.
+   * @example
+   * ```ts
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/users').get(async () => {
+   *   const users = await getUsers();
+   *   return Response.stream(function* () {
+   *     for (const user of users) {
+   *       yield JSON.stringify(user);
+   *     }
+   *   });
+   * });
+   * ```
+   *
+   * @param body - The generator function to stream back to the client.
+   * @param options - The options to pass to the response.
+   *
+   * @returns - A response with the status set to 200 and the content-type header set to application/octet-stream.
    */
-  get ok() {
-    return this.#ok;
-  }
-
-  /**
-   * If the response is a client response this will be true, a response warn is a `4xx` status code error.
-   *
-   * @returns true if the response should be warned, false otherwise.
-   */
-  get warn() {
-    return this.#warn;
-  }
-
-  /**
-   * This is true if an `5xx` error occurred.
-   *
-   * @returns true if and error occurred, false otherwise.
-   */
-  get error() {
-    return this.#error;
-  }
-
-  get status() {
-    return this.#status as number;
-  }
-
-  /**
-   * When setting a status we automatically set the appropriate `ok`, `warn` and `error` flags.
-   * This way we are able to easily check if the response is fine, or if some bad request happened,
-   * or if an error occurred in the server.
-   *
-   * @param code - The status code to set.
-   */
-  set status(code: StatusCodes) {
-    this.#ok = isSuccess(code);
-    this.#error = isServerError(code);
-    this.#warn = isClientError(code);
-    this.#status = code;
-  }
-
-  /**
-   * Set multiple cookies in "parallel" so you don't need to await multiple async methods.
-   *
-   * @param cookies - The cookies that you want to set in the response.
-   */
-  async setManyCookies(
-    cookies: { key: string; value: string; options?: CookieOptionsType }[]
-  ) {
-    const promises = cookies.map(async (cookie) => {
-      await this.setCookie(cookie.key, cookie.value, cookie.options);
-    });
-    await Promise.all(promises);
-  }
-
-  /**
-   * Deletes a key from the cookies by only calling `delete` on the object with the key.
-   *
-   * @param key - The key to the delete from the cookies.
-   */
-  async removeCookie(key: string) {
-    delete this.cookies[key];
-  }
-
-  /**
-   * Deletes multiple cookies at once.
-   *
-   * @param keys - All of the cookies you wish to delete.
-   */
-  async removeManyCookies(keys: string[]) {
-    await Promise.all(keys.map(async (key) => this.removeCookie(key)));
-  }
-
-  /**
-   * Parses the headers object to something that palmares is able to understand and know.
-   *
-   * @param headers - The headers object which should be a NON-Nested object.
-   */
-  async parseHeaders(headers: object) {
-    const headerEntries = Object.entries(headers);
-    const formattedHeaders = headerEntries.map(([key, value]) => ({
-      key,
-      value,
-    }));
-    await this.setManyHeaders(formattedHeaders);
-  }
-
-  /**
-   * Adds a new header key and value if does not exist on the response or changes the existing
-   * header value for the existing key.
-   *
-   * If we are setting the `contentType` we automatically update the `setType` in the response.
-   *
-   * @param key - The key to update in the headers of the response.
-   * @param value - The value to update in the headers of the response
-   */
-  async setHeader(key: string, value: string) {
-    const formattedKey = utils.snakeCaseToCamelCase(key);
-    const isADifferentContentType =
-      key === 'contentType' && this.headers.contentType !== value;
-    const isSetCookie = key === 'setCookie';
-
-    if (isSetCookie) throw new UseSetCookieInstead();
-
-    this.headers[formattedKey] = value;
-    if (isADifferentContentType) {
-      const contentTypeWithStrippedBoundingAndEncoding = value.split(';')[0];
-      await this.setType(contentTypeWithStrippedBoundingAndEncoding);
+  static stream<
+    TBody extends () => AsyncGenerator<any, any, any> | Generator<any, any, any>,
+    TResponse extends {
+      status?: StatusCodes;
+      headers?: object | unknown;
+      context?: object | unknown;
+    } = {
+      status: undefined;
+      headers: undefined;
+      context: undefined;
     }
-  }
+  >(body: TBody, options?: TResponse & { statusText?: string }) {
+    const isStatusNotDefined = typeof options?.status !== 'number';
+    const hasNotDefinedStreamHeader =
+      (options?.headers as any)?.[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] !==
+      DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_STREAM;
 
-  /**
-   * Sets multiple headers to the response so we don't need to await when setting multiple headers to the
-   * same response.
-   *
-   * @param headers - An array with all of the headers you want to add in the response.
-   */
-  async setManyHeaders(headers: { key: string; value: string }[]) {
-    const promises = headers.map(async (header) => {
-      await this.setHeader(header.key, header.value);
-    });
-    await Promise.all(promises);
-  }
-
-  /**
-   * Removes a specific header from the response.
-   *
-   * @param header - The header key you want to remove.
-   */
-  async removeHeader(header: string) {
-    const formattedHeader = utils.snakeCaseToCamelCase(header);
-    delete this.headers[formattedHeader];
-  }
-
-  /**
-   * Removes multiple headers from the response so you just need to await once.
-   *
-   * @param headers - The header keys you want to remove. Example: ['Content-Type', 'Content-Disposition']
-   */
-  async removeManyHeaders(headers: string[]) {
-    await Promise.all(headers.map(async (header) => this.removeHeader(header)));
-  }
-
-  /**
-   * Sets the content type of the response. By default it accept stuff like `text/plain` or
-   * `application/json`.
-   *
-   * But you can also set stuff like `json`, or `txt`. Be aware that the second approach might have
-   * some performance penalties on the first request.
-   *
-   * @param contentType - The content type of the response.
-   */
-  async setType(contentType: string) {
-    const isAnActualMimeType = contentType.split('/').length > 1;
-    if (isAnActualMimeType) await this.setHeader('contentType', contentType);
-    else {
-      const mimeType = await (await Mimes.new()).getMime(contentType);
-      this.setHeader('contentType', mimeType);
-    }
-  }
-
-  /**
-   * Inspired by this: https://github.com/expressjs/express/blob/master/lib/response.js#L1145
-   *
-   * @param value - The object to parse as json.
-   *
-   * @returns - returns the json object stringified.
-   */
-  async #parseJson(value: object) {
-    const json = JSON.stringify(value);
-    const isJsonAString = typeof json === 'string';
-    if (isJsonAString) {
-      return json.replace(/[<>&]/g, function (c) {
-        switch (c.charCodeAt(0)) {
-          case 0x3c:
-            return '\\u003c';
-          case 0x3e:
-            return '\\u003e';
-          case 0x26:
-            return '\\u0026';
-          default:
-            return c;
-        }
-      });
-    }
-    return json;
-  }
-
-  /**
-   * Taken from here with some small tweaks and changes (we do not care for Etag here, let
-   * middlewares take care of it):
-   * https://github.com/expressjs/express/blob/master/lib/response.js#L111
-   *
-   * For more reference on Etags and why we bypass them: https://stackoverflow.com/a/67929691/13158385
-   */
-  async parseBody(body: BodyTypes): Promise<void> {
-    let contentLength = 0;
-    let encoding: string | undefined = undefined;
-    let bodyChunk = body;
-    const hasContentTypeHeader = () =>
-      typeof this.headers.contentType === 'string';
-
-    switch (typeof bodyChunk) {
-      case 'number':
-        if (!hasContentTypeHeader()) await this.setType('text/plain');
-        break;
-      case 'boolean':
-        if (!hasContentTypeHeader()) await this.setType('text/plain');
-        break;
-      case 'string':
-        if (!hasContentTypeHeader()) await this.setType('text/html');
-        break;
-      case 'object':
-        const isBodyNull = bodyChunk === null;
-        const isBodyABuffer = Buffer.isBuffer(bodyChunk);
-        if (isBodyNull) bodyChunk = '';
-        else if (isBodyABuffer) {
-          if (!hasContentTypeHeader())
-            await this.setType('application/octet-stream');
-        } else {
-          if (!hasContentTypeHeader()) await this.setType('application/json');
-          const newBody = await this.#parseJson(bodyChunk);
-          return await this.parseBody(newBody);
-        }
-        break;
+    // Define default status and statusText.
+    if (isStatusNotDefined) {
+      if (options) options.status = HTTP_200_OK;
+      else options = { status: HTTP_200_OK } as TResponse;
+      options.statusText = typeof options.statusText === 'string' ? options.statusText : 'OK';
     }
 
-    const bodyIsAString = typeof bodyChunk === 'string';
-    if (bodyIsAString) {
-      encoding = 'utf8';
-      const contentType = this.contentType;
-      const contentTypeIsAString = typeof contentType === 'string';
-      if (contentTypeIsAString)
-        await this.setHeader('contentType', `${contentType}; charset=UTF-8`);
+    if (hasNotDefinedStreamHeader) {
+      if (options) {
+        if (options.headers)
+          (options.headers as any)[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] =
+            DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_STREAM;
+        else
+          options.headers = {
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_STREAM,
+          };
+      } else
+        options = {
+          headers: { [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON },
+        } as TResponse;
     }
 
-    const chunkIsNotEmpty = bodyChunk !== undefined;
-    if (chunkIsNotEmpty) {
-      if (Buffer.isBuffer(bodyChunk)) {
-        contentLength = bodyChunk.length;
-      } else if ((bodyChunk as string).length < 1000) {
-        contentLength = Buffer.byteLength(bodyChunk as any, encoding as any);
-      } else {
-        bodyChunk = Buffer.from(bodyChunk as any, encoding as any);
-        encoding = undefined;
-        contentLength = (bodyChunk as Buffer).length;
-      }
-      await this.setHeader('contentLength', contentLength.toString());
-    }
-
-    const isNoContentOrNotModified = [
-      StatusCodes.HTTP_204_NO_CONTENT,
-      StatusCodes.HTTP_304_NOT_MODIFIED,
-    ].includes(this.status);
-
-    if (isNoContentOrNotModified) {
-      await this.removeManyHeaders([
-        'contentType',
-        'contentLength',
-        'transferEncoding',
-      ]);
-      bodyChunk = '';
-    }
-
-    const isResetContent = this.status === StatusCodes.HTTP_205_RESET_CONTENT;
-    if (isResetContent) {
-      await Promise.all([
-        this.setHeader('contentLength', '0'),
-        this.removeHeader('transferEncoding'),
-      ]);
-      bodyChunk = '';
-    }
-    this.#body = bodyChunk;
-  }
-
-  get body() {
-    return this.#body;
-  }
-
-  /**
-   * This is here just to teach the programmer on how he should use the library.
-   */
-  set body(val: any) {
-    throw new UseSetBodyInstead();
-  }
-
-  async setBody(body: BodyTypes) {
-    await this.parseBody(body);
-  }
-
-  /**
-   * Same as `getFormattedHeaders` generator function but for cookies instead of the headers.
-   * We must retrieve all of them and append to the framework of choice one by one.
-   *
-   * To not need to loop twice we've just added to this generator function.
-   *
-   * @yields - An object with the values of the cookie.
-   */
-  async *getFormattedCookies() {
-    const cookiesAsEntries = Object.entries(this.cookies);
-    let index = 0;
-    while (index < cookiesAsEntries.length) {
-      const [cookieName, cookieValues] = cookiesAsEntries[index];
-      index++;
-      yield {
-        name: cookieName,
-        ...cookieValues,
+    const optionsFormatted = options as {
+      context: TResponse['context'] extends object ? TResponse['context'] : undefined;
+      headers: (TResponse['headers'] extends object ? TResponse['headers'] : object) & {
+        [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: string;
       };
-    }
+      status: TResponse['status'] extends StatusCodes ? TResponse['status'] : 200 | 201;
+    };
+    return new Response<TBody, typeof optionsFormatted>(body, optionsFormatted);
   }
 
   /**
-   * Generators reference: https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/Generator
+   * Sends a response back to the client, by default it will set the status to 200 and we will try to retrieve the content-type from the Blob body sent.
+   * If you also want to send the filename, you can pass it as the second argument using the `filename` key, OR you can send a FileLike object as the body.
    *
-   * This retrieves the headers with a generator.
+   * @example
+   * ```ts
+   * import { Response, FileLike, path } from '@palmares/server';
    *
-   * You might ask why retrieve this in a generator instead of a normal array.
-   * The problem is that most frameworks, like express, you need to add the header
-   * with a function like `setHeader` or just `set`.
-   * This means that we would need to loop twice, one time for converting the headers
-   * and the other for appending to the headers of the framework.
+   * path('/users').get(async () => {
+   *      const blob = new Blob(['Hello, world!'], { type: 'text/plain;charset=utf-8' });
+   *      return Response.file(blob, { filename: 'hello.txt' });
+   * });
    *
-   * By retrieving a generator we are able to loop just once. It's the same stuff
-   * that we do to set cookies.
+   * // OR
    *
-   * Don't know what them are?
+   * path('/users').get(async () => {
+   *   const blob = new Blob(['Hello, world!'], { type: 'text/plain;charset=utf-8' });
+   *   return Response.file(new FileLike(blob, 'hello.txt'));
+   * });
+   * ```
    *
-   * @yields - Returns an array of 2 elements where the first one is the key and the second is the value
+   * @example
+   * ```ts
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/users').get(async () => {
+   *   const blob = new Blob(['Hello, world!'], { type: 'text/plain;charset=utf-8' });
+   *   return Response.file(blob);
+   * });
+   * ```
+   *
+   * @example
+   * ```ts
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/users').get(async () => {
+   *   const blob = new Blob(['Hello, world!'], { type: 'text/plain;charset=utf-8' });
+   *   const arrayBuffer = await blob.arrayBuffer();
+   *   return Response.file(arrayBuffer);
+   * });
+   * ```
+   *
+   * @param body - The generator function to stream back to the client.
+   * @param options - The options to pass to the response.
+   *
+   * @returns - A response with the status set to 200 and the content-type header set to application/octet-stream.
    */
-  async *getFormattedHeaders(): AsyncGenerator<[string, string]> {
-    const headers = Object.entries(this.headers);
-    let index = 0;
-    while (index < headers.length) {
-      const [key, value] = headers[index];
-      index++;
-      yield [utils.camelCaseToHyphenOrSnakeCase(key, false), value as string];
+  static file<
+    TBody extends FileLike | ArrayBuffer | Blob,
+    TResponse extends {
+      status?: StatusCodes;
+      headers?: object | unknown;
+      context?: object | unknown;
+    } = {
+      status: undefined;
+      headers: undefined;
+      context: undefined;
     }
+  >(body: TBody, options?: TResponse & { statusText?: string; filename?: string }) {
+    // See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition for reference.
+    // Also: https://stackoverflow.com/questions/60833644/getting-filename-from-react-fetch-call
+    // Also: https://stackoverflow.com/questions/49286221/how-to-get-the-filename-from-a-file-downloaded-using-javascript-fetch-api
+    // I concluded we should use Content-Disposition for this.
+    const isStatusNotDefined = typeof options?.status !== 'number';
+    const hasNotDefinedFileHeader =
+      typeof (options?.headers as any)?.[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] !== 'string' &&
+      typeof (options?.headers as any)?.[DEFAULT_RESPONSE_HEADERS_CONTENT_DISPOSITION_KEY] !== 'string';
+
+    // Define default status and statusText.
+    if (isStatusNotDefined) {
+      if (options) options.status = HTTP_200_OK;
+      else options = { status: HTTP_200_OK } as TResponse;
+      options.statusText = typeof options.statusText === 'string' ? options.statusText : 'OK';
+    }
+
+    if (hasNotDefinedFileHeader && (body instanceof FileLike || body instanceof Blob)) {
+      const contentType = body instanceof FileLike ? body.blob.type : body.type;
+      const fileName = body instanceof FileLike ? body.name : options?.filename ? options.filename : undefined;
+      if (options) {
+        if (options.headers) {
+          if (!(options.headers as any)[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY])
+            (options.headers as any)[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] = contentType;
+          if (!(options.headers as any)[DEFAULT_RESPONSE_HEADERS_CONTENT_DISPOSITION_KEY])
+            (options.headers as any)[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] =
+              `attachment` + (fileName ? `; filename="${fileName}"` : '');
+        } else {
+          options.headers = {
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: contentType,
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_DISPOSITION_KEY]:
+              `attachment` + (fileName ? `; filename="${fileName}"` : ''),
+          };
+        }
+      } else
+        options = {
+          headers: {
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: contentType,
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_DISPOSITION_KEY]:
+              `attachment` + (fileName ? `; filename="${fileName}"` : ''),
+          },
+        } as TResponse;
+    }
+
+    const optionsFormatted = options as {
+      context: TResponse['context'] extends object ? TResponse['context'] : undefined;
+      headers: (TResponse['headers'] extends object ? TResponse['headers'] : object) & {
+        [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: string;
+        [DEFAULT_RESPONSE_HEADERS_CONTENT_DISPOSITION_KEY]: string;
+      };
+      status: TResponse['status'] extends StatusCodes ? TResponse['status'] : 200 | 201;
+    };
+    return new Response<TBody extends FileLike ? TBody['blob'] : TBody, typeof optionsFormatted>(
+      body as TBody extends FileLike ? TBody['blob'] : TBody,
+      optionsFormatted
+    );
   }
 
   /**
-   * Always call Response.new() instead of `new Response()`. Since most of the functions async we need to create
-   * the response in an async manner to create the await keyword. We cannot have async constructors.
+   * This method should be used to redirect to another page.
+   * By default, it will set the status to 302 and set the location header to the url passed as argument.
+   *
+   * @param url - The url to redirect to.
+   * @param options - The options to pass to the response.
+   *
+   * @example
+   * ```ts
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/login').post(async (request) => {
+   *   const { username, password } = await request.json();
+   *   if (username === 'admin' && password === 'admin') return Response.redirect('/admin');
+   *   return Response.redirect('/login');
+   * });
+   * ```
+   *
+   * @returns - A response with the status set to 302 and the location header set to the url passed as argument.
    */
-  static async new(status: number, options?: { headers?: any; body?: any }) {
-    const response = new this(status * 321);
-    if (options && options.body) {
-      const isPromise = options.body instanceof Promise;
-      if (isPromise) await response.parseBody(await options.body);
-      else await response.parseBody(options.body);
+  static redirect<
+    TUrl extends string,
+    TResponse extends {
+      status?: RedirectionStatusCodes;
+      headers?: object | unknown;
+      context?: object | unknown;
+    } = {
+      status: undefined;
+      headers: undefined;
+      context: undefined;
     }
-    if (options && options.headers)
-      await response.parseHeaders(options.headers);
-    return response;
+  >(url: TUrl, options?: TResponse) {
+    if (options) {
+      if (options.headers) (options.headers as any)[DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY] = url;
+      else options.headers = { [DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY]: url };
+    } else options = { headers: { [DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY]: url } } as TResponse;
+
+    options.status = HTTP_302_FOUND;
+
+    const optionsFormatted = options as {
+      context: TResponse['context'] extends object ? TResponse['context'] : undefined;
+      headers: TResponse['headers'] extends object
+        ? TResponse['headers']
+        : object & {
+            [DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY]: TUrl;
+          };
+      status: TResponse['status'] extends StatusCodes ? TResponse['status'] : 302;
+    };
+    return new Response<undefined, typeof optionsFormatted>(undefined, optionsFormatted);
+  }
+
+  /**
+   * Factory method to create a response with a html body. This will set the content-type header to text/html.
+   *
+   * @example
+   * ```
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/users').get(async () => {
+   *    return Response.html('<h1>Hello World</h1>');
+   * });
+   * ```
+   *
+   * @param htmlBody - The html body to send as a string.
+   * @param options - The options to pass to the response object.
+   *
+   * @returns - A response with the status set to 200 and the content-type header set to text/html.
+   */
+  static html<
+    TResponse extends {
+      status?: StatusCodes;
+      headers?: object | unknown;
+      context?: object | unknown;
+    } = {
+      status: undefined;
+      headers: undefined;
+      context: undefined;
+    }
+  >(htmlBody: string, options?: TResponse & { statusText?: string }) {
+    const isStatusNotDefined = typeof options?.status !== 'number';
+    const hasNotDefinedJsonHeader =
+      (options?.headers as any)?.[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] !==
+      DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML;
+
+    if (isStatusNotDefined) {
+      if (options) options.status = HTTP_200_OK;
+      else options = { status: HTTP_200_OK } as TResponse;
+      options.statusText = typeof options.statusText === 'string' ? options.statusText : 'OK';
+    }
+
+    if (hasNotDefinedJsonHeader) {
+      if (options) {
+        if (options.headers)
+          (options.headers as any)[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] =
+            DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML;
+        else
+          options.headers = {
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML,
+          };
+      } else
+        options = {
+          headers: { [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML },
+        } as TResponse;
+    }
+
+    const optionsFormatted = options as {
+      context: TResponse['context'] extends object ? TResponse['context'] : undefined;
+      headers: (TResponse['headers'] extends object ? TResponse['headers'] : object) & {
+        [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: 'text/html';
+      };
+      status: TResponse['status'] extends StatusCodes ? TResponse['status'] : 200 | 201;
+    };
+    return new Response<string, typeof optionsFormatted>(htmlBody, optionsFormatted);
+  }
+
+  /**
+   * Factory method to create a response with a html body. This will set the content-type header to text/html.
+   *
+   * @example
+   * ```
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/users').get(async () => {
+   *    return Response.html('<h1>Hello World</h1>');
+   * });
+   * ```
+   *
+   * @param htmlBody - The html body to send as a string.
+   * @param options - The options to pass to the response object.
+   *
+   * @returns - A response with the status set to 200 and the content-type header set to text/html.
+   */
+  static text<
+    TResponse extends {
+      status?: StatusCodes;
+      headers?: object | unknown;
+      context?: object | unknown;
+    } = {
+      status: undefined;
+      headers: undefined;
+      context: undefined;
+    }
+  >(text: string, options?: TResponse & { statusText?: string }) {
+    const isStatusNotDefined = typeof options?.status !== 'number';
+    const hasNotDefinedJsonHeader =
+      (options?.headers as any)?.[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] !==
+      DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_TEXT;
+
+    if (isStatusNotDefined) {
+      if (options) options.status = HTTP_200_OK;
+      else options = { status: HTTP_200_OK } as TResponse;
+      options.statusText = typeof options.statusText === 'string' ? options.statusText : 'OK';
+    }
+
+    if (hasNotDefinedJsonHeader) {
+      if (options) {
+        if (options.headers)
+          (options.headers as any)[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] =
+            DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_TEXT;
+        else
+          options.headers = {
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_TEXT,
+          };
+      } else
+        options = {
+          headers: { [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_TEXT },
+        } as TResponse;
+    }
+
+    const optionsFormatted = options as {
+      context: TResponse['context'] extends object ? TResponse['context'] : undefined;
+      headers: (TResponse['headers'] extends object ? TResponse['headers'] : object) & {
+        [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: 'plain/text';
+      };
+      status: TResponse['status'] extends StatusCodes ? TResponse['status'] : 200 | 201;
+    };
+    return new Response<string, typeof optionsFormatted>(text, optionsFormatted);
+  }
+
+  /**
+   * This method should be used to send a response with a 500 status code. It will NOT call the error handler.
+   *
+   * @example
+   * ```ts
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/users').get(async () => {
+   *   const users = await getUsers();
+   *   return Response.error();
+   * });
+   * ```
+   *
+   * @returns - A response with the status set to 500.
+   */
+  static error() {
+    return new Response<undefined, { status: StatusCodes }>(undefined, { status: HTTP_500_INTERNAL_SERVER_ERROR });
+  }
+
+  /**
+   * You know? Sometimes s*it happens, and you need to send an error back to the client. This method is used so you can retrieve the error metadata. This is helpful on the `handler500` on your settings.
+   * You can also extract errors on custom middlewares so you can properly handle them.
+   *
+   * @example
+   * ```ts
+   * import { middleware, Response, path } from '@palmares/server';
+   *
+   * const validationMiddleware = middleware({
+   *   response: (response) => {
+   *     const error = response.error();
+   *     if (error) {
+   *      // Do something with the error.
+   *     }
+   *     return response;
+   *   }
+   * });
+   *
+   *
+   * path('/users').get(async () => {
+   *    const users = await getUsers();
+   *    throw new Error('Something went wrong');
+   * }).middlewares([validationMiddleware]);
+   * ````
+   *
+   * @returns - The error object.
+   */
+  error<TError extends Error = Error>() {
+    return this.__error as TError;
+  }
+
+  /**
+   * This method should be used to throw a {@link Response}. Throwing a Response will not trigger the `handler500` function.
+   *
+   * Use it when you want to throw stuff like 404, 403, 401, etc. This is a syntatic sugar for `throw Response(response)`.
+   *
+   * @example
+   * ```ts
+   * import { Response, path, HTTP_404_NOT_FOUND } from '@palmares/server';
+   *
+   * function fetchUsersOrThrow() {
+   *   const users = await getUsers();
+   *   if (!users) Response.json({ message: 'Users not found' }, { status: HTTP_404_NOT_FOUND }).throw();
+   *   return users;
+   * }
+   *
+   * path('/users').get(async () => {
+   *    const users = await fetchUsersOrThrow();
+   *    return Response.json(users);
+   * });
+   *
+   */
+  throw() {
+    throw this;
+  }
+
+  /**
+   * This is similar to the {@link Request.clone()} method. By default it will modify the response in place, but you can set
+   * the `inPlace` option to false to return a new response.
+   *
+   * @param args - The arguments to pass to the new response.
+   * @param options - The options to pass to the new response.
+   */
+  clone<
+    TNewResponse extends {
+      body?: object;
+      status?: StatusCodes;
+      headers?: object | unknown;
+      context?: object | unknown;
+    } = {
+      body: never;
+      status: undefined;
+      headers: undefined;
+      context: undefined;
+    }
+  >(args?: TNewResponse, options?: { inPlace: boolean }) {
+    const isInPlace = options?.inPlace !== false;
+    const newResponse = isInPlace
+      ? this
+      : new Response<
+          TNewResponse['body'] extends never ? TBody : TNewResponse['body'],
+          {
+            status: TNewResponse['status'] extends StatusCodes ? TNewResponse['status'] : TResponse['status'];
+            headers: TNewResponse['headers'] extends object ? TNewResponse['headers'] : TResponse['headers'];
+            context: TNewResponse['context'] extends object
+              ? TNewResponse['context'] & TResponse['context']
+              : TResponse['context'];
+          }
+        >(args?.body ? args.body : (this.body as any), {
+          headers: args?.headers ? args.headers : (this.headers as any),
+          status: args?.status ? args.status : (this.status as any),
+          context: args?.context ? { ...args.context, ...this.context } : this.context,
+        });
+
+    newResponse.__serverRequestAndResponseData = this.__serverRequestAndResponseData;
+    (newResponse as any).url = this.url;
+
+    if (args?.status) {
+      (newResponse as any).ok = isSuccess(args?.status);
+      (newResponse as any).redirected = isRedirect(args?.status);
+      (newResponse as any).type = isServerError(args?.status) ? 'error' : 'basic';
+    }
+    return newResponse;
+  }
+
+  /**
+   * This method is used to get the underlying server data. This is similar to {@link Request.serverData()} method. This is useful usually on middlewares, not on handlers.
+   * This is the underlying serverData. The documentation of this should be provided by the framework you are using underlined with Palmares.
+   * So, the idea is simple, when a request is made, the underlying framework will call a callback we provide passing the data it needs to handle both
+   * the request and the response. For Express.js for example this will be an object containing both the `req` and `res` objects. If for some reason you need
+   * some data or some functionality we do not support by default you can, at any time, call this function and get this data.
+   *
+   * ### IMPORTANT
+   *
+   * It's not up for us to document this, ask the library author of the adapter to provide a documentation and properly type this.
+   *
+   * ### IMPORTANT2
+   *
+   * Understand that when you create a new instance of response we will not have the server data attached to it, so calling this method will return undefined.
+   * You should use the request to attach the server data to the response. This method is useful for middlewares, and only that.
+   *
+   * @example
+   * ```ts
+   * // on settings.ts
+   * import { ExpressServerAdapter } from '@palmares/express-adapter';
+   * import ServerDomain from '@palmares/server';
+   *
+   * export default defineSettings({
+   *   //...other configs,
+   *   installedDomains: [
+   *     [
+   *       ServerDomain,
+   *       {
+   *          servers: {
+   *            default: {
+   *              server: ExpressServerAdapter,
+   *              // ...other configs,
+   *            },
+   *          },
+   *       },
+   *    ],
+   *  ],
+   * });
+   *
+   * // on controllers.ts
+   * import { middleware, path } from '@palmares/server';
+   * import type { Request, Response } from 'express';
+   *
+   * const request = new Request();
+   * request.serverData(); // undefined
+   *
+   * path('/test').get((request) => {
+   *   const response = Response.json({ hello: 'World' });
+   *   response.serverData(); // undefined, we have not appended the server data just yet, you should use request for that.
+   *   return response
+   * }).middlewares([
+   *   middleware({
+   *     response: (response) => {
+   *       response.serverData(); // { req: Request, res: Response }
+   *     }
+   *   })
+   * });
+   * ```
+   *
+   * @returns - The underlying server data.
+   */
+  serverData<T>(): T {
+    return this.__serverRequestAndResponseData;
+  }
+
+  /**
+   * This method will extract the body of the response as a json object.
+   * If the response is not a json response, it will return undefined.
+   *
+   * @example
+   * ```ts
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/users').get(async () => {
+   *  const users = await getUsers();
+   *  const response = Response.json(users);
+   *  await response.json(); // This will return the users object.
+   *  return response;
+   * });
+   * ```
+   *
+   * @returns - The body of the response as a json object.
+   */
+  async json() {
+    const isNotAJsonResponse =
+      (this.headers as any)?.[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] !==
+        DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON && typeof this.body !== 'string';
+    if (isNotAJsonResponse) return undefined as TBody;
+    return JSON.parse(this.body as string) as TBody;
+  }
+
+  /**
+   * This method will extract the body of the response as a string.
+   *
+   * @example
+   * ```ts
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/users').get(async () => {
+   *    const users = await getUsers();
+   *    const response = Response.json(users);
+   *    await response.text(); // This will return the users object as a string.
+   *    return response;
+   * });
+   * ```
+   *
+   * @returns - The body of the response as a string.
+   */
+  async text() {
+    if (typeof this.body === 'object') return JSON.stringify(this.body);
+    else if (typeof this.body === 'string') return this.body;
+    else if (this.body instanceof Blob) return (this.body as Blob).text();
+    else return undefined;
+  }
+
+  async arrayBuffer() {
+    if (this.body instanceof ArrayBuffer) return this.body;
+    else if (this.body instanceof Blob) return this.body.arrayBuffer();
+    else return undefined;
+  }
+
+  async blob() {
+    if (this.body instanceof Blob) return this.body;
+    else if (this.body instanceof ArrayBuffer) return new Blob([this.body]);
+    else return undefined;
+  }
+
+  /**
+   * You can use this method to get the body of the response as a FormData, you cannot send FormData though, we don't currently support it.
+   *
+   * @example
+   * ```ts
+   * import { Response, path } from '@palmares/server';
+   *
+   * path('/users').post(async (request) => {
+   *    const formData = await request.formData();
+   *    const response = new Response(formData);
+   *
+   *    await response.formData() // This will return the formData passed as argument.
+   *
+   *    return response;
+   * });
+   * ```
+   *
+   * @returns - The body of the response as a {@link FormDataLike} object.
+   */
+  async formData() {
+    const formDataLike = formDataLikeFactory();
+    if (this.body instanceof formDataLike) return this.body;
+    else if (typeof this.body === 'object') {
+      return new formDataLike({
+        getKeys: () => Object.keys(this.body as object),
+        getValue: (key: string) => (this.body as any)[key],
+      });
+    } else return undefined;
   }
 }

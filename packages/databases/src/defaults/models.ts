@@ -1,4 +1,5 @@
-import * as models from '../models';
+import { model } from '../models';
+import { BigAutoField, CharField } from '..';
 import { ModelOptionsType } from '../models/types';
 import PalmaresMigrationsManager from './managers';
 
@@ -7,11 +8,11 @@ import PalmaresMigrationsManager from './managers';
  *
  * Usually the user will not have any access to this, this is for internal use only.
  */
-export class PalmaresMigrations extends models.Model<PalmaresMigrations>() {
+export class PalmaresMigrations extends model<PalmaresMigrations>() {
   fields = {
-    id: new models.fields.BigAutoField(),
-    migrationName: new models.fields.CharField({ maxLength: 150 }),
-    engineName: new models.fields.CharField({ maxLength: 150 }),
+    id: BigAutoField.new(),
+    migrationName: CharField.new({ maxLength: 150 }),
+    engineName: CharField.new({ maxLength: 150 }),
   };
 
   options: ModelOptionsType<PalmaresMigrations> = {

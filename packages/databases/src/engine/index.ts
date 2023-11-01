@@ -1,36 +1,73 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { logging } from '@palmares/core';
-
-import { NotImplementedEngineException } from './exceptions';
+import { NotImplementedAdapterException } from './exceptions';
 import { DatabaseConfigurationType } from '../types';
-import {
-  LOGGING_DATABASE_IS_NOT_CONNECTED,
-  LOGGING_DATABASE_CLOSING,
-} from '../utils';
-import { EngineType, EngineInitializedModels } from './types';
-import EngineFields, {
-  EngineFieldParser,
-  EngineAutoFieldParser,
-  EngineBigAutoFieldParser,
-  EngineBigIntegerFieldParser,
-  EngineCharFieldParser,
-  EngineDateFieldParser,
-  EngineDecimalFieldParser,
-  EngineForeignKeyFieldParser,
-  EngineIntegerFieldParser,
-  EngineTextFieldParser,
-  EngineUuidFieldParser,
-} from './fields';
-import EngineMigrations from './migrations';
-import EngineQuery, {
-  EngineGetQuery,
-  EngineQuerySearch,
-  EngineSetQuery,
-  EngineRemoveQuery,
-  EngineQueryOrdering,
-} from './query';
-import { Model } from '../models/model';
-import EngineModels from './model';
+import { EngineInitializedModels } from './types';
+import AdapterFields from './fields';
+import AdapterMigrations from './migrations';
+import AdapterQuery from './query';
+import AdapterModels from './model';
+
+import type model from '../models/model';
+
+export function databaseAdapter<
+  TFieldsAdapter extends AdapterFields,
+  TModelsAdapter extends AdapterModels,
+  TQueryAdapter extends AdapterQuery,
+  TMigrationsAdapter extends AdapterMigrations,
+  TFunctionNew extends (typeof DatabaseAdapter)['new'],
+  TFunctionDuplicate extends DatabaseAdapter['duplicate'],
+  TFunctionClose extends DatabaseAdapter['close'],
+  TFunctionIsConnected extends DatabaseAdapter['isConnected'],
+  TFunctionTransaction extends DatabaseAdapter['transaction'],
+>(args: {
+  fields: TFieldsAdapter;
+  models: TModelsAdapter;
+  query: TQueryAdapter;
+  migrations: TMigrationsAdapter;
+  new: TFunctionNew;
+  duplicate: TFunctionDuplicate;
+  isConnected: TFunctionIsConnected;
+  close: TFunctionClose;
+  transaction: TFunctionTransaction;
+}) {
+  class CustomDatabaseAdapter extends DatabaseAdapter<
+    any,
+    TFieldsAdapter,
+    TModelsAdapter,
+    TQueryAdapter,
+    TMigrationsAdapter
+  > {
+    declare instance: any;
+    fields = args.fields as TFieldsAdapter;
+    models = args.models as TModelsAdapter;
+    query = args.query as TQueryAdapter;
+    migrations = args.migrations as TMigrationsAdapter;
+
+    static new = args.new as TFunctionNew;
+    duplicate = args.duplicate as TFunctionDuplicate;
+    isConnected = args.isConnected as TFunctionIsConnected;
+    close = args.close as TFunctionClose;
+    transaction = args.transaction as TFunctionTransaction;
+  }
+
+  return CustomDatabaseAdapter as unknown as {
+    new (...args: any[]): CustomDatabaseAdapter;
+    new: (...args: Parameters<TFunctionNew>) => Promise<
+      [
+        Parameters<TFunctionNew>,
+        CustomDatabaseAdapter & {
+          fields: TFieldsAdapter;
+          models: TModelsAdapter;
+          query: TQueryAdapter;
+          migrations: TMigrationsAdapter;
+          duplicate: TFunctionDuplicate;
+          isConnected: TFunctionIsConnected;
+          close: TFunctionClose;
+          transaction: TFunctionTransaction;
+        },
+      ]
+    >;
+  };
+}
 
 /**
  * Instead of creating our own ORM for the framework we wrap any orm we want to use inside of this class. This allow
@@ -47,87 +84,38 @@ import EngineModels from './model';
  * the base class with `super.initializeModel(model, theInstanceOfYourCustomModel)` so we can save it on the `initializedModels` object
  * in the class instance.
  */
-export default class Engine<TModel extends Model = any> implements EngineType {
-  databaseName: string;
-  databaseSettings: DatabaseConfigurationType<any, any>;
+export default class DatabaseAdapter<
+  TInstanceType = any,
+  TFieldsAdapter extends AdapterFields = AdapterFields,
+  TModelsAdapter extends AdapterModels = AdapterModels,
+  TQueryAdapter extends AdapterQuery = AdapterQuery,
+  TMigrationsAdapter extends AdapterMigrations = AdapterMigrations,
+> {
+  connectionName!: string;
+  databaseSettings!: DatabaseConfigurationType;
   initializedModels: EngineInitializedModels = {};
-  models: EngineModels;
-  fields: EngineFields;
-  query: EngineQuery;
-  migrations: EngineMigrations;
+  models!: TModelsAdapter;
+  fields!: TFieldsAdapter;
+  query!: TQueryAdapter;
+  migrations!: TMigrationsAdapter;
   ModelType: any;
-  instance: any;
-  _ignoreNotImplementedErrors = false;
-  _modelsFilteredOutOfEngine!: { [modelName: string]: typeof Model };
-  _modelsOfEngine!: { [modelName: string]: typeof Model };
-  _indirectlyRelatedModels: {
+  instance?: TInstanceType;
+  __argumentsUsed!: any;
+  __ignoreNotImplementedErrors = false;
+  __modelsFilteredOutOfEngine!: { [modelName: string]: ReturnType<typeof model> };
+  __modelsOfEngine!: { [modelName: string]: ReturnType<typeof model> };
+  __indirectlyRelatedModels: {
     [modelName: string]: { [relatedModelName: string]: string[] };
   } = {};
 
-  constructor(
-    databaseName: string,
-    databaseSettings: DatabaseConfigurationType<any, any>,
-    fields: {
-      fields: typeof EngineFields;
-      field?: typeof EngineFieldParser;
-      auto: typeof EngineAutoFieldParser;
-      bigAuto: typeof EngineBigAutoFieldParser;
-      bigInteger: typeof EngineBigIntegerFieldParser;
-      char: typeof EngineCharFieldParser;
-      date: typeof EngineDateFieldParser;
-      decimal: typeof EngineDecimalFieldParser;
-      foreignKey: typeof EngineForeignKeyFieldParser;
-      integer: typeof EngineIntegerFieldParser;
-      text: typeof EngineTextFieldParser;
-      uuid: typeof EngineUuidFieldParser;
-    },
-    query: {
-      query: typeof EngineQuery;
-      get: typeof EngineGetQuery;
-      set: typeof EngineSetQuery;
-      remove: typeof EngineRemoveQuery;
-      search: typeof EngineQuerySearch;
-      ordering: typeof EngineQueryOrdering;
-    },
-    models: typeof EngineModels,
-    migration: typeof EngineMigrations
-  ) {
-    this.databaseName = databaseName;
-    this.databaseSettings = databaseSettings;
-    this.fields = new fields.fields(this, {
-      field: fields.field,
-      auto: fields.auto,
-      bigAuto: fields.bigAuto,
-      bigInteger: fields.bigInteger,
-      char: fields.char,
-      date: fields.date,
-      decimal: fields.decimal,
-      foreignKey: fields.foreignKey,
-      integer: fields.integer,
-      text: fields.text,
-      uuid: fields.uuid,
-    });
-    this.query = new query.query(
-      this,
-      query.get,
-      query.set,
-      query.remove,
-      query.ordering,
-      query.search
-    );
-    this.models = new models(this, this.fields);
-    this.migrations = new migration(this, this.fields);
-  }
-
   /**
-   * Factory function for creating a new Engine instance. Your engine should always implement this function
+   * Factory function for creating a new DatabaseAdapter instance. Your engine should always implement this function
    * as static and return a new instance of your engine.
+   *
+   * @returns - Will return a new engine instance.
    */
-  static async new(
-    databaseName: string,
-    databaseSettings: DatabaseConfigurationType<string, object>
-  ): Promise<Engine> {
-    throw new NotImplementedEngineException('new');
+  static async new(..._args: any[]): Promise<[any, DatabaseAdapter]> {
+    throw new NotImplementedAdapterException('new');
   }
 
   /**
@@ -135,22 +123,24 @@ export default class Engine<TModel extends Model = any> implements EngineType {
    * you will not need to worry too much about this, this is used more on migrations so we can keep the state
    * models separated from the original models.
    *
+   * @example
+   * ```ts
+   * async duplicate(getNewEngine: () => Promise<DatabaseAdapter>) {
+   *    const duplicatedEngine = await getNewEngine();
+   *    await duplicatedEngine.connection.close();
+   *    await duplicatedEngine.connection.connect();
+   *    return duplicatedEngine;
+   * }
+   * ```
+   *
+   * @param _getNewEngine - Default duplicate function, this should be called or it will throw an error.
+   *
    * @returns - A new engine instance after calling `.new` static method.
    */
-  async duplicate(): Promise<Engine> {
-    const newInstance = await (this.constructor as typeof Engine).new(
-      this.databaseName,
-      this.databaseSettings
-    );
-    newInstance.initializedModels = { ...this.initializedModels };
-    newInstance._modelsOfEngine = { ...this._modelsOfEngine };
-    newInstance._modelsFilteredOutOfEngine = {
-      ...this._modelsFilteredOutOfEngine,
-    };
-    newInstance._indirectlyRelatedModels = {
-      ...this._indirectlyRelatedModels,
-    };
-    return newInstance;
+  async duplicate(
+    _getNewEngine: (...args: Parameters<(typeof DatabaseAdapter)['new']>) => Promise<DatabaseAdapter>
+  ): Promise<DatabaseAdapter> {
+    throw new NotImplementedAdapterException('duplicate');
   }
 
   /**
@@ -160,83 +150,39 @@ export default class Engine<TModel extends Model = any> implements EngineType {
    *
    * @return - Return true if the database is connected or false otherwise.
    */
-  async isConnected(): Promise<boolean> {
-    await logging.logMessage(LOGGING_DATABASE_IS_NOT_CONNECTED, {
-      databaseName: this.databaseName,
-    });
-    return false;
+  async isConnected(engine: DatabaseAdapter): Promise<boolean> {
+    throw new NotImplementedAdapterException('isConnected');
   }
 
   /**
    * Called when we want to close all of the connections to the database, if your engine can close the connection automatically
    * this don't need to be used.
    *
-   * Please, call the this with `super.close()`, so we can log to the user that we are closing the database connection.
+   * @example
+   * ```ts
+   *
+   * ```
    */
-  async close(): Promise<void> {
-    await logging.logMessage(LOGGING_DATABASE_CLOSING, {
-      databaseName: this.databaseName,
-    });
+  async close?(_engine: DatabaseAdapter): Promise<void> {
+    throw new NotImplementedAdapterException('close');
   }
 
   /**
-   * `initializeModel` will be called to translate the model to a instance of something that your engine can understand.
-   * For that you should use the `EngineFields`. `EngineFields`, as explained in the class, is for translating each particular field
-   * of the model to something that the orm can understand. This should return the model translated so the user can use it.
+   * A transaction is a database transaction, this is used to guarantee that all of the queries we do will run inside of a
+   * transaction.
    *
-   * On Palmares, the user will almost never make queries using our `ORM`, cause we don't have one, an instance is just the object
-   * that the user can use to make queries.
+   * @param callback - The callback that will be called to run inside of a transaction.
+   * @param args - The arguments of the callback.
    *
-   * Example:
-   * - Sequelize this would be the `User` on this example:
-   * ```
-   * const { Sequelize, Model, DataTypes } = require("sequelize");
-   * const sequelize = new Sequelize("sqlite::memory:");
-   *
-   * const User = sequelize.define("user", {
-   *    name: DataTypes.TEXT,
-   *    favoriteColor: {
-   *      type: DataTypes.TEXT,
-   *      defaultValue: 'green'
-   *    },
-   *    age: DataTypes.INTEGER,
-   *    cash: DataTypes.INTEGER
-   * });
-   *
-   * ```
-   * - On prisma, this would be `prisma.user`
-   * ```
-   * const { PrismaClient } = require('@prisma/client')
-   *
-   * const prisma = new PrismaClient()
-   *
-   * const users = await prisma.user.findMany() // here prisma.user is what we would need to return.
-   * ```
-   *
-   * P.S.: Don't forget to call the base class with `super.initializeModel(model, theInstanceOfYourCustomModel)` so we can save it
-   * on the `initializedModels` object n the class instance.
-   *
-   * @param model - The Palmares model instance so we can translate it.
-   * @param modelInstance - The instance of the model translated (this is not needed when overriding this function)
-   *
-   * @returns - The instance of the translated model.
+   * @return - The return value of the callback.
    */
-  async initializeModel(model: Model): Promise<any> {
-    const modelInstance = await this.models.translate(model);
-    this.initializedModels[model.name] = modelInstance;
-    return modelInstance;
-  }
-
-  async _appendModelsOfEngineAndFilteredOut(
-    modelsOfEngine: {
-      [modelName: string]: typeof Model;
-    },
-    modelsFilteredOutOfEngine: {
-      [modelName: string]: typeof Model;
-    }
-  ) {
-    this._modelsOfEngine = modelsOfEngine;
-    this._modelsFilteredOutOfEngine = modelsFilteredOutOfEngine;
+  async transaction<TParameters extends Array<any>, TResult>(
+    _databaseAdapter: DatabaseAdapter,
+    callback: (transaction: any, ...args: TParameters) => TResult | Promise<TResult>,
+    ...args: TParameters
+  ): Promise<TResult> {
+    const transact = undefined;
+    return await Promise.resolve(callback(transact, ...args));
   }
 
   /**
@@ -250,7 +196,7 @@ export default class Engine<TModel extends Model = any> implements EngineType {
    *    return a * b;
    * }
    *
-   * const result = await engineInstance.transaction(transactionMultiply, 2, 2)
+   * const result = await engineInstance.useTransaction(transactionMultiply, 2, 2)
    *
    * result // 4
    * ```
@@ -263,34 +209,10 @@ export default class Engine<TModel extends Model = any> implements EngineType {
    *
    * @return - The return value of the callback.
    */
-  async transaction<P extends Array<any>, R>(
-    callback: (transaction: any, ...args: P) => R | Promise<R>,
-    ...args: P
-  ): Promise<R> {
-    const transact = undefined;
-    return await Promise.resolve(callback(transact, ...args));
+  async useTransaction<TParameters extends Array<any>, TResult>(
+    callback: (transaction: any, ...args: TParameters) => TResult | Promise<TResult>,
+    ...args: TParameters
+  ): Promise<TResult> {
+    return await this.transaction(this, callback, ...args);
   }
 }
-
-export {
-  EngineQuery,
-  EngineFields,
-  EngineMigrations,
-  EngineGetQuery,
-  EngineSetQuery,
-  EngineRemoveQuery,
-  EngineQuerySearch,
-  EngineQueryOrdering,
-  EngineFieldParser,
-  EngineAutoFieldParser,
-  EngineBigAutoFieldParser,
-  EngineBigIntegerFieldParser,
-  EngineCharFieldParser,
-  EngineDateFieldParser,
-  EngineDecimalFieldParser,
-  EngineForeignKeyFieldParser,
-  EngineIntegerFieldParser,
-  EngineTextFieldParser,
-  EngineUuidFieldParser,
-  EngineModels,
-};

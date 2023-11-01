@@ -1,19 +1,22 @@
 import { Field } from '../fields';
-import model, { Model } from '../model';
+import { Model, BaseModel } from '../model';
 import Manager from '../manager';
 import { DatabaseSettingsType } from '../../types';
-import Engine from '../../engine';
+import DatabaseAdapter from '../../engine';
+import { FieldsOFModelType, ModelFieldsInQueries } from './queries';
+
+export type ModelType = typeof BaseModel & typeof Model;
 
 export type ManagerInstancesType = {
   [engineName: string]: any;
 };
 
 export type ManagerEngineInstancesType = {
-  [engineName: string]: Engine;
+  [engineName: string]: DatabaseAdapter;
 };
 
 export type ModelFieldsType = {
-  [fieldName: string | symbol]: Field<any, any, any, any, any, any>;
+  [fieldName: string | symbol]: Field<any, any, any, any, any, any, any, any>;
 };
 
 export type ManagersOfInstanceType = {
@@ -29,69 +32,56 @@ type OrderingOfModelOptions<TFields> =
   | keyof { [F in TFields as F extends string ? `-${F}` : never]: F }
   | keyof { [F in TFields as F extends string ? `${F}` : never]: F };
 
-export type ExtractFieldNames<TFieldsAndAbstracts, TModelAbstracts> =
-  TFieldsAndAbstracts extends { fields: infer TFields }
-    ?
-        | keyof TFields
-        | (TModelAbstracts extends readonly [
-            infer TAbstract,
-            ...infer TRestAbstracts
-          ]
-            ? TAbstract extends
-                | { fields: any }
-                | { fields: any; abstracts: infer TAbstractsOfAbstract }
-              ?
-                  | ExtractFieldNames<TAbstract, TAbstractsOfAbstract>
-                  | ExtractFieldNames<
-                      TFieldsAndAbstracts,
-                      TRestAbstracts extends
-                        | { fields: any }
-                        | { fields: any; abstracts: readonly any[] }
-                        ? TRestAbstracts
-                        : never[]
-                    >
-              : never
-            : never)
-    : never;
+export type ExtractFieldNames<TFieldsAndAbstracts, TModelAbstracts> = TFieldsAndAbstracts extends {
+  fields: infer TFields;
+}
+  ?
+      | keyof TFields
+      | (TModelAbstracts extends readonly [infer TAbstract, ...infer TRestAbstracts]
+          ? TAbstract extends { fields: any } | { fields: any; abstracts: infer TAbstractsOfAbstract }
+            ?
+                | ExtractFieldNames<TAbstract, TAbstractsOfAbstract>
+                | ExtractFieldNames<
+                    TFieldsAndAbstracts,
+                    TRestAbstracts extends { fields: any } | { fields: any; abstracts: readonly any[] }
+                      ? TRestAbstracts
+                      : never[]
+                  >
+            : never
+          : never)
+  : never;
 
 type ExtractFieldTypes<
   TFieldsAndAbstracts,
   TModelAbstracts,
-  TIsAllOptional extends boolean = false
+  TIsAllOptional extends boolean = false,
 > = TFieldsAndAbstracts extends { fields: infer TFields }
   ? (TIsAllOptional extends true
       ? {
-          [TFieldName in keyof TFields]?: 'type' extends keyof TFields[TFieldName]
+          [TFieldName in keyof TFields]?: '_type' extends keyof TFields[TFieldName]
             ? 'allowNull' extends keyof TFields[TFieldName]
               ? TFields[TFieldName]['allowNull'] extends true
-                ? TFields[TFieldName]['type'] | null
-                : TFields[TFieldName]['type']
+                ? TFields[TFieldName]['_type'] | null
+                : TFields[TFieldName]['_type']
               : never
             : never;
         }
       : {
-          [TFieldName in keyof TFields]: 'type' extends keyof TFields[TFieldName]
+          [TFieldName in keyof TFields]: '_type' extends keyof TFields[TFieldName]
             ? 'allowNull' extends keyof TFields[TFieldName]
               ? TFields[TFieldName]['allowNull'] extends true
-                ? TFields[TFieldName]['type'] | null
-                : TFields[TFieldName]['type']
+                ? TFields[TFieldName]['_type'] | null
+                : TFields[TFieldName]['_type']
               : never
             : never;
         }) &
-      (TModelAbstracts extends readonly [
-        infer TAbstract,
-        ...infer TRestAbstracts
-      ]
-        ? TAbstract extends
-            | { fields: any }
-            | { fields: any; abstracts: infer TAbstractsOfAbstract }
+      (TModelAbstracts extends readonly [infer TAbstract, ...infer TRestAbstracts]
+        ? TAbstract extends { fields: any } | { fields: any; abstracts: infer TAbstractsOfAbstract }
           ?
               | ExtractFieldTypes<TAbstract, TAbstractsOfAbstract>
               | ExtractFieldTypes<
                   TFieldsAndAbstracts,
-                  TRestAbstracts extends
-                    | { fields: any }
-                    | { fields: any; abstracts: readonly any[] }
+                  TRestAbstracts extends { fields: any } | { fields: any; abstracts: readonly any[] }
                     ? TRestAbstracts
                     : never[]
                 >
@@ -100,16 +90,8 @@ type ExtractFieldTypes<
   : unknown;
 
 export type onSetFunction<M = any> = (args: {
-  data: ExtractFieldTypes<
-    M,
-    M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
-    false
-  >;
-  search: ExtractFieldTypes<
-    M,
-    M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
-    true
-  >;
+  data: ExtractFieldTypes<M, M extends { abstracts: infer TAbstracts } ? TAbstracts : never[], false>;
+  search: ExtractFieldTypes<M, M extends { abstracts: infer TAbstracts } ? TAbstracts : never[], true>;
 }) => Promise<any[]>;
 
 export type onRemoveFunction<M = any> = (args: {
@@ -117,28 +99,20 @@ export type onRemoveFunction<M = any> = (args: {
   shouldRemove?: boolean;
   /** Should you return the data that you are removing? By default yes, you should, in case this is false you should not. */
   shouldReturnData?: boolean;
-  search: ExtractFieldTypes<
-    M,
-    M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
-    true
-  >;
+  search: ExtractFieldTypes<M, M extends { abstracts: infer TAbstracts } ? TAbstracts : never[], true>;
 }) => Promise<any[]>;
 
-export type ModelOptionsType<M = any> = {
-  indexes?: ModelIndexType<
-    ExtractFieldNames<
-      M,
-      M extends { abstracts: infer TAbstracts } ? TAbstracts : never[]
-    >
-  >[];
-  ordering?:
-    | OrderingOfModelOptions<
-        ExtractFieldNames<
-          M,
-          M extends { abstracts: infer TAbstracts } ? TAbstracts : never[]
-        >
-      >[]
-    | string[];
+/**
+ * Those are the options that you can pass to the model.
+ */
+export type ModelOptionsType<TModel = any> = {
+  indexes?: ModelIndexType<FieldsOFModelType<TModel>>[];
+  ordering?: OrderingOfModelOptions<FieldsOFModelType<TModel>>[] | string[];
+  /**
+   * Sometimes a ORM can let you define custom hooks to be fired for example on certain lifecycle events, or for example, sequelize let's you define relations on the model after it was defined.
+   * This is a function that will be called after the model is translated so you can apply your custom hooks.
+   */
+  applyToTranslatedModel?: (translatedModel: any) => void;
   abstract?: boolean;
   underscored?: boolean;
   tableName?: string;
@@ -146,21 +120,9 @@ export type ModelOptionsType<M = any> = {
   databases?: string[];
   customOptions?: any;
   onGet?: (args: {
-    search: ExtractFieldTypes<
-      M,
-      M extends { abstracts: infer TAbstracts } ? TAbstracts : never[],
-      true
-    >;
-    fields: readonly ExtractFieldNames<
-      M,
-      M extends { abstracts: infer TAbstracts } ? TAbstracts : never[]
-    >[];
-    ordering?: OrderingOfModelOptions<
-      ExtractFieldNames<
-        M,
-        M extends { abstracts: infer TAbstracts } ? TAbstracts : never[]
-      >
-    >[];
+    search: ExtractFieldTypes<TModel, TModel extends { abstracts: infer TAbstracts } ? TAbstracts : never[], true>;
+    fields: FieldsOFModelType<TModel>;
+    ordering?: OrderingOfModelOptions<FieldsOFModelType<TModel>>[];
     limit?: number;
     offset?: number | string;
   }) => Promise<any[]>;
@@ -170,10 +132,10 @@ export type ModelOptionsType<M = any> = {
    * if you want to have hooks attached to this model.
    * */
   onSet?:
-    | onSetFunction<M>
+    | onSetFunction<TModel>
     | {
         preventCallerToBeTheHandled?: boolean;
-        handler: onSetFunction<M>;
+        handler: onSetFunction<TModel>;
       };
   /**
    * Can be used either for firing a synchronous call to make changes to a particular model or can use the event handler to fire asyncrhronous
@@ -181,76 +143,22 @@ export type ModelOptionsType<M = any> = {
    * if you want to have hooks attached to this model.
    * */
   onRemove?:
-    | onRemoveFunction<M>
+    | onRemoveFunction<TModel>
     | {
         preventCallerToBeTheHandled?: boolean;
-        handler: onRemoveFunction<M>;
+        handler: onRemoveFunction<TModel>;
       };
 };
 
-export interface ModelType {
+export interface ModelInterface {
   fields: ModelFieldsType;
   options: ModelOptionsType;
   name: string;
-  abstracts: typeof Model[];
-  instances?: Map<keyof DatabaseSettingsType['DATABASES'], any>;
+  abstracts: (typeof Model)[];
+  instances?: Map<keyof DatabaseSettingsType['databases'], any>;
 }
-
-export type TModel = InstanceType<ReturnType<typeof model>>;
-
-type HasDefaultValueFields<M extends ModelFieldsType> = {
-  [F in keyof M as M[F]['hasDefaultValue'] extends false ? never : F]: M[F];
-};
-
-type OptionalFields<M extends Model> = {
-  [F in keyof HasDefaultValueFields<M['fields']>]?: AddNull<
-    M['fields'][F extends string ? F : never]
-  >;
-};
-
-type DoNotHaveDefaultValueFields<M extends ModelFieldsType> = {
-  [F in keyof M as M[F]['hasDefaultValue'] extends false ? F : never]: M[F];
-};
-
-type RequiredFields<M extends Model> = {
-  [F in keyof DoNotHaveDefaultValueFields<M['fields']>]: AddNull<
-    M['fields'][F extends string ? F : never]
-  >;
-};
-
-type AddNull<F extends Field<any, boolean>> = F['allowNull'] extends true
-  ? F['type'] | null
-  : F['type'];
-
-type AbstractsAsFields2<U> = (
-  U extends Model ? (k: U) => void : never
-) extends (k: infer I) => void
-  ? I extends Model
-    ? OptionalFields<I> & RequiredFields<I>
-    : never
-  : never;
-type AbstractsAsFields1<U> = (
-  U extends Model ? (k: U) => void : never
-) extends (k: infer I) => void
-  ? I extends Model
-    ? OptionalFields<I> &
-        RequiredFields<I> &
-        AbstractsAsFields2<I['abstracts'][number]>
-    : never
-  : never;
-type AbstractsAsFields<U> = (U extends Model ? (k: U) => void : never) extends (
-  k: infer I
-) => void
-  ? I extends Model
-    ? OptionalFields<I> &
-        RequiredFields<I> &
-        AbstractsAsFields1<I['abstracts'][number]>
-    : never
-  : never;
-
-export type ModelFields<M extends Model> = OptionalFields<M> &
-  RequiredFields<M> &
-  AbstractsAsFields<M['abstracts'][number]>;
+0;
+export type ModelFields<TModel> = ModelFieldsInQueries<TModel>;
 
 export type IncludesInstances<TModel = any> = {
   model: TModel;

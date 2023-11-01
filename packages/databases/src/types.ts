@@ -1,19 +1,10 @@
 import type { EventEmitter } from '@palmares/events';
 
-import { Model } from './models';
-import Engine from './engine';
+import { BaseModel, model } from './models';
+import DatabaseAdapter from './engine';
 
-export interface DatabaseConfigurationType<DialectOptions, ExtraOptions> {
-  engine: new (...args: any) => Engine | { default: new (...args: any) => Engine };
-  url?: string | undefined;
-  dialect: DialectOptions;
-  databaseName: string;
-  username: string;
-  password: string;
-  host: string;
-  protocol?: string;
-  port: number;
-  extraOptions?: ExtraOptions;
+export interface DatabaseConfigurationType {
+  engine: Promise<[any, DatabaseAdapter]> | { default: Promise<[any, DatabaseAdapter]> };
   events?: {
     emitter: EventEmitter | Promise<EventEmitter>;
     channels?: string[];
@@ -25,30 +16,30 @@ export type InitializedEngineInstancesType = {
 };
 
 export type InitializedEngineInstanceWithModelsType = {
-  engineInstance: Engine;
+  engineInstance: DatabaseAdapter;
   projectModels: InitializedModelsType[];
 };
 
 export type FoundModelType = {
   domainName: string;
   domainPath: string;
-  model: ReturnType<typeof Model>;
+  model: ReturnType<typeof model> & typeof BaseModel;
 };
 
-export type InitializedModelsType<M = any> = {
+export type InitializedModelsType<TModel = any> = {
   domainName: string;
   domainPath: string;
-  class: ReturnType<typeof Model>;
-  initialized: M;
-  original: InstanceType<ReturnType<typeof Model>>;
+  class: ReturnType<typeof model> & typeof BaseModel;
+  initialized: TModel;
+  original: InstanceType<ReturnType<typeof model>> & BaseModel;
 };
 
 export type DatabaseSettingsType = {
-  DATABASES: {
-    [key: string]: DatabaseConfigurationType<string, object>;
+  databases: {
+    [key: string]: DatabaseConfigurationType;
   };
-  DATABASES_EVENT_EMITTER?: EventEmitter;
-  DATABASES_DISMISS_NO_MIGRATIONS_LOG: boolean;
+  eventEmitter?: EventEmitter;
+  dismissNoMigrationsLog?: boolean;
 };
 
 export type OptionalMakemigrationsArgsType = {

@@ -1,151 +1,384 @@
-import EngineFields from '.';
-import {
-  AutoField,
-  BigAutoField,
-  BigIntegerField,
-  CharField,
-  DateField,
-  Field,
-  DecimalField,
-  ForeignKeyField,
-  IntegerField,
-  TextField,
-  UUIDField,
-  TranslatableField,
-} from '../../models/fields';
-import {
-  EngineDoesNotSupportFieldTypeException,
-  RelatedModelFromForeignKeyIsNotFromEngineException,
-} from '../exceptions';
-import type EngineAutoFieldParser from './auto';
-import type EngineBigAutoFieldParser from './big-auto';
-import type EngineBigIntegerFieldParser from './big-integer';
-import type EngineCharFieldParser from './char';
-import type EngineDateFieldParser from './date';
-import EngineDecimalFieldParser from './decimal';
-import type EngineForeignKeyFieldParser from './foreign-key';
-import type EngineIntegerFieldParser from './integer';
-import type EngineTextFieldParser from './text';
-import type EngineUuidFieldParser from './uuid';
+import { EngineDoesNotSupportFieldTypeException } from '../../models/exceptions';
+import { Field } from '../../models/fields';
+import { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateArgs } from '../..';
+
+import type AdapterModels from '../model';
+
+/**
+ * Functional approach to create a custom field parser.
+ *
+ * This will be used to parse the fields that are going to be used in the model in the database, for every field we will call this class.
+ * This class can have three methods:
+ * - `inputParser` - Used to parse the input value before it is sent to the database on your `AdapterQuery` implementation.
+ * - `outputParser` - Used to parse the output value before it is sent to the client on your `AdapterQuery` implementation.
+ * - `translate` - Used to translate the field to something that the database can understand. Except for the `TranslatableField` class that will be
+ * translated directly with the `translate` method, all other field types should define a parser with the `translate` field, those will be injected
+ * in the `DatabaseAdapter` class constructor.
+ */
+export function adapterFieldParser<
+  TTranslateFunction extends AdapterFieldParser['translate'],
+  TInputParserFunction extends Required<AdapterFieldParser>['inputParser'],
+  TOutputParserFunction extends Required<AdapterFieldParser>['outputParser'],
+>(args: {
+  /**
+   * @description
+   * Used to translate the field to something that the database can understand. The `{@link AdapterFieldParser}` instance will be injected by default in the `translate` method.
+   * The core idea is that for every field type we will have a parser that will be used to translate the field to something that the database can understand. It's nice if all of the configuration options
+   * are supported by your ORM, but if that's not the case it's nice to notify the users through documentation.
+   *
+   * - _Note_: **If you return undefined, we will not consider that field on the object we build on `translateFields` under {@link AdapterModels} instance.**
+   * - _Note2_: **Use the `lazyEvaluate` function to evaluate something after the model was translated.**
+   *
+   * Imagine that you translating to sequelize field:
+   * @example
+   * ```ts
+   * async translate({
+   *   engine,
+   *   field,
+   *   modelName,
+   * }: {
+   *   engine: SequelizeEngine;
+   *   field: Field;
+   *   fieldParser: SequelizeEngineFieldParser;
+   *   modelName: string;
+   *   model: InstanceType<ReturnType<typeof Model>>;
+   *   lazyEvaluate: (translatedField: any) => void;
+   * }): Promise<ModelAttributeColumnOptions> {
+   *   const defaultOptions = {} as ModelAttributeColumnOptions;
+   *   const isFieldAIndexOrIsFieldUnique = field.dbIndex === true || (field.unique as boolean) === true;
+   *
+   *   if (isFieldAIndexOrIsFieldUnique) appendIndexes(engine.connectionName, modelName, field);
+   *
+   *   const hasNotYetSetDefaultValueForField = defaultOptions.defaultValue === undefined;
+   *   if (hasNotYetSetDefaultValueForField) defaultOptions.defaultValue = field.defaultValue;
+   *
+   *   defaultOptions.autoIncrement = field.isAuto;
+   *   defaultOptions.autoIncrementIdentity = field.isAuto;
+   *   defaultOptions.primaryKey = field.primaryKey;
+   *   defaultOptions.allowNull = field.allowNull;
+   *   defaultOptions.unique = field.unique;
+   *   defaultOptions.validate = {};
+   *   defaultOptions.validate.notNull = !field.allowNull;
+   *   defaultOptions.field = field.databaseName;
+   *
+   *   const customAttributesOfFieldEntries = Object.entries(field.customAttributes);
+   *   for (const [key, value] of customAttributesOfFieldEntries) {
+   *     const keyAsTypeofModelColumnOption = key as keyof ModelAttributeColumnOptions;
+   *     defaultOptions[keyAsTypeofModelColumnOption] = value as never;
+   *   }
+   *
+   *   const isFieldOfTypeText =
+   *     field.typeName === TextField.name || field.typeName === CharField.name || field.typeName === UuidField.name;
+   *
+   *   if (isFieldOfTypeText) this.textFieldValidations(field as TextField);
+   *
+   *   return defaultOptions;
+   * }
+   * ```
+   *
+   * @description Or you can lazy evaluate (useful for ForeignKeys):
+   *
+   * @example
+   * ```ts
+   * async translate(args: {
+   *   engine: SequelizeEngine;
+   *   field: ForeignKeyField;
+   *   fieldParser: SequelizeEngineFieldParser;
+   *   modelName: string;
+   *   model: InstanceType<ReturnType<typeof Model>>;
+   *   lazyEvaluate: (translatedField: TranslatedFieldToEvaluateAfterType) => void;
+   * }): Promise<undefined> {
+   *   const defaultOptions = await args.fieldParser.translate(args);
+   *
+   *   args.lazyEvaluate({
+   *     fieldAttributes: defaultOptions,
+   *     type: 'foreign-key',
+   *   } as TranslatedFieldToEvaluateAfterType);
+   * }
+   * ```
+   *
+   * @description
+   * As we discussed before, the `lazyEvaluate` function is used to evaluate something after the model was translated. So what you pass to the `lazyEvaluate` function will
+   * be passed to `lazyEvaluateField` method on the `{@link AdapterFields}` instance under `fieldTranslated` argument
+   *
+   * @param args - The arguments that will be passed to the `translate` method.
+   * @param args.engine - The engine instance.
+   * @param args.field - The field instance that you need to translate.
+   * @param args.fieldParser - The field parser instance so we can call the `translate` method on other field types.
+   * @param args.modelName - The model name.
+   * @param args.model - The Palmares model instance.
+   * @param args.lazyEvaluate - The lazy evaluate function that you can call to evaluate something after the model was translated.
+   *
+   * @returns - The translated field.
+   */
+  translate: TTranslateFunction;
+
+  /**
+   * @description
+   * This is used to parse the input value before you save it. For example, let's say that palmares by default accept `Date` objects for `DateField`. But your database does not support saving
+   * `Date` instances. What you can do is that you can implement this method on `DateFieldParser` and return a iSO string. With that, you can be 100% sure that the data on your `queryData` is
+   * something valid for your database.
+   *
+   * This parses the value for each data.
+   *
+   * @example
+   * ```ts
+   * async inputParser(args: {
+   *   engine: SequelizeEngine;
+   *   field: DateField;
+   *   fieldParser: SequelizeEngineFieldParser;
+   *   modelName: string;
+   *   model: InstanceType<ReturnType<typeof Model>>;
+   *   value: Date | string;
+   * }): Promise<string> {
+   *   if (args.value instanceof Date) return args.value.toISOString();
+   *   return args.value;
+   * }
+   * ```
+   *
+   * @returns - The parsed value.
+   */
+  inputParser?: TInputParserFunction;
+  /**
+   * @description
+   * This is used to parse the output value before you send it to the user. For example, if the user is fetching a `DateField` from the database, you can parse the value to a `Date` object.
+   * This can be useful so you can guarantee that the user will receive the data in the format that it's expected.
+   *
+   * This parses the value for each data that is retrieved.
+   *
+   * @example
+   * ```ts
+   * async outputParser(args: {
+   *   engine: SequelizeEngine;
+   *   field: DateField;
+   *   fieldParser: SequelizeEngineFieldParser;
+   *   modelName: string;
+   *   model: InstanceType<ReturnType<typeof Model>>;
+   *   value: string;
+   * }): Promise<string> {
+   *   if (typeof value === 'string') return new Date(value);
+   *   return args.value;
+   * }
+   * ```
+   *
+   * @returns - The parsed value for the user for that specific field.
+   */
+  outputParser?: TOutputParserFunction;
+}) {
+  class CustomAdapterFieldParser extends AdapterFieldParser {
+    translate = args.translate as TTranslateFunction;
+    inputParser = args.inputParser as TInputParserFunction;
+    outputParser = args.outputParser as TOutputParserFunction;
+  }
+
+  return CustomAdapterFieldParser as typeof AdapterFieldParser & {
+    new (): AdapterFieldParser & {
+      translate: TTranslateFunction;
+      inputParser: TInputParserFunction;
+      outputParser: TOutputParserFunction;
+    };
+  };
+}
 
 /**
  * This will be used to parse the fields that are going to be used in the model in the database, for every field we will call this class.
- * This class will have two methods:
- * - `internalParse` - That will be called internally and should not be overridden.
+ * This class can have three methods:
+ * - `inputParser` - Used to parse the input value before it is sent to the database on your `AdapterQuery` implementation.
+ * - `outputParser` - Used to parse the output value before it is sent to the client on your `AdapterQuery` implementation.
  * - `translate` - Used to translate the field to something that the database can understand. Except for the `TranslatableField` class that will be
  * translated directly with the `translate` method, all other field types should define a parser with the `translate` field, those will be injected
- * in the `Engine` class constructor.
+ * in the `DatabaseAdapter` class constructor.
  */
-export default class EngineFieldParser {
-  engineFields: EngineFields;
-  auto?: EngineAutoFieldParser;
-  bigAuto?: EngineBigAutoFieldParser;
-  bigInt?: EngineBigIntegerFieldParser;
-  char?: EngineCharFieldParser;
-  date?: EngineDateFieldParser;
-  decimal?: EngineDecimalFieldParser;
-  foreignKey?: EngineForeignKeyFieldParser;
-  integer?: EngineIntegerFieldParser;
-  text?: EngineTextFieldParser;
-  uuid?: EngineUuidFieldParser;
+export default class AdapterFieldParser {
+  /**
+   * @description
+   * Used to translate the field to something that the database can understand. The `{@link AdapterFieldParser}` instance will be injected by default in the `translate` method.
+   * The core idea is that for every field type we will have a parser that will be used to translate the field to something that the database can understand. It's nice if all of the configuration options
+   * are supported by your ORM, but if that's not the case it's nice to notify the users through documentation.
+   *
+   * - _Note_: **If you return undefined, we will not consider that field on the object we build on `translateFields` under {@link AdapterModels} instance.**
+   * - _Note2_: **Use the `lazyEvaluate` function to evaluate something after the model was translated.**
+   *
+   * Imagine that you translating to sequelize field:
+   * @example
+   * ```ts
+   * async translate({
+   *   engine,
+   *   field,
+   *   modelName,
+   * }: {
+   *   engine: SequelizeEngine;
+   *   field: Field;
+   *   fieldParser: SequelizeEngineFieldParser;
+   *   modelName: string;
+   *   model: InstanceType<ReturnType<typeof Model>>;
+   *   lazyEvaluate: (translatedField: any) => void;
+   * }): Promise<ModelAttributeColumnOptions> {
+   *   const defaultOptions = {} as ModelAttributeColumnOptions;
+   *   const isFieldAIndexOrIsFieldUnique = field.dbIndex === true || (field.unique as boolean) === true;
+   *
+   *   if (isFieldAIndexOrIsFieldUnique) appendIndexes(engine.connectionName, modelName, field);
+   *
+   *   const hasNotYetSetDefaultValueForField = defaultOptions.defaultValue === undefined;
+   *   if (hasNotYetSetDefaultValueForField) defaultOptions.defaultValue = field.defaultValue;
+   *
+   *   defaultOptions.autoIncrement = field.isAuto;
+   *   defaultOptions.autoIncrementIdentity = field.isAuto;
+   *   defaultOptions.primaryKey = field.primaryKey;
+   *   defaultOptions.allowNull = field.allowNull;
+   *   defaultOptions.unique = field.unique;
+   *   defaultOptions.validate = {};
+   *   defaultOptions.validate.notNull = !field.allowNull;
+   *   defaultOptions.field = field.databaseName;
+   *
+   *   const customAttributesOfFieldEntries = Object.entries(field.customAttributes);
+   *   for (const [key, value] of customAttributesOfFieldEntries) {
+   *     const keyAsTypeofModelColumnOption = key as keyof ModelAttributeColumnOptions;
+   *     defaultOptions[keyAsTypeofModelColumnOption] = value as never;
+   *   }
+   *
+   *   const isFieldOfTypeText =
+   *     field.typeName === TextField.name || field.typeName === CharField.name || field.typeName === UuidField.name;
+   *
+   *   if (isFieldOfTypeText) this.textFieldValidations(field as TextField);
+   *
+   *   return defaultOptions;
+   * }
+   * ```
+   *
+   * @description Or you can lazy evaluate (useful for ForeignKeys):
+   *
+   * @example
+   * ```ts
+   * async translate(args: {
+   *   engine: SequelizeEngine;
+   *   field: ForeignKeyField;
+   *   fieldParser: SequelizeEngineFieldParser;
+   *   modelName: string;
+   *   model: InstanceType<ReturnType<typeof Model>>;
+   *   lazyEvaluate: (translatedField: TranslatedFieldToEvaluateAfterType) => void;
+   * }): Promise<undefined> {
+   *   const defaultOptions = await args.fieldParser.translate(args);
+   *
+   *   args.lazyEvaluate({
+   *     fieldAttributes: defaultOptions,
+   *     type: 'foreign-key',
+   *   } as TranslatedFieldToEvaluateAfterType);
+   * }
+   * ```
+   *
+   * @description
+   * As we discussed before, the `lazyEvaluate` function is used to evaluate something after the model was translated. So what you pass to the `lazyEvaluate` function will
+   * be passed to `lazyEvaluateField` method on the `{@link AdapterFields}` instance under `fieldTranslated` argument
+   *
+   * @returns - The translated field.
+   */
+  async translate(
+    args: AdapterFieldParserTranslateArgs<
+      | 'field'
+      | 'auto'
+      | 'big-auto'
+      | 'big-integer'
+      | 'boolean'
+      | 'char'
+      | 'date'
+      | 'decimal'
+      | 'enum'
+      | 'foreign-key'
+      | 'integer'
+      | 'text'
+      | 'uuid'
+    >
+  ): Promise<any> {
+    throw new EngineDoesNotSupportFieldTypeException(args.engine.constructor.name, Field.name);
+  }
 
-  constructor(
-    engineFields: EngineFields,
-    auto?: EngineAutoFieldParser,
-    bigAuto?: EngineBigAutoFieldParser,
-    bigInt?: EngineBigIntegerFieldParser,
-    char?: EngineCharFieldParser,
-    date?: EngineDateFieldParser,
-    decimal?: EngineDecimalFieldParser,
-    foreignKey?: EngineForeignKeyFieldParser,
-    integer?: EngineIntegerFieldParser,
-    text?: EngineTextFieldParser,
-    uuid?: EngineUuidFieldParser
+  /**
+   * @description
+   * This is used to parse the input value before you save it. For example, let's say that palmares by default accept `Date` objects for `DateField`. But your database does not support saving
+   * `Date` instances. What you can do is that you can implement this method on `DateFieldParser` and return a iSO string. With that, you can be 100% sure that the data on your `queryData` is
+   * something valid for your database.
+   *
+   * This parses the value for each data.
+   *
+   * @example
+   * ```ts
+   * async inputParser(args: {
+   *   engine: SequelizeEngine;
+   *   field: DateField;
+   *   fieldParser: SequelizeEngineFieldParser;
+   *   modelName: string;
+   *   model: InstanceType<ReturnType<typeof Model>>;
+   *   value: Date | string;
+   * }): Promise<string> {
+   *   if (args.value instanceof Date) return args.value.toISOString();
+   *   return args.value;
+   * }
+   * ```
+   *
+   * @returns - The parsed value.
+   */
+  async inputParser?(
+    args: AdapterFieldParserInputAndOutputArgs<
+      | 'field'
+      | 'auto'
+      | 'big-auto'
+      | 'big-integer'
+      | 'boolean'
+      | 'char'
+      | 'date'
+      | 'decimal'
+      | 'enum'
+      | 'foreign-key'
+      | 'integer'
+      | 'text'
+      | 'uuid'
+    >
   ) {
-    this.engineFields = engineFields;
-    this.auto = auto;
-    this.bigAuto = bigAuto;
-    this.bigInt = bigInt;
-    this.char = char;
-    this.date = date;
-    this.decimal = decimal;
-    this.foreignKey = foreignKey;
-    this.integer = integer;
-    this.text = text;
-    this.uuid = uuid;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async translate(field: Field): Promise<any> {
-    return {};
+    return args.value;
   }
 
-  async _foreignKeyFieldParser(field: ForeignKeyField): Promise<any> {
-    const [isRelatedModelFromEngine, fieldToChangeRelationTo] =
-      await field.isRelatedModelFromEngineInstance(
-        this.engineFields.engineInstance
-      );
-    if (isRelatedModelFromEngine === false) {
-      if (fieldToChangeRelationTo) return fieldToChangeRelationTo;
-      else
-        throw new RelatedModelFromForeignKeyIsNotFromEngineException(
-          this.engineFields.engineInstance.databaseName,
-          field.relatedTo,
-          field.fieldName,
-          field.model.name,
-          field.toField
-        );
-    } else return field;
-  }
-
-  async _internalParse(field: Field): Promise<any> {
-    const existAllFieldsSoProbablyTheEngineFieldParserInstance =
-      this.auto !== undefined &&
-      this.bigAuto !== undefined &&
-      this.bigInt !== undefined &&
-      this.char !== undefined &&
-      this.date !== undefined &&
-      this.decimal !== undefined &&
-      this.decimal !== undefined &&
-      this.foreignKey !== undefined &&
-      this.integer !== undefined &&
-      this.text !== undefined &&
-      this.uuid !== undefined;
-    if (existAllFieldsSoProbablyTheEngineFieldParserInstance === false)
-      return await this.translate(field);
-    switch (field.typeName) {
-      case AutoField.name:
-        return await this.auto?._internalParse(field);
-      case BigAutoField.name:
-        return await this.bigAuto?._internalParse(field);
-      case BigIntegerField.name:
-        return await this.bigInt?._internalParse(field);
-      case CharField.name:
-        return await this.char?._internalParse(field);
-      case DateField.name:
-        return await this.date?._internalParse(field);
-      case DecimalField.name:
-        return await this.decimal?._internalParse(field);
-      case ForeignKeyField.name: {
-        const fieldToParse = await this._foreignKeyFieldParser(
-          field as ForeignKeyField
-        );
-        if (fieldToParse instanceof ForeignKeyField)
-          return await this.foreignKey?._internalParse(fieldToParse as Field);
-        else return this._internalParse(fieldToParse);
-      }
-      case IntegerField.name:
-        return await this.integer?._internalParse(field);
-      case TextField.name:
-        return await this.text?._internalParse(field);
-      case UUIDField.name:
-        return await this.uuid?._internalParse(field);
-      case TranslatableField.name:
-        return await (field as TranslatableField).translate(this.engineFields);
-      default:
-        throw new EngineDoesNotSupportFieldTypeException(
-          this.engineFields.engineInstance.databaseName,
-          field.typeName
-        );
-    }
+  /**
+   * @description
+   * This is used to parse the output value before you send it to the user. For example, if the user is fetching a `DateField` from the database, you can parse the value to a `Date` object.
+   * This can be useful so you can guarantee that the user will receive the data in the format that it's expected.
+   *
+   * This parses the value for each data that is retrieved.
+   *
+   * @example
+   * ```ts
+   * async outputParser(args: {
+   *   engine: SequelizeEngine;
+   *   field: DateField;
+   *   fieldParser: SequelizeEngineFieldParser;
+   *   modelName: string;
+   *   model: InstanceType<ReturnType<typeof Model>>;
+   *   value: string;
+   * }): Promise<string> {
+   *   if (typeof value === 'string') return new Date(value);
+   *   return args.value;
+   * }
+   * ```
+   *
+   * @returns - The parsed value for the user for that specific field.
+   */
+  async outputParser?(
+    args: AdapterFieldParserInputAndOutputArgs<
+      | 'field'
+      | 'auto'
+      | 'big-auto'
+      | 'big-integer'
+      | 'boolean'
+      | 'char'
+      | 'date'
+      | 'decimal'
+      | 'enum'
+      | 'foreign-key'
+      | 'integer'
+      | 'text'
+      | 'uuid'
+    >
+  ) {
+    return args.value;
   }
 }

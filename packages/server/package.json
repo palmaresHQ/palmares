@@ -1,15 +1,37 @@
 {
   "name": "@palmares/server",
-  "version": "1.0.0",
+  "version": "0.0.1",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "description": "The server from palmares, this is what you will use generally to make HTTP requests",
-  "main": "src/index.ts",
-  "scripts": {
-    "test": "ts-node src/controllers/index.ts",
-    "test:new": "ts-node src/new/index.ts"
+  "main": "./dist/cjs/src/index.js",
+  "module": "./dist/esm/src/index.js",
+  "types": "./dist/cjs/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/cjs/types/index.d.ts",
+      "node": "./dist/cjs/src/index.js",
+      "require": "./dist/cjs/src/index.js",
+      "import": "./dist/esm/src/index.js",
+      "default": "./dist/esm/src/index.js"
+    }
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/palmaresHQ/palmares.git"
+  },
+  "scripts": {
+    "clear": "rimraf ./dist",
+    "build:types": "tsc --project tsconfig.types.json",
+    "build:cjs": "swc ./src -d ./dist/cjs/src --config-file ../../build/.commonjs.swcrc",
+    "build:module": "swc ./src -d ./dist/esm/src --config-file ../../build/.esm.swcrc",
+    "build": "pnpm run clear && pnpm run build:cjs && pnpm run build:module && pnpm run build:types",
+    "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
+    "build:cjs:watch": "swc ./src -d ./dist/cjs/src --config-file ../../build/.commonjs.swcrc --watch",
+    "build:module:watch": "swc ./src -d ./dist/esm/src --config-file ../../build/.esm.swcrc --watch",
+    "build:watch": "pnpm run build:cjs:watch & pnpm run build:module:watch & pnpm run build:types:watch"
   },
   "keywords": [
     "palmares",
@@ -21,11 +43,9 @@
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
-  "peerDependencies": {
-    "@palmares/core": "*"
-  },
-  "devDependencies": {
-    "ts-toolbelt": "^9.6.0",
-    "typescript": "^4.9.5"
+  "dependencies": {
+    "@palmares/logging": "workspace:*",
+    "@palmares/core": "workspace:*",
+    "@palmares/std": "workspace:*"
   }
 }

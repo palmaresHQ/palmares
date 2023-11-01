@@ -1,4 +1,6 @@
 import model from './models/model';
+import removeQuery from './queries/remove';
+import setQuery from './queries/set';
 
 /**
  * This class is responsible for controlling the transactions that happens inside of the framework, this is supposed to be handled for the framework
@@ -27,42 +29,25 @@ export default class Transaction {
     this.originalOperation = originalOperation;
   }
 
-  async appendData(
-    engineName: string,
-    modelInstance: ReturnType<typeof model>,
-    search: any,
-    data: any[]
-  ) {
+  async appendData(engineName: string, modelInstance: ReturnType<typeof model>, search: any, data: any[]) {
     const stringifiedSearch = JSON.stringify(search);
     const modelName = modelInstance.name;
 
-    const existsEngineNameInOrdering =
-      this.insertionOrdering.orderingByEngines.has(engineName);
+    const existsEngineNameInOrdering = this.insertionOrdering.orderingByEngines.has(engineName);
     const existsOrdering =
       this.insertionOrdering.orderingByEngines.has(engineName) &&
       this.insertionOrdering.orderingByEngines.get(engineName)?.has(modelName);
     if (existsOrdering === false)
-      this.insertionOrdering.currentOrderOfOperation =
-        this.insertionOrdering.currentOrderOfOperation + 1;
+      this.insertionOrdering.currentOrderOfOperation = this.insertionOrdering.currentOrderOfOperation + 1;
 
     const insertionOrder = existsOrdering
-      ? (this.insertionOrdering.orderingByEngines
-          .get(engineName)
-          ?.get(modelName) as number)
+      ? (this.insertionOrdering.orderingByEngines.get(engineName)?.get(modelName) as number)
       : this.insertionOrdering.currentOrderOfOperation;
     if (!existsEngineNameInOrdering)
-      this.insertionOrdering.orderingByEngines.set(
-        engineName,
-        new Map([[modelName, insertionOrder]])
-      );
-    else
-      this.insertionOrdering.orderingByEngines
-        .get(engineName)
-        ?.set(modelName, insertionOrder);
+      this.insertionOrdering.orderingByEngines.set(engineName, new Map([[modelName, insertionOrder]]));
+    else this.insertionOrdering.orderingByEngines.get(engineName)?.set(modelName, insertionOrder);
 
-    const existsSearchInData = this.dataThatWasInsertedOrRemoved
-      ?.get(insertionOrder)
-      ?.data.has(stringifiedSearch);
+    const existsSearchInData = this.dataThatWasInsertedOrRemoved?.get(insertionOrder)?.data.has(stringifiedSearch);
 
     if (existsSearchInData)
       this.dataThatWasInsertedOrRemoved
@@ -77,46 +62,25 @@ export default class Transaction {
       });
   }
 
-  async rollback(
-    currentIndexToProcess = this.insertionOrdering.currentOrderOfOperation
-  ) {
-    const firstModelToProcess = this.dataThatWasInsertedOrRemoved.get(
-      currentIndexToProcess
-    );
-    const engineToUse =
-      await firstModelToProcess?.model.default.getEngineInstance(
-        firstModelToProcess?.engineName
-      );
+  async rollback(currentIndexToProcess = this.insertionOrdering.currentOrderOfOperation) {
+    const firstModelToProcess = this.dataThatWasInsertedOrRemoved.get(currentIndexToProcess);
+    const engineToUse = await firstModelToProcess?.model.default.getEngineInstance(firstModelToProcess?.engineName);
     if (!engineToUse || !firstModelToProcess) return;
-    await engineToUse.transaction(async (transaction) => {
-      let dataToProcess = this.dataThatWasInsertedOrRemoved.get(
-        currentIndexToProcess
-      );
-      while (
-        dataToProcess &&
-        dataToProcess.engineName === firstModelToProcess.engineName
-      ) {
+    await engineToUse.useTransaction(async (transaction) => {
+      let dataToProcess = this.dataThatWasInsertedOrRemoved.get(currentIndexToProcess);
+      while (dataToProcess && dataToProcess.engineName === firstModelToProcess.engineName) {
         const promises: Promise<void>[] = [];
         if (this.originalOperation === 'set') {
           for (const [search, data] of dataToProcess.data.entries()) {
             for (const dataThatWasSet of data) {
-              const [dataWasUpdated, dataToSet] = dataThatWasSet as [
-                boolean,
-                any
-              ];
+              const [dataWasUpdated, dataToSet] = dataThatWasSet as [boolean, any];
               promises.push(
                 (async () => {
-                  const searchObject =
-                    typeof search === 'string' ? JSON.parse(search) : search;
-                  const formattedSearchObject =
-                    Object.keys(searchObject).length === 0
-                      ? undefined
-                      : searchObject;
-                  const model = dataToProcess.model.default.getModel(
-                    dataToProcess.engineName
-                  );
+                  const searchObject = typeof search === 'string' ? JSON.parse(search) : search;
+                  const formattedSearchObject = Object.keys(searchObject).length === 0 ? undefined : searchObject;
+                  const model = dataToProcess.model.default.getModel(dataToProcess.engineName);
                   if (dataWasUpdated) {
-                    await engineToUse.query.set.run(
+                    await setQuery(
                       data,
                       {
                         isToPreventEvents: false,
@@ -126,11 +90,12 @@ export default class Transaction {
                       {
                         model: model,
                         transaction: transaction,
+                        engine: engineToUse,
                         includes: undefined,
                       }
                     );
                   } else {
-                    await engineToUse.query.remove.run(
+                    await removeQuery(
                       {
                         isToPreventEvents: false,
                         useTransaction: false,
@@ -140,6 +105,7 @@ export default class Transaction {
                       {
                         model: model,
                         transaction: transaction,
+                        engine: engineToUse,
                         includes: undefined,
                       }
                     );
@@ -153,13 +119,10 @@ export default class Transaction {
             for (const dataThatWasRemoved of data) {
               promises.push(
                 (async () => {
-                  const searchObject =
-                    typeof search === 'string' ? JSON.parse(search) : search;
+                  const searchObject = typeof search === 'string' ? JSON.parse(search) : search;
                   if (search === undefined) return;
-                  const model = dataToProcess.model.default.getModel(
-                    dataToProcess.engineName
-                  );
-                  await engineToUse.query.set.run(
+                  const model = dataToProcess.model.default.getModel(dataToProcess.engineName);
+                  await setQuery(
                     dataThatWasRemoved,
                     {
                       isToPreventEvents: false,
@@ -169,6 +132,7 @@ export default class Transaction {
                     {
                       model: model,
                       transaction: transaction,
+                      engine: engineToUse,
                       includes: undefined,
                     }
                   );
@@ -180,12 +144,9 @@ export default class Transaction {
         await Promise.all(promises); // we need to wait for every model because it can cause issues.
         this.dataThatWasInsertedOrRemoved.delete(currentIndexToProcess);
         currentIndexToProcess = currentIndexToProcess - 1;
-        dataToProcess = this.dataThatWasInsertedOrRemoved.get(
-          currentIndexToProcess
-        );
+        dataToProcess = this.dataThatWasInsertedOrRemoved.get(currentIndexToProcess);
       }
-      if (this.dataThatWasInsertedOrRemoved.size > 0)
-        return await this.rollback(currentIndexToProcess);
+      if (this.dataThatWasInsertedOrRemoved.size > 0) return await this.rollback(currentIndexToProcess);
     });
   }
 }

@@ -1,17 +1,17 @@
 {
   "name": "@palmares/core",
-  "version": "0.1.0",
+  "version": "0.0.3",
   "description": "This is the core part of the palmares framework, palmares is a framework heavily inspired by django and nestjs core ideas",
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
+  "main": "./dist/cjs/src/index.js",
+  "module": "./dist/esm/src/index.js",
   "types": "./dist/cjs/types/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/cjs/types/index.d.ts",
-      "node": "./dist/cjs/index.js",
-      "require": "./dist/cjs/index.js",
-      "import": "./dist/esm/index.js",
-      "default": "./dist/esm/index.js"
+      "node": "./dist/cjs/src/index.js",
+      "require": "./dist/cjs/src/index.js",
+      "import": "./dist/esm/src/index.js",
+      "default": "./dist/esm/src/index.js"
     }
   },
   "repository": {
@@ -24,15 +24,14 @@
     "core"
   ],
   "scripts": {
-    "clear": "rm -rf ./dist",
-    "publish": "npm publish --access public",
+    "clear": "rimraf ./dist",
     "build:types": "tsc --project tsconfig.types.json",
-    "build:cjs": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc",
-    "build:module": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc",
+    "build:cjs": "swc ./src -d ./dist/cjs/src --config-file ../../build/.commonjs.swcrc",
+    "build:module": "swc ./src -d ./dist/esm/src --config-file ../../build/.esm.swcrc",
     "build": "pnpm run clear && pnpm run build:cjs & pnpm run build:module & pnpm run build:types",
     "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
-    "build:cjs:watch": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc --watch",
-    "build:module:watch": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc --watch",
+    "build:cjs:watch": "swc ./src -d ./dist/cjs/src --config-file ../../build/.commonjs.swcrc --watch",
+    "build:module:watch": "swc ./src -d ./dist/esm/src --config-file ../../build/.esm.swcrc --watch",
     "build:watch": "pnpm run build:cjs:watch & pnpm run build:module:watch & pnpm run build:types:watch"
   },
   "author": "Nicolas Leal",
@@ -42,6 +41,6 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "devDependencies": {
-    "@types/node": "^20.5.9"
+    "@types/node": "^20.8.7"
   }
 }

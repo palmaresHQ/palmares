@@ -8,7 +8,11 @@ import { EventEmitter } from '@palmares/events';*/
 import CoreDomain, { defineSettings } from '@palmares/core';
 import DatabasesDomain from '@palmares/databases';
 import SequelizeEngine from '@palmares/sequelize-engine';
+import { ExpressServerAdapter } from '@palmares/express-adapter';
+import ServerDomain, { Response, ServerAdapter, middleware } from '@palmares/server';
 import { dirname, resolve } from 'path';
+import servertest from './servertest';
+import cors from 'cors';
 
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
@@ -19,7 +23,7 @@ export default defineSettings({
         appName: 'example',
       },
     ],
-    [
+    /*[
       DatabasesDomain,
       {
         DATABASES: {
@@ -38,10 +42,31 @@ export default defineSettings({
         },
         DATABASES_DISMISS_NO_MIGRATIONS_LOG: false,
       },
+    ],*/
+    [
+      ServerDomain,
+      {
+        servers: {
+          default: {
+            server: ExpressServerAdapter,
+            port: 4001,
+            customServerSettings: ExpressServerAdapter.customServerSettings({
+              middlewares: [cors()],
+              // Aqui eu poderia adicionar mais coisa
+              // que eu não tenho no adapter e ai tenho acesso ao server direto
+              additionalBehaviour: (app) => {
+                app.use(cors());
+              },
+            }),
+            handler500: middleware({ response: () => new Response() }),
+          },
+        },
+      },
     ],
+    servertest,
   ],
 });
-
+ExpressServerAdapter;
 /*export const PORT = 4001;
 export const ENV =
   typeof process.env.NODE_ENV === 'string'

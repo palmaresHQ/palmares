@@ -1,10 +1,10 @@
 {
   "name": "@palmares/serializers",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "This package is responsible for validating incoming requests and format how the requests are sent to the user.",
   "main": "src/index.ts",
   "scripts": {
-    "test": "ts-node teste.ts"
+    "test": "tsx teste.ts"
   },
   "repository": {
     "type": "git",
@@ -23,10 +23,10 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "peerDependencies": {
-    "@palmares/core": "*",
-    "@palmares/databases": "*"
+    "@palmares/core": "workspace:*",
+    "@palmares/databases": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^4.9.5"
+    "typescript": "^5.2.2"
   }
 }

@@ -1,116 +1,33 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import model from '../../models/model';
+import type DatabaseAdapter from '..';
 
-import type {
-  Includes,
-  ModelFieldsWithIncludes,
-  FieldsOFModelType,
-} from '../../models/types';
-import type EngineQuery from '.';
-import Transaction from '../../transaction';
-
-export default class EngineRemoveQuery {
-  engineQueryInstance: EngineQuery;
-
-  constructor(engineQuery: EngineQuery) {
-    this.engineQueryInstance = engineQuery;
+export function adapterRemoveQuery<TFunctionQueryData extends AdapterRemoveQuery['queryData']>(args: {
+  queryData: TFunctionQueryData;
+}) {
+  class CustomAdapterRemoveQuery extends AdapterRemoveQuery {
+    queryData = args.queryData as TFunctionQueryData;
   }
 
+  return CustomAdapterRemoveQuery as typeof AdapterRemoveQuery & {
+    new (): AdapterRemoveQuery & { queryData: TFunctionQueryData };
+  };
+}
+
+export default class AdapterRemoveQuery {
   /**
-   * Should return the data removed from the database, this way we are able to revert the changes if something fails.
+   * This query is used to remove a certain data from the database.
    *
    * @param modelOfEngineInstance - The model instance to query.
    */
-  async queryData(args: {
-    modelOfEngineInstance: any;
-    search: any;
-    shouldReturnData?: boolean;
-    shouldNotDelete?: boolean;
-    transaction?: any;
-  }): Promise<any[]> {
-    return [{}];
-  }
-
-  async run<
-    TModel extends InstanceType<ReturnType<typeof model>>,
-    TIncludes extends Includes = undefined,
-    TSearch extends
-      | ModelFieldsWithIncludes<
-          TModel,
-          TIncludes,
-          FieldsOFModelType<TModel>,
-          false,
-          false,
-          true,
-          true
-        >
-      | undefined = undefined
-  >(
-    args: {
-      isToPreventEvents?: boolean;
-      usePalmaresTransaction?: boolean;
-      useTransaction?: boolean;
-      search?: TSearch;
-      shouldRemove?: boolean;
-    },
-    internal: {
-      model: TModel;
-      includes: TIncludes;
+  async queryData(
+    _engine: DatabaseAdapter,
+    _args: {
+      modelOfEngineInstance: any;
+      search: any;
+      shouldReturnData?: boolean;
+      shouldNotDelete?: boolean;
       transaction?: any;
     }
-  ): Promise<
-    ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]
-  > {
-    const palmaresTransaction = args.usePalmaresTransaction
-      ? new Transaction('remove')
-      : undefined;
-    const shouldRemove =
-      typeof args.shouldRemove === 'boolean' ? args.shouldRemove : true;
-    const isToUseTransaction =
-      typeof args.useTransaction === 'boolean' ? args.useTransaction : true;
-
-    async function getResults(this: EngineRemoveQuery, transaction: any) {
-      const results = [] as ModelFieldsWithIncludes<
-        TModel,
-        TIncludes,
-        FieldsOFModelType<TModel>
-      >[];
-      const selectedFields = Object.keys(
-        internal.model.fields
-      ) as FieldsOFModelType<TModel>;
-
-      await this.engineQueryInstance.getResultsWithIncludes(
-        internal.model as TModel,
-        selectedFields as FieldsOFModelType<TModel>,
-        internal.includes as TIncludes,
-        args.search as TSearch,
-        results,
-        this.queryData.bind(this),
-        false,
-        true,
-        undefined,
-        undefined,
-        undefined,
-        shouldRemove,
-        undefined,
-        undefined,
-        args.isToPreventEvents,
-        transaction,
-        palmaresTransaction
-      );
-      return results;
-    }
-    try {
-      if (isToUseTransaction) {
-        return this.engineQueryInstance.engineInstance.transaction(
-          async (transaction) => getResults.bind(this)(transaction)
-        );
-      } else return getResults.bind(this)(internal.transaction);
-    } catch (error) {
-      if (palmaresTransaction) {
-        palmaresTransaction.rollback();
-        return [];
-      } else throw error;
-    }
+  ): Promise<any[]> {
+    return [{}];
   }
 }

@@ -1,7 +1,7 @@
 # @palmares/websockets
 
-## 0.1.0
+## 0.0.1
 
-### Minor Changes
+### Patch Changes
 
-- 374b4a4: Só testando
+- 4752bb1: Fixing dependencies versions

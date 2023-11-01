@@ -1,104 +1,121 @@
 import { utils } from '@palmares/core';
 
-import { FieldDefaultParamsType, CustomImportsForFieldType } from './types';
-import Engine from '../../engine';
-import type { TModel } from '../types';
+import { FieldDefaultParamsType, CustomImportsForFieldType, MaybeNull } from './types';
+
 import type { This } from '../../types';
+import type EngineFieldParser from '../../engine/fields/field';
+import type { ModelType } from '../types';
 
 /**
  * This is the default field of the model, every other field type should override this one but this one SHOULDN't be called directly.
  * Generally we do not offer any translation to this type of field.
  */
 export default class Field<
-  F extends Field = any,
-  D extends N extends true
-    ? F['type'] | undefined | null
-    : F['type'] | undefined = undefined,
-  U extends boolean = false,
-  N extends boolean = false,
-  A extends boolean = false,
-  CA = any
+  TType extends { input: any; output: any } = { input: any; output: any },
+  TField extends Field = any,
+  TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
 > {
-  isAuto!: A;
-  hasDefaultValue!: D extends undefined ? false : true;
-  type!: any;
+  inputParsers = new Map<string, Required<EngineFieldParser>['inputParser']>();
+  outputParsers = new Map<string, Required<EngineFieldParser>['outputParser']>();
+  isAuto!: TAuto;
+  hasDefaultValue!: TDefaultValue extends undefined ? false : true;
+  _type!: TType;
   primaryKey: boolean;
-  defaultValue?: D;
-  allowNull: N;
-  unique: U;
+  defaultValue?: TDefaultValue;
+  allowNull: TNull;
+  unique: TUnique;
   dbIndex: boolean;
-  databaseName: string;
+  databaseName: TDatabaseName;
   underscored: boolean;
   typeName: string = Field.name;
-  customAttributes: CA;
-  model!: TModel;
+  customAttributes: TCustomAttributes;
+  model!: ModelType;
   fieldName!: string;
 
-  constructor(params: FieldDefaultParamsType<F, D, U, N, A, CA> = {}) {
-    this.primaryKey =
-      typeof params.primaryKey === 'boolean' ? params.primaryKey : false;
-    this.defaultValue = params.defaultValue as D;
-    this.allowNull =
-      typeof params.allowNull === 'boolean' ? params.allowNull : (false as N);
-    this.unique =
-      typeof params.unique === 'boolean' ? params.unique : (false as U);
-    this.isAuto =
-      typeof params.isAuto === 'boolean' ? params.isAuto : (false as A);
+  constructor(
+    params: FieldDefaultParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> = {}
+  ) {
+    this.primaryKey = typeof params.primaryKey === 'boolean' ? params.primaryKey : false;
+    this.defaultValue = params.defaultValue as TDefaultValue;
+    this.allowNull = typeof params.allowNull === 'boolean' ? params.allowNull : (false as TNull);
+    this.unique = typeof params.unique === 'boolean' ? params.unique : (false as TUnique);
+    this.isAuto = typeof params.isAuto === 'boolean' ? params.isAuto : (false as TAuto);
     this.dbIndex = typeof params.dbIndex === 'boolean' ? params.dbIndex : false;
-    this.databaseName = params.databaseName || '';
+    this.databaseName = params.databaseName || ('' as TDatabaseName);
     this.underscored = params.underscored || false;
-    this.customAttributes = params.customAttributes || ({} as CA);
+    this.customAttributes = params.customAttributes || ({} as TCustomAttributes);
   }
 
   static new<
-    I extends This<typeof Field>,
-    D extends N extends true
-      ? InstanceType<I>['type'] | undefined | null
-      : InstanceType<I>['type'] | undefined = undefined,
-    U extends boolean = false,
-    N extends boolean = false,
-    A extends boolean = false,
-    CA = any
-  >(params: FieldDefaultParamsType<InstanceType<I>, D, U, N, A, CA> = {}) {
-    return new this(params) as Field<InstanceType<I>, D, U, N, A, CA>;
+    TFieldInstance extends This<typeof Field>,
+    TDefaultValue extends TNull extends true
+      ? InstanceType<TFieldInstance>['_type']['input'] | undefined | null
+      : InstanceType<TFieldInstance>['_type']['input'] | undefined = undefined,
+    TUnique extends boolean = false,
+    TNull extends boolean = false,
+    TAuto extends boolean = false,
+    TDatabaseName extends string | null | undefined = undefined,
+    TCustomAttributes = any,
+  >(
+    params: FieldDefaultParamsType<
+      InstanceType<TFieldInstance>,
+      TDefaultValue,
+      TUnique,
+      TNull,
+      TAuto,
+      TDatabaseName,
+      TCustomAttributes
+    > = {}
+  ) {
+    return new this(params) as Field<
+      { input: any; output: any },
+      InstanceType<TFieldInstance>,
+      TDefaultValue,
+      TUnique,
+      TNull,
+      TAuto,
+      TDatabaseName,
+      TCustomAttributes
+    >;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async init(fieldName: string, model: TModel, engineInstance?: Engine) {
-    const isUnderscored: boolean =
-      (this.underscored || model.options.underscored) === true;
-    this.fieldName = fieldName;
-    this.model = model;
-
-    if (this.primaryKey) this.model.primaryKeys.push(this.fieldName);
-    if (isUnderscored)
-      this.databaseName = utils.camelCaseToHyphenOrSnakeCase(this.fieldName);
-    else this.databaseName = this.fieldName;
-  }
-
-  async toString(
-    indentation = 0,
-    customParams: string | undefined = undefined
-  ): Promise<string> {
-    const ident = '  '.repeat(indentation);
-    const fieldParamsIdent = '  '.repeat(indentation + 1);
-    return (
-      `${ident}models.fields.${this.constructor.name}.new({` +
-      `${customParams ? `\n${customParams}` : ''}\n` +
-      `${fieldParamsIdent}primaryKey: ${this.primaryKey},\n` +
-      `${fieldParamsIdent}defaultValue: ${JSON.stringify(
-        this.defaultValue
-      )},\n` +
-      `${fieldParamsIdent}allowNull: ${this.allowNull},\n` +
-      `${fieldParamsIdent}unique: ${this.unique},\n` +
-      `${fieldParamsIdent}dbIndex: ${this.dbIndex},\n` +
-      `${fieldParamsIdent}databaseName: "${this.databaseName}",\n` +
-      `${fieldParamsIdent}underscored: ${this.underscored},\n` +
-      `${fieldParamsIdent}customAttributes: ${JSON.stringify(
-        this.customAttributes
-      )}\n` +
-      `${ident}})`
-    );
+  /**
+   * This method can be used to override the type of a field. This is useful for library maintainers that want to support the field type but the default type provided by palmares
+   * is not the one that the user want to use.
+   *
+   * @example
+   * ```ts
+   * const MyCustomDatabaseAutoField = AutoField.overrideType<{ input: string; output: string }>();
+   *
+   * // then the user can use as normal:
+   *
+   * const autoField = MyCustomDatabaseAutoField.new();
+   *
+   * // now the type inferred for the field will be a string instead of a number.
+   * ```
+   *
+   * ### Note
+   *
+   * Your library should provide documentation of the fields that are supported.
+   */
+  static overrideType<TNewType extends { input: any; output: any }>() {
+    return this as unknown as {
+      new: <
+        TDefaultValue extends MaybeNull<Field['_type']['input'] | undefined, TNull> = undefined,
+        TUnique extends boolean = false,
+        TNull extends boolean = false,
+        TAuto extends boolean = false,
+        TDatabaseName extends string | null | undefined = undefined,
+        TCustomAttributes = any,
+      >(
+        params?: FieldDefaultParamsType<Field, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>
+      ) => Field<TNewType, Field, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;
+    };
   }
 
   /**
@@ -110,6 +127,38 @@ export default class Field<
    */
   async customImports(): Promise<CustomImportsForFieldType[]> {
     return [];
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  init(fieldName: string, model: ModelType) {
+    const isAlreadyInitialized = this.model !== undefined && typeof this.fieldName === 'string';
+    if (isAlreadyInitialized) return;
+
+    const isUnderscored: boolean = (this.underscored || model._options()?.underscored) === true;
+    this.fieldName = fieldName;
+    this.model = model;
+
+    if (this.primaryKey) model.primaryKeys.push(this.fieldName);
+    if (isUnderscored) this.databaseName = utils.camelCaseToHyphenOrSnakeCase(this.fieldName) as TDatabaseName;
+    else this.databaseName = this.fieldName as TDatabaseName;
+  }
+
+  async toString(indentation = 0, customParams: string | undefined = undefined): Promise<string> {
+    const ident = '  '.repeat(indentation);
+    const fieldParamsIdent = '  '.repeat(indentation + 1);
+    return (
+      `${ident}models.fields.${this.constructor.name}.new({` +
+      `${customParams ? `\n${customParams}` : ''}\n` +
+      `${fieldParamsIdent}primaryKey: ${this.primaryKey},\n` +
+      `${fieldParamsIdent}defaultValue: ${JSON.stringify(this.defaultValue)},\n` +
+      `${fieldParamsIdent}allowNull: ${this.allowNull},\n` +
+      `${fieldParamsIdent}unique: ${this.unique},\n` +
+      `${fieldParamsIdent}dbIndex: ${this.dbIndex},\n` +
+      `${fieldParamsIdent}databaseName: "${this.databaseName}",\n` +
+      `${fieldParamsIdent}underscored: ${this.underscored},\n` +
+      `${fieldParamsIdent}customAttributes: ${JSON.stringify(this.customAttributes)}\n` +
+      `${ident}})`
+    );
   }
 
   /**
@@ -127,8 +176,7 @@ export default class Field<
     return (
       field.typeName === this.typeName &&
       field.allowNull === this.allowNull &&
-      JSON.stringify(field.customAttributes) ===
-        JSON.stringify(this.customAttributes) &&
+      JSON.stringify(field.customAttributes) === JSON.stringify(this.customAttributes) &&
       field.primaryKey === this.primaryKey &&
       field.defaultValue === this.defaultValue &&
       field.unique === this.unique &&
@@ -171,5 +219,40 @@ export default class Field<
     if (!field) field = this as Field;
     const constructorOptions = await this.constructorOptions(field);
     return (field.constructor as typeof Field).new(constructorOptions);
+  }
+}
+
+/**
+ * Used internally so we can override the internal behavior of Field when extending this field.
+ *
+ * **THIS SHOULD NOT BE USED DIRECTLY. IT DOES NOT OFFER ANY REAL FUNCTIONALITY, TYPESCRIPT ONLY.**
+ */
+export class UnopinionatedField<
+  TType extends { input: any; output: any } = { input: any; output: any },
+  TField extends Field = any,
+  TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,
+  TUnique extends boolean = false,
+  TNull extends boolean = false,
+  TAuto extends boolean = false,
+  TDatabaseName extends string | null | undefined = undefined,
+  TCustomAttributes = any,
+> extends Field<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
+  constructor(params: any) {
+    super(params);
+  }
+
+  static overrideType<TNewType extends { input: any; output: any }>() {
+    return this as unknown as {
+      new: <
+        TDefaultValue extends MaybeNull<Field['_type']['input'] | undefined, TNull> = undefined,
+        TUnique extends boolean = false,
+        TNull extends boolean = false,
+        TAuto extends boolean = false,
+        TDatabaseName extends string | null | undefined = undefined,
+        TCustomAttributes = any,
+      >(
+        params?: any
+      ) => UnopinionatedField<TNewType, Field, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;
+    };
   }
 }
