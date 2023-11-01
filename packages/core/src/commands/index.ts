@@ -3,6 +3,7 @@ import { CommandNotFoundException } from './exceptions';
 import { DefaultCommandType } from './types';
 import { initializeDomains } from '../domain/utils';
 import { setSettings } from '../conf/settings';
+import { structuredClone } from '../utils';
 
 let cachedCommands = {} as DefaultCommandType;
 
