@@ -6,7 +6,7 @@ import { setSettings } from '../conf/settings';
 import { AppServer, appServer } from '../app';
 import { initializeApp } from '../app/utils';
 import { getDefaultFormattedMessage, getLogger, setLogger } from '../logging';
-import { PACKAGE_NAME } from '../utils';
+import { PACKAGE_NAME, structuredClone } from '../utils';
 
 let cachedCommands = {} as DefaultCommandType;
 
