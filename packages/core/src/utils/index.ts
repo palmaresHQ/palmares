@@ -31,30 +31,33 @@ export function camelCaseToHyphenOrSnakeCase(string: string, isSnake = true) {
 }
 
 /**
- * Creates a deep copy of an object
- * @param obj - The object to be copied.
+ * Creates a deep copy of an object. If you do {...obj} we will create a new reference of the object but we will not deeply
+ * clone the objects inside of that object. This means that changes for nested objects will be applied to all objects. The same
+ * happens if we are trying to create a new copy of an array.
+ *
+ * @param objectOrArray - The object or array to be deeply copied.
  * @returns - The object copy.
  */
-export function structuredClone<Obj extends {[key: string | number]: any}>(obj: Obj): Obj {
-  if (!obj) return obj;
-  if (typeof obj !== 'object') return obj;
+export function structuredClone<TObjectOrArray extends Record<string | number, any> | any[]>(objectOrArray: TObjectOrArray): TObjectOrArray {
+  if (!objectOrArray) return objectOrArray;
+  if (typeof objectOrArray !== 'object') return objectOrArray;
 
   // Ref: https://github.com/nodejs/node/issues/34355#issuecomment-658394617
-  if(Array.isArray(obj)) {
-    const newObj = [] as unknown as Obj;
-    for (let i = 0; i < obj.length; i++) {
-      const val = !obj[i] || typeof obj[i] !== 'object' ? obj[i] : structuredClone(obj[i]);
-      newObj[i] = val === undefined ? null : val;
+  if(Array.isArray(objectOrArray)) {
+    const newArray = [] as unknown as TObjectOrArray;
+    for (let i = 0; i < objectOrArray.length; i++) {
+      const valueAtIndex = !objectOrArray[i] || typeof objectOrArray[i] !== 'object' ? objectOrArray[i] : structuredClone(objectOrArray[i]);
+      newArray[i] = valueAtIndex === undefined ? null : valueAtIndex;
     }
-    return newObj;
+    return newArray;
   }
 
-  const newObj = {} as Obj;
-  for(const i of Object.keys(obj)){
-    const val = !obj[i] || typeof obj[i] !== 'object' ? obj[i] : structuredClone(obj[i]);
-    if (val === undefined) continue;
-    (newObj as any)[i] = val;
+  const newObject = {} as TObjectOrArray;
+  for(const key of Object.keys(objectOrArray)){
+    const valueAtKey = !objectOrArray[key] || typeof objectOrArray[key] !== 'object' ? objectOrArray[key] : structuredClone(objectOrArray[key]);
+    if (valueAtKey === undefined) continue;
+    (newObject as any)[key] = valueAtKey;
   }
 
-  return newObj;
+  return newObject;
 }
