@@ -1,6 +1,6 @@
 import { FieldAdapter, NumberAdapter, NumberAdapterTranslateArgs } from '@palmares/schemas';
 import * as z from 'zod';
-
+z.object({});
 export default class ZodNumberFieldSchemaAdapter extends NumberAdapter<z.ZodNumber> {
   translate(_fieldAdapter: FieldAdapter<any>, args: NumberAdapterTranslateArgs) {
     let result = z.number();

@@ -6,3 +6,4 @@ export { setDefaultAdapter } from './conf';
 export * from './adapter/types';
 export * from './schema';
 export { default as NumberSchema } from './schema/number';
+export { default as ObjectSchema } from './schema/object';

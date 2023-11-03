@@ -6,22 +6,35 @@ export type AdapterTranslateArgs = {
 };
 
 export type NumberAdapterTranslateArgs = {
-  min: {
-    value: number;
-    inclusive: boolean;
-    message: string;
-  };
-  max: {
-    value: number;
-    inclusive: boolean;
-    message: string;
-  };
-  allowNegative: {
-    allowZero: boolean;
-    message: string;
-  };
-  allowPositive: {
-    allowZero: boolean;
-    message: string;
-  };
+  min:
+    | {
+        value: number;
+        inclusive: boolean;
+        message: string;
+      }
+    | undefined;
+  max:
+    | {
+        value: number;
+        inclusive: boolean;
+        message: string;
+      }
+    | undefined;
+  allowNegative:
+    | {
+        allowZero: boolean;
+        message: string;
+      }
+    | undefined;
+  allowPositive:
+    | {
+        allowZero: boolean;
+        message: string;
+      }
+    | undefined;
+  integer:
+    | {
+        message: string;
+      }
+    | undefined;
 } & AdapterTranslateArgs;
