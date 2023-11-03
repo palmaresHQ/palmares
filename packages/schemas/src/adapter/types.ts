@@ -38,3 +38,7 @@ export type NumberAdapterTranslateArgs = {
       }
     | undefined;
 } & AdapterTranslateArgs;
+
+export type ObjectAdapterTranslateArgs = {
+  data: Record<string, any>;
+} & AdapterTranslateArgs;

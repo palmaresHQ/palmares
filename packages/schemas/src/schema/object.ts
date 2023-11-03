@@ -22,28 +22,35 @@ export default class ObjectSchema<
   }
 
   async _transform(): Promise<ReturnType<FieldAdapter['translate']>> {
-    const promises = [];
-    const toTransform = Object.entries(this.__data);
-    const finalData: Record<any, any> = {};
+    if (!this.__adapter.object.__result) {
+      const promises = [];
+      const toTransform = Object.entries(this.__data);
+      const finalData: Record<any, any> = {};
 
-    while (toTransform.length > 0) {
-      const valueAndKeyToTransform = toTransform.shift();
-      if (!valueAndKeyToTransform) break;
-      const [key, valueToTransform] = valueAndKeyToTransform;
-      const awaitableTransformer = async () => {
-        finalData[key] = await valueToTransform._transform();
-      };
-      if (valueToTransform instanceof Schema) promises.push(awaitableTransformer());
+      while (toTransform.length > 0) {
+        const valueAndKeyToTransform = toTransform.shift();
+        if (!valueAndKeyToTransform) break;
+        const [key, valueToTransform] = valueAndKeyToTransform;
+        const awaitableTransformer = async () => {
+          finalData[key] = await valueToTransform._transform();
+        };
+        if (valueToTransform instanceof Schema) promises.push(awaitableTransformer());
+      }
+
+      await Promise.all(promises);
+
+      this.__adapter.object.__result = this.__adapter.object.translate(this.__adapter.field, {
+        nullish: this.__nullish,
+        data: finalData,
+      });
     }
 
-    await Promise.all(promises);
-
-    return finalData;
+    return this.__adapter.object.__result;
   }
 
   async _parse(input: TType['input']) {
-    const transformedData = await this._transform();
-    return input;
+    const transformedSchema = await this._transform();
+    return this.__adapter.object.parse(this.__adapter, transformedSchema, input);
   }
 
   static new<TData extends Record<any, Schema>>(data: TData) {
