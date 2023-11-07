@@ -1,9 +1,15 @@
+import { withFallbackFactory } from '../utils';
+
+export type NonToTranslateArgs = {
+  withFallback: ReturnType<typeof withFallbackFactory>;
+};
+
 export type AdapterTranslateArgs = {
   nullish: {
     allowUndefined: boolean;
     message: string;
   };
-};
+} & NonToTranslateArgs;
 
 export type NumberAdapterTranslateArgs = {
   min:
@@ -42,3 +48,13 @@ export type NumberAdapterTranslateArgs = {
 export type ObjectAdapterTranslateArgs = {
   data: Record<string, any>;
 } & AdapterTranslateArgs;
+
+export type ErrorCodes =
+  | 'max'
+  | 'allowNegative'
+  | 'allowPositive'
+  | 'min'
+  | 'integer'
+  | 'nullish'
+  | 'object'
+  | 'number';

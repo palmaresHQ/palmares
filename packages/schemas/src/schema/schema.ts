@@ -1,4 +1,5 @@
 import FieldAdapter from '../adapter/fields';
+import { ErrorCodes } from '../adapter/types';
 
 export default class Schema<
   TType extends {
@@ -10,6 +11,21 @@ export default class Schema<
   },
   TDefinitions = any,
 > {
+  /**
+   * Fallback means that the schema validator library is not able to validate everything so it's pretty much letting the handling of the validation on Palmares side and NOT on the
+   * schema validator side
+   */
+  __fallback: ((
+    value: any,
+    path: string[]
+  ) => Promise<
+    {
+      isValid: boolean;
+      code: ErrorCodes;
+      message: string;
+      path: string[];
+    }[]
+  >)[] = [];
   __validationSchema!: any;
   __refinements: {
     callback: (value: TType['input']) => Promise<boolean | { isValid: boolean; message: string }>;
@@ -19,15 +35,30 @@ export default class Schema<
     allowUndefined: boolean;
     message: string;
   };
-  __toRepresentation!: (value: TType['output']) => TType['output'];
-  __toInternal!: (value: TType['input']) => TType['input'];
+  __toRepresentation: ((value: TType['output']) => TType['output'])[] = [];
+  __toInternal: ((value: TType['input']) => TType['input'])[] = [];
 
   async validate(value: TType['input']): Promise<boolean> {
     return this.__validationSchema.validate(value);
   }
 
-  async _transform(): Promise<ReturnType<FieldAdapter['translate']>> {
+  async _transform(_fieldName?: string): Promise<ReturnType<FieldAdapter['translate']>> {
     throw new Error('Not implemented');
+  }
+
+  async _parse(value: TType['input'], path: string[] = []): Promise<{ errors?: any[]; parsed: TType['input'] }> {
+    let errorsOfSchema: undefined | Awaited<ReturnType<Schema['__fallback'][number]>> = undefined;
+
+    for (const fallback of this.__fallback) {
+      const errorsOfFallback = await fallback(value, path);
+      for (const error of errorsOfFallback) {
+        if (error.isValid === false) {
+          if (!Array.isArray(errorsOfSchema)) errorsOfSchema = [];
+          errorsOfSchema.push(error);
+        }
+      }
+    }
+    return { errors: errorsOfSchema, parsed: value };
   }
 
   /**
@@ -60,12 +91,14 @@ export default class Schema<
   }
 
   toRepresentation<TOutput>(toRepresentationCallback: (value: TType['output']) => Promise<TOutput>) {
-    this.__toRepresentation = toRepresentationCallback;
+    this.__toRepresentation.splice(0, 1, toRepresentationCallback);
+
     return this as unknown as Schema<{ input: TType['input']; output: TOutput }, TDefinitions>;
   }
 
   toInternal<TInput>(toInternalCallback: (value: TType['input']) => Promise<TInput>) {
-    this.__toInternal = toInternalCallback;
+    this.__toInternal.splice(0, 1, toInternalCallback);
+
     return this as unknown as Schema<{ input: TInput; output: TType['output'] }, TDefinitions>;
   }
 

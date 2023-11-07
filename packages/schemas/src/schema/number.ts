@@ -7,6 +7,8 @@ import {
   DEFAULT_NUMBER_MIN_EXCEPTION,
   DEFAULT_NUMBER_NEGATIVE_EXCEPTION,
 } from '../constants';
+import WithFallback, { withFallbackFactory } from '../utils';
+import { max, min } from '../validators/number';
 
 export default class NumberSchema<
   TType extends {
@@ -42,8 +44,9 @@ export default class NumberSchema<
   };
 
   async _transform() {
-    if (!this.__adapter.number.__result)
-      this.__adapter.number.__result = this.__adapter.number.translate(this.__adapter.field, {
+    if (this.__adapter.number.__result === undefined) {
+      const translatedSchemaOrWithFallback = this.__adapter.number.translate(this.__adapter.field, {
+        withFallback: withFallbackFactory('number'),
         nullish: this.__nullish,
         min: this.__min,
         max: this.__max,
@@ -52,11 +55,23 @@ export default class NumberSchema<
         allowPositive: this.__allowPositive,
       });
 
+      if (translatedSchemaOrWithFallback instanceof WithFallback) {
+        this.__adapter.number.__result = translatedSchemaOrWithFallback.transformedSchema;
+        if (translatedSchemaOrWithFallback.fallbackFor.has('max')) this.__fallback.push(max(this.__max));
+        if (translatedSchemaOrWithFallback.fallbackFor.has('min')) this.__fallback.push(min(this.__min));
+      } else {
+        this.__adapter.number.__result = translatedSchemaOrWithFallback;
+      }
+    }
+
     return this.__adapter.number.__result;
   }
 
-  async _parse(value: any) {
+  async _parse(value: any, path: string[] = []) {
     const transformedSchema = await this._transform();
+    const defaultParseResult = await super._parse(value, path);
+
+    if (defaultParseResult.errors) return defaultParseResult;
     return this.__adapter.number.parse(this.__adapter, transformedSchema, value);
   }
 

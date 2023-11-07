@@ -1,20 +1,21 @@
 import { FieldAdapter, NumberAdapter, NumberAdapterTranslateArgs } from '@palmares/schemas';
 import * as z from 'zod';
-z.object({});
+
 export default class ZodNumberFieldSchemaAdapter extends NumberAdapter<z.ZodNumber> {
   translate(_fieldAdapter: FieldAdapter<any>, args: NumberAdapterTranslateArgs) {
     let result = z.number();
-    if (args.max) {
+
+    /*if (args.max) {
       if (args.max.inclusive) result = result.lte(args.max.value, args.max.message);
       else result = result.lt(args.max.value, args.max.message);
-    }
+    }*/
     if (args.min) {
       if (args.min.inclusive) result = result.gte(args.min.value, args.min.message);
       else result = result.gt(args.min.value, args.min.message);
     }
     if (args.allowNegative) result = result.negative(args.allowNegative.message);
     if (args.allowPositive) result = result.positive(args.allowPositive.message);
-    return result;
+    return args.withFallback(['max'], result);
   }
 
   async parse(_adapter: any, result: z.ZodNumber, _value: any) {

@@ -2,6 +2,8 @@ import SchemaAdapter from '../adapter';
 import Schema from './schema';
 import { getDefaultAdapter } from '../conf';
 import FieldAdapter from '../adapter/fields';
+import { withFallbackFactory } from '../utils';
+import { objectValidation } from '../validators/object';
 
 export default class ObjectSchema<
   TType extends {
@@ -24,32 +26,39 @@ export default class ObjectSchema<
   async _transform(): Promise<ReturnType<FieldAdapter['translate']>> {
     if (!this.__adapter.object.__result) {
       const promises = [];
-      const toTransform = Object.entries(this.__data);
-      const finalData: Record<any, any> = {};
+      const fallbackByKeys: Record<string, Schema> = {};
+      const toInternalByKeys: Record<string, Schema['__toInternal']> = {};
+      const toTransform = Object.entries(this.__data) as [string, Schema][];
+      const transformedData: Record<any, any> = {};
 
-      while (toTransform.length > 0) {
-        const valueAndKeyToTransform = toTransform.shift();
-        if (!valueAndKeyToTransform) break;
-        const [key, valueToTransform] = valueAndKeyToTransform;
+      for (const [key, valueToTransform] of toTransform) {
         const awaitableTransformer = async () => {
-          finalData[key] = await valueToTransform._transform();
+          transformedData[key] = await valueToTransform._transform(); // This should come first because we will get the fallbacks of the field here.
+          if (valueToTransform.__toInternal.length > 0) toInternalByKeys[key] = valueToTransform.__toInternal;
+          if (valueToTransform.__fallback.length > 0) fallbackByKeys[key] = valueToTransform;
         };
         if (valueToTransform instanceof Schema) promises.push(awaitableTransformer());
       }
 
       await Promise.all(promises);
 
+      if (Object.keys(fallbackByKeys).length > 0) this.__fallback.push(objectValidation(fallbackByKeys));
       this.__adapter.object.__result = this.__adapter.object.translate(this.__adapter.field, {
+        withFallback: withFallbackFactory('object'),
         nullish: this.__nullish,
-        data: finalData,
+        data: transformedData,
       });
     }
 
     return this.__adapter.object.__result;
   }
 
-  async _parse(input: TType['input']) {
+  async _parse(input: TType['input'], path: string[] = []) {
     const transformedSchema = await this._transform();
+
+    const defaultParseResult = await super._parse(input, path);
+    if (defaultParseResult.errors) return defaultParseResult;
+
     return this.__adapter.object.parse(this.__adapter, transformedSchema, input);
   }
 
