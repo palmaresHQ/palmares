@@ -8,6 +8,7 @@ import ServerDomain, { Response } from '@palmares/server';
 import { dirname, resolve } from 'path';
 
 import core from './core';
+import cache from './cache';
 
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
@@ -59,5 +60,6 @@ export default defineSettings({
       },
     ],
     core,
+    cache
   ],
 });
