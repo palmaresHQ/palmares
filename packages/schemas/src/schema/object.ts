@@ -42,7 +42,6 @@ export default class ObjectSchema<
       await Promise.all(promises);
 
       const doesAnyFieldHaveFallback = Object.keys(fallbackByKeys).length > 0;
-      console.log(fallbackByKeys);
       if (doesAnyFieldHaveFallback) this.__fallback.push(objectValidation(fallbackByKeys));
       this.__adapter.object.__result = this.__adapter.object.translate(this.__adapter.field, {
         withFallback: withFallbackFactory('object'),

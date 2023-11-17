@@ -1,7 +1,8 @@
+import { number } from '.';
 import SchemaAdapter from '../adapter';
 import FieldAdapter from '../adapter/fields';
 import { ErrorCodes } from '../adapter/types';
-import { parseErrorsFactory } from '../utils';
+import { formatErrorFromParseMethod, parseErrorsFactory } from '../utils';
 import { OnlyFieldAdaptersFromSchemaAdapter } from './types';
 
 export default class Schema<
@@ -51,35 +52,47 @@ export default class Schema<
   }
 
   async _parse(value: TType['input'], path: string[] = []): Promise<{ errors?: any[]; parsed: TType['input'] }> {
+    const errorsAsHashedSet = new Set<string>();
     const transformedSchema = await this._transform();
 
-    const defaultParseResult: {
+    const parseResult: {
       errors: undefined | Awaited<ReturnType<Schema['__fallback'][number]>>;
       parsed: TType['input'];
     } = { errors: undefined, parsed: value };
-
-    for (const fallback of this.__fallback) {
-      const errorsOfFallback = await fallback(value, path);
-      for (const error of errorsOfFallback) {
-        if (error.isValid === false) {
-          if (!Array.isArray(defaultParseResult.errors)) defaultParseResult.errors = [];
-          defaultParseResult.errors.push(error);
-        }
-      }
-    }
 
     const schemaAdapterField = this.constructor.name
       .replace('Schema', '')
       .toLowerCase() as OnlyFieldAdaptersFromSchemaAdapter;
 
-    if (defaultParseResult.errors) return defaultParseResult;
+    const adapterParseResult = await this.__adapter[schemaAdapterField].parse(this.__adapter, transformedSchema, value);
 
-    return this.__adapter[schemaAdapterField].parse(
-      this.__adapter,
-      transformedSchema,
-      value,
-      parseErrorsFactory(this.__adapter)
-    );
+    parseResult.parsed = adapterParseResult.parsed;
+    if (adapterParseResult.errors) {
+      if (Array.isArray(adapterParseResult.errors))
+        parseResult.errors = await Promise.all(
+          adapterParseResult.errors.map(async (error) =>
+            formatErrorFromParseMethod(this.__adapter, error, path, errorsAsHashedSet)
+          )
+        );
+      else
+        parseResult.errors = [
+          await formatErrorFromParseMethod(this.__adapter, parseResult.errors, path, errorsAsHashedSet),
+        ];
+    }
+
+    for (const fallback of this.__fallback) {
+      const errorsOfFallback = await fallback(value, path);
+      for (const error of errorsOfFallback) {
+        if (error.isValid === false) {
+          const hashedError = JSON.stringify(error);
+          if (errorsAsHashedSet.has(hashedError)) continue;
+          if (!Array.isArray(parseResult.errors)) parseResult.errors = [];
+          parseResult.errors.push(error);
+        }
+      }
+    }
+
+    return parseResult;
   }
 
   /**

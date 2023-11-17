@@ -2,6 +2,7 @@ import { NoAdapterFoundError, SchemaAdapterNotImplementedError } from '../except
 import FieldAdapter from './fields';
 import NumberAdapter from './fields/number';
 import ObjectFieldAdapter from './fields/object';
+import { ErrorCodes } from './types';
 
 export default class SchemaAdapter {
   field!: FieldAdapter;
@@ -14,7 +15,7 @@ export default class SchemaAdapter {
   ): Promise<{
     message: string;
     path: string[];
-    code: string;
+    code: ErrorCodes;
   }> {
     throw new SchemaAdapterNotImplementedError({ className: 'SchemaAdapter', functionName: 'formatError' });
   }

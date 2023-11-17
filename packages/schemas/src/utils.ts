@@ -1,4 +1,3 @@
-import { error } from 'console';
 import SchemaAdapter from './adapter';
 import {
   NonToTranslateArgs,
@@ -91,4 +90,20 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
     } else schemaWithPrivateFields.__adapter.number.__result = translatedSchemaOrWithFallback;
   }
   return schemaWithPrivateFields.__adapter.number.__result;
+}
+
+export async function formatErrorFromParseMethod(
+  adapter: SchemaAdapter,
+  error: any,
+  path: string[],
+  errorsAsHashedSet: Set<string>
+) {
+  const formattedError = await adapter.formatError(error);
+  formattedError.path = Array.isArray(formattedError.path) ? [...path, ...formattedError.path] : path;
+  const formattedErrorAsParseResultError = formattedError as unknown as Awaited<
+    ReturnType<Schema['__fallback'][number]>
+  >[number];
+  formattedErrorAsParseResultError.isValid = false;
+  errorsAsHashedSet.add(JSON.stringify(formattedErrorAsParseResultError));
+  return formattedErrorAsParseResultError;
 }

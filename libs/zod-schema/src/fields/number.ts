@@ -18,12 +18,12 @@ export default class ZodNumberFieldSchemaAdapter extends NumberAdapter<z.ZodNumb
     return args.withFallback(['max'], result);
   }
 
-  async parse(_adapter: any, result: z.ZodNumber, _value: any) {
+  async parse(_adapter: any, result: z.ZodNumber, value: any) {
     try {
-      const parsed = await result.parseAsync(_value);
-      return { errors: null, parsed };
+      const parsed = await result.parseAsync(value);
+      return { errors: undefined, parsed };
     } catch (error) {
-      if (error instanceof z.ZodError) return { errors: error.errors, parsed: null };
+      if (error instanceof z.ZodError) return { errors: error.errors, parsed: undefined };
       else throw error;
     }
   }

@@ -1,6 +1,6 @@
 import SchemaAdapter from '../index';
 import { SchemaAdapterNotImplementedError } from '../../exceptions';
-import { AdapterTranslateArgs } from '../types';
+import { AdapterTranslateArgs, ErrorCodes } from '../types';
 import WithFallback, { parseErrorsFactory } from '../../utils';
 
 export default class FieldAdapter<TResult = any> {
@@ -13,21 +13,8 @@ export default class FieldAdapter<TResult = any> {
   parse(
     _adapter: SchemaAdapter,
     _result: FieldAdapter['__result'],
-    _value: any,
-    _errorsParser: ReturnType<typeof parseErrorsFactory>
+    _value: any
   ): Promise<{ errors: any; parsed: any }> {
     throw new SchemaAdapterNotImplementedError({ className: this.constructor.name, functionName: 'parse' });
-  }
-
-  errors(
-    _adapter: SchemaAdapter,
-    _result: FieldAdapter['__result'],
-    _value: any
-  ): Promise<{
-    slug: string;
-    message: string;
-    metadata: any;
-  }> {
-    throw new SchemaAdapterNotImplementedError({ className: this.constructor.name, functionName: 'errors' });
   }
 }

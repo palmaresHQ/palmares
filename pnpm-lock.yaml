@@ -264,6 +264,9 @@ importers:
       yup:
         specifier: ^1.3.2
         version: 1.3.2
+      zod:
+        specifier: ^3.22.2
+        version: 3.22.2
 
   examples/server-express-only:
     dependencies:

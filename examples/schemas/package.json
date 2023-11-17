@@ -16,6 +16,7 @@
   "dependencies": {
     "@palmares/schemas": "workspace:*",
     "@palmares/zod-schema": "workspace:*",
-    "yup": "^1.3.2"
+    "yup": "^1.3.2",
+    "zod": "^3.22.2"
   }
 }
