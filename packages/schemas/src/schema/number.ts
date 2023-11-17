@@ -7,7 +7,7 @@ import {
   DEFAULT_NUMBER_MIN_EXCEPTION,
   DEFAULT_NUMBER_NEGATIVE_EXCEPTION,
 } from '../constants';
-import WithFallback, { withFallbackFactory } from '../utils';
+import WithFallback, { defaultTransform, withFallbackFactory } from '../utils';
 import { max, min } from '../validators/number';
 
 export default class NumberSchema<
@@ -20,7 +20,6 @@ export default class NumberSchema<
   },
   TDefinitions = any,
 > extends Schema<TType> {
-  protected __adapter!: SchemaAdapter;
   protected __integer!: {
     message: string;
   };
@@ -43,36 +42,23 @@ export default class NumberSchema<
     message: string;
   };
 
-  async _transform() {
-    if (this.__adapter.number.__result === undefined) {
-      const translatedSchemaOrWithFallback = this.__adapter.number.translate(this.__adapter.field, {
-        withFallback: withFallbackFactory('number'),
-        nullish: this.__nullish,
+  async _transform(): Promise<any> {
+    return defaultTransform(
+      'number',
+      this,
+      {
         min: this.__min,
-        max: this.__max,
-        integer: this.__integer,
         allowNegative: this.__allowNegative,
         allowPositive: this.__allowPositive,
-      });
-
-      if (translatedSchemaOrWithFallback instanceof WithFallback) {
-        this.__adapter.number.__result = translatedSchemaOrWithFallback.transformedSchema;
-        if (translatedSchemaOrWithFallback.fallbackFor.has('max')) this.__fallback.push(max(this.__max));
-        if (translatedSchemaOrWithFallback.fallbackFor.has('min')) this.__fallback.push(min(this.__min));
-      } else {
-        this.__adapter.number.__result = translatedSchemaOrWithFallback;
+        max: this.__max,
+        integer: this.__integer,
+        nullish: this.__nullish,
+      },
+      {
+        max,
+        min,
       }
-    }
-
-    return this.__adapter.number.__result;
-  }
-
-  async _parse(value: any, path: string[] = []) {
-    const transformedSchema = await this._transform();
-    const defaultParseResult = await super._parse(value, path);
-
-    if (defaultParseResult.errors) return defaultParseResult;
-    return this.__adapter.number.parse(this.__adapter, transformedSchema, value);
+    );
   }
 
   max(

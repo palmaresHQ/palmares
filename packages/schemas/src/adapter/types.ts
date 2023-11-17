@@ -45,10 +45,19 @@ export type NumberAdapterTranslateArgs = {
     | undefined;
 } & AdapterTranslateArgs;
 
+export type NumberAdapterTranslateArgsWithoutNonTranslateArgs = Omit<
+  NumberAdapterTranslateArgs,
+  keyof NonToTranslateArgs
+>;
+
 export type ObjectAdapterTranslateArgs = {
   data: Record<string, any>;
 } & AdapterTranslateArgs;
 
+export type ObjectAdapterTranslateArgsWithoutNonTranslateArgs = Omit<
+  ObjectAdapterTranslateArgs,
+  keyof NonToTranslateArgs
+>;
 export type ErrorCodes =
   | 'max'
   | 'allowNegative'

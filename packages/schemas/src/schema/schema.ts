@@ -1,5 +1,8 @@
+import SchemaAdapter from '../adapter';
 import FieldAdapter from '../adapter/fields';
 import { ErrorCodes } from '../adapter/types';
+import { parseErrorsFactory } from '../utils';
+import { OnlyFieldAdaptersFromSchemaAdapter } from './types';
 
 export default class Schema<
   TType extends {
@@ -11,6 +14,7 @@ export default class Schema<
   },
   TDefinitions = any,
 > {
+  protected __adapter!: SchemaAdapter;
   /**
    * Fallback means that the schema validator library is not able to validate everything so it's pretty much letting the handling of the validation on Palmares side and NOT on the
    * schema validator side
@@ -47,18 +51,35 @@ export default class Schema<
   }
 
   async _parse(value: TType['input'], path: string[] = []): Promise<{ errors?: any[]; parsed: TType['input'] }> {
-    let errorsOfSchema: undefined | Awaited<ReturnType<Schema['__fallback'][number]>> = undefined;
+    const transformedSchema = await this._transform();
+
+    const defaultParseResult: {
+      errors: undefined | Awaited<ReturnType<Schema['__fallback'][number]>>;
+      parsed: TType['input'];
+    } = { errors: undefined, parsed: value };
 
     for (const fallback of this.__fallback) {
       const errorsOfFallback = await fallback(value, path);
       for (const error of errorsOfFallback) {
         if (error.isValid === false) {
-          if (!Array.isArray(errorsOfSchema)) errorsOfSchema = [];
-          errorsOfSchema.push(error);
+          if (!Array.isArray(defaultParseResult.errors)) defaultParseResult.errors = [];
+          defaultParseResult.errors.push(error);
         }
       }
     }
-    return { errors: errorsOfSchema, parsed: value };
+
+    const schemaAdapterField = this.constructor.name
+      .replace('Schema', '')
+      .toLowerCase() as OnlyFieldAdaptersFromSchemaAdapter;
+
+    if (defaultParseResult.errors) return defaultParseResult;
+
+    return this.__adapter[schemaAdapterField].parse(
+      this.__adapter,
+      transformedSchema,
+      value,
+      parseErrorsFactory(this.__adapter)
+    );
   }
 
   /**

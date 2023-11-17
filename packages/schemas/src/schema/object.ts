@@ -15,7 +15,6 @@ export default class ObjectSchema<
   },
   TData extends Record<any, any> = Record<any, any>,
 > extends Schema<TType> {
-  protected __adapter!: SchemaAdapter;
   protected __data!: Record<any, any>;
 
   constructor(data: TData) {
@@ -25,7 +24,7 @@ export default class ObjectSchema<
 
   async _transform(): Promise<ReturnType<FieldAdapter['translate']>> {
     if (!this.__adapter.object.__result) {
-      const promises = [];
+      const promises: Promise<any>[] = [];
       const fallbackByKeys: Record<string, Schema> = {};
       const toInternalByKeys: Record<string, Schema['__toInternal']> = {};
       const toTransform = Object.entries(this.__data) as [string, Schema][];
@@ -42,7 +41,9 @@ export default class ObjectSchema<
 
       await Promise.all(promises);
 
-      if (Object.keys(fallbackByKeys).length > 0) this.__fallback.push(objectValidation(fallbackByKeys));
+      const doesAnyFieldHaveFallback = Object.keys(fallbackByKeys).length > 0;
+      console.log(fallbackByKeys);
+      if (doesAnyFieldHaveFallback) this.__fallback.push(objectValidation(fallbackByKeys));
       this.__adapter.object.__result = this.__adapter.object.translate(this.__adapter.field, {
         withFallback: withFallbackFactory('object'),
         nullish: this.__nullish,
@@ -51,15 +52,6 @@ export default class ObjectSchema<
     }
 
     return this.__adapter.object.__result;
-  }
-
-  async _parse(input: TType['input'], path: string[] = []) {
-    const transformedSchema = await this._transform();
-
-    const defaultParseResult = await super._parse(input, path);
-    if (defaultParseResult.errors) return defaultParseResult;
-
-    return this.__adapter.object.parse(this.__adapter, transformedSchema, input);
   }
 
   static new<TData extends Record<any, Schema>>(data: TData) {
