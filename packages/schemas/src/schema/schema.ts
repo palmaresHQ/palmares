@@ -40,6 +40,7 @@ export default class Schema<
     allowUndefined: boolean;
     message: string;
   };
+  __defaultFunction: (() => Promise<TType['input']>) | undefined = undefined;
   __toRepresentation: ((value: TType['output']) => TType['output'])[] = [];
   __toInternal: ((value: TType['input']) => TType['input'])[] = [];
 
@@ -54,6 +55,9 @@ export default class Schema<
   async _parse(value: TType['input'], path: string[] = []): Promise<{ errors?: any[]; parsed: TType['input'] }> {
     const errorsAsHashedSet = new Set<string>();
     const transformedSchema = await this._transform();
+
+    //if (value === undefined && this.__defaultFunction) value = await this.__defaultFunction();
+    //if (this.__toInternal.length > 0) value = await this.__toInternal[0](value);
 
     const parseResult: {
       errors: undefined | Awaited<ReturnType<Schema['__fallback'][number]>>;
@@ -122,6 +126,16 @@ export default class Schema<
       { input: TType['input'] | null; output: TType['output'] | null | undefined },
       TDefinitions
     >;
+  }
+
+  default<TDefaultValue extends TType['input'] | (() => Promise<TType['input']>)>(
+    defaultValueOrFunction: TDefaultValue
+  ) {
+    const isFunction = typeof defaultValueOrFunction === 'function';
+    if (isFunction) this.__defaultFunction = defaultValueOrFunction;
+    else this.__defaultFunction = async () => defaultValueOrFunction;
+
+    return this as unknown as Schema<{ input: TType['input']; output: TType['output'] }, TDefinitions>;
   }
 
   toRepresentation<TOutput>(toRepresentationCallback: (value: TType['output']) => Promise<TOutput>) {

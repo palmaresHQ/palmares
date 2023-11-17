@@ -56,6 +56,22 @@ export function parseErrorsFactory(schemaAdapter: SchemaAdapter) {
   };
 }
 
+/**
+ * The default transform function that we use for the schema adapters. This function tries to abstract away the complexity of translating the schema to the adapter.
+ *
+ * So first things first, WHAT IS a fallback? A fallback is a function that we call when the user defines a validation that is not supported by the adapter. For example, imagine that
+ * for some reason the adapter doesn't support the `max` validation, we can define a fallback for that validation and then, when the user defines that validation, we call the fallback
+ * function. So, even if the adapter doesn't support that validation our schema will still be able to validate that.
+ *
+ * @param type - The type of the adapter that we are using, can be a number, an object, all of the possible schema adapters.
+ * @param schema - The schema that we are translating.
+ * @param validationData - The data that we are using to validate the schema. This means for example, the `max` validation, the `min` validation, etc. The message of the validation when
+ * it is not valid, etc.
+ * @param fallbackFunctions - The fallback functions that we are using to validate the schema. Those are the functions we fallback to when the user defines a validation that is not
+ * supported by the adapter.
+ *
+ * @returns - The translated schema for something that the adapter is able to understand.
+ */
 export function defaultTransform<TType extends WithFallback['adapterType']>(
   type: TType,
   schema: Schema,
@@ -68,7 +84,7 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
     __adapter: Schema['__adapter'];
     __fallback: Schema['__fallback'];
   };
-  if (schemaWithPrivateFields.__adapter.number.__result === undefined) {
+  if (schemaWithPrivateFields.__adapter[type].__result === undefined) {
     const translatedSchemaOrWithFallback = schemaWithPrivateFields.__adapter.number.translate(
       schemaWithPrivateFields.__adapter.field,
       {
@@ -78,7 +94,7 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
     );
 
     if (translatedSchemaOrWithFallback instanceof WithFallback) {
-      schemaWithPrivateFields.__adapter.number.__result = translatedSchemaOrWithFallback.transformedSchema;
+      schemaWithPrivateFields.__adapter[type].__result = translatedSchemaOrWithFallback.transformedSchema;
       for (const fallback of translatedSchemaOrWithFallback.fallbackFor) {
         const wereArgumentsForThatFallbackDefinedAndFallbackFunctionDefined =
           (validationData as any)[fallback] !== undefined && (fallbackFunctions as any)[fallback] !== undefined;
@@ -87,11 +103,14 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
             (fallbackFunctions as any)[fallback]((validationData as any)[fallback])
           );
       }
-    } else schemaWithPrivateFields.__adapter.number.__result = translatedSchemaOrWithFallback;
+    } else schemaWithPrivateFields.__adapter[type].__result = translatedSchemaOrWithFallback;
   }
-  return schemaWithPrivateFields.__adapter.number.__result;
+  return schemaWithPrivateFields.__adapter[type].__result;
 }
 
+/**
+ * The
+ */
 export async function formatErrorFromParseMethod(
   adapter: SchemaAdapter,
   error: any,
