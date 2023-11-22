@@ -48,7 +48,7 @@
     "multer": "1.4.5-lts.1"
   },
   "devDependencies": {
-    "@types/connect": "^3.4.36",
+    "@types/connect": "^3.4.38",
     "@types/express": "4.17.20",
     "@types/express-serve-static-core": "4.17.41",
     "@types/multer": "^1.4.9",
