@@ -20,7 +20,7 @@ export default class Schema<
    * Fallback means that the schema validator library is not able to validate everything so it's pretty much letting the handling of the validation on Palmares side and NOT on the
    * schema validator side
    */
-  __fallback: ((
+  protected __fallback: ((
     value: any,
     path: string[]
   ) => Promise<
@@ -56,8 +56,8 @@ export default class Schema<
     const errorsAsHashedSet = new Set<string>();
     const transformedSchema = await this._transform();
 
-    //if (value === undefined && this.__defaultFunction) value = await this.__defaultFunction();
-    //if (this.__toInternal.length > 0) value = await this.__toInternal[0](value);
+    if (value === undefined && this.__defaultFunction) value = await this.__defaultFunction();
+    if (this.__toInternal.length > 0) value = await this.__toInternal[0](value);
 
     const parseResult: {
       errors: undefined | Awaited<ReturnType<Schema['__fallback'][number]>>;

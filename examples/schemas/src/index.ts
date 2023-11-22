@@ -12,21 +12,24 @@ const zodObjectSchema = z.object({
 });
 
 const objectSchema = ObjectSchema.new({
-  teste: ObjectSchema.new({
-    age: NumberSchema.new().max(9),
-    spent: NumberSchema.new().min(12),
-  }),
+  age: NumberSchema.new().max(9),
+  spent: NumberSchema.new()
+    .min(12)
+    .toInternal(async (value: number) => ({
+      valueAsNumber: value,
+      valueAsString: value.toString(),
+    })),
 });
 
 //const schema = NumberSchema.new().max(10).min(5);
 
 const main = async () => {
-  try {
+  /*try {
     zodObjectSchema.parse({ teste: { age: 10, spent: 4 } });
   } catch (error) {
     if (error instanceof z.ZodError) console.log(error.errors);
     else throw error;
-  }
+  }*/
   const objectResult = await objectSchema._parse({ teste: { age: 10, spent: 4 } });
   console.log(objectResult.errors);
 };

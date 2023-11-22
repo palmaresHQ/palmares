@@ -13,6 +13,7 @@ export function objectValidation(args: { [key: string]: Schema }) {
       ];
     const errors: { [key: string]: Awaited<ReturnType<Schema['__fallback'][number]>> } = {};
     const toValidateEntries = Object.entries(args);
+    console.log('toValidateEntries', toValidateEntries);
     await Promise.all(
       toValidateEntries.map(async ([key, schema]) => {
         const { errors: parseErrors } = await schema._parse(value[key], [...path, key]);

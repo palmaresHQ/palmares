@@ -34,7 +34,7 @@ export default class ObjectSchema<
         const awaitableTransformer = async () => {
           transformedData[key] = await valueToTransform._transform(); // This should come first because we will get the fallbacks of the field here.
           if (valueToTransform.__toInternal.length > 0) toInternalByKeys[key] = valueToTransform.__toInternal;
-          if (valueToTransform.__fallback.length > 0) fallbackByKeys[key] = valueToTransform;
+          if ((valueToTransform as any).__fallback.length > 0) fallbackByKeys[key] = valueToTransform;
         };
         if (valueToTransform instanceof Schema) promises.push(awaitableTransformer());
       }
