@@ -17,7 +17,7 @@
     "@palmares/server": "workspace:*",
     "@palmares/std": "workspace:*",
     "cors": "^2.8.5",
-    "zod": "^3.18.0"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/qs": "^6.9.8",

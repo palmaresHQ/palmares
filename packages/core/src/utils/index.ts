@@ -29,3 +29,35 @@ export function camelCaseToHyphenOrSnakeCase(string: string, isSnake = true) {
     (letter) => `${isSnake ? '_' : '-'}${letter.toLowerCase()}`
   );
 }
+
+/**
+ * Creates a deep copy of an object. If you do {...obj} we will create a new reference of the object but we will not deeply
+ * clone the objects inside of that object. This means that changes for nested objects will be applied to all objects. The same
+ * happens if we are trying to create a new copy of an array.
+ *
+ * @param objectOrArray - The object or array to be deeply copied.
+ * @returns - The object copy.
+ */
+export function structuredClone<TObjectOrArray extends Record<string | number, any> | any[]>(objectOrArray: TObjectOrArray): TObjectOrArray {
+  if (!objectOrArray) return objectOrArray;
+  if (typeof objectOrArray !== 'object') return objectOrArray;
+
+  // Ref: https://github.com/nodejs/node/issues/34355#issuecomment-658394617
+  if(Array.isArray(objectOrArray)) {
+    const newArray = [] as unknown as TObjectOrArray;
+    for (let i = 0; i < objectOrArray.length; i++) {
+      const valueAtIndex = !objectOrArray[i] || typeof objectOrArray[i] !== 'object' ? objectOrArray[i] : structuredClone(objectOrArray[i]);
+      newArray[i] = valueAtIndex === undefined ? null : valueAtIndex;
+    }
+    return newArray;
+  }
+
+  const newObject = {} as TObjectOrArray;
+  for(const key of Object.keys(objectOrArray)){
+    const valueAtKey = !objectOrArray[key] || typeof objectOrArray[key] !== 'object' ? objectOrArray[key] : structuredClone(objectOrArray[key]);
+    if (valueAtKey === undefined) continue;
+    (newObject as any)[key] = valueAtKey;
+  }
+
+  return newObject;
+}

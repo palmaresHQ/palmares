@@ -33,7 +33,7 @@
     "express": "^4.18.2",
     "sequelize": "^6.21.0",
     "sqlite3": "^5.1.6",
-    "zod": "^3.18.0"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/qs": "^6.9.8",
