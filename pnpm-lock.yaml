@@ -261,8 +261,8 @@ importers:
         version: 1.4.5-lts.1
     devDependencies:
       '@types/connect':
-        specifier: ^3.4.36
-        version: 3.4.36
+        specifier: ^3.4.38
+        version: 3.4.38
       '@types/express':
         specifier: 4.17.20
         version: 4.17.20
@@ -1388,7 +1388,7 @@ packages:
   /@types/body-parser@1.19.2:
     resolution: {integrity: sha512-ALYone6pm6QmwZoAgeyNksccT9Q4AWZQ6PvfwR37GT6r6FWUPguq6sUmNGSMV2Wr761oQoBxwGGa6DR5o1DC9g==}
     dependencies:
-      '@types/connect': 3.4.36
+      '@types/connect': 3.4.38
       '@types/node': 20.8.9
     dev: true
 
@@ -1401,8 +1401,8 @@ packages:
       '@types/responselike': 1.0.0
     dev: true
 
-  /@types/connect@3.4.36:
-    resolution: {integrity: sha512-P63Zd/JUGq+PdrM1lv0Wv5SBYeA2+CORvbrXbngriYY0jzLUWfQMQQxOhjONEz/wlHOAxOdY7CY65rgQdTjq2w==}
+  /@types/connect@3.4.38:
+    resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
     dependencies:
       '@types/node': 20.8.9
     dev: true
