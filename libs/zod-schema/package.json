@@ -20,7 +20,7 @@
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
     "@palmares/serializers": "*",
-    "zod": "^3.18.0"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "typescript": "^5.2.2"
