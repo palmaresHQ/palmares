@@ -14,7 +14,7 @@ export default class SchemaAdapter {
     _metadata?: any
   ): Promise<{
     message: string;
-    path: string[];
+    path: (string | number)[];
     code: ErrorCodes;
   }> {
     throw new SchemaAdapterNotImplementedError({ className: 'SchemaAdapter', functionName: 'formatError' });

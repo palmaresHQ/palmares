@@ -1,4 +1,3 @@
-import SchemaAdapter from '../adapter';
 import Schema from './schema';
 import { getDefaultAdapter } from '../conf';
 import {
@@ -7,16 +6,22 @@ import {
   DEFAULT_NUMBER_MIN_EXCEPTION,
   DEFAULT_NUMBER_NEGATIVE_EXCEPTION,
 } from '../constants';
-import WithFallback, { defaultTransform, withFallbackFactory } from '../utils';
+import { defaultTransform } from '../utils';
 import { max, min } from '../validators/number';
 
 export default class NumberSchema<
   TType extends {
     input: any;
+    validate: any;
+    internal: any;
     output: any;
+    representation: any;
   } = {
     input: number | bigint;
     output: number | bigint;
+    validate: number | bigint;
+    internal: number | bigint;
+    representation: number | bigint;
   },
   TDefinitions = any,
 > extends Schema<TType> {
@@ -76,10 +81,7 @@ export default class NumberSchema<
       inclusive,
       message,
     };
-    return this as unknown as NumberSchema<
-      { input: TType['input'] | null; output: TType['output'] | null | undefined },
-      TDefinitions
-    >;
+    return this;
   }
 
   min(
@@ -99,10 +101,7 @@ export default class NumberSchema<
       message,
     };
 
-    return this as unknown as NumberSchema<
-      { input: TType['input'] | null; output: TType['output'] | null | undefined },
-      TDefinitions
-    >;
+    return this;
   }
 
   negative(options?: { allowZero?: boolean; message?: string }) {
@@ -115,7 +114,13 @@ export default class NumberSchema<
       message,
     };
     return this as unknown as NumberSchema<
-      { input: TType['input'] | null; output: TType['output'] | null | undefined },
+      {
+        input: TType['input'];
+        output: TType['output'];
+        representation: TType['representation'];
+        internal: TType['internal'];
+        validate: TType['validate'];
+      },
       TDefinitions
     >;
   }
@@ -130,7 +135,13 @@ export default class NumberSchema<
       message,
     };
     return this as unknown as NumberSchema<
-      { input: TType['input'] | null; output: TType['output'] | null | undefined },
+      {
+        input: TType['input'];
+        output: TType['output'];
+        representation: TType['representation'];
+        internal: TType['internal'];
+        validate: TType['validate'];
+      },
       TDefinitions
     >;
   }
@@ -142,12 +153,26 @@ export default class NumberSchema<
       message,
     };
     return this as unknown as NumberSchema<
-      { input: TType['input'] | null; output: TType['output'] | null | undefined },
+      {
+        input: TType['input'];
+        output: TType['output'];
+        representation: TType['representation'];
+        internal: TType['internal'];
+        validate: TType['validate'];
+      },
       TDefinitions
     >;
   }
 
-  static new<TType extends { input: any; output: any }>() {
+  static new<
+    TType extends {
+      input: number | bigint;
+      output: number | bigint;
+      internal: number | bigint;
+      representation: number | bigint;
+      validate: number | bigint;
+    },
+  >() {
     const returnValue = new NumberSchema<TType, any>();
     const adapterInstance = new (getDefaultAdapter())();
 

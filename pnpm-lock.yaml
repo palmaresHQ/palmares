@@ -395,9 +395,9 @@ importers:
 
   libs/zod-schema:
     dependencies:
-      '@palmares/serializers':
-        specifier: '*'
-        version: 1.0.2(@palmares/core@0.1.2)(@palmares/databases@0.1.2)
+      '@palmares/schemas':
+        specifier: workspace:*
+        version: link:../../packages/schemas
       zod:
         specifier: ^3.22.4
         version: 3.22.4
@@ -1232,34 +1232,10 @@ packages:
     deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     dev: false
 
-  /@palmares/databases@0.1.2:
-    resolution: {integrity: sha512-Matk9irW20g/ORfPwpfljwphVtcqnGBWrVMPdHDQPU2OXtvTf8uyLwTdGgnyoeWP7hG70vsVsYtq5AJkHRK+9A==}
-    dependencies:
-      '@palmares/core': 0.1.2
-      '@palmares/events': 1.0.2(@palmares/core@0.1.2)
-      '@palmares/std': 0.1.2
-    dev: false
-
   /@palmares/events@1.0.2(@palmares/core@0.1.2):
     resolution: {integrity: sha512-Mc9aLeKsPYGJqAqov+Ga65LYrnnD5qGPbCIwSfuF/oMiOEYdVMMwGMuQavs3/kU25QjnlphvQ/aVdEnOi7XPRw==}
     peerDependencies:
       '@palmares/core': '*'
-    dependencies:
-      '@palmares/core': 0.1.2
-    dev: false
-
-  /@palmares/serializers@1.0.2(@palmares/core@0.1.2)(@palmares/databases@0.1.2):
-    resolution: {integrity: sha512-w7xkU0XpoP3vb057n9RYlky3kBq6mYH9P9laaXIA1DVd/0I0ZGytHZ9Nt1UyIOhhbOJYeJkHk/mXJLsWamQsNQ==}
-    peerDependencies:
-      '@palmares/core': '*'
-      '@palmares/databases': '*'
-    dependencies:
-      '@palmares/core': 0.1.2
-      '@palmares/databases': 0.1.2
-    dev: false
-
-  /@palmares/std@0.1.2:
-    resolution: {integrity: sha512-vEQx1o6lJw+xWsoGIX7ucmbUdOUlOfiBGHsPsleghzbDfQSYb1i1+cVnSwMz5TPH0/aZcACui65GHWJBalPhoA==}
     dependencies:
       '@palmares/core': 0.1.2
     dev: false
