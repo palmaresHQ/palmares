@@ -114,14 +114,14 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
 export async function formatErrorFromParseMethod(
   adapter: SchemaAdapter,
   error: any,
-  path: string[],
+  path: Awaited<ReturnType<Schema['__fallback'][number]>>['errors'][number]['path'],
   errorsAsHashedSet: Set<string>
 ) {
   const formattedError = await adapter.formatError(error);
   formattedError.path = Array.isArray(formattedError.path) ? [...path, ...formattedError.path] : path;
   const formattedErrorAsParseResultError = formattedError as unknown as Awaited<
     ReturnType<Schema['__fallback'][number]>
-  >[number];
+  >['errors'][number];
   formattedErrorAsParseResultError.isValid = false;
   errorsAsHashedSet.add(JSON.stringify(formattedErrorAsParseResultError));
   return formattedErrorAsParseResultError;

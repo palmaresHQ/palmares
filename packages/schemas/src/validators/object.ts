@@ -1,7 +1,7 @@
 import Schema from '../schema/schema';
 
 export function objectValidation(keysToFallback: { [key: string]: Schema }) {
-  return async (value: any, path: string[]): Promise<Awaited<ReturnType<Schema['__fallback'][number]>>> => {
+  return async (value: any, path: (string | number)[]): Promise<Awaited<ReturnType<Schema['__fallback'][number]>>> => {
     if (typeof value !== 'object')
       return {
         parsed: value,

@@ -27,7 +27,7 @@ export default class Schema<
    */
   protected __fallback: ((
     value: any,
-    path: string[]
+    path: (string | number)[]
   ) => Promise<{
     parsed: any;
     errors: {
@@ -51,6 +51,38 @@ export default class Schema<
   __toValidate: ((value: TType['input']) => TType['validate']) | undefined = undefined;
   __toInternal: ((value: TType['validate']) => TType['internal']) | undefined = undefined;
 
+  /**
+   * This will validate the data with the fallbacks, so internally, without relaying on the schema adapter. This is nice because we can support things that the schema adapter is not able to support by default.
+   *
+   * @param errorsAsHashedSet - The errors as a hashed set. This is used to prevent duplicate errors.
+   * @param path - The path of the error.
+   * @param parseResult - The result of the parse method.
+   */
+  private async __validateByFallbacks(
+    errorsAsHashedSet: Set<string>,
+    path: Awaited<ReturnType<Schema['__fallback'][number]>>['errors'][number]['path'],
+    parseResult: {
+      errors: undefined | Awaited<ReturnType<Schema['__fallback'][number]>>['errors'];
+      parsed: TType['input'];
+    }
+  ) {
+    for (const fallback of this.__fallback) {
+      const { parsed, errors } = await fallback(parseResult.parsed, path);
+      parseResult.parsed = parsed;
+
+      for (const error of errors) {
+        if (error.isValid === false) {
+          const hashedError = JSON.stringify(error);
+          if (errorsAsHashedSet.has(hashedError)) continue;
+          if (!Array.isArray(parseResult.errors)) parseResult.errors = [];
+          parseResult.errors.push(error);
+        }
+      }
+    }
+
+    return parseResult;
+  }
+
   async validate(value: TType['input']): Promise<boolean> {
     return this.__validationSchema.validate(value);
   }
@@ -61,7 +93,7 @@ export default class Schema<
 
   async _parse(
     value: TType['input'],
-    path: string[] = [],
+    path: Awaited<ReturnType<Schema['__fallback'][number]>>['errors'][number]['path'] = [],
     options: {
       preventAdapterParse?: boolean;
     } = {}
@@ -78,8 +110,9 @@ export default class Schema<
       parsed: TType['input'];
     } = { errors: undefined, parsed: value };
 
+    const shouldParseByAdapter = options?.preventAdapterParse !== true;
     // We should not parse the value by the adapter on some cases.
-    if (options?.preventAdapterParse !== true) {
+    if (shouldParseByAdapter) {
       const schemaAdapterField = this.constructor.name
         .replace('Schema', '')
         .toLowerCase() as OnlyFieldAdaptersFromSchemaAdapter;
@@ -104,20 +137,10 @@ export default class Schema<
           ];
       }
     }
+    const parsedResultsAfterFallbacks = await this.__validateByFallbacks(errorsAsHashedSet, path, parseResult);
+    parseResult.errors = parsedResultsAfterFallbacks.errors;
+    parseResult.parsed = parsedResultsAfterFallbacks.parsed;
 
-    for (const fallback of this.__fallback) {
-      const { parsed, errors } = await fallback(parseResult.parsed, path);
-      parseResult.parsed = parsed;
-
-      for (const error of errors) {
-        if (error.isValid === false) {
-          const hashedError = JSON.stringify(error);
-          if (errorsAsHashedSet.has(hashedError)) continue;
-          if (!Array.isArray(parseResult.errors)) parseResult.errors = [];
-          parseResult.errors.push(error);
-        }
-      }
-    }
     const doesNotHaveErrors = !Array.isArray(parseResult.errors) || parseResult.errors.length === 0;
     const hasToInternalCallback = typeof this.__toInternal === 'function';
 
