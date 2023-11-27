@@ -2,7 +2,7 @@ import SchemaAdapter from '../adapter';
 import FieldAdapter from '../adapter/fields';
 import { ErrorCodes } from '../adapter/types';
 import { formatErrorFromParseMethod, parseErrorsFactory } from '../utils';
-import { OnlyFieldAdaptersFromSchemaAdapter } from './types';
+import { DefinitionsOfSchemaType, OnlyFieldAdaptersFromSchemaAdapter, ValidationFallbackType } from './types';
 
 export default class Schema<
   TType extends {
@@ -18,16 +18,32 @@ export default class Schema<
     output: any;
     representation: any;
   },
-  TDefinitions = any,
+  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
 > {
-  protected __adapter!: SchemaAdapter;
+  protected __adapter!: TDefinitions['schemaAdapter'];
+  protected __highPriorityFallbacks: ((
+    value: any,
+    path: (string | number)[],
+    options: Parameters<Schema['_transformToAdapter']>[0]
+  ) => Promise<{
+    parsed: any;
+    errors: {
+      isValid: boolean;
+      code: ErrorCodes;
+      message: string;
+      path: (string | number)[];
+    }[];
+    shouldPreventLowPriorityFallbacks: boolean;
+  }>)[] = [];
+
   /**
    * Fallback means that the schema validator library is not able to validate everything so it's pretty much letting the handling of the validation on Palmares side and NOT on the
    * schema validator side
    */
-  protected __fallback: ((
+  protected __fallbacks: ((
     value: any,
-    path: (string | number)[]
+    path: (string | number)[],
+    options: Parameters<Schema['_transformToAdapter']>[0]
   ) => Promise<{
     parsed: any;
     errors: {
@@ -42,14 +58,25 @@ export default class Schema<
     callback: (value: TType['input']) => Promise<boolean | { isValid: boolean; message: string }>;
     isAsync: boolean;
   }[] = [];
-  __nullish!: {
-    allowUndefined: boolean;
+  __nullable: {
     message: string;
+    allow: boolean;
+  } = {
+    message: 'Cannot be null',
+    allow: false,
   };
-  __defaultFunction: (() => Promise<TType['input']>) | undefined = undefined;
-  __toRepresentation: ((value: TType['output']) => TType['output'])[] = [];
+  __optional: {
+    message: string;
+    allow: boolean;
+  } = {
+    message: 'Required',
+    allow: false,
+  };
+  __defaultFunction: (() => Promise<TType['input'] | TType['output']>) | undefined = undefined;
+  __toRepresentation: ((value: TType['output']) => TType['output']) | undefined = undefined;
   __toValidate: ((value: TType['input']) => TType['validate']) | undefined = undefined;
   __toInternal: ((value: TType['validate']) => TType['internal']) | undefined = undefined;
+  __instanceSymbol = Symbol();
 
   /**
    * This will validate the data with the fallbacks, so internally, without relaying on the schema adapter. This is nice because we can support things that the schema adapter is not able to support by default.
@@ -60,14 +87,15 @@ export default class Schema<
    */
   private async __validateByFallbacks(
     errorsAsHashedSet: Set<string>,
-    path: Awaited<ReturnType<Schema['__fallback'][number]>>['errors'][number]['path'],
+    path: ValidationFallbackType['errors'][number]['path'],
     parseResult: {
-      errors: undefined | Awaited<ReturnType<Schema['__fallback'][number]>>['errors'];
+      errors: undefined | ValidationFallbackType['errors'];
       parsed: TType['input'];
-    }
+    },
+    options: Parameters<Schema['_transformToAdapter']>[0] = {}
   ) {
-    for (const fallback of this.__fallback) {
-      const { parsed, errors } = await fallback(parseResult.parsed, path);
+    for (const fallback of this.__fallbacks) {
+      const { parsed, errors } = await fallback(parseResult.parsed, path, options);
       parseResult.parsed = parsed;
 
       for (const error of errors) {
@@ -83,72 +111,112 @@ export default class Schema<
     return parseResult;
   }
 
+  /**
+   * This will validate by the adapter. In other words, we send the data to the schema adapter and then we validate that data.
+   * So understand that, first we send the data to the adapter, the adapter validates it, then, after we validate from the adapter
+   * we validate with the fallbacks so we can do all of the extra validations not handled by the adapter.
+   *
+   * @param value - The value to be validated.
+   * @param errorsAsHashedSet - The errors as a hashed set. This is used to prevent duplicate errors on the validator.
+   * @param path - The path of the error so we can construct an object with the nested paths of the error.
+   * @param parseResult - The result of the parse method.
+   *
+   * @returns The result and the errors of the parse method.
+   */
+  private async __validateByAdapter(
+    value: TType['input'],
+    errorsAsHashedSet: Set<string>,
+    path: NonNullable<Parameters<Schema['_parse']>[1]>,
+    parseResult: Awaited<ReturnType<Schema['_parse']>>,
+    options: Parameters<Schema['_transformToAdapter']>[0]
+  ) {
+    const transformedSchema = await this._transformToAdapter(options);
+
+    const schemaAdapterFieldType = this.constructor.name
+      .replace('Schema', '')
+      .toLowerCase() as OnlyFieldAdaptersFromSchemaAdapter;
+
+    const adapterParseResult = await this.__adapter[schemaAdapterFieldType].parse(
+      this.__adapter,
+      transformedSchema,
+      value
+    );
+    parseResult.parsed = adapterParseResult.parsed;
+    if (adapterParseResult.errors) {
+      if (Array.isArray(adapterParseResult.errors))
+        parseResult.errors = await Promise.all(
+          adapterParseResult.errors.map(async (error) =>
+            formatErrorFromParseMethod(this.__adapter, error, path, errorsAsHashedSet)
+          )
+        );
+      else
+        parseResult.errors = [
+          await formatErrorFromParseMethod(this.__adapter, parseResult.errors, path, errorsAsHashedSet),
+        ];
+    }
+
+    return parseResult;
+  }
+
   async validate(value: TType['input']): Promise<boolean> {
     return this.__validationSchema.validate(value);
   }
 
-  async _transform(_fieldName?: string): Promise<ReturnType<FieldAdapter['translate']>> {
+  async _transformToAdapter(_options: {
+    toInternalToBubbleUp?: (() => Promise<void>)[];
+  }): Promise<ReturnType<FieldAdapter['translate']>> {
     throw new Error('Not implemented');
   }
 
   async _parse(
     value: TType['input'],
-    path: Awaited<ReturnType<Schema['__fallback'][number]>>['errors'][number]['path'] = [],
-    options: {
-      preventAdapterParse?: boolean;
-    } = {}
+    path: ValidationFallbackType['errors'][number]['path'] = [],
+    options: Parameters<Schema['_transformToAdapter']>[0]
   ): Promise<{ errors?: any[]; parsed: TType['internal'] }> {
     const errorsAsHashedSet = new Set<string>();
-    const transformedSchema = await this._transform();
+    const shouldCallDefaultFunction = value === undefined && typeof this.__defaultFunction === 'function';
+    const shouldCallToValidateCallback = typeof this.__toValidate === 'function';
 
-    if (value === undefined && this.__defaultFunction) value = await this.__defaultFunction();
-    const isToValidateCallbackDefined = typeof this.__toValidate === 'function';
-    if (isToValidateCallbackDefined) value = await Promise.resolve((this.__toValidate as any)(value));
+    if (shouldCallDefaultFunction) value = await (this.__defaultFunction as any)();
+    if (shouldCallToValidateCallback) value = await Promise.resolve((this.__toValidate as any)(value));
 
     const parseResult: {
-      errors: undefined | Awaited<ReturnType<Schema['__fallback'][number]>>['errors'];
+      errors: undefined | ValidationFallbackType['errors'];
       parsed: TType['input'];
     } = { errors: undefined, parsed: value };
 
-    const shouldParseByAdapter = options?.preventAdapterParse !== true;
-    // We should not parse the value by the adapter on some cases.
-    if (shouldParseByAdapter) {
-      const schemaAdapterField = this.constructor.name
-        .replace('Schema', '')
-        .toLowerCase() as OnlyFieldAdaptersFromSchemaAdapter;
+    const parsedResultsAfterAdapter = await this.__validateByAdapter(
+      value,
+      errorsAsHashedSet,
+      path,
+      parseResult,
+      options
+    );
+    parseResult.errors = parsedResultsAfterAdapter.errors;
+    parseResult.parsed = parsedResultsAfterAdapter.parsed;
 
-      const adapterParseResult = await this.__adapter[schemaAdapterField].parse(
-        this.__adapter,
-        transformedSchema,
-        value
-      );
-
-      parseResult.parsed = adapterParseResult.parsed;
-      if (adapterParseResult.errors) {
-        if (Array.isArray(adapterParseResult.errors))
-          parseResult.errors = await Promise.all(
-            adapterParseResult.errors.map(async (error) =>
-              formatErrorFromParseMethod(this.__adapter, error, path, errorsAsHashedSet)
-            )
-          );
-        else
-          parseResult.errors = [
-            await formatErrorFromParseMethod(this.__adapter, parseResult.errors, path, errorsAsHashedSet),
-          ];
-      }
-    }
     const parsedResultsAfterFallbacks = await this.__validateByFallbacks(errorsAsHashedSet, path, parseResult);
     parseResult.errors = parsedResultsAfterFallbacks.errors;
     parseResult.parsed = parsedResultsAfterFallbacks.parsed;
 
     const doesNotHaveErrors = !Array.isArray(parseResult.errors) || parseResult.errors.length === 0;
     const hasToInternalCallback = typeof this.__toInternal === 'function';
+    const shouldCallToInternalDuringParse =
+      doesNotHaveErrors && hasToInternalCallback && Array.isArray(options.toInternalToBubbleUp) === false;
 
-    if (doesNotHaveErrors && hasToInternalCallback) parseResult.parsed = await (this.__toInternal as any)(value);
+    if (shouldCallToInternalDuringParse) parseResult.parsed = await (this.__toInternal as any)(value);
 
     return parseResult;
   }
 
+  async _transform(value: TType['output']): Promise<TType['representation']> {
+    const shouldCallDefaultFunction = value === undefined && typeof this.__defaultFunction === 'function';
+    if (shouldCallDefaultFunction) value = await this.__defaultFunction!();
+
+    const hasToRepresentationCallback = typeof this.__toRepresentation === 'function';
+    if (hasToRepresentationCallback) value = (await (this.__toRepresentation as any)(value)) as TType['representation'];
+    return value;
+  }
   /**
    * This let's you refine the schema with custom validations. This is useful when you want to validate something that is not supported by default by the schema adapter.
    *
@@ -171,7 +239,36 @@ export default class Schema<
     return this as unknown as Schema<TRefinedType, TDefinitions>;
   }
 
-  nullish(args: { allowUndefined?: boolean; message?: string } = {}) {
+  optional(options: NonNullable<Partial<Schema['__optional']>> = {}) {
+    const message = typeof options.message === 'string' ? options.message : 'Required';
+    const allow = typeof options.allow === 'boolean' ? options.allow : true;
+
+    this.__optional = {
+      message,
+      allow,
+    };
+
+    return this as unknown as Schema<
+      {
+        input: TType['input'] | undefined | null;
+        validate: TType['validate'] | undefined | null;
+        internal: TType['internal'] | undefined | null;
+        output: TType['output'] | undefined | null;
+        representation: TType['representation'] | undefined | null;
+      },
+      TDefinitions
+    >;
+  }
+
+  nullable(options: NonNullable<Partial<Schema['__nullable']>> = {}) {
+    const message = typeof options.message === 'string' ? options.message : 'Cannot be null';
+    const allow = typeof options.allow === 'boolean' ? options.allow : true;
+
+    this.__nullable = {
+      message,
+      allow,
+    };
+
     return this as unknown as Schema<
       {
         input: TType['input'] | undefined | null;
@@ -203,8 +300,10 @@ export default class Schema<
     >;
   }
 
-  toRepresentation<TRepresentation>(toRepresentationCallback: (value: TType['output']) => Promise<TRepresentation>) {
-    this.__toRepresentation.splice(0, 1, toRepresentationCallback);
+  toRepresentation<TRepresentation>(
+    toRepresentationCallback: (value: TType['representation']) => Promise<TRepresentation>
+  ) {
+    this.__toRepresentation = toRepresentationCallback;
 
     return this as unknown as Schema<
       {

@@ -1,9 +1,9 @@
-import SchemaAdapter from '../adapter';
 import Schema from './schema';
 import { getDefaultAdapter } from '../conf';
 import FieldAdapter from '../adapter/fields';
 import { withFallbackFactory } from '../utils';
 import { objectValidation } from '../validators/object';
+import { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from './types';
 
 export default class ObjectSchema<
   TType extends {
@@ -19,21 +19,34 @@ export default class ObjectSchema<
     internal: Record<any, any>;
     representation: Record<any, any>;
   },
+  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
   TData extends Record<any, any> = Record<any, any>,
-> extends Schema<TType> {
-  protected __data!: Record<any, any>;
+> extends Schema<TType, TDefinitions> {
+  protected __data: Record<any, Schema>;
+  protected __cachedDataAsEntries!: [string, Schema][];
 
   constructor(data: TData) {
     super();
     this.__data = data;
   }
 
-  async _transform(): Promise<ReturnType<FieldAdapter['translate']>> {
-    if (!this.__adapter.object.__result) {
+  protected __retrieveDataAsEntriesAndCache(): [string, Schema][] {
+    const dataAsEntries = Array.isArray(this.__cachedDataAsEntries)
+      ? this.__cachedDataAsEntries
+      : (Object.entries(this.__data) as [string, Schema][]);
+    this.__cachedDataAsEntries = dataAsEntries;
+    return this.__cachedDataAsEntries;
+  }
+
+  async _transformToAdapter(
+    options: Parameters<Schema['_transformToAdapter']>[0]
+  ): Promise<ReturnType<FieldAdapter['translate']>> {
+    if (this.__adapter.object.__result === undefined) {
       const promises: Promise<any>[] = [];
       const fallbackByKeys: Record<string, Schema> = {};
 
-      const toTransform = Object.entries(this.__data) as [string, Schema][];
+      const toTransform = this.__retrieveDataAsEntriesAndCache();
+
       const transformedData: Record<any, any> = {};
 
       let shouldValidateWithFallback = false;
@@ -45,10 +58,11 @@ export default class ObjectSchema<
             __toValidate: Schema['__toValidate'];
             __toRepresentation: Schema['__toRepresentation'];
             __defaultFunction: Schema['__defaultFunction'];
-            __fallback: Schema['__fallback'];
+            __fallbacks: Schema['__fallbacks'];
           };
-          transformedData[key] = await valueToTransform._transform(); // This should come first because we will get the fallbacks of the field here.
-          const doesKeyHaveFallback = valueToTransformWithProtected.__fallback.length > 0;
+          transformedData[key] = await valueToTransform._transformToAdapter(options); // This should come first because we will get the fallbacks of the field here.
+
+          const doesKeyHaveFallback = valueToTransformWithProtected.__fallbacks.length > 0;
           const doesKeyHaveToInternal = typeof valueToTransformWithProtected.__toInternal === 'function';
           const doesKeyHaveToValidate = typeof valueToTransformWithProtected.__toValidate === 'function';
           const doesKeyHaveToDefault = typeof valueToTransformWithProtected.__defaultFunction === 'function';
@@ -62,12 +76,13 @@ export default class ObjectSchema<
       }
 
       await Promise.all(promises);
-      if (shouldValidateWithFallback) this.__fallback.push(objectValidation(fallbackByKeys));
-      this.__adapter.object.__result = this.__adapter.object.translate(this.__adapter.field, {
-        withFallback: withFallbackFactory('object'),
-        nullish: this.__nullish,
-        data: transformedData,
-      });
+      if (shouldValidateWithFallback) this.__fallbacks.splice(0, 1, objectValidation(fallbackByKeys));
+      if (this.__adapter.object.__result === undefined)
+        this.__adapter.object.__result = this.__adapter.object.translate(this.__adapter.field, {
+          withFallback: withFallbackFactory('object'),
+          optional: this.__optional,
+          data: transformedData,
+        });
     }
 
     return this.__adapter.object.__result;
@@ -75,18 +90,62 @@ export default class ObjectSchema<
 
   async _parse(
     value: TType['input'],
-    path: string[] = [],
-    options: {
-      preventAdapterParse?: boolean;
-    } = {}
+    path: (string | number)[] = [],
+    options: Parameters<Schema['_transformToAdapter']>[0] = {}
   ): Promise<{ errors?: any[]; parsed: TType['internal'] }> {
-    await this._transform();
-    const existsFallback = this.__fallback.length > 0;
-    return super._parse(value, path, existsFallback ? { preventAdapterParse: true, ...options } : options);
+    let isRoot = options.toInternalToBubbleUp === undefined;
+
+    await this._transformToAdapter(options);
+
+    if (isRoot) options.toInternalToBubbleUp = [];
+
+    const result = await super._parse(value, path, options);
+
+    if (isRoot) for (const functionToModifyResult of options.toInternalToBubbleUp || []) await functionToModifyResult();
+    return result;
   }
 
-  static new<TData extends Record<any, Schema>>(data: TData) {
-    const returnValue = new ObjectSchema(data);
+  /**
+   * Transform the data to the representation without validating it. This is useful when you want to return a data from a query directly to the user. The core idea of this is that you can join the data
+   * from the database "by hand". In other words, you can do the joins by yourself directly on code. For more complex cases, this can be really helpful.
+   *
+   * @param value - The value to be transformed.
+   */
+  async _transform(value: TType['output']): Promise<TType['representation']> {
+    const dataAsEntries = this.__retrieveDataAsEntriesAndCache();
+    const isValueAnObject = typeof value === 'object' && value !== null;
+
+    if (!isValueAnObject) return value;
+
+    await Promise.all(
+      dataAsEntries.map(async ([key, valueToTransform]) => {
+        const isValueToTransformASchemaAndNotUndefined =
+          valueToTransform instanceof Schema && (value[key] !== undefined || valueToTransform.__defaultFunction);
+        if (isValueToTransformASchemaAndNotUndefined) {
+          const transformedValue = await valueToTransform._transform(value[key]);
+          (value as any)[key] = transformedValue;
+        }
+      })
+    );
+    value = await super._transform(value);
+
+    return value;
+  }
+
+  static new<TData extends Record<any, Schema>, TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType>(
+    data: TData
+  ) {
+    const returnValue = new ObjectSchema<
+      {
+        input: ExtractTypeFromObjectOfSchemas<TData, 'input'>;
+        validate: ExtractTypeFromObjectOfSchemas<TData, 'validate'>;
+        internal: ExtractTypeFromObjectOfSchemas<TData, 'internal'>;
+        representation: ExtractTypeFromObjectOfSchemas<TData, 'representation'>;
+        output: ExtractTypeFromObjectOfSchemas<TData, 'output'>;
+      },
+      TDefinitions,
+      TData
+    >(data);
     const adapterInstance = new (getDefaultAdapter())();
 
     returnValue.__adapter = adapterInstance;

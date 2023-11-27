@@ -1,14 +1,11 @@
 import { withFallbackFactory } from '../utils';
-
+import Schema from '../schema/schema';
 export type NonToTranslateArgs = {
   withFallback: ReturnType<typeof withFallbackFactory>;
 };
 
 export type AdapterTranslateArgs = {
-  nullish: {
-    allowUndefined: boolean;
-    message: string;
-  };
+  optional: Schema['__optional'];
 } & NonToTranslateArgs;
 
 export type NumberAdapterTranslateArgs = {
@@ -64,6 +61,6 @@ export type ErrorCodes =
   | 'allowPositive'
   | 'min'
   | 'integer'
-  | 'nullish'
+  | 'required'
   | 'object'
   | 'number';

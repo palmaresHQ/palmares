@@ -1,8 +1,13 @@
 import NumberSchema from '../schema/number';
 import Schema from '../schema/schema';
+import { ValidationFallbackType } from '../schema/types';
 
 export function max(args: NumberSchema['__max']) {
-  return async (value: any, path?: string[]): Promise<Awaited<ReturnType<Schema['__fallback'][number]>>> => {
+  return async (
+    value: any,
+    path: (string | number)[],
+    _options: Parameters<Schema['_transformToAdapter']>[0]
+  ): Promise<ValidationFallbackType> => {
     if (typeof value !== 'number')
       return {
         parsed: value,
@@ -43,7 +48,7 @@ export function max(args: NumberSchema['__max']) {
 }
 
 export function min(args: NumberSchema['__min']) {
-  return async (value: any, path?: string[]): Promise<Awaited<ReturnType<Schema['__fallback'][number]>>> => {
+  return async (value: any, path?: (string | number)[]): Promise<ValidationFallbackType> => {
     if (typeof value !== 'number')
       return {
         parsed: value,

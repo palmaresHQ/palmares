@@ -1,7 +1,12 @@
 import Schema from '../schema/schema';
+import { ValidationFallbackType } from '../schema/types';
 
 export function objectValidation(keysToFallback: { [key: string]: Schema }) {
-  return async (value: any, path: (string | number)[]): Promise<Awaited<ReturnType<Schema['__fallback'][number]>>> => {
+  return async (
+    value: any,
+    path: (string | number)[],
+    options: Parameters<Schema['_transformToAdapter']>[0]
+  ): Promise<ValidationFallbackType> => {
     if (typeof value !== 'object')
       return {
         parsed: value,
@@ -14,13 +19,18 @@ export function objectValidation(keysToFallback: { [key: string]: Schema }) {
           },
         ],
       };
-    const errors: { [key: string]: Awaited<ReturnType<Schema['__fallback'][number]>>['errors'] } = {};
+    const errors: { [key: string]: ValidationFallbackType['errors'] } = {};
     const toValidateEntries = Object.entries(keysToFallback);
+
     await Promise.all(
       toValidateEntries.map(async ([key, schema]) => {
-        const { parsed, errors: parseErrors } = await schema._parse(value[key], [...path, key]);
+        const { parsed, errors: parseErrors } = await schema._parse(value[key], [...path, key], options);
         if (Array.isArray(parseErrors) && parseErrors.length > 0) errors[key] = parseErrors;
         else value[key] = parsed;
+
+        // We append the toInternalToBubbleUp to the parent toInternalToBubbleUp
+        if (schema.__toInternal && options.toInternalToBubbleUp)
+          options.toInternalToBubbleUp.push(async () => (value[key] = await (schema as any).__toInternal(parsed)));
       })
     );
 

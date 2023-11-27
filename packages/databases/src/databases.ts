@@ -190,6 +190,7 @@ export default class Databases {
       [modelName: string]: ReturnType<typeof model>;
     } = {};
     const modelsFilteredForDatabase: FoundModelType[] = [];
+
     const promises = models.map(async (foundModel) => {
       const modelInstance = new foundModel.model();
       const isModelManagedByEngine =

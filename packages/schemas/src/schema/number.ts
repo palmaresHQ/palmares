@@ -6,8 +6,9 @@ import {
   DEFAULT_NUMBER_MIN_EXCEPTION,
   DEFAULT_NUMBER_NEGATIVE_EXCEPTION,
 } from '../constants';
-import { defaultTransform } from '../utils';
+import WithFallback, { defaultTransform } from '../utils';
 import { max, min } from '../validators/number';
+import { DefinitionsOfSchemaType } from './types';
 
 export default class NumberSchema<
   TType extends {
@@ -23,8 +24,8 @@ export default class NumberSchema<
     internal: number | bigint;
     representation: number | bigint;
   },
-  TDefinitions = any,
-> extends Schema<TType> {
+  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
+> extends Schema<TType, TDefinitions> {
   protected __integer!: {
     message: string;
   };
@@ -47,7 +48,9 @@ export default class NumberSchema<
     message: string;
   };
 
-  async _transform(): Promise<any> {
+  extends(callback: (schema: ReturnType<TDefinitions['schemaAdapter']['number']['translate']>) => any) {}
+
+  async _transformToAdapter(): Promise<any> {
     return defaultTransform(
       'number',
       this,
@@ -57,7 +60,7 @@ export default class NumberSchema<
         allowPositive: this.__allowPositive,
         max: this.__max,
         integer: this.__integer,
-        nullish: this.__nullish,
+        optional: this.__optional,
       },
       {
         max,
@@ -164,20 +167,30 @@ export default class NumberSchema<
     >;
   }
 
-  static new<
-    TType extends {
-      input: number | bigint;
-      output: number | bigint;
-      internal: number | bigint;
-      representation: number | bigint;
-      validate: number | bigint;
-    },
-  >() {
-    const returnValue = new NumberSchema<TType, any>();
+  static new<TDefinitions extends DefinitionsOfSchemaType>() {
+    const returnValue = new NumberSchema<
+      {
+        input: number | bigint;
+        output: number | bigint;
+        internal: number | bigint;
+        representation: number | bigint;
+        validate: number | bigint;
+      },
+      TDefinitions
+    >();
     const adapterInstance = new (getDefaultAdapter())();
 
     returnValue.__adapter = adapterInstance;
 
-    return returnValue;
+    return returnValue as NumberSchema<
+      {
+        input: number | bigint;
+        output: number | bigint;
+        internal: number | bigint;
+        representation: number | bigint;
+        validate: number | bigint;
+      },
+      TDefinitions
+    >;
   }
 }

@@ -15,7 +15,7 @@ export default class ZodNumberFieldSchemaAdapter extends NumberAdapter<z.ZodNumb
     }
     if (args.allowNegative) result = result.negative(args.allowNegative.message);
     if (args.allowPositive) result = result.positive(args.allowPositive.message);
-    return args.withFallback(['max'], result);
+    return result;
   }
 
   async parse(_adapter: any, result: z.ZodNumber, value: any) {

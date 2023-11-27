@@ -7,6 +7,7 @@ import {
   ObjectAdapterTranslateArgsWithoutNonTranslateArgs,
 } from './adapter/types';
 import Schema from './schema/schema';
+import { ValidationFallbackType } from './schema/types';
 import { FallbackFunctionsType } from './types';
 
 /**
@@ -82,7 +83,7 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
 ): Promise<any> {
   const schemaWithPrivateFields = schema as unknown as {
     __adapter: Schema['__adapter'];
-    __fallback: Schema['__fallback'];
+    __fallbacks: Schema['__fallbacks'];
   };
   if (schemaWithPrivateFields.__adapter[type].__result === undefined) {
     const translatedSchemaOrWithFallback = schemaWithPrivateFields.__adapter.number.translate(
@@ -99,7 +100,7 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
         const wereArgumentsForThatFallbackDefinedAndFallbackFunctionDefined =
           (validationData as any)[fallback] !== undefined && (fallbackFunctions as any)[fallback] !== undefined;
         if (wereArgumentsForThatFallbackDefinedAndFallbackFunctionDefined)
-          schemaWithPrivateFields.__fallback.push(
+          schemaWithPrivateFields.__fallbacks.push(
             (fallbackFunctions as any)[fallback]((validationData as any)[fallback])
           );
       }
@@ -114,14 +115,12 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
 export async function formatErrorFromParseMethod(
   adapter: SchemaAdapter,
   error: any,
-  path: Awaited<ReturnType<Schema['__fallback'][number]>>['errors'][number]['path'],
+  path: ValidationFallbackType['errors'][number]['path'],
   errorsAsHashedSet: Set<string>
 ) {
   const formattedError = await adapter.formatError(error);
   formattedError.path = Array.isArray(formattedError.path) ? [...path, ...formattedError.path] : path;
-  const formattedErrorAsParseResultError = formattedError as unknown as Awaited<
-    ReturnType<Schema['__fallback'][number]>
-  >['errors'][number];
+  const formattedErrorAsParseResultError = formattedError as unknown as ValidationFallbackType['errors'][number];
   formattedErrorAsParseResultError.isValid = false;
   errorsAsHashedSet.add(JSON.stringify(formattedErrorAsParseResultError));
   return formattedErrorAsParseResultError;
