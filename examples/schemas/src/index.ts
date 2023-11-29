@@ -57,7 +57,7 @@ const objectSchema = ObjectSchema.new({
 const main = async () => {
   const [testeResult] = await Promise.all([objectSchema._parse({ heeey: 100, teste: null })]);
   console.log(testeResult.parsed);
-  console.log(testeResult.errors);
+  //console.log(testeResult.errors);
 
   /*
   console.log(objectResult.parsed);

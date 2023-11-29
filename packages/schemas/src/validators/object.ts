@@ -5,18 +5,6 @@ export function objectValidation(keysToFallback: { [key: string]: Schema }): Val
   return {
     type: 'low',
     callback: async (value: any, path: (string | number)[], options: Parameters<Schema['_transformToAdapter']>[0]) => {
-      if (typeof value !== 'object')
-        return {
-          parsed: value,
-          errors: [
-            {
-              code: 'object',
-              isValid: false,
-              message: 'Not an object',
-              path: path || [],
-            },
-          ],
-        };
       const errors: { [key: string]: ValidationFallbackCallbackReturnType['errors'] } = {};
       const toValidateEntries = Object.entries(keysToFallback);
 
