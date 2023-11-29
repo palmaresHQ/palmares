@@ -7,8 +7,10 @@ import {
   ObjectAdapterTranslateArgsWithoutNonTranslateArgs,
 } from './adapter/types';
 import Schema from './schema/schema';
-import { ValidationFallbackType } from './schema/types';
+import { ValidationFallbackCallbackReturnType, ValidationFallbackReturnType } from './schema/types';
 import { FallbackFunctionsType } from './types';
+import { checkType, nullable, optional } from './validators/schema';
+import Validator from './validators/utils';
 
 /**
  * The usage of this is that imagine that the library doesn't support a specific feature that we support on our schema definition, it can return an instance
@@ -83,10 +85,13 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
 ): Promise<any> {
   const schemaWithPrivateFields = schema as unknown as {
     __adapter: Schema['__adapter'];
-    __fallbacks: Schema['__fallbacks'];
+    __rootFallbacksValidator: Schema['__rootFallbacksValidator'];
+    __optional: Schema['__optional'];
+    __nullable: Schema['__nullable'];
+    __type: Schema['__type'];
   };
   if (schemaWithPrivateFields.__adapter[type].__result === undefined) {
-    const translatedSchemaOrWithFallback = schemaWithPrivateFields.__adapter.number.translate(
+    const translatedSchemaOrWithFallback = schemaWithPrivateFields.__adapter[type].translate(
       schemaWithPrivateFields.__adapter.field,
       {
         withFallback: withFallbackFactory(type),
@@ -99,12 +104,21 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
       for (const fallback of translatedSchemaOrWithFallback.fallbackFor) {
         const wereArgumentsForThatFallbackDefinedAndFallbackFunctionDefined =
           (validationData as any)[fallback] !== undefined && (fallbackFunctions as any)[fallback] !== undefined;
-        if (wereArgumentsForThatFallbackDefinedAndFallbackFunctionDefined)
-          schemaWithPrivateFields.__fallbacks.push(
-            (fallbackFunctions as any)[fallback]((validationData as any)[fallback])
-          );
+        if (wereArgumentsForThatFallbackDefinedAndFallbackFunctionDefined) {
+          const fallbackReturnType = (fallbackFunctions as any)[fallback](
+            (validationData as any)[fallback]
+          ) as ValidationFallbackReturnType;
+          Validator.createAndAppendFallback(schema, fallbackReturnType);
+        }
       }
     } else schemaWithPrivateFields.__adapter[type].__result = translatedSchemaOrWithFallback;
+
+    const hasFallbacks = schemaWithPrivateFields.__rootFallbacksValidator;
+    if (hasFallbacks) {
+      Validator.createAndAppendFallback(schema, optional(schemaWithPrivateFields.__optional));
+      Validator.createAndAppendFallback(schema, nullable(schemaWithPrivateFields.__nullable));
+      Validator.createAndAppendFallback(schema, checkType(schemaWithPrivateFields.__type));
+    }
   }
   return schemaWithPrivateFields.__adapter[type].__result;
 }
@@ -115,12 +129,13 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
 export async function formatErrorFromParseMethod(
   adapter: SchemaAdapter,
   error: any,
-  path: ValidationFallbackType['errors'][number]['path'],
+  path: ValidationFallbackCallbackReturnType['errors'][number]['path'],
   errorsAsHashedSet: Set<string>
 ) {
   const formattedError = await adapter.formatError(error);
   formattedError.path = Array.isArray(formattedError.path) ? [...path, ...formattedError.path] : path;
-  const formattedErrorAsParseResultError = formattedError as unknown as ValidationFallbackType['errors'][number];
+  const formattedErrorAsParseResultError =
+    formattedError as unknown as ValidationFallbackCallbackReturnType['errors'][number];
   formattedErrorAsParseResultError.isValid = false;
   errorsAsHashedSet.add(JSON.stringify(formattedErrorAsParseResultError));
   return formattedErrorAsParseResultError;

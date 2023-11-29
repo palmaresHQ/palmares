@@ -1,6 +1,9 @@
 import SchemaAdapter from '../adapter';
 import FieldAdapter from '../adapter/fields';
+import Validator from '../validators/utils';
 import Schema from './schema';
+
+import type { ValidatorTypes } from '../validators/types';
 
 export type OnlyFieldAdaptersFromSchemaAdapter = keyof {
   [key in keyof SchemaAdapter as SchemaAdapter[key] extends FieldAdapter ? key : never]: SchemaAdapter[key];
@@ -10,8 +13,12 @@ export type DefinitionsOfSchemaType = {
   schemaAdapter: SchemaAdapter;
 };
 
-export type ValidationHighPriorityFallbackType = Awaited<ReturnType<Schema['__highPriorityFallbacks'][number]>>;
-export type ValidationFallbackType = Awaited<ReturnType<Schema['__fallbacks'][number]>>;
+export type ValidationFallbackCallbackType = Validator['fallbacks'][number];
+export type ValidationFallbackCallbackReturnType = Awaited<ReturnType<Validator['fallbacks'][number]>>;
+export type ValidationFallbackReturnType = {
+  type: ValidatorTypes;
+  callback: ValidationFallbackCallbackType;
+};
 
 type TypesOfSchema = Schema extends Schema<infer TType, any> ? TType : never;
 export type ExtractTypeFromObjectOfSchemas<

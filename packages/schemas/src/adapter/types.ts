@@ -6,6 +6,7 @@ export type NonToTranslateArgs = {
 
 export type AdapterTranslateArgs = {
   optional: Schema['__optional'];
+  nullable: Schema['__nullable'];
 } & NonToTranslateArgs;
 
 export type NumberAdapterTranslateArgs = {

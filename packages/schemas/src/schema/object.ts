@@ -1,9 +1,10 @@
 import Schema from './schema';
 import { getDefaultAdapter } from '../conf';
 import FieldAdapter from '../adapter/fields';
-import { withFallbackFactory } from '../utils';
+import { defaultTransform } from '../utils';
 import { objectValidation } from '../validators/object';
 import { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from './types';
+import Validator from '../validators/utils';
 
 export default class ObjectSchema<
   TType extends {
@@ -58,11 +59,11 @@ export default class ObjectSchema<
             __toValidate: Schema['__toValidate'];
             __toRepresentation: Schema['__toRepresentation'];
             __defaultFunction: Schema['__defaultFunction'];
-            __fallbacks: Schema['__fallbacks'];
+            __rootFallbacksValidator: Schema['__rootFallbacksValidator'];
           };
           transformedData[key] = await valueToTransform._transformToAdapter(options); // This should come first because we will get the fallbacks of the field here.
 
-          const doesKeyHaveFallback = valueToTransformWithProtected.__fallbacks.length > 0;
+          const doesKeyHaveFallback = valueToTransformWithProtected.__rootFallbacksValidator !== undefined;
           const doesKeyHaveToInternal = typeof valueToTransformWithProtected.__toInternal === 'function';
           const doesKeyHaveToValidate = typeof valueToTransformWithProtected.__toValidate === 'function';
           const doesKeyHaveToDefault = typeof valueToTransformWithProtected.__defaultFunction === 'function';
@@ -76,13 +77,19 @@ export default class ObjectSchema<
       }
 
       await Promise.all(promises);
-      if (shouldValidateWithFallback) this.__fallbacks.splice(0, 1, objectValidation(fallbackByKeys));
-      if (this.__adapter.object.__result === undefined)
-        this.__adapter.object.__result = this.__adapter.object.translate(this.__adapter.field, {
-          withFallback: withFallbackFactory('object'),
-          optional: this.__optional,
+      if (shouldValidateWithFallback)
+        Validator.createAndAppendFallback(this, objectValidation(fallbackByKeys), fallbackByKeys);
+
+      return defaultTransform(
+        'object',
+        this,
+        {
           data: transformedData,
-        });
+          nullable: this.__nullable,
+          optional: this.__optional,
+        },
+        {}
+      );
     }
 
     return this.__adapter.object.__result;
@@ -146,7 +153,9 @@ export default class ObjectSchema<
       TDefinitions,
       TData
     >(data);
-    const adapterInstance = new (getDefaultAdapter())();
+
+    const DefaultAdapterClass = getDefaultAdapter();
+    const adapterInstance = new DefaultAdapterClass();
 
     returnValue.__adapter = adapterInstance;
 

@@ -34,29 +34,38 @@ const objectSchema = ObjectSchema.new({
   heeey: NumberSchema.new().toInternal(async (value) => {
     return 'ta funcionando?';
   }),
-  teste: testeObjectSchema,
+  teste: ObjectSchema.new({
+    age: NumberSchema.new(),
+    spent: NumberSchema.new()
+      .min(12, { inclusive: true })
+      .positive()
+      .toValidate((value) => {
+        return Number(value);
+      })
+      .toInternal(async (value) => {
+        return {
+          teste: value,
+        };
+      })
+      .toRepresentation(async (value) => {
+        console.log('without validation, changing how the data is sent to the user', value, typeof value);
+        return 'Aquiiii';
+      }),
+  }).nullable(),
 });
 
-//const schema = NumberSchema.new().max(10).min(5);
-
 const main = async () => {
-  const result = zodObjectSchema.safeParse({});
-  console.log(result.success);
-  console.log(result.error);
-  /*const [testeResult, objectResult, testeResult2] = await Promise.all([
-    objectSchema._parse({ heeey: 100, teste: { age: 8, spent: 12 } }),
-    testeObjectSchema._parse({ age: 8, spent: 12 }),
-    objectSchema._parse({ heeey: 100, teste: { age: 8, spent: 12 } }),
-  ]);
-
+  const [testeResult] = await Promise.all([objectSchema._parse({ heeey: 100, teste: null })]);
   console.log(testeResult.parsed);
   console.log(testeResult.errors);
 
+  /*
   console.log(objectResult.parsed);
   console.log(objectResult.errors);
 
   console.log(testeResult2.parsed);
-  console.log(testeResult2.errors);*/
+  console.log(testeResult2.errors);
+  */
 };
 
 main();

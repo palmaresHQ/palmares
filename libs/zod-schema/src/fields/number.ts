@@ -2,10 +2,9 @@ import { FieldAdapter, NumberAdapter, NumberAdapterTranslateArgs } from '@palmar
 import * as z from 'zod';
 
 export default class ZodNumberFieldSchemaAdapter extends NumberAdapter<z.ZodNumber> {
-  translate(_fieldAdapter: FieldAdapter<any>, args: NumberAdapterTranslateArgs) {
+  translate(fieldAdapter: FieldAdapter<any>, args: NumberAdapterTranslateArgs) {
     let result = z.number();
-
-    /*if (args.max) {
+    /**if (args.max) {
       if (args.max.inclusive) result = result.lte(args.max.value, args.max.message);
       else result = result.lt(args.max.value, args.max.message);
     }*/
@@ -15,7 +14,8 @@ export default class ZodNumberFieldSchemaAdapter extends NumberAdapter<z.ZodNumb
     }
     if (args.allowNegative) result = result.negative(args.allowNegative.message);
     if (args.allowPositive) result = result.positive(args.allowPositive.message);
-    return result;
+    result = fieldAdapter.translate(fieldAdapter, args, result);
+    return args.withFallback(['max'], result);
   }
 
   async parse(_adapter: any, result: z.ZodNumber, value: any) {

@@ -61,6 +61,7 @@ export default class NumberSchema<
         max: this.__max,
         integer: this.__integer,
         optional: this.__optional,
+        nullable: this.__nullable,
       },
       {
         max,
