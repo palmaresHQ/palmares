@@ -60,15 +60,26 @@ export default class ObjectSchema<
             __toRepresentation: Schema['__toRepresentation'];
             __defaultFunction: Schema['__defaultFunction'];
             __rootFallbacksValidator: Schema['__rootFallbacksValidator'];
+            __or: Schema['__or'];
           };
+
           transformedData[key] = await valueToTransform._transformToAdapter(options); // This should come first because we will get the fallbacks of the field here.
+          valueToTransform.__modifyItselfForParent = (schema) => {
+            const newSchema = schema._transformToAdapter(options);
+            transformedData[key] = newSchema;
+          };
 
           const doesKeyHaveFallback = valueToTransformWithProtected.__rootFallbacksValidator !== undefined;
           const doesKeyHaveToInternal = typeof valueToTransformWithProtected.__toInternal === 'function';
           const doesKeyHaveToValidate = typeof valueToTransformWithProtected.__toValidate === 'function';
           const doesKeyHaveToDefault = typeof valueToTransformWithProtected.__defaultFunction === 'function';
+          const doesHaveUnion = valueToTransformWithProtected.__or.size > 0;
           const shouldAddFallbackValidationForThisKey =
-            doesKeyHaveFallback || doesKeyHaveToInternal || doesKeyHaveToValidate || doesKeyHaveToDefault;
+            doesKeyHaveFallback ||
+            doesKeyHaveToInternal ||
+            doesKeyHaveToValidate ||
+            doesKeyHaveToDefault ||
+            doesHaveUnion;
           shouldValidateWithFallback = shouldValidateWithFallback || shouldAddFallbackValidationForThisKey;
 
           if (shouldAddFallbackValidationForThisKey) fallbackByKeys[key] = valueToTransform;
@@ -95,7 +106,7 @@ export default class ObjectSchema<
     return this.__adapter.object.__result;
   }
 
-  async _parse(
+  protected async __parse(
     value: TType['input'],
     path: (string | number)[] = [],
     options: Parameters<Schema['_transformToAdapter']>[0] = {}
@@ -106,7 +117,7 @@ export default class ObjectSchema<
 
     if (isRoot) options.toInternalToBubbleUp = [];
 
-    const result = await super._parse(value, path, options);
+    const result = await super.__parse(value, path, options);
 
     if (isRoot) for (const functionToModifyResult of options.toInternalToBubbleUp || []) await functionToModifyResult();
     return result;

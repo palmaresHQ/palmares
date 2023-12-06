@@ -46,6 +46,7 @@ export default class Schema<
     message: 'Required',
     allow: false,
   };
+  __modifyItselfForParent: ((schema: Schema) => void) | undefined = undefined;
   __defaultFunction: (() => Promise<TType['input'] | TType['output']>) | undefined = undefined;
   __toRepresentation: ((value: TType['output']) => TType['output']) | undefined = undefined;
   __toValidate: ((value: TType['input']) => TType['validate']) | undefined = undefined;
@@ -57,7 +58,7 @@ export default class Schema<
     message: 'Invalid type',
     check: () => true,
   };
-  protected __or: Schema[] = [];
+  protected __or = new Set<Schema<any>>();
 
   /**
    * This will validate the data with the fallbacks, so internally, without relaying on the schema adapter. This is nice because we can support things that the schema adapter is not able to support by default.
@@ -81,6 +82,8 @@ export default class Schema<
     return parseResult;
   }
 
+  private async _recompile() {}
+
   /**
    * This will validate by the adapter. In other words, we send the data to the schema adapter and then we validate that data.
    * So understand that, first we send the data to the adapter, the adapter validates it, then, after we validate from the adapter
@@ -96,8 +99,8 @@ export default class Schema<
   private async __validateByAdapter(
     value: TType['input'],
     errorsAsHashedSet: Set<string>,
-    path: NonNullable<Parameters<Schema['_parse']>[1]>,
-    parseResult: Awaited<ReturnType<Schema['_parse']>>,
+    path: NonNullable<Parameters<Schema['__parse']>[1]>,
+    parseResult: Awaited<ReturnType<Schema['__parse']>>,
     options: Parameters<Schema['_transformToAdapter']>[0]
   ) {
     const transformedSchema = await this._transformToAdapter(options);
@@ -134,11 +137,13 @@ export default class Schema<
 
   async _transformToAdapter(_options: {
     toInternalToBubbleUp?: (() => Promise<void>)[];
+    modifyItself?: (newAdapterSchema: any) => any;
+    validationKey?: symbol;
   }): Promise<ReturnType<FieldAdapter['translate']>> {
     throw new Error('Not implemented');
   }
 
-  async _parse(
+  protected async __parse(
     value: TType['input'],
     path: ValidationFallbackCallbackReturnType['errors'][number]['path'] = [],
     options: Parameters<Schema['_transformToAdapter']>[0]
@@ -149,34 +154,75 @@ export default class Schema<
 
     if (shouldCallDefaultFunction) value = await (this.__defaultFunction as any)();
     if (shouldCallToValidateCallback) value = await Promise.resolve((this.__toValidate as any)(value));
+    const validateAgainstUnions = new Set([this as Schema<any>, ...this.__or]);
 
-    const parseResult: {
+    const parsedResultByUnions = new Map<
+      Schema,
+      {
+        errors: undefined | ValidationFallbackCallbackReturnType['errors'];
+        parsed: TType['input'];
+      }
+    >();
+
+    for (const schemaToParseAgainst of validateAgainstUnions) {
+      const parseResult: {
+        errors: undefined | ValidationFallbackCallbackReturnType['errors'];
+        parsed: TType['input'];
+      } = { errors: undefined, parsed: value };
+      parsedResultByUnions.set(schemaToParseAgainst, parseResult);
+
+      const parsedResultsAfterAdapter = await schemaToParseAgainst.__validateByAdapter(
+        value,
+        errorsAsHashedSet,
+        path,
+        parseResult,
+        options
+      );
+      parseResult.errors = parsedResultsAfterAdapter.errors;
+      parseResult.parsed = parsedResultsAfterAdapter.parsed;
+
+      const parsedResultsAfterFallbacks = await schemaToParseAgainst.__validateByFallbacks(
+        errorsAsHashedSet,
+        path,
+        parseResult
+      );
+      parseResult.errors = parsedResultsAfterFallbacks.errors;
+      parseResult.parsed = parsedResultsAfterFallbacks.parsed;
+
+      const areThereNoErrors = (parseResult.errors?.length || 0) <= 0;
+      if (areThereNoErrors) {
+        if (options.modifyItself) options.modifyItself(schemaToParseAgainst);
+        break;
+      }
+    }
+
+    let selectedSchema = this as Schema<any>;
+    const finalParseResult: {
       errors: undefined | ValidationFallbackCallbackReturnType['errors'];
       parsed: TType['input'];
-    } = { errors: undefined, parsed: value };
+    } = {
+      errors: [],
+      parsed: value,
+    };
 
-    const parsedResultsAfterAdapter = await this.__validateByAdapter(
-      value,
-      errorsAsHashedSet,
-      path,
-      parseResult,
-      options
-    );
-    parseResult.errors = parsedResultsAfterAdapter.errors;
-    parseResult.parsed = parsedResultsAfterAdapter.parsed;
+    for (const [schema, { errors, parsed }] of parsedResultByUnions.entries()) {
+      finalParseResult.parsed = parsed;
+      selectedSchema = schema;
 
-    const parsedResultsAfterFallbacks = await this.__validateByFallbacks(errorsAsHashedSet, path, parseResult);
-    parseResult.errors = parsedResultsAfterFallbacks.errors;
-    parseResult.parsed = parsedResultsAfterFallbacks.parsed;
+      if (errors && finalParseResult.errors) finalParseResult.errors.push(...errors);
+      else {
+        finalParseResult.errors = undefined;
+        break;
+      }
+    }
 
-    const doesNotHaveErrors = !Array.isArray(parseResult.errors) || parseResult.errors.length === 0;
-    const hasToInternalCallback = typeof this.__toInternal === 'function';
+    const doesNotHaveErrors = !Array.isArray(finalParseResult.errors) || finalParseResult.errors.length === 0;
+    const hasToInternalCallback = typeof selectedSchema.__toInternal === 'function';
     const shouldCallToInternalDuringParse =
       doesNotHaveErrors && hasToInternalCallback && Array.isArray(options.toInternalToBubbleUp) === false;
 
-    if (shouldCallToInternalDuringParse) parseResult.parsed = await (this.__toInternal as any)(value);
-
-    return parseResult;
+    if (shouldCallToInternalDuringParse) finalParseResult.parsed = await (selectedSchema.__toInternal as any)(value);
+    return finalParseResult;
   }
 
   async _transform(value: TType['output']): Promise<TType['representation']> {
@@ -251,10 +297,31 @@ export default class Schema<
     >;
   }
 
+  async parse(value: TType['input']): Promise<{ errors?: any[]; parsed: TType['internal'] }> {
+    const validationKey = Symbol();
+    return this.__parse(value, [], {
+      validationKey,
+    });
+  }
+
   instanceOf(args: Schema['__type']) {
     this.__type.check = typeof args.check === 'function' ? args.check : this.__type.check;
     this.__type.message = typeof args.message === 'string' ? args.message : this.__type.message;
 
+    return this as unknown as Schema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+
+  or(...schemas: Schema[]) {
+    for (const schema of schemas) this.__or.add(schema);
     return this as unknown as Schema<
       {
         input: TType['input'];

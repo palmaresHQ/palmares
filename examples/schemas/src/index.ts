@@ -4,6 +4,17 @@ import * as z from 'zod';
 
 setDefaultAdapter(ZodSchemaAdapter);
 
+const schema = {
+  age: z.number().max(9),
+  spent: z.number().min(12),
+};
+
+schema.spent = z.string();
+const object = z.object(schema);
+
+// funciona pq alterei pela referencia.
+object.parse({ age: 10, spent: 'funciona' });
+
 const zodObjectSchema = z.object({
   teste: z.object({
     age: z.number().max(9),
@@ -51,21 +62,15 @@ const objectSchema = ObjectSchema.new({
         console.log('without validation, changing how the data is sent to the user', value, typeof value);
         return 'Aquiiii';
       }),
-  }).nullable(),
+  })
+    .nullable()
+    .or(NumberSchema.new()),
 });
 
 const main = async () => {
-  const [testeResult] = await Promise.all([objectSchema._parse({ heeey: 100, teste: null })]);
+  const [testeResult] = await Promise.all([objectSchema.parse({ heeey: 100, teste: 22 })]);
+  console.log(testeResult.errors);
   console.log(testeResult.parsed);
-  //console.log(testeResult.errors);
-
-  /*
-  console.log(objectResult.parsed);
-  console.log(objectResult.errors);
-
-  console.log(testeResult2.parsed);
-  console.log(testeResult2.errors);
-  */
 };
 
 main();

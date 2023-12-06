@@ -50,7 +50,7 @@ export default class NumberSchema<
 
   extends(callback: (schema: ReturnType<TDefinitions['schemaAdapter']['number']['translate']>) => any) {}
 
-  async _transformToAdapter(): Promise<any> {
+  async _transformToAdapter(options: Parameters<Schema['_transformToAdapter']>[0]): Promise<any> {
     return defaultTransform(
       'number',
       this,
