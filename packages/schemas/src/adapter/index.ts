@@ -1,13 +1,15 @@
-import { NoAdapterFoundError, SchemaAdapterNotImplementedError } from '../exceptions';
+import { SchemaAdapterNotImplementedError } from '../exceptions';
 import FieldAdapter from './fields';
 import NumberAdapter from './fields/number';
 import ObjectFieldAdapter from './fields/object';
+import UnionFieldAdapter from './fields/union';
 import { ErrorCodes } from './types';
 
 export default class SchemaAdapter {
   field!: FieldAdapter;
-  number!: NumberAdapter;
-  object!: ObjectFieldAdapter;
+  number?: NumberAdapter;
+  object?: ObjectFieldAdapter;
+  union?: UnionFieldAdapter;
 
   async formatError(
     _error: any,

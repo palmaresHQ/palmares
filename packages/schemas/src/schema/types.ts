@@ -46,3 +46,6 @@ export type ExtractTypeFromObjectOfSchemas<
       : TRepresentationType
     : never;
 };
+
+
+export type ExtractUnionTypesFromSchemas<TSchemas extends readonly Schema<any, any>[]> = TSchemas[number]['__types'];

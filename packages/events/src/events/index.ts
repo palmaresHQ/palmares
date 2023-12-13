@@ -1,10 +1,7 @@
 import Emitter from '../emitter';
 import { uuid } from '../utils';
 import { NoLayerError } from './exceptions';
-import type {
-  EventEmitterOptionsType,
-  ResultWrappedCallbackType,
-} from './types';
+import type { EventEmitterOptionsType, ResultWrappedCallbackType } from './types';
 
 /**
  * This class is responsible for appending listeners (functions) and sending events to them
@@ -158,19 +155,13 @@ export default class EventEmitter<E extends Emitter = Emitter> {
   #channels!: string[];
   #unsubscribeByChannel: Record<string, (...args: any) => any> = {};
   #pendingHandlerIdForResultKey: Map<string, string> = new Map();
-  #pendingResults: Record<
-    string,
-    Record<string, { status: 'completed' | 'failed' | 'pending'; result: any }>
-  > = {};
+  #pendingResults: Record<string, Record<string, { status: 'completed' | 'failed' | 'pending'; result: any }>> = {};
   #pingTimeout = 1000; // how much time we will wait for the listeners to respond that they are working on a response.
   #resultsTimeout = 5000; // Waits for 5 seconds for the result otherwise return undefined.
   #delimiter = '.';
   #wildcards = false;
   #groupByKeys: Record<string, Set<string>> = {};
-  #groups: Record<
-    string,
-    { keys: Set<string>; listeners: Record<string, (...args: any) => any> }
-  > = {};
+  #groups: Record<string, { keys: Set<string>; listeners: Record<string, (...args: any) => any> }> = {};
 
   /**
    * Factory method for the building the emitter, we need this because we need to add results listener and layer listeners
@@ -196,10 +187,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     const emitterCustomParams = emitterParams || [];
     const emitterInstance = await emitter.new(...emitterCustomParams);
 
-    const eventEmitterInstance = new this(
-      emitterInstance,
-      optionsForConstructor
-    ) as EventEmitter<InstanceType<E>>;
+    const eventEmitterInstance = new this(emitterInstance, optionsForConstructor) as EventEmitter<InstanceType<E>>;
 
     // Define the results data so we can retrieve results for all of the handlers
     eventEmitterInstance.resultsEventName = `resultsOfEmitter-${uuid()}`;
@@ -210,9 +198,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
 
     if (options?.layer?.use) {
       eventEmitterInstance.layer = await Promise.resolve(options.layer.use);
-      await eventEmitterInstance.addChannelListeners(
-        options?.layer.channels || ['all']
-      );
+      await eventEmitterInstance.addChannelListeners(options?.layer.channels || ['all']);
     }
 
     return eventEmitterInstance;
@@ -220,13 +206,10 @@ export default class EventEmitter<E extends Emitter = Emitter> {
 
   constructor(emitterInstance: E, options?: EventEmitterOptionsType) {
     this.emitter = emitterInstance;
-    if (options?.wildcards?.delimiter)
-      this.#delimiter = options?.wildcards?.delimiter;
+    if (options?.wildcards?.delimiter) this.#delimiter = options?.wildcards?.delimiter;
     if (options?.wildcards?.use) this.#wildcards = options?.wildcards?.use;
-    if (typeof options?.results?.pingTimeout === 'number')
-      this.#pingTimeout = options.results.pingTimeout;
-    if (typeof options?.results?.timeout === 'number')
-      this.#resultsTimeout = options.results.timeout;
+    if (typeof options?.results?.pingTimeout === 'number') this.#pingTimeout = options.results.pingTimeout;
+    if (typeof options?.results?.timeout === 'number') this.#resultsTimeout = options.results.timeout;
     if (options?.layer?.channels) this.#channels = options.layer.channels;
   }
 
@@ -243,17 +226,10 @@ export default class EventEmitter<E extends Emitter = Emitter> {
    * finishes processing it'll send a response to this function (this is handler for a specific
    * event inside of the event emitter).
    */
-  private resultsListener(
-    handlerId: string,
-    resultId: string,
-    _: string | null,
-    result: any
-  ) {
+  private resultsListener(handlerId: string, resultId: string, _: string | null, result: any) {
     const hasPendingResultsForId =
-      typeof this.#pendingResults[resultId] === 'object' &&
-      this.#pendingResults[resultId] !== undefined;
-    if (hasPendingResultsForId)
-      this.#pendingResults[resultId][handlerId] = result;
+      typeof this.#pendingResults[resultId] === 'object' && this.#pendingResults[resultId] !== undefined;
+    if (hasPendingResultsForId) this.#pendingResults[resultId][handlerId] = result;
   }
 
   /**
@@ -274,11 +250,9 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     key: string,
     callback: ResultWrappedCallbackType
   ) {
-    if (key in this.#groupByKeys === false)
-      this.#groupByKeys[key] = new Set([handlerGroupId]);
+    if (key in this.#groupByKeys === false) this.#groupByKeys[key] = new Set([handlerGroupId]);
 
-    if (this.#groups[handlerGroupId])
-      this.#groups[handlerGroupId].listeners[handlerId] = callback;
+    if (this.#groups[handlerGroupId]) this.#groups[handlerGroupId].listeners[handlerId] = callback;
     else {
       this.#groups[handlerGroupId] = {
         listeners: {
@@ -325,28 +299,21 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     for (let i = 0; i < splittedKey.length; i++) {
       const isLastKey = i === splittedKey.length - 1;
       const eachKey = splittedKey[i];
-      const newAppendedKey = `${appendedKey}${
-        i > 0 ? this.#delimiter : ''
-      }${eachKey}`;
+      const newAppendedKey = `${appendedKey}${i > 0 ? this.#delimiter : ''}${eachKey}`;
 
       if (isLastKey) {
-        const wildCardLastKey = `${appendedKey}${
-          i > 0 ? this.#delimiter : ''
-        }*`;
-        if (this.#groupByKeys[wildCardLastKey])
-          this.#groupByKeys[wildCardLastKey].add(handlerGroupId);
+        const wildCardLastKey = `${appendedKey}${i > 0 ? this.#delimiter : ''}*`;
+        if (this.#groupByKeys[wildCardLastKey]) this.#groupByKeys[wildCardLastKey].add(handlerGroupId);
         else this.#groupByKeys[wildCardLastKey] = new Set([handlerGroupId]);
 
         const completeKey = newAppendedKey;
-        if (this.#groupByKeys[completeKey])
-          this.#groupByKeys[completeKey].add(handlerGroupId);
+        if (this.#groupByKeys[completeKey]) this.#groupByKeys[completeKey].add(handlerGroupId);
         else this.#groupByKeys[completeKey] = new Set([handlerGroupId]);
 
         allKeysOfKey.push(wildCardLastKey, completeKey);
       } else {
         const deepNestedKey = `${newAppendedKey}${this.#delimiter}**`;
-        if (this.#groupByKeys[deepNestedKey])
-          this.#groupByKeys[deepNestedKey].add(handlerGroupId);
+        if (this.#groupByKeys[deepNestedKey]) this.#groupByKeys[deepNestedKey].add(handlerGroupId);
         else this.#groupByKeys[deepNestedKey] = new Set([handlerGroupId]);
 
         allKeysOfKey.push(deepNestedKey);
@@ -354,8 +321,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
       appendedKey = newAppendedKey;
     }
 
-    if (this.#groups[handlerGroupId])
-      this.#groups[handlerGroupId].listeners[handlerId] = callback;
+    if (this.#groups[handlerGroupId]) this.#groups[handlerGroupId].listeners[handlerId] = callback;
     else {
       this.#groups[handlerGroupId] = {
         listeners: {
@@ -386,30 +352,28 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     callback: ResultWrappedCallbackType | ((...args: any) => any),
     isResultWrapped = true
   ) {
-    const preventMultipleCallsWrappedCallback: ResultWrappedCallbackType =
-      async (resultsEventName, resultKey, channelLayer, ...data) => {
-        // Guarantee that we will only call the handler once, this is useful for layers we might send multiple times
-        // because the same emitter might be attached to the same layer.
-        const isThisHandlerAlreadyWorkingForAResponse =
-          this.#pendingHandlerIdForResultKey.has(handlerId) &&
-          this.#pendingHandlerIdForResultKey.get(handlerId) === resultKey;
+    const preventMultipleCallsWrappedCallback: ResultWrappedCallbackType = async (
+      resultsEventName,
+      resultKey,
+      channelLayer,
+      ...data
+    ) => {
+      // Guarantee that we will only call the handler once, this is useful for layers we might send multiple times
+      // because the same emitter might be attached to the same layer.
+      const isThisHandlerAlreadyWorkingForAResponse =
+        this.#pendingHandlerIdForResultKey.has(handlerId) &&
+        this.#pendingHandlerIdForResultKey.get(handlerId) === resultKey;
 
-        if (isThisHandlerAlreadyWorkingForAResponse === false) {
-          this.#pendingHandlerIdForResultKey.set(handlerId, resultKey);
-          if (isResultWrapped)
-            await Promise.resolve(
-              (callback as ResultWrappedCallbackType)(
-                resultsEventName,
-                resultKey,
-                channelLayer,
-                ...data
-              )
-            );
-          else
-            await Promise.resolve((callback as (...args: any) => any)(...data));
-          this.#pendingHandlerIdForResultKey.delete(handlerId);
-        }
-      };
+      if (isThisHandlerAlreadyWorkingForAResponse === false) {
+        this.#pendingHandlerIdForResultKey.set(handlerId, resultKey);
+        if (isResultWrapped)
+          await Promise.resolve(
+            (callback as ResultWrappedCallbackType)(resultsEventName, resultKey, channelLayer, ...data)
+          );
+        else await Promise.resolve((callback as (...args: any) => any)(...data));
+        this.#pendingHandlerIdForResultKey.delete(handlerId);
+      }
+    };
     return preventMultipleCallsWrappedCallback.bind(this);
   }
 
@@ -424,10 +388,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
    * @param handlerId - We need the handlerId so we know that exactly that this handler that is
    * working on a response.
    */
-  async #wrapInResultCallback(
-    handlerId: string,
-    callback: (...args: any) => any
-  ) {
+  async #wrapInResultCallback(handlerId: string, callback: (...args: any) => any) {
     const resultWrappedCallback: ResultWrappedCallbackType = async (
       resultsEventName,
       resultKey,
@@ -455,11 +416,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
       }
     };
 
-    return this.#wrapInPendingHandlerToPreventMultipleCalls(
-      handlerId,
-      resultWrappedCallback.bind(this),
-      true
-    );
+    return this.#wrapInPendingHandlerToPreventMultipleCalls(handlerId, resultWrappedCallback.bind(this), true);
   }
 
   /**
@@ -498,10 +455,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
    *
    * @returns - A unsubscribe function that if called, will remove the listener from the emitter.
    */
-  async addEventListenerWithoutResult(
-    key: string,
-    callback: (...args: any) => any
-  ) {
+  async addEventListenerWithoutResult(key: string, callback: (...args: any) => any) {
     return this.#addEventListenerWithOptions(
       key,
       {
@@ -526,10 +480,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
    *
    * @returns - Returns the unsubscribe function that should be called to unsubscribe the listener.
    */
-  protected async addRawEventListenerWithoutResult(
-    key: string,
-    callback: (...args: any) => any
-  ) {
+  protected async addRawEventListenerWithoutResult(key: string, callback: (...args: any) => any) {
     return this.#addEventListenerWithOptions(
       key,
       { useResult: false, wildcards: false, usePreventMultipleCalls: false },
@@ -563,30 +514,17 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     // A group means another handler for the same key. For example, to listeners to `users.create.index` will point to the same
     // group but are different handlers. Generally speaking, the groupId will be the name of the event that you should append
     // in your custom listeners.
-    const handlerGroupId =
-      key in this.#groupByKeys
-        ? [...this.#groupByKeys[key].values()][0]
-        : `group-${uuid()}`;
+    const handlerGroupId = key in this.#groupByKeys ? [...this.#groupByKeys[key].values()][0] : `group-${uuid()}`;
     const handlerId = `handler-${uuid()}`;
 
-    if (options.useResult)
-      callback = await this.#wrapInResultCallback(handlerId, callback);
+    if (options.useResult) callback = await this.#wrapInResultCallback(handlerId, callback);
     else if (options.usePreventMultipleCalls) {
-      callback = await this.#wrapInPendingHandlerToPreventMultipleCalls(
-        handlerId,
-        callback,
-        false
-      );
+      callback = await this.#wrapInPendingHandlerToPreventMultipleCalls(handlerId, callback, false);
     }
     if (options.wildcards) {
       this.#addListenerWithWildcards(handlerGroupId, handlerId, key, callback);
     } else {
-      this.#addListenerWithoutWildcards(
-        handlerGroupId,
-        handlerId,
-        key,
-        callback
-      );
+      this.#addListenerWithoutWildcards(handlerGroupId, handlerId, key, callback);
     }
 
     // Adds the event listener to the emitter class so that we will be able to emit events.
@@ -617,20 +555,13 @@ export default class EventEmitter<E extends Emitter = Emitter> {
             const groupKeysAndListeners = this.#groups[groupId];
             if (groupKeysAndListeners) {
               const listeners = Object.values(groupKeysAndListeners.listeners);
-              const listenerRemovalPromises = listeners.map(
-                async (listener) => {
-                  await this.emitter.removeEventListener(
-                    groupId,
-                    options.key,
-                    listener
-                  );
-                }
-              );
+              const listenerRemovalPromises = listeners.map(async (listener) => {
+                await this.emitter.removeEventListener(groupId, options.key, listener);
+              });
 
               const keysToRemove = groupKeysAndListeners.keys.values();
               for (const keyBeingRemoved of keysToRemove) {
-                if (this.#groupByKeys[keyBeingRemoved].size === 1)
-                  delete this.#groupByKeys[keyBeingRemoved];
+                if (this.#groupByKeys[keyBeingRemoved].size === 1) delete this.#groupByKeys[keyBeingRemoved];
                 else this.#groupByKeys[keyBeingRemoved].delete(groupId);
               }
               await Promise.all(listenerRemovalPromises);
@@ -647,8 +578,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
         const keysToRemove = Object.keys(this.#groupByKeys);
         // we don't want to remove the results listener we keep it open.
         for (const key of keysToRemove) {
-          if (this.resultsEventName !== key)
-            promises.push(this.unsubscribeAll({ key }));
+          if (this.resultsEventName !== key) promises.push(this.unsubscribeAll({ key }));
         }
         await Promise.all(promises);
       }
@@ -661,8 +591,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
    * @param channel - The channel that you want to unsubscribe from.
    */
   async unsubscribeFromChannel(channel: string) {
-    if (channel in this.#unsubscribeByChannel)
-      await this.#unsubscribeByChannel[channel]();
+    if (channel in this.#unsubscribeByChannel) await this.#unsubscribeByChannel[channel]();
   }
 
   /**
@@ -675,8 +604,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
   #unsubscribeGroup(handlerGroupId: string) {
     for (const keyToRemoveIdFrom of this.#groups[handlerGroupId].keys) {
       this.#groupByKeys[keyToRemoveIdFrom].delete(handlerGroupId);
-      const isHandlerByKeyEmpty =
-        this.#groupByKeys[keyToRemoveIdFrom].size === 0;
+      const isHandlerByKeyEmpty = this.#groupByKeys[keyToRemoveIdFrom].size === 0;
       if (isHandlerByKeyEmpty) delete this.#groupByKeys[keyToRemoveIdFrom];
     }
     delete this.#groups[handlerGroupId];
@@ -707,12 +635,9 @@ export default class EventEmitter<E extends Emitter = Emitter> {
   async #unsubscribe(handlerGroupId: string, key: string, handlerId: string) {
     const unsubscribeHandlerFunction = async () => {
       const doesGroupStillExists = handlerGroupId in this.#groups;
-      const doesHandlerStillExists =
-        doesGroupStillExists &&
-        handlerId in this.#groups[handlerGroupId].listeners;
+      const doesHandlerStillExists = doesGroupStillExists && handlerId in this.#groups[handlerGroupId].listeners;
       const isLastListenerFromGroup =
-        doesHandlerStillExists &&
-        Object.keys(this.#groups[handlerGroupId].listeners).length === 1;
+        doesHandlerStillExists && Object.keys(this.#groups[handlerGroupId].listeners).length === 1;
 
       if (doesHandlerStillExists) {
         const listener = this.#groups[handlerGroupId].listeners[handlerId];
@@ -754,30 +679,18 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     channelLayer: string | null,
     ...data: any[]
   ) {
-    const groupIdsToEmitEventTo = (
-      this.#groupByKeys[key] || new Set()
-    ).values();
+    const groupIdsToEmitEventTo = (this.#groupByKeys[key] || new Set()).values();
 
     for (const groupId of groupIdsToEmitEventTo) {
-      const groupListenersIds = Object.keys(
-        this.#groups[groupId]?.listeners || {}
-      );
+      const groupListenersIds = Object.keys(this.#groups[groupId]?.listeners || {});
       // This will prevent that we will emit the event multiple times to the same handler.
       const areAllListenersBeingHandled = groupListenersIds.every(
-        (handlerId) =>
-          this.#pendingHandlerIdForResultKey.get(handlerId) === resultKey
+        (handlerId) => this.#pendingHandlerIdForResultKey.get(handlerId) === resultKey
       );
 
       if (areAllListenersBeingHandled === false) {
         const originalKey = this.#getOriginalKeyFromGroup(key, groupId);
-        this.emitter.emit(
-          groupId,
-          originalKey,
-          resultsEventName,
-          resultKey,
-          channelLayer,
-          ...data
-        );
+        this.emitter.emit(groupId, originalKey, resultsEventName, resultKey, channelLayer, ...data);
       }
     }
   }
@@ -800,31 +713,16 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     return new Promise((resolve, reject) => {
       function keepAlive(this: EventEmitter, startTimer: number) {
         try {
-          const hasReachedTimeout =
-            Date.now() - startTimer > this.#resultsTimeout;
-          const hasResultForKey =
-            Object.keys(this.#pendingResults[resultKey]).length > 0;
-          const resultsAsArray = Object.values(
-            this.#pendingResults[resultKey] || {}
-          );
-          const allResultsConcluded =
-            hasResultForKey &&
-            resultsAsArray.every(({ status }) => status !== 'pending');
-          const isPingTimeoutPassed =
-            Date.now() - startTimer > this.#pingTimeout;
-          const hasReachedPingTimeout =
-            hasResultForKey === false && isPingTimeoutPassed;
+          const hasReachedTimeout = Date.now() - startTimer > this.#resultsTimeout;
+          const hasResultForKey = Object.keys(this.#pendingResults[resultKey]).length > 0;
+          const resultsAsArray = Object.values(this.#pendingResults[resultKey] || {});
+          const allResultsConcluded = hasResultForKey && resultsAsArray.every(({ status }) => status !== 'pending');
+          const isPingTimeoutPassed = Date.now() - startTimer > this.#pingTimeout;
+          const hasReachedPingTimeout = hasResultForKey === false && isPingTimeoutPassed;
 
-          if (
-            (allResultsConcluded && isPingTimeoutPassed) ||
-            hasReachedTimeout
-          ) {
+          if ((allResultsConcluded && isPingTimeoutPassed) || hasReachedTimeout) {
             delete this.#pendingResults[resultKey];
-            return resolve(
-              resultsAsArray
-                .filter(({ status }) => status === 'completed')
-                .map(({ result }) => result)
-            );
+            return resolve(resultsAsArray.filter(({ status }) => status === 'completed').map(({ result }) => result));
           } else if (hasReachedPingTimeout) {
             return resolve([]);
           }
@@ -849,27 +747,15 @@ export default class EventEmitter<E extends Emitter = Emitter> {
    *
    * @return - A promise that will wait for a return of the emitters.
    */
-  async emitToChannel<R = unknown>(
-    channels: string[] | string,
-    key: string,
-    ...data: any[]
-  ) {
+  async emitToChannel<R = unknown>(channels: string[] | string, key: string, ...data: any[]) {
     const resultKey = `emittedToChannelResultKey-${uuid()}`;
     this.#pendingResults[resultKey] = {};
 
     if (this.layer) {
       const channelsAsArray = Array.isArray(channels) ? channels : [channels];
-      const filteredChannels = channelsAsArray.filter((channel) =>
-        this.#channels.includes(channel)
-      );
+      const filteredChannels = channelsAsArray.filter((channel) => this.#channels.includes(channel));
       for (const channel of filteredChannels) {
-        this.layer.emitEventToEmitter(
-          channel,
-          this.resultsEventName,
-          resultKey,
-          channel,
-          { key, data }
-        );
+        this.layer.emitEventToEmitter(channel, this.resultsEventName, resultKey, channel, { key, data });
       }
       return this.#fetchResultForEmit(resultKey) as Promise<R[]>;
     } else {
@@ -891,13 +777,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     const resultKey = `emittedResultKey-${uuid()}`;
     this.#pendingResults[resultKey] = {};
 
-    this.emitEventToEmitter(
-      key,
-      this.resultsEventName,
-      resultKey,
-      null,
-      ...data
-    );
+    this.emitEventToEmitter(key, this.resultsEventName, resultKey, null, ...data);
 
     return this.#fetchResultForEmit(resultKey) as Promise<R[]>;
   }
@@ -931,21 +811,9 @@ export default class EventEmitter<E extends Emitter = Emitter> {
   ) {
     // Sends Event -> Emits to Layer -> Layer dispatches to actual handler -> result is wrapped and sent back to layer.
     if (this.layer && channelLayer !== null) {
-      this.layer.emitEventToEmitter(
-        channelLayer,
-        handlerId,
-        resultKey,
-        channelLayer,
-        { key: resultsEventName, data }
-      );
+      this.layer.emitEventToEmitter(channelLayer, handlerId, resultKey, channelLayer, { key: resultsEventName, data });
     } else if (channelLayer === null) {
-      this.emitEventToEmitter(
-        resultsEventName,
-        handlerId,
-        resultKey,
-        null,
-        ...data
-      );
+      this.emitEventToEmitter(resultsEventName, handlerId, resultKey, null, ...data);
     }
   }
 
@@ -979,13 +847,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
         data: any[];
       }
     ) {
-      this.emitEventToEmitter(
-        data.key,
-        resultsEventName,
-        resultKey,
-        channel,
-        ...(data.data || [])
-      );
+      this.emitEventToEmitter(data.key, resultsEventName, resultKey, channel, ...(data.data || []));
     }
     return layerListener.bind(this);
   }
@@ -1001,10 +863,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
   private async addChannelListeners(channels: string[]) {
     const promises = channels.map(async (channel) => {
       if (this.layer) {
-        const unsubscribe = await this.layer.addRawEventListenerWithoutResult(
-          channel,
-          await this.#getLayerListener()
-        );
+        const unsubscribe = await this.layer.addRawEventListenerWithoutResult(channel, await this.#getLayerListener());
         this.#unsubscribeByChannel[channel] = unsubscribe;
       }
     });

@@ -52,6 +52,15 @@ export type ObjectAdapterTranslateArgs = {
   data: Record<string, any>;
 } & AdapterTranslateArgs;
 
+export type UnionAdapterTranslateArgs = {
+  schemas: any;
+} & AdapterTranslateArgs;
+
+export type UnionAdapterTranslateArgsWithoutNonTranslateArgs = Omit<
+  UnionAdapterTranslateArgs,
+  keyof NonToTranslateArgs
+>;
+
 export type ObjectAdapterTranslateArgsWithoutNonTranslateArgs = Omit<
   ObjectAdapterTranslateArgs,
   keyof NonToTranslateArgs

@@ -1,7 +1,11 @@
 import Schema from './schema';
 import { getDefaultAdapter } from '../conf';
 import FieldAdapter from '../adapter/fields';
-import { defaultTransform } from '../utils';
+import {
+  defaultTransform,
+  getTranslatedSchemaFromAdapter,
+  transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas,
+} from '../utils';
 import { objectValidation } from '../validators/object';
 import { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from './types';
 import Validator from '../validators/utils';
@@ -42,7 +46,8 @@ export default class ObjectSchema<
   async _transformToAdapter(
     options: Parameters<Schema['_transformToAdapter']>[0]
   ): Promise<ReturnType<FieldAdapter['translate']>> {
-    if (this.__adapter.object.__result === undefined) {
+    const translatedSchemaOfAdapter = getTranslatedSchemaFromAdapter(this.__adapter, 'object');
+    if (translatedSchemaOfAdapter === undefined) {
       const promises: Promise<any>[] = [];
       const fallbackByKeys: Record<string, Schema> = {};
 
@@ -54,32 +59,14 @@ export default class ObjectSchema<
 
       for (const [key, valueToTransform] of toTransform) {
         const awaitableTransformer = async () => {
-          const valueToTransformWithProtected = valueToTransform as Schema & {
-            __toInternal: Schema['__toInternal'];
-            __toValidate: Schema['__toValidate'];
-            __toRepresentation: Schema['__toRepresentation'];
-            __defaultFunction: Schema['__defaultFunction'];
-            __rootFallbacksValidator: Schema['__rootFallbacksValidator'];
-            __or: Schema['__or'];
-          };
-
-          transformedData[key] = await valueToTransform._transformToAdapter(options); // This should come first because we will get the fallbacks of the field here.
-          valueToTransform.__modifyItselfForParent = (schema) => {
-            const newSchema = schema._transformToAdapter(options);
-            transformedData[key] = newSchema;
-          };
-
-          const doesKeyHaveFallback = valueToTransformWithProtected.__rootFallbacksValidator !== undefined;
-          const doesKeyHaveToInternal = typeof valueToTransformWithProtected.__toInternal === 'function';
-          const doesKeyHaveToValidate = typeof valueToTransformWithProtected.__toValidate === 'function';
-          const doesKeyHaveToDefault = typeof valueToTransformWithProtected.__defaultFunction === 'function';
-          const doesHaveUnion = valueToTransformWithProtected.__or.size > 0;
-          const shouldAddFallbackValidationForThisKey =
-            doesKeyHaveFallback ||
-            doesKeyHaveToInternal ||
-            doesKeyHaveToValidate ||
-            doesKeyHaveToDefault ||
-            doesHaveUnion;
+          const [transformedData, shouldAddFallbackValidationForThisKey] =
+            await transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas(valueToTransform, {
+              ...options,
+              modifyItself: (schema) => {
+                const newTranslatedSchema = schema._transformToAdapter(options);
+                transformedData[key] = newTranslatedSchema;
+              },
+            });
           shouldValidateWithFallback = shouldValidateWithFallback || shouldAddFallbackValidationForThisKey;
 
           if (shouldAddFallbackValidationForThisKey) fallbackByKeys[key] = valueToTransform;
@@ -88,8 +75,7 @@ export default class ObjectSchema<
       }
 
       await Promise.all(promises);
-      if (shouldValidateWithFallback)
-        Validator.createAndAppendFallback(this, objectValidation(fallbackByKeys), fallbackByKeys);
+      if (shouldValidateWithFallback) Validator.createAndAppendFallback(this, objectValidation(fallbackByKeys));
 
       return defaultTransform(
         'object',
@@ -99,11 +85,12 @@ export default class ObjectSchema<
           nullable: this.__nullable,
           optional: this.__optional,
         },
+        {},
         {}
       );
     }
 
-    return this.__adapter.object.__result;
+    return translatedSchemaOfAdapter;
   }
 
   protected async __parse(

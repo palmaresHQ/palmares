@@ -1,5 +1,6 @@
 import Schema from '../schema/schema';
-import { ValidationFallbackCallbackReturnType, ValidationFallbackReturnType } from '../schema/types';
+
+import type { ValidationFallbackCallbackReturnType, ValidationFallbackReturnType } from '../schema/types';
 
 export function objectValidation(keysToFallback: { [key: string]: Schema }): ValidationFallbackReturnType {
   return {

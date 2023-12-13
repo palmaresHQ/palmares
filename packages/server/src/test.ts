@@ -39,6 +39,16 @@ export const rootRouter = path(
   '/test/<hello: {\\d+}:number>/<userId: string>?hello={[\\d\\w]+}:number&world=string[]?'
 );
 
+const toReturn = {
+  hello: {
+    type: ['number'],
+    regex: new RegExp('\\d+'),
+  },
+  userId: {
+    type: ['string'],
+  },
+};
+
 const testRequestMiddleware1 = nestedMiddleware<typeof rootRouter>()({
   options: {
     responses: {

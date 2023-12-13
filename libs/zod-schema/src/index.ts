@@ -9,6 +9,7 @@ export class ZodSchemaAdapter extends SchemaAdapter {
   field = new ZodFieldSchemaAdapter();
   number = new ZodNumberFieldSchemaAdapter();
   object = new ZodObjectFieldSchemaAdapter();
+  union = undefined;
 
   async formatError(error: z.ZodIssue) {
     return {

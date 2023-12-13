@@ -24,6 +24,13 @@ export default class Schema<
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
 > {
+  __types!: {
+    input: TType['input'];
+    output: TType['output'];
+    validate: TType['validate'];
+    internal: TType['internal'];
+    representation: TType['representation'];
+  };
   protected __adapter!: TDefinitions['schemaAdapter'];
 
   __rootFallbacksValidator!: Validator;
@@ -58,7 +65,6 @@ export default class Schema<
     message: 'Invalid type',
     check: () => true,
   };
-  protected __or = new Set<Schema<any>>();
 
   /**
    * This will validate the data with the fallbacks, so internally, without relaying on the schema adapter. This is nice because we can support things that the schema adapter is not able to support by default.
@@ -81,8 +87,6 @@ export default class Schema<
 
     return parseResult;
   }
-
-  private async _recompile() {}
 
   /**
    * This will validate by the adapter. In other words, we send the data to the schema adapter and then we validate that data.
@@ -108,6 +112,7 @@ export default class Schema<
     const schemaAdapterFieldType = this.constructor.name
       .replace('Schema', '')
       .toLowerCase() as OnlyFieldAdaptersFromSchemaAdapter;
+    if (this.__adapter[schemaAdapterFieldType] === undefined) return parseResult;
 
     const adapterParseResult = await this.__adapter[schemaAdapterFieldType].parse(
       this.__adapter,
@@ -154,75 +159,36 @@ export default class Schema<
 
     if (shouldCallDefaultFunction) value = await (this.__defaultFunction as any)();
     if (shouldCallToValidateCallback) value = await Promise.resolve((this.__toValidate as any)(value));
-    const validateAgainstUnions = new Set([this as Schema<any>, ...this.__or]);
 
-    const parsedResultByUnions = new Map<
-      Schema,
-      {
-        errors: undefined | ValidationFallbackCallbackReturnType['errors'];
-        parsed: TType['input'];
-      }
-    >();
-
-    for (const schemaToParseAgainst of validateAgainstUnions) {
-      const parseResult: {
-        errors: undefined | ValidationFallbackCallbackReturnType['errors'];
-        parsed: TType['input'];
-      } = { errors: undefined, parsed: value };
-      parsedResultByUnions.set(schemaToParseAgainst, parseResult);
-
-      const parsedResultsAfterAdapter = await schemaToParseAgainst.__validateByAdapter(
-        value,
-        errorsAsHashedSet,
-        path,
-        parseResult,
-        options
-      );
-      parseResult.errors = parsedResultsAfterAdapter.errors;
-      parseResult.parsed = parsedResultsAfterAdapter.parsed;
-
-      const parsedResultsAfterFallbacks = await schemaToParseAgainst.__validateByFallbacks(
-        errorsAsHashedSet,
-        path,
-        parseResult
-      );
-      parseResult.errors = parsedResultsAfterFallbacks.errors;
-      parseResult.parsed = parsedResultsAfterFallbacks.parsed;
-
-      const areThereNoErrors = (parseResult.errors?.length || 0) <= 0;
-      if (areThereNoErrors) {
-        if (options.modifyItself) options.modifyItself(schemaToParseAgainst);
-        break;
-      }
-    }
-
-    let selectedSchema = this as Schema<any>;
-    const finalParseResult: {
+    const parseResult: {
       errors: undefined | ValidationFallbackCallbackReturnType['errors'];
       parsed: TType['input'];
-    } = {
-      errors: [],
+    } = { errors: undefined, parsed: value };
+
+    const parsedResultsAfterAdapter = await this.__validateByAdapter(
+      value,
+      errorsAsHashedSet,
+      path,
+      parseResult,
+      options
+    );
+    parseResult.errors = parsedResultsAfterAdapter.errors;
+    parseResult.parsed = parsedResultsAfterAdapter.parsed;
+
+    const parsedResultsAfterFallbacks = await this.__validateByFallbacks(errorsAsHashedSet, path, {
+      errors: parseResult.errors,
       parsed: value,
-    };
+    });
+    parseResult.errors = parsedResultsAfterFallbacks.errors;
+    parseResult.parsed = parsedResultsAfterFallbacks.parsed;
 
-    for (const [schema, { errors, parsed }] of parsedResultByUnions.entries()) {
-      finalParseResult.parsed = parsed;
-      selectedSchema = schema;
-
-      if (errors && finalParseResult.errors) finalParseResult.errors.push(...errors);
-      else {
-        finalParseResult.errors = undefined;
-        break;
-      }
-    }
-
-    const doesNotHaveErrors = !Array.isArray(finalParseResult.errors) || finalParseResult.errors.length === 0;
-    const hasToInternalCallback = typeof selectedSchema.__toInternal === 'function';
+    const doesNotHaveErrors = !Array.isArray(parseResult.errors) || parseResult.errors.length === 0;
+    const hasToInternalCallback = typeof this.__toInternal === 'function';
     const shouldCallToInternalDuringParse =
       doesNotHaveErrors && hasToInternalCallback && Array.isArray(options.toInternalToBubbleUp) === false;
 
-    if (shouldCallToInternalDuringParse) finalParseResult.parsed = await (selectedSchema.__toInternal as any)(value);
-    return finalParseResult;
+    if (shouldCallToInternalDuringParse) parseResult.parsed = await (this.__toInternal as any)(value);
+    return parseResult;
   }
 
   async _transform(value: TType['output']): Promise<TType['representation']> {
@@ -308,20 +274,6 @@ export default class Schema<
     this.__type.check = typeof args.check === 'function' ? args.check : this.__type.check;
     this.__type.message = typeof args.message === 'string' ? args.message : this.__type.message;
 
-    return this as unknown as Schema<
-      {
-        input: TType['input'];
-        validate: TType['validate'];
-        internal: TType['internal'];
-        output: TType['output'];
-        representation: TType['representation'];
-      },
-      TDefinitions
-    >;
-  }
-
-  or(...schemas: Schema[]) {
-    for (const schema of schemas) this.__or.add(schema);
     return this as unknown as Schema<
       {
         input: TType['input'];

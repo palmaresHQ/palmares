@@ -80,7 +80,7 @@ export type ValidateDomains<
             >
           ]
       : never
-    : string
+    : never
   : TDomains;
 
 export type InstalledDomainsType = Promise<{ default: typeof Domain }>[] | typeof Domain[];

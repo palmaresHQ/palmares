@@ -48,8 +48,6 @@ export default class NumberSchema<
     message: string;
   };
 
-  extends(callback: (schema: ReturnType<TDefinitions['schemaAdapter']['number']['translate']>) => any) {}
-
   async _transformToAdapter(options: Parameters<Schema['_transformToAdapter']>[0]): Promise<any> {
     return defaultTransform(
       'number',
@@ -66,7 +64,8 @@ export default class NumberSchema<
       {
         max,
         min,
-      }
+      },
+      {}
     );
   }
 
