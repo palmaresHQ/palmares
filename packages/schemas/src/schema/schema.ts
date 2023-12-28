@@ -53,7 +53,6 @@ export default class Schema<
     message: 'Required',
     allow: false,
   };
-  __modifyItselfForParent: ((schema: Schema) => void) | undefined = undefined;
   __defaultFunction: (() => Promise<TType['input'] | TType['output']>) | undefined = undefined;
   __toRepresentation: ((value: TType['output']) => TType['output']) | undefined = undefined;
   __toValidate: ((value: TType['input']) => TType['validate']) | undefined = undefined;
@@ -112,13 +111,11 @@ export default class Schema<
     const schemaAdapterFieldType = this.constructor.name
       .replace('Schema', '')
       .toLowerCase() as OnlyFieldAdaptersFromSchemaAdapter;
-    if (this.__adapter[schemaAdapterFieldType] === undefined) return parseResult;
+    if (typeof this.__adapter[schemaAdapterFieldType]?.parse !== 'function') return parseResult;
 
-    const adapterParseResult = await this.__adapter[schemaAdapterFieldType].parse(
-      this.__adapter,
-      transformedSchema,
-      value
-    );
+    const adapterParseResult = await (
+      this.__adapter[schemaAdapterFieldType].parse as NonNullable<FieldAdapter['parse']>
+    )(this.__adapter, transformedSchema, value);
     parseResult.parsed = adapterParseResult.parsed;
     if (adapterParseResult.errors) {
       if (Array.isArray(adapterParseResult.errors))
@@ -164,30 +161,55 @@ export default class Schema<
       errors: undefined | ValidationFallbackCallbackReturnType['errors'];
       parsed: TType['input'];
     } = { errors: undefined, parsed: value };
-
-    const parsedResultsAfterAdapter = await this.__validateByAdapter(
+    let parsedResultsAfterAdapter = await this.__validateByAdapter(
       value,
       errorsAsHashedSet,
       path,
-      parseResult,
+      { parsed: parseResult.parsed, errors: [] },
       options
     );
-    parseResult.errors = parsedResultsAfterAdapter.errors;
-    parseResult.parsed = parsedResultsAfterAdapter.parsed;
 
-    const parsedResultsAfterFallbacks = await this.__validateByFallbacks(errorsAsHashedSet, path, {
-      errors: parseResult.errors,
-      parsed: value,
-    });
-    parseResult.errors = parsedResultsAfterFallbacks.errors;
+    let shouldValidateByAdapterAgain = false;
+    const parsedResultsAfterFallbacks = await this.__validateByFallbacks(
+      errorsAsHashedSet,
+      path,
+      {
+        errors: parseResult.errors,
+        parsed: value,
+      },
+      {
+        ...options,
+        modifyItself: async () => {
+          await options.modifyItself?.(this);
+          shouldValidateByAdapterAgain = true;
+        },
+      }
+    );
     parseResult.parsed = parsedResultsAfterFallbacks.parsed;
+
+    if (shouldValidateByAdapterAgain) {
+      parsedResultsAfterAdapter = await this.__validateByAdapter(
+        value,
+        errorsAsHashedSet,
+        path,
+        { parsed: parseResult.parsed, errors: [] },
+        options
+      );
+      parseResult.parsed = parsedResultsAfterAdapter.parsed;
+    }
+
+    parseResult.errors = [...(parsedResultsAfterAdapter.errors || []), ...(parsedResultsAfterFallbacks.errors || [])];
+
+    const areErrorsEmpty = Array.isArray(parseResult.errors) && parseResult.errors.length === 0;
+    if (areErrorsEmpty) parseResult.errors = undefined;
 
     const doesNotHaveErrors = !Array.isArray(parseResult.errors) || parseResult.errors.length === 0;
     const hasToInternalCallback = typeof this.__toInternal === 'function';
     const shouldCallToInternalDuringParse =
       doesNotHaveErrors && hasToInternalCallback && Array.isArray(options.toInternalToBubbleUp) === false;
+    const hasNoErrors = parseResult.errors === undefined || (parseResult.errors || []).length === 0;
 
-    if (shouldCallToInternalDuringParse) parseResult.parsed = await (this.__toInternal as any)(value);
+    if (shouldCallToInternalDuringParse && hasNoErrors) parseResult.parsed = await (this.__toInternal as any)(value);
     return parseResult;
   }
 

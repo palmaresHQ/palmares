@@ -44,23 +44,23 @@ export default class UnionSchema<
 
     if (translatedSchemaOfAdapter === undefined) {
       const promises: Promise<any>[] = [];
-      let shouldHandleByFallback = this.__adapter.union === undefined; // SHould handle by fallback if the adapter does not have a union adapter
+      let shouldHandleByFallback = false;
       for (const schemaToTransform of this.__schemas.values()) {
         const awaitableTransformer = async () => {
           const [transformedData, shouldAddFallbackValidationForThisKey] =
-            await transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas(schemaToTransform, {
-              ...options,
-              modifyItself: (schema) => {
-                schema.__adapter.field.__result = undefined;
-              },
-            });
+            await transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas(schemaToTransform, options);
           if (shouldAddFallbackValidationForThisKey) shouldHandleByFallback = true;
           return transformedData;
         };
         promises.push(awaitableTransformer());
       }
+
       const transformedSchemas = await Promise.all(promises);
-      if (shouldHandleByFallback) Validator.createAndAppendFallback(this, unionValidation(Array.from(this.__schemas)));
+      if (shouldHandleByFallback)
+        Validator.createAndAppendFallback(this, unionValidation(Array.from(this.__schemas), options), {
+          at: 0,
+          removeCurrent: true,
+        });
 
       return defaultTransform(
         'union',

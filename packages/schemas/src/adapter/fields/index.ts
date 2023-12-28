@@ -10,7 +10,7 @@ export default class FieldAdapter<TResult = any> {
     throw new SchemaAdapterNotImplementedError({ className: this.constructor.name, functionName: 'translate' });
   }
 
-  parse(
+  parse?(
     _adapter: SchemaAdapter,
     _result: FieldAdapter['__result'],
     _value: any

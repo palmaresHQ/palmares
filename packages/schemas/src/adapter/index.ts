@@ -7,9 +7,9 @@ import { ErrorCodes } from './types';
 
 export default class SchemaAdapter {
   field!: FieldAdapter;
-  number?: NumberAdapter;
-  object?: ObjectFieldAdapter;
-  union?: UnionFieldAdapter;
+  number!: NumberAdapter;
+  object!: ObjectFieldAdapter;
+  union: UnionFieldAdapter = new UnionFieldAdapter();
 
   async formatError(
     _error: any,

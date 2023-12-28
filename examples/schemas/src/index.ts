@@ -40,9 +40,11 @@ const objectSchema = ObjectSchema.new({
         .min(12, { inclusive: true })
         .positive()
         .toValidate((value) => {
+          console.log('toValidate', value);
           return Number(value);
         })
         .toInternal(async (value) => {
+          console.log('toInternal', value);
           return {
             teste: value,
           };
@@ -57,9 +59,35 @@ const objectSchema = ObjectSchema.new({
 });
 
 const main = async () => {
-  const [testeResult] = await Promise.all([objectSchema.parse({ heeey: 100, teste: 22 })]);
+  /*const testeResult = await objectSchema.parse({
+    heeey: 100,
+    teste: {
+      age: 10,
+      spent: 12,
+    },
+  });*/
+  const teste2Result = await objectSchema.parse({
+    heeey: 100,
+    teste: 10,
+  });
+  /*const [testeResult, teste2Result] = await Promise.all([
+    objectSchema.parse({
+      heeey: 100,
+      teste: {
+        age: 10,
+        spent: 12,
+      },
+    }),
+    objectSchema.parse({
+      heeey: 100,
+      teste: 10,
+    }),
+  ]);*/
+  console.log('______//_______');
   //console.log(testeResult.errors);
-  console.log(testeResult.parsed);
+  //console.log(testeResult.parsed);
+  console.log(teste2Result.errors);
+  console.log(teste2Result.parsed);
 };
 
 main();

@@ -53,7 +53,7 @@ export default class ObjectSchema<
 
       const toTransform = this.__retrieveDataAsEntriesAndCache();
 
-      const transformedData: Record<any, any> = {};
+      const transformedDataByKeys: Record<any, any> = {};
 
       let shouldValidateWithFallback = false;
 
@@ -62,26 +62,41 @@ export default class ObjectSchema<
           const [transformedData, shouldAddFallbackValidationForThisKey] =
             await transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas(valueToTransform, {
               ...options,
-              modifyItself: (schema) => {
-                const newTranslatedSchema = schema._transformToAdapter(options);
-                transformedData[key] = newTranslatedSchema;
+              modifyItself: async (schema) => {
+                //console.log('modifyItselfCalled', schema);
+                const newTranslatedSchema = await schema._transformToAdapter(options);
+                transformedDataByKeys[key] = newTranslatedSchema;
+                console.log('modifying itself');
+                await defaultTransform(
+                  'object',
+                  this,
+                  {
+                    data: transformedDataByKeys,
+                    nullable: this.__nullable,
+                    optional: this.__optional,
+                  },
+                  {},
+                  {}
+                );
               },
             });
           shouldValidateWithFallback = shouldValidateWithFallback || shouldAddFallbackValidationForThisKey;
 
           if (shouldAddFallbackValidationForThisKey) fallbackByKeys[key] = valueToTransform;
+
+          transformedDataByKeys[key] = transformedData;
         };
         if (valueToTransform instanceof Schema) promises.push(awaitableTransformer());
       }
 
       await Promise.all(promises);
-      if (shouldValidateWithFallback) Validator.createAndAppendFallback(this, objectValidation(fallbackByKeys));
-
+      if (shouldValidateWithFallback)
+        Validator.createAndAppendFallback(this, objectValidation(fallbackByKeys), { at: 0, removeCurrent: true });
       return defaultTransform(
         'object',
         this,
         {
-          data: transformedData,
+          data: transformedDataByKeys,
           nullable: this.__nullable,
           optional: this.__optional,
         },
@@ -106,7 +121,9 @@ export default class ObjectSchema<
 
     const result = await super.__parse(value, path, options);
 
-    if (isRoot) for (const functionToModifyResult of options.toInternalToBubbleUp || []) await functionToModifyResult();
+    const hasNoErrors = result.errors === undefined || (result.errors || []).length === 0;
+    if (isRoot && hasNoErrors)
+      for (const functionToModifyResult of options.toInternalToBubbleUp || []) await functionToModifyResult();
     return result;
   }
 

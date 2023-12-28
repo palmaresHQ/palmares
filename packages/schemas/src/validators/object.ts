@@ -24,6 +24,7 @@ export function objectValidation(keysToFallback: { [key: string]: Schema }): Val
           else value[key] = parsed;
 
           // We append the toInternalToBubbleUp to the parent toInternalToBubbleUp
+
           if (schemaWithProtected.__toInternal && options.toInternalToBubbleUp)
             options.toInternalToBubbleUp.push(async () => (value[key] = await (schema as any).__toInternal(parsed)));
         })

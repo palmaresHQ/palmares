@@ -1,13 +1,13 @@
 import { FieldAdapter, ObjectAdapterTranslateArgs, ObjectFieldAdapter } from '@palmares/schemas';
 import * as z from 'zod';
 
-export default class ZodObjectFieldSchemaAdapter extends ObjectFieldAdapter<z.ZodNumber> {
+export default class ZodObjectFieldSchemaAdapter extends ObjectFieldAdapter<z.ZodObject<any>> {
   translate(fieldAdapter: FieldAdapter<any>, args: ObjectAdapterTranslateArgs) {
     let result = fieldAdapter.translate(fieldAdapter, args, z.object(args.data));
     return result;
   }
 
-  async parse(_adapter: any, result: z.ZodNumber, value: any) {
+  async parse(_adapter: any, result: z.ZodObject<any>, value: any) {
     try {
       const parsed = await result.parseAsync(value);
       return { errors: null, parsed };
