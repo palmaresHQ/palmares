@@ -46,7 +46,10 @@ export default class ObjectSchema<
   async _transformToAdapter(
     options: Parameters<Schema['_transformToAdapter']>[0]
   ): Promise<ReturnType<FieldAdapter['translate']>> {
-    const translatedSchemaOfAdapter = getTranslatedSchemaFromAdapter(this.__adapter, 'object');
+    const translatedSchemaOfAdapter = getTranslatedSchemaFromAdapter(
+      this.__adapters[options.validationKey as symbol],
+      'object'
+    );
     if (translatedSchemaOfAdapter === undefined) {
       const promises: Promise<any>[] = [];
       const fallbackByKeys: Record<string, Schema> = {};
@@ -62,21 +65,23 @@ export default class ObjectSchema<
           const [transformedData, shouldAddFallbackValidationForThisKey] =
             await transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas(valueToTransform, {
               ...options,
-              modifyItself: async (schema) => {
-                //console.log('modifyItselfCalled', schema);
+              modifyItself: async (schema, validationKey) => {
+                const copiedTransformedDataByKeys = { ...transformedDataByKeys };
                 const newTranslatedSchema = await schema._transformToAdapter(options);
-                transformedDataByKeys[key] = newTranslatedSchema;
-                console.log('modifying itself');
+                copiedTransformedDataByKeys[key] = newTranslatedSchema;
                 await defaultTransform(
                   'object',
                   this,
                   {
-                    data: transformedDataByKeys,
+                    data: copiedTransformedDataByKeys,
                     nullable: this.__nullable,
                     optional: this.__optional,
                   },
                   {},
-                  {}
+                  {
+                    force: true,
+                    validationKey: validationKey,
+                  }
                 );
               },
             });
@@ -101,7 +106,9 @@ export default class ObjectSchema<
           optional: this.__optional,
         },
         {},
-        {}
+        {
+          validationKey: options.validationKey as symbol,
+        }
       );
     }
 
@@ -111,7 +118,7 @@ export default class ObjectSchema<
   protected async __parse(
     value: TType['input'],
     path: (string | number)[] = [],
-    options: Parameters<Schema['_transformToAdapter']>[0] = {}
+    options: Parameters<Schema['_transformToAdapter']>[0]
   ): Promise<{ errors?: any[]; parsed: TType['internal'] }> {
     let isRoot = options.toInternalToBubbleUp === undefined;
 
@@ -172,7 +179,7 @@ export default class ObjectSchema<
     const DefaultAdapterClass = getDefaultAdapter();
     const adapterInstance = new DefaultAdapterClass();
 
-    returnValue.__adapter = adapterInstance;
+    returnValue.__adapters.default = adapterInstance;
 
     return returnValue;
   }

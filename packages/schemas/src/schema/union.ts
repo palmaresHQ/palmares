@@ -40,7 +40,10 @@ export default class UnionSchema<
   async _transformToAdapter(
     options: Parameters<Schema['_transformToAdapter']>[0]
   ): Promise<ReturnType<FieldAdapter['translate']>> {
-    const translatedSchemaOfAdapter = getTranslatedSchemaFromAdapter(this.__adapter, 'union');
+    const translatedSchemaOfAdapter = getTranslatedSchemaFromAdapter(
+      this.__adapters[options.validationKey as symbol],
+      'union'
+    );
 
     if (translatedSchemaOfAdapter === undefined) {
       const promises: Promise<any>[] = [];
@@ -71,7 +74,7 @@ export default class UnionSchema<
           schemas: transformedSchemas,
         },
         {},
-        { fallbackTranslatedSchema: transformedSchemas[0] }
+        { fallbackTranslatedSchema: transformedSchemas[0], validationKey: options.validationKey as symbol }
       );
     }
     return translatedSchemaOfAdapter;
@@ -85,7 +88,7 @@ export default class UnionSchema<
 
     const DefaultAdapterClass = getDefaultAdapter();
     const adapterInstance = new DefaultAdapterClass();
-    result.__adapter = adapterInstance;
+    result.__adapters.default = adapterInstance;
 
     return result;
   }

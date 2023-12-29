@@ -30,9 +30,12 @@ export function unionValidation(
         if (hasNoErrors) {
           parsedValues.errors = undefined;
           if (options.modifyItself && schemaOptions.modifyItself)
-            await Promise.all([options.modifyItself(schema), schemaOptions.modifyItself(schema)]);
-          else if (options.modifyItself) await options.modifyItself(schema);
-          else if (schemaOptions.modifyItself) await schemaOptions.modifyItself(schema);
+            await Promise.all([
+              options.modifyItself(schema, options.validationKey),
+              schemaOptions.modifyItself(schema, options.validationKey),
+            ]);
+          else if (options.modifyItself) await options.modifyItself(schema, options.validationKey);
+          else if (schemaOptions.modifyItself) await schemaOptions.modifyItself(schema, options.validationKey);
 
           break;
         } else if (startingToInternalBubbleUpLength < (options.toInternalToBubbleUp?.length || 0)) {

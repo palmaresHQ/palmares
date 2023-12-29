@@ -65,12 +65,16 @@ const main = async () => {
       age: 10,
       spent: 12,
     },
-  });*/
+  });
   const teste2Result = await objectSchema.parse({
     heeey: 100,
     teste: 10,
-  });
-  /*const [testeResult, teste2Result] = await Promise.all([
+  });*/
+  const [testeResult, teste2Result] = await Promise.all([
+    objectSchema.parse({
+      heeey: 100,
+      teste: 10,
+    }),
     objectSchema.parse({
       heeey: 100,
       teste: {
@@ -78,14 +82,10 @@ const main = async () => {
         spent: 12,
       },
     }),
-    objectSchema.parse({
-      heeey: 100,
-      teste: 10,
-    }),
-  ]);*/
+  ]);
   console.log('______//_______');
-  //console.log(testeResult.errors);
-  //console.log(testeResult.parsed);
+  console.log(testeResult.errors);
+  console.log(testeResult.parsed);
   console.log(teste2Result.errors);
   console.log(teste2Result.parsed);
 };

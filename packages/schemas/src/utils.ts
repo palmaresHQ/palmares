@@ -85,12 +85,14 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
     : ObjectAdapterTranslateArgsWithoutNonTranslateArgs,
   fallbackFunctions: FallbackFunctionsType<typeof validationData>,
   options: {
+    force?: boolean;
     /** Let's say we support unions but the library used as adapter does not support that, we should fallback to another translated schema on that case. */
     fallbackTranslatedSchema?: any;
+    validationKey: symbol;
   }
 ): Promise<any> {
   const schemaWithPrivateFields = schema as unknown as {
-    __adapter: Schema['__adapter'];
+    __adapters: Schema['__adapters'];
     __rootFallbacksValidator: Schema['__rootFallbacksValidator'];
     __optional: Schema['__optional'];
     __nullable: Schema['__nullable'];
@@ -108,11 +110,18 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
     }
   };
 
-  let translatedSchema = getTranslatedSchemaFromAdapter(schemaWithPrivateFields.__adapter, type);
-  if (translatedSchema === undefined) {
+  let adapter = schemaWithPrivateFields.__adapters[options.validationKey];
+  if (adapter === undefined) {
+    schemaWithPrivateFields.__adapters[options.validationKey] = schemaWithPrivateFields.__adapters.default;
+    adapter = schemaWithPrivateFields.__adapters[options.validationKey];
+  }
+
+  let translatedSchema = getTranslatedSchemaFromAdapter(adapter, type);
+
+  if (translatedSchema === undefined || options.force) {
     // Translate the schema to the adapter schema if there is an adapter for that schema type.
-    const adapterOfThatType = schemaWithPrivateFields.__adapter[type] as FieldAdapter;
-    const translatedSchemaOrWithFallback = adapterOfThatType.translate(schemaWithPrivateFields.__adapter.field, {
+    const adapterOfThatType = adapter[type] as FieldAdapter;
+    const translatedSchemaOrWithFallback = adapterOfThatType.translate(adapter.field, {
       withFallback: withFallbackFactory(type),
       ...validationData,
     } as any);
@@ -135,6 +144,7 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
       Validator.createAndAppendFallback(schema, checkType(schemaWithPrivateFields.__type));
     }
   }
+
   return translatedSchema;
 }
 

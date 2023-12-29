@@ -65,7 +65,9 @@ export default class NumberSchema<
         max,
         min,
       },
-      {}
+      {
+        validationKey: options.validationKey as symbol,
+      }
     );
   }
 
@@ -180,7 +182,7 @@ export default class NumberSchema<
     >();
     const adapterInstance = new (getDefaultAdapter())();
 
-    returnValue.__adapter = adapterInstance;
+    returnValue.__adapters.default = adapterInstance;
 
     return returnValue as NumberSchema<
       {

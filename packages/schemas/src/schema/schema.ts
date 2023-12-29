@@ -31,8 +31,10 @@ export default class Schema<
     internal: TType['internal'];
     representation: TType['representation'];
   };
-  protected __adapter!: TDefinitions['schemaAdapter'];
-
+  protected __adapters: {
+    [validations: symbol]: TDefinitions['schemaAdapter'];
+    default: TDefinitions['schemaAdapter'];
+  } = {} as any;
   __rootFallbacksValidator!: Validator;
   __validationSchema!: any;
   __refinements: {
@@ -79,7 +81,7 @@ export default class Schema<
       errors: undefined | ValidationFallbackCallbackReturnType['errors'];
       parsed: TType['input'];
     },
-    options: Parameters<Schema['_transformToAdapter']>[0] = {}
+    options: Parameters<Schema['_transformToAdapter']>[0]
   ) {
     if (this.__rootFallbacksValidator)
       return this.__rootFallbacksValidator.validate(errorsAsHashedSet, path, parseResult, options);
@@ -107,27 +109,29 @@ export default class Schema<
     options: Parameters<Schema['_transformToAdapter']>[0]
   ) {
     const transformedSchema = await this._transformToAdapter(options);
+    const validationKey = options.validationKey as symbol;
+    const adapter = this.__adapters[validationKey];
 
     const schemaAdapterFieldType = this.constructor.name
       .replace('Schema', '')
       .toLowerCase() as OnlyFieldAdaptersFromSchemaAdapter;
-    if (typeof this.__adapter[schemaAdapterFieldType]?.parse !== 'function') return parseResult;
+    if (typeof adapter[schemaAdapterFieldType]?.parse !== 'function') return parseResult;
 
-    const adapterParseResult = await (
-      this.__adapter[schemaAdapterFieldType].parse as NonNullable<FieldAdapter['parse']>
-    )(this.__adapter, transformedSchema, value);
+    const adapterParseResult = await (adapter[schemaAdapterFieldType].parse as NonNullable<FieldAdapter['parse']>)(
+      adapter,
+      transformedSchema,
+      value
+    );
     parseResult.parsed = adapterParseResult.parsed;
     if (adapterParseResult.errors) {
       if (Array.isArray(adapterParseResult.errors))
         parseResult.errors = await Promise.all(
           adapterParseResult.errors.map(async (error) =>
-            formatErrorFromParseMethod(this.__adapter, error, path, errorsAsHashedSet)
+            formatErrorFromParseMethod(adapter, error, path, errorsAsHashedSet)
           )
         );
       else
-        parseResult.errors = [
-          await formatErrorFromParseMethod(this.__adapter, parseResult.errors, path, errorsAsHashedSet),
-        ];
+        parseResult.errors = [await formatErrorFromParseMethod(adapter, parseResult.errors, path, errorsAsHashedSet)];
     }
 
     return parseResult;
@@ -139,8 +143,8 @@ export default class Schema<
 
   async _transformToAdapter(_options: {
     toInternalToBubbleUp?: (() => Promise<void>)[];
-    modifyItself?: (newAdapterSchema: any) => any;
-    validationKey?: symbol;
+    modifyItself?: (newAdapterSchema: any, validationKey: symbol) => any;
+    validationKey: symbol;
   }): Promise<ReturnType<FieldAdapter['translate']>> {
     throw new Error('Not implemented');
   }
@@ -179,8 +183,8 @@ export default class Schema<
       },
       {
         ...options,
-        modifyItself: async () => {
-          await options.modifyItself?.(this);
+        modifyItself: async (_, validationKey) => {
+          await options.modifyItself?.(this, validationKey);
           shouldValidateByAdapterAgain = true;
         },
       }
@@ -210,6 +214,8 @@ export default class Schema<
     const hasNoErrors = parseResult.errors === undefined || (parseResult.errors || []).length === 0;
 
     if (shouldCallToInternalDuringParse && hasNoErrors) parseResult.parsed = await (this.__toInternal as any)(value);
+    delete this.__adapters[options.validationKey as symbol];
+
     return parseResult;
   }
 
@@ -387,7 +393,7 @@ export default class Schema<
 
     const DefaultAdapterClass = getDefaultAdapter();
     const adapterInstance = new DefaultAdapterClass();
-    result.__adapter = adapterInstance;
+    result.__adapters.default = adapterInstance;
 
     return result;
   }
