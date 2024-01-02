@@ -3,6 +3,7 @@ import type { ValidationFallbackReturnType } from '../schema/types';
 
 export function unionValidation(
   schemas: readonly Schema<any, any>[],
+  doesAdapterSupportUnion: boolean,
   schemaOptions: Parameters<ValidationFallbackReturnType['callback']>[2]
 ): ValidationFallbackReturnType {
   return {
@@ -14,8 +15,8 @@ export function unionValidation(
       };
       const startingToInternalBubbleUpLength = options.toInternalToBubbleUp?.length || 0;
 
-      for (const schema of schemas) {
-        const schemaWithProtected = schema as Schema & {
+      for (let i = 0; i < schemas.length; i++) {
+        const schemaWithProtected = schemas[i] as Schema & {
           __parse: Schema['__parse'];
           __toInternal: Schema['__toInternal'];
         };
@@ -26,16 +27,20 @@ export function unionValidation(
           else parsedValues.errors = parsedData.errors;
 
         const hasNoErrors = parsedData.errors === undefined || (parsedData.errors || []).length === 0;
-
+        const isNotFirstSchema = i > 0;
         if (hasNoErrors) {
           parsedValues.errors = undefined;
-          if (options.modifyItself && schemaOptions.modifyItself)
-            await Promise.all([
-              options.modifyItself(schema, options.validationKey),
-              schemaOptions.modifyItself(schema, options.validationKey),
-            ]);
-          else if (options.modifyItself) await options.modifyItself(schema, options.validationKey);
-          else if (schemaOptions.modifyItself) await schemaOptions.modifyItself(schema, options.validationKey);
+
+          if (isNotFirstSchema && doesAdapterSupportUnion === false) {
+            if (options.modifyItself && schemaOptions.modifyItself)
+              await Promise.all([
+                options.modifyItself(schemaWithProtected, options.validationKey),
+                schemaOptions.modifyItself(schemaWithProtected, options.validationKey),
+              ]);
+            else if (options.modifyItself) await options.modifyItself(schemaWithProtected, options.validationKey);
+            else if (schemaOptions.modifyItself)
+              await schemaOptions.modifyItself(schemaWithProtected, options.validationKey);
+          }
 
           break;
         } else if (startingToInternalBubbleUpLength < (options.toInternalToBubbleUp?.length || 0)) {

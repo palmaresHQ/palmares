@@ -66,9 +66,22 @@ export default class ObjectSchema<
             await transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas(valueToTransform, {
               ...options,
               modifyItself: async (schema, validationKey) => {
-                const copiedTransformedDataByKeys = { ...transformedDataByKeys };
-                const newTranslatedSchema = await schema._transformToAdapter(options);
+                // Pretty much when we are transforming the data we need to make sure that we create a fresh new instance of the adapter.
+                // We do that because we only assign the adapter
+                const DefaultAdapterClass = getDefaultAdapter();
+                const adapterInstance = new DefaultAdapterClass();
+                this.__adapters[validationKey as symbol] = adapterInstance;
+
+                const copiedTransformedDataByKeys = {} as typeof transformedDataByKeys;
+                for (const [key, value] of Object.entries(transformedDataByKeys))
+                  copiedTransformedDataByKeys[key] = value;
+
+                const newTranslatedSchema = await schema._transformToAdapter({
+                  ...options,
+                  validationKey: validationKey,
+                });
                 copiedTransformedDataByKeys[key] = newTranslatedSchema;
+
                 await defaultTransform(
                   'object',
                   this,
@@ -83,6 +96,7 @@ export default class ObjectSchema<
                     validationKey: validationKey,
                   }
                 );
+                await options.modifyItself?.(this, validationKey);
               },
             });
           shouldValidateWithFallback = shouldValidateWithFallback || shouldAddFallbackValidationForThisKey;

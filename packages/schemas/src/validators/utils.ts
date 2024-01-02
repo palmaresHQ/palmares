@@ -132,7 +132,7 @@ export default class Validator {
       errors: undefined | ValidationFallbackCallbackReturnType['errors'];
       parsed: any;
     },
-    options: Parameters<Schema['_transformToAdapter']>[0] = {}
+    options: Parameters<Schema['_transformToAdapter']>[0]
   ): Promise<ValidationFallbackCallbackReturnType> {
     let doesItShouldPreventChildValidation = false;
 

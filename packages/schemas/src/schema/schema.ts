@@ -122,6 +122,7 @@ export default class Schema<
       transformedSchema,
       value
     );
+
     parseResult.parsed = adapterParseResult.parsed;
     if (adapterParseResult.errors) {
       if (Array.isArray(adapterParseResult.errors))
@@ -165,6 +166,7 @@ export default class Schema<
       errors: undefined | ValidationFallbackCallbackReturnType['errors'];
       parsed: TType['input'];
     } = { errors: undefined, parsed: value };
+
     let parsedResultsAfterAdapter = await this.__validateByAdapter(
       value,
       errorsAsHashedSet,
@@ -174,6 +176,7 @@ export default class Schema<
     );
 
     let shouldValidateByAdapterAgain = false;
+
     const parsedResultsAfterFallbacks = await this.__validateByFallbacks(
       errorsAsHashedSet,
       path,
@@ -184,6 +187,9 @@ export default class Schema<
       {
         ...options,
         modifyItself: async (_, validationKey) => {
+          // This is a hack to make sure that we are properly validating the data. This is needed because of Unions, when it's a union
+          // and it's not handled by the adapter we need to revalidate the data with the adapter again because the used schema
+          // might have changed to a new one. With that we pretty much reset all of the errors and parse by the adapter again.
           await options.modifyItself?.(this, validationKey);
           shouldValidateByAdapterAgain = true;
         },
@@ -191,6 +197,8 @@ export default class Schema<
     );
     parseResult.parsed = parsedResultsAfterFallbacks.parsed;
 
+    // Validating the adapter twice is needed because of unions, we will only enter that condition if we are validating a union.
+    // Pretty much the idea is that we change the schema, after changing the schema we need to validate with the adapters again.
     if (shouldValidateByAdapterAgain) {
       parsedResultsAfterAdapter = await this.__validateByAdapter(
         value,

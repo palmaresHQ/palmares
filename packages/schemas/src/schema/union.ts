@@ -60,10 +60,18 @@ export default class UnionSchema<
 
       const transformedSchemas = await Promise.all(promises);
       if (shouldHandleByFallback)
-        Validator.createAndAppendFallback(this, unionValidation(Array.from(this.__schemas), options), {
-          at: 0,
-          removeCurrent: true,
-        });
+        Validator.createAndAppendFallback(
+          this,
+          unionValidation(
+            Array.from(this.__schemas),
+            typeof this?.__adapters?.default?.union?.parse === 'function',
+            options
+          ),
+          {
+            at: 0,
+            removeCurrent: true,
+          }
+        );
 
       return defaultTransform(
         'union',
