@@ -52,8 +52,8 @@ export type ObjectAdapterTranslateArgs = {
   data: Record<string, any>;
 } & AdapterTranslateArgs;
 
-export type UnionAdapterTranslateArgs = {
-  schemas: any;
+export type UnionAdapterTranslateArgs<TSchemasType = any> = {
+  schemas: TSchemasType;
 } & AdapterTranslateArgs;
 
 export type UnionAdapterTranslateArgsWithoutNonTranslateArgs = Omit<

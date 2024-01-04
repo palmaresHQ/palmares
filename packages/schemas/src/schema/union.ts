@@ -28,7 +28,11 @@ export default class UnionSchema<
     representation: Record<any, any>;
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
-  TSchemas extends readonly Schema[] = Schema[],
+  TSchemas extends readonly [Schema<any, any>, Schema<any, any>, ...Schema<any, any>[]] = [
+    Schema<any, any>,
+    Schema<any, any>,
+    ...Schema<any, any>[],
+  ],
 > extends Schema<TType, TDefinitions> {
   protected __schemas = new Set<Schema<any>>();
 
@@ -63,7 +67,11 @@ export default class UnionSchema<
         Validator.createAndAppendFallback(
           this,
           unionValidation(
-            Array.from(this.__schemas),
+            Array.from(this.__schemas) as unknown as readonly [
+              Schema<any, any>,
+              Schema<any, any>,
+              ...Schema<any, any>[],
+            ],
             typeof this?.__adapters?.default?.union?.parse === 'function',
             options
           ),
@@ -89,7 +97,7 @@ export default class UnionSchema<
   }
 
   static new<
-    TSchemas extends readonly Schema<any, any>[],
+    TSchemas extends readonly [Schema<any, any>, Schema<any, any>, ...Schema<any, any>[]],
     TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
   >(schemas: Narrow<TSchemas>): UnionSchema<TSchemas[number]['__types']> {
     const result = new UnionSchema<TSchemas[number]['__types'], TDefinitions, TSchemas>(schemas as TSchemas);

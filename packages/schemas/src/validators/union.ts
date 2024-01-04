@@ -2,7 +2,7 @@ import type Schema from '../schema/schema';
 import type { ValidationFallbackReturnType } from '../schema/types';
 
 export function unionValidation(
-  schemas: readonly Schema<any, any>[],
+  schemas: readonly [Schema<any, any>, Schema<any, any>, ...Schema<any, any>[]],
   doesAdapterSupportUnion: boolean,
   schemaOptions: Parameters<ValidationFallbackReturnType['callback']>[2]
 ): ValidationFallbackReturnType {

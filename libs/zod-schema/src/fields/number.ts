@@ -1,4 +1,4 @@
-import { FieldAdapter, NumberAdapter, NumberAdapterTranslateArgs } from '@palmares/schemas';
+import { FieldAdapter, NumberAdapter, NumberAdapterTranslateArgs, SchemaAdapter } from '@palmares/schemas';
 import * as z from 'zod';
 
 export default class ZodNumberFieldSchemaAdapter extends NumberAdapter<z.ZodNumber> {
@@ -18,7 +18,7 @@ export default class ZodNumberFieldSchemaAdapter extends NumberAdapter<z.ZodNumb
     return args.withFallback(['max'], result);
   }
 
-  async parse(_adapter: any, result: z.ZodNumber, value: any) {
+  async parse(_adapter: SchemaAdapter, result: z.ZodNumber, value: any) {
     try {
       const parsed = await result.parseAsync(value);
       return { errors: undefined, parsed };
