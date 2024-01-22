@@ -12,8 +12,8 @@ importers:
         specifier: ^2.26.2
         version: 2.26.2
       '@swc/cli':
-        specifier: ^0.1.62
-        version: 0.1.62(@swc/core@1.3.99)(chokidar@3.5.3)
+        specifier: ^0.1.65
+        version: 0.1.65(@swc/core@1.3.99)(chokidar@3.5.3)
       '@swc/core':
         specifier: ^1.3.99
         version: 1.3.99
@@ -1223,8 +1223,8 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  /@swc/cli@0.1.62(@swc/core@1.3.99)(chokidar@3.5.3):
-    resolution: {integrity: sha512-kOFLjKY3XH1DWLfXL1/B5MizeNorHR8wHKEi92S/Zi9Md/AK17KSqR8MgyRJ6C1fhKHvbBCl8wboyKAFXStkYw==}
+  /@swc/cli@0.1.65(@swc/core@1.3.99)(chokidar@3.5.3):
+    resolution: {integrity: sha512-4NcgsvJVHhA7trDnMmkGLLvWMHu2kSy+qHx6QwRhhJhdiYdNUrhdp+ERxen73sYtaeEOYeLJcWrQ60nzKi6rpg==}
     engines: {node: '>= 12.13'}
     hasBin: true
     peerDependencies:
@@ -1239,6 +1239,7 @@ packages:
       chokidar: 3.5.3
       commander: 7.2.0
       fast-glob: 3.3.1
+      minimatch: 9.0.3
       semver: 7.5.4
       slash: 3.0.0
       source-map: 0.7.4
@@ -6316,7 +6317,7 @@ packages:
   /swc@1.0.11(chokidar@3.5.3):
     resolution: {integrity: sha512-YbG4eija7g/ajQ0lu4P2WPgKt5zCm743VgKn+buBrXXo1IETftO2r/8VdBPhv8wpTyg3CO+VU1z2wHuL4iohmw==}
     dependencies:
-      '@swc/cli': 0.1.62(@swc/core@1.3.99)(chokidar@3.5.3)
+      '@swc/cli': 0.1.65(@swc/core@1.3.99)(chokidar@3.5.3)
       '@swc/core': 1.3.99
     transitivePeerDependencies:
       - '@swc/helpers'
