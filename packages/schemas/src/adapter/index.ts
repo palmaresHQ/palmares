@@ -9,7 +9,7 @@ export default class SchemaAdapter {
   field!: FieldAdapter;
   number!: NumberAdapter;
   object!: ObjectFieldAdapter;
-  union!: UnionFieldAdapter;
+  union?: UnionFieldAdapter;
 
   async formatError(
     _error: any,
