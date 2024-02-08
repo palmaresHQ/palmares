@@ -21,6 +21,9 @@ async function main() {
     wildcards: { use: true },
   });
 
+  emitter2.addEventListener('create.users', () => {
+    // restante do código
+  });
   /*await emitter2.addEventListener('create.users', () => {
     return new Promise((resolve) =>
       setTimeout(() => resolve('create.user[1]'), 200)

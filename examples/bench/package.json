@@ -1,0 +1,39 @@
+{
+  "name": "@examples/bench",
+  "version": "0.0.1",
+  "description": "asdasdasd",
+  "main": "manage.ts",
+  "scripts": {
+    "dev": "tsx manage.ts runserver",
+    "express": "tsx express.ts"
+  },
+  "keywords": [
+    "Deel",
+    "Hometask",
+    "Challenge"
+  ],
+  "author": "Nicolas Melo",
+  "license": "MIT",
+  "dependencies": {
+    "@palmares/console-logging": "workspace:*",
+    "@palmares/core": "workspace:*",
+    "@palmares/databases": "workspace:*",
+    "@palmares/express-adapter": "workspace:*",
+    "@palmares/logging": "workspace:*",
+    "@palmares/node-std": "workspace:*",
+    "@palmares/sequelize-engine": "workspace:*",
+    "@palmares/server": "workspace:*",
+    "@palmares/std": "workspace:*",
+    "autocannon": "^7.12.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "fastify": "^4.24.3",
+    "sequelize": "^6.21.0",
+    "sqlite3": "^5.1.6",
+    "zod": "^3.18.0"
+  },
+  "devDependencies": {
+    "@types/qs": "^6.9.8",
+    "nodemon": "^3.0.1"
+  }
+}

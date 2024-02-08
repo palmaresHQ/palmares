@@ -36,10 +36,12 @@ export async function getRootRouterCompletePaths(
   settings: AllServerSettingsType['servers'][string],
   isDebugModeEnabled: boolean = true
 ) {
-  const extractedRouterInterceptors: NonNullable<Awaited<NonNullable<typeof domains[number]>['routerInterceptor']>>[] =
-    [];
-  const extractedRoutes: Promise<ReturnType<NonNullable<Awaited<NonNullable<typeof domains[number]>['getRoutes']>>>>[] =
-    [];
+  const extractedRouterInterceptors: NonNullable<
+    Awaited<NonNullable<(typeof domains)[number]>['routerInterceptor']>
+  >[] = [];
+  const extractedRoutes: Promise<
+    ReturnType<NonNullable<Awaited<NonNullable<(typeof domains)[number]>['getRoutes']>>>
+  >[] = [];
   for (const domain of domains) {
     if (domain.getRoutes) extractedRoutes.push(Promise.resolve(domain.getRoutes()));
     if (domain.routerInterceptor) extractedRouterInterceptors.push(domain.routerInterceptor);
@@ -320,7 +322,7 @@ function wrapHandlerAndMiddlewares(
       validation,
       options
     );
-    serverLogger.logMessage('REQUEST_RECEIVED', { method: request.method, url: request.url });
+    //serverLogger.logMessage('REQUEST_RECEIVED', { method: request.method, url: request.url });
 
     let response: Response | undefined = undefined;
     let wasErrorAlreadyHandledInRequestLifecycle = false;
@@ -354,14 +356,16 @@ function wrapHandlerAndMiddlewares(
       }
       // If the response is set, then we can just return it from the handler.
       const responseNotSet = response === undefined;
-      if (responseNotSet)
-        response = appendTranslatorToResponse(
+      if (responseNotSet) {
+        const handlerResponse = appendTranslatorToResponse(
           await Promise.resolve(handler(request)),
           server,
           server.response,
           serverRequestAndResponseData,
           options
         );
+        if (handlerResponse) response = handlerResponse;
+      }
     } catch (error) {
       const isResponseError = error instanceof Response;
       const errorAsError = error as Error;

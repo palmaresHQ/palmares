@@ -1,7 +1,6 @@
 import { Response, pathNested } from '@palmares/server';
 
 import { getUnpaidJobs, payJobId } from './services';
-import { Jobs } from './models';
 
 import type { unpaidJobsRouter, payJobIdRouter } from './routes';
 

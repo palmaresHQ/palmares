@@ -27,6 +27,7 @@ export default serverRouterAdapter({
       const patchHandler = handlers.get('patch')?.handler;
       const allHandler = handlers.get('all')?.handler;
 
+      console.log('Express parse handlers', path, handlers);
       // This will initialize the server routes.
       initializedServer.all(path, (req: Request, res: Response) => {
         const serverRequestAndResponseData = {
