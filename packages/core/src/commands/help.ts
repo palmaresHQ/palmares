@@ -13,27 +13,17 @@ function textWithEmptySpaces(length: number, text: string) {
  *
  * It will return an array where the first element is the syntax of the positional arguments and the second element is the string of the description to log.
  */
-function logPositionalArgs(
-  commandData: NonNullable<Domain['commands']>[string]
-) {
+function logPositionalArgs(commandData: NonNullable<Domain['commands']>[string]) {
   let stringToLog = '';
   let syntax = '';
   const appendStringToLog = (text: string) => (stringToLog += '\n' + text);
   const appendStringToSyntax = (text: string) => (syntax += ' ' + text);
 
-  if (
-    commandData.positionalArgs &&
-    Object.keys(commandData.positionalArgs).length > 0
-  ) {
+  if (commandData.positionalArgs && Object.keys(commandData.positionalArgs).length > 0) {
     appendStringToLog(textWithEmptySpaces(4, `\x1b[33mPOSITIONAL ARGS\x1b[0m`));
     const positionalArgsEntries = Object.entries(commandData.positionalArgs);
-    for (
-      let positionalIndex = 0;
-      positionalIndex < positionalArgsEntries.length;
-      positionalIndex++
-    ) {
-      const [positionalArg, positionalArgData] =
-        positionalArgsEntries[positionalIndex];
+    for (let positionalIndex = 0; positionalIndex < positionalArgsEntries.length; positionalIndex++) {
+      const [positionalArg, positionalArgData] = positionalArgsEntries[positionalIndex];
 
       const isPositionalArgOptional = positionalArgData.required !== true;
       const doesPositionalArgCanRepeat = positionalArgData.canBeMultiple;
@@ -42,31 +32,21 @@ function logPositionalArgs(
           doesPositionalArgCanRepeat ? ` ...` : ''
         }${isPositionalArgOptional ? ']' : ''}`
       );
-      appendStringToLog(
-        textWithEmptySpaces(6, `\x1b[1m${positionalArg}\x1b[0m`)
-      );
+      appendStringToLog(textWithEmptySpaces(6, `\x1b[1m${positionalArg}\x1b[0m`));
       appendStringToLog(textWithEmptySpaces(8, `\x1b[1mDESCRIPTION\x1b[0m`));
       appendStringToLog(textWithEmptySpaces(10, positionalArgData.description));
-      appendStringToLog(
-        textWithEmptySpaces(
-          8,
-          `\x1b[1mREQUIRED\x1b[0m: ${!isPositionalArgOptional}`
-        )
-      );
+      appendStringToLog(textWithEmptySpaces(8, `\x1b[1mREQUIRED\x1b[0m: ${!isPositionalArgOptional}`));
       appendStringToLog(
         textWithEmptySpaces(
           8,
           `\x1b[1mTYPE\x1b[0m: ${
-            ['string', 'boolean', 'number'].includes(
-              positionalArgData.type as string
-            )
+            ['string', 'boolean', 'number'].includes(positionalArgData.type as string)
               ? positionalArgData.type
               : 'string'
           }`
         )
       );
-      if (positionalIndex < positionalArgsEntries.length - 1)
-        appendStringToLog('');
+      if (positionalIndex < positionalArgsEntries.length - 1) appendStringToLog('');
     }
   }
 
@@ -85,73 +65,42 @@ function logKeywordArgs(commandData: NonNullable<Domain['commands']>[string]) {
   const appendStringToLog = (text: string) => (stringToLog += '\n' + text);
   const appendStringToSyntax = (text: string) => (syntax += ' ' + text);
 
-  if (
-    commandData.keywordArgs &&
-    Object.keys(commandData.keywordArgs).length > 0
-  ) {
+  if (commandData.keywordArgs && Object.keys(commandData.keywordArgs).length > 0) {
     appendStringToLog(textWithEmptySpaces(4, `\x1b[33mKEYWORD ARGS\x1b[0m`));
     const keywordArgsArgsEntries = Object.entries(commandData.keywordArgs);
-    for (
-      let keywordIndex = 0;
-      keywordIndex < keywordArgsArgsEntries.length;
-      keywordIndex++
-    ) {
+    for (let keywordIndex = 0; keywordIndex < keywordArgsArgsEntries.length; keywordIndex++) {
       const [keywordArg, keywordArgData] = keywordArgsArgsEntries[keywordIndex];
       const doesKeywordArgHaveFlag = keywordArgData.hasFlag;
       const doesKeywordArgHaveDefault = keywordArgData.default !== undefined;
       const isKeywordChoicesArray = Array.isArray(keywordArgData.type);
       const doesKeywordArgHaveType =
-        (typeof keywordArgData.type === 'string' &&
-          ['string', 'number'].includes(keywordArgData.type as string)) ||
+        (typeof keywordArgData.type === 'string' && ['string', 'number'].includes(keywordArgData.type as string)) ||
         isKeywordChoicesArray;
 
       appendStringToSyntax(
-        `[--${keywordArg}${
-          doesKeywordArgHaveFlag ? `, -${keywordArg[0]}` : ''
-        }${
+        `[--${keywordArg}${doesKeywordArgHaveFlag ? `, -${keywordArg[0]}` : ''}${
           doesKeywordArgHaveType
             ? keywordArgData.canBeMultiple
               ? `=[${
-                  isKeywordChoicesArray
-                    ? `{${(keywordArgData.type as string[]).join(',')}}`
-                    : keywordArg.toUpperCase()
+                  isKeywordChoicesArray ? `{${(keywordArgData.type as string[]).join(',')}}` : keywordArg.toUpperCase()
                 },...]`
               : `=${
-                  isKeywordChoicesArray
-                    ? `{${(keywordArgData.type as string[]).join(',')}}`
-                    : keywordArg.toUpperCase()
+                  isKeywordChoicesArray ? `{${(keywordArgData.type as string[]).join(',')}}` : keywordArg.toUpperCase()
                 }`
             : ''
-        }${
-          doesKeywordArgHaveDefault
-            ? `; default="${keywordArgData.default}"`
-            : ''
-        }]`
+        }${doesKeywordArgHaveDefault ? `; default="${keywordArgData.default}"` : ''}]`
       );
       appendStringToLog(textWithEmptySpaces(6, `\x1b[1m${keywordArg}\x1b[0m`));
       appendStringToLog(textWithEmptySpaces(8, `\x1b[1mDESCRIPTION\x1b[0m`));
       appendStringToLog(textWithEmptySpaces(10, keywordArgData.description));
-      if (doesKeywordArgHaveFlag)
-        appendStringToLog(
-          textWithEmptySpaces(8, `\x1b[1mFLAG\x1b[0m: -${keywordArg[0]}`)
-        );
+      if (doesKeywordArgHaveFlag) appendStringToLog(textWithEmptySpaces(8, `\x1b[1mFLAG\x1b[0m: -${keywordArg[0]}`));
       if (doesKeywordArgHaveDefault)
-        appendStringToLog(
-          textWithEmptySpaces(
-            8,
-            `\x1b[1mDEFAULT\x1b[0m: ${keywordArgData.default}`
-          )
-        );
+        appendStringToLog(textWithEmptySpaces(8, `\x1b[1mDEFAULT\x1b[0m: ${keywordArgData.default}`));
       if (doesKeywordArgHaveType)
-        appendStringToLog(
-          textWithEmptySpaces(8, `\x1b[1mTYPE\x1b[0m: ${keywordArgData.type}`)
-        );
+        appendStringToLog(textWithEmptySpaces(8, `\x1b[1mTYPE\x1b[0m: ${keywordArgData.type}`));
       if (keywordArgData.canBeMultiple)
-        appendStringToLog(
-          textWithEmptySpaces(8, `\x1b[1mCAN APPEAR MORE THAN ONCE\x1b[0m`)
-        );
-      if (keywordIndex < keywordArgsArgsEntries.length - 1)
-        appendStringToLog('');
+        appendStringToLog(textWithEmptySpaces(8, `\x1b[1mCAN APPEAR MORE THAN ONCE\x1b[0m`));
+      if (keywordIndex < keywordArgsArgsEntries.length - 1) appendStringToLog('');
     }
   }
   return [syntax, stringToLog];
@@ -164,39 +113,29 @@ function logKeywordArgs(commandData: NonNullable<Domain['commands']>[string]) {
  */
 export default function help(
   domains: Domain[],
-  keywordArgs?: ExtractCommandsType<typeof coreDomain, 'help'>['keywordArgs']
+  keywordArgs: ExtractCommandsType<typeof coreDomain, 'help'>['keywordArgs']
 ) {
   for (let i = 0; i < domains.length; i++) {
     const domain = domains[i];
     const shouldNotShowAnythingFromDomain =
       (keywordArgs?.domain && !keywordArgs.domain.includes(domain.name)) ||
       (keywordArgs?.command &&
-        !Object.keys(domain.commands || {}).some((command) =>
-          keywordArgs?.command?.includes(command)
-        )) ||
+        !Object.keys(domain.commands || {}).some((command) => keywordArgs?.command?.includes(command))) ||
       !domain.commands;
 
     if (shouldNotShowAnythingFromDomain) continue;
 
     console.log(textWithEmptySpaces(0, `\x1b[36m[${domain.name}]\x1b[0m`));
-    const commandEntries = Object.entries(
-      domain.commands as DefaultCommandType
-    );
+    const commandEntries = Object.entries(domain.commands as DefaultCommandType);
 
-    for (
-      let commandIndex = 0;
-      commandIndex < commandEntries.length;
-      commandIndex++
-    ) {
+    for (let commandIndex = 0; commandIndex < commandEntries.length; commandIndex++) {
       const shouldNotShowCommand =
-        keywordArgs?.command &&
-        !keywordArgs.command.includes(commandEntries[commandIndex][0]);
+        keywordArgs?.command && !keywordArgs.command.includes(commandEntries[commandIndex][0]);
       if (shouldNotShowCommand) continue;
 
       const [command, commandData] = commandEntries[commandIndex];
 
-      const [positionalArgsSyntax, positionalArgsToLog] =
-        logPositionalArgs(commandData);
+      const [positionalArgsSyntax, positionalArgsToLog] = logPositionalArgs(commandData);
       const [keywordArgsSyntax, keywordArgsToLog] = logKeywordArgs(commandData);
       console.log(textWithEmptySpaces(2, `\x1b[1m${command}\x1b[0m`));
       console.log(textWithEmptySpaces(4, `\x1b[33mDESCRIPTION\x1b[0m`));
@@ -206,9 +145,9 @@ export default function help(
       console.log(
         textWithEmptySpaces(
           6,
-          `manage.(ts|js) ${command}${
-            positionalArgsSyntax !== '' ? positionalArgsSyntax : ''
-          }${keywordArgsSyntax !== '' ? keywordArgsSyntax : ''}`
+          `manage.(ts|js) ${command}${positionalArgsSyntax !== '' ? positionalArgsSyntax : ''}${
+            keywordArgsSyntax !== '' ? keywordArgsSyntax : ''
+          }`
         )
       );
       if (positionalArgsToLog !== '') console.log(positionalArgsToLog);

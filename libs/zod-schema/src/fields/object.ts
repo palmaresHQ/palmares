@@ -12,6 +12,7 @@ export default class ZodObjectFieldSchemaAdapter extends ObjectFieldAdapter<z.Zo
       const parsed = await result.parseAsync(value);
       return { errors: null, parsed };
     } catch (error) {
+      console.log('from Zod object', (error as any).errors);
       if (error instanceof z.ZodError) return { errors: error.errors, parsed: value };
       else throw error;
     }

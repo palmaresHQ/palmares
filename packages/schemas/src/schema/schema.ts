@@ -144,7 +144,7 @@ export default class Schema<
 
   async _transformToAdapter(_options: {
     toInternalToBubbleUp?: (() => Promise<void>)[];
-    modifyItself?: (newAdapterSchema: any, validationKey: symbol) => any;
+    //modifyItself?: (newAdapterSchema: any, validationKey: symbol) => any;
     validationKey: symbol;
   }): Promise<ReturnType<FieldAdapter['translate']>> {
     throw new Error('Not implemented');
@@ -184,16 +184,14 @@ export default class Schema<
         errors: parseResult.errors,
         parsed: value,
       },
-      {
-        ...options,
-        modifyItself: async (_, validationKey) => {
+      options
+      /*modifyItself: async (_, validationKey) => {
           // This is a hack to make sure that we are properly validating the data. This is needed because of Unions, when it's a union
           // and it's not handled by the adapter we need to revalidate the data with the adapter again because the used schema
           // might have changed to a new one. With that we pretty much reset all of the errors and parse by the adapter again.
           await options.modifyItself?.(this, validationKey);
           shouldValidateByAdapterAgain = true;
-        },
-      }
+        },*/
     );
     parseResult.parsed = parsedResultsAfterFallbacks.parsed;
 

@@ -12,6 +12,16 @@ import { FallbackFunctionsType } from './types';
 import { checkType, nullable, optional } from './validators/schema';
 import Validator from './validators/utils';
 
+class NoOpFieldAdapter<TResult = any> extends FieldAdapter<TResult> {
+  translate(_fieldAdapter: FieldAdapter<any>, _args: any) {
+    return undefined;
+  }
+
+  async parse(_adapter: SchemaAdapter, result: any, value: any) {
+    return { errors: undefined, parsed: value };
+  }
+}
+
 /**
  * The usage of this is that imagine that the library doesn't support a specific feature that we support on our schema definition, it can return an instance
  * of this class and with this instance we are able to fallback to our default implementation of the schema validation.
@@ -90,7 +100,7 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
     fallbackTranslatedSchema?: any;
     validationKey: symbol;
   }
-): Promise<any> {
+): Promise<any[]> {
   const schemaWithPrivateFields = schema as unknown as {
     __adapters: Schema['__adapters'];
     __rootFallbacksValidator: Schema['__rootFallbacksValidator'];
@@ -120,8 +130,10 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
 
   if (translatedSchema === undefined || options.force) {
     // Translate the schema to the adapter schema if there is an adapter for that schema type.
+    if (adapter[type] === undefined) adapter[type] = new NoOpFieldAdapter();
     const adapterOfThatType = adapter[type] as FieldAdapter;
-    const translatedSchemaOrWithFallback = adapterOfThatType.translate(adapter.field, {
+
+    const translatedSchemaOrWithFallback = adapterOfThatType?.translate(adapter.field, {
       withFallback: withFallbackFactory(type),
       ...validationData,
     } as any);
@@ -148,7 +160,7 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
   return translatedSchema;
 }
 
-export function getTranslatedSchemaFromAdapter(adapter: SchemaAdapter, type: WithFallback['adapterType']) {
+export function getTranslatedSchemaFromAdapter(adapter: SchemaAdapter, type: WithFallback['adapterType']): any {
   return adapter?.[type]?.__result;
 }
 

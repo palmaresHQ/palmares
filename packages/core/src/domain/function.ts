@@ -30,7 +30,7 @@ export default function domain<
   })[] = readonly (abstract new (...args: any) => {
     modifiers: any;
   })[],
-  TCommands extends DefaultCommandType = DefaultCommandType,
+  const TCommands extends DefaultCommandType = DefaultCommandType,
   TLoadFunction extends (
     settings: any
   ) =>
@@ -46,7 +46,7 @@ export default function domain<
     | Promise<(args: DomainReadyFunctionArgs<unknown, any>) => void | Promise<void>>,
   TReadyFunction extends (args: DomainReadyFunctionArgs<any, any>) => void | Promise<void> = (
     args: DomainReadyFunctionArgs<unknown, any>
-  ) => void | Promise<void>
+  ) => void | Promise<void>,
 >(
   /**
    * The name of the domain. It will be used to identify the domain and to load the settings for it.

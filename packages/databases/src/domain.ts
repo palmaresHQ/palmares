@@ -44,7 +44,6 @@ export default domain('@palmares/database', __dirname, {
     },
     migrate: {
       description: 'Run the pending migrations on your database',
-      syntax: '',
       positionalArgs: undefined,
       keywordArgs: undefined,
       handler: async (options: DomainHandlerFunctionArgs) => {

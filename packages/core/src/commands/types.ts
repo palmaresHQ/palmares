@@ -8,7 +8,7 @@ type ExtractTypeFromArg<
   TArgument extends
     | NonNullable<NonNullable<Domain['commands']>[string]['keywordArgs']>[string]
     | NonNullable<NonNullable<Domain['commands']>[string]['positionalArgs']>[string],
-  TPositionalOrKeyword extends 'positionalArgs' | 'keywordArgs'
+  TPositionalOrKeyword extends 'positionalArgs' | 'keywordArgs',
 > = TArgument['type'] extends 'string'
   ? TArgument['canBeMultiple'] extends true
     ? string[]
@@ -38,7 +38,7 @@ type ExtractTypeFromArg<
  */
 export type ExtractCommandsType<
   TDomain extends typeof Domain | ReturnType<typeof domain>,
-  TCommand extends keyof NonNullable<InstanceType<TDomain>['commands']>
+  TCommand extends keyof NonNullable<InstanceType<TDomain>['commands']>,
 > = {
   keywordArgs: {
     [Key in keyof NonNullable<InstanceType<TDomain>['commands']>[TCommand]['keywordArgs']]?: ExtractTypeFromArg<

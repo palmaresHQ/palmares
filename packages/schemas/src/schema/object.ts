@@ -63,9 +63,10 @@ export default class ObjectSchema<
       for (const [key, valueToTransform] of toTransform) {
         const awaitableTransformer = async () => {
           const [transformedData, shouldAddFallbackValidationForThisKey] =
-            await transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas(valueToTransform, {
-              ...options,
-              modifyItself: async (schema, validationKey) => {
+            await transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas(
+              valueToTransform,
+              options
+              /*modifyItself: async (schema, validationKey) => {
                 // Pretty much when we are transforming the data we need to make sure that we create a fresh new instance of the adapter.
                 // We do that because we only assign the adapter
                 const DefaultAdapterClass = getDefaultAdapter();
@@ -98,7 +99,8 @@ export default class ObjectSchema<
                 );
                 await options.modifyItself?.(this, validationKey);
               },
-            });
+            }*/
+            );
           shouldValidateWithFallback = shouldValidateWithFallback || shouldAddFallbackValidationForThisKey;
 
           if (shouldAddFallbackValidationForThisKey) fallbackByKeys[key] = valueToTransform;
@@ -126,6 +128,7 @@ export default class ObjectSchema<
       );
     }
 
+    console.log('object Transform to adapter', this.constructor.name, translatedSchemaOfAdapter);
     return translatedSchemaOfAdapter;
   }
 

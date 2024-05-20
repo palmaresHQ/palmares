@@ -1,6 +1,5 @@
 import { BooleanField, AdapterFieldParserTranslateArgs, AdapterFieldParserInputAndOutputArgs } from '../..';
 import { EngineDoesNotSupportFieldTypeException } from '../../models/exceptions';
-import AdapterFieldParser from './field';
 
 /**
  * Functional approach to create a custom field parser.

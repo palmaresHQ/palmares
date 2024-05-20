@@ -15,7 +15,7 @@ export function unionValidation(
       };
       const startingToInternalBubbleUpLength = options.toInternalToBubbleUp?.length || 0;
 
-      for (let i = 0; i < schemas.length; i++) {
+      /*for (let i = 0; i < schemas.length; i++) {
         const schemaWithProtected = schemas[i] as Schema & {
           __parse: Schema['__parse'];
           __toInternal: Schema['__toInternal'];
@@ -50,7 +50,8 @@ export function unionValidation(
             (options.toInternalToBubbleUp?.length || 0) - startingToInternalBubbleUpLength;
           options.toInternalToBubbleUp?.splice(startingToInternalBubbleUpLength, numberOfElementsToRemove);
         }
-      }
+      }*/
+
       return {
         parsed: parsedValues.parsed,
         errors: parsedValues.errors ? parsedValues.errors : [],

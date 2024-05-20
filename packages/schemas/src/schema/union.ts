@@ -48,6 +48,7 @@ export default class UnionSchema<
       this.__adapters[options.validationKey as symbol],
       'union'
     );
+    console.log('union Transform to adapter', this.constructor.name, translatedSchemaOfAdapter);
 
     if (translatedSchemaOfAdapter === undefined) {
       const promises: Promise<any>[] = [];
@@ -81,6 +82,7 @@ export default class UnionSchema<
           }
         );
 
+      console.log('heeeere');
       return defaultTransform(
         'union',
         this,
@@ -93,6 +95,7 @@ export default class UnionSchema<
         { fallbackTranslatedSchema: transformedSchemas[0], validationKey: options.validationKey as symbol }
       );
     }
+
     return translatedSchemaOfAdapter;
   }
 
