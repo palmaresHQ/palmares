@@ -12,16 +12,6 @@ import { FallbackFunctionsType } from './types';
 import { checkType, nullable, optional } from './validators/schema';
 import Validator from './validators/utils';
 
-class NoOpFieldAdapter<TResult = any> extends FieldAdapter<TResult> {
-  translate(_fieldAdapter: FieldAdapter<any>, _args: any) {
-    return undefined;
-  }
-
-  async parse(_adapter: SchemaAdapter, result: any, value: any) {
-    return { errors: undefined, parsed: value };
-  }
-}
-
 /**
  * The usage of this is that imagine that the library doesn't support a specific feature that we support on our schema definition, it can return an instance
  * of this class and with this instance we are able to fallback to our default implementation of the schema validation.
@@ -98,9 +88,8 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
     force?: boolean;
     /** Let's say we support unions but the library used as adapter does not support that, we should fallback to another translated schema on that case. */
     fallbackTranslatedSchema?: any;
-    validationKey: symbol;
   }
-): Promise<any[]> {
+): any[] {
   const schemaWithPrivateFields = schema as unknown as {
     __adapters: Schema['__adapters'];
     __rootFallbacksValidator: Schema['__rootFallbacksValidator'];
@@ -120,49 +109,48 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
     }
   };
 
-  let adapter = schemaWithPrivateFields.__adapters[options.validationKey];
-  if (adapter === undefined) {
-    schemaWithPrivateFields.__adapters[options.validationKey] = schemaWithPrivateFields.__adapters.default;
-    adapter = schemaWithPrivateFields.__adapters[options.validationKey];
-  }
+  let adapters = schemaWithPrivateFields.__adapters;
+  const translatedSchemas = getTranslatedSchemasFromAdapters(adapters, type);
 
-  let translatedSchema = getTranslatedSchemaFromAdapter(adapter, type);
+  for (let i = 0; i < adapters.length; i++) {
+    const adapter = adapters[i];
+    let translatedSchema = translatedSchemas[i];
+    if (translatedSchema === undefined || options.force) {
+      // Translate the schema to the adapter schema if there is an adapter for that schema type.
+      const adapterOfThatType = adapter[type] as FieldAdapter;
 
-  if (translatedSchema === undefined || options.force) {
-    // Translate the schema to the adapter schema if there is an adapter for that schema type.
-    if (adapter[type] === undefined) adapter[type] = new NoOpFieldAdapter();
-    const adapterOfThatType = adapter[type] as FieldAdapter;
+      const translatedSchemaOrWithFallback = adapterOfThatType?.translate(adapter.field, {
+        withFallback: withFallbackFactory(type),
+        ...validationData,
+      } as any);
 
-    const translatedSchemaOrWithFallback = adapterOfThatType?.translate(adapter.field, {
-      withFallback: withFallbackFactory(type),
-      ...validationData,
-    } as any);
+      if (translatedSchemaOrWithFallback instanceof WithFallback) {
+        adapterOfThatType.__result = translatedSchemaOrWithFallback.transformedSchema;
+        for (const fallback of translatedSchemaOrWithFallback.fallbackFor)
+          checkIfShouldAppendFallbackAndAppend(fallback);
+      } else if (translatedSchemaOrWithFallback === undefined) {
+        // On that case the adapter doesn't support that schema type, so we should fallback to the default implementation.
+        const existingFallbacks = Object.keys(fallbackFunctions) as Parameters<WithFallback['fallbackFor']['add']>[0][];
+        for (const fallback of existingFallbacks) checkIfShouldAppendFallbackAndAppend(fallback);
+        if (options.fallbackTranslatedSchema !== undefined)
+          adapterOfThatType.__result = options.fallbackTranslatedSchema;
+      } else adapterOfThatType.__result = translatedSchemaOrWithFallback;
+      translatedSchema = adapterOfThatType.__result;
 
-    if (translatedSchemaOrWithFallback instanceof WithFallback) {
-      adapterOfThatType.__result = translatedSchemaOrWithFallback.transformedSchema;
-      for (const fallback of translatedSchemaOrWithFallback.fallbackFor) checkIfShouldAppendFallbackAndAppend(fallback);
-    } else if (translatedSchemaOrWithFallback === undefined) {
-      // On that case the adapter doesn't support that schema type, so we should fallback to the default implementation.
-      const existingFallbacks = Object.keys(fallbackFunctions) as Parameters<WithFallback['fallbackFor']['add']>[0][];
-      for (const fallback of existingFallbacks) checkIfShouldAppendFallbackAndAppend(fallback);
-      if (options.fallbackTranslatedSchema !== undefined) adapterOfThatType.__result = options.fallbackTranslatedSchema;
-    } else adapterOfThatType.__result = translatedSchemaOrWithFallback;
-    translatedSchema = adapterOfThatType.__result;
-
-    const hasFallbacks = schemaWithPrivateFields.__rootFallbacksValidator instanceof Validator;
-    if (hasFallbacks) {
-      Validator.createAndAppendFallback(schema, optional(schemaWithPrivateFields.__optional));
-      Validator.createAndAppendFallback(schema, nullable(schemaWithPrivateFields.__nullable));
-      Validator.createAndAppendFallback(schema, checkType(schemaWithPrivateFields.__type));
+      const hasFallbacks = schemaWithPrivateFields.__rootFallbacksValidator instanceof Validator;
+      if (hasFallbacks) {
+        Validator.createAndAppendFallback(schema, optional(schemaWithPrivateFields.__optional));
+        Validator.createAndAppendFallback(schema, nullable(schemaWithPrivateFields.__nullable));
+        Validator.createAndAppendFallback(schema, checkType(schemaWithPrivateFields.__type));
+      }
     }
+    translatedSchemas.push(translatedSchema);
   }
 
-  return translatedSchema;
+  return translatedSchemas;
 }
 
-export function getTranslatedSchemaFromAdapter(adapter: SchemaAdapter, type: WithFallback['adapterType']): any {
-  return adapter?.[type]?.__result;
-}
+export function getTranslatedSchemasFromAdapters(adapters: SchemaAdapter[], type: WithFallback['adapterType']): any[] {}
 
 /**
  * The

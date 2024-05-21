@@ -1,14 +1,14 @@
 import SchemaAdapter from './adapter';
 import { NoAdapterFoundError } from './exceptions';
 
-let cachedAdapter: typeof SchemaAdapter | null = null;
+let cachedAdapter: SchemaAdapter | null = null;
 
 /**
  * Sets the default adapter to be used by all of your schemas.
  *
  * @param adapter - The adapter to use when you define schemas.
  */
-export function setDefaultAdapter(adapter: typeof SchemaAdapter) {
+export function setDefaultAdapter(adapter: SchemaAdapter) {
   cachedAdapter = adapter;
 }
 
@@ -19,7 +19,7 @@ export function setDefaultAdapter(adapter: typeof SchemaAdapter) {
  *
  * @returns The default adapter.
  */
-export function getDefaultAdapter(): typeof SchemaAdapter {
+export function getDefaultAdapter(): SchemaAdapter {
   if (!cachedAdapter) throw new NoAdapterFoundError();
 
   return cachedAdapter;

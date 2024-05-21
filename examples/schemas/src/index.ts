@@ -8,7 +8,7 @@ import {
 import { ZodSchemaAdapter } from '@palmares/zod-schema';
 import * as z from 'zod';
 
-setDefaultAdapter(ZodSchemaAdapter);
+setDefaultAdapter(new ZodSchemaAdapter());
 
 const testeObjectSchema = ObjectSchema.new({
   age: NumberSchema.new(),
@@ -33,23 +33,6 @@ const objectSchema = ObjectSchema.new({
   teste: UnionSchema.new([
     ObjectSchema.new({
       age: NumberSchema.new(),
-      spent: NumberSchema.new()
-        .min(12, { inclusive: true })
-        .positive()
-        .toValidate((value) => {
-          console.log('toValidate', value);
-          return Number(value);
-        })
-        .toInternal(async (value) => {
-          console.log('toInternal', value);
-          return {
-            teste: value,
-          };
-        })
-        .toRepresentation(async (value) => {
-          console.log('without validation, changing how the data is sent to the user', value, typeof value);
-          return 'Aquiiii';
-        }),
     }),
     NumberSchema.new(),
   ]),

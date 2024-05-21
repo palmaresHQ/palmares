@@ -65,9 +65,7 @@ export default class NumberSchema<
         max,
         min,
       },
-      {
-        validationKey: options.validationKey as symbol,
-      }
+      {}
     );
   }
 
@@ -180,9 +178,12 @@ export default class NumberSchema<
       },
       TDefinitions
     >();
-    const adapterInstance = new (getDefaultAdapter())();
+    const adapterInstance = getDefaultAdapter();
 
-    returnValue.__adapters.default = adapterInstance;
+    returnValue.__transformedSchemas[adapterInstance.constructor.name] = {
+      adapter: adapterInstance,
+      schemas: [],
+    };
 
     return returnValue as NumberSchema<
       {

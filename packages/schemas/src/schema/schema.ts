@@ -1,3 +1,4 @@
+import SchemaAdapter from '../adapter';
 import FieldAdapter from '../adapter/fields';
 import { getDefaultAdapter } from '../conf';
 import { formatErrorFromParseMethod } from '../utils';
@@ -31,10 +32,6 @@ export default class Schema<
     internal: TType['internal'];
     representation: TType['representation'];
   };
-  protected __adapters: {
-    [validations: symbol]: TDefinitions['schemaAdapter'];
-    default: TDefinitions['schemaAdapter'];
-  } = {} as any;
   __rootFallbacksValidator!: Validator;
   __validationSchema!: any;
   __refinements: {
@@ -55,6 +52,13 @@ export default class Schema<
     message: 'Required',
     allow: false,
   };
+  __transformedSchemas: Record<
+    string,
+    {
+      adapter: TDefinitions['schemaAdapter'];
+      schemas: any[]; // This is the transformed schemas
+    }
+  > = {};
   __defaultFunction: (() => Promise<TType['input'] | TType['output']>) | undefined = undefined;
   __toRepresentation: ((value: TType['output']) => TType['output']) | undefined = undefined;
   __toValidate: ((value: TType['input']) => TType['validate']) | undefined = undefined;
@@ -108,9 +112,18 @@ export default class Schema<
     parseResult: Awaited<ReturnType<Schema['__parse']>>,
     options: Parameters<Schema['_transformToAdapter']>[0]
   ) {
-    const transformedSchema = await this._transformToAdapter(options);
-    const validationKey = options.validationKey as symbol;
-    const adapter = this.__adapters[validationKey];
+    await this._transformToAdapter(options);
+    const defaultAdapterName = Object.keys(this.__transformedSchemas)?.[0];
+    const adapter = this.__transformedSchemas[defaultAdapterName].adapter;
+    const transformedSchema = this.__transformedSchemas[defaultAdapterName].schemas[0];
+
+    const partialParseResult: Awaited<ReturnType<Schema['__parse']>> = {
+      errors: [],
+      parsed: value,
+    };
+    // On the next iteration we will reset the errors and the parsed value
+    partialParseResult.errors = [];
+    partialParseResult.parsed = value;
 
     const schemaAdapterFieldType = this.constructor.name
       .replace('Schema', '')
@@ -123,18 +136,26 @@ export default class Schema<
       value
     );
 
-    parseResult.parsed = adapterParseResult.parsed;
+    partialParseResult.parsed = adapterParseResult.parsed;
+
     if (adapterParseResult.errors) {
       if (Array.isArray(adapterParseResult.errors))
-        parseResult.errors = await Promise.all(
+        partialParseResult.errors = await Promise.all(
           adapterParseResult.errors.map(async (error) =>
             formatErrorFromParseMethod(adapter, error, path, errorsAsHashedSet)
           )
         );
       else
-        parseResult.errors = [await formatErrorFromParseMethod(adapter, parseResult.errors, path, errorsAsHashedSet)];
+        partialParseResult.errors = [
+          await formatErrorFromParseMethod(adapter, partialParseResult.errors, path, errorsAsHashedSet),
+        ];
     }
 
+    parseResult.errors =
+      parseResult.errors?.concat(partialParseResult.errors) || (partialParseResult.errors?.length || 0) > 0
+        ? partialParseResult.errors
+        : undefined;
+    parseResult.parsed = partialParseResult.parsed;
     return parseResult;
   }
 
@@ -144,8 +165,8 @@ export default class Schema<
 
   async _transformToAdapter(_options: {
     toInternalToBubbleUp?: (() => Promise<void>)[];
-    //modifyItself?: (newAdapterSchema: any, validationKey: symbol) => any;
-    validationKey: symbol;
+    schemaAdapter?: SchemaAdapter;
+    fallbacksBeforeAdapterValidation?: Record<string, () => Promise<void>>;
   }): Promise<ReturnType<FieldAdapter['translate']>> {
     throw new Error('Not implemented');
   }
@@ -167,6 +188,8 @@ export default class Schema<
       parsed: TType['input'];
     } = { errors: undefined, parsed: value };
 
+    if (options.fallbacksBeforeAdapterValidation === undefined) options.fallbacksBeforeAdapterValidation = {};
+    await this._transformToAdapter(options);
     let parsedResultsAfterAdapter = await this.__validateByAdapter(
       value,
       errorsAsHashedSet,
@@ -174,8 +197,6 @@ export default class Schema<
       { parsed: parseResult.parsed, errors: [] },
       options
     );
-
-    let shouldValidateByAdapterAgain = false;
 
     const parsedResultsAfterFallbacks = await this.__validateByFallbacks(
       errorsAsHashedSet,
@@ -185,19 +206,12 @@ export default class Schema<
         parsed: value,
       },
       options
-      /*modifyItself: async (_, validationKey) => {
-          // This is a hack to make sure that we are properly validating the data. This is needed because of Unions, when it's a union
-          // and it's not handled by the adapter we need to revalidate the data with the adapter again because the used schema
-          // might have changed to a new one. With that we pretty much reset all of the errors and parse by the adapter again.
-          await options.modifyItself?.(this, validationKey);
-          shouldValidateByAdapterAgain = true;
-        },*/
     );
     parseResult.parsed = parsedResultsAfterFallbacks.parsed;
 
     // Validating the adapter twice is needed because of unions, we will only enter that condition if we are validating a union.
     // Pretty much the idea is that we change the schema, after changing the schema we need to validate with the adapters again.
-    if (shouldValidateByAdapterAgain) {
+    /*if (shouldValidateByAdapterAgain) {
       parsedResultsAfterAdapter = await this.__validateByAdapter(
         value,
         errorsAsHashedSet,
@@ -206,7 +220,7 @@ export default class Schema<
         options
       );
       parseResult.parsed = parsedResultsAfterAdapter.parsed;
-    }
+    }*/
 
     parseResult.errors = [...(parsedResultsAfterAdapter.errors || []), ...(parsedResultsAfterFallbacks.errors || [])];
 
@@ -220,7 +234,6 @@ export default class Schema<
     const hasNoErrors = parseResult.errors === undefined || (parseResult.errors || []).length === 0;
 
     if (shouldCallToInternalDuringParse && hasNoErrors) parseResult.parsed = await (this.__toInternal as any)(value);
-    delete this.__adapters[options.validationKey as symbol];
 
     return parseResult;
   }
@@ -298,10 +311,7 @@ export default class Schema<
   }
 
   async parse(value: TType['input']): Promise<{ errors?: any[]; parsed: TType['internal'] }> {
-    const validationKey = Symbol();
-    return this.__parse(value, [], {
-      validationKey,
-    });
+    return this.__parse(value, [], {});
   }
 
   instanceOf(args: Schema['__type']) {
@@ -397,9 +407,11 @@ export default class Schema<
   ): Schema<TType> {
     const result = new Schema<TType>();
 
-    const DefaultAdapterClass = getDefaultAdapter();
-    const adapterInstance = new DefaultAdapterClass();
-    result.__adapters.default = adapterInstance;
+    const adapterInstance = getDefaultAdapter();
+    result.__transformedSchemas[adapterInstance.constructor.name] = {
+      adapter: adapterInstance,
+      schemas: [],
+    };
 
     return result;
   }

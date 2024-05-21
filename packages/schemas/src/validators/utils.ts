@@ -184,6 +184,7 @@ export default class Validator {
       validatorInstance = new Validator(fallback.type);
       schema.__rootFallbacksValidator = validatorInstance;
     }
+    if (fallback.adapters) (schema as any).__adapters.push(...fallback.adapters);
     validatorInstance.addFallback(schema, fallback.type, fallback.callback, options);
     return validatorInstance;
   }

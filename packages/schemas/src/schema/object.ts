@@ -3,7 +3,7 @@ import { getDefaultAdapter } from '../conf';
 import FieldAdapter from '../adapter/fields';
 import {
   defaultTransform,
-  getTranslatedSchemaFromAdapter,
+  getTranslatedSchemasFromAdapters,
   transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas,
 } from '../utils';
 import { objectValidation } from '../validators/object';
@@ -46,11 +46,8 @@ export default class ObjectSchema<
   async _transformToAdapter(
     options: Parameters<Schema['_transformToAdapter']>[0]
   ): Promise<ReturnType<FieldAdapter['translate']>> {
-    const translatedSchemaOfAdapter = getTranslatedSchemaFromAdapter(
-      this.__adapters[options.validationKey as symbol],
-      'object'
-    );
-    if (translatedSchemaOfAdapter === undefined) {
+    const translatedSchemasOfAdapters = getTranslatedSchemasFromAdapters(this.__adapters, 'object');
+    if (translatedSchemasOfAdapters.length === 0) {
       const promises: Promise<any>[] = [];
       const fallbackByKeys: Record<string, Schema> = {};
 
@@ -104,8 +101,7 @@ export default class ObjectSchema<
           shouldValidateWithFallback = shouldValidateWithFallback || shouldAddFallbackValidationForThisKey;
 
           if (shouldAddFallbackValidationForThisKey) fallbackByKeys[key] = valueToTransform;
-
-          transformedDataByKeys[key] = transformedData;
+          transformedDataByKeys[key] = transformedData[0];
         };
         if (valueToTransform instanceof Schema) promises.push(awaitableTransformer());
       }
@@ -122,14 +118,12 @@ export default class ObjectSchema<
           optional: this.__optional,
         },
         {},
-        {
-          validationKey: options.validationKey as symbol,
-        }
+        {}
       );
     }
 
-    console.log('object Transform to adapter', this.constructor.name, translatedSchemaOfAdapter);
-    return translatedSchemaOfAdapter;
+    //.log('object Transform to adapter', this.constructor.name, translatedSchemasOfAdapters);
+    return translatedSchemasOfAdapters;
   }
 
   protected async __parse(
@@ -193,10 +187,12 @@ export default class ObjectSchema<
       TData
     >(data);
 
-    const DefaultAdapterClass = getDefaultAdapter();
-    const adapterInstance = new DefaultAdapterClass();
+    const adapterInstance = getDefaultAdapter();
 
-    returnValue.__adapters.default = adapterInstance;
+    returnValue.__transformedSchemas[adapterInstance.constructor.name] = {
+      adapter: adapterInstance,
+      schemas: [],
+    };
 
     return returnValue;
   }

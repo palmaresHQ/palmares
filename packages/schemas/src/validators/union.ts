@@ -6,7 +6,10 @@ export function unionValidation(
   doesAdapterSupportUnion: boolean,
   schemaOptions: Parameters<ValidationFallbackReturnType['callback']>[2]
 ): ValidationFallbackReturnType {
+  const adapters = [];
+  for (const schema of schemas) adapters.push(...(schema as any).__adapters);
   return {
+    adapters,
     type: 'low',
     callback: async (value, path, options) => {
       let parsedValues: Awaited<ReturnType<Schema['__parse']>> = {

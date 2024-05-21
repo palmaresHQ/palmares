@@ -4,7 +4,7 @@ import { getDefaultAdapter } from '../conf';
 import Schema from './schema';
 import {
   defaultTransform,
-  getTranslatedSchemaFromAdapter,
+  getTranslatedSchemasFromAdapters,
   transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas,
 } from '../utils';
 
@@ -44,15 +44,13 @@ export default class UnionSchema<
   async _transformToAdapter(
     options: Parameters<Schema['_transformToAdapter']>[0]
   ): Promise<ReturnType<FieldAdapter['translate']>> {
-    const translatedSchemaOfAdapter = getTranslatedSchemaFromAdapter(
-      this.__adapters[options.validationKey as symbol],
-      'union'
-    );
-    console.log('union Transform to adapter', this.constructor.name, translatedSchemaOfAdapter);
+    const translatedSchema = this.__transformedSchemas;
+    const translatedSchemaOfAdapter = getTranslatedSchemasFromAdapters(this.__, 'union');
+    //console.log('union Transform to adapter', this.constructor.name, translatedSchemaOfAdapter);
 
-    if (translatedSchemaOfAdapter === undefined) {
+    if (translatedSchemaOfAdapter.length === 0) {
       const promises: Promise<any>[] = [];
-      let shouldHandleByFallback = false;
+      let shouldHandleByFallback = this.__adapters[0].union === undefined;
       for (const schemaToTransform of this.__schemas.values()) {
         const awaitableTransformer = async () => {
           const [transformedData, shouldAddFallbackValidationForThisKey] =
@@ -63,7 +61,8 @@ export default class UnionSchema<
         promises.push(awaitableTransformer());
       }
 
-      const transformedSchemas = await Promise.all(promises);
+      const transformedSchemas = (await Promise.all(promises)).flat();
+      console.log('union transformedSchemas', transformedSchemas);
       if (shouldHandleByFallback)
         Validator.createAndAppendFallback(
           this,
@@ -73,7 +72,7 @@ export default class UnionSchema<
               Schema<any, any>,
               ...Schema<any, any>[],
             ],
-            typeof this?.__adapters?.default?.union?.parse === 'function',
+            typeof this?.__adapters[0]?.union?.parse === 'function',
             options
           ),
           {
@@ -82,8 +81,7 @@ export default class UnionSchema<
           }
         );
 
-      console.log('heeeere');
-      return defaultTransform(
+      const transforms = defaultTransform(
         'union',
         this,
         {
@@ -92,8 +90,10 @@ export default class UnionSchema<
           schemas: transformedSchemas,
         },
         {},
-        { fallbackTranslatedSchema: transformedSchemas[0], validationKey: options.validationKey as symbol }
+        { fallbackTranslatedSchema: transformedSchemas[0] }
       );
+
+      return transforms;
     }
 
     return translatedSchemaOfAdapter;
@@ -107,7 +107,8 @@ export default class UnionSchema<
 
     const DefaultAdapterClass = getDefaultAdapter();
     const adapterInstance = new DefaultAdapterClass();
-    result.__adapters.default = adapterInstance;
+    if (result.__adapters.length > 0) result.__adapters[0] = adapterInstance;
+    else result.__adapters.push(adapterInstance);
 
     return result;
   }

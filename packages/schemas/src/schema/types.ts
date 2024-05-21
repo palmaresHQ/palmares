@@ -18,6 +18,7 @@ export type ValidationFallbackCallbackReturnType = Awaited<ReturnType<Validator[
 export type ValidationFallbackReturnType = {
   type: ValidatorTypes;
   callback: ValidationFallbackCallbackType;
+  adapters?: SchemaAdapter[];
 };
 
 type TypesOfSchema = Schema extends Schema<infer TType, any> ? TType : never;
@@ -46,6 +47,5 @@ export type ExtractTypeFromObjectOfSchemas<
       : TRepresentationType
     : never;
 };
-
 
 export type ExtractUnionTypesFromSchemas<TSchemas extends readonly Schema<any, any>[]> = TSchemas[number]['__types'];
