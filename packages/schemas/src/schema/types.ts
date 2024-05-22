@@ -4,6 +4,7 @@ import Validator from '../validators/utils';
 import Schema from './schema';
 
 import type { ValidatorTypes } from '../validators/types';
+import { ErrorCodes } from '../adapter/types';
 
 export type OnlyFieldAdaptersFromSchemaAdapter = keyof {
   [key in keyof SchemaAdapter as SchemaAdapter[key] extends FieldAdapter ? key : never]: SchemaAdapter[key];
@@ -14,7 +15,16 @@ export type DefinitionsOfSchemaType = {
 };
 
 export type ValidationFallbackCallbackType = Validator['fallbacks'][number];
-export type ValidationFallbackCallbackReturnType = Awaited<ReturnType<Validator['fallbacks'][number]>>;
+export type ValidationFallbackCallbackReturnType = {
+  parsed: any;
+  errors: {
+    isValid: boolean;
+    code: ErrorCodes;
+    message: string;
+    path: (string | number)[];
+  }[];
+  preventChildValidation?: boolean;
+};
 export type ValidationFallbackReturnType = {
   type: ValidatorTypes;
   callback: ValidationFallbackCallbackType;

@@ -32,6 +32,21 @@ export default class Schema<
     internal: TType['internal'];
     representation: TType['representation'];
   };
+  // Those functions will assume control of the validation process on adapters, instead of the schema. Why this is used? The idea is that the Schema has NO idea
+  // that one of it's children might be an UnionSchema for example. The adapter might not support unions, so then we give control to the union. The parent schema
+  // Will already have an array of translated adapter schemas. This means for a union with Number and String it'll generate two schemas, one for number and one for the value as String.
+  // Of course this gets multiplied. So if we have a union with Number and String. We should take those two schemas from the array and validate them individually. This logic is
+  // handled by the union schema. If we have an intersection type for example, instead of validating One schema OR the other, we validate one schema AND the other. This will be handled
+  // by the schema that contains that intersection logic.
+  __beforeValidationCallbacks: Map<
+    string,
+    (
+      schemas: any[],
+      value: TType['input'],
+      path: ValidationFallbackCallbackReturnType['errors'][number]['path'],
+      options: Parameters<Schema['_transformToAdapter']>[0]
+    ) => ReturnType<Schema['__validateByAdapter']>
+  > = new Map();
   __rootFallbacksValidator!: Validator;
   __validationSchema!: any;
   __refinements: {
@@ -166,7 +181,15 @@ export default class Schema<
   async _transformToAdapter(_options: {
     toInternalToBubbleUp?: (() => Promise<void>)[];
     schemaAdapter?: SchemaAdapter;
-    fallbacksBeforeAdapterValidation?: Record<string, () => Promise<void>>;
+    appendFallbacksBeforeAdapterValidation?: (
+      uniqueNameOfFallback: string,
+      fallbackValidationBeforeAdapter: (
+        schemas: any[],
+        value: TType['input'],
+        path: ValidationFallbackCallbackReturnType['errors'][number]['path'],
+        options: Parameters<Schema['_transformToAdapter']>[0]
+      ) => ReturnType<Schema['__validateByAdapter']>
+    ) => void;
   }): Promise<ReturnType<FieldAdapter['translate']>> {
     throw new Error('Not implemented');
   }
@@ -188,7 +211,11 @@ export default class Schema<
       parsed: TType['input'];
     } = { errors: undefined, parsed: value };
 
-    if (options.fallbacksBeforeAdapterValidation === undefined) options.fallbacksBeforeAdapterValidation = {};
+    if (options.appendFallbacksBeforeAdapterValidation === undefined)
+      options.appendFallbacksBeforeAdapterValidation = (name, callback) => {
+        this.__beforeValidationCallbacks.set(name, callback);
+      };
+
     await this._transformToAdapter(options);
     let parsedResultsAfterAdapter = await this.__validateByAdapter(
       value,

@@ -3,7 +3,7 @@ import { getDefaultAdapter } from '../conf';
 import FieldAdapter from '../adapter/fields';
 import {
   defaultTransform,
-  getTranslatedSchemasFromAdapters,
+  defaultTransformToAdapter,
   transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas,
 } from '../utils';
 import { objectValidation } from '../validators/object';
@@ -46,24 +46,24 @@ export default class ObjectSchema<
   async _transformToAdapter(
     options: Parameters<Schema['_transformToAdapter']>[0]
   ): Promise<ReturnType<FieldAdapter['translate']>> {
-    const translatedSchemasOfAdapters = getTranslatedSchemasFromAdapters(this.__adapters, 'object');
-    if (translatedSchemasOfAdapters.length === 0) {
-      const promises: Promise<any>[] = [];
-      const fallbackByKeys: Record<string, Schema> = {};
+    return defaultTransformToAdapter(
+      async (adapter) => {
+        const promises: Promise<any>[] = [];
+        const fallbackByKeys: Record<string, Schema> = {};
 
-      const toTransform = this.__retrieveDataAsEntriesAndCache();
+        const toTransform = this.__retrieveDataAsEntriesAndCache();
 
-      const transformedDataByKeys: Record<any, any> = {};
+        const transformedDataByKeys: Record<any, any> = {};
 
-      let shouldValidateWithFallback = false;
+        let shouldValidateWithFallback = false;
 
-      for (const [key, valueToTransform] of toTransform) {
-        const awaitableTransformer = async () => {
-          const [transformedData, shouldAddFallbackValidationForThisKey] =
-            await transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas(
-              valueToTransform,
-              options
-              /*modifyItself: async (schema, validationKey) => {
+        for (const [key, valueToTransform] of toTransform) {
+          const awaitableTransformer = async () => {
+            const [transformedData, shouldAddFallbackValidationForThisKey] =
+              await transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas(
+                valueToTransform,
+                options
+                /*modifyItself: async (schema, validationKey) => {
                 // Pretty much when we are transforming the data we need to make sure that we create a fresh new instance of the adapter.
                 // We do that because we only assign the adapter
                 const DefaultAdapterClass = getDefaultAdapter();
@@ -97,33 +97,33 @@ export default class ObjectSchema<
                 await options.modifyItself?.(this, validationKey);
               },
             }*/
-            );
-          shouldValidateWithFallback = shouldValidateWithFallback || shouldAddFallbackValidationForThisKey;
+              );
+            shouldValidateWithFallback = shouldValidateWithFallback || shouldAddFallbackValidationForThisKey;
 
-          if (shouldAddFallbackValidationForThisKey) fallbackByKeys[key] = valueToTransform;
-          transformedDataByKeys[key] = transformedData[0];
-        };
-        if (valueToTransform instanceof Schema) promises.push(awaitableTransformer());
-      }
+            if (shouldAddFallbackValidationForThisKey) fallbackByKeys[key] = valueToTransform;
+            transformedDataByKeys[key] = transformedData[0];
+          };
+          if (valueToTransform instanceof Schema) promises.push(awaitableTransformer());
+        }
 
-      await Promise.all(promises);
-      if (shouldValidateWithFallback)
-        Validator.createAndAppendFallback(this, objectValidation(fallbackByKeys), { at: 0, removeCurrent: true });
-      return defaultTransform(
-        'object',
-        this,
-        {
-          data: transformedDataByKeys,
-          nullable: this.__nullable,
-          optional: this.__optional,
-        },
-        {},
-        {}
-      );
-    }
-
-    //.log('object Transform to adapter', this.constructor.name, translatedSchemasOfAdapters);
-    return translatedSchemasOfAdapters;
+        await Promise.all(promises);
+        if (shouldValidateWithFallback)
+          Validator.createAndAppendFallback(this, objectValidation(fallbackByKeys), { at: 0, removeCurrent: true });
+        return defaultTransform(
+          'object',
+          this,
+          {
+            data: transformedDataByKeys,
+            nullable: this.__nullable,
+            optional: this.__optional,
+          },
+          {},
+          {}
+        );
+      },
+      this.__transformedSchemas,
+      options
+    );
   }
 
   protected async __parse(

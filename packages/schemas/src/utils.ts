@@ -91,7 +91,7 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
   }
 ): any[] {
   const schemaWithPrivateFields = schema as unknown as {
-    __adapters: Schema['__adapters'];
+    __transformedSchemas: Schema['__transformedSchemas'];
     __rootFallbacksValidator: Schema['__rootFallbacksValidator'];
     __optional: Schema['__optional'];
     __nullable: Schema['__nullable'];
@@ -109,6 +109,8 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
     }
   };
 
+  console.log('heeere', type);
+  /*
   let adapters = schemaWithPrivateFields.__adapters;
   const translatedSchemas = getTranslatedSchemasFromAdapters(adapters, type);
 
@@ -145,12 +147,34 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
       }
     }
     translatedSchemas.push(translatedSchema);
-  }
+  }*/
 
-  return translatedSchemas;
+  return [];
 }
 
-export function getTranslatedSchemasFromAdapters(adapters: SchemaAdapter[], type: WithFallback['adapterType']): any[] {}
+export async function defaultTransformToAdapter(
+  callback: (adapter: SchemaAdapter) => ReturnType<FieldAdapter['translate']>,
+  transformedSchemas: Schema['__transformedSchemas'],
+  options: Parameters<Schema['_transformToAdapter']>[0]
+) {
+  const schemaAdapterNameToUse = options.schemaAdapter?.constructor?.name || Object.keys(transformedSchemas)[0];
+  const isACustomSchemaAdapterAndNotYetDefined =
+    transformedSchemas[schemaAdapterNameToUse] === undefined && options.schemaAdapter !== undefined;
+  console.log(transformedSchemas, schemaAdapterNameToUse);
+  if (isACustomSchemaAdapterAndNotYetDefined)
+    transformedSchemas[schemaAdapterNameToUse] = {
+      adapter: options.schemaAdapter as SchemaAdapter,
+      schemas: [],
+    };
+
+  const translatedSchemas = transformedSchemas[schemaAdapterNameToUse].schemas;
+  const shouldTranslate = translatedSchemas.length <= 0;
+  if (shouldTranslate) {
+    const translatedSchema = await callback(transformedSchemas[schemaAdapterNameToUse].adapter);
+    transformedSchemas[schemaAdapterNameToUse].schemas = translatedSchema;
+  }
+  return transformedSchemas[schemaAdapterNameToUse].schemas;
+}
 
 /**
  * The
