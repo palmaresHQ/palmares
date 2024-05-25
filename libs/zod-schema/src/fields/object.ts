@@ -1,4 +1,4 @@
-import { FieldAdapter, ObjectAdapterTranslateArgs, ObjectFieldAdapter } from '@palmares/schemas';
+import { FieldAdapter, ObjectAdapterTranslateArgs, ObjectFieldAdapter, SchemaAdapter } from '@palmares/schemas';
 import * as z from 'zod';
 
 export default class ZodObjectFieldSchemaAdapter extends ObjectFieldAdapter<z.ZodObject<any>> {
@@ -12,9 +12,20 @@ export default class ZodObjectFieldSchemaAdapter extends ObjectFieldAdapter<z.Zo
       const parsed = await result.parseAsync(value);
       return { errors: null, parsed };
     } catch (error) {
-      console.log('from Zod object', (error as any).errors);
       if (error instanceof z.ZodError) return { errors: error.errors, parsed: value };
       else throw error;
     }
+  }
+
+  async toString(
+    _adapter: SchemaAdapter,
+    _fieldAdapter: FieldAdapter<any>,
+    args: ObjectAdapterTranslateArgs,
+    _base?: any
+  ): Promise<string> {
+    console.log(args);
+    return `z.object({
+
+    })`;
   }
 }

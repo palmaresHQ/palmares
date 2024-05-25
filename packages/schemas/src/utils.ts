@@ -75,9 +75,11 @@ export function parseErrorsFactory(schemaAdapter: SchemaAdapter) {
  *
  * @returns - The translated schema for something that the adapter is able to understand.
  */
-export function defaultTransform<TType extends WithFallback['adapterType']>(
+export async function defaultTransform<TType extends WithFallback['adapterType']>(
   type: TType,
   schema: Schema,
+  adapter: SchemaAdapter,
+  fieldAdapter: FieldAdapter | undefined,
   validationData: TType extends 'number'
     ? NumberAdapterTranslateArgsWithoutNonTranslateArgs
     : TType extends 'union'
@@ -85,11 +87,9 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
     : ObjectAdapterTranslateArgsWithoutNonTranslateArgs,
   fallbackFunctions: FallbackFunctionsType<typeof validationData>,
   options: {
-    force?: boolean;
-    /** Let's say we support unions but the library used as adapter does not support that, we should fallback to another translated schema on that case. */
-    fallbackTranslatedSchema?: any;
-  }
-): any[] {
+    fallbackIfNotSupported?: () => ReturnType<Schema['_transformToAdapter']>;
+  } & Pick<Parameters<Schema['_transformToAdapter']>[0], 'shouldAddStringVersion'>
+): Promise<any[]> {
   const schemaWithPrivateFields = schema as unknown as {
     __transformedSchemas: Schema['__transformedSchemas'];
     __rootFallbacksValidator: Schema['__rootFallbacksValidator'];
@@ -109,70 +109,79 @@ export function defaultTransform<TType extends WithFallback['adapterType']>(
     }
   };
 
-  console.log('heeere', type);
-  /*
-  let adapters = schemaWithPrivateFields.__adapters;
-  const translatedSchemas = getTranslatedSchemasFromAdapters(adapters, type);
+  const hasFallbacks = schemaWithPrivateFields.__rootFallbacksValidator instanceof Validator;
+  if (hasFallbacks) {
+    Validator.createAndAppendFallback(schema, optional(schemaWithPrivateFields.__optional));
+    Validator.createAndAppendFallback(schema, nullable(schemaWithPrivateFields.__nullable));
+    Validator.createAndAppendFallback(schema, checkType(schemaWithPrivateFields.__type));
+  }
 
-  for (let i = 0; i < adapters.length; i++) {
-    const adapter = adapters[i];
-    let translatedSchema = translatedSchemas[i];
-    if (translatedSchema === undefined || options.force) {
-      // Translate the schema to the adapter schema if there is an adapter for that schema type.
-      const adapterOfThatType = adapter[type] as FieldAdapter;
+  if (options.fallbackIfNotSupported !== undefined && fieldAdapter === undefined) {
+    const existingFallbacks = Object.keys(fallbackFunctions) as Parameters<WithFallback['fallbackFor']['add']>[0][];
+    for (const fallback of existingFallbacks) checkIfShouldAppendFallbackAndAppend(fallback);
+    return options.fallbackIfNotSupported();
+  }
+  if (!fieldAdapter) throw new Error('The field adapter is not supported and no fallback was provided.');
 
-      const translatedSchemaOrWithFallback = adapterOfThatType?.translate(adapter.field, {
-        withFallback: withFallbackFactory(type),
-        ...validationData,
-      } as any);
+  const translatedSchemaOrWithFallback = (await Promise.resolve(
+    fieldAdapter.translate(adapter.field, {
+      withFallback: withFallbackFactory(type),
+      ...validationData,
+    })
+  )) as any | WithFallback;
 
-      if (translatedSchemaOrWithFallback instanceof WithFallback) {
-        adapterOfThatType.__result = translatedSchemaOrWithFallback.transformedSchema;
-        for (const fallback of translatedSchemaOrWithFallback.fallbackFor)
-          checkIfShouldAppendFallbackAndAppend(fallback);
-      } else if (translatedSchemaOrWithFallback === undefined) {
-        // On that case the adapter doesn't support that schema type, so we should fallback to the default implementation.
-        const existingFallbacks = Object.keys(fallbackFunctions) as Parameters<WithFallback['fallbackFor']['add']>[0][];
-        for (const fallback of existingFallbacks) checkIfShouldAppendFallbackAndAppend(fallback);
-        if (options.fallbackTranslatedSchema !== undefined)
-          adapterOfThatType.__result = options.fallbackTranslatedSchema;
-      } else adapterOfThatType.__result = translatedSchemaOrWithFallback;
-      translatedSchema = adapterOfThatType.__result;
+  let stringVersion = '';
+  if (options.shouldAddStringVersion)
+    stringVersion = await fieldAdapter.toString(adapter, adapter.field, validationData as any);
 
-      const hasFallbacks = schemaWithPrivateFields.__rootFallbacksValidator instanceof Validator;
-      if (hasFallbacks) {
-        Validator.createAndAppendFallback(schema, optional(schemaWithPrivateFields.__optional));
-        Validator.createAndAppendFallback(schema, nullable(schemaWithPrivateFields.__nullable));
-        Validator.createAndAppendFallback(schema, checkType(schemaWithPrivateFields.__type));
-      }
-    }
-    translatedSchemas.push(translatedSchema);
-  }*/
+  if (translatedSchemaOrWithFallback instanceof WithFallback) {
+    for (const fallback of translatedSchemaOrWithFallback.fallbackFor) checkIfShouldAppendFallbackAndAppend(fallback);
+    return [
+      {
+        transformed: translatedSchemaOrWithFallback.transformedSchema,
+        asString: stringVersion,
+      },
+    ];
+  }
 
-  return [];
+  return [
+    {
+      transformed: translatedSchemaOrWithFallback,
+      asString: stringVersion,
+    },
+  ];
 }
 
+/**
+ * This function is used to transform the schema to the adapter. By default it caches the transformed schemas on the schema instance. So on subsequent validations we don't need
+ * to transform to the schema again.
+ */
 export async function defaultTransformToAdapter(
   callback: (adapter: SchemaAdapter) => ReturnType<FieldAdapter['translate']>,
   transformedSchemas: Schema['__transformedSchemas'],
-  options: Parameters<Schema['_transformToAdapter']>[0]
+  options: Parameters<Schema['_transformToAdapter']>[0],
+  type: string
 ) {
   const schemaAdapterNameToUse = options.schemaAdapter?.constructor?.name || Object.keys(transformedSchemas)[0];
   const isACustomSchemaAdapterAndNotYetDefined =
     transformedSchemas[schemaAdapterNameToUse] === undefined && options.schemaAdapter !== undefined;
-  console.log(transformedSchemas, schemaAdapterNameToUse);
+
   if (isACustomSchemaAdapterAndNotYetDefined)
     transformedSchemas[schemaAdapterNameToUse] = {
+      transformed: false,
       adapter: options.schemaAdapter as SchemaAdapter,
       schemas: [],
     };
 
-  const translatedSchemas = transformedSchemas[schemaAdapterNameToUse].schemas;
-  const shouldTranslate = translatedSchemas.length <= 0;
+  const shouldTranslate = transformedSchemas[schemaAdapterNameToUse].transformed === false || options.force === true;
+
   if (shouldTranslate) {
-    const translatedSchema = await callback(transformedSchemas[schemaAdapterNameToUse].adapter);
-    transformedSchemas[schemaAdapterNameToUse].schemas = translatedSchema;
+    const translatedSchemas = await callback(transformedSchemas[schemaAdapterNameToUse].adapter);
+    transformedSchemas[schemaAdapterNameToUse].schemas = translatedSchemas;
+    transformedSchemas[schemaAdapterNameToUse].transformed = true;
   }
+  transformedSchemas[schemaAdapterNameToUse].transformed = true;
+
   return transformedSchemas[schemaAdapterNameToUse].schemas;
 }
 

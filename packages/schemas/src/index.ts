@@ -13,6 +13,7 @@ export { setDefaultAdapter } from './conf';
 export * from './adapter/types';
 export * from './schema';
 export { SchemaAdapter, NumberSchema, ObjectSchema, UnionSchema };
+export { default as compile } from './compile';
 
 import type { Narrow } from '@palmares/core';
 

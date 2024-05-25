@@ -139,7 +139,6 @@ export default class Validator {
     for (const fallback of this.fallbacks) {
       const { parsed, errors, preventChildValidation } = await fallback(parseResult.parsed, path, options);
       parseResult.parsed = parsed;
-
       for (const error of errors) {
         if (error.isValid === false) {
           const hashedError = JSON.stringify(error);
@@ -184,8 +183,13 @@ export default class Validator {
       validatorInstance = new Validator(fallback.type);
       schema.__rootFallbacksValidator = validatorInstance;
     }
-    if (fallback.adapters) (schema as any).__adapters.push(...fallback.adapters);
     validatorInstance.addFallback(schema, fallback.type, fallback.callback, options);
     return validatorInstance;
+  }
+
+  toString(ident = 0): string {
+    return `Priority: ${this.priority}\nFallbacks: ${this.fallbacks.length}\n${
+      this.child ? `Children:\n${this.child.toString(ident + 2)}` : ''
+    }`;
   }
 }

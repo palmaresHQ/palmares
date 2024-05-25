@@ -6,9 +6,10 @@ import {
   DEFAULT_NUMBER_MIN_EXCEPTION,
   DEFAULT_NUMBER_NEGATIVE_EXCEPTION,
 } from '../constants';
-import WithFallback, { defaultTransform } from '../utils';
-import { max, min } from '../validators/number';
+import { defaultTransform, defaultTransformToAdapter } from '../utils';
+import { max, min, numberValidation } from '../validators/number';
 import { DefinitionsOfSchemaType } from './types';
+import Validator from '../validators/utils';
 
 export default class NumberSchema<
   TType extends {
@@ -49,23 +50,38 @@ export default class NumberSchema<
   };
 
   async _transformToAdapter(options: Parameters<Schema['_transformToAdapter']>[0]): Promise<any> {
-    return defaultTransform(
-      'number',
-      this,
-      {
-        min: this.__min,
-        allowNegative: this.__allowNegative,
-        allowPositive: this.__allowPositive,
-        max: this.__max,
-        integer: this.__integer,
-        optional: this.__optional,
-        nullable: this.__nullable,
+    return defaultTransformToAdapter(
+      async (adapter) => {
+        Validator.createAndAppendFallback(this, numberValidation());
+        return defaultTransform(
+          'number',
+          this,
+          adapter,
+          adapter.number,
+          {
+            min: this.__min,
+            allowNegative: this.__allowNegative,
+            allowPositive: this.__allowPositive,
+            max: this.__max,
+            integer: this.__integer,
+            optional: this.__optional,
+            nullable: this.__nullable,
+          },
+          {
+            max,
+            min,
+          },
+          {
+            fallbackIfNotSupported: () => {
+              //Validator.createAndAppendFallback(this, numberValidation());
+              return [];
+            },
+          }
+        );
       },
-      {
-        max,
-        min,
-      },
-      {}
+      this.__transformedSchemas,
+      options,
+      'number'
     );
   }
 
@@ -181,6 +197,7 @@ export default class NumberSchema<
     const adapterInstance = getDefaultAdapter();
 
     returnValue.__transformedSchemas[adapterInstance.constructor.name] = {
+      transformed: false,
       adapter: adapterInstance,
       schemas: [],
     };

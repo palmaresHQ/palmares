@@ -7,8 +7,9 @@ import {
   transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas,
 } from '../utils';
 import { objectValidation } from '../validators/object';
-import { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from './types';
+import { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas, OnlyFieldAdaptersFromSchemaAdapter } from './types';
 import Validator from '../validators/utils';
+import SchemaAdapter from '../adapter';
 
 export default class ObjectSchema<
   TType extends {
@@ -53,96 +54,85 @@ export default class ObjectSchema<
 
         const toTransform = this.__retrieveDataAsEntriesAndCache();
 
-        const transformedDataByKeys: Record<any, any> = {};
+        // This is needed because we will create other objects based this one by reference
+        const transformedDataByKeys = {
+          transformed: {},
+          asString: {},
+        } as { transformed: Record<any, any>; asString: Record<any, string> };
+        const transformedDataByKeysArray: { transformed: Record<any, any>; asString: Record<any, string> }[] = [
+          transformedDataByKeys,
+        ];
 
         let shouldValidateWithFallback = false;
 
         for (const [key, valueToTransform] of toTransform) {
           const awaitableTransformer = async () => {
-            const [transformedData, shouldAddFallbackValidationForThisKey] =
-              await transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas(
-                valueToTransform,
-                options
-                /*modifyItself: async (schema, validationKey) => {
-                // Pretty much when we are transforming the data we need to make sure that we create a fresh new instance of the adapter.
-                // We do that because we only assign the adapter
-                const DefaultAdapterClass = getDefaultAdapter();
-                const adapterInstance = new DefaultAdapterClass();
-                this.__adapters[validationKey as symbol] = adapterInstance;
-
-                const copiedTransformedDataByKeys = {} as typeof transformedDataByKeys;
-                for (const [key, value] of Object.entries(transformedDataByKeys))
-                  copiedTransformedDataByKeys[key] = value;
-
-                const newTranslatedSchema = await schema._transformToAdapter({
-                  ...options,
-                  validationKey: validationKey,
-                });
-                copiedTransformedDataByKeys[key] = newTranslatedSchema;
-
-                await defaultTransform(
-                  'object',
-                  this,
-                  {
-                    data: copiedTransformedDataByKeys,
-                    nullable: this.__nullable,
-                    optional: this.__optional,
-                  },
-                  {},
-                  {
-                    force: true,
-                    validationKey: validationKey,
-                  }
-                );
-                await options.modifyItself?.(this, validationKey);
-              },
-            }*/
-              );
+            const [transformedDataAndString, shouldAddFallbackValidationForThisKey] =
+              await transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas(valueToTransform, options);
             shouldValidateWithFallback = shouldValidateWithFallback || shouldAddFallbackValidationForThisKey;
 
             if (shouldAddFallbackValidationForThisKey) fallbackByKeys[key] = valueToTransform;
-            transformedDataByKeys[key] = transformedData[0];
+
+            const lengthOfTransformedKeysArray = transformedDataByKeysArray.length;
+            for (
+              let transformedDataByKeysIndex = 0;
+              transformedDataByKeysIndex < lengthOfTransformedKeysArray;
+              transformedDataByKeysIndex++
+            ) {
+              for (
+                let transformedDataIndex = 0;
+                transformedDataIndex < transformedDataAndString.length;
+                transformedDataIndex++
+              ) {
+                const indexOnTransformedDataByKeys = (transformedDataByKeysIndex + 1) * transformedDataIndex;
+
+                if (transformedDataByKeysArray[indexOnTransformedDataByKeys] === undefined)
+                  transformedDataByKeysArray[indexOnTransformedDataByKeys] = {
+                    transformed: { ...transformedDataByKeys.transformed },
+                    asString: { ...transformedDataByKeys.asString },
+                  };
+                transformedDataByKeysArray[indexOnTransformedDataByKeys].transformed[key] =
+                  transformedDataAndString[transformedDataIndex].transformed;
+
+                transformedDataByKeysArray[indexOnTransformedDataByKeys].asString[key] =
+                  transformedDataAndString[transformedDataIndex].asString;
+              }
+            }
           };
           if (valueToTransform instanceof Schema) promises.push(awaitableTransformer());
         }
 
         await Promise.all(promises);
+
         if (shouldValidateWithFallback)
           Validator.createAndAppendFallback(this, objectValidation(fallbackByKeys), { at: 0, removeCurrent: true });
-        return defaultTransform(
-          'object',
-          this,
-          {
-            data: transformedDataByKeys,
-            nullable: this.__nullable,
-            optional: this.__optional,
-          },
-          {},
-          {}
-        );
+
+        return (
+          await Promise.all(
+            transformedDataByKeysArray.map(({}) =>
+              defaultTransform(
+                'object',
+                this,
+                adapter,
+                adapter.object,
+                {
+                  data: transformedDataByKeys,
+                  nullable: this.__nullable,
+                  optional: this.__optional,
+                },
+                {},
+                {
+                  shouldAddStringVersion: options.shouldAddStringVersion,
+                }
+              )
+            )
+          )
+        ).flat();
       },
       this.__transformedSchemas,
-      options
+      options,
+      'object'
     );
-  }
-
-  protected async __parse(
-    value: TType['input'],
-    path: (string | number)[] = [],
-    options: Parameters<Schema['_transformToAdapter']>[0]
-  ): Promise<{ errors?: any[]; parsed: TType['internal'] }> {
-    let isRoot = options.toInternalToBubbleUp === undefined;
-
-    await this._transformToAdapter(options);
-
-    if (isRoot) options.toInternalToBubbleUp = [];
-
-    const result = await super.__parse(value, path, options);
-
-    const hasNoErrors = result.errors === undefined || (result.errors || []).length === 0;
-    if (isRoot && hasNoErrors)
-      for (const functionToModifyResult of options.toInternalToBubbleUp || []) await functionToModifyResult();
-    return result;
   }
 
   /**
@@ -190,6 +180,7 @@ export default class ObjectSchema<
     const adapterInstance = getDefaultAdapter();
 
     returnValue.__transformedSchemas[adapterInstance.constructor.name] = {
+      transformed: false,
       adapter: adapterInstance,
       schemas: [],
     };

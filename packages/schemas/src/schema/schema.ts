@@ -41,7 +41,12 @@ export default class Schema<
   __beforeValidationCallbacks: Map<
     string,
     (
-      schemas: any[],
+      adapterToUse: SchemaAdapter,
+      fieldAdapter: FieldAdapter,
+      schema: Schema<any, any> & {
+        __validateByAdapter: Schema<any, any>['__validateByAdapter'];
+      },
+      translatedSchemas: any[],
       value: TType['input'],
       path: ValidationFallbackCallbackReturnType['errors'][number]['path'],
       options: Parameters<Schema['_transformToAdapter']>[0]
@@ -70,6 +75,7 @@ export default class Schema<
   __transformedSchemas: Record<
     string,
     {
+      transformed: boolean;
       adapter: TDefinitions['schemaAdapter'];
       schemas: any[]; // This is the transformed schemas
     }
@@ -94,7 +100,6 @@ export default class Schema<
    * @param parseResult - The result of the parse method.
    */
   private async __validateByFallbacks(
-    errorsAsHashedSet: Set<string>,
     path: ValidationFallbackCallbackReturnType['errors'][number]['path'],
     parseResult: {
       errors: undefined | ValidationFallbackCallbackReturnType['errors'];
@@ -103,7 +108,7 @@ export default class Schema<
     options: Parameters<Schema['_transformToAdapter']>[0]
   ) {
     if (this.__rootFallbacksValidator)
-      return this.__rootFallbacksValidator.validate(errorsAsHashedSet, path, parseResult, options);
+      return this.__rootFallbacksValidator.validate(options.errorsAsHashedSet || new Set(), path, parseResult, options);
 
     return parseResult;
   }
@@ -121,56 +126,39 @@ export default class Schema<
    * @returns The result and the errors of the parse method.
    */
   private async __validateByAdapter(
+    adapter: SchemaAdapter,
+    fieldAdapter: FieldAdapter,
+    schema: any,
     value: TType['input'],
-    errorsAsHashedSet: Set<string>,
     path: NonNullable<Parameters<Schema['__parse']>[1]>,
-    parseResult: Awaited<ReturnType<Schema['__parse']>>,
     options: Parameters<Schema['_transformToAdapter']>[0]
   ) {
-    await this._transformToAdapter(options);
-    const defaultAdapterName = Object.keys(this.__transformedSchemas)?.[0];
-    const adapter = this.__transformedSchemas[defaultAdapterName].adapter;
-    const transformedSchema = this.__transformedSchemas[defaultAdapterName].schemas[0];
-
-    const partialParseResult: Awaited<ReturnType<Schema['__parse']>> = {
+    const parseResult: Awaited<ReturnType<Schema['__parse']>> = {
       errors: [],
       parsed: value,
     };
     // On the next iteration we will reset the errors and the parsed value
-    partialParseResult.errors = [];
-    partialParseResult.parsed = value;
+    parseResult.errors = [];
+    parseResult.parsed = value;
 
-    const schemaAdapterFieldType = this.constructor.name
-      .replace('Schema', '')
-      .toLowerCase() as OnlyFieldAdaptersFromSchemaAdapter;
-    if (typeof adapter[schemaAdapterFieldType]?.parse !== 'function') return parseResult;
+    if (fieldAdapter === undefined || typeof fieldAdapter.parse !== 'function') return parseResult;
 
-    const adapterParseResult = await (adapter[schemaAdapterFieldType].parse as NonNullable<FieldAdapter['parse']>)(
-      adapter,
-      transformedSchema,
-      value
-    );
+    const adapterParseResult = await (fieldAdapter.parse as NonNullable<FieldAdapter['parse']>)(adapter, schema, value);
 
-    partialParseResult.parsed = adapterParseResult.parsed;
+    parseResult.parsed = adapterParseResult.parsed;
 
     if (adapterParseResult.errors) {
       if (Array.isArray(adapterParseResult.errors))
-        partialParseResult.errors = await Promise.all(
+        parseResult.errors = await Promise.all(
           adapterParseResult.errors.map(async (error) =>
-            formatErrorFromParseMethod(adapter, error, path, errorsAsHashedSet)
+            formatErrorFromParseMethod(adapter, error, path, options.errorsAsHashedSet || new Set())
           )
         );
       else
-        partialParseResult.errors = [
-          await formatErrorFromParseMethod(adapter, partialParseResult.errors, path, errorsAsHashedSet),
+        parseResult.errors = [
+          await formatErrorFromParseMethod(adapter, parseResult.errors, path, options.errorsAsHashedSet || new Set()),
         ];
     }
-
-    parseResult.errors =
-      parseResult.errors?.concat(partialParseResult.errors) || (partialParseResult.errors?.length || 0) > 0
-        ? partialParseResult.errors
-        : undefined;
-    parseResult.parsed = partialParseResult.parsed;
     return parseResult;
   }
 
@@ -179,18 +167,32 @@ export default class Schema<
   }
 
   async _transformToAdapter(_options: {
+    // force to transform
+    force?: boolean;
     toInternalToBubbleUp?: (() => Promise<void>)[];
     schemaAdapter?: SchemaAdapter;
+    errorsAsHashedSet?: Set<string>;
+    shouldAddStringVersion?: boolean;
     appendFallbacksBeforeAdapterValidation?: (
       uniqueNameOfFallback: string,
       fallbackValidationBeforeAdapter: (
-        schemas: any[],
+        adapterToUse: SchemaAdapter,
+        fieldAdapter: FieldAdapter,
+        schema: Omit<Schema<any, any>, '__validateByAdapter'> & {
+          __validateByAdapter: Schema<any, any>['__validateByAdapter'];
+        },
+        translatedSchemas: any[],
         value: TType['input'],
         path: ValidationFallbackCallbackReturnType['errors'][number]['path'],
         options: Parameters<Schema['_transformToAdapter']>[0]
       ) => ReturnType<Schema['__validateByAdapter']>
     ) => void;
-  }): Promise<ReturnType<FieldAdapter['translate']>> {
+  }): Promise<
+    {
+      transformed: ReturnType<FieldAdapter['translate']>;
+      asString: string;
+    }[]
+  > {
     throw new Error('Not implemented');
   }
 
@@ -198,18 +200,24 @@ export default class Schema<
     value: TType['input'],
     path: ValidationFallbackCallbackReturnType['errors'][number]['path'] = [],
     options: Parameters<Schema['_transformToAdapter']>[0]
-  ): Promise<{ errors?: any[]; parsed: TType['internal'] }> {
-    const errorsAsHashedSet = new Set<string>();
+  ): Promise<{ errors: any[]; parsed: TType['internal'] }> {
+    const shouldRunToInternalToBubbleUp = options.toInternalToBubbleUp === undefined;
+    if (shouldRunToInternalToBubbleUp) options.toInternalToBubbleUp = [];
+    if (options.errorsAsHashedSet instanceof Set === false) options.errorsAsHashedSet = new Set();
+
     const shouldCallDefaultFunction = value === undefined && typeof this.__defaultFunction === 'function';
     const shouldCallToValidateCallback = typeof this.__toValidate === 'function';
+    const schemaAdapterFieldType = this.constructor.name
+      .replace('Schema', '')
+      .toLowerCase() as OnlyFieldAdaptersFromSchemaAdapter;
 
     if (shouldCallDefaultFunction) value = await (this.__defaultFunction as any)();
     if (shouldCallToValidateCallback) value = await Promise.resolve((this.__toValidate as any)(value));
 
     const parseResult: {
-      errors: undefined | ValidationFallbackCallbackReturnType['errors'];
+      errors: ValidationFallbackCallbackReturnType['errors'];
       parsed: TType['input'];
-    } = { errors: undefined, parsed: value };
+    } = { errors: [], parsed: value };
 
     if (options.appendFallbacksBeforeAdapterValidation === undefined)
       options.appendFallbacksBeforeAdapterValidation = (name, callback) => {
@@ -217,42 +225,51 @@ export default class Schema<
       };
 
     await this._transformToAdapter(options);
-    let parsedResultsAfterAdapter = await this.__validateByAdapter(
-      value,
-      errorsAsHashedSet,
-      path,
-      { parsed: parseResult.parsed, errors: [] },
-      options
-    );
 
+    const adapterToUse = options.schemaAdapter
+      ? options.schemaAdapter
+      : Object.values(this.__transformedSchemas)[0].adapter;
+
+    // With this, the children takes control of validating by the adapter. For example on a union schema we want to validate all of the schemas and choose the one that has no errors.
+    if (this.__beforeValidationCallbacks.size > 0) {
+      for (const callback of this.__beforeValidationCallbacks.values()) {
+        const parsedValuesAfterValidationCallbacks = await callback(
+          adapterToUse,
+          adapterToUse[schemaAdapterFieldType],
+          this as Schema<any, any> & {
+            __validateByAdapter: Schema<any, any>['__validateByAdapter'];
+          },
+          this.__transformedSchemas[adapterToUse.constructor.name].schemas,
+          value,
+          path,
+          options
+        );
+        parseResult.parsed = parsedValuesAfterValidationCallbacks.parsed;
+        parseResult.errors = parsedValuesAfterValidationCallbacks.errors;
+      }
+    } else {
+      const parsedValuesAfterValidatingByAdapter = await this.__validateByAdapter(
+        adapterToUse,
+        adapterToUse[schemaAdapterFieldType],
+        this.__transformedSchemas[adapterToUse.constructor.name].schemas[0],
+        value,
+        path,
+        options
+      );
+      parseResult.parsed = parsedValuesAfterValidatingByAdapter.parsed;
+      parseResult.errors = parsedValuesAfterValidatingByAdapter.errors;
+    }
     const parsedResultsAfterFallbacks = await this.__validateByFallbacks(
-      errorsAsHashedSet,
       path,
       {
-        errors: parseResult.errors,
+        errors: [],
         parsed: value,
       },
       options
     );
+
     parseResult.parsed = parsedResultsAfterFallbacks.parsed;
-
-    // Validating the adapter twice is needed because of unions, we will only enter that condition if we are validating a union.
-    // Pretty much the idea is that we change the schema, after changing the schema we need to validate with the adapters again.
-    /*if (shouldValidateByAdapterAgain) {
-      parsedResultsAfterAdapter = await this.__validateByAdapter(
-        value,
-        errorsAsHashedSet,
-        path,
-        { parsed: parseResult.parsed, errors: [] },
-        options
-      );
-      parseResult.parsed = parsedResultsAfterAdapter.parsed;
-    }*/
-
-    parseResult.errors = [...(parsedResultsAfterAdapter.errors || []), ...(parsedResultsAfterFallbacks.errors || [])];
-
-    const areErrorsEmpty = Array.isArray(parseResult.errors) && parseResult.errors.length === 0;
-    if (areErrorsEmpty) parseResult.errors = undefined;
+    parseResult.errors = (parseResult.errors || []).concat(parsedResultsAfterFallbacks.errors || []);
 
     const doesNotHaveErrors = !Array.isArray(parseResult.errors) || parseResult.errors.length === 0;
     const hasToInternalCallback = typeof this.__toInternal === 'function';
@@ -261,7 +278,8 @@ export default class Schema<
     const hasNoErrors = parseResult.errors === undefined || (parseResult.errors || []).length === 0;
 
     if (shouldCallToInternalDuringParse && hasNoErrors) parseResult.parsed = await (this.__toInternal as any)(value);
-
+    if (shouldRunToInternalToBubbleUp && hasNoErrors)
+      for (const functionToModifyResult of options.toInternalToBubbleUp || []) await functionToModifyResult();
     return parseResult;
   }
 
@@ -429,6 +447,17 @@ export default class Schema<
     >;
   }
 
+  /**
+   * Used to transform the given schema on a stringfied version of the adapter.
+   */
+  async compile(adapter: SchemaAdapter) {
+    await this._transformToAdapter({
+      shouldAddStringVersion: true,
+      force: true,
+    });
+    //console.log(stringVersions);
+  }
+
   static new<TType extends { input: any; output: any; internal: any; representation: any; validate: any }>(
     _args?: any
   ): Schema<TType> {
@@ -436,6 +465,7 @@ export default class Schema<
 
     const adapterInstance = getDefaultAdapter();
     result.__transformedSchemas[adapterInstance.constructor.name] = {
+      transformed: false,
       adapter: adapterInstance,
       schemas: [],
     };

@@ -28,7 +28,6 @@ export type ValidationFallbackCallbackReturnType = {
 export type ValidationFallbackReturnType = {
   type: ValidatorTypes;
   callback: ValidationFallbackCallbackType;
-  adapters?: SchemaAdapter[];
 };
 
 type TypesOfSchema = Schema extends Schema<infer TType, any> ? TType : never;

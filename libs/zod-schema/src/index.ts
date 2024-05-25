@@ -7,7 +7,7 @@ import ZodObjectFieldSchemaAdapter from './fields/object';
 
 export class ZodSchemaAdapter extends SchemaAdapter {
   field = new ZodFieldSchemaAdapter();
-  number = new ZodNumberFieldSchemaAdapter();
+  //number = new ZodNumberFieldSchemaAdapter();
   object = new ZodObjectFieldSchemaAdapter();
 
   async formatError(error: z.ZodIssue) {

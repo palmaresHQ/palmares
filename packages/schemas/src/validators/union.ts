@@ -2,23 +2,18 @@ import type Schema from '../schema/schema';
 import type { ValidationFallbackReturnType } from '../schema/types';
 
 export function unionValidation(
-  schemas: readonly [Schema<any, any>, Schema<any, any>, ...Schema<any, any>[]],
-  doesAdapterSupportUnion: boolean,
-  schemaOptions: Parameters<ValidationFallbackReturnType['callback']>[2]
+  schemas: readonly [Schema<any, any>, Schema<any, any>, ...Schema<any, any>[]]
 ): ValidationFallbackReturnType {
-  const adapters = [];
-  for (const schema of schemas) adapters.push(...(schema as any).__adapters);
   return {
-    adapters,
-    type: 'low',
+    type: 'high',
     callback: async (value, path, options) => {
       let parsedValues: Awaited<ReturnType<Schema['__parse']>> = {
         parsed: value,
-        errors: undefined,
+        errors: [],
       };
       const startingToInternalBubbleUpLength = options.toInternalToBubbleUp?.length || 0;
 
-      /*for (let i = 0; i < schemas.length; i++) {
+      for (let i = 0; i < schemas.length; i++) {
         const schemaWithProtected = schemas[i] as Schema & {
           __parse: Schema['__parse'];
           __toInternal: Schema['__toInternal'];
@@ -29,23 +24,13 @@ export function unionValidation(
           if (Array.isArray(parsedValues.errors)) parsedValues.errors.push(...parsedData.errors);
           else parsedValues.errors = parsedData.errors;
 
-        const hasNoErrors = parsedData.errors === undefined || (parsedData.errors || []).length === 0;
-        const isNotFirstSchema = i > 0;
-        if (hasNoErrors) {
-          parsedValues.errors = undefined;
-
-          if (isNotFirstSchema && doesAdapterSupportUnion === false) {
-            if (options.modifyItself && schemaOptions.modifyItself)
-              await Promise.all([
-                options.modifyItself(schemaWithProtected, options.validationKey),
-                schemaOptions.modifyItself(schemaWithProtected, options.validationKey),
-              ]);
-            else if (options.modifyItself) await options.modifyItself(schemaWithProtected, options.validationKey);
-            else if (schemaOptions.modifyItself)
-              await schemaOptions.modifyItself(schemaWithProtected, options.validationKey);
-          }
-
-          break;
+        const hasNoErrorsSoItsAValidSchemaAndShouldResetOldErrors =
+          parsedData.errors === undefined || (parsedData.errors || []).length === 0;
+        if (hasNoErrorsSoItsAValidSchemaAndShouldResetOldErrors) {
+          return {
+            parsed: parsedValues.parsed,
+            errors: [],
+          };
         } else if (startingToInternalBubbleUpLength < (options.toInternalToBubbleUp?.length || 0)) {
           // If there is a new toInternalToBubbleUp we should remove the ones that we added since this is not a valid schema,
           // we shouldn't be calling the `toInternal` on that schemas.
@@ -53,7 +38,7 @@ export function unionValidation(
             (options.toInternalToBubbleUp?.length || 0) - startingToInternalBubbleUpLength;
           options.toInternalToBubbleUp?.splice(startingToInternalBubbleUpLength, numberOfElementsToRemove);
         }
-      }*/
+      }
 
       return {
         parsed: parsedValues.parsed,

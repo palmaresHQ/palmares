@@ -7,7 +7,7 @@ import { ErrorCodes } from './types';
 
 export default class SchemaAdapter {
   field!: FieldAdapter;
-  number!: NumberAdapter;
+  number?: NumberAdapter;
   object!: ObjectFieldAdapter;
   union?: UnionFieldAdapter;
 

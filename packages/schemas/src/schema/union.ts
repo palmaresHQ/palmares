@@ -49,6 +49,7 @@ export default class UnionSchema<
         const promises: Promise<any>[] = [];
         const shouldBeHighPriorityFallback = adapter.union === undefined;
         let shouldBeHandledByFallback = shouldBeHighPriorityFallback;
+
         for (const schemaToTransform of this.__schemas.values()) {
           const awaitableTransformer = async () => {
             const [transformedData, shouldAddFallbackValidationForThisKey] =
@@ -59,15 +60,6 @@ export default class UnionSchema<
           promises.push(awaitableTransformer());
         }
 
-        if (shouldBeHighPriorityFallback && options.appendFallbacksBeforeAdapterValidation)
-          options.appendFallbacksBeforeAdapterValidation('union', async (schemas, value, path) => {
-            console.log('called the union fallback before adapter validation');
-            return {
-              parsed: value,
-              errors: [],
-            };
-          });
-
         if (shouldBeHandledByFallback) {
           Validator.createAndAppendFallback(
             this,
@@ -76,9 +68,7 @@ export default class UnionSchema<
                 Schema<any, any>,
                 Schema<any, any>,
                 ...Schema<any, any>[],
-              ],
-              false,
-              options
+              ]
             ),
             {
               at: 0,
@@ -86,20 +76,62 @@ export default class UnionSchema<
             }
           );
         }
+        const schemas = (await Promise.all(promises)).flat();
         return defaultTransform(
           'union',
           this,
+          adapter,
+          adapter.union,
           {
             nullable: this.__nullable,
             optional: this.__optional,
-            schemas: (await Promise.all(promises)).flat(),
+            schemas: schemas,
           },
           {},
-          { fallbackTranslatedSchema: (await Promise.all(promises)).flat()[0] }
+          {
+            fallbackIfNotSupported: async () => {
+              if (options.appendFallbacksBeforeAdapterValidation)
+                options.appendFallbacksBeforeAdapterValidation(
+                  'union',
+                  async (adapter, fieldAdapter, schema, translatedSchemas, value, path, options) => {
+                    const parsedValues = {
+                      parsed: value,
+                      errors: [],
+                    } as { parsed: any; errors: any[] };
+                    //                    const initialErrorsAsHashedSet = new Set(Array.from(options.errorsAsHashedSet || []));
+                    for (const translatedSchema of translatedSchemas) {
+                      //options.errorsAsHashedSet = initialErrorsAsHashedSet;
+                      const { parsed, errors } = await schema.__validateByAdapter(
+                        adapter,
+                        fieldAdapter,
+                        translatedSchema,
+                        value,
+                        path,
+                        options
+                      );
+
+                      if ((errors || []).length <= 0) return { parsed, errors };
+                      else {
+                        parsedValues.parsed = parsed;
+                        parsedValues.errors = (parsedValues.errors || []).concat(errors || []);
+                      }
+                    }
+                    return parsedValues;
+                  }
+                );
+
+              const transformedSchemasAsPromises = [];
+              for (const schema of this.__schemas)
+                transformedSchemasAsPromises.push(schema._transformToAdapter(options));
+
+              return (await Promise.all(transformedSchemasAsPromises)).flat();
+            },
+          }
         );
       },
       this.__transformedSchemas,
-      options
+      options,
+      'union'
     );
   }
 
@@ -112,6 +144,7 @@ export default class UnionSchema<
     const adapterInstance = getDefaultAdapter();
 
     returnValue.__transformedSchemas[adapterInstance.constructor.name] = {
+      transformed: false,
       adapter: adapterInstance,
       schemas: [],
     };
