@@ -451,11 +451,13 @@ export default class Schema<
    * Used to transform the given schema on a stringfied version of the adapter.
    */
   async compile(adapter: SchemaAdapter) {
-    await this._transformToAdapter({
+    const data = await this._transformToAdapter({
       shouldAddStringVersion: true,
       force: true,
     });
-    //console.log(stringVersions);
+
+    const stringVersions = data.map((value) => value.asString);
+    return stringVersions;
   }
 
   static new<TType extends { input: any; output: any; internal: any; representation: any; validate: any }>(

@@ -5,10 +5,11 @@ import {
   NumberAdapterTranslateArgsWithoutNonTranslateArgs,
   ObjectAdapterTranslateArgsWithoutNonTranslateArgs,
   UnionAdapterTranslateArgsWithoutNonTranslateArgs,
+  ValidationDataBasedOnType,
 } from './adapter/types';
 import Schema from './schema/schema';
 import { ValidationFallbackCallbackReturnType, ValidationFallbackReturnType } from './schema/types';
-import { FallbackFunctionsType } from './types';
+import { FallbackFunctionsType, MaybePromise } from './types';
 import { checkType, nullable, optional } from './validators/schema';
 import Validator from './validators/utils';
 
@@ -19,7 +20,7 @@ import Validator from './validators/utils';
 export default class WithFallback {
   fallbackFor: Set<keyof Omit<NumberAdapterTranslateArgs, 'withFallbackFactory'>>;
   transformedSchema: any;
-  adapterType: 'number' | 'object' | 'union';
+  adapterType: 'number' | 'object' | 'union' | 'string';
 
   constructor(
     adapterType: WithFallback['adapterType'],
@@ -80,16 +81,30 @@ export async function defaultTransform<TType extends WithFallback['adapterType']
   schema: Schema,
   adapter: SchemaAdapter,
   fieldAdapter: FieldAdapter | undefined,
-  validationData: TType extends 'number'
-    ? NumberAdapterTranslateArgsWithoutNonTranslateArgs
-    : TType extends 'union'
-    ? UnionAdapterTranslateArgsWithoutNonTranslateArgs
-    : ObjectAdapterTranslateArgsWithoutNonTranslateArgs,
-  fallbackFunctions: FallbackFunctionsType<typeof validationData>,
+  getValidationData: (isStringVersion: boolean) => MaybePromise<ValidationDataBasedOnType<TType>>,
+  fallbackFunctions: FallbackFunctionsType<ReturnType<typeof getValidationData>>,
   options: {
+    /**
+     * If the schema is not supported by the adapter, this means, that the adapter hasn't defined an adapter for that field type, we can fallback to a custom implementation.
+     * The problem is that, for example: Unions,
+     *
+     * Let's say we have a schema like this: ObjectSchema.new({ age: UnionSchema.new([NumberSchema.new(), StringSchema.new()] )});
+     *
+     * The root object will be validated by the adapter so what we need to do is create two schemas on the root object, one where the
+     * value of `age` key is a number and another where the value of `age` key is a string. Now the root object has two schemas memoized on __transformedSchemas, nice,
+     * what's the logic on that case? The ObjectSchema shouldn't take care of that logic. So the Union schema takes control of validating through the adapter. Is adapter 1 without errors?
+     * If yes, return the result, if not, try the second adapter. If the second adapter is without errors, return the result, if not, return the errors.
+     *
+     * In other words, the `fallbackIfNotSupported` function on Unions should return the two schemas saved on it on that case, that way the root ObjectSchema will
+     * create those two schemas on the array.
+     */
     fallbackIfNotSupported?: () => ReturnType<Schema['_transformToAdapter']>;
   } & Pick<Parameters<Schema['_transformToAdapter']>[0], 'shouldAddStringVersion'>
 ): Promise<any[]> {
+  const validationData = await Promise.resolve(getValidationData(false));
+  const validationDataForStringVersion = (
+    options.shouldAddStringVersion ? await getValidationData(true) : undefined
+  ) as ValidationDataBasedOnType<TType>;
   const schemaWithPrivateFields = schema as unknown as {
     __transformedSchemas: Schema['__transformedSchemas'];
     __rootFallbacksValidator: Schema['__rootFallbacksValidator'];
@@ -132,7 +147,7 @@ export async function defaultTransform<TType extends WithFallback['adapterType']
 
   let stringVersion = '';
   if (options.shouldAddStringVersion)
-    stringVersion = await fieldAdapter.toString(adapter, adapter.field, validationData as any);
+    stringVersion = await fieldAdapter.toString(adapter, adapter.field, validationDataForStringVersion);
 
   if (translatedSchemaOrWithFallback instanceof WithFallback) {
     for (const fallback of translatedSchemaOrWithFallback.fallbackFor) checkIfShouldAppendFallbackAndAppend(fallback);
@@ -185,9 +200,6 @@ export async function defaultTransformToAdapter(
   return transformedSchemas[schemaAdapterNameToUse].schemas;
 }
 
-/**
- * The
- */
 export async function formatErrorFromParseMethod(
   adapter: SchemaAdapter,
   error: any,

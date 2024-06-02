@@ -1,7 +1,7 @@
 import SchemaAdapter from '../index';
 import { SchemaAdapterNotImplementedError } from '../../exceptions';
-import { AdapterTranslateArgs, ErrorCodes } from '../types';
-import WithFallback, { parseErrorsFactory } from '../../utils';
+import { AdapterToStringArgs, AdapterTranslateArgs } from '../types';
+import WithFallback from '../../utils';
 
 export default class FieldAdapter<TResult = any> {
   translate(_fieldAdapter: FieldAdapter<any>, _args: AdapterTranslateArgs, _base?: any): any | WithFallback {
@@ -12,7 +12,12 @@ export default class FieldAdapter<TResult = any> {
     throw new SchemaAdapterNotImplementedError({ className: this.constructor.name, functionName: 'parse' });
   }
 
-  toString(_adapter: SchemaAdapter, ...restArgs: Parameters<FieldAdapter['translate']>): Promise<string> {
+  toString(
+    _adapter: SchemaAdapter,
+    _fieldAdapter: FieldAdapter<any>,
+    _args: AdapterToStringArgs,
+    _base?: any
+  ): Promise<string> {
     throw new SchemaAdapterNotImplementedError({ className: this.constructor.name, functionName: 'toString' });
   }
 }

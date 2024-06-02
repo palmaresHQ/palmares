@@ -32,9 +32,9 @@ const testeObjectSchema = ObjectSchema.new({
 */
 const objectSchema = ObjectSchema.new({
   teste: UnionSchema.new([
-    NumberSchema.new().toInternal(async () => 'aqui'),
+    NumberSchema.new(),
     ObjectSchema.new({
-      age: NumberSchema.new().toInternal(async (value) => 'hey'),
+      age: NumberSchema.new().nullable(),
     }),
   ]),
 });

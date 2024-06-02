@@ -58,7 +58,7 @@ export default class NumberSchema<
           this,
           adapter,
           adapter.number,
-          {
+          () => ({
             min: this.__min,
             allowNegative: this.__allowNegative,
             allowPositive: this.__allowPositive,
@@ -66,14 +66,14 @@ export default class NumberSchema<
             integer: this.__integer,
             optional: this.__optional,
             nullable: this.__nullable,
-          },
+          }),
           {
             max,
             min,
           },
           {
-            fallbackIfNotSupported: () => {
-              //Validator.createAndAppendFallback(this, numberValidation());
+            shouldAddStringVersion: options.shouldAddStringVersion,
+            fallbackIfNotSupported: async () => {
               return [];
             },
           }

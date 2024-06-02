@@ -109,17 +109,17 @@ export default class ObjectSchema<
 
         return (
           await Promise.all(
-            transformedDataByKeysArray.map(({}) =>
+            transformedDataByKeysArray.map(({ transformed, asString }) =>
               defaultTransform(
                 'object',
                 this,
                 adapter,
                 adapter.object,
-                {
-                  data: transformedDataByKeys,
+                (isStringVersion) => ({
+                  data: isStringVersion ? asString : transformed,
                   nullable: this.__nullable,
                   optional: this.__optional,
-                },
+                }),
                 {},
                 {
                   shouldAddStringVersion: options.shouldAddStringVersion,

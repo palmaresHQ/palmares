@@ -48,6 +48,8 @@ export default class UnionSchema<
       async (adapter) => {
         const promises: Promise<any>[] = [];
         const shouldBeHighPriorityFallback = adapter.union === undefined;
+        const transformedSchemasAsString: string[] = [];
+        const transformedSchemas: any[] = [];
         let shouldBeHandledByFallback = shouldBeHighPriorityFallback;
 
         for (const schemaToTransform of this.__schemas.values()) {
@@ -55,7 +57,11 @@ export default class UnionSchema<
             const [transformedData, shouldAddFallbackValidationForThisKey] =
               await transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas(schemaToTransform, options);
             if (shouldAddFallbackValidationForThisKey) shouldBeHandledByFallback = true;
-            return transformedData;
+
+            for (const transformedSchema of transformedData) {
+              transformedSchemasAsString.push(transformedSchema.asString);
+              transformedSchemas.push(transformedSchema.transformed);
+            }
           };
           promises.push(awaitableTransformer());
         }
@@ -76,19 +82,21 @@ export default class UnionSchema<
             }
           );
         }
-        const schemas = (await Promise.all(promises)).flat();
+
+        await Promise.all(promises);
         return defaultTransform(
           'union',
           this,
           adapter,
           adapter.union,
-          {
+          (isStringVersion) => ({
             nullable: this.__nullable,
             optional: this.__optional,
-            schemas: schemas,
-          },
+            schemas: isStringVersion ? transformedSchemasAsString : transformedSchemas,
+          }),
           {},
           {
+            shouldAddStringVersion: options.shouldAddStringVersion,
             fallbackIfNotSupported: async () => {
               if (options.appendFallbacksBeforeAdapterValidation)
                 options.appendFallbacksBeforeAdapterValidation(
@@ -124,6 +132,7 @@ export default class UnionSchema<
               for (const schema of this.__schemas)
                 transformedSchemasAsPromises.push(schema._transformToAdapter(options));
 
+              console.log((await Promise.all(transformedSchemasAsPromises)).flat());
               return (await Promise.all(transformedSchemasAsPromises)).flat();
             },
           }

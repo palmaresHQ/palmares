@@ -31,7 +31,7 @@ export function max(args: NumberSchema['__max']): ValidationFallbackReturnType {
           errors: [
             {
               isValid: value <= args.value,
-              code: 'number',
+              code: 'max',
               path: path || [],
               message: args.message,
             },
@@ -42,8 +42,8 @@ export function max(args: NumberSchema['__max']): ValidationFallbackReturnType {
         parsed: value,
         errors: [
           {
-            isValid: value <= args.value,
-            code: 'number',
+            isValid: value < args.value,
+            code: 'max',
             path: path || [],
             message: args.message,
           },
@@ -74,7 +74,7 @@ export function min(args: NumberSchema['__min']): ValidationFallbackReturnType {
         parsed: value,
         errors: [
           {
-            isValid: value >= args.value,
+            isValid: value > args.value,
             message: args.message,
             code: 'min',
             path: path || [],

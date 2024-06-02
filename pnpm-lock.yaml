@@ -447,6 +447,10 @@ importers:
       '@palmares/core':
         specifier: workspace:*
         version: link:../core
+    devDependencies:
+      '@palmares/std':
+        specifier: workspace:*
+        version: link:../std
 
   packages/serializers:
     dependencies:

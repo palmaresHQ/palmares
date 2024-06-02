@@ -1,4 +1,10 @@
-import { FieldAdapter, ObjectAdapterTranslateArgs, ObjectFieldAdapter, SchemaAdapter } from '@palmares/schemas';
+import {
+  FieldAdapter,
+  ObjectAdapterToStringArgs,
+  ObjectAdapterTranslateArgs,
+  ObjectFieldAdapter,
+  SchemaAdapter,
+} from '@palmares/schemas';
 import * as z from 'zod';
 
 export default class ZodObjectFieldSchemaAdapter extends ObjectFieldAdapter<z.ZodObject<any>> {
@@ -20,12 +26,13 @@ export default class ZodObjectFieldSchemaAdapter extends ObjectFieldAdapter<z.Zo
   async toString(
     _adapter: SchemaAdapter,
     _fieldAdapter: FieldAdapter<any>,
-    args: ObjectAdapterTranslateArgs,
+    args: ObjectAdapterToStringArgs,
     _base?: any
   ): Promise<string> {
-    console.log(args);
-    return `z.object({
-
-    })`;
+    let objectData = `{\n`;
+    for (const [key, value] of Object.entries(args.data)) {
+      objectData = objectData + `  ${key}: ${value},\n`;
+    }
+    return `z.object(${objectData.slice(0, -2)}\n)`;
   }
 }

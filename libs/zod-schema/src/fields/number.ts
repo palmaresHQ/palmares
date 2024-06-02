@@ -1,4 +1,10 @@
-import { FieldAdapter, NumberAdapter, NumberAdapterTranslateArgs, SchemaAdapter } from '@palmares/schemas';
+import {
+  FieldAdapter,
+  NumberAdapter,
+  NumberAdapterTranslateArgs,
+  NumberAdapterToStringArgs,
+  SchemaAdapter,
+} from '@palmares/schemas';
 import * as z from 'zod';
 
 export default class ZodNumberFieldSchemaAdapter extends NumberAdapter<z.ZodNumber> {
@@ -26,5 +32,21 @@ export default class ZodNumberFieldSchemaAdapter extends NumberAdapter<z.ZodNumb
       if (error instanceof z.ZodError) return { errors: error.errors, parsed: undefined };
       else throw error;
     }
+  }
+
+  async toString(adapter: SchemaAdapter, fieldAdapter: FieldAdapter<any>, args: NumberAdapterToStringArgs) {
+    let result = `z.number()`;
+    if (args.max) {
+      if (args.max.inclusive) result += `.lte(${args.max.value}, ${args.max.message})`;
+      else result += `.lt(${args.max.value}, ${args.max.message})`;
+    }
+    if (args.min) {
+      if (args.min.inclusive) result += `.gte(${args.min.value}, ${args.min.message})`;
+      else result += `.gt(${(args.min.value, args.min.message)})`;
+    }
+    if (args.allowNegative) result += `.negative(${args.allowNegative.message})`;
+    if (args.allowPositive) result += `.positive(${args.allowPositive.message})`;
+    result = await fieldAdapter.toString(adapter, fieldAdapter, args, result);
+    return result;
   }
 }
