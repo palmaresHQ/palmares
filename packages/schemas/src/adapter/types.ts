@@ -12,7 +12,37 @@ export type AdapterToStringArgs = {
 
 export type AdapterTranslateArgs = AdapterToStringArgs & NonToTranslateArgs;
 
+export type ArrayAdapterTranslateArgs = {
+  minLength:
+    | {
+        value: number;
+        inclusive: boolean;
+        message: string;
+      }
+    | undefined;
+  maxLength:
+    | {
+        value: number;
+        inclusive: boolean;
+        message: string;
+      }
+    | undefined;
+  nonEmpty:
+    | {
+        message: string;
+      }
+    | undefined;
+
+  isTuple: boolean;
+} & AdapterTranslateArgs;
+
 export type NumberAdapterTranslateArgs = {
+  is:
+    | {
+        value: number[];
+        message: string;
+      }
+    | undefined;
   min:
     | {
         value: number;
@@ -92,11 +122,6 @@ export type StringAdapterTranslateArgs = {
         message: string;
       }
     | undefined;
-  datetime:
-    | {
-        message: string;
-      }
-    | undefined;
 } & AdapterTranslateArgs;
 
 export type NumberAdapterToStringArgs = Omit<NumberAdapterTranslateArgs, keyof NonToTranslateArgs>;
@@ -132,18 +157,26 @@ export type ObjectAdapterTranslateArgsWithoutNonTranslateArgs = Omit<
   keyof NonToTranslateArgs
 >;
 
+export type ArrayAdapterTranslateArgsWithoutNonTranslateArgs = Omit<
+  ArrayAdapterTranslateArgs,
+  keyof NonToTranslateArgs
+>;
+
 export type ValidationDataBasedOnType<TType> = TType extends 'number'
   ? NumberAdapterTranslateArgsWithoutNonTranslateArgs
   : TType extends 'union'
   ? UnionAdapterTranslateArgsWithoutNonTranslateArgs
   : TType extends 'string'
   ? StringAdapterTranslateArgsWithoutNonTranslateArgs
+  : TType extends 'array'
+  ? ArrayAdapterTranslateArgsWithoutNonTranslateArgs
   : ObjectAdapterTranslateArgsWithoutNonTranslateArgs;
 
 export type ErrorCodes =
   | 'max'
   | 'allowNegative'
   | 'allowPositive'
+  | 'negative'
   | 'min'
   | 'integer'
   | 'required'

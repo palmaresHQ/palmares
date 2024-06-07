@@ -1,26 +1,19 @@
+import { Narrow } from '@palmares/core';
+
 import Schema from './schema';
 import { getDefaultAdapter } from '../conf';
 import { defaultTransform, defaultTransformToAdapter } from '../utils';
-import {
-  maxLength,
-  datetime,
-  includes,
-  minLength,
-  endsWith,
-  regex,
-  startsWith,
-  stringValidation,
-} from '../validators/string';
+import { maxLength, includes, minLength, endsWith, regex, startsWith, stringValidation } from '../validators/string';
 import { DefinitionsOfSchemaType } from './types';
 import Validator from '../validators/utils';
 
 export default class StringSchema<
   TType extends {
-    input: any;
-    validate: any;
-    internal: any;
-    output: any;
-    representation: any;
+    input: string;
+    validate: string;
+    internal: string;
+    output: string;
+    representation: string;
   } = {
     input: string;
     output: string;
@@ -30,7 +23,8 @@ export default class StringSchema<
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
 > extends Schema<TType, TDefinitions> {
-  protected __datetime!: {
+  protected __is!: {
+    value: Narrow<TType['input'] | TType['input'][]>;
     message: string;
   };
 
@@ -68,14 +62,12 @@ export default class StringSchema<
   async _transformToAdapter(options: Parameters<Schema['_transformToAdapter']>[0]): Promise<any> {
     return defaultTransformToAdapter(
       async (adapter) => {
-        Validator.createAndAppendFallback(this, stringValidation());
         return defaultTransform(
           'string',
           this,
           adapter,
           adapter.string,
-          async () => ({
-            datetime: this.__datetime,
+          () => ({
             minLength: this.__minLength,
             maxLength: this.__maxLength,
             regex: this.__regex,
@@ -92,9 +84,9 @@ export default class StringSchema<
             startsWith,
             regex,
             includes,
-            datetime,
           },
           {
+            validatorsIfFallbackOrNotSupported: stringValidation(),
             shouldAddStringVersion: options.shouldAddStringVersion,
             fallbackIfNotSupported: async () => {
               return [];
@@ -106,6 +98,24 @@ export default class StringSchema<
       options,
       'number'
     );
+  }
+
+  is<const TValue extends TType['input'][]>(value: TValue) {
+    this.__is = {
+      value,
+      message: `The value should be equal to ${value}`,
+    };
+
+    return this as any as Schema<
+      {
+        input: TValue[number];
+        output: TValue[number];
+        internal: TValue[number];
+        representation: TValue[number];
+        validate: TValue[number];
+      },
+      TDefinitions
+    >;
   }
 
   endsWith(value: string, options?: Partial<Omit<StringSchema['__endsWith'], 'value'>>) {
@@ -158,13 +168,6 @@ export default class StringSchema<
     return this;
   }
 
-  datetime(options?: Partial<StringSchema['__datetime']>) {
-    this.__datetime = {
-      message: options?.message || 'The value should be a valid datetime string',
-    };
-    return this;
-  }
-
   static new<TDefinitions extends DefinitionsOfSchemaType>() {
     const returnValue = new StringSchema<
       {
@@ -184,15 +187,6 @@ export default class StringSchema<
       schemas: [],
     };
 
-    return returnValue as StringSchema<
-      {
-        input: string;
-        output: string;
-        internal: string;
-        representation: string;
-        validate: string;
-      },
-      TDefinitions
-    >;
+    return returnValue;
   }
 }

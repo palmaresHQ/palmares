@@ -1,6 +1,7 @@
 import { SchemaAdapterNotImplementedError } from '../exceptions';
 import FieldAdapter from './fields';
-import NumberAdapter from './fields/number';
+import ArrayFieldAdapter from './fields/array';
+import NumberFieldAdapter from './fields/number';
 import ObjectFieldAdapter from './fields/object';
 import StringFieldAdapter from './fields/string';
 import UnionFieldAdapter from './fields/union';
@@ -8,10 +9,11 @@ import { ErrorCodes } from './types';
 
 export default class SchemaAdapter {
   field!: FieldAdapter;
-  number?: NumberAdapter;
+  number?: NumberFieldAdapter;
   object!: ObjectFieldAdapter;
   union?: UnionFieldAdapter;
   string?: StringFieldAdapter;
+  array?: ArrayFieldAdapter;
 
   async formatError(
     _error: any,

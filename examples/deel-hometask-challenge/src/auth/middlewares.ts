@@ -10,7 +10,9 @@ export const getProfileMiddleware = middleware({
     });
     if (!profiles || profiles.length == 0) return Response.text('', { status: 401 });
     // from the middleware definition!!!
-    const clonedRequest = request.clone({ context: { profile: profiles[0], anotherValue: 1234 } });
+    const clonedRequest = request.clone({
+      context: { profile: profiles[0], anotherValue: 1234, dataFromMiddleware: 'admin@admin.com' },
+    });
     return clonedRequest;
   },
 });

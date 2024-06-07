@@ -9,7 +9,6 @@ import {
 import { objectValidation } from '../validators/object';
 import { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas, OnlyFieldAdaptersFromSchemaAdapter } from './types';
 import Validator from '../validators/utils';
-import SchemaAdapter from '../adapter';
 
 export default class ObjectSchema<
   TType extends {

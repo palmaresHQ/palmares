@@ -27,23 +27,32 @@ export default class NumberSchema<
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
 > extends Schema<TType, TDefinitions> {
+  protected __is!: {
+    value: TType['input'][];
+    message: string;
+  };
+
   protected __integer!: {
     message: string;
   };
+
   protected __max!: {
     value: number;
     inclusive: boolean;
     message: string;
   };
+
   protected __min!: {
     value: number;
     inclusive: boolean;
     message: string;
   };
+
   protected __allowNegative!: {
     allowZero: boolean;
     message: string;
   };
+
   protected __allowPositive!: {
     allowZero: boolean;
     message: string;
@@ -52,13 +61,13 @@ export default class NumberSchema<
   async _transformToAdapter(options: Parameters<Schema['_transformToAdapter']>[0]): Promise<any> {
     return defaultTransformToAdapter(
       async (adapter) => {
-        Validator.createAndAppendFallback(this, numberValidation());
         return defaultTransform(
           'number',
           this,
           adapter,
           adapter.number,
           () => ({
+            is: this.__is,
             min: this.__min,
             allowNegative: this.__allowNegative,
             allowPositive: this.__allowPositive,
@@ -72,6 +81,7 @@ export default class NumberSchema<
             min,
           },
           {
+            validatorsIfFallbackOrNotSupported: numberValidation(),
             shouldAddStringVersion: options.shouldAddStringVersion,
             fallbackIfNotSupported: async () => {
               return [];
@@ -83,6 +93,24 @@ export default class NumberSchema<
       options,
       'number'
     );
+  }
+
+  is<const TValue extends TType['input'][]>(value: TValue) {
+    this.__is = {
+      value,
+      message: `The value should be equal to ${value}`,
+    };
+
+    return this as any as Schema<
+      {
+        input: TValue[number];
+        output: TValue[number];
+        internal: TValue[number];
+        representation: TValue[number];
+        validate: TValue[number];
+      },
+      TDefinitions
+    >;
   }
 
   max(
@@ -100,7 +128,7 @@ export default class NumberSchema<
       inclusive,
       message,
     };
-    return this;
+    return this as unknown as NumberSchema<TType, TDefinitions> & { is: never };
   }
 
   min(
@@ -202,15 +230,6 @@ export default class NumberSchema<
       schemas: [],
     };
 
-    return returnValue as NumberSchema<
-      {
-        input: number | bigint;
-        output: number | bigint;
-        internal: number | bigint;
-        representation: number | bigint;
-        validate: number | bigint;
-      },
-      TDefinitions
-    >;
+    return returnValue;
   }
 }

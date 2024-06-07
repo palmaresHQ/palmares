@@ -12,6 +12,8 @@ import Validator from '../validators/utils';
 
 import type FieldAdapter from '../adapter/fields';
 import type { DefinitionsOfSchemaType } from './types';
+import StringSchema from './string';
+import NumberSchema from './number';
 
 export default class UnionSchema<
   TType extends {
@@ -160,3 +162,5 @@ export default class UnionSchema<
     return returnValue;
   }
 }
+
+const value = UnionSchema.new([StringSchema.new(), NumberSchema.new()]);

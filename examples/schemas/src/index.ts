@@ -4,53 +4,29 @@ import {
   ObjectSchema,
   getSchemasWithDefaultAdapter,
   UnionSchema,
+  StringSchema,
   compile,
 } from '@palmares/schemas';
 import { ZodSchemaAdapter } from '@palmares/zod-schema';
-import * as z from 'zod';
+
 setDefaultAdapter(new ZodSchemaAdapter());
 
-/*
-const testeObjectSchema = ObjectSchema.new({
+const testSchema = ObjectSchema.new({
+  name: StringSchema.new().minLength(3).maxLength(10, {
+    inclusive: true,
+  }),
   age: NumberSchema.new(),
-  spent: NumberSchema.new()
-    .min(12, { inclusive: true })
-    .positive()
-    .toValidate((value) => {
-      return Number(value);
-    })
-    .toInternal(async (value) => {
-      return {
-        teste: value,
-      };
-    })
-    .toRepresentation(async (value) => {
-      console.log('without validation, changing how the data is sent to the user', value, typeof value);
-      return 'Aquiiii';
-    }),
-});
-*/
-const objectSchema = ObjectSchema.new({
-  teste: UnionSchema.new([
-    NumberSchema.new(),
-    ObjectSchema.new({
-      age: NumberSchema.new().nullable(),
-    }),
-  ]),
+  email: StringSchema.new().includes('@'),
+  cameFrom: StringSchema.new().is(['Brazil', 'Botsuana']),
 });
 
-/*
-const object2Schema = ObjectSchema.new({
-  hey: UnionSchema.new([
-    ObjectSchema.new({
-      name: NumberSchema.new(),
-    }),
-    NumberSchema.new(),
-  ]),
-});
-*/
 const main = async () => {
-  /*const [testeResult, teste2Result, teste3Result, teste4Result] = await Promise.all([
+  const value = await testSchema.parse({
+  });
+
+
+
+    /*const [testeResult, teste2Result, teste3Result, teste4Result] = await Promise.all([
     objectSchema.parse({
       teste: 10,
     }),
@@ -68,14 +44,14 @@ const main = async () => {
       },
     }),
   ]);*/
-  /*
+    /*
   const teste4Result = await objectSchema.parse({
     teste: {
       age: 10,
     },
   });*/
 
-  /*
+    /*
   console.log('______//_______');
   console.log(testeResult.errors);
   console.log(testeResult.parsed);
@@ -89,15 +65,15 @@ const main = async () => {
   console.log(teste3Result.parsed);
   */
 
-  /*
+    /*
   console.log('______//_______');
   console.log(teste4Result.errors);
   console.log(teste4Result.parsed);
   */
 
-  compile({
-    testSchema: objectSchema,
-  });
+    .compile({
+      testSchema: objectSchema,
+    });
 };
 
 main();

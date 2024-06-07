@@ -6,7 +6,6 @@ import type { unpaidJobsRouter, payJobIdRouter } from './routes';
 
 export const unpaidJobsController = pathNested<typeof unpaidJobsRouter>()().get(async (request) => {
   // haven't defined any type, where does this comes from?
-  request.context.anotherValue;
   const contract = await getUnpaidJobs(request.context.profile.id);
   return Response.json(contract);
 });

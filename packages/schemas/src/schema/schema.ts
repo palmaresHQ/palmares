@@ -55,7 +55,7 @@ export default class Schema<
   __rootFallbacksValidator!: Validator;
   __validationSchema!: any;
   __refinements: {
-    callback: (value: TType['input']) => Promise<boolean | { isValid: boolean; message: string }>;
+    callback: (value: any) => Promise<boolean | { isValid: boolean; message: string }>;
     isAsync: boolean;
   }[] = [];
   __nullable: {
@@ -182,7 +182,7 @@ export default class Schema<
           __validateByAdapter: Schema<any, any>['__validateByAdapter'];
         },
         translatedSchemas: any[],
-        value: TType['input'],
+        value: any,
         path: ValidationFallbackCallbackReturnType['errors'][number]['path'],
         options: Parameters<Schema['_transformToAdapter']>[0]
       ) => ReturnType<Schema['__validateByAdapter']>
@@ -291,6 +291,7 @@ export default class Schema<
     if (hasToRepresentationCallback) value = (await (this.__toRepresentation as any)(value)) as TType['representation'];
     return value;
   }
+
   /**
    * This let's you refine the schema with custom validations. This is useful when you want to validate something that is not supported by default by the schema adapter.
    *
@@ -331,7 +332,7 @@ export default class Schema<
         representation: TType['representation'] | undefined | null;
       },
       TDefinitions
-    >;
+    > & { is: never };
   }
 
   nullable(options: NonNullable<Partial<Schema['__nullable']>> = {}) {
@@ -345,14 +346,14 @@ export default class Schema<
 
     return this as unknown as Schema<
       {
-        input: TType['input'] | undefined | null;
-        validate: TType['validate'] | undefined | null;
-        internal: TType['internal'] | undefined | null;
-        output: TType['output'] | undefined | null;
-        representation: TType['representation'] | undefined | null;
+        input: TType['input'] | null;
+        validate: TType['validate'] | null;
+        internal: TType['internal'] | null;
+        output: TType['output'] | null;
+        representation: TType['representation'] | null;
       },
       TDefinitions
-    >;
+    > & { is: never };
   }
 
   async parse(value: TType['input']): Promise<{ errors?: any[]; parsed: TType['internal'] }> {
@@ -461,7 +462,7 @@ export default class Schema<
   }
 
   static new<TType extends { input: any; output: any; internal: any; representation: any; validate: any }>(
-    _args?: any
+    ..._args: any[]
   ): Schema<TType> {
     const result = new Schema<TType>();
 

@@ -20,7 +20,7 @@ import Validator from './validators/utils';
 export default class WithFallback {
   fallbackFor: Set<keyof Omit<NumberAdapterTranslateArgs, 'withFallbackFactory'>>;
   transformedSchema: any;
-  adapterType: 'number' | 'object' | 'union' | 'string';
+  adapterType: 'number' | 'object' | 'union' | 'string' | 'array';
 
   constructor(
     adapterType: WithFallback['adapterType'],
@@ -81,9 +81,10 @@ export async function defaultTransform<TType extends WithFallback['adapterType']
   schema: Schema,
   adapter: SchemaAdapter,
   fieldAdapter: FieldAdapter | undefined,
-  getValidationData: (isStringVersion: boolean) => MaybePromise<ValidationDataBasedOnType<TType>>,
-  fallbackFunctions: FallbackFunctionsType<ReturnType<typeof getValidationData>>,
+  getValidationData: (isStringVersion: boolean) => ValidationDataBasedOnType<TType>,
+  fallbackFunctions: FallbackFunctionsType<Awaited<ReturnType<typeof getValidationData>>>,
   options: {
+    validatorsIfFallbackOrNotSupported?: ValidationFallbackReturnType | ValidationFallbackReturnType[];
     /**
      * If the schema is not supported by the adapter, this means, that the adapter hasn't defined an adapter for that field type, we can fallback to a custom implementation.
      * The problem is that, for example: Unions,
@@ -124,7 +125,17 @@ export async function defaultTransform<TType extends WithFallback['adapterType']
     }
   };
 
+  const appendRootFallback = () => {
+    if (options.validatorsIfFallbackOrNotSupported) {
+      const validatorsIfFallbackOrNotSupported = Array.isArray(options.validatorsIfFallbackOrNotSupported)
+        ? options.validatorsIfFallbackOrNotSupported
+        : [options.validatorsIfFallbackOrNotSupported];
+      for (const fallback of validatorsIfFallbackOrNotSupported) Validator.createAndAppendFallback(schema, fallback);
+    }
+  };
+
   const hasFallbacks = schemaWithPrivateFields.__rootFallbacksValidator instanceof Validator;
+
   if (hasFallbacks) {
     Validator.createAndAppendFallback(schema, optional(schemaWithPrivateFields.__optional));
     Validator.createAndAppendFallback(schema, nullable(schemaWithPrivateFields.__nullable));
@@ -133,7 +144,9 @@ export async function defaultTransform<TType extends WithFallback['adapterType']
 
   if (options.fallbackIfNotSupported !== undefined && fieldAdapter === undefined) {
     const existingFallbacks = Object.keys(fallbackFunctions) as Parameters<WithFallback['fallbackFor']['add']>[0][];
+    appendRootFallback();
     for (const fallback of existingFallbacks) checkIfShouldAppendFallbackAndAppend(fallback);
+
     return options.fallbackIfNotSupported();
   }
   if (!fieldAdapter) throw new Error('The field adapter is not supported and no fallback was provided.');
@@ -150,6 +163,7 @@ export async function defaultTransform<TType extends WithFallback['adapterType']
     stringVersion = await fieldAdapter.toString(adapter, adapter.field, validationDataForStringVersion);
 
   if (translatedSchemaOrWithFallback instanceof WithFallback) {
+    appendRootFallback();
     for (const fallback of translatedSchemaOrWithFallback.fallbackFor) checkIfShouldAppendFallbackAndAppend(fallback);
     return [
       {

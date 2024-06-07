@@ -4,7 +4,7 @@ import { type ValidationFallbackReturnType } from '../schema/types';
 
 export function stringValidation(): ValidationFallbackReturnType {
   return {
-    type: 'high',
+    type: 'medium',
     callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
       return {
         parsed: value,
@@ -19,33 +19,6 @@ export function stringValidation(): ValidationFallbackReturnType {
                   message: 'The value must be a string. Received: ' + typeof value,
                 },
               ],
-      };
-    },
-  };
-}
-export function datetime(args: StringSchema['__datetime']): ValidationFallbackReturnType {
-  return {
-    type: 'low',
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
-      const dateFormatted = new Date(value);
-      let isValid = true;
-
-      if (Object.prototype.toString.call(dateFormatted) === '[object Date]') {
-        if (isNaN(dateFormatted as unknown as number) === false) isValid = false;
-      } else isValid = false;
-
-      return {
-        parsed: value,
-        errors: isValid
-          ? []
-          : [
-              {
-                isValid: false,
-                code: 'datetime',
-                path: path || [],
-                message: args.message,
-              },
-            ],
       };
     },
   };

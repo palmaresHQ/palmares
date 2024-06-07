@@ -4,7 +4,7 @@ import { ValidationFallbackReturnType } from '../schema/types';
 
 export function numberValidation(): ValidationFallbackReturnType {
   return {
-    type: 'high',
+    type: 'medium',
     callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
       return {
         parsed: value,
@@ -80,6 +80,29 @@ export function min(args: NumberSchema['__min']): ValidationFallbackReturnType {
             path: path || [],
           },
         ],
+      };
+    },
+  };
+}
+
+export function negative(args: NumberSchema['__allowNegative']): ValidationFallbackReturnType {
+  return {
+    type: 'low',
+    callback: async (value: any, path?: (string | number)[]) => {
+      const isValid = args.allowZero ? value < 0 : value <= 0;
+
+      return {
+        parsed: value,
+        errors: isValid
+          ? []
+          : [
+              {
+                isValid: isValid,
+                message: args.message,
+                code: 'negative',
+                path: path || [],
+              },
+            ],
       };
     },
   };
