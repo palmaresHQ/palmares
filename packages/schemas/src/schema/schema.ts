@@ -151,12 +151,18 @@ export default class Schema<
       if (Array.isArray(adapterParseResult.errors))
         parseResult.errors = await Promise.all(
           adapterParseResult.errors.map(async (error) =>
-            formatErrorFromParseMethod(adapter, error, path, options.errorsAsHashedSet || new Set())
+            formatErrorFromParseMethod(adapter, fieldAdapter, error, path, options.errorsAsHashedSet || new Set())
           )
         );
       else
         parseResult.errors = [
-          await formatErrorFromParseMethod(adapter, parseResult.errors, path, options.errorsAsHashedSet || new Set()),
+          await formatErrorFromParseMethod(
+            adapter,
+            fieldAdapter,
+            parseResult.errors,
+            path,
+            options.errorsAsHashedSet || new Set()
+          ),
         ];
     }
     return parseResult;
