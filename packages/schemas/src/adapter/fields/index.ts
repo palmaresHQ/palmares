@@ -1,6 +1,6 @@
 import SchemaAdapter from '../index';
 import { SchemaAdapterNotImplementedError } from '../../exceptions';
-import { AdapterToStringArgs, AdapterTranslateArgs } from '../types';
+import { AdapterToStringArgs, AdapterTranslateArgs, ErrorCodes } from '../types';
 import WithFallback from '../../utils';
 
 export default class FieldAdapter<TResult = any> {
@@ -19,5 +19,16 @@ export default class FieldAdapter<TResult = any> {
     _base?: any
   ): Promise<string> {
     throw new SchemaAdapterNotImplementedError({ className: this.constructor.name, functionName: 'toString' });
+  }
+
+  async formatError(
+    _error: any,
+    _metadata?: any
+  ): Promise<{
+    message: string;
+    path: (string | number)[];
+    code: ErrorCodes;
+  }> {
+    throw new SchemaAdapterNotImplementedError({ className: this.constructor.name, functionName: 'formatError' });
   }
 }

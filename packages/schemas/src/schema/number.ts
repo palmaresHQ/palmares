@@ -233,3 +233,5 @@ export default class NumberSchema<
     return returnValue;
   }
 }
+
+export const number = <TDefinitions extends DefinitionsOfSchemaType>() => NumberSchema.new<TDefinitions>();

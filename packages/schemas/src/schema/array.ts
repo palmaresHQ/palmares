@@ -1,12 +1,14 @@
-import { Narrow } from '@palmares/core';
-
 import Schema from './schema';
 import { getDefaultAdapter } from '../conf';
-import { defaultTransform, defaultTransformToAdapter } from '../utils';
+import {
+  defaultTransform,
+  defaultTransformToAdapter,
+  transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas,
+} from '../utils';
 import { DefinitionsOfSchemaType, ExtractTypeFromArrayOfSchemas } from './types';
+import { arrayValidation } from '../validators/array';
 import Validator from '../validators/utils';
 import StringSchema from './string';
-import NumberSchema from './number';
 
 export default class ArraySchema<
   TType extends {
@@ -28,7 +30,7 @@ export default class ArraySchema<
   protected __schemas: readonly [Schema, ...Schema[]] | [Array<Schema>];
 
   protected __includes!: {
-    value: string;
+    value: string | number | boolean | null | undefined;
     message: string;
   };
 
@@ -56,6 +58,34 @@ export default class ArraySchema<
   async _transformToAdapter(options: Parameters<Schema['_transformToAdapter']>[0]): Promise<any> {
     return defaultTransformToAdapter(
       async (adapter) => {
+        const schemas = Array.isArray(this.__schemas[0]) ? this.__schemas[0] : this.__schemas;
+        const transformedSchemasAsString: string[] = [];
+        const transformedSchemas: any[] = [];
+        let shouldBeHandledByFallback = false;
+
+        await Promise.all(
+          (schemas as Schema[]).map(async (schema) => {
+            const [transformedData, shouldAddFallbackValidationForThisSchema] =
+              await transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas(schema, options);
+
+            if (shouldAddFallbackValidationForThisSchema) shouldBeHandledByFallback = true;
+
+            for (const transformedSchema of transformedData) {
+              transformedSchemasAsString.push(transformedSchema.asString);
+              transformedSchemas.push(transformedSchema.transformed);
+            }
+          })
+        );
+
+        if (shouldBeHandledByFallback)
+          Validator.createAndAppendFallback(
+            this,
+            arrayValidation(
+              Array.isArray(this.__schemas[0]) === false,
+              (Array.isArray(this.__schemas[0]) ? this.__schemas[0] : this.__schemas) as Schema<any, any>[]
+            )
+          );
+
         return defaultTransform(
           'array',
           this,
@@ -65,6 +95,7 @@ export default class ArraySchema<
             isTuple: Array.isArray(this.__schemas[0]) === false,
             nullable: this.__nullable,
             optional: this.__optional,
+            includes: this.__includes,
             maxLength: this.__maxLength,
             minLength: this.__minLength,
             nonEmpty: this.__nonEmpty,
@@ -72,16 +103,53 @@ export default class ArraySchema<
           {},
           {
             shouldAddStringVersion: options.shouldAddStringVersion,
-            fallbackIfNotSupported: async () => {
-              return [];
-            },
+            fallbackIfNotSupported: async () => [],
           }
         );
       },
       this.__transformedSchemas,
       options,
-      'number'
+      'array'
     );
+  }
+
+  includes(value: string | number | boolean | null | undefined, message?: string) {
+    message = message || `The array must include ${value}`;
+    this.__includes = {
+      value: value,
+      message: message,
+    };
+  }
+
+  minLength(value: number, inclusive = true, message?: string) {
+    message = message || `The array must have a minimum length of ${value}`;
+    this.__minLength = {
+      value: value,
+      inclusive: inclusive,
+      message: message,
+    };
+
+    return this;
+  }
+
+  maxLength(value: number, inclusive = true, message?: string) {
+    message = message || `The array must have a maximum length of ${value}`;
+    this.__maxLength = {
+      value: value,
+      inclusive: inclusive,
+      message: message,
+    };
+
+    return this;
+  }
+
+  nonEmpty(message?: string) {
+    message = message || 'The array must not be empty';
+    this.__nonEmpty = {
+      message: message,
+    };
+
+    return this;
   }
 
   static new<
@@ -111,3 +179,10 @@ export default class ArraySchema<
     return returnValue;
   }
 }
+
+export const array = <
+  TSchemas extends readonly [Schema, ...Schema[]] | [Array<Schema>],
+  TDefinitions extends DefinitionsOfSchemaType,
+>(
+  ...schemas: TSchemas
+) => ArraySchema.new<TSchemas, TDefinitions>(...schemas);

@@ -216,11 +216,12 @@ export async function defaultTransformToAdapter(
 
 export async function formatErrorFromParseMethod(
   adapter: SchemaAdapter,
+  fieldAdapter: FieldAdapter<any>,
   error: any,
   path: ValidationFallbackCallbackReturnType['errors'][number]['path'],
   errorsAsHashedSet: Set<string>
 ) {
-  const formattedError = await adapter.formatError(error);
+  const formattedError = await fieldAdapter.formatError(error);
   formattedError.path = Array.isArray(formattedError.path) ? [...path, ...formattedError.path] : path;
   const formattedErrorAsParseResultError =
     formattedError as unknown as ValidationFallbackCallbackReturnType['errors'][number];

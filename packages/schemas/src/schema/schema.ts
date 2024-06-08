@@ -143,7 +143,7 @@ export default class Schema<
 
     if (fieldAdapter === undefined || typeof fieldAdapter.parse !== 'function') return parseResult;
 
-    const adapterParseResult = await (fieldAdapter.parse as NonNullable<FieldAdapter['parse']>)(adapter, schema, value);
+    const adapterParseResult = await fieldAdapter.parse(adapter, schema.transformed, value);
 
     parseResult.parsed = adapterParseResult.parsed;
 
@@ -476,3 +476,5 @@ export default class Schema<
     return result;
   }
 }
+
+export const schema = Schema.new;

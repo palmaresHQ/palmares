@@ -7,7 +7,7 @@ import {
   transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas,
 } from '../utils';
 import { objectValidation } from '../validators/object';
-import { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas, OnlyFieldAdaptersFromSchemaAdapter } from './types';
+import { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from './types';
 import Validator from '../validators/utils';
 
 export default class ObjectSchema<
@@ -187,3 +187,5 @@ export default class ObjectSchema<
     return returnValue;
   }
 }
+
+export const object = ObjectSchema.new;

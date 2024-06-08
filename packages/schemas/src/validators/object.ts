@@ -6,6 +6,22 @@ export function objectValidation(keysToFallback: { [key: string]: Schema }): Val
   return {
     type: 'low',
     callback: async (value: any, path: (string | number)[], options: Parameters<Schema['_transformToAdapter']>[0]) => {
+      const isNotAnObject = typeof value !== 'object' && Array.isArray(value) === false && value !== null;
+
+      if (isNotAnObject)
+        return {
+          parsed: value,
+          preventChildValidation: true,
+          errors: [
+            {
+              isValid: false,
+              code: 'object',
+              path: path || [],
+              message: 'The value must be an object. Received: ' + typeof value,
+            },
+          ],
+        };
+
       const errors: { [key: string]: ValidationFallbackCallbackReturnType['errors'] } = {};
       const toValidateEntries = Object.entries(keysToFallback);
 

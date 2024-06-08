@@ -5,7 +5,6 @@ import { getDefaultAdapter } from '../conf';
 import { defaultTransform, defaultTransformToAdapter } from '../utils';
 import { maxLength, includes, minLength, endsWith, regex, startsWith, stringValidation } from '../validators/string';
 import { DefinitionsOfSchemaType } from './types';
-import Validator from '../validators/utils';
 
 export default class StringSchema<
   TType extends {
@@ -190,3 +189,5 @@ export default class StringSchema<
     return returnValue;
   }
 }
+
+export const string = StringSchema.new;

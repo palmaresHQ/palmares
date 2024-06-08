@@ -1,8 +1,9 @@
-import NumberSchema from './schema/number';
-import ObjectSchema from './schema/object';
-import UnionSchema from './schema/union';
-import StringSchema from './schema/string';
-import Schema from './schema/schema';
+import NumberSchema, { number } from './schema/number';
+import ObjectSchema, { object } from './schema/object';
+import UnionSchema, { union } from './schema/union';
+import StringSchema, { string } from './schema/string';
+import ArraySchema, { array } from './schema/array';
+import Schema, { schema } from './schema/schema';
 import SchemaAdapter from './adapter';
 
 export { default as default } from './domain';
@@ -15,7 +16,8 @@ export { default as StringFieldAdapter } from './adapter/fields/string';
 export { setDefaultAdapter } from './conf';
 export * from './adapter/types';
 export * from './schema';
-export { SchemaAdapter, NumberSchema, ObjectSchema, UnionSchema, StringSchema };
+export { SchemaAdapter, NumberSchema, ObjectSchema, UnionSchema, StringSchema, ArraySchema };
+export { schema, number, object, union, string, array };
 export { default as compile } from './compile';
 
 import type { Narrow } from '@palmares/core';

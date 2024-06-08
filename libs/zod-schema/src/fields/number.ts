@@ -26,7 +26,7 @@ export default class ZodNumberFieldSchemaAdapter extends NumberAdapter<z.ZodNumb
 
   async parse(_adapter: SchemaAdapter, result: z.ZodNumber, value: any) {
     try {
-      const parsed = await result.parseAsync(value);
+      const parsed = result.safeParse(value);
       return { errors: undefined, parsed };
     } catch (error) {
       if (error instanceof z.ZodError) return { errors: error.errors, parsed: undefined };

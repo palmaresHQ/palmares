@@ -6,6 +6,6 @@ export class SchemaAdapterNotImplementedError extends Error {
 
 export class NoAdapterFoundError extends Error {
   constructor() {
-    super('No adapter found');
+    super('No adapter found, please define an adapter using setDefaultAdapter() before using any schema.');
   }
 }

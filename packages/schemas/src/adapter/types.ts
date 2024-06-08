@@ -183,6 +183,7 @@ export type ErrorCodes =
   | 'object'
   | 'number'
   | 'string'
+  | 'array'
   | 'datetime'
   | 'minLength'
   | 'maxLength'
