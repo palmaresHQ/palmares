@@ -6,6 +6,7 @@ import { depositAmountFromContractorIdToClientId } from './services';
 export const depositAmountController = pathNested<typeof depositRouter>()().post(async (request) => {
   if (request.context.profile.type !== 'contractor')
     return Response.text('Only contractors can deposit', { status: 400 });
+
   const isOk = await depositAmountFromContractorIdToClientId(
     request.context.profile.id,
     request.params.userId,

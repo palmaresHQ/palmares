@@ -1,13 +1,14 @@
-import * as p from '@palmares/schemas';
+import { setDefaultAdapter, getSchemasWithDefaultAdapter } from '@palmares/schemas';
 import { ZodSchemaAdapter } from '@palmares/zod-schema';
 import * as z from 'zod';
 
-p.setDefaultAdapter(new ZodSchemaAdapter());
+setDefaultAdapter(new ZodSchemaAdapter());
+const p = getSchemasWithDefaultAdapter<ZodSchemaAdapter>();
 
-const testSchema = p.array([p.string(), p.number()]);
+const testSchema = p.array(p.string().is(['Brazil', 'Botsuana']), p.number());
 
 const main = async () => {
-  const value = await testSchema.parse([true, true]);
+  const value = await testSchema.parse(['Brazil', 10]);
   console.log(value);
   /*const [testeResult, teste2Result, teste3Result, teste4Result] = await Promise.all([
     objectSchema.parse({

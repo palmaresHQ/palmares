@@ -53,7 +53,7 @@ export default class Request<
     referrer: string;
     redirect: RequestRedirect;
     referrerPolicy: ReferrerPolicy;
-  }
+  },
 > {
   /**
    * All of those private methods are not really private, we use them internally so we do a typescript mangling to use them.
@@ -642,7 +642,7 @@ export default class Request<
       referrer: string;
       referrerPolicy: ReferrerPolicy;
       redirect: RequestRedirect;
-    }
+    },
   >(args?: TNewRequest, options?: { inPlace: boolean }) {
     const isInPlace = options?.inPlace !== false;
     const newRequest = isInPlace
@@ -742,7 +742,56 @@ export default class Request<
     newRequest.__requestAdapter = this.__requestAdapter;
     newRequest.__serverRequestAndResponseData = this.__serverRequestAndResponseData;
 
-    return newRequest;
+    return newRequest as Request<
+      TRoutePath,
+      {
+        body: TNewRequest['body'] extends object | string ? TNewRequest['body'] : TRequest['body'];
+        headers: TNewRequest['headers'] extends object ? TNewRequest['headers'] : TRequest['headers'];
+        context: TNewRequest['context'] extends object ? TNewRequest['context'] : TRequest['context'];
+        method: TRequest['method'];
+        mode: TNewRequest['mode'] extends RequestMode
+          ? TNewRequest['mode']
+          : TRequest['mode'] extends RequestMode
+          ? TRequest['mode']
+          : RequestMode;
+        cache: TNewRequest['cache'] extends RequestCache
+          ? TNewRequest['cache']
+          : TRequest['cache'] extends RequestCache
+          ? TRequest['cache']
+          : RequestCache;
+        credentials: TNewRequest['credentials'] extends RequestCredentials
+          ? TNewRequest['credentials']
+          : TRequest['credentials'] extends RequestCredentials
+          ? TRequest['credentials']
+          : RequestCredentials;
+        integrity: TNewRequest['integrity'] extends string
+          ? TNewRequest['integrity']
+          : TRequest['integrity'] extends string
+          ? TRequest['integrity']
+          : string;
+        destination: TNewRequest['destination'] extends RequestDestination
+          ? TNewRequest['destination']
+          : TRequest['destination'] extends RequestDestination
+          ? TRequest['destination']
+          : RequestDestination;
+        referrer: TNewRequest['referrer'] extends string
+          ? TNewRequest['referrer']
+          : TRequest['referrer'] extends string
+          ? TRequest['referrer']
+          : string;
+        redirect: TNewRequest['redirect'] extends RequestRedirect
+          ? TNewRequest['redirect']
+          : TRequest['redirect'] extends RequestRedirect
+          ? TRequest['redirect']
+          : RequestRedirect;
+        referrerPolicy: TNewRequest['referrerPolicy'] extends ReferrerPolicy
+          ? TNewRequest['referrerPolicy']
+          : TRequest['referrerPolicy'] extends ReferrerPolicy
+          ? TRequest['referrerPolicy']
+          : ReferrerPolicy;
+        responses: TRequest['responses'];
+      }
+    >;
   }
 
   /**
@@ -849,7 +898,7 @@ export default class Request<
    * @param options - Those options are custom options you want to pass to the underlying adapter instance when retrieving the json, see the documentation of the underlying
    * adapter. You can retrieve those options by: 'MyCustomFrameworkRequestAdapter.customToJsonOptions?.()' if it is implemented.
    */
-  async json(options?: any) {
+  async json(options?: any): Promise<TRequest['body'] | undefined> {
     if (typeof this.body === 'object' && this.body !== null) return this.body;
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
       return this.__requestAdapter.toJson(this.__serverAdapter, this.__serverRequestAndResponseData, options);

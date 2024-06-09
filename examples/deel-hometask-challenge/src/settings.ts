@@ -58,7 +58,7 @@ export default defineSettings({
                   message: 'Not found',
                 },
               }),
-            handler500: async (response) => {
+            handler500: async (response: any) => {
               return response;
             },
           },

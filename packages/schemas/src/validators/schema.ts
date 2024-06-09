@@ -1,5 +1,8 @@
 import { ErrorCodes } from '../adapter/types';
+import BooleanSchema from '../schema/boolean';
+import NumberSchema from '../schema/number';
 import Schema from '../schema/schema';
+import StringSchema from '../schema/string';
 import { ValidationFallbackReturnType } from '../schema/types';
 
 export function optional(args: Schema['__optional']): ValidationFallbackReturnType {
@@ -91,6 +94,31 @@ export function checkType(args: Schema['__type']): ValidationFallbackReturnType 
             path: path || [],
           },
         ],
+        preventChildValidation: true,
+      };
+    },
+  };
+}
+
+export function is(
+  args: BooleanSchema['__is'] | NumberSchema['__is'] | StringSchema['__is']
+): ValidationFallbackReturnType {
+  return {
+    type: 'medium',
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+      const isValid = Array.isArray(args.value) ? args.value.includes(value as never) : value === args.value;
+      return {
+        parsed: value,
+        errors: isValid
+          ? []
+          : [
+              {
+                isValid: false,
+                code: 'is',
+                path: path || [],
+                message: 'Value is not a boolean',
+              },
+            ],
         preventChildValidation: true,
       };
     },

@@ -1,3 +1,4 @@
+import ArraySchema from '../schema/array';
 import Schema from '../schema/schema';
 import { ValidationFallbackCallbackReturnType, ValidationFallbackReturnType } from '../schema/types';
 
@@ -16,6 +17,19 @@ export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): 
               code: 'array',
               path: path || [],
               message: 'The value must be an array. Received: ' + typeof value,
+            },
+          ],
+        };
+      if (isTuple && value.length !== schemas.length)
+        return {
+          parsed: value,
+          preventChildValidation: true,
+          errors: [
+            {
+              isValid: false,
+              code: 'tuple',
+              path: path || [],
+              message: 'The tuple must have exactly ' + schemas.length + ' elements. Received: ' + value.length,
             },
           ],
         };
@@ -62,6 +76,75 @@ export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): 
       return {
         parsed: parsedValues,
         errors: errorsOfArray,
+      };
+    },
+  };
+}
+
+export function minLength(args: ArraySchema['__minLength']): ValidationFallbackReturnType {
+  return {
+    type: 'low',
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+      const isValid = args.inclusive ? value.length >= args.value : value.length > args.value;
+
+      return {
+        parsed: value,
+        errors: isValid
+          ? []
+          : [
+              {
+                isValid: false,
+                code: 'minLength',
+                path: path || [],
+                message: args.message,
+              },
+            ],
+      };
+    },
+  };
+}
+
+export function maxLength(args: ArraySchema['__maxLength']): ValidationFallbackReturnType {
+  return {
+    type: 'low',
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+      const isValid = args.inclusive ? value.length <= args.value : value.length < args.value;
+
+      return {
+        parsed: value,
+        errors: isValid
+          ? []
+          : [
+              {
+                isValid: false,
+                code: 'maxLength',
+                path: path || [],
+                message: args.message,
+              },
+            ],
+      };
+    },
+  };
+}
+
+export function nonEmpty(args: ArraySchema['__nonEmpty']): ValidationFallbackReturnType {
+  return {
+    type: 'low',
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+      const isValid = value.length > 0;
+
+      return {
+        parsed: value,
+        errors: isValid
+          ? []
+          : [
+              {
+                isValid: false,
+                code: 'nonEmpty',
+                path: path || [],
+                message: args.message,
+              },
+            ],
       };
     },
   };

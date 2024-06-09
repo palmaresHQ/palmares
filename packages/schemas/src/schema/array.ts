@@ -6,9 +6,9 @@ import {
   transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas,
 } from '../utils';
 import { DefinitionsOfSchemaType, ExtractTypeFromArrayOfSchemas } from './types';
-import { arrayValidation } from '../validators/array';
+import { arrayValidation, minLength, maxLength, nonEmpty } from '../validators/array';
 import Validator from '../validators/utils';
-import StringSchema from './string';
+import { optional, nullable } from '../validators/schema';
 
 export default class ArraySchema<
   TType extends {
@@ -28,11 +28,6 @@ export default class ArraySchema<
   TSchemas extends readonly [Schema, ...Schema[]] | [Array<Schema>] = [Array<Schema>],
 > extends Schema<TType, TDefinitions> {
   protected __schemas: readonly [Schema, ...Schema[]] | [Array<Schema>];
-
-  protected __includes!: {
-    value: string | number | boolean | null | undefined;
-    message: string;
-  };
 
   protected __minLength!: {
     value: number;
@@ -95,12 +90,17 @@ export default class ArraySchema<
             isTuple: Array.isArray(this.__schemas[0]) === false,
             nullable: this.__nullable,
             optional: this.__optional,
-            includes: this.__includes,
             maxLength: this.__maxLength,
             minLength: this.__minLength,
             nonEmpty: this.__nonEmpty,
           }),
-          {},
+          {
+            optional,
+            nullable,
+            minLength,
+            maxLength,
+            nonEmpty,
+          },
           {
             shouldAddStringVersion: options.shouldAddStringVersion,
             fallbackIfNotSupported: async () => [],
@@ -111,14 +111,6 @@ export default class ArraySchema<
       options,
       'array'
     );
-  }
-
-  includes(value: string | number | boolean | null | undefined, message?: string) {
-    message = message || `The array must include ${value}`;
-    this.__includes = {
-      value: value,
-      message: message,
-    };
   }
 
   minLength(value: number, inclusive = true, message?: string) {

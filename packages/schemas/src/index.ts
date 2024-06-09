@@ -24,7 +24,10 @@ import type { Narrow } from '@palmares/core';
 
 export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
   return {
-    number: NumberSchema.new<{ schemaAdapter: TAdapter }>,
+    number: () => number<{ schemaAdapter: TAdapter }>(),
+    string: () => string<{ schemaAdapter: TAdapter }>(),
+    array: <TSchemas extends readonly [Schema, ...Schema[]] | [Array<Schema>]>(...schemas: TSchemas) =>
+      array<TSchemas, { schemaAdapter: TAdapter }>(...schemas),
     object: <TData extends Record<any, Schema>>(data: TData) =>
       ObjectSchema.new<TData, { schemaAdapter: TAdapter }>(data),
     union: <TSchemas extends readonly [Schema<any, any>, Schema<any, any>, ...Schema<any, any>[]]>(

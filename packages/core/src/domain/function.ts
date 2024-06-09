@@ -24,10 +24,10 @@ import type { DefaultCommandType } from '../commands/types';
  * ```
  */
 export default function domain<
-  TModifierArguments = object,
-  TModifiers extends readonly (abstract new (...args: any) => {
+  const TModifierArguments = object,
+  const TModifiers extends (abstract new (...args: any) => {
     modifiers: any;
-  })[] = readonly (abstract new (...args: any) => {
+  })[] = (abstract new (...args: any) => {
     modifiers: any;
   })[],
   const TCommands extends DefaultCommandType = DefaultCommandType,

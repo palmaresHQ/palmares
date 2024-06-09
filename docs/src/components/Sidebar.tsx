@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import SidebarSection from './SidebarSectionsOrRoutes';
+
 type Section = {
   title: string;
   isSubsection: true;

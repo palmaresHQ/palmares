@@ -6,22 +6,19 @@ import Response from './response';
 import { request } from 'http';
 import { HTTP_200_OK } from './response/status';
 
-const addHeadersAndAuthenticateUser = nestedMiddleware<typeof rootRouter>()({
+const addHeadersAndAuthenticateUser = middleware({
   request: (request) => {
     const customRequest = request.clone<{
       headers: { 'x-custom-header': string };
       context: { user: number };
     }>();
-    return customRequest;
-  },
-  response: (response) => {
-    const modifiedResponse = response.clone();
-    return modifiedResponse;
+
+    return customRequest as typeof customRequest;
   },
 });
 
 const authenticateRequest = middleware({
-  request: (request) => {
+  request: async (request) => {
     //if (request.headers.Authorization) return new Response<{ Status: 404 }>();
     const modifiedRequest = request.clone<{
       body: {
@@ -31,6 +28,7 @@ const authenticateRequest = middleware({
         username: string;
       };
     }>();
+
     return modifiedRequest;
   },
 });
@@ -72,7 +70,7 @@ const testRequestMiddleware = nestedMiddleware<typeof rootRouter>()({
 
 const testResponseMiddleware2 = nestedMiddleware<typeof testRouterWithController>()({
   response: (response) => {
-    const value = response.status === 200 ? response.body : response;
+    //const value = response.status === 200 ? response.body : response;
     return response;
   },
 });
@@ -80,21 +78,25 @@ const testResponseMiddleware2 = nestedMiddleware<typeof testRouterWithController
 const testRouter = path('/hey').middlewares([testRequestMiddleware1, testRequestMiddleware]);
 const testController = pathNested<typeof testRouter>()('/<userId: string>').get(
   (request) => {
-    return request.responses['200']('hello');
+    return request.responses['400']();
   }, //const response = Response.json({ body: 'hey' }, { status: 200 }); // should be error
   // return response;
   {
     responses: {
-      '201': () => Response.json({ body: 'hey' }, { status: 201 }),
+      200: (body: string) => Response.json({ body: body }, { status: 200 }),
     },
   }
 );
 
 const testRouterWithController = testRouter.nested([testController] as const);
-testRouterWithController.middlewares([testResponseMiddleware2]);
-const withMiddlewares = pathNested<typeof rootRouter>()('').middlewares([addHeadersAndAuthenticateUser] as const);
+//testRouterWithController.middlewares([testResponseMiddleware2]);
+const fromRoot = pathNested<typeof rootRouter>()('/');
+const withMiddlewares = fromRoot.middlewares([addHeadersAndAuthenticateUser]);
 
-const controllers = pathNested<typeof withMiddlewares>()('/users').get(() => {
+withMiddlewares.get((req) => {
+  return new Response('hello');
+});
+const controllers = pathNested<typeof withMiddlewares>()('/users').get((req) => {
   const resp = new Response<
     unknown,
     {
@@ -129,6 +131,7 @@ export const router = withMiddlewares.nested((path) => [
       }>();
     }),
   path('/').get((request) => {
+    request.params.userId;
     return new Response<{
       id: number;
       firstName: string;

@@ -7,8 +7,8 @@ import routes from './routes';
 import * as migrations from './migrations';
 
 export default domain('auth', __dirname, {
-  modifiers: [databaseDomainModifier, serverDomainModifier] as const,
-  getRoutes: async () => routes,
-  getMigrations: async () => migrations,
-  getModels: async () => [Profile],
+  modifiers: [databaseDomainModifier, serverDomainModifier],
+  getRoutes: () => routes,
+  getMigrations: () => migrations,
+  getModels: () => [Profile],
 });

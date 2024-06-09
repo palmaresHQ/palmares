@@ -401,6 +401,18 @@ export default class Schema<
     >;
   }
 
+  /**
+   * This function let's you customize the schema your own way, the return of this function is the schema translated by the adapter.
+   *
+   *
+   */
+  extends(
+    callback: (
+      schema: ReturnType<TDefinitions['schemaAdapter']['field']['translate']>
+    ) => ReturnType<TDefinitions['schemaAdapter']['field']['translate']>,
+    toStringCallback?: (schemaAsString: string) => string
+  ) {}
+
   toRepresentation<TRepresentation>(
     toRepresentationCallback: (value: TType['representation']) => Promise<TRepresentation>
   ) {

@@ -1,6 +1,8 @@
 import { SchemaAdapterNotImplementedError } from '../exceptions';
 import FieldAdapter from './fields';
 import ArrayFieldAdapter from './fields/array';
+import BooleanFieldAdapter from './fields/boolean';
+import DatetimeFieldAdapter from './fields/datetime';
 import NumberFieldAdapter from './fields/number';
 import ObjectFieldAdapter from './fields/object';
 import StringFieldAdapter from './fields/string';
@@ -14,6 +16,8 @@ export default class SchemaAdapter {
   union?: UnionFieldAdapter;
   string?: StringFieldAdapter;
   array?: ArrayFieldAdapter;
+  boolean?: BooleanFieldAdapter;
+  datetime?: DatetimeFieldAdapter;
 
   async formatError(
     _error: any,

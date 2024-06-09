@@ -18,17 +18,17 @@ import Validator from './validators/utils';
  * of this class and with this instance we are able to fallback to our default implementation of the schema validation.
  */
 export default class WithFallback {
-  fallbackFor: Set<keyof Omit<NumberAdapterTranslateArgs, 'withFallbackFactory'>>;
+  fallbackFor: Set<keyof Omit<NumberAdapterTranslateArgs, 'withFallback'>>;
   transformedSchema: any;
-  adapterType: 'number' | 'object' | 'union' | 'string' | 'array';
+  adapterType: 'number' | 'object' | 'union' | 'string' | 'array' | 'boolean' | 'datetime';
 
   constructor(
     adapterType: WithFallback['adapterType'],
-    fallbackFor: (keyof Omit<NumberAdapterTranslateArgs, 'withFallbackFactory'>)[],
+    fallbackFor: (keyof Omit<NumberAdapterTranslateArgs, 'withFallback'>)[],
     transformedSchema: any
   ) {
     this.adapterType = adapterType;
-    this.fallbackFor = new Set<keyof Omit<NumberAdapterTranslateArgs, 'withFallbackFactory'>>(fallbackFor as any);
+    this.fallbackFor = new Set<keyof Omit<NumberAdapterTranslateArgs, 'withFallback'>>(fallbackFor as any);
     this.transformedSchema = transformedSchema;
   }
 }
@@ -43,7 +43,7 @@ export default class WithFallback {
  */
 export function withFallbackFactory(adapterType: WithFallback['adapterType']) {
   return (
-    fallbackFor: (keyof Omit<NumberAdapterTranslateArgs, 'withFallbackFactory'>)[],
+    fallbackFor: (keyof Omit<NumberAdapterTranslateArgs, 'withFallback'>)[],
     transformedSchema: WithFallback['transformedSchema']
   ) => new WithFallback(adapterType, fallbackFor, transformedSchema);
 }
