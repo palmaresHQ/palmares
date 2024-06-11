@@ -19,6 +19,8 @@
   "author": "Nicolas Melo",
   "license": "MIT",
   "dependencies": {
+    "@palmares/schemas": "workspace:*",
+    "@palmares/zod-schema": "workspace:*",
     "@palmares/console-logging": "workspace:*",
     "@palmares/core": "workspace:*",
     "@palmares/databases": "workspace:*",

@@ -4,6 +4,7 @@ import { defaultTransform, defaultTransformToAdapter } from '../utils';
 import { DefinitionsOfSchemaType } from './types';
 import { optional, nullable, is } from '../validators/schema';
 import { allowStringParser, booleanValidation } from '../validators/boolean';
+import convertFromStringBuilder from '../parsers/convert-from-string';
 
 export default class BooleanSchema<
   TType extends {
@@ -22,7 +23,6 @@ export default class BooleanSchema<
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
 > extends Schema<TType, TDefinitions> {
   protected __allowString!: boolean;
-
   protected __allowNumber!: boolean;
 
   protected __is!: {
@@ -77,14 +77,63 @@ export default class BooleanSchema<
    */
   allowString() {
     this.__allowString = true;
-
+    this.__parsers.low.set(
+      'stringParser',
+      convertFromStringBuilder((value) => {
+        return {
+          value: Boolean(value),
+          preventNextParsers: false,
+        };
+      })
+    );
     return this as any as BooleanSchema<
       {
         input: string | TType['input'];
         output: string | TType['output'];
-        internal: string | TType['output'];
-        representation: string | TType['output'];
-        validate: string | TType['output'];
+        internal: string | TType['internal'];
+        representation: string | TType['representation'];
+        validate: string | TType['validate'];
+      },
+      TDefinitions
+    >;
+  }
+
+  trueValues<const TValues extends any[]>(values: TValues) {
+    this.__parsers.medium.set('trueValues', (value) => {
+      const valueExistsInList = values.includes(value);
+      return {
+        preventNextParsers: valueExistsInList,
+        value: valueExistsInList,
+      };
+    });
+    return this as any as BooleanSchema<
+      {
+        input: TValues[number] | TType['input'];
+        output: TValues[number] | TType['output'];
+        internal: TValues[number] | TType['internal'];
+        representation: TValues[number] | TType['representation'];
+        validate: TValues[number] | TType['validate'];
+      },
+      TDefinitions
+    >;
+  }
+
+  falseValues<const TValues extends any[]>(values: TValues) {
+    this.__parsers.medium.set('falseValues', (value) => {
+      const valueExistsInList = values.includes(value);
+      return {
+        preventNextParsers: valueExistsInList,
+        value: !valueExistsInList,
+      };
+    });
+
+    return this as any as BooleanSchema<
+      {
+        input: TValues[number] | TType['input'];
+        output: TValues[number] | TType['output'];
+        internal: TValues[number] | TType['internal'];
+        representation: TValues[number] | TType['representation'];
+        validate: TValues[number] | TType['validate'];
       },
       TDefinitions
     >;
@@ -136,6 +185,14 @@ export default class BooleanSchema<
       value,
       message: typeof options?.message === 'string' ? options?.message : `The value should be equal to ${value}`,
     };
+
+    this.__parsers.high.set('is', (valueFromParser) => {
+      const isSetValue = value === valueFromParser;
+      return {
+        value: isSetValue ? valueFromParser : undefined,
+        preventNextParsers: true,
+      };
+    });
 
     return this as any as Schema<
       {

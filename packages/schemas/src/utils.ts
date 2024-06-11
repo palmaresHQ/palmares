@@ -78,7 +78,7 @@ export function parseErrorsFactory(schemaAdapter: SchemaAdapter) {
  */
 export async function defaultTransform<TType extends WithFallback['adapterType']>(
   type: TType,
-  schema: Schema,
+  schema: Schema<any, any>,
   adapter: SchemaAdapter,
   fieldAdapter: FieldAdapter | undefined,
   getValidationData: (isStringVersion: boolean) => ValidationDataBasedOnType<TType>,

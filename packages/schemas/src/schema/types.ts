@@ -5,6 +5,9 @@ import Schema from './schema';
 
 import type { ValidatorTypes } from '../validators/types';
 import { ErrorCodes } from '../adapter/types';
+import StringSchema from './string';
+import ObjectSchema from './object';
+import BooleanSchema from './boolean';
 
 export type OnlyFieldAdaptersFromSchemaAdapter = keyof {
   [key in keyof SchemaAdapter as SchemaAdapter[key] extends FieldAdapter ? key : never]: SchemaAdapter[key];
@@ -12,6 +15,7 @@ export type OnlyFieldAdaptersFromSchemaAdapter = keyof {
 
 export type DefinitionsOfSchemaType = {
   schemaAdapter: SchemaAdapter;
+  hasSave?: boolean;
 };
 
 export type ValidationFallbackCallbackType = Validator['fallbacks'][number];
@@ -34,16 +38,48 @@ type TypesOfSchema = Schema extends Schema<infer TType, any> ? TType : never;
 type ExtractTypeFromSchemaByTypeOfSchema<
   TSchema extends Schema,
   TypeToExtract extends keyof TypesOfSchema = 'input',
-> = TSchema extends Schema<
-  {
-    input: infer TInputType;
-    validate: infer TValidateType;
-    internal: infer TInternalType;
-    output: infer TOutputType;
-    representation: infer TRepresentationType;
-  },
-  any
->
+> = TSchema extends
+  | Schema<
+      {
+        input: infer TInputType;
+        validate: infer TValidateType;
+        internal: infer TInternalType;
+        output: infer TOutputType;
+        representation: infer TRepresentationType;
+      },
+      any
+    >
+  | StringSchema<
+      {
+        input: infer TInputType;
+        validate: infer TValidateType;
+        internal: infer TInternalType;
+        output: infer TOutputType;
+        representation: infer TRepresentationType;
+      },
+      any
+    >
+  | ObjectSchema<
+      {
+        input: infer TInputType;
+        validate: infer TValidateType;
+        internal: infer TInternalType;
+        output: infer TOutputType;
+        representation: infer TRepresentationType;
+      },
+      any,
+      any
+    >
+  | BooleanSchema<
+      {
+        input: infer TInputType;
+        validate: infer TValidateType;
+        internal: infer TInternalType;
+        output: infer TOutputType;
+        representation: infer TRepresentationType;
+      },
+      any
+    >
   ? TypeToExtract extends 'input'
     ? TInputType
     : TypeToExtract extends 'validate'

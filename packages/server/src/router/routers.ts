@@ -149,7 +149,7 @@ export class BaseRouter<
    * Used for including other routers inside of this router. This way we can construct a tree of routers. And you
    * can use it to use the same middlewares and handlers for multiple routes.
    */
-  nested<TIncludes extends readonly (DefaultRouterType | Omit<DefaultRouterType, never>)[]>(
+  nested<const TIncludes extends readonly (DefaultRouterType | Omit<DefaultRouterType, never>)[]>(
     children:
       | ((
           router: ReturnType<IncludesRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, undefined>['child']>

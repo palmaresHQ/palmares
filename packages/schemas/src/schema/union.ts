@@ -157,7 +157,7 @@ export default class UnionSchema<
       adapter: adapterInstance,
       schemas: [],
     };
-    return returnValue;
+    return returnValue as any;
   }
 }
 

@@ -53,6 +53,26 @@ export default class Schema<
     ) => ReturnType<Schema['__validateByAdapter']>
   > = new Map();
   __rootFallbacksValidator!: Validator;
+  __saveCallback?: (value: any) => Promise<any | void> | any | void;
+  __parsers: Record<
+    'high' | 'medium' | 'low',
+    Map<
+      string,
+      (value: any) =>
+        | {
+            value: any;
+            preventNextParsers: boolean;
+          }
+        | Promise<{
+            value: any;
+            preventNextParsers: boolean;
+          }>
+    >
+  > = {
+    high: new Map(),
+    medium: new Map(),
+    low: new Map(),
+  };
   __validationSchema!: any;
   __refinements: {
     callback: (value: any) => Promise<boolean | { isValid: boolean; message: string }>;
@@ -166,10 +186,6 @@ export default class Schema<
         ];
     }
     return parseResult;
-  }
-
-  async validate(value: TType['input']): Promise<boolean> {
-    return this.__validationSchema.validate(value);
   }
 
   async _transformToAdapter(_options: {
@@ -338,7 +354,7 @@ export default class Schema<
         representation: TType['representation'] | undefined | null;
       },
       TDefinitions
-    > & { is: never };
+    >;
   }
 
   nullable(options: NonNullable<Partial<Schema['__nullable']>> = {}) {
@@ -359,11 +375,80 @@ export default class Schema<
         representation: TType['representation'] | null;
       },
       TDefinitions
-    > & { is: never };
+    >;
   }
 
-  async parse(value: TType['input']): Promise<{ errors?: any[]; parsed: TType['internal'] }> {
-    return this.__parse(value, [], {});
+  /**
+   * This will add a save method to the schema. This lets you save the value of the schema to a database or something else.
+   * After you you are done saving the value, the output of the callback will be the output of the schema.
+   */
+  onSave(callback: (value: TType['internal']) => Promise<TType['output']> | TType['output']) {
+    return this as unknown as Schema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+
+  async validate(
+    value: TType['input']
+  ): Promise<{ isValid: false; errors: any[] } | { isValid: true; save: () => Promise<TType['representation']> }> {
+    const { errors, parsed } = await this.__parse(value, [], {});
+    if ((errors || []).length <= 0) return { isValid: false, errors: errors as any[] };
+    return { isValid: true, save: async () => this._save.bind(this)(parsed) };
+  }
+
+  protected async _save(value: TType['input']): Promise<TType['representation']> {
+    if (this.__saveCallback) {
+      const result = await this.__saveCallback(value);
+      return this.data(result) as Promise<
+        true extends TDefinitions['hasSave'] ? TType['representation'] : { errors?: any[]; parsed: TType['internal'] }
+      >;
+    }
+
+    return value as Promise<TType['representation']>;
+  }
+  async parse(
+    value: TType['input']
+  ): Promise<
+    true extends TDefinitions['hasSave'] ? TType['representation'] : { errors?: any[]; parsed: TType['internal'] }
+  > {
+    return this.__parse(value, [], {}) as Promise<
+      true extends TDefinitions['hasSave'] ? TType['output'] : { errors?: any[]; parsed: TType['internal'] }
+    >;
+  }
+
+  async data(value: TType['output']): Promise<TType['representation']> {
+    let shouldStop = false;
+
+    for (const parser of this.__parsers.high.values()) {
+      const result = await Promise.resolve(parser(value));
+      if (result.preventNextParsers) shouldStop = true;
+      value = result.value;
+    }
+    if (shouldStop === false) {
+      for (const parser of this.__parsers.medium.values()) {
+        const result = await Promise.resolve(parser(value));
+        if (result.preventNextParsers) shouldStop = true;
+        value = result.value;
+      }
+    }
+    if (shouldStop === false) {
+      for (const parser of this.__parsers.low.values()) {
+        const result = await Promise.resolve(parser(value));
+        if (result.preventNextParsers) shouldStop = true;
+        value = result.value;
+      }
+    }
+
+    if (this.__toRepresentation) value = await Promise.resolve(this.__toRepresentation(value));
+    if (this.__defaultFunction && value === undefined) value = await Promise.resolve(this.__defaultFunction());
+    return value;
   }
 
   instanceOf(args: Schema['__type']) {

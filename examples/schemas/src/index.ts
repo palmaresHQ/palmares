@@ -1,15 +1,30 @@
-import { setDefaultAdapter, getSchemasWithDefaultAdapter } from '@palmares/schemas';
+import { setDefaultAdapter, getSchemasWithDefaultAdapter, object, string } from '@palmares/schemas';
 import { ZodSchemaAdapter } from '@palmares/zod-schema';
 import * as z from 'zod';
 
 setDefaultAdapter(new ZodSchemaAdapter());
 const p = getSchemasWithDefaultAdapter<ZodSchemaAdapter>();
 
-const testSchema = p.array(p.string().is(['Brazil', 'Botsuana']), p.number());
+const testSchema = p.object({
+  test: p.object({
+    isTest: p
+      .boolean()
+      .trueValues(['hey', 1])
+      .toRepresentation(async () => {
+        return 'alooou';
+      }),
+  }),
+});
 
 const main = async () => {
-  const value = await testSchema.parse(['Brazil', 10]);
-  console.log(value);
+  // .data não valida, só parseia o dado (limpa ele)
+  // .data é um bom nome?
+  const value = await testSchema.data({
+    test: {
+      isTest: 'hey',
+    },
+  });
+  console.log(value.test.isTest);
   /*const [testeResult, teste2Result, teste3Result, teste4Result] = await Promise.all([
     objectSchema.parse({
       teste: 10,

@@ -14,9 +14,9 @@ export default class DatetimeSchema<
     representation: any;
   } = {
     input: Date;
-    output: Date;
+    output: string;
     internal: Date;
-    representation: Date;
+    representation: string;
     validate: Date;
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
@@ -184,4 +184,4 @@ export default class DatetimeSchema<
   }
 }
 
-export const boolean = <TDefinitions extends DefinitionsOfSchemaType>() => DatetimeSchema.new<TDefinitions>();
+export const datetime = <TDefinitions extends DefinitionsOfSchemaType>() => DatetimeSchema.new<TDefinitions>();

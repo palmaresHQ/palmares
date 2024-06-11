@@ -12,11 +12,11 @@ import Validator from '../validators/utils';
 
 export default class ObjectSchema<
   TType extends {
-    input: Record<any, any>;
-    validate: Record<any, any>;
-    internal: Record<any, any>;
-    representation: Record<any, any>;
-    output: Record<any, any>;
+    input: any;
+    validate: any;
+    internal: any;
+    representation: any;
+    output: any;
   } = {
     input: Record<any, any>;
     output: Record<any, any>;
@@ -161,9 +161,31 @@ export default class ObjectSchema<
     return value;
   }
 
-  static new<TData extends Record<any, Schema>, TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType>(
-    data: TData
-  ) {
+  async data(value: TType['output']): Promise<TType['representation']> {
+    const parsedValue = await super.data(value);
+    const dataAsEntries = this.__retrieveDataAsEntriesAndCache();
+    const isValueAnObject = typeof parsedValue === 'object' && parsedValue !== null;
+
+    if (isValueAnObject) {
+      await Promise.all(
+        dataAsEntries.map(async ([key, valueToTransform]) => {
+          const isValueToTransformASchemaAndNotUndefined =
+            valueToTransform instanceof Schema && (value[key] !== undefined || valueToTransform.__defaultFunction);
+          if (isValueToTransformASchemaAndNotUndefined) {
+            const transformedValue = await valueToTransform.data(value[key]);
+            (parsedValue as any)[key] = transformedValue;
+          }
+        })
+      );
+    }
+
+    return parsedValue;
+  }
+
+  static new<
+    TData extends Record<any, Schema<any, TDefinitions>>,
+    TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
+  >(data: TData) {
     const returnValue = new ObjectSchema<
       {
         input: ExtractTypeFromObjectOfSchemas<TData, 'input'>;

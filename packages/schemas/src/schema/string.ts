@@ -8,11 +8,11 @@ import { DefinitionsOfSchemaType } from './types';
 
 export default class StringSchema<
   TType extends {
-    input: string;
-    validate: string;
-    internal: string;
-    output: string;
-    representation: string;
+    input: any;
+    validate: any;
+    internal: any;
+    output: any;
+    representation: any;
   } = {
     input: string;
     output: string;

@@ -230,7 +230,8 @@ export function middleware<
     ? TInferMiddlewares extends readonly Middleware[]
       ? TInferMiddlewares
       : never
-    : never
+    : never,
+  TRequest extends Request<any, any> | undefined = undefined,
 >(options: {
   /**
    * This function is executed during the request lifecycle. It can return a {@link Request} or a {@link Response}.
@@ -435,7 +436,7 @@ export function nestedMiddleware<TRouter extends DefaultRouterType>() {
       ? TInferMiddlewares extends readonly Middleware[]
         ? TInferMiddlewares
         : never
-      : never
+      : never,
   >(options: {
     /**
      * This function is executed during the request lifecycle. It can return a {@link Request} or a {@link Response}.
@@ -503,6 +504,166 @@ export function nestedMiddleware<TRouter extends DefaultRouterType>() {
             }
           >
     ) => TReturnOfRequestFunction | Promise<TReturnOfRequestFunction>;
+    /**
+     * This function is executed during the response lifecycle. It needs to return a {@link Response} instance. Usually you will use this to either change the sent response entirely or
+     * to add some headers/data to the response or filter out some properties.
+     *
+     * @example
+     * ```ts
+     * import { middleware, Response, HTTP_401_UNAUTHORIZED } from '@palmares/server';
+     *
+     * export const helmetMiddleware = middleware({
+     *    response: (response) => {
+     *      // Filter out properties
+     *      const responseWithHeaders = response.clone({
+     *         headers: newHeaders
+     *      });
+     *      return responseWithHeaders;
+     *    },
+     * });
+     * ```
+     *
+     * @param response - An instance of {@link Response} with the data.
+     *
+     * @returns - A {@link Response} instance with the modified data.
+     */
+    response?: (
+      response: (
+        | Exclude<TReturnOfRequestFunction, Request<any, any>>
+        | ExtractResponsesFromMiddlewaresRequestAndRouterHandlers<[TRouter]>
+      ) & {
+        responses: TRouterMiddlewares extends readonly Middleware[]
+          ? ExtractRequestsFromMiddlewaresForServer<
+              TRouter['path'],
+              TRouterMiddlewares,
+              RequestMethodTypes,
+              TOptions['responses']
+            >['responses']
+          : TOptions['responses'];
+      }
+    ) => Promise<TReturnOfResponseFunction> | TReturnOfResponseFunction;
+
+    /**
+     * Options are custom options that you can pass to the middleware. Usually, those options will exist on the {@link Request} or {@link Response} instances.
+     *
+     * @example
+     * ```ts
+     * import { middleware, Response, path } from '@palmares/server';
+     *
+     * export const helmetMiddleware = middleware({
+     *    options: {
+     *      responses: {
+     *       '200': (message: string) => Response.json({ message }, { status: 200 }),
+     *      }
+     *   },
+     * });
+     *
+     * path('/test').middlewares([helmetMiddleware]).get((request) => {
+     *   // return Response.json({ aDifferentBody: 20 }) // this will fail
+     *   return request.responses['200']('hello');
+     * });
+     * ```
+     *
+     * @param options - The options passed to the middleware.
+     * @param options.responses - The responses that the middleware can return, this will enforce that the response returned from the handler
+     * is one of the responses defined here.
+     */
+    options?: TOptions;
+  }) => {
+    return new (class extends Middleware {
+      request = options.request as any;
+      response = options.response as any;
+      options = options.options as any;
+    })() as Omit<Middleware, 'options'> & {
+      options: TOptions extends undefined ? undefined : TOptions;
+      request: (
+        request: TRouterMiddlewares extends readonly Middleware[]
+          ? ExtractRequestsFromMiddlewaresForServer<
+              TRouter['path'],
+              TRouterMiddlewares,
+              RequestMethodTypes,
+              TOptions['responses']
+            >
+          : Request<
+              TRouter['path'],
+              {
+                method: RequestMethodTypes;
+                headers: unknown;
+                body: unknown;
+                context: unknown;
+                mode: RequestMode;
+                cache: RequestCache;
+                credentials: RequestCredentials;
+                integrity: string;
+                destination: RequestDestination;
+                referrer: string;
+                responses: TOptions['responses'];
+                referrerPolicy: ReferrerPolicy;
+                redirect: RequestRedirect;
+              }
+            >
+      ) => TReturnOfRequestFunction | Promise<TReturnOfRequestFunction>;
+      response: (
+        response: ExtractResponsesFromMiddlewaresRequestAndRouterHandlers<[TRouter]>
+      ) => Promise<TReturnOfResponseFunction> | TReturnOfResponseFunction;
+    };
+  };
+}
+
+export function requestMiddleware<
+  TRequest extends Request<any, any>,
+  TRouter extends DefaultRouterType = DefaultRouterType,
+>() {
+  return <
+    TOptions extends MiddlewareOptions,
+    TReturnOfResponseFunction extends Response<any, any> = never,
+    TReturnOfRequestFunction extends Request<any, any> | Response<any, any> = never,
+    TRouterMiddlewares = TRouter extends BaseRouter<any, any, infer TInferMiddlewares, any>
+      ? TInferMiddlewares extends readonly Middleware[]
+        ? TInferMiddlewares
+        : never
+      : never,
+  >(options: {
+    /**
+     * This function is executed during the request lifecycle. It can return a {@link Request} or a {@link Response}.
+     *
+     * If it returns a {@link Request}, the request will be passed to the next middleware or handler. If it's a {@link Response}, the response
+     * will be sent to the passed middlewares until it's sent to the client.
+     *
+     * ### IMPORTANT
+     *
+     * Using `middleware` function it's nice if you explicitly define how the {@link Request} will enter the function. This way we can correctly type the Request on the client. We will know
+     * how the data needs to be sent to the server.
+     *
+     * ### IMPORTANT2
+     *
+     * If you don't explicitly type the Request, at least explicitly type the returned {@link Request}. This way we can correctly type the request on the handler.
+     *
+     * @example
+     * ```ts
+     * import { middleware, Response, HTTP_401_UNAUTHORIZED } from '@palmares/server';
+     *
+     * export const authenticateMiddleware = middleware({
+     *    request: (request: Request<string, { headers: { 'x-string'}}) => {
+     *      const bearerAuth = request.headers['Authorization'];
+     *      // make validation
+     *      if (isValid) {
+     *        const user = await getUserFromToken(bearerAuth);
+     *       const requestWithUser = request.clone({
+     *         context: { user },
+     *       });
+     *      return requestWithUser;
+     *    }
+     *    return Response.json({ message: 'Unauthorized' }, { status: HTTP_401_UNAUTHORIZED });
+     *  },
+     * });
+     * ```
+     *
+     * @param request - An instance of {@link Request} with the data.
+     *
+     * @returns - A {@link Request} instance with the modified data or a {@link Response} instance if you want to break the middleware chain.
+     */
+    request?: (request: TRequest) => TReturnOfRequestFunction | Promise<TReturnOfRequestFunction>;
     /**
      * This function is executed during the response lifecycle. It needs to return a {@link Response} instance. Usually you will use this to either change the sent response entirely or
      * to add some headers/data to the response or filter out some properties.

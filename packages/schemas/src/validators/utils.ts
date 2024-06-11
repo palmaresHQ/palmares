@@ -171,7 +171,7 @@ export default class Validator {
    * @param options - The options that we are passing to the fallback. Options like `at` and `removeCurrent` are passed to the `addFallback` method.
    */
   static createAndAppendFallback(
-    schema: Schema,
+    schema: Schema<any, any>,
     fallback: ValidationFallbackReturnType,
     options?: {
       at?: number;
