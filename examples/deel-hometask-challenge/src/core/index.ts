@@ -6,10 +6,6 @@ import { path, serverDomainModifier, Response } from '@palmares/server';
 
 
 export default domain('core', __dirname, {
-  modifiers: [serverDomainModifier],
-  getRoutes: () => path('/error').get(async (req) => {
-    return Response.html('<h1>Internal server error</h1>');
-  }),
   commands: {
     seedDb: {
       description: 'Seed the database with some data. Used for testing.',
