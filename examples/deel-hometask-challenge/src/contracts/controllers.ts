@@ -12,6 +12,5 @@ export const contractByIdController = pathNested<typeof contractByIdRoute>()().g
 
 export const contractsController = pathNested<typeof baseContractRoute>()().get(async (request) => {
   const contracts = await getContractsByProfileId(request.context.profile.id);
-
   return Response.json(contracts);
 });

@@ -16,6 +16,7 @@ export type ServerSettingsType<TCustomServerSettings = unknown> = {
   middlewares?: Middleware[];
   /** Defaults to 4000 */
   port?: number;
+  debug?: boolean;
   /** This is the settings for when initializing the server, for example custom options for express initialization or custom options for fastify initialization */
   customServerSettings?: TCustomServerSettings;
   prefix?: string;

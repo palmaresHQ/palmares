@@ -5,7 +5,7 @@ import type { ValidationFallbackCallbackReturnType, ValidationFallbackReturnType
 export function objectValidation(keysToFallback: { [key: string]: Schema }): ValidationFallbackReturnType {
   return {
     type: 'low',
-    callback: async (value: any, path: (string | number)[], options: Parameters<Schema['_transformToAdapter']>[0]) => {
+    callback: async (value: any, path: (string | number)[], options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isNotAnObject = typeof value !== 'object' && Array.isArray(value) === false && value !== null;
 
       if (isNotAnObject)

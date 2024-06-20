@@ -59,7 +59,6 @@ export default class Migrate {
   async getLastMigration(engineName: string) {
     try {
       const lastMigrationName = await PalmaresMigrations.migrations.getLastMigrationName(engineName);
-      console.log(lastMigrationName);
       const isAValidMigrationName = typeof lastMigrationName === 'string' && lastMigrationName !== '';
       if (isAValidMigrationName) return lastMigrationName;
     } catch {
@@ -108,6 +107,7 @@ export default class Migrate {
         await engineInstance.migrations.batchAll(engineInstance, formattedModelsByName, returnOfInit);
       }
 
+      let connectionsToClose = [] as (() => Promise<void>)[];
       // Run the migrations one by one. Default Approach. We always run this because we need to save that the migration file was evaluated to the database.
       for (const migrationFile of filteredMigrationsOfDatabase) {
         const migrationName = migrationFile.migration.name;
@@ -116,11 +116,13 @@ export default class Migrate {
           databaseLogger.logMessage('MIGRATIONS_RUNNING_FILE_NAME', {
             title: migrationName,
           });
-          await Migration.buildFromFile(engineInstance, migrationFile, allMigrationsOfDatabase);
+          connectionsToClose = connectionsToClose.concat(await Migration.buildFromFile(engineInstance, migrationFile, allMigrationsOfDatabase));
         }
 
         await this.saveMigration(migrationName, engineInstance.connectionName);
       }
+
+      await Promise.allSettled(connectionsToClose.map((closeConnection) => closeConnection()));
     } else {
       databaseLogger.logMessage('MIGRATIONS_NO_NEW_MIGRATIONS', {
         databaseName: engineInstance.connectionName,

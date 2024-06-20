@@ -26,7 +26,7 @@ export const bestClientsController = pathNested<typeof bestClientsRouter>()().ge
   const formattedBestClients = bestClients.map((client): { id: number; fullName: string; paid: number } => ({
     id: client.id,
     fullName: `${client.firstName} ${client.lastName}`,
-    paid: client.paid,
+    paid: client.totalPaid,
   }));
   return Response.json(
     {

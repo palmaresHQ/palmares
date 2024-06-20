@@ -8,7 +8,7 @@ import DatabaseAdapter from '../engine';
  *
  * @param engine - The engine that we want to duplicate.
  *
- * @returns - The default duplicate function that should be called inside {@link DatabaseAdapter.duplicate}.
+ * @returns - The default duplicate function that should be called inside {@link DatabaseAdapter}.
  */
 export function defaultEngineDuplicate(engine: DatabaseAdapter, wasCalled = { value: false }) {
   return async () => {

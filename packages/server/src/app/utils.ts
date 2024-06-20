@@ -12,7 +12,7 @@ import { ServerDomain } from '../domain/types';
 import { Middleware } from '../middleware';
 import Request from '../request';
 import Response from '../response';
-import { HTTP_404_NOT_FOUND, isRedirect } from '../response/status';
+import { HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR, isRedirect } from '../response/status';
 import { path } from '../router';
 import { BaseRouter } from '../router/routers';
 import { HandlerType, MethodTypes, RouterOptionsType } from '../router/types';
@@ -22,10 +22,9 @@ import {
   RedirectionStatusCodesMustHaveALocationHeaderError,
   ResponseNotReturnedFromResponseOnMiddlewareError,
 } from './exceptions';
-
-import type ServerRouterAdapter from '../adapters/routers';
-import { AsyncGeneratorFunction, FileLike, GeneratorFunction } from '../response/utils';
 import { serverLogger } from '../logging';
+import { AsyncGeneratorFunction, FileLike, GeneratorFunction } from '../response/utils';
+import type ServerRouterAdapter from '../adapters/routers';
 
 /**
  * By default we don't know how to handle the routes by itself. Pretty much MethodsRouter does everything that we need here during runtime.
@@ -51,6 +50,7 @@ export async function getRootRouterCompletePaths(
   const allRoutesWithOrWithoutErrorHandler = isDebugModeEnabled
     ? allRoutes.concat([errorCaptureHandler() as any])
     : allRoutes;
+
   const rootRouter = path(settings?.prefix ? settings.prefix : '').nested(allRoutesWithOrWithoutErrorHandler);
   const rootRouterCompletePaths = (rootRouter as any).__completePaths as BaseRouter['__completePaths'];
   if (extractedRouterInterceptors.length > 0)
@@ -312,6 +312,7 @@ function wrapHandlerAndMiddlewares(
   validation?: AllServerSettingsType['servers'][string]['validation']
 ) {
   const wrappedHandler = async (serverRequestAndResponseData: any) => {
+    const startTime = new Date().getTime();
     let request = appendTranslatorToRequest(
       new Request(),
       server,
@@ -322,7 +323,6 @@ function wrapHandlerAndMiddlewares(
       validation,
       options
     );
-    //serverLogger.logMessage('REQUEST_RECEIVED', { method: request.method, url: request.url });
 
     let response: Response | undefined = undefined;
     let wasErrorAlreadyHandledInRequestLifecycle = false;
@@ -371,7 +371,9 @@ function wrapHandlerAndMiddlewares(
       const errorAsError = error as Error;
       let errorResponse: Response = isResponseError
         ? (error as Response<any, any>)
-        : DEFAULT_SERVER_ERROR_RESPONSE(errorAsError, server.settings, server.domains);
+        : server.settings.servers[server.serverName].debug === true ?
+          DEFAULT_SERVER_ERROR_RESPONSE(errorAsError, server.settings, server.domains) :
+          new Response(undefined, { status: HTTP_500_INTERNAL_SERVER_ERROR });
       wasErrorAlreadyHandledInRequestLifecycle = true;
 
       errorResponse = appendTranslatorToResponse(
@@ -412,7 +414,7 @@ function wrapHandlerAndMiddlewares(
             );
           else throw new ResponseNotReturnedFromResponseOnMiddlewareError();
         }
-
+        serverLogger.logMessage('REQUEST_RECEIVED', { method: request.method, url: request.url, timePassed: new Date().getTime() - startTime});
         return translateResponseToServerResponse(response, method, server, serverRequestAndResponseData);
       }
     } catch (error) {
@@ -420,7 +422,9 @@ function wrapHandlerAndMiddlewares(
         const isResponseError = error instanceof Response;
         let errorResponse: Response = isResponseError
           ? (error as Response<any, any>)
-          : DEFAULT_SERVER_ERROR_RESPONSE(error as Error, server.settings, server.domains);
+          : server.settings.servers[server.serverName].debug === true ?
+          DEFAULT_SERVER_ERROR_RESPONSE(error as Error, server.settings, server.domains) :
+          new Response(undefined, { status: HTTP_500_INTERNAL_SERVER_ERROR });
 
         errorResponse = appendTranslatorToResponse(
           errorResponse,
@@ -442,6 +446,7 @@ function wrapHandlerAndMiddlewares(
           options
         );
       }
+      serverLogger.logMessage('REQUEST_RECEIVED', { method: request.method, url: request.url, timePassed: new Date().getTime() - startTime});
       if (response) return translateResponseToServerResponse(response, method, server, serverRequestAndResponseData);
       else throw error;
     }
@@ -459,7 +464,7 @@ export async function* getAllRouters(
 ) {
   const translatePath = translatePathFactory(serverAdapter);
   const existsRootMiddlewares = Array.isArray(settings.middlewares) && settings.middlewares.length > 0;
-  const rootRouterCompletePaths = await getRootRouterCompletePaths(domains, settings);
+  const rootRouterCompletePaths = await getRootRouterCompletePaths(domains, settings, settings.debug === true);
 
   for (const [path, router] of rootRouterCompletePaths) {
     const handlerByMethod = Object.entries(router.handlers || {});

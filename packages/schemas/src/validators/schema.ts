@@ -105,7 +105,7 @@ export function is(
 ): ValidationFallbackReturnType {
   return {
     type: 'medium',
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isValid = Array.isArray(args.value) ? args.value.includes(value as never) : value === args.value;
       return {
         parsed: value,

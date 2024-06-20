@@ -25,7 +25,7 @@ export default class ZodNumberFieldSchemaAdapter extends NumberAdapter<z.ZodNumb
     return args.withFallback(['max'], result);
   }
 
-  async parse(_adapter: SchemaAdapter, result: z.ZodNumber, value: any) {
+  async parse(_adapter: SchemaAdapter, _fieldAdapter: FieldAdapter<any>, result: z.ZodNumber, value: any) {
     try {
       const parsed = result.safeParse(value);
       return { errors: undefined, parsed };

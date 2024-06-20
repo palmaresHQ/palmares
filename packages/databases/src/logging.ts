@@ -54,7 +54,7 @@ export const databaseLogger = new Logger(
     },
     MIGRATIONS_RUNNING_FILE_NAME: {
       category: 'info',
-      handler: ({ title }: { title: string }) => `Running migration: \x1b[36m${title}`,
+      handler: ({ title }: { title: string }) => `Running migration: \x1b[36m${title}\x1b[0m`,
     },
     MIGRATION_RUNNING_IN_BATCH: {
       category: 'info',

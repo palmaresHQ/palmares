@@ -204,19 +204,27 @@ export default class CharField<
    * class CustomCharField extends CharField {
    *   aCustomValue: string;
    *
-   *   async compare(field:Field) {
-   *      return (await super.compare(field)) && fieldAsText.aCustomValue === this.aCustomValue;
+   *   compare(field:Field) {
+   *      const fieldAsText = field as TextField;
+   *      const isCustomValueEqual = fieldAsText.aCustomValue === this.aCustomValue;
+   *      const [isEqual, changedAttributes] = super.compare(field);
+   *      if (!isCustomValueEqual) changedAttributes.push('aCustomValue');
+   *      return [isCustomValueEqual && isEqual, changedAttributes]
    *   }
    * }
    * ```
    *
    * @param field - The field to compare.
    *
-   * @returns A promise that resolves to a boolean indicating if the field is equal to the other field.
+   * @returns A promise that resolves to a tuple containing a boolean and the changed attributes.
    */
-  async compare(field: Field): Promise<boolean> {
+  compare(field: Field): [boolean, string[]] {
     const fieldAsText = field as CharField;
-    return (await super.compare(field)) && fieldAsText.maxLength === this.maxLength;
+    const isMaxLengthEqual = fieldAsText.maxLength === this.maxLength;
+    const [isEqual, changedAttributes] = super.compare(field);
+
+    if (!isMaxLengthEqual) changedAttributes.push('maxLength');
+    return [isMaxLengthEqual && isEqual, changedAttributes];
   }
 
   /**

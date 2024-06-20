@@ -45,6 +45,7 @@ export default defineSettings({
         servers: {
           default: {
             server: ExpressServerAdapter,
+            debug: true,
             port: 3001,
             validation: {
               handler: () => {

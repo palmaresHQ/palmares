@@ -40,6 +40,7 @@ export type ChangeFieldToGenerateData = {
   fieldName: string;
   fieldDefinitionBefore: Field;
   fieldDefinitionAfter: Field;
+  changedAttributes: string[];
 };
 
 export type RenameFieldToGenerateData = {

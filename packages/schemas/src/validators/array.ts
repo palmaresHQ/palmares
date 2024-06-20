@@ -5,7 +5,7 @@ import { ValidationFallbackCallbackReturnType, ValidationFallbackReturnType } fr
 export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): ValidationFallbackReturnType {
   return {
     type: 'medium',
-    callback: async (value: any, path: (string | number)[], options: Parameters<Schema['_transformToAdapter']>[0]) => {
+    callback: async (value: any, path: (string | number)[], options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isNotAnArray = Array.isArray(value) === false;
       if (isNotAnArray)
         return {
@@ -84,7 +84,7 @@ export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): 
 export function minLength(args: ArraySchema['__minLength']): ValidationFallbackReturnType {
   return {
     type: 'low',
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isValid = args.inclusive ? value.length >= args.value : value.length > args.value;
 
       return {
@@ -107,7 +107,7 @@ export function minLength(args: ArraySchema['__minLength']): ValidationFallbackR
 export function maxLength(args: ArraySchema['__maxLength']): ValidationFallbackReturnType {
   return {
     type: 'low',
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isValid = args.inclusive ? value.length <= args.value : value.length < args.value;
 
       return {
@@ -130,7 +130,7 @@ export function maxLength(args: ArraySchema['__maxLength']): ValidationFallbackR
 export function nonEmpty(args: ArraySchema['__nonEmpty']): ValidationFallbackReturnType {
   return {
     type: 'low',
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isValid = value.length > 0;
 
       return {

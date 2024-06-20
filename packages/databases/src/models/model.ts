@@ -65,7 +65,7 @@ export class BaseModel {
 
     const newInstance = this as unknown as Model & BaseModel;
     if (newInstance.options?.abstract) newInstance.options.managed = false;
-    baseModelConstructor.__instance = newInstance;
+    (this.constructor as any).__instance = newInstance;
     return newInstance;
   }
 
@@ -159,7 +159,6 @@ export class BaseModel {
     this.domainPath = domainPath;
 
     let translatedModelInstance = null;
-    const modelName = this.getName();
     const functionToCallToTranslateModel = factoryFunctionForModelTranslate(
       engineInstance,
       currentPalmaresModelInstance,
@@ -305,9 +304,10 @@ export class BaseModel {
       this.indirectlyRelatedTo = this.indirectlyRelatedModels[originalModelName];
   }
 
-  static _options() {
+  static _options(modelInstance?: any) {
     // this and typeof Model means pretty much the same thing here.
-    const modelInstance = new this() as Model & BaseModel;
+    if (!modelInstance) modelInstance = new this() as Model & BaseModel;
+
     this.__initializeAbstracts();
 
     if (this.__cachedOptions === undefined) {
@@ -321,28 +321,32 @@ export class BaseModel {
     return this.__cachedOptions;
   }
 
-  static _fields() {
+  static _fields(modelInstance?: any) {
     // 'this' and typeof Model means pretty much the same thing here.
-    const modelInstance = new this() as Model & BaseModel;
+    if (!modelInstance) modelInstance = new this() as Model & BaseModel;
+    const modelInstanceAsModel = modelInstance as Model & BaseModel;
     this.__initializeAbstracts();
 
     if (this.__cachedFields === undefined) {
       let modelHasNoUniqueFields = true;
-      let fieldsDefinedOnModel = modelInstance.fields;
+      let fieldsDefinedOnModel = modelInstanceAsModel.fields;
       if (this.__lazyFields) fieldsDefinedOnModel = { ...fieldsDefinedOnModel, ...this.__lazyFields };
       const allFields = Object.entries(fieldsDefinedOnModel);
 
       for (const [fieldName, field] of allFields) {
-        if (field.unique) modelHasNoUniqueFields = false;
-        field.init(fieldName, this as ModelType);
+        if ((field as Field<any, any, any, any, any, any, any, any>).unique) modelHasNoUniqueFields = false;
+        (field as Field<any, any, any, any, any, any, any, any>).init(fieldName, this as ModelType);
       }
 
-      if (modelHasNoUniqueFields) throw new ModelNoUniqueFieldsError(this.constructor.name);
+      if (modelHasNoUniqueFields) {
+        throw new ModelNoUniqueFieldsError(this.constructor.name);
+      }
 
+      modelInstance.fields = fieldsDefinedOnModel;
       this.__cachedFields = fieldsDefinedOnModel;
     }
-    this.__initializeRelatedToModels();
 
+    this.__initializeRelatedToModels();
     return this.__cachedFields;
   }
 
@@ -366,7 +370,6 @@ export class BaseModel {
 
     if (this.isState) this.__cachedName = `State${this.name}`;
     else this.__cachedName = this.name;
-
     return this.__cachedName;
   }
 

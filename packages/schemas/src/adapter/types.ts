@@ -1,16 +1,21 @@
-import { withFallbackFactory } from '../utils';
+import WithFallback, { withFallbackFactory } from '../utils';
 import Schema from '../schema/schema';
+import { SupportedSchemas } from '../types';
 
-export type NonToTranslateArgs = {
-  withFallback: ReturnType<typeof withFallbackFactory>;
+export type NonToTranslateArgs<TType extends SupportedSchemas> = {
+  withFallback: ReturnType<typeof withFallbackFactory<TType>>;
 };
 
 export type AdapterToStringArgs = {
+  parsers: {
+    optional: Schema['__optional']['allow'];
+    nullable: Schema['__nullable']['allow'];
+  };
   optional: Schema['__optional'];
   nullable: Schema['__nullable'];
 };
 
-export type AdapterTranslateArgs = AdapterToStringArgs & NonToTranslateArgs;
+export type AdapterTranslateArgs<TType extends SupportedSchemas = SupportedSchemas> = AdapterToStringArgs & NonToTranslateArgs<TType>;
 
 export type DatetimeAdapterTranslateArgs = {
   allowString: boolean | undefined;
@@ -24,16 +29,21 @@ export type DatetimeAdapterTranslateArgs = {
     inclusive: boolean;
     message: string;
   };
-} & AdapterTranslateArgs;
+} & AdapterTranslateArgs<'datetime'>;
 
 export type BooleanAdapterTranslateArgs = {
-  allowString: boolean | undefined;
-  allowNumber: boolean | undefined;
+  parsers: {
+    allowString: boolean | undefined;
+    allowNumber: boolean | undefined;
+    trueValues: any[];
+    falseValues: any[];
+    is: boolean;
+  } & AdapterTranslateArgs<'boolean'>['parsers'];
   is: {
     value: boolean;
     message: string;
   };
-} & AdapterTranslateArgs;
+} & AdapterTranslateArgs<'boolean'>;
 
 export type ArrayAdapterTranslateArgs = {
   minLength:
@@ -57,7 +67,7 @@ export type ArrayAdapterTranslateArgs = {
     | undefined;
 
   isTuple: boolean;
-} & AdapterTranslateArgs;
+} & AdapterTranslateArgs<'array'>;
 
 export type NumberAdapterTranslateArgs = {
   is:
@@ -97,13 +107,13 @@ export type NumberAdapterTranslateArgs = {
         message: string;
       }
     | undefined;
-} & AdapterTranslateArgs;
+} & AdapterTranslateArgs<'number'>;
 
-export type StringAdapterToStringArgs = Omit<StringAdapterTranslateArgs, keyof NonToTranslateArgs>;
+export type StringAdapterToStringArgs = Omit<StringAdapterTranslateArgs, keyof NonToTranslateArgs<'string'>>;
 
 export type StringAdapterTranslateArgsWithoutNonTranslateArgs = Omit<
   StringAdapterTranslateArgs,
-  keyof NonToTranslateArgs
+  keyof NonToTranslateArgs<'string'>
 >;
 
 export type StringAdapterTranslateArgs = {
@@ -145,18 +155,18 @@ export type StringAdapterTranslateArgs = {
         message: string;
       }
     | undefined;
-} & AdapterTranslateArgs;
+} & AdapterTranslateArgs<'string'>;
 
-export type NumberAdapterToStringArgs = Omit<NumberAdapterTranslateArgs, keyof NonToTranslateArgs>;
+export type NumberAdapterToStringArgs = Omit<NumberAdapterTranslateArgs, keyof NonToTranslateArgs<'number'>>;
 
 export type NumberAdapterTranslateArgsWithoutNonTranslateArgs = Omit<
   NumberAdapterTranslateArgs,
-  keyof NonToTranslateArgs
+  keyof NonToTranslateArgs<'number'>
 >;
 
 export type ObjectAdapterTranslateArgs = {
   data: Record<string, any>;
-} & AdapterTranslateArgs;
+} & AdapterTranslateArgs<'object'>;
 
 export type ObjectAdapterToStringArgs = {
   data: Record<string, string>;
@@ -164,7 +174,7 @@ export type ObjectAdapterToStringArgs = {
 
 export type UnionAdapterTranslateArgs<TSchemasType = any> = {
   schemas: TSchemasType;
-} & AdapterTranslateArgs;
+} & AdapterTranslateArgs<'union'>;
 
 export type UnionAdapterToStringArgs = {
   schemas: [string, string, ...string[]];
@@ -172,27 +182,27 @@ export type UnionAdapterToStringArgs = {
 
 export type UnionAdapterTranslateArgsWithoutNonTranslateArgs = Omit<
   UnionAdapterTranslateArgs,
-  keyof NonToTranslateArgs
+  keyof NonToTranslateArgs<'union'>
 >;
 
 export type ObjectAdapterTranslateArgsWithoutNonTranslateArgs = Omit<
   ObjectAdapterTranslateArgs,
-  keyof NonToTranslateArgs
+  keyof NonToTranslateArgs<'object'>
 >;
 
 export type ArrayAdapterTranslateArgsWithoutNonTranslateArgs = Omit<
   ArrayAdapterTranslateArgs,
-  keyof NonToTranslateArgs
+  keyof NonToTranslateArgs<'array'>
 >;
 
 export type BooleanAdapterTranslateArgsWithoutNonTranslateArgs = Omit<
   BooleanAdapterTranslateArgs,
-  keyof NonToTranslateArgs
+  keyof NonToTranslateArgs<'boolean'>
 >;
 
 export type DatetimeAdapterTranslateArgsWithoutNonTranslateArgs = Omit<
   DatetimeAdapterTranslateArgs,
-  keyof NonToTranslateArgs
+  keyof NonToTranslateArgs<'datetime'>
 >;
 export type ValidationDataBasedOnType<TType> = TType extends 'number'
   ? NumberAdapterTranslateArgsWithoutNonTranslateArgs

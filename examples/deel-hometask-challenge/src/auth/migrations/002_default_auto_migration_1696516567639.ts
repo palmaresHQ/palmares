@@ -13,11 +13,6 @@ export default {
       'Profile',
       {
         id: models.fields.AutoField.new({
-          primaryKey: true,
-          defaultValue: undefined,
-          allowNull: false,
-          unique: true,
-          dbIndex: true,
           databaseName: 'id',
           underscored: false,
           customAttributes: {},

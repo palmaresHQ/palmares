@@ -123,4 +123,4 @@ export type ExtractTypeFromArrayOfSchemas<
     : never
   : never;
 
-export type ExtractUnionTypesFromSchemas<TSchemas extends readonly Schema<any, any>[]> = TSchemas[number]['__types'];
+export type ExtractUnionTypesFromSchemas<TSchemas extends readonly Schema<any, any>[]> = TSchemas[number] extends Schema<infer TType, any> ? TType : never;

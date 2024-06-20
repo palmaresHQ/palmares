@@ -1,6 +1,6 @@
 import type { DomainReadyFunctionArgs, ExtractModifierArguments } from './types';
 import Domain from './domain';
-import type { DefaultCommandType } from '../commands/types';
+import type { DefaultCommandType,} from '../commands/types';
 
 /**
  * Functional approach to how one can create a domain. It's similar to the class approach, but can be more flexible then the class counter-part.
@@ -30,6 +30,7 @@ export default function domain<
   })[] = (abstract new (...args: any) => {
     modifiers: any;
   })[],
+
   const TCommands extends DefaultCommandType = DefaultCommandType,
   TLoadFunction extends (
     settings: any

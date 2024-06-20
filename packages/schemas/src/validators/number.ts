@@ -5,7 +5,7 @@ import { ValidationFallbackReturnType } from '../schema/types';
 export function numberValidation(): ValidationFallbackReturnType {
   return {
     type: 'medium',
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       return {
         parsed: value,
         errors: [
@@ -24,7 +24,7 @@ export function numberValidation(): ValidationFallbackReturnType {
 export function max(args: NumberSchema['__max']): ValidationFallbackReturnType {
   return {
     type: 'low',
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       if (args.inclusive)
         return {
           parsed: value,

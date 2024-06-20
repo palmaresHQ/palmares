@@ -5,7 +5,7 @@ import { ValidationFallbackReturnType } from '../schema/types';
 export function booleanValidation(): ValidationFallbackReturnType {
   return {
     type: 'medium',
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isValid = typeof value === 'boolean';
 
       return {
@@ -32,7 +32,7 @@ export function allowStringParser(): ValidationFallbackReturnType {
     callback: async (
       value: any,
       _path: (string | number)[],
-      _options: Parameters<Schema['_transformToAdapter']>[0]
+      _options: Parameters<Schema['__transformToAdapter']>[0]
     ) => {
       const parsed = Boolean(value);
       return {

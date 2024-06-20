@@ -50,7 +50,7 @@ export default class ArraySchema<
     this.__schemas = schemas;
   }
 
-  async _transformToAdapter(options: Parameters<Schema['_transformToAdapter']>[0]): Promise<any> {
+  protected async __transformToAdapter(options: Parameters<Schema['__transformToAdapter']>[0]): Promise<any> {
     return defaultTransformToAdapter(
       async (adapter) => {
         const schemas = Array.isArray(this.__schemas[0]) ? this.__schemas[0] : this.__schemas;
@@ -93,6 +93,10 @@ export default class ArraySchema<
             maxLength: this.__maxLength,
             minLength: this.__minLength,
             nonEmpty: this.__nonEmpty,
+            parsers: {
+              nullable: this.__nullable.allow,
+              optional: this.__optional.allow,
+            }
           }),
           {
             optional,

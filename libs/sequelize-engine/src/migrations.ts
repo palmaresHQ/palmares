@@ -241,7 +241,6 @@ export default adapterMigrations({
     queryInterface: QueryInterface
   ): Promise<void> => {
     const model = toModel.initialized;
-
     await queryInterface.createTable(
       model.options.tableName as string,
       model.getAttributes(),
@@ -249,9 +248,10 @@ export default adapterMigrations({
         transaction: migration.transaction,
       })
     );
-    await handleCircularDependencies(engine, migration.transaction, { toModel }, queryInterface);
-    await handleIndexes(migration.transaction, { toModel }, queryInterface);
+    await handleCircularDependencies(engine, migration, { toModel }, queryInterface);
+    await handleIndexes(migration, { toModel }, queryInterface);
   },
+
   /**
    * Removes a model/table from from the database in a running migration.
    *

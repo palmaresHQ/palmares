@@ -87,6 +87,19 @@ export default class BigAutoField<
     });
   }
 
+  async toString(indentation = 0, customParams: string | undefined = undefined): Promise<string> {
+    const ident = '  '.repeat(indentation);
+    const fieldParamsIdent = '  '.repeat(indentation + 1);
+    return (
+      `${ident}models.fields.${this.constructor.name}.new({` +
+      `${customParams ? `\n${customParams}` : ''}\n` +
+      `${fieldParamsIdent}databaseName: "${this.databaseName}",\n` +
+      `${fieldParamsIdent}underscored: ${this.underscored},\n` +
+      `${fieldParamsIdent}customAttributes: ${JSON.stringify(this.customAttributes)}\n` +
+      `${ident}})`
+    );
+  }
+
   /**
    * This method can be used to override the type of a field. This is useful for library maintainers that want to support the field type but the default type provided by palmares
    * is not the one that the database engine supports.

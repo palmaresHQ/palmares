@@ -161,8 +161,12 @@ export default class UuidField<
    * class CustomUuidField extends UuidField {
    *   aCustomValue: string;
    *
-   *   async compare(field:Field) {
-   *      return (await super.compare(field)) && fieldAsText.aCustomValue === this.aCustomValue;
+   *   compare(field:Field) {
+   *      const fieldAsText = field as TextField;
+   *      const isCustomValueEqual = fieldAsText.aCustomValue === this.aCustomValue;
+   *      const [isEqual, changedAttributes] = super.compare(field);
+   *      if (!isCustomValueEqual) changedAttributes.push('aCustomValue');
+   *      return [isCustomValueEqual && isEqual, changedAttributes]
    *   }
    * }
    * ```
@@ -171,8 +175,12 @@ export default class UuidField<
    *
    * @returns A promise that resolves to a boolean indicating if the field is equal to the other field.
    */
-  async compare(field: UuidField): Promise<boolean> {
-    return (await super.compare(field)) && field.autoGenerate === this.autoGenerate;
+  compare(field: Field): [boolean, string[]] {
+    const fieldAsUuid = field as UuidField;
+    const isAutoGenerateEqual = fieldAsUuid.autoGenerate === this.autoGenerate;
+    const [isEqual, changedAttributes] = super.compare(field);
+    if (!isAutoGenerateEqual) changedAttributes.push('autoGenerate');
+    return [isAutoGenerateEqual && isEqual, changedAttributes];
   }
 
   /**

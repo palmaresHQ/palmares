@@ -132,6 +132,19 @@ export default class AutoField<
     };
   }
 
+  async toString(indentation = 0, customParams: string | undefined = undefined): Promise<string> {
+    const ident = '  '.repeat(indentation);
+    const fieldParamsIdent = '  '.repeat(indentation + 1);
+    return (
+      `${ident}models.fields.${this.constructor.name}.new({` +
+      `${customParams ? `\n${customParams}` : ''}\n` +
+      `${fieldParamsIdent}databaseName: "${this.databaseName}",\n` +
+      `${fieldParamsIdent}underscored: ${this.underscored},\n` +
+      `${fieldParamsIdent}customAttributes: ${JSON.stringify(this.customAttributes)}\n` +
+      `${ident}})`
+    );
+  }
+
   static new<
     TFieldInstance extends This<typeof AutoField>,
     TDefaultValue extends TNull extends true

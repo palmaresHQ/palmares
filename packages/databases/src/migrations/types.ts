@@ -4,10 +4,7 @@ import { InitializedModelsType } from '../types';
 import { Operation } from './actions';
 
 export type StateModelsType = {
-  [modelName: string]: {
-    class: ReturnType<typeof model> & typeof BaseModel;
-    instance: InstanceType<ReturnType<typeof model>> & BaseModel;
-  };
+  [modelName: string]:  InstanceType<ReturnType<typeof model>> & BaseModel;
 };
 
 export type OriginalOrStateModelsByNameType = {

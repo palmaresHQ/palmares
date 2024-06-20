@@ -5,7 +5,7 @@ import { type ValidationFallbackReturnType } from '../schema/types';
 export function stringValidation(): ValidationFallbackReturnType {
   return {
     type: 'medium',
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       return {
         parsed: value,
         errors:
@@ -27,7 +27,7 @@ export function stringValidation(): ValidationFallbackReturnType {
 export function maxLength(args: StringSchema['__maxLength']): ValidationFallbackReturnType {
   return {
     type: 'low',
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isValid = args.inclusive ? value.length <= args.value : value.length < args.value;
 
       return {
@@ -50,7 +50,7 @@ export function maxLength(args: StringSchema['__maxLength']): ValidationFallback
 export function minLength(args: StringSchema['__maxLength']): ValidationFallbackReturnType {
   return {
     type: 'low',
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isValid = args.inclusive ? value.length >= args.value : value.length > args.value;
 
       return {
@@ -73,7 +73,7 @@ export function minLength(args: StringSchema['__maxLength']): ValidationFallback
 export function endsWith(args: StringSchema['__endsWith']): ValidationFallbackReturnType {
   return {
     type: 'low',
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isValid = value.endsWith(args.value);
 
       return {
@@ -96,7 +96,7 @@ export function endsWith(args: StringSchema['__endsWith']): ValidationFallbackRe
 export function startsWith(args: StringSchema['__startsWith']): ValidationFallbackReturnType {
   return {
     type: 'low',
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isValid = value.startsWith(args.value);
 
       return {
@@ -119,7 +119,7 @@ export function startsWith(args: StringSchema['__startsWith']): ValidationFallba
 export function includes(args: StringSchema['__includes']): ValidationFallbackReturnType {
   return {
     type: 'low',
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isValid = value.includes(args.value);
 
       return {
@@ -142,7 +142,7 @@ export function includes(args: StringSchema['__includes']): ValidationFallbackRe
 export function regex(args: StringSchema['__regex']): ValidationFallbackReturnType {
   return {
     type: 'low',
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isValid = args.value.test(value);
 
       return {

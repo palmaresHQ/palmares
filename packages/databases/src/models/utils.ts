@@ -124,6 +124,7 @@ function callTranslateAndAppendInputAndOutputParsersToField(
 export async function parse(
   engine: DatabaseAdapter,
   engineFields: AdapterFields,
+  model: Model,
   field: Field,
   callbackForLazyEvaluation: (translatedField: any, shouldReturnData?: boolean, field?: Field) => void
 ): Promise<any> {
@@ -143,16 +144,18 @@ export async function parse(
     if (typeof shouldReturnDataOnDefaultParse === 'boolean') shouldReturnData = shouldReturnDataOnDefaultParse;
     callbackForLazyEvaluation(translatedField, shouldReturnData, field);
   };
+
   const modelName = field.model.getName();
-  const modelInstance = new field.model() as InstanceType<ReturnType<typeof model>> & BaseModel;
+
   const args = {
     engine,
     field,
     fieldParser: engineFields.fieldsParser,
     modelName,
-    model: modelInstance,
+    model,
     lazyEvaluate: callbackForLazyEvaluationInsideDefaultParse,
   };
+
 
   switch (field.typeName) {
     case AutoField.name:
@@ -207,7 +210,7 @@ export async function parse(
             engineFields.foreignKeyFieldParser,
             args
           );
-        } else return parse(engine, engineFields, fieldToParse as Field, callbackForLazyEvaluation);
+        } else return parse(engine, engineFields, model, fieldToParse as Field, callbackForLazyEvaluation);
       } else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
     }
     case IntegerField.name:
@@ -273,9 +276,11 @@ export async function initializeModels(
   // When we set to evaluate the fields later we will update the initialized model.
   const initializeModelPromises = models.map(async (modelClass, index) => {
     const modelInstance = new modelClass() as InstanceType<ReturnType<typeof model>> & BaseModel;
-    const doesModelIncludesTheConnection = Array.isArray(modelInstance?.options?.databases)
-      ? modelInstance.options?.databases.includes(engine.connectionName)
-      : true;
+    const doesModelIncludesTheConnection =
+      Array.isArray(modelInstance?.options?.databases) &&
+      typeof engine.connectionName === 'string'
+        ? modelInstance.options?.databases.includes(engine.connectionName)
+        : true;
 
     const modelName = modelClass.getName();
     const domainName = modelClass.domainName;
@@ -298,6 +303,7 @@ export async function initializeModels(
       });
       auxiliaryIndexByModelName[modelName] = index;
     }
+
   });
   await Promise.all(initializeModelPromises);
 
@@ -318,6 +324,7 @@ export async function initializeModels(
     }
   });
   await Promise.all(evaluateLaterFieldsPromises);
+
 
   if (engine.models.afterModelsTranslation) {
     const returnedValueFromLastTranslation = await engine.models.afterModelsTranslation(
@@ -346,11 +353,13 @@ export function factoryFunctionForModelTranslate(
   callbackToParseAfterAllModelsAreTranslated: (field: Field, translatedField: any) => void
 ) {
   const modelConstructor = model.constructor as ModelType;
-  const fieldEntriesOfModel = Object.entries(modelConstructor._fields());
+  const modelOptions = modelConstructor._options(model) as ModelOptionsType;
+  const fieldEntriesOfModel = Object.entries(modelConstructor._fields(model));
+
 
   const defaultParseFieldCallback = (field: Field) => {
-    return parse(engine, engine.fields, field, (translatedField, _, field) => {
-      if (field) callbackToParseAfterAllModelsAreTranslated(field, translatedField);
+    return parse(engine, engine.fields, model, field, (translatedField, _, originalField) => {
+      if (originalField) callbackToParseAfterAllModelsAreTranslated(originalField, translatedField);
     });
   };
 
@@ -364,7 +373,6 @@ export function factoryFunctionForModelTranslate(
 
       const isTranslatedAttributeDefined =
         translatedAttributes !== undefined && translatedAttributes !== null && typeof translatedAttributes === 'object';
-
       if (isTranslatedAttributeDefined) translatedFieldDataByFieldName[fieldName] = translatedAttributes;
     }
 
@@ -373,7 +381,6 @@ export function factoryFunctionForModelTranslate(
 
   return async () => {
     const modelName = modelConstructor.getName();
-    const modelOptions = modelConstructor._options() as ModelOptionsType;
 
     const modelInstance = await engine.models.translate(
       engine,
@@ -385,7 +392,7 @@ export function factoryFunctionForModelTranslate(
         const options = await engine.models.translateOptions.bind(engine.models)(
           engine,
           modelName,
-          modelConstructor._options() as ModelOptionsType
+          modelOptions
         );
         const fields =
           typeof engine.models.translateFields === 'function'
@@ -400,13 +407,14 @@ export function factoryFunctionForModelTranslate(
             : await defaultTranslateFieldsCallback();
 
         return {
-          options,
-          fields,
+          options: options,
+          fields: fields,
         };
       },
       defaultParseFieldCallback,
       defaultTranslateFieldsCallback
     );
+
     engine.initializedModels[modelConstructor.getName()] = modelInstance;
 
     // This lets you apply custom hooks to your translated model directly.

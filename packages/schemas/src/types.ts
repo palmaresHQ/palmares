@@ -9,3 +9,5 @@ export type FallbackFunctionsType<TArguments> = {
     callback: NonNullable<Schema['__rootFallbacksValidator']['fallbacks'][number]>;
   };
 };
+
+export type SupportedSchemas = 'number' | 'object' | 'union' | 'string' | 'array' | 'boolean' | 'datetime';

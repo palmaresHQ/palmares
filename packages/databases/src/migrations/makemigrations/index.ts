@@ -221,7 +221,6 @@ export default class MakeMigrations {
     } else {
       const nonRenamedFieldsOrModels = [...modelsOrFieldsInOriginalButNotDefinedInState];
       // same as before, first we loop through state objects and then we loop through newly defined models
-
       for (const fieldOrModelNameInState of modelsOrFieldsInStateButNotDefinedInOriginal) {
         let answer: null | string = null;
         const didTheUserRenamedToOneOfTheOptions = nonRenamedFieldsOrModels.length !== 0;
@@ -352,7 +351,7 @@ export default class MakeMigrations {
   ): Promise<ActionToGenerateType<any> | undefined> {
     switch (fieldOrModel) {
       case 'field':
-        return await this.#fieldWasUpdated(fieldOrModelName, stateFieldOrModel as Field, originalFieldOrModel as Field);
+        return this.#fieldWasUpdated(fieldOrModelName, stateFieldOrModel as Field, originalFieldOrModel as Field);
       case 'model':
         return await this.#modelWasUpdated(
           operations,
@@ -435,13 +434,14 @@ export default class MakeMigrations {
     return response;
   }
 
-  async #fieldWasUpdated(
+  #fieldWasUpdated(
     fieldName: string,
     stateField: Field<any, any, any, any, any, any, any, any>,
     originalField: Field<any, any, any, any, any, any, any, any>
   ) {
-    const areFieldsEqual = await originalField.compare(stateField);
-    if (!areFieldsEqual) {
+    const [areFieldsEqual, changedAttributes] = originalField.compare(stateField);
+
+    if (areFieldsEqual === false) {
       return actions.ChangeField.toGenerate(
         originalField.model.domainName,
         originalField.model.domainPath,
@@ -450,6 +450,7 @@ export default class MakeMigrations {
           fieldDefinitionAfter: originalField,
           fieldDefinitionBefore: stateField,
           fieldName: fieldName,
+          changedAttributes,
         }
       );
     }
@@ -572,6 +573,7 @@ export default class MakeMigrations {
         getUniqueCustomImports(customImports, customImportsOfCustomData);
       }
     }
+
     const operationsToString = operationsAsString.join(',\n');
     const customImportsAsString =
       customImportsOfCustomData
@@ -598,11 +600,14 @@ export default class MakeMigrations {
       `  operations: [\n${operationsToString}\n  ]\n};\n`;
     const indexFileOfMigrations = `index.${(this.settings as any)?.useTs ? 'ts' : 'js'}`;
     const pathToWriteMigrations = await defaultStd.files.join(domainPath, 'migrations');
+
     const existsFile = await defaultStd.files.exists(pathToWriteMigrations);
     if (!existsFile) {
+
       await defaultStd.files.makeDirectory(pathToWriteMigrations);
       await defaultStd.files.writeFile([pathToWriteMigrations, indexFileOfMigrations], '');
     }
+
     // write file first so after we can read the directory and update the index file.
     await defaultStd.files.writeFile(
       [pathToWriteMigrations, `${migrationName}.${(this.settings as any)?.useTs ? 'ts' : 'js'}`],
@@ -768,6 +773,7 @@ export default class MakeMigrations {
       );
       const state = await State.buildState(filteredMigrationsOfDatabase);
       const initializedState = await state.initializeStateModels(engineInstance);
+
       const makemigrations = new this(
         database,
         settings,

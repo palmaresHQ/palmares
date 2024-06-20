@@ -1,9 +1,15 @@
-import { domain } from '@palmares/core';
+import { ExtractCommandsType, domain } from '@palmares/core';
 import { Profile } from '../auth/models';
 import { Contract } from '../contracts/models';
 import { Jobs } from '../jobs/models';
+import { path, serverDomainModifier, Response } from '@palmares/server';
+
 
 export default domain('core', __dirname, {
+  modifiers: [serverDomainModifier],
+  getRoutes: () => path('/error').get(async (req) => {
+    return Response.html('<h1>Internal server error</h1>');
+  }),
   commands: {
     seedDb: {
       description: 'Seed the database with some data. Used for testing.',

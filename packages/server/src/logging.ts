@@ -15,7 +15,7 @@ export const serverLogger = new Logger(
     },
     REQUEST_RECEIVED: {
       category: 'info',
-      handler: (args: { method: string; url: string }) => `\x1b[3m${args.method}\x1b[0m ${args.url}`,
+      handler: (args: { method: string; url: string, timePassed: number }) => `\x1b[3m${args.method}\x1b[0m ${args.url} ${args.timePassed}`,
     },
   }
 );

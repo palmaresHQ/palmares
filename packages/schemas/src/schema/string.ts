@@ -58,7 +58,7 @@ export default class StringSchema<
     message: string;
   };
 
-  async _transformToAdapter(options: Parameters<Schema['_transformToAdapter']>[0]): Promise<any> {
+  protected async __transformToAdapter(options: Parameters<Schema['__transformToAdapter']>[0]): Promise<any> {
     return defaultTransformToAdapter(
       async (adapter) => {
         return defaultTransform(
@@ -75,6 +75,10 @@ export default class StringSchema<
             includes: this.__includes,
             nullable: this.__nullable,
             optional: this.__optional,
+            parsers: {
+              nullable: this.__nullable.allow,
+              optional: this.__optional.allow,
+            }
           }),
           {
             maxLength,

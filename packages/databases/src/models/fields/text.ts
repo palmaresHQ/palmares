@@ -133,19 +133,27 @@ export default class TextField<
    * class CustomTextField extends TextField {
    *   aCustomValue: string;
    *
-   *   async compare(field:Field) {
-   *      return (await super.compare(field)) && fieldAsText.aCustomValue === this.aCustomValue;
+   *   compare(field:Field) {
+   *      const fieldAsText = field as TextField;
+   *      const isCustomValueEqual = fieldAsText.aCustomValue === this.aCustomValue;
+   *      const [isEqual, changedAttributes] = super.compare(field);
+   *      if (!isCustomValueEqual) changedAttributes.push('aCustomValue');
+   *      return [isCustomValueEqual && isEqual, changedAttributes]
    *   }
    * }
    * ```
    *
    * @param field - The field to compare.
    *
-   * @returns A promise that resolves to a boolean indicating if the field is equal to the other field.
+   * @returns A promise that resolves to a tuple containing a boolean and the changed attributes.
    */
-  async compare(field: Field): Promise<boolean> {
+  compare(field: Field): [boolean, string[]] {
     const fieldAsText = field as TextField;
-    return (await super.compare(field)) && fieldAsText.allowBlank === this.allowBlank;
+    const isAllowBlankEqual = fieldAsText.allowBlank === this.allowBlank;
+    const [isEqual, changedAttributes] = super.compare(field);
+
+    if (!isAllowBlankEqual) changedAttributes.push('allowBlank');
+    return [isAllowBlankEqual && isEqual, changedAttributes]
   }
 
   /**

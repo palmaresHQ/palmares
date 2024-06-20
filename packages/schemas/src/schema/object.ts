@@ -9,6 +9,7 @@ import {
 import { objectValidation } from '../validators/object';
 import { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from './types';
 import Validator from '../validators/utils';
+import SchemaAdapter from '../adapter';
 
 export default class ObjectSchema<
   TType extends {
@@ -43,8 +44,8 @@ export default class ObjectSchema<
     return this.__cachedDataAsEntries;
   }
 
-  async _transformToAdapter(
-    options: Parameters<Schema['_transformToAdapter']>[0]
+  protected async __transformToAdapter(
+    options: Parameters<Schema['__transformToAdapter']>[0]
   ): Promise<ReturnType<FieldAdapter['translate']>> {
     return defaultTransformToAdapter(
       async (adapter) => {
@@ -118,6 +119,10 @@ export default class ObjectSchema<
                   data: isStringVersion ? asString : transformed,
                   nullable: this.__nullable,
                   optional: this.__optional,
+                  parsers: {
+                    nullable: this.__nullable.allow,
+                    optional: this.__optional.allow,
+                  }
                 }),
                 {},
                 {
@@ -139,28 +144,9 @@ export default class ObjectSchema<
    * from the database "by hand". In other words, you can do the joins by yourself directly on code. For more complex cases, this can be really helpful.
    *
    * @param value - The value to be transformed.
+   *
+   * @returns The transformed value.
    */
-  async _transform(value: TType['output']): Promise<TType['representation']> {
-    const dataAsEntries = this.__retrieveDataAsEntriesAndCache();
-    const isValueAnObject = typeof value === 'object' && value !== null;
-
-    if (!isValueAnObject) return value;
-
-    await Promise.all(
-      dataAsEntries.map(async ([key, valueToTransform]) => {
-        const isValueToTransformASchemaAndNotUndefined =
-          valueToTransform instanceof Schema && (value[key] !== undefined || valueToTransform.__defaultFunction);
-        if (isValueToTransformASchemaAndNotUndefined) {
-          const transformedValue = await valueToTransform._transform(value[key]);
-          (value as any)[key] = transformedValue;
-        }
-      })
-    );
-    value = await super._transform(value);
-
-    return value;
-  }
-
   async data(value: TType['output']): Promise<TType['representation']> {
     const parsedValue = await super.data(value);
     const dataAsEntries = this.__retrieveDataAsEntriesAndCache();
@@ -170,7 +156,7 @@ export default class ObjectSchema<
       await Promise.all(
         dataAsEntries.map(async ([key, valueToTransform]) => {
           const isValueToTransformASchemaAndNotUndefined =
-            valueToTransform instanceof Schema && (value[key] !== undefined || valueToTransform.__defaultFunction);
+            valueToTransform instanceof Schema && (value[key] !== undefined || (valueToTransform as any).__defaultFunction);
           if (isValueToTransformASchemaAndNotUndefined) {
             const transformedValue = await valueToTransform.data(value[key]);
             (parsedValue as any)[key] = transformedValue;

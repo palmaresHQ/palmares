@@ -44,17 +44,19 @@ export default class Migration {
     transaction: any,
     allMigrations: FoundMigrationsFileType[],
     returnOfInit: any
-  ): Promise<void> {
+  ): Promise<(() => Promise<void>)[]> {
     this.transaction = transaction;
+    const connectionsToClose: (() => Promise<void>)[] = [];
     for (let i = 0; i < this.operations.length; i++) {
       const operation = this.operations[i];
       const fromState = await State.buildState(allMigrations, this.name, i);
       const { initializedModels: fromStateModelsByModelName, closeEngineInstance: closeFromEngineInstance } =
         await fromState.geInitializedModelsByName(this.engineInstance);
-      const toState = await State.buildState(allMigrations, this.name, i + 1);
 
+      const toState = await State.buildState(allMigrations, this.name, i + 1);
       const { initializedModels: toStateModelsByModelName, closeEngineInstance: closeToEngineInstance } =
         await toState.geInitializedModelsByName(this.engineInstance);
+
       await operation.run(
         this,
         this.engineInstance,
@@ -63,11 +65,10 @@ export default class Migration {
         returnOfInit
       );
 
-      const promises: Promise<void>[] = [];
-      if (closeToEngineInstance) promises.push(closeToEngineInstance(this.engineInstance));
-      if (closeFromEngineInstance) promises.push(closeFromEngineInstance(this.engineInstance));
-      await Promise.all(promises);
+      if (closeToEngineInstance) connectionsToClose.push(() => closeToEngineInstance(this.engineInstance));
+      if (closeFromEngineInstance) connectionsToClose.push(() => closeFromEngineInstance(this.engineInstance));
     }
+    return connectionsToClose
   }
 
   /**
@@ -75,13 +76,16 @@ export default class Migration {
    * files in a transaction, so we guarantee that if the migration fails for some reason all of the
    * actions and changes will be rolled back.
    */
-  private async run(): Promise<void> {
+  private async run(): Promise<(() => Promise<void>)[]> {
     let returnOfInit: any = undefined;
     if (this.engineInstance.migrations.init)
       returnOfInit = await this.engineInstance.migrations.init(this.engineInstance);
-    await this.engineInstance.useTransaction(this.#runOnTransaction.bind(this), this.allMigrations, returnOfInit);
+    const connectionsToClose = await this.engineInstance.useTransaction(this.#runOnTransaction.bind(this), this.allMigrations, returnOfInit);
+
     if (this.engineInstance.migrations.finish)
       await this.engineInstance.migrations.finish(this.engineInstance, returnOfInit);
+
+    return connectionsToClose;
   }
 
   /**
@@ -101,8 +105,8 @@ export default class Migration {
     engineInstance: DatabaseAdapter,
     migrationFile: FoundMigrationsFileType,
     allMigrations: FoundMigrationsFileType[]
-  ): Promise<void> {
+  ): Promise<(() => Promise<void>)[]> {
     const migration = new this(engineInstance, migrationFile.migration, migrationFile.domainName, allMigrations);
-    await migration.run();
+    return migration.run();
   }
 }

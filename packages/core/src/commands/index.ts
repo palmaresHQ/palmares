@@ -188,7 +188,7 @@ export async function handleCommands(
       availableCommands[commandType].handler({
         settings,
         domains,
-        commandLineArgs: formattedCommandLineArgs,
+        commandLineArgs: formattedCommandLineArgs as any,
       })
     );
   } else {

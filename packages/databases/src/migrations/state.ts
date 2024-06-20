@@ -34,10 +34,10 @@ export default class State {
    *
    * @returns - Returns a model instance with all of the fields and options.
    */
-  async get(modelName: string): Promise<BaseModel & InstanceType<ReturnType<typeof model>>> {
+  async get(modelName: string): Promise<StateModelsType[string]> {
     const modelInstance = this.modelsByName[modelName];
-    const doesModelExist = modelInstance && modelInstance.instance instanceof Model;
-    if (doesModelExist) return modelInstance.instance;
+    const doesModelExist = modelInstance !== undefined;
+    if (doesModelExist) return modelInstance;
     else return await this.newModel(modelName);
   }
 
@@ -48,8 +48,8 @@ export default class State {
    * @param modelName - The name of the model to set.
    * @param modifiedModel - The modified model instance to set.
    */
-  async set(modelName: string, modifiedModel: BaseModel & InstanceType<ReturnType<typeof model>>) {
-    this.modelsByName[modelName].instance = modifiedModel;
+  async set(modelName: string, modifiedModel: StateModelsType[string]) {
+    this.modelsByName[modelName] = modifiedModel;
   }
 
   /**
@@ -65,7 +65,7 @@ export default class State {
    * @return - Returns the newly created model. We use the .get method because if we have any side effects to the
    * model we will also run them.
    */
-  async newModel(modelName: string): Promise<BaseModel & InstanceType<ReturnType<typeof model>>> {
+  async newModel(modelName: string): Promise<StateModelsType[string]> {
     const ModelClass = class StateModel extends model() {
       static isState = true;
       static __cachedName: string = modelName;
@@ -75,10 +75,7 @@ export default class State {
     };
     const newModelInstance = new ModelClass() as InstanceType<ReturnType<typeof model>> & BaseModel;
 
-    this.modelsByName[modelName] = {
-      class: ModelClass as unknown as ReturnType<typeof model> & typeof BaseModel,
-      instance: newModelInstance,
-    };
+    this.modelsByName[modelName] = newModelInstance
     return this.get(modelName);
   }
 
@@ -102,7 +99,20 @@ export default class State {
     const modelsInState = Object.values(this.modelsByName);
     return initializeModels(
       engineInstance,
-      modelsInState.map((model) => model.class)
+      modelsInState.map((stateModel) => {
+        const ModelClass = class StateModel extends model() {
+          static isState = true;
+          static _initialized = {}
+          static domainName = (stateModel.constructor as any).domainName;
+          static domainPath = (stateModel.constructor as any).domainPath;
+          static __cachedOriginalName: string = (stateModel.constructor as any).__cachedName;
+          static __cachedName: string = (stateModel.constructor as any).__cachedName;
+
+          fields = stateModel.fields;
+          options = stateModel.options;
+        };
+        return ModelClass as any;
+      })
     );
   }
 
@@ -142,6 +152,7 @@ export default class State {
       };
 
     const initializedModels = await this.initializeStateModels(duplicatedEngineInstance);
+
     for (const initializedModel of initializedModels) {
       this.initializedModelsByName[initializedModel.class.originalName()] = initializedModel;
     }

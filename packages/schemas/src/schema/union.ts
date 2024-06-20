@@ -41,8 +41,8 @@ export default class UnionSchema<
     this.__schemas = new Set(schemas);
   }
 
-  async _transformToAdapter(
-    options: Parameters<Schema['_transformToAdapter']>[0]
+  protected async _transformToAdapter(
+    options: Parameters<Schema['__transformToAdapter']>[0]
   ): Promise<ReturnType<FieldAdapter['translate']>> {
     return await defaultTransformToAdapter(
       async (adapter) => {
@@ -93,6 +93,10 @@ export default class UnionSchema<
             nullable: this.__nullable,
             optional: this.__optional,
             schemas: isStringVersion ? transformedSchemasAsString : transformedSchemas,
+            parsers: {
+              nullable: this.__nullable.allow,
+              optional: this.__optional.allow,
+            },
           }),
           {},
           {
@@ -130,7 +134,7 @@ export default class UnionSchema<
 
               const transformedSchemasAsPromises = [];
               for (const schema of this.__schemas)
-                transformedSchemasAsPromises.push(schema._transformToAdapter(options));
+                transformedSchemasAsPromises.push((schema as any).__transformToAdapter(options));
 
               console.log((await Promise.all(transformedSchemasAsPromises)).flat());
               return (await Promise.all(transformedSchemasAsPromises)).flat();
@@ -147,8 +151,8 @@ export default class UnionSchema<
   static new<
     TSchemas extends readonly [Schema<any, any>, Schema<any, any>, ...Schema<any, any>[]],
     TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
-  >(schemas: Narrow<TSchemas>): UnionSchema<TSchemas[number]['__types']> {
-    const returnValue = new UnionSchema<TSchemas[number]['__types'], TDefinitions, TSchemas>(schemas as TSchemas);
+  >(schemas: Narrow<TSchemas>): UnionSchema<TSchemas[number] extends Schema<infer TType, any> ? TType : never> {
+    const returnValue = new UnionSchema<TSchemas[number] extends Schema<infer TType, any> ? TType : never, TDefinitions, TSchemas>(schemas as TSchemas);
 
     const adapterInstance = getDefaultAdapter();
 

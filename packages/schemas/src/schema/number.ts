@@ -58,7 +58,7 @@ export default class NumberSchema<
     message: string;
   };
 
-  async _transformToAdapter(options: Parameters<Schema['_transformToAdapter']>[0]): Promise<any> {
+  protected async __transformToAdapter(options: Parameters<Schema['__transformToAdapter']>[0]): Promise<any> {
     return defaultTransformToAdapter(
       async (adapter) => {
         return defaultTransform(
@@ -75,6 +75,10 @@ export default class NumberSchema<
             integer: this.__integer,
             optional: this.__optional,
             nullable: this.__nullable,
+            parsers: {
+              nullable: this.__nullable.allow,
+              optional: this.__optional.allow,
+            }
           }),
           {
             max,
@@ -235,3 +239,9 @@ export default class NumberSchema<
 }
 
 export const number = <TDefinitions extends DefinitionsOfSchemaType>() => NumberSchema.new<TDefinitions>();
+
+
+const main = async () => {
+  const schema = number().omit()
+  const value = await schema.data(1);
+}

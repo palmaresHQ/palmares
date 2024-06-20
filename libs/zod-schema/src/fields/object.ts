@@ -1,4 +1,5 @@
 import {
+  ErrorCodes,
   FieldAdapter,
   ObjectAdapterToStringArgs,
   ObjectAdapterTranslateArgs,
@@ -13,14 +14,18 @@ export default class ZodObjectFieldSchemaAdapter extends ObjectFieldAdapter<z.Zo
     return result;
   }
 
-  async parse(_adapter: any, result: z.ZodObject<any>, value: any) {
+  async parse(_adapter: any,_fieldAdapter: FieldAdapter<any>, result: z.ZodObject<any>, value: any, _args: ObjectAdapterTranslateArgs) {
     try {
-      const parsed = await result.parseAsync(value);
+      const parsed = await result.parseAsync(value, { });
       return { errors: null, parsed };
     } catch (error) {
       if (error instanceof z.ZodError) return { errors: error.errors, parsed: value };
       else throw error;
     }
+  }
+
+  formatError(_adapter:SchemaAdapter, _fieldAdapter: FieldAdapter<any>, error: any, _metadata?: any): Promise<{ message: string; path: (string | number)[]; code: ErrorCodes; }> {
+    return error
   }
 
   async toString(

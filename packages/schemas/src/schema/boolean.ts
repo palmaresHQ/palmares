@@ -3,7 +3,7 @@ import { getDefaultAdapter } from '../conf';
 import { defaultTransform, defaultTransformToAdapter } from '../utils';
 import { DefinitionsOfSchemaType } from './types';
 import { optional, nullable, is } from '../validators/schema';
-import { allowStringParser, booleanValidation } from '../validators/boolean';
+import { booleanValidation } from '../validators/boolean';
 import convertFromStringBuilder from '../parsers/convert-from-string';
 
 export default class BooleanSchema<
@@ -24,13 +24,15 @@ export default class BooleanSchema<
 > extends Schema<TType, TDefinitions> {
   protected __allowString!: boolean;
   protected __allowNumber!: boolean;
+  protected __trueValues!: any[];
+  protected __falseValues!: any[];
 
   protected __is!: {
     value: boolean;
     message: string;
   };
 
-  async _transformToAdapter(options: Parameters<Schema['_transformToAdapter']>[0]): Promise<any> {
+  protected async __transformToAdapter(options: Parameters<Schema['__transformToAdapter']>[0]): Promise<any> {
     return defaultTransformToAdapter(
       async (adapter) => {
         return defaultTransform(
@@ -39,17 +41,23 @@ export default class BooleanSchema<
           adapter,
           adapter.boolean,
           () => ({
-            allowString: this.__allowString,
-            allowNumber: this.__allowNumber,
+            parsers: {
+              allowString: this.__allowString,
+              allowNumber: this.__allowNumber,
+              is: this.__is?.value,
+              trueValues: this.__trueValues,
+              falseValues: this.__falseValues,
+              nullable: this.__nullable.allow,
+              optional: this.__optional.allow,
+            },
             is: this.__is,
             nullable: this.__nullable,
             optional: this.__optional,
           }),
           {
+
             optional,
             nullable,
-            allowString: allowStringParser,
-            allowNumber: allowStringParser,
             is,
           },
           {
@@ -77,8 +85,9 @@ export default class BooleanSchema<
    */
   allowString() {
     this.__allowString = true;
+
     this.__parsers.low.set(
-      'stringParser',
+      'allowString',
       convertFromStringBuilder((value) => {
         return {
           value: Boolean(value),
@@ -86,6 +95,7 @@ export default class BooleanSchema<
         };
       })
     );
+
     return this as any as BooleanSchema<
       {
         input: string | TType['input'];
@@ -99,6 +109,8 @@ export default class BooleanSchema<
   }
 
   trueValues<const TValues extends any[]>(values: TValues) {
+    this.__trueValues = values;
+
     this.__parsers.medium.set('trueValues', (value) => {
       const valueExistsInList = values.includes(value);
       return {
@@ -119,6 +131,8 @@ export default class BooleanSchema<
   }
 
   falseValues<const TValues extends any[]>(values: TValues) {
+    this.__falseValues = values;
+
     this.__parsers.medium.set('falseValues', (value) => {
       const valueExistsInList = values.includes(value);
       return {
@@ -151,6 +165,13 @@ export default class BooleanSchema<
    */
   allowNumber() {
     this.__allowNumber = true;
+
+    this.__parsers.low.set('allowNumber', (value) => {
+      return {
+        value: typeof value === 'number' ? Boolean(value) : value,
+        preventNextParsers: typeof value === 'number',
+      };
+    });
 
     return this as any as BooleanSchema<
       {

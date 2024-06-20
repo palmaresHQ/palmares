@@ -16,7 +16,7 @@ export default class ZodUnionFieldSchemaAdapter extends UnionFieldAdapter<z.ZodO
     return result;
   }
 
-  async parse(adapter: any, result: z.ZodOptional<any>, value: any) {
+  async parse(_adapter: any, _fieldAdapter:FieldAdapter<any>, result: z.ZodOptional<any>, value: any) {
     try {
       const parsed = await result.parseAsync(value);
       return { errors: null, parsed };

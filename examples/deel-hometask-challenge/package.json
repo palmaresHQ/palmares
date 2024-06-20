@@ -6,6 +6,7 @@
   "scripts": {
     "seed": "tsx manage.ts seedDb",
     "help": "tsx manage.ts help",
+    "helloWorld": "tsx manage.ts helloWorld --name=Nicolas",
     "dev": "nodemon --watch 'src/' --watch '../../packages/*/dist/**' --watch '../../libs/*/dist/**' --exec ' tsx manage.ts runserver' -e ts",
     "makemigrations": "tsx manage.ts makemigrations",
     "migrate": "tsx manage.ts migrate",

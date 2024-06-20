@@ -5,7 +5,7 @@ import { ValidationFallbackReturnType } from '../schema/types';
 export function datetimeValidation(): ValidationFallbackReturnType {
   return {
     type: 'medium',
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['_transformToAdapter']>[0]) => {
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isValid = value instanceof Date && !isNaN(value.getTime());
 
       return {
@@ -32,7 +32,7 @@ export function allowStringParser(): ValidationFallbackReturnType {
     callback: async (
       value: any,
       _path: (string | number)[],
-      _options: Parameters<Schema['_transformToAdapter']>[0]
+      _options: Parameters<Schema['__transformToAdapter']>[0]
     ) => {
       if (typeof value === 'string') {
         const parsed = new Date(value);
@@ -57,7 +57,7 @@ export function below(args: DatetimeSchema['__below']): ValidationFallbackReturn
     callback: async (
       value: any,
       _path: (string | number)[],
-      _options: Parameters<Schema['_transformToAdapter']>[0]
+      _options: Parameters<Schema['__transformToAdapter']>[0]
     ) => {
       const isValid = args.inclusive ? value <= args.value : value < args.value;
 
@@ -84,7 +84,7 @@ export function above(args: DatetimeSchema['__above']): ValidationFallbackReturn
     callback: async (
       value: any,
       _path: (string | number)[],
-      _options: Parameters<Schema['_transformToAdapter']>[0]
+      _options: Parameters<Schema['__transformToAdapter']>[0]
     ) => {
       const isValid = args.inclusive ? value <= args.value : value < args.value;
 
