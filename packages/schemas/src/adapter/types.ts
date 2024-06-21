@@ -90,6 +90,18 @@ export type NumberAdapterTranslateArgs = {
         message: string;
       }
     | undefined;
+  maxDigits:
+    | {
+        value: number;
+        message: string;
+      }
+    | undefined;
+  decimalPlaces:
+    | {
+        value: number;
+        message: string;
+      }
+    | undefined;
   allowNegative:
     | {
         allowZero: boolean;

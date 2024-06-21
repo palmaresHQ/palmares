@@ -85,7 +85,10 @@ export default class Validator {
     childOrParent: 'child' | 'parent',
     options?: Parameters<(typeof Validator)['createAndAppendFallback']>[2]
   ) {
-    if (this[childOrParent]) (this as any)[childOrParent].addFallback(schema, type, fallback, options);
+
+    const schemaWithProtected = schema as Schema & { __rootFallbacksValidator?: Schema['__rootFallbacksValidator'] };
+
+    if (this[childOrParent]) (this as any)[childOrParent].addFallback(schemaWithProtected, type, fallback, options);
     else {
       const nextPriority = childOrParent === 'child' ? this.priority - 1 : this.priority + 1;
       if (Object.keys(typeByPriority).includes(String(nextPriority))) {
@@ -94,9 +97,9 @@ export default class Validator {
         const validatorInstance = new Validator(nextType);
         this[childOrParent] = validatorInstance;
         (this as any)[childOrParent][childOrParent === 'parent' ? 'child' : 'parent'] = this;
-        (this as any)[childOrParent].addFallback(schema, type, fallback, options);
-        if (nextPriority > schema.__rootFallbacksValidator?.priority)
-          schema.__rootFallbacksValidator = validatorInstance;
+        (this as any)[childOrParent].addFallback(schemaWithProtected, type, fallback, options);
+        if (nextPriority > schemaWithProtected.__rootFallbacksValidator?.priority)
+          schemaWithProtected.__rootFallbacksValidator = validatorInstance;
       }
     }
   }
@@ -178,10 +181,12 @@ export default class Validator {
       removeCurrent?: boolean;
     }
   ) {
-    let validatorInstance = schema.__rootFallbacksValidator;
-    if (schema.__rootFallbacksValidator === undefined) {
+    const schemaWithProtected = schema as Schema & { __rootFallbacksValidator?: Schema['__rootFallbacksValidator'] };
+
+    let validatorInstance = schemaWithProtected.__rootFallbacksValidator;
+    if (schemaWithProtected.__rootFallbacksValidator === undefined) {
       validatorInstance = new Validator(fallback.type);
-      schema.__rootFallbacksValidator = validatorInstance;
+      schemaWithProtected.__rootFallbacksValidator = validatorInstance;
     }
     validatorInstance.addFallback(schema, fallback.type, fallback.callback, options);
     return validatorInstance;

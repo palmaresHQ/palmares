@@ -39,16 +39,17 @@ import type { Narrow } from '@palmares/core';
 
 export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
   return {
-    number: () => number<{ schemaAdapter: TAdapter; hasSave: false }>(),
-    string: () => StringSchema.new<{ schemaAdapter: TAdapter; hasSave: false }>(),
+    number: () => NumberSchema.new<{ schemaAdapter: TAdapter; schemaType: 'number'; hasSave: false }>(),
+    string: () => StringSchema.new<{ schemaAdapter: TAdapter; schemaType: 'string'; hasSave: false }>(),
     array: <TSchemas extends readonly [Schema, ...Schema[]] | [Array<Schema>]>(...schemas: TSchemas) =>
-      array<TSchemas, { schemaAdapter: TAdapter; hasSave: false }>(...schemas),
-    boolean: () => BooleanSchema.new<{ schemaAdapter: TAdapter; hasSave: false }>(),
+      array<TSchemas, { schemaAdapter: TAdapter; schemaType: 'array'; hasSave: false }>(...schemas),
+    boolean: () => BooleanSchema.new<{ schemaAdapter: TAdapter; schemaType: 'boolean'; hasSave: false }>(),
     object: <TData extends Record<any, Schema<any, any>>>(data: TData) =>
-      ObjectSchema.new<TData, { schemaAdapter: TAdapter; hasSave: false }>(data),
+      ObjectSchema.new<TData, { schemaAdapter: TAdapter; schemaType: 'object'; hasSave: false }>(data),
     union: <TSchemas extends readonly [Schema<any, any>, Schema<any, any>, ...Schema<any, any>[]]>(
       ...schemas: Narrow<TSchemas>
-    ) => UnionSchema.new<TSchemas, { schemaAdapter: TAdapter; hasSave: false }>(schemas),
+    ) => UnionSchema.new<TSchemas, { schemaAdapter: TAdapter; schemaType: 'union'; hasSave: false }>(schemas),
+    datetime: () => DatetimeSchema.new<{ schemaAdapter: TAdapter; schemaType: 'datetime'; hasSave: false }>(),
   };
 }
 /*

@@ -83,6 +83,13 @@ export default class Schema<
     message: 'Required',
     allow: false,
   };
+  protected __extends: {
+    callback: (
+      schema: any
+    ) => any,
+    toStringCallback?: (schemaAsString: string) => string
+  } | undefined = undefined;
+
   protected __transformedSchemas: Record<
     string,
     {
@@ -247,6 +254,10 @@ export default class Schema<
     path: ValidationFallbackCallbackReturnType['errors'][number]['path'] = [],
     options: Parameters<Schema['__transformToAdapter']>[0]
   ): Promise<{ errors: any[]; parsed: TType['internal'] }> {
+    // This is used to run the toInternal command. If we didn't do this, we would need to parse through all of the schemas to run the toInternal command,
+    // from the leafs (ObjectSchemas) to the root schema. This is not a good idea, so what we do is that during validation the leafs attach a function to
+    // the options.toInternalToBubbleUp like `options.toInternalToBubbleUp.push(async () => (value[key] = await (schema as any).__toInternal(parsed)));``
+    // This way, when the root schema finishes the validation, it will run all of the functions in the toInternalToBubbleUp array, modifying the parsed value.
     const shouldRunToInternalToBubbleUp = options.toInternalToBubbleUp === undefined;
     if (shouldRunToInternalToBubbleUp) options.toInternalToBubbleUp = [];
     if (options.errorsAsHashedSet instanceof Set === false) options.errorsAsHashedSet = new Set();
@@ -270,7 +281,9 @@ export default class Schema<
         this.__beforeValidationCallbacks.set(name, callback);
       };
 
-    await this.__transformToAdapter(options);
+    if (this.__transformedSchemas[options.schemaAdapter?.constructor.name || getDefaultAdapter().constructor.name].transformed === false)
+      await this.__transformToAdapter(options);
+
     value = await this.__parsersToTransformValue(value, this.__parsers._fallbacks);
 
     const adapterToUse = options.schemaAdapter
@@ -378,13 +391,34 @@ export default class Schema<
     >;
   }
 
-  optional(options: NonNullable<Partial<Schema['__optional']>> = {}) {
-    const message = typeof options.message === 'string' ? options.message : 'Required';
-    const allow = typeof options.allow === 'boolean' ? options.allow : true;
-
+  /**
+   * Allows the value to be either undefined or null.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schemas';
+   *
+   * const numberSchema = p.number().optional();
+   *
+   * const { errors, parsed } = await numberSchema.parse(undefined);
+   *
+   * console.log(parsed); // undefined
+   *
+   * const { errors, parsed } = await numberSchema.parse(null);
+   *
+   * console.log(parsed); // null
+   *
+   * const { errors, parsed } = await numberSchema.parse(1);
+   *
+   * console.log(parsed); // 1
+   * ```
+   *
+   * @returns - The schema we are working with.
+   */
+  optional(options?: { message: string; allow: false }) {
     this.__optional = {
-      message,
-      allow,
+      message: typeof options?.message === 'string' ? options.message : 'Required',
+      allow: typeof options?.allow === 'boolean' ? options.allow : true,
     };
 
     return this as unknown as Schema<
@@ -399,13 +433,35 @@ export default class Schema<
     >;
   }
 
-  nullable(options: NonNullable<Partial<Schema['__nullable']>> = {}) {
-    const message = typeof options.message === 'string' ? options.message : 'Cannot be null';
-    const allow = typeof options.allow === 'boolean' ? options.allow : true;
-
+  /**
+   * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value is NULL by setting
+   * the { message: 'Your custom message', allow: false } on the options.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schemas';
+   *
+   * const numberSchema = p.number().nullable();
+   *
+   * const { errors, parsed } = await numberSchema.parse(null);
+   *
+   * console.log(parsed); // null
+   *
+   * const { errors, parsed } = await numberSchema.parse(undefined);
+   *
+   * console.log(errors); // [{ isValid: false, code: 'invalid_type', message: 'Invalid type', path: [] }]
+   * ```
+   *
+   * @param options - The options for the nullable function.
+   * @param options.message - The message to be shown when the value is not null. Defaults to 'Cannot be null'.
+   * @param options.allow - Whether the value can be null or not. Defaults to true.
+   *
+   * @returns The schema.
+   */
+  nullable(options?: { message: string; allow: false }) {
     this.__nullable = {
-      message,
-      allow,
+      message: typeof options?.message === 'string' ? options.message : 'Cannot be null',
+      allow: typeof options?.allow === 'boolean' ? options.allow : true,
     };
 
     return this as unknown as Schema<
@@ -420,8 +476,47 @@ export default class Schema<
     >;
   }
 
-  appendSchema(schema: any, args?: { validate: (schema: any) => void}) {
+  /**
+   * Appends a custom schema to the schema, this way it will bypass the creation of the schema in runtime.
+   *
+   * By default when validating, on the first validation we create the schema. Just during the first validation. With this function, you bypass that,
+   * so you can speed up the validation process.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schemas';
+   * import * as z from 'zod';
+   *
+   * const numberSchema = p.number().appendSchema(z.number());
+   *
+   * const { errors, parsed } = await numberSchema.parse(1);
+   * ```
+   *
+   * @param schema - The schema to be appended.
+   * @param args - The arguments for the schema.
+   * @param args.adapter - The adapter to be used. If not provided, the default adapter will be used.
+   *
+   * @returns The same schema again.
+   */
+  appendSchema<TType extends any = any>(schema: TDefinitions['schemaAdapter'], args?: { adapter?: SchemaAdapter }) {
+    const adapter = args?.adapter || getDefaultAdapter();
 
+    this.__transformedSchemas[adapter.constructor.name] = {
+      transformed: true,
+      adapter: adapter,
+      schemas: [schema],
+    };
+
+    return this as unknown as Schema<
+      {
+        input: TType;
+        validate: TType;
+        internal: TType;
+        output: TType;
+        representation: TType;
+      },
+      TDefinitions
+    >;
   }
 
   /**
@@ -551,7 +646,9 @@ export default class Schema<
         output: TType['output'];
         representation: TType['representation'];
       },
-      TDefinitions
+      TDefinitions & {
+        hasSave: true;
+      }
     >;
   }
 
@@ -647,12 +744,8 @@ export default class Schema<
    */
   async parse(
     value: TType['input']
-  ): Promise<
-    true extends TDefinitions['hasSave'] ? TType['representation'] : { errors?: any[]; parsed: TType['internal'] }
-  > {
-    return this.__parse(value, [], {} as any) as Promise<
-      true extends TDefinitions['hasSave'] ? TType['output'] : { errors?: any[]; parsed: TType['internal'] }
-    >;
+  ): Promise<{ errors?: any[]; parsed: TType['internal'] }> {
+    return this.__parse(value, [], {} as any);
   }
 
   /**
@@ -709,6 +802,20 @@ export default class Schema<
     >;
   }
 
+  /**
+   * This function is used to add a default value to the schema. If the value is either undefined or null, the default value will be used.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schemas';
+   *
+   * const numberSchema = p.number().default(0);
+   *
+   * const { errors, parsed } = await numberSchema.parse(undefined);
+   *
+   * console.log(parsed); // 0
+   * ```
+   */
   default<TDefaultValue extends TType['input'] | (() => Promise<TType['input']>)>(
     defaultValueOrFunction: TDefaultValue
   ) {
@@ -718,10 +825,10 @@ export default class Schema<
 
     return this as unknown as Schema<
       {
-        input: TType['input'];
+        input: TType['input'] | undefined | null;
         validate: TType['validate'];
         internal: TType['internal'];
-        output: TType['output'];
+        output: TType['output'] | undefined | null;
         representation: TType['representation'];
       },
       TDefinitions
@@ -729,17 +836,84 @@ export default class Schema<
   }
 
   /**
-   * This function let's you customize the schema your own way, the return of this function is the schema translated by the adapter.
+   * This function let's you customize the schema your own way. After we translate the schema on the adapter we call this function to let you customize
+   * the custom schema your own way. Our API does not support passthrough? No problem, you can use this function to customize the zod schema.
    *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schemas';
    *
+   * const numberSchema = p.number().extends((schema) => {
+   *   return schema.nonnegative();
+   * });
+   *
+   * const { errors, parsed } = await numberSchema.parse(-1);
+   *
+   * console.log(errors); // [{ isValid: false, code: 'nonnegative', message: 'The number should be nonnegative', path: [] }]
+   * ```
+   *
+   * @param callback - The callback that will be called to customize the schema.
+   * @param toStringCallback - The callback that will be called to transform the schema to a string when you want to compile the underlying schema
+   * to a string so you can save it for future runs.
+   *
+   * @returns The schema.
    */
   extends(
     callback: (
-      schema: ReturnType<TDefinitions['schemaAdapter']['field']['translate']>
-    ) => ReturnType<TDefinitions['schemaAdapter']['field']['translate']>,
+      schema: Awaited<ReturnType<NonNullable<TDefinitions['schemaAdapter'][TDefinitions['schemaType']]>['translate']>>
+    ) => Awaited<ReturnType<NonNullable<TDefinitions['schemaAdapter'][TDefinitions['schemaType']]>['translate']>>,
     toStringCallback?: (schemaAsString: string) => string
-  ) {}
+  ) {
+    this.__extends = {
+      callback,
+      toStringCallback,
+    }
+    return this
+  }
 
+  /**
+   * This function is used to transform the value to the representation of the schema. When using the {@link data} function. With this function you have full
+   * control to add data cleaning for example, transforming the data and whatever. Another use case is when you want to return deeply nested recursive data.
+   * The schema maps to itself.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schemas';
+   *
+   * const recursiveSchema = p.object({
+   *   id: p.number().optional(),
+   *   name: p.string(),
+   * }).toRepresentation(async (value) => {
+   *    return {
+   *      id: value.id,
+   *      name: value.name,
+   *      children: await Promise.all(value.children.map(async (child) => await recursiveSchema.data(child)))
+   *    }
+   * });
+   *
+   * const data = await recursiveSchema.data({
+   *    id: 1,
+   *    name: 'John Doe',
+   * });
+   * ```
+   *
+   * @example
+   * ```
+   * import * as p from '@palmares/schemas';
+   *
+   * const colorToRGBSchema = p.string().toRepresentation(async (value) => {
+   *    switch (value) {
+   *      case 'red': return { r: 255, g: 0, b: 0 };
+   *      case 'green': return { r: 0, g: 255, b: 0 };
+   *      case 'blue': return { r: 0, g: 0, b: 255 };
+   *      default: return { r: 0, g: 0, b: 0 };
+   *   }
+   * });
+   * ```
+   * @param toRepresentationCallback - The callback that will be called to transform the value to the representation.
+   *
+   * @returns The schema with a new return type
+   */
   toRepresentation<TRepresentation>(
     toRepresentationCallback: (value: TType['representation']) => Promise<TRepresentation>
   ) {
@@ -763,6 +937,38 @@ export default class Schema<
     >;
   }
 
+  /**
+   * This function is used to transform the value to the internal representation of the schema. This is useful when you want to transform the value
+   * to a type that the schema adapter can understand. For example, you might want to transform a string to a date. This is the function you use.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schemas';
+   *
+   * const dateSchema = p.string().toInternal((value) => {
+   *   return new Date(value);
+   * });
+   *
+   * const date = await dateSchema.parse('2021-01-01');
+   *
+   * console.log(date); // Date object
+   *
+   * const rgbToColorSchema = p.object({
+   *   r: p.number().min(0).max(255),
+   *   g: p.number().min(0).max(255),
+   *   b: p.number().min(0).max(255),
+   * }).toInternal(async (value) => {
+   *    if (value.r === 255 && value.g === 0 && value.b === 0) return 'red';
+   *    if (value.r === 0 && value.g === 255 && value.b === 0) return 'green';
+   *    if (value.r === 0 && value.g === 0 && value.b === 255) return 'blue';
+   *    return `rgb(${value.r}, ${value.g}, ${value.b})`;
+   * });
+   * ```
+   *
+   * @param toInternalCallback - The callback that will be called to transform the value to the internal representation.
+   *
+   * @returns The schema with a new return type.
+   */
   toInternal<TInternal>(toInternalCallback: (value: TType['validate']) => Promise<TInternal>) {
     if (this.__toInternal) {
       const toInternal = this.__toInternal;
@@ -788,7 +994,21 @@ export default class Schema<
    * Called before the validation of the schema. Let's say that you want to validate a date that might receive a string, you can convert that string to a date
    * here BEFORE the validation. This pretty much transforms the value to a type that the schema adapter can understand.
    *
+   * @example
+   * ```
+   * import * as p from '@palmares/schemas';
+   * import * as z from 'zod';
+   *
+   * const customRecordToMapSchema = p.schema().appendSchema(z.map()).toValidate(async (value) => {
+   *    return new Map(value); // Before validating we transform the value to a map.
+   * });
+   *
+   * const { errors, parsed } = await customRecordToMapSchema.parse({ key: 'value' });
+   * ```
+   *
    * @param toValidateCallback - The callback that will be called to validate the value.
+   *
+   * @returns The schema with a new return type.
    */
   toValidate<TValidate>(toValidateCallback: (value: TType['input']) => Promise<TValidate> | TValidate) {
     this.__toValidate = toValidateCallback;

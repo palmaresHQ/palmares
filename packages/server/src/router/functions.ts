@@ -118,6 +118,10 @@ export function path<TPath extends string = ''>(path: TPath = '' as TPath) {
  * This will create a circular dependency in typescript and it'll complain with you. So guarantee that you are not trying not using `.nested` function
  * in the same router you use as parent. Separate them in different variables.
  */
-export function pathNested<TParentRouter extends DefaultRouterType>() {
-  return <TPath extends string = ''>(path: TPath = '' as TPath) => MethodsRouter.newNested<TParentRouter>()(path);
+export function pathNested<TParentRouter extends DefaultRouterType>(parentRouter?: TParentRouter) {
+  return <TPath extends string = ''>(path: TPath = '' as TPath) => {
+    const newRouter = MethodsRouter.newNested<TParentRouter>()(path);
+    if (parentRouter) parentRouter.nested([newRouter as any]);
+    return newRouter;
+  }
 }

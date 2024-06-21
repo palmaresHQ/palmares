@@ -4,7 +4,7 @@ import { Profile } from '../auth/models';
 export class Contract extends Model<Contract>() {
   fields = {
     id: AutoField.new(),
-    terms: TextField.new(),
+    terms1: TextField.new({ defaultValue: 'default' }),
     newColumn: TextField.new({ defaultValue: 'default'}),
     status: EnumField.new({ allowNull: true, choices: ['new', 'in_progress', 'terminated'] }),
     contractorId: ForeignKeyField.new({

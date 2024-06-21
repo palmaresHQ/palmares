@@ -14,6 +14,7 @@ export type OnlyFieldAdaptersFromSchemaAdapter = keyof {
 };
 
 export type DefinitionsOfSchemaType = {
+  schemaType: 'array' | 'object' | 'string' | 'number' | 'boolean' | 'union' | 'datetime' | 'field' |'datetime';
   schemaAdapter: SchemaAdapter;
   hasSave?: boolean;
 };

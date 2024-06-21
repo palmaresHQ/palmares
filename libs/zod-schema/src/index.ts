@@ -6,6 +6,7 @@ import ZodNumberFieldSchemaAdapter from './fields/number';
 import ZodObjectFieldSchemaAdapter from './fields/object';
 import ZodUnionFieldSchemaAdapter from './fields/union';
 import ZodBooleanFieldSchemaAdapter from './fields/boolean';
+import ZodStringFieldSchemaAdapter from './fields/string';
 
 export class ZodSchemaAdapter extends SchemaAdapter {
   field = new ZodFieldSchemaAdapter();
@@ -13,6 +14,7 @@ export class ZodSchemaAdapter extends SchemaAdapter {
   object = new ZodObjectFieldSchemaAdapter();
   union = new ZodUnionFieldSchemaAdapter();
   boolean = new ZodBooleanFieldSchemaAdapter();
+  string = new ZodStringFieldSchemaAdapter();
 
   async formatError(error: z.ZodIssue) {
     return {

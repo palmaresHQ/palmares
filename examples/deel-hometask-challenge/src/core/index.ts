@@ -1,8 +1,7 @@
-import { ExtractCommandsType, domain } from '@palmares/core';
+import { domain } from '@palmares/core';
 import { Profile } from '../auth/models';
 import { Contract } from '../contracts/models';
 import { Jobs } from '../jobs/models';
-import { path, serverDomainModifier, Response } from '@palmares/server';
 
 
 export default domain('core', __dirname, {

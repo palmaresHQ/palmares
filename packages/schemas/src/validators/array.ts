@@ -39,7 +39,8 @@ export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): 
       // To speed things up, we can do a simple type check, if the value is of type number and number is on index 1, and on index 0 is a string,
       // if the value is a number we can skip checking at index 0.
       const schemaIndexByTypeof = new Map<string, number>();
-      const parsedValues = await Promise.all(
+      let parsedValues: any[] = [];
+      parsedValues = await Promise.all(
         value.map(async (element, index) => {
           let errorsToAppendAfterLoopIfNoSchemaMatched: ValidationFallbackCallbackReturnType['errors'] = [];
           const typeofElement = typeof element;
@@ -59,6 +60,9 @@ export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): 
               __toInternal: Schema['__toInternal'];
             };
             const { parsed, errors } = await schemaWithProtected.__parse(element, [...path, index], options);
+
+            if (schemaWithProtected.__toInternal && options.toInternalToBubbleUp)
+              options.toInternalToBubbleUp.push(async () => (parsedValues[indexOfSchema] = await schemaWithProtected?.__toInternal?.(parsed)));
 
             if ((errors || []).length <= 0) {
               errorsToAppendAfterLoopIfNoSchemaMatched = [];

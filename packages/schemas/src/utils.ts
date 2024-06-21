@@ -120,15 +120,25 @@ export async function defaultTransform<TType extends SupportedSchemas>(
     __nullable: Schema['__nullable'];
     __type: Schema['__type'];
     __parsers: Schema['__parsers'];
+    __extends: Schema['__extends'];
   };
 
   const checkIfShouldUseParserAndAppend = (parser: Parameters<WithFallback<SupportedSchemas>['fallbackFor']['add']>[0]) => {
     const isValidationDataAParser = (validationData as any).parsers?.[parser] !== undefined;
     if (isValidationDataAParser) (schema as unknown as {
       __parsers: Schema['__parsers'];
-    }).__parsers.fallbacks.add(parser);
+    }).__parsers._fallbacks.add(parser);
   }
 
+  const getExtendedOrNotSchemaAndString = (schema: any, toStringVersion: string) => {
+    const extendedOrNotSchema = typeof schemaWithPrivateFields.__extends?.callback === 'function' ?
+    schemaWithPrivateFields.__extends.callback(schema) :
+    schema;
+  const extendedOrNotSchemaString = typeof schemaWithPrivateFields.__extends?.toStringCallback === 'function' ?
+    schemaWithPrivateFields.__extends.toStringCallback(toStringVersion) :
+    toStringVersion;
+    return [extendedOrNotSchema, extendedOrNotSchemaString];
+  }
 
   const checkIfShouldAppendFallbackAndAppend = (
     fallback: Parameters<WithFallback<SupportedSchemas>['fallbackFor']['add']>[0]
@@ -167,8 +177,9 @@ export async function defaultTransform<TType extends SupportedSchemas>(
       WithFallback<SupportedSchemas>['fallbackFor']['add']
     >[0][];
     const allParsers = Object.keys(validationData['parsers']) as Parameters<WithFallback<SupportedSchemas>['fallbackFor']['add']>[0][];
-    console.log(allParsers, 'allParsers')
+
     appendRootFallback();
+
     for (const fallback of existingFallbacks) checkIfShouldAppendFallbackAndAppend(fallback);
     for (const parser of allParsers) checkIfShouldUseParserAndAppend(parser);
     return options.fallbackIfNotSupported();
@@ -192,18 +203,29 @@ export async function defaultTransform<TType extends SupportedSchemas>(
       checkIfShouldAppendFallbackAndAppend(fallback);
       checkIfShouldUseParserAndAppend(fallback);
     }
+
+    const [extendedOrNotSchema, extendedOrNotSchemaString] = getExtendedOrNotSchemaAndString(
+      translatedSchemaOrWithFallback.transformedSchema,
+      stringVersion
+    );
+
     return [
       {
-        transformed: translatedSchemaOrWithFallback.transformedSchema,
-        asString: stringVersion,
+        transformed: extendedOrNotSchema,
+        asString: extendedOrNotSchemaString,
       },
     ];
   }
 
+  const [extendedOrNotSchema, extendedOrNotSchemaString] = getExtendedOrNotSchemaAndString(
+    translatedSchemaOrWithFallback,
+    stringVersion
+  );
+
   return [
     {
-      transformed: translatedSchemaOrWithFallback,
-      asString: stringVersion,
+      transformed: extendedOrNotSchema,
+      asString: extendedOrNotSchemaString,
     },
   ];
 }
@@ -280,7 +302,7 @@ export async function transformSchemaAndCheckIfShouldBeHandledByFallbackOnComple
   const doesKeyHaveToInternal = typeof schemaWithProtected.__toInternal === 'function';
   const doesKeyHaveToValidate = typeof schemaWithProtected.__toValidate === 'function';
   const doesKeyHaveToDefault = typeof schemaWithProtected.__defaultFunction === 'function';
-  const doesKeyHaveParserFallback = schemaWithProtected.__parsers.fallbacks.size > 0;
+  const doesKeyHaveParserFallback = schemaWithProtected.__parsers._fallbacks.size > 0;
   const shouldAddFallbackValidation =
     doesKeyHaveFallback ||
     doesKeyHaveToInternal ||
