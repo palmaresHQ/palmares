@@ -15,9 +15,6 @@
     "build:watch": {
       "persistent": true,
       "cache": true,
-      "dependsOn": [
-        "^build:watch"
-      ],
       "outputs": [
         "packages/**/dist/**",
         "examples/**/dist/**",

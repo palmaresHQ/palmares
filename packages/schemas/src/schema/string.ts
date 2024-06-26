@@ -491,7 +491,7 @@ export default class StringSchema<
    * here BEFORE the validation. This pretty much transforms the value to a type that the schema adapter can understand.
    *
    * @example
-   * ```
+   * ```typescript
    * import * as p from '@palmares/schemas';
    * import * as z from 'zod';
    *
@@ -519,10 +519,27 @@ export default class StringSchema<
     >;
   }
 
+  /**
+   * Defines a list of strings that are allowed, it's useful when you want to restrict the values that are allowed. Like a selector or a Choice field.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schema';
+   *
+   * const schema = p.string().is(['Argentina', 'Brazil', 'Chile']);
+   *
+   * schema.parse('Argentina'); // { errors: [], parsed: 'Argentina' }
+   * schema.parse('Uruguay'); // { errors: [{ code: 'invalid_value', message: 'The value should be equal to Argentina, Brazil, Chile', path: [] }], parsed: 'Uruguay' }
+   * ```
+   *
+   * @param value - The list of numbers that are allowed
+   *
+   * @returns - The schema instance
+   */
   is<const TValue extends TType['input'][]>(value: TValue) {
     this.__is = {
       value,
-      message: `The value should be equal to ${value}`,
+      message: `The value should be equal to ${value.join(', ')}`,
     };
 
     return this as any as Schema<
@@ -537,6 +554,25 @@ export default class StringSchema<
     >;
   }
 
+  /**
+   * Validates if the string ends with a specific value.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schema';
+   *
+   * const schema = p.string().endsWith('.com');
+   *
+   * schema.parse('example.com'); // { errors: [], parsed: 'example.com' }
+   * schema.parse('example.org'); // { errors: [{ code: 'endsWith', message: 'The value should end with .com', path: [] }], parsed: 'example.org' }
+   * ```
+   *
+   * @param value - The value that the string should end with.
+   * @param options - The options for the endsWith function.
+   * @param options.message - The message to be shown when the value does not end with the value.
+   *
+   * @returns - The schema instance.
+   */
   endsWith(value: string, options?: Partial<Omit<StringSchema['__endsWith'], 'value'>>) {
     this.__endsWith = {
       value,
@@ -545,7 +581,26 @@ export default class StringSchema<
     return this;
   }
 
-  startsWith(value: string, options?: Partial<Omit<StringSchema['__startsWith'], 'value'>>) {
+  /**
+   * Validates if the string starts with a specific value.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schema';
+   *
+   * const schema = p.string().startsWith('https://');
+   *
+   * schema.parse('https://example.com'); // { errors: [], parsed: 'https://example.com' }
+   * schema.parse('http://example.com'); // { errors: [{ code: 'startsWith', message: 'The value should start with https://', path: [] }], parsed: 'http://example.com' }
+   * ```
+   *
+   * @param value - The value that the string should start with.
+   * @param options - The options for the startsWith function.
+   * @param options.message - The message to be shown when the value does not start with the value.
+   *
+   * @returns - The schema instance.
+   */
+  startsWith(value: string  , options?: Partial<Omit<StringSchema['__startsWith'], 'value'>>) {
     this.__startsWith = {
       value,
       message: options?.message || `The value should start with ${value}`,
@@ -553,6 +608,25 @@ export default class StringSchema<
     return this;
   }
 
+  /**
+   * Checks if the string includes a specific substring.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schema';
+   *
+   * const schema = p.string().includes('for babies');
+   *
+   * schema.parse('Computer graphics for babies'); // { errors: [], parsed: 'Computer graphics for babies' }
+   * schema.parse('Learn javascript as you were 5'); // { errors: [{ code: 'includes', message: 'The string value should include the following substring 'for babies', path: [] }], parsed: 'example.org' }
+   * ```
+   *
+   * @param value - The value that the string should include.
+   * @param options - The options for the includes function.
+   * @param options.message - The message to be shown when the value does not include the value.
+   *
+   * @returns - The schema instance.
+   */
   includes(value: string, options?: Partial<Omit<StringSchema['__includes'], 'value'>>) {
     this.__includes = {
       value,
@@ -561,6 +635,25 @@ export default class StringSchema<
     return this;
   }
 
+  /**
+   * Validates if the string matches a specific regex.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schema';
+   *
+   * const schema = p.string().regex(/^[a-z]+$/);
+   *
+   * schema.parse('abc'); // { errors: [], parsed: 'abc' }
+   * schema.parse('123'); // { errors: [{ code: 'regex', message: 'The value should match the following regex /^[a-z]+$/', path: [] }], parsed: '123' }
+   * ```
+   *
+   * @param value - The regex that the string should match.
+   * @param options - The options for the regex function.
+   * @param options.message - The message to be shown when the value does not match the regex.
+   *
+   * @returns - The schema instance.
+   */
   regex(value: RegExp, options?: Partial<Omit<StringSchema['__regex'], 'value'>>) {
     this.__regex = {
       value,
@@ -569,6 +662,26 @@ export default class StringSchema<
     return this;
   }
 
+  /**
+   * Validates if the string has a maximum length. Use { inclusive: true } to allow the value to have the same length as the maximum length.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schema';
+   *
+   * const schema = p.string().maxLength(5);
+   *
+   * schema.parse('12345'); // { errors: [], parsed: '12345' }
+   * schema.parse('123456'); // { errors: [{ code: 'maxLength', message: 'The value should have a maximum length of 5', path: [] }], parsed: '123
+   * ```
+   *
+   * @param value - The maximum length that the string should have.
+   * @param options - The options for the maxLength function.
+   * @param options.message - The message to be shown when the value has a length greater than the maximum length.
+   * @param options.inclusive - Whether the value can have the same length as the maximum length. Defaults to false.
+   *
+   * @returns - The schema instance.
+   */
   maxLength(value: number, options?: Partial<Omit<StringSchema['__maxLength'], 'value'>>) {
     this.__maxLength = {
       value,
@@ -578,6 +691,26 @@ export default class StringSchema<
     return this;
   }
 
+  /**
+   * Validates if the string has a minimum length. Use { inclusive: true } to allow the value to have the same length as the minimum length.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schema';
+   *
+   * const schema = p.string().minLength(5);
+   *
+   * schema.parse('12345'); // { errors: [], parsed: '12345' }
+   * schema.parse('1234'); // { errors: [{ code: 'minLength', message: 'The value should have a minimum length of 5', path: [] }], parsed: '1234' }
+   * ```
+   *
+   * @param value - The minimum length that the string should have.
+   * @param options - The options for the minLength function.
+   * @param options.message - The message to be shown when the value has a length less than the minimum length.
+   * @param options.inclusive - Whether the value can have the same length as the minimum length. Defaults to false.
+   *
+   * @returns - The schema instance.
+   */
   minLength(value: number, options?: Partial<Omit<StringSchema['__minLength'], 'value'>>) {
     this.__minLength = {
       value,

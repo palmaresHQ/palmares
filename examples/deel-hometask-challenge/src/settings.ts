@@ -17,6 +17,7 @@ import { dirname, resolve } from 'path';
 
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
+  settingsLocation: __dirname,
   installedDomains: [
     [
       LoggingDomain,

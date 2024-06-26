@@ -3,6 +3,7 @@ import { domain } from '@palmares/core';
 import httpAppServer from '../app';
 import type { ServersSettingsType } from '../types';
 import { BaseRouter } from '../router/routers';
+import Serverless from '../serverless';
 
 export const serverDomainModifier = domain<{
   getRoutes: () =>
@@ -34,6 +35,19 @@ export default domain('@palmares/server', __dirname, {
         return httpAppServer;
       },
     },
+    serverless: {
+      description: 'Generate the serverless configuration from the server',
+      keywordArgs: undefined,
+      positionalArgs: undefined,
+      handler: async ({domains, settings }) => {
+        const serverlessInstance = new Serverless();
+        await serverlessInstance.load({
+          settings: settings as any,
+          domains,
+        });
+
+      },
+    }
   },
   load: async (_: ServersSettingsType) => undefined,
 });

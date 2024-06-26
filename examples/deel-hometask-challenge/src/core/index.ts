@@ -6,6 +6,26 @@ import { Jobs } from '../jobs/models';
 
 export default domain('core', __dirname, {
   commands: {
+    helloWorld: {
+      description: 'Shows a hello world message',
+      keywordArgs: {
+        age: {
+          description: 'Age of person to greet',
+          default: 30,
+          hasFlag: true,
+
+        },
+      },
+      positionalArgs: {
+        name: {
+          description: 'Name to greet',
+          required: false,
+        },
+      },
+      handler: async ({ commandLineArgs }) => {
+        console.log(`Hello ${commandLineArgs.positionalArgs['name'] || 'World'}`);
+      },
+    },
     seedDb: {
       description: 'Seed the database with some data. Used for testing.',
       keywordArgs: undefined,

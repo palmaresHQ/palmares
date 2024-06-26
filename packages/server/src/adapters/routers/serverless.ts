@@ -1,21 +1,21 @@
 import ServerAdapter from '.';
-import { BaseRouter } from '../router/routers';
-import { MethodTypes, RouterOptionsType } from '../router/types';
-import ServerResponseAdapter from './response';
+import { BaseRouter } from '../../router/routers';
+import { MethodTypes, RouterOptionsType } from '../../router/types';
+import ServerResponseAdapter from '../response';
 
-import type ServerRequestAdapter from './requests';
+import type ServerlessAdapter from '../serverless';
+import type ServerRequestAdapter from '../requests';
 
 /**
  * Adapter used for translating Palmares router to the framework of choice router.
  *
  * Functional approach to creating a server adapter instead of the default class/inheritance approach.
  */
-export function serverRouterAdapter<
-  TParseRouteFunction extends ServerRouterAdapter['parseRoute'],
-  TParseHandlerFunction extends ServerRouterAdapter['parseHandler'],
-  TParseHandlersFunction extends ServerRouterAdapter['parseHandlers'],
-  TLoad404Function extends ServerRouterAdapter['load404'],
-  TLoad500Function extends ServerRouterAdapter['load500']
+export function serverlessRouterAdapter<
+  TParseRouteFunction extends ServerlessRouterAdapter['parseRoute'],
+  TParseHandlerFunction extends ServerlessRouterAdapter['parseHandler'],
+  TParseHandlersFunction extends ServerlessRouterAdapter['parseHandlers'],
+  TLoad404Function extends ServerlessRouterAdapter['load404'],
 >(args: {
   /**
    * Used for parsing each part of the route, instead of parsing the whole route all at once, the framework itself will call this method for each part of the route.
@@ -31,7 +31,7 @@ export function serverRouterAdapter<
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _partOfPath - The part of the path to be parsed.
    * @param _urlParamType - If the part of the path is a url param, this will be true, otherwise it will be false.
    *
@@ -59,37 +59,11 @@ export function serverRouterAdapter<
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _handler - The handler is a simple callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of
    * {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods.
    */
   load404: TLoad404Function;
-  /**
-   * This method is used for loading a 500 handler, this handler will be called when an error occurs during the request/response lifecycle.
-   *
-   * IMPORTANT: If you define a route handler OUTSIDE of palmares and an error occurs in the handler, this method will not be called.
-   *
-   * @example
-   * ```ts
-   * load500(server, handler) {
-   *   const initializedServer = servers.get(server.serverName)?.server;
-   *   if (initializedServer) {
-   *      initializedServer.use((req, res) => {
-   *        const serverRequestAndResponseData = {
-   *          req,
-   *          res,
-   *        };
-   *        handler(serverRequestAndResponseData);
-   *      });
-   *   }
-   * },
-   * ```
-   *
-   * @param _server - The {@link ServerAdapter} instance.
-   * @param _handler - The handler is a simple callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of
-   * {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods.
-   */
-  load500: TLoad500Function;
   /**
    * Usually {@link parseHandlers()} is preferred, but if your framework supports all methods from the {@link MethodTypes} enum, you can use this method instead.
    * This method is used to parse one handler at a time.
@@ -112,7 +86,7 @@ export function serverRouterAdapter<
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _path - The retrieved by calling {@link parseRoute()} method.
    * @param _method - The method to be used.
    * @param _handler - The handler is a simple callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of
@@ -177,7 +151,7 @@ export function serverRouterAdapter<
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _path - The retrieved by calling {@link parseRoute()} method.
    * @param _methodsAndHandlers - A Map instance where the method is the key and the handler is the value. The handler is a simple
    * callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of {@link ServerResponseAdapter}
@@ -188,21 +162,19 @@ export function serverRouterAdapter<
    */
   parseHandlers?: TParseHandlersFunction;
 }) {
-  class CustomServerRouterAdapter extends ServerRouterAdapter {
+  class CustomServerRouterAdapter extends ServerlessRouterAdapter {
     parseRoute = args.parseRoute as TParseRouteFunction;
     parseHandler = args.parseHandler as TParseHandlerFunction;
     parseHandlers = args.parseHandlers as TParseHandlersFunction;
     load404 = args.load404 as TLoad404Function;
-    load500 = args.load500 as TLoad500Function;
   }
 
   return CustomServerRouterAdapter as {
-    new (): ServerRouterAdapter & {
+    new (): ServerlessRouterAdapter & {
       parseRoute: TParseRouteFunction;
       parseHandler: TParseHandlerFunction;
       parseHandlers: TParseHandlersFunction;
       load404: TLoad404Function;
-      load500: TLoad500Function;
     };
   };
 }
@@ -210,7 +182,7 @@ export function serverRouterAdapter<
 /**
  * Adapter used for translating palmares router to the framework of choice router.
  */
-export default class ServerRouterAdapter {
+export default class ServerlessRouterAdapter {
   /**
    * This method is used for loading a 405 handler, this will only be called if no handler is found for the requested method.
    *
@@ -232,12 +204,12 @@ export default class ServerRouterAdapter {
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _handler - The handler is a simple callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of
    * {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods.
    */
   async load404(
-    _server: ServerAdapter,
+    _server: ServerlessAdapter,
     _handler: (serverRequestAndResponseData: any) => ReturnType<ServerResponseAdapter['send']>
   ): Promise<void> {
     return undefined;
@@ -264,12 +236,12 @@ export default class ServerRouterAdapter {
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _handler - The handler is a simple callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of
    * {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods.
    */
   async load500(
-    _server: ServerAdapter,
+    _server: ServerlessAdapter,
     _handler: (serverRequestAndResponseData: any) => ReturnType<ServerResponseAdapter['send']>
   ): Promise<void> {
     return undefined;
@@ -289,14 +261,14 @@ export default class ServerRouterAdapter {
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _partOfPath - The part of the path to be parsed.
    * @param _urlParamType - If the part of the path is a url param, this will be true, otherwise it will be false.
    *
    * @returns The parsed part of the path.
    */
   parseRoute(
-    _server: ServerAdapter,
+    _server: ServerlessAdapter,
     _partOfPath: string,
     _urlParamType?: Parameters<BaseRouter['__urlParamsAndPath']['params']['set']>[1]
   ): string | undefined {
@@ -309,35 +281,42 @@ export default class ServerRouterAdapter {
    *
    * IMPORTANT: Don't forget to handle the `all` method, so it can be used to accept all methods.
    *
-   * @example
-   * ```ts
-   * parseHandler(server, path, method, handler, queryParams) {
-   *   const initializedServer = servers.get(server.serverName)?.server;
-   *   if (initializedServer) {
-   *     initializedServer[method](path, (req: Request, res: Response) => {
-   *       const serverRequestAndResponseData = {
-   *         req,
-   *         res,
-   *       };
-   *       handler(serverRequestAndResponseData);
-   *     });
-   *   }
-   * },
-   * ```
-   *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _path - The retrieved by calling {@link parseRoute()} method.
    * @param _method - The method to be used.
-   * @param _handler - The handler is a simple callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of
-   * {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods. What you return on {@link ServerResponseAdapter.redirect} or {@link ServerResponseAdapter.send} will be
-   * the return value of this method.
    * @param _queryParams - The query params so you can parse it and validate as you wish.
    */
-  parseHandler?(
-    _server: ServerAdapter,
+  parseHandler(
+    _server: ServerlessAdapter,
     _path: string,
     _method: MethodTypes | 'all',
-    _handler: (serverRequestAndResponseData: any) => ReturnType<ServerResponseAdapter['send']>,
+    _handler: {
+      getImports: (args: {
+        pathOfHandlerFile: string[],
+        projectName: string,
+        adapter: {
+          isDefault: boolean,
+          name: string
+        },
+      }) => string,
+      getBody: (args: {
+        parameters: {
+          name: string
+          type: string
+        }[] | string[];
+        customExport?: string;
+        isCJSModule?: boolean;
+        isDefaultExport?: boolean;
+        functionName: string;
+        ident?: number
+        adapter: string
+        isSpecificRoute?: boolean;
+        isSpecificMethod?: boolean;
+        requestAndResponseData: string
+        getMethodFunctionBody: string
+        getRouteFunctionBody: string
+      }) => string
+    },
     _options: RouterOptionsType['customRouterOptions'],
     _queryParams: BaseRouter['__queryParamsAndPath']['params']
   ) {
@@ -350,57 +329,7 @@ export default class ServerRouterAdapter {
    *
    * Important: if this method is defined, {@link parseHandler()} will be ignored.
    *
-   * @example
-   * ```ts
-   * parseHandlers(server, path, handlers, _, handler404) {
-   *    const initializedServer = servers.get(server.serverName)?.server;
-   *    if (initializedServer) {
-   *      const optionsHandler = handlers.get('options')?.handler;
-   *      const headHandler = handlers.get('head')?.handler;
-   *      const deleteHandler = handlers.get('delete')?.handler;
-   *      const getHandler = handlers.get('get')?.handler;
-   *      const postHandler = handlers.get('post')?.handler;
-   *      const putHandler = handlers.get('put')?.handler;
-   *      const patchHandler = handlers.get('patch')?.handler;
-   *      const allHandler = handlers.get('all')?.handler;
-   *
-   *      // This will initialize the server routes.
-   *      initializedServer.all(path, (req: Request, res: Response) => {
-   *        const serverRequestAndResponseData = {
-   *          req,
-   *          res,
-   *        };
-   *        if (optionsHandler && req.method === 'OPTIONS') {
-   *          optionsHandler(serverRequestAndResponseData);
-   *          return;
-   *        } else if (headHandler && req.method === 'HEAD') {
-   *          headHandler(serverRequestAndResponseData);
-   *          return;
-   *        } else if (deleteHandler && req.method === 'DELETE') {
-   *          deleteHandler(serverRequestAndResponseData);
-   *          return;
-   *        } else if (getHandler && req.method === 'GET') {
-   *          getHandler(serverRequestAndResponseData);
-   *          return;
-   *        } else if (postHandler && req.method === 'POST') {
-   *          postHandler(serverRequestAndResponseData);
-   *          return;
-   *        } else if (putHandler && req.method === 'PUT') {
-   *          putHandler(serverRequestAndResponseData);
-   *          return;
-   *        } else if (patchHandler && req.method === 'PATCH') {
-   *          patchHandler(serverRequestAndResponseData);
-   *          return;
-   *        } else if (allHandler) {
-   *          allHandler(serverRequestAndResponseData);
-   *          return;
-   *        } else handler404(serverRequestAndResponseData);
-   *      });
-   *    }
-   * },
-   * ```
-   *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerlessAdapter} instance.
    * @param _path - The retrieved by calling {@link parseRoute()} method.
    * @param _methodsAndHandlers - A Map instance where the method is the key and the handler is the value. The handler is a simple
    * callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of {@link ServerResponseAdapter}
@@ -410,12 +339,39 @@ export default class ServerRouterAdapter {
    * @param _404Handler - The 404 handler.
    */
   parseHandlers?(
-    _server: ServerAdapter,
+    _server: ServerlessAdapter,
+    _rootFileSystemPath: string,
     _path: string,
     _methodsAndHandlers: Map<
       MethodTypes | 'all',
       {
-        handler: (serverRequestAndResponseData: any) => ReturnType<ServerResponseAdapter['send']>;
+        handler: {
+          getImports: (args: {
+            pathOfHandlerFile: string[],
+            projectName: string,
+            adapter: {
+              isDefault: boolean,
+              name: string
+            },
+          }) => string,
+          getBody: (args: {
+            parameters: {
+              name: string
+              type: string
+            }[] | string[];
+            customExport?: string;
+            isCJSModule?: boolean;
+            isDefaultExport?: boolean;
+            functionName: string;
+            ident?: number
+            adapter: string
+            isSpecificRoute?: boolean;
+            isSpecificMethod?: boolean;
+            requestAndResponseData: string
+            getMethodFunctionBody: string
+            getRouteFunctionBody: string
+          }) => string
+        };
         options?: RouterOptionsType['customRouterOptions'];
       }
     >,

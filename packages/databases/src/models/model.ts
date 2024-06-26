@@ -599,7 +599,7 @@ export function initialize<TFields extends ModelFieldsType, TAbstracts extends r
   }
 
   return ModelConstructor as unknown as ReturnType<
-    typeof model<{
+    typeof model<ModelConstructor & {
       fields: TFields;
       abstracts: TAbstracts;
       options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;

@@ -1,4 +1,4 @@
-import type { Narrow } from '@palmares/core';
+import type { Domain, Narrow } from '@palmares/core';
 import type { Middleware } from '../middleware';
 import type {
   AlreadyDefinedMethodsType,
@@ -44,6 +44,7 @@ export class BaseRouter<
 > {
   path!: TRootPath;
 
+  protected __domain!: Domain<any>
   protected __partsOfPath: {
     part: string;
     isUrlParam: boolean;
@@ -395,7 +396,7 @@ export class BaseRouter<
 
     params[urlParamName] = {
       type: [urlParamType] as ('number' | 'string' | 'boolean')[],
-      regex: new RegExp(urlParamRegex),
+      regex: urlParamRegex !== '' ? new RegExp(urlParamRegex) : new RegExp(urlParamType === 'number' ? `^(?<${urlParamName}>\\d+)$` : urlParamType === 'boolean' ? `^(?<${urlParamName}>true|false)$` : `^(?<${urlParamName}>\\w+)$`)
     };
     index++;
     return index;

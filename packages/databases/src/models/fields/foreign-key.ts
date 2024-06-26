@@ -68,7 +68,7 @@ export function foreignKey<
     TRelationName
   >
 ) {
-  return new ForeignKeyField(params);
+  return ForeignKeyField.new(params);
 }
 
 /**

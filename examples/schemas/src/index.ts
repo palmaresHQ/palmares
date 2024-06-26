@@ -2,8 +2,10 @@
 import { setDefaultAdapter, getSchemasWithDefaultAdapter, object, string, schema } from '@palmares/schemas';
 import { ZodSchemaAdapter } from '@palmares/zod-schema';
 
+
 setDefaultAdapter(new ZodSchemaAdapter());
 const p = getSchemasWithDefaultAdapter<ZodSchemaAdapter>();
+
 
 const main = async () => {
 
@@ -25,7 +27,6 @@ const main = async () => {
   })
 
   console.log(value.test1.name);
-}
   /*const value = await testSchema.data({
     test: {
       isTest: 'hey',

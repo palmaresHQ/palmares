@@ -385,7 +385,7 @@ export default class NumberSchema<
    */
   extends(
     callback: (
-      schema: Awaited<ReturnType<NonNullable<TDefinitions['schemaAdapter']['string']>['translate']>>
+      schema: Awaited<ReturnType<NonNullable<TDefinitions['schemaAdapter']['number']>['translate']>>
     ) => Awaited<ReturnType<NonNullable<TDefinitions['schemaAdapter']['field']>['translate']>> | any,
     toStringCallback?: (schemaAsString: string) => string
   ) {

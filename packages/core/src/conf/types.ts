@@ -97,6 +97,7 @@ export type SettingsType2<
   )[] = readonly any[]
 > = {
   installedDomains: ValidateDomains<Narrow<TDomains>>;
+  settingsLocation: string;
   basePath: string;
 };
 

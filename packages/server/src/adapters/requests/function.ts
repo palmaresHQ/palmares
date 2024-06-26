@@ -1,6 +1,7 @@
 import ServerRequestAdapter from './class';
 
 import type ServerAdapter from '..';
+import type ServerlessAdapter from '../serverless';
 import type ServerRouterAdapter from '../routers';
 import type Request from '../../request';
 import type { FormDataLike } from '../../request/types';
@@ -40,7 +41,7 @@ export default function serverRequestAdapter<
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    */
@@ -58,7 +59,7 @@ export default function serverRequestAdapter<
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    *
@@ -84,7 +85,7 @@ export default function serverRequestAdapter<
    * },
    * ```
    *
-   * @param _server -  The {@link ServerAdapter} instance.
+   * @param _server -  The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    * @param _key - The key of the header that the user wants to extract.
@@ -110,14 +111,14 @@ export default function serverRequestAdapter<
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    * @param _key - The key of the param that the user wants to extract.
    *
    * @returns - The value of the param if it exists, otherwise undefined.
    */
-  params: TParamsFunction;
+  params?: TParamsFunction;
   /**
    * Translates the query from the server request to the query of the request to the API. This is lazy loaded, so it will only parse the query when the user actually needs it.
    * In other words, it is a proxy, so you just need to extract each value of the query one by one. What is expected is the user to pass the key of the query like that:
@@ -136,7 +137,7 @@ export default function serverRequestAdapter<
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    * @param _key - The key of the query that the user wants to extract.
@@ -165,7 +166,7 @@ export default function serverRequestAdapter<
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    * @param _options - Any type of custom options that you want to be able to pass when converting to json. If you want to support custom options, please override the
@@ -293,7 +294,7 @@ export default function serverRequestAdapter<
    * }
    * ```
    *
-   * @param _server - The {@link ServerAdapter} adapter.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} adapter.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    * @param _formDataConstructor - The constructor of the FormData-like class. It's a class so you should use it like this: `new formDataConstructor()`. You can pass a custom
@@ -325,7 +326,7 @@ export default function serverRequestAdapter<
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    * @param _options - Any type of custom options that you want to be able to pass when converting to ArrayBuffer. If you want to support custom options, please override the
@@ -353,7 +354,7 @@ export default function serverRequestAdapter<
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    * @param _options - Any type of custom options that you want to be able to pass when converting to Blob. If you want to support custom options, please override the
@@ -382,7 +383,7 @@ export default function serverRequestAdapter<
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    * @param _options - Any type of custom options that you want to be able to pass when converting to raw. If you want to support custom options, please override the
@@ -412,7 +413,7 @@ export default function serverRequestAdapter<
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    * @param _options - Any type of custom options that you want to be able to pass when converting to raw. If you want to support custom options, please override the

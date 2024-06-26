@@ -1,12 +1,12 @@
 import ServerRequestAdapter from '../adapters/requests';
 import { parseParamsValue, parseQueryParams, formDataLikeFactory } from './utils';
-import { BaseRouter } from '../router/routers';
-import ServerAdapter from '../adapters';
 import {
   DEFAULT_REQUEST_CONTENT_HEADER_VALUE_URLENCODED,
   DEFAULT_REQUEST_HEADERS_CONTENT_HEADER_KEY,
   DEFAULT_SERVER_ERROR_INVALID_QUERY_OR_PARAMS,
 } from '../defaults';
+import { AbortedRequestError } from './exceptions';
+import Response from '../response';
 
 import type {
   ExtractQueryParamsFromPathType,
@@ -18,10 +18,12 @@ import type {
   RequestDestination,
   RequestMode,
   RequestRedirect,
-} from './types';
-import { AbortedRequestError } from './exceptions';
-import Response from '../response';
-import { AllServerSettingsType } from '../types';
+} from './types'
+;
+import type { BaseRouter } from '../router/routers';
+import type { AllServerSettingsType } from '../types';
+import type ServerAdapter from '../adapters';
+import type ServerlessAdapter from '../adapters/serverless';
 
 export default class Request<
   TRoutePath extends string = string,
@@ -62,7 +64,7 @@ export default class Request<
    */
   private __queryParams: BaseRouter['__queryParamsAndPath']['params'] | undefined = undefined;
   private __urlParams: BaseRouter['__urlParamsAndPath']['params'] | undefined = undefined;
-  private __serverAdapter: ServerAdapter | undefined = undefined;
+  private __serverAdapter: ServerAdapter | ServerlessAdapter | undefined = undefined;
   private __requestAdapter: ServerRequestAdapter | undefined = undefined;
   /**
    * This is data sent by the server, you can use it to translate your request and response during the lifecycle of Request/Response.
@@ -377,7 +379,7 @@ export default class Request<
     if (!this.__urlParams) return undefined;
     const nonNullableRequestAdapter = this.__requestAdapter as NonNullable<typeof this.__requestAdapter>;
     const parserData = this.__urlParams.get(key);
-    const dataFromUrl = nonNullableRequestAdapter.params(
+    const dataFromUrl = nonNullableRequestAdapter.params?.(
       this.__serverAdapter as NonNullable<Request['__serverAdapter']>,
       this.__serverRequestAndResponseData,
       key
