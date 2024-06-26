@@ -93,6 +93,23 @@ export default class FilesAndFoldersNode implements FilesAndFolders {
     throw new ImportsError('nodejs fs writeFile');
   }
 
+  async appendFile(path: string | string[], content: string): Promise<void> {
+    const appendFile = await imports<typeof import('fs')['appendFile']>('fs', {
+      apiName: 'appendFile',
+    });
+
+    if (appendFile) {
+      const pathToUse = Array.isArray(path) ? await this.join(...path) : path;
+      return new Promise((resolve, reject) => {
+        appendFile(pathToUse, content, (error) => {
+          if (error) reject(error);
+          else resolve(undefined);
+        });
+      });
+    }
+    throw new ImportsError('nodejs fs appendFile');
+  }
+
   async makeDirectory(path: string | string[]): Promise<void> {
     const mkdir = await imports<typeof import('fs')['mkdir']>('fs', {
       apiName: 'mkdir',

@@ -1,3 +1,5 @@
+import { getDefaultStd } from '@palmares/std';
+
 import ServerAdapter from '../adapters';
 import ServerlessAdapter from '../adapters/serverless';
 import ServerRequestAdapter from '../adapters/requests';
@@ -26,7 +28,7 @@ import {
 import { serverLogger } from '../logging';
 import { AsyncGeneratorFunction, FileLike, GeneratorFunction } from '../response/utils';
 import type ServerRouterAdapter from '../adapters/routers';
-import ServerlessRouterAdapter from '../adapters/routers/serverless';
+import type ServerlessRouterAdapter from '../adapters/routers/serverless';
 
 /**
  * By default we don't know how to handle the routes by itself. Pretty much MethodsRouter does everything that we need here during runtime.
@@ -460,8 +462,109 @@ function wrapHandlerAndMiddlewares(
   return wrappedHandler.bind(wrappedHandler);
 }
 
-function generateServerlessHandler() {
+function generateServerlessHandler(
+  settings: AllServerSettingsType['servers'][string],
+  allSettings: AllServerSettingsType,
+  serverName: string,
+  domainName: string,
+  method: MethodTypes | 'all',
+  path: string,
+  pathOfHandler: { pathOfHandler: string[] },
+): Parameters<ServerlessRouterAdapter['parseHandler']>[3] {
+  const std = getDefaultStd()
+  const shouldBeTypeAnnotated = allSettings.settingsLocation.endsWith('.ts');
+  const extension = allSettings.settingsLocation.split('.').pop();
 
+  return {
+    appendBody: (args) => {
+      if(pathOfHandler === undefined) throw new Error('You should call writeFile before appendBody');
+
+      return std.files.appendFile(
+        pathOfHandler.pathOfHandler,
+        `\nasync function ${args.functionName}`+
+        `(${args.parameters.map((parameter) => {
+          if (shouldBeTypeAnnotated && typeof parameter !== 'object' || typeof (parameter as any)?.type !== 'string')
+            throw new Error('The parameter must have a type when generating a serverless handler.');
+          if (typeof parameter === 'object') return `${parameter.name}: ${parameter.type}`;
+          return parameter;
+        }).join(', ')}) {\n` +
+        `  return Serverless.handleServerless(settings, {\n` +
+        `    requestAndResponseData: ${args.requestAndResponseData},\n` +
+        `    domainRoutes: ['${domainName}'],\n` +
+        `    getRoute: () => ${args.getRouteFunctionBody},\n` +
+        `    serverName: '${serverName}',\n` +
+        `    adapter: ${args.adapter},\n` +
+        `    getMethod: () => ${args.getMethodFunctionBody}${args.isSpecificMethod || args.isSpecificRoute ? ',' : ''}\n` +
+        (args.isSpecificMethod ? `    method: '${method}',\n` : '') +
+        (args.isSpecificRoute ? `    route: '${path}',\n` : '') +
+        `  });\n`+
+        `}\n`+
+        (args.customExport ?
+          args.customExport :
+          args.isCJSModule ?
+            `exports.${args.functionName} = ${args.functionName};` :
+            args.isDefaultExport ?
+              `export default ${args.functionName};` :
+              `export { ${args.functionName} };\n`)
+      );
+    },
+    writeFile: async (args) => {
+      args.pathOfHandlerFile[args.pathOfHandlerFile.length-1] = `${args.pathOfHandlerFile[args.pathOfHandlerFile.length-1]}.${extension}`;
+      const pathWithoutBasePath = allSettings.settingsLocation.replace(allSettings.basePath, '');
+      pathOfHandler.pathOfHandler = args.pathOfHandlerFile;
+
+      const baseDirectoryOfHandlerFile = await std.files.join(allSettings.basePath, await std.files.join(...args.pathOfHandlerFile.slice(0, -1)));
+      const existsDirectory = await std.files.exists(baseDirectoryOfHandlerFile);
+      if (existsDirectory === false)  await std.files.makeDirectory(baseDirectoryOfHandlerFile);
+
+      const pathWithFile = await std.files.join(baseDirectoryOfHandlerFile, args.pathOfHandlerFile[args.pathOfHandlerFile.length-1]);
+
+      serverLogger.logMessage('SERVERLESS_HANDLER_CREATED', {
+        method: method.toUpperCase(),
+        path: pathWithFile,
+        url: path,
+      })
+      return std.files.writeFile(
+        pathWithFile,
+        `import { Serverless } from '@palmares/server';\n`+
+        `import { ${args.adapter.name} } from '${args.projectName}';\n` +
+        `import settings from '${
+          Array.from({ length: args.pathOfHandlerFile.length - 1 })
+            .map(()=> '..').join('/') + pathWithoutBasePath.replace(`.${extension}`, '')
+        }';\n`
+      )
+    },
+  }
+}
+
+/**
+ * This will take care of the routing. It's just used on serverless environments. On serverless you might define a function but
+ * the routing is not handled by the serverless. This is a workaround for that. It's not the most efficient way but it does work.
+ *
+ * We could use a custom server for just using the router, but not all servers support just routing so we prefer to do that way.
+ */
+function doTheRoutingForServerlessOnly(
+  serverAdapter: ServerlessAdapter,
+  partsOfPath: BaseRouter['__partsOfPath'],
+  urlParams: BaseRouter['__urlParamsAndPath']['params'],
+  routeToFilter: string,
+) {
+  const regex = new RegExp(`^(\/?)${partsOfPath.map((part) => {
+    if (part.isUrlParam)
+      return `(${urlParams.get(part.part)?.regex?.toString().replace(/(\/(\^)?(\()?|(\))?(\$)?\/)/g, '')})`;
+    return part.part;
+  }).join('\\/')}(\/?)$`);
+  const groups = routeToFilter.match(regex);
+  if (regex.test(routeToFilter) === false) return false;
+
+  // We parse the url parmas ourselves if that doesn't exist.
+  const existingRequestParams = serverAdapter.request.params;
+  serverAdapter.request.params = (_server, _serverRequestAndResponseData, key) => {
+    const result = existingRequestParams?.(_server, _serverRequestAndResponseData, key);
+    if (result === '' || result === undefined) return groups?.groups?.[key] || '';
+    return result;
+  }
+  return true;
 }
 
 /**
@@ -473,16 +576,24 @@ export async function* getAllRouters(
   allSettings: AllServerSettingsType,
   serverAdapter: ServerAdapter | ServerlessAdapter,
   options?: {
-    generateServerless?: boolean;
-    method?: MethodTypes;
-    route?: string;
+    serverless?: {
+      generate: boolean;
+      use: {
+        method: MethodTypes,
+        route: string,
+      }
+    }
   }
 ) {
-  const methodToFilter = options?.method;
+  const methodToFilterWhenOnServerlessEnvironment = options?.serverless?.use?.method;
+  const routeToFilterWhenOnServerlessEnvironment = options?.serverless?.use?.route;
+  const isUseServerless = serverAdapter instanceof ServerlessAdapter && typeof options?.serverless?.use === 'object';
+  const isGeneratingServerless = serverAdapter instanceof ServerlessAdapter && options?.serverless?.generate === true;
+
   const translatePath = translatePathFactory(serverAdapter);
   const existsRootMiddlewares = Array.isArray(settings.middlewares) && settings.middlewares.length > 0;
   const rootRouterCompletePaths = await getRootRouterCompletePaths(domains, settings, settings.debug === true);
-
+  const pathOfHandler = { pathOfHandler: [] };
   for (const [path, router] of rootRouterCompletePaths) {
     const handlerByMethod = Object.entries(router.handlers || {});
     if (handlerByMethod.length === 0) continue;
@@ -492,71 +603,54 @@ export async function* getAllRouters(
     let translatedPath = '';
 
     // On a serverless environment, we do the routing. Not great, but it works for most cases.
-    if (options?.route) {
-      const regex = new RegExp(`^(\/?)${router.partsOfPath.map((part) => {
-        if (part.isUrlParam) {
-          return `(${router.urlParams.get(part.part)?.regex?.toString().replace(/(\/(\^)?(\()?|(\))?(\$)?\/)/g, '')})`;
-        }
-        return part.part;
-      }).join('\\/')}(\/?)$`);
-      const groups = options.route.match(regex);
-      if (regex.test(options.route) === false) continue;
-
-      // We parse the url parmas ourselves if that doesn't exist.
-      const existingRequestParams = serverAdapter.request.params;
-      serverAdapter.request.params = (_server, _serverRequestAndResponseData, key) => {
-        const result = existingRequestParams?.(_server, _serverRequestAndResponseData, key);
-        if (result === '' || result === undefined) return groups?.groups?.[key] || '';
-        return result;
-      }
+    if (isUseServerless && typeof routeToFilterWhenOnServerlessEnvironment === 'string') {
+      if (doTheRoutingForServerlessOnly(
+        serverAdapter,
+        router.partsOfPath,
+        router.urlParams,
+        routeToFilterWhenOnServerlessEnvironment
+      ) === false) continue;
     } else translatedPath = translatePath(path, router.partsOfPath, router.urlParams);
 
-    const convertedHandlersToMap = handlerByMethod.reduce(
-      (accumulator, currentValue) => {
-        const [method, handler] = currentValue;
-        if (serverAdapter instanceof ServerlessAdapter && options?.generateServerless === true) {
+    if (isGeneratingServerless) {
+      yield {
+        translatedPath,
+        handlers: handlerByMethod.reduce((accumulator, currentValue) => {
+          const [method, handler] = currentValue;
+          const routerWithProtected = router.router as MethodsRouter & { __domain: MethodsRouter['__domain'] };
           accumulator.set(method as MethodTypes | 'all', {
-            handler: {
-              getBody: (args) => {
-                const shouldBeTypeAnnotated = allSettings.settingsLocation.endsWith('.ts');
-                const routerWithProtected = router.router as MethodsRouter & { __domain: MethodsRouter['__domain'] };
-                return `async function ${args.functionName}`+
-                `(${args.parameters.map((parameter) => {
-                  if (shouldBeTypeAnnotated && typeof parameter !== 'object' || typeof (parameter as any)?.type !== 'string')
-                    throw new Error('The parameter must have a type when generating a serverless handler.');
-                  if (typeof parameter === 'object') return `${parameter.name}: ${parameter.type}`;
-                  return parameter;
-                }).join(', ')}) {\n` +
-                `  return Serverless.handleServerless(settings, {\n` +
-                `    requestAndResponseData: ${args.requestAndResponseData},\n` +
-                `    domainRoutes: ['${routerWithProtected.__domain.name}'],\n` +
-                `    getRoute: () => ${args.getRouteFunctionBody},\n` +
-                `    serverName: '${serverAdapter.serverName}',\n` +
-                `    adapter: ${args.adapter},\n` +
-                `    getMethod: () => ${args.getMethodFunctionBody}${args.isSpecificMethod || args.isSpecificRoute ? ',' : ''}\n` +
-                (args.isSpecificMethod ? `    method: '${method}',\n` : '') +
-                (args.isSpecificRoute ? `    route: '${path}',\n` : '') +
-                `  });\n`+
-                `}\n`+
-                (args.customExport ?
-                  args.customExport :
-                  args.isCJSModule ?
-                    `exports.${args.functionName} = ${args.functionName};` :
-                    args.isDefaultExport ?
-                      `export default ${args.functionName};` :
-                      `export { ${args.functionName} };`)
-              },
-              getImports: (args) => {
-                const pathWithoutBasePath = allSettings.settingsLocation.replace(allSettings.basePath, '');
-                return `import { Serverless } from '@palmares/server';\n`+
-                `import { ${args.adapter.name} } from '${args.projectName}';\n` +
-                `import settings from '${Array.from({ length: args.pathOfHandlerFile.length-1 }).map(()=> '..').join('/') + pathWithoutBasePath}';`
-              },
-            },
+            handler: generateServerlessHandler(
+              settings,
+              allSettings,
+              serverAdapter.serverName,
+              routerWithProtected.__domain.name,
+              method as MethodTypes,
+              path,
+              pathOfHandler
+            ),
             options: handler?.options?.customRouterOptions,
           })
           return accumulator;
-        }
+        },
+        new Map<
+          MethodTypes | 'all',
+          {
+            handler: ReturnType<typeof generateServerlessHandler>;
+            options?: RouterOptionsType['customRouterOptions'];
+          }
+        >()),
+        queryParams: router.queryParams,
+      };
+    }
+
+    const shouldFilterMethod = isUseServerless && typeof methodToFilterWhenOnServerlessEnvironment === 'string';
+    const handlersOfRouterByMethod = handlerByMethod.reduce(
+      (accumulator, currentValue) => {
+        const [method, handler] = currentValue;
+
+        if (shouldFilterMethod && method !== methodToFilterWhenOnServerlessEnvironment && method !== 'all')
+          return accumulator;
+
         const wrappedHandler = wrapHandlerAndMiddlewares(
           method as MethodTypes,
           existsRootMiddlewares
@@ -570,7 +664,6 @@ export async function* getAllRouters(
           settings.handler500,
           settings.validation
         );
-        if (typeof methodToFilter !== 'undefined' && methodToFilter !== method) return accumulator;
         accumulator.set(method as MethodTypes | 'all', {
           handler: wrappedHandler,
           options: handler?.options?.customRouterOptions,
@@ -580,15 +673,15 @@ export async function* getAllRouters(
       new Map<
         MethodTypes | 'all',
         {
-          handler: ReturnType<typeof wrapHandlerAndMiddlewares> | Parameters<ServerlessRouterAdapter['parseHandler']>[3];
+          handler: ReturnType<typeof wrapHandlerAndMiddlewares>;
           options?: RouterOptionsType['customRouterOptions'];
         }
       >()
-    );
+    )
 
     yield {
       translatedPath,
-      handlers: convertedHandlersToMap,
+      handlers: handlersOfRouterByMethod,
       queryParams: router.queryParams,
     };
   }
@@ -642,7 +735,6 @@ export function wrap404HandlerAndRootMiddlewares(
   handler500: AllServerSettingsType['servers'][string]['handler500']
 ) {
   async function wrapped404Handler(serverRequestAndResponseData: any) {
-    console.log('404 handler', handler404)
     if (!handler404) return;
     let response = appendTranslatorToResponse(
       new Response(undefined, { status: HTTP_404_NOT_FOUND, statusText: DEFAULT_NOT_FOUND_STATUS_TEXT_MESSAGE }),
@@ -694,19 +786,24 @@ export async function initializeRouters(
   serverAdapter: ServerAdapter | ServerlessAdapter,
   options?: {
     serverless?: {
-      generate: boolean;
-      use: boolean;
-      getMethod: () => string,
-      getRoute: () => string;
-      requestAndResponseData?: any;
+      generate?: boolean;
+      /** An object that contains data for when running serverless functions */
+      use?: {
+        /** Gets the method from the request, should be lower cased */
+        getMethod: () => string,
+        /** Gets the path route from the request */
+        getRoute: () => string;
+        /** The data to send to the request during the request / response lifecycle */
+        requestAndResponseData?: any;
+      };
     };
   }
 ) {
   const generateServerless = options?.serverless?.generate === true;
-  const useServerless = options?.serverless?.use === true;
-  const method = (options?.serverless?.getMethod() || '').toLowerCase() as MethodTypes;
-  const route = options?.serverless?.getRoute();
-  const serverRequestAndResponseData = options?.serverless?.requestAndResponseData;
+  const useServerless = typeof options?.serverless?.use === 'object';
+  const method = (options?.serverless?.use?.getMethod() || '').toLowerCase() as MethodTypes;
+  const route = options?.serverless?.use?.getRoute();
+  const serverRequestAndResponseData = options?.serverless?.use?.requestAndResponseData;
 
   let wrapped404Handler: Parameters<NonNullable<ServerAdapter['routers']['parseHandlers']>>['4'] = async () => undefined;
 
@@ -721,9 +818,13 @@ export async function initializeRouters(
 
   if (serverAdapter.routers.parseHandlers || useServerless) {
     const routers = getAllRouters(domains, settings, allSettings, serverAdapter, {
-      method: method,
-      route: route,
-      generateServerless,
+      serverless: {
+        generate: generateServerless,
+        use: {
+          method: method,
+          route: route as string,
+        }
+      }
     });
     for await (const router of routers) {
       if (useServerless) return (router.handlers?.get(method as MethodTypes | 'all') as any)?.handler(serverRequestAndResponseData);
@@ -737,8 +838,7 @@ export async function initializeRouters(
             wrapped404Handler
           );
         } else if (serverAdapter instanceof ServerlessAdapter) {
-          console.log('serverlessAdapter', router.handlers)
-          serverAdapter.routers.parseHandlers(
+          await serverAdapter.routers.parseHandlers(
             serverAdapter,
             allSettings.basePath,
             router.translatedPath,

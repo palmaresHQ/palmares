@@ -17,6 +17,10 @@ export default interface FilesAndFolders {
   /**
    * When the path is a simple string work normally, if the path is an array of strings, join the strings with .join() and then work normally
    */
+  appendFile(path: string | string[], content: string): Promise<void>;
+  /**
+   * When the path is a simple string work normally, if the path is an array of strings, join the strings with .join() and then work normally
+   */
   writeFile(path: string | string[], content: string): Promise<void>;
   /**
    * When the path is a simple string work normally, if the path is an array of strings, join the strings with .join() and then work normally

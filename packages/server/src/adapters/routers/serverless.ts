@@ -6,6 +6,36 @@ import ServerResponseAdapter from '../response';
 import type ServerlessAdapter from '../serverless';
 import type ServerRequestAdapter from '../requests';
 
+type HandlerForServerless = {
+  writeFile: (args: {
+    pathOfHandlerFile: string[],
+    /** This is the name of your current package as on package.json the import like: `import ${name} from ${projectName}` */
+    projectName: string,
+    adapter: {
+      /** Is it a default export? like `import ${name} from ${projectName}` or not, like: `import { ${name} } from ${projectName}` */
+      isDefaultImport: boolean,
+      /** This is the name on the import like: `import ${name} from ${projectName}` */
+      name: string
+    },
+  }) => Promise<void>,
+  appendBody: (args: {
+    parameters: {
+      name: string
+      type: string
+    }[] | string[];
+    customExport?: string;
+    isCJSModule?: boolean;
+    isDefaultExport?: boolean;
+    functionName: string;
+    adapter: string
+    isSpecificRoute?: boolean;
+    isSpecificMethod?: boolean;
+    requestAndResponseData: string
+    getMethodFunctionBody: string
+    getRouteFunctionBody: string
+  }) => Promise<void>
+};
+
 /**
  * Adapter used for translating Palmares router to the framework of choice router.
  *
@@ -286,36 +316,11 @@ export default class ServerlessRouterAdapter {
    * @param _method - The method to be used.
    * @param _queryParams - The query params so you can parse it and validate as you wish.
    */
-  parseHandler(
+  async parseHandler(
     _server: ServerlessAdapter,
     _path: string,
     _method: MethodTypes | 'all',
-    _handler: {
-      getImports: (args: {
-        pathOfHandlerFile: string[],
-        projectName: string,
-        adapter: {
-          isDefault: boolean,
-          name: string
-        },
-      }) => string,
-      getBody: (args: {
-        parameters: {
-          name: string
-          type: string
-        }[] | string[];
-        customExport?: string;
-        isCJSModule?: boolean;
-        isDefaultExport?: boolean;
-        functionName: string;
-        adapter: string
-        isSpecificRoute?: boolean;
-        isSpecificMethod?: boolean;
-        requestAndResponseData: string
-        getMethodFunctionBody: string
-        getRouteFunctionBody: string
-      }) => string
-    },
+    _handler: HandlerForServerless,
     _options: RouterOptionsType['customRouterOptions'],
     _queryParams: BaseRouter['__queryParamsAndPath']['params']
   ) {
@@ -337,39 +342,14 @@ export default class ServerlessRouterAdapter {
    * @param _queryParams - The query params so you can parse it and validate as you wish.
    * @param _404Handler - The 404 handler.
    */
-  parseHandlers?(
+  async parseHandlers(
     _server: ServerlessAdapter,
     _rootFileSystemPath: string,
     _path: string,
     _methodsAndHandlers: Map<
       MethodTypes | 'all',
       {
-        handler: {
-          getImports: (args: {
-            pathOfHandlerFile: string[],
-            projectName: string,
-            adapter: {
-              isDefault: boolean,
-              name: string
-            },
-          }) => string,
-          getBody: (args: {
-            parameters: {
-              name: string
-              type: string
-            }[] | string[];
-            customExport?: string;
-            isCJSModule?: boolean;
-            isDefaultExport?: boolean;
-            functionName: string;
-            adapter: string
-            isSpecificRoute?: boolean;
-            isSpecificMethod?: boolean;
-            requestAndResponseData: string
-            getMethodFunctionBody: string
-            getRouteFunctionBody: string
-          }) => string
-        };
+        handler: HandlerForServerless;
         options?: RouterOptionsType['customRouterOptions'];
       }
     >,

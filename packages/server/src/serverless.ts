@@ -1,9 +1,9 @@
 import { SettingsType2, initializeDomains } from "@palmares/core";
 
-import { initializeRouters } from "../app/utils";
-import ServerlessAdapter from "../adapters/serverless";
-import { ServerDomain } from "../domain/types";
-import { AllServerSettingsType } from "../types";
+import { initializeRouters } from "./app/utils";
+import ServerlessAdapter from "./adapters/serverless";
+import { ServerDomain } from "./domain/types";
+import { AllServerSettingsType } from "./types";
 
 export default class Serverless {
   async load(args: {
@@ -17,9 +17,6 @@ export default class Serverless {
     await initializeRouters(args.domains, serverSettings, args.settings, newServerInstance, {
       serverless: {
         generate: true,
-        use: false,
-        getMethod: () => '',
-        getRoute: () => '',
       }
     });
   }
@@ -45,11 +42,11 @@ export default class Serverless {
       initializedAdapter,
       {
         serverless: {
-          generate: false,
-          use: true,
-          getMethod: args.getMethod,
-          getRoute: args.getRoute,
-          requestAndResponseData: args.requestAndResponseData
+          use: {
+            getMethod: args.getMethod,
+            getRoute: args.getRoute,
+            requestAndResponseData: args.requestAndResponseData
+          },
         }
       }
     );

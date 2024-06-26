@@ -17,5 +17,9 @@ export const serverLogger = new Logger(
       category: 'info',
       handler: (args: { method: string; url: string, timePassed: number }) => `\x1b[3m${args.method}\x1b[0m ${args.url} ${args.timePassed}`,
     },
+    SERVERLESS_HANDLER_CREATED: {
+      category: 'info',
+      handler: (args: { method: string; url: string, path: string }) => `Serverless handler created for ${args.method} ${args.url} on \x1b[3m${args.path}\x1b[0m`,
+    },
   }
 );
