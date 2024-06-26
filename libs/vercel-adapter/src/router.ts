@@ -28,7 +28,6 @@ export default serverlessRouterAdapter({
           type: 'Request'
         }],
         adapter: 'VercelServerlessAdapter',
-        ident: 2,
         requestAndResponseData: `{ request: request, response: Response }`,
         getMethodFunctionBody: `request.method`,
         getRouteFunctionBody: `new URL(request.url).pathname`,

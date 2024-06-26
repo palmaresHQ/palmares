@@ -308,7 +308,6 @@ export default class ServerlessRouterAdapter {
         isCJSModule?: boolean;
         isDefaultExport?: boolean;
         functionName: string;
-        ident?: number
         adapter: string
         isSpecificRoute?: boolean;
         isSpecificMethod?: boolean;
@@ -363,7 +362,6 @@ export default class ServerlessRouterAdapter {
             isCJSModule?: boolean;
             isDefaultExport?: boolean;
             functionName: string;
-            ident?: number
             adapter: string
             isSpecificRoute?: boolean;
             isSpecificMethod?: boolean;

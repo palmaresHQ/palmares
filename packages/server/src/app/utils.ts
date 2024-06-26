@@ -527,16 +527,16 @@ export async function* getAllRouters(
                   if (typeof parameter === 'object') return `${parameter.name}: ${parameter.type}`;
                   return parameter;
                 }).join(', ')}) {\n` +
-                `${'  '.repeat((args.ident || 1) - 1)}return Serverless.handleServerless(settings, {\n` +
-                `${'  '.repeat(args.ident || 1)}requestAndResponseData: ${args.requestAndResponseData},\n` +
-                `${'  '.repeat(args.ident || 1)}domainRoutes: ['${routerWithProtected.__domain.name}'],\n` +
-                `${'  '.repeat(args.ident || 1)}getRoute: () => ${args.getRouteFunctionBody},\n` +
-                `${'  '.repeat(args.ident || 1)}serverName: '${serverAdapter.serverName}',\n` +
-                `${'  '.repeat(args.ident || 1)}adapter: ${args.adapter},\n` +
-                `${'  '.repeat(args.ident || 1)}getMethod: () => ${args.getMethodFunctionBody}${args.isSpecificMethod || args.isSpecificRoute ? ',' : ''}\n` +
-                (args.isSpecificMethod ? `${'  '.repeat(args.ident || 1)}method: '${method}',\n` : '') +
-                (args.isSpecificRoute ? `${'  '.repeat(args.ident || 1)}route: '${path}',\n` : '') +
-                `${'  '.repeat((args.ident || 1) - 1)}});\n`+
+                `  return Serverless.handleServerless(settings, {\n` +
+                `    requestAndResponseData: ${args.requestAndResponseData},\n` +
+                `    domainRoutes: ['${routerWithProtected.__domain.name}'],\n` +
+                `    getRoute: () => ${args.getRouteFunctionBody},\n` +
+                `    serverName: '${serverAdapter.serverName}',\n` +
+                `    adapter: ${args.adapter},\n` +
+                `    getMethod: () => ${args.getMethodFunctionBody}${args.isSpecificMethod || args.isSpecificRoute ? ',' : ''}\n` +
+                (args.isSpecificMethod ? `    method: '${method}',\n` : '') +
+                (args.isSpecificRoute ? `    route: '${path}',\n` : '') +
+                `  });\n`+
                 `}\n`+
                 (args.customExport ?
                   args.customExport :
