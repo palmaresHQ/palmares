@@ -15,7 +15,14 @@ export function getSettings() {
  * only run on that runtime and any other.
  */
 async function extractSettingsFromPath(stdToUse: StdLike, path?: string) {
-
+  const pathToUse: string = path || (await stdToUse.files.readFromEnv(PALMARES_SETTINGS_MODULE_ENVIRONMENT_VARIABLE));
+  if (!pathToUse) throw new SettingsNotFoundException();
+  try {
+    const settingsModule = await stdToUse.files.readFile(pathToUse);
+    cachedSettings = ((await import(settingsModule)) as { default: SettingsType2 }).default;
+  } catch (e) {
+    throw new SettingsNotFoundException();
+  }
 }
 
 /**
