@@ -17,9 +17,8 @@ export type OnlyFieldsOfModelType<TModel> = TModel extends {
 
 export type AllFieldsOfModel<TModel> = TModel extends {
   fields: infer TFields;
-  abstracts: infer TAbstracts;
 }
-  ? TFields & AbstractsAsFields<TAbstracts>
+  ? TFields
   : unknown;
 
 /**

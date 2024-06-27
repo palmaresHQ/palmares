@@ -1,12 +1,18 @@
 import { serverlessRouterAdapter } from '@palmares/server';
 
 export default serverlessRouterAdapter({
-  parseHandlers: async (server, fileSystemRootPath, path, handlers, _queryParams, handler404) => {
+  parseHandlers: async (server, _fileSystemRootPath, path, handlers, _queryParams, handler404) => {
     let hasCreatedFile = false;
     for (const [method, handler] of handlers.entries()) {
       if (hasCreatedFile === false) {
         await handler.handler.writeFile({
-          pathOfHandlerFile: ['api'].concat(path.split('/').filter((path) => path !== '')),
+          pathOfHandlerFile: (((server.settings.customServerSettings as any).rootPath as string | undefined) || '')
+            .split('/').filter((path) => path !== '')
+            .concat(path.split('/').filter((path) => path !== ''))
+            .concat((server.settings.customServerSettings as any).fileName ?
+              (server.settings.customServerSettings as any).fileName.split('/') :
+              []
+          ),
           adapter: {
             name: 'VercelServerlessAdapter',
             isDefaultImport: false
@@ -22,6 +28,8 @@ export default serverlessRouterAdapter({
           name: 'request',
           type: 'Request'
         }],
+        isSpecificMethod: true,
+        isSpecificRoute: true,
         adapter: 'VercelServerlessAdapter',
         requestAndResponseData: `{ request: request, response: Response }`,
         getMethodFunctionBody: `request.method`,

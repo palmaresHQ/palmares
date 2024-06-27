@@ -116,15 +116,17 @@ export function serverAdapter<
 
 export default class ServerAdapter {
   serverName: string;
-  settings: AllServerSettingsType;
+  settings: AllServerSettingsType['servers'][string];
+  allSettings: AllServerSettingsType;
   domains: Domain[];
   routers: ServerRouterAdapter = new ServerRouterAdapter();
   request: ServerRequestAdapter = new ServerRequestAdapter();
   response: ServerResponseAdapter = new ServerResponseAdapter();
 
-  constructor(serverName: string, settings: AllServerSettingsType, domains: Domain[]) {
+  constructor(serverName: string, allSettings: AllServerSettingsType, settings: AllServerSettingsType['servers'][string], domains: Domain[]) {
     this.serverName = serverName;
     this.settings = settings;
+    this.allSettings = allSettings;
     this.domains = domains;
   }
 

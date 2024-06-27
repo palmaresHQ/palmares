@@ -12,7 +12,7 @@ export default class Serverless {
   }) {
     const serverEntries = Object.entries(args.settings.servers);
     const [serverName, serverSettings] = serverEntries[serverEntries.length - 1];
-    const newServerInstance = new serverSettings.server(serverName, args.settings, args.domains);
+    const newServerInstance = new serverSettings.server(serverName, args.settings, args.settings.servers[serverName], args.domains);
     await newServerInstance.load(serverName, args.domains, serverSettings);
     await initializeRouters(args.domains, serverSettings, args.settings, newServerInstance, {
       serverless: {
@@ -23,7 +23,7 @@ export default class Serverless {
 
   static async handleServerless(settings: SettingsType2, args: {
     requestAndResponseData: any,
-    domainRoutes: string[],
+    domainRoutes?: string[],
     serverName: string,
     getRoute: () => string,
     route?: string,
@@ -33,8 +33,11 @@ export default class Serverless {
   }) {
     const { domains, settings: formattedSettings } = await initializeDomains(settings);
     const settingsServers = (formattedSettings as any) as AllServerSettingsType;
-    const initializedAdapter = new args.adapter(args.serverName, settingsServers, domains);
-    const domainRoutes = domains.filter((domain) => args.domainRoutes.includes(domain.name));
+    const initializedAdapter = new args.adapter(args.serverName, settingsServers, settingsServers.servers[args.serverName], domains);
+    const domainRoutes = Array.isArray(args.domainRoutes) && args.domainRoutes.length > 0 ?
+      domains.filter((domain) => args.domainRoutes!.includes(domain.name)):
+      domains;
+
     return await initializeRouters(
       domainRoutes,
       settingsServers.servers[args.serverName],

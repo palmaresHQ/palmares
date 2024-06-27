@@ -5,7 +5,7 @@
   "main": "manage.ts",
   "scripts": {
     "serverless": "tsx manage.ts serverless",
-    "test": "tsx ./src/api/test.ts",
+    "test": "tsx ./api/test/route.ts",
     "run": "node ./dist/src/api/test.js",
     "clear": "rimraf ./dist",
     "build": "pnpm run clear && swc . -d ./dist --config-file  ../../build/.commonjs.swcrc --ignore node_modules dist"

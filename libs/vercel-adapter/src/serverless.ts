@@ -8,7 +8,10 @@ export default serverlessAdapter({
   request: new VercelRequestAdapter(),
   response: new VercelResponseAdapter(),
   routers: new VercelRouterAdapter(),
-  customServerSettings: (args: any) => {
+  customServerSettings: (args: {
+    rootPath?: string;
+    fileName?: string;
+  }) => {
     return args;
   },
   load: async (_serverName: string, _domains: any[], _settings: any) => {

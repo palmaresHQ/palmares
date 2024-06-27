@@ -17,8 +17,9 @@ import {
 import Manager, { DefaultManager } from './manager';
 import { getUniqueCustomImports, hashString } from '../utils';
 import { CustomImportsForFieldType, ON_DELETE } from './fields/types';
-import { AutoField, CharField, Field, ForeignKeyField, IntegerField, UuidField } from './fields';
+import { AutoField, CharField, EnumField, Field, ForeignKeyField, IntegerField, UuidField } from './fields';
 import { defaultModelOptions, indirectlyRelatedModels, factoryFunctionForModelTranslate } from './utils';
+import { ExtractFieldsFromAbstracts, ExtractManagersFromAbstracts } from '../types';
 
 export class BaseModel {
   className: string = this.constructor.name;
@@ -581,97 +582,110 @@ export default function model<TModel>() {
 /**
  * Used for creating a model from a function instead of needing to define a class.
  */
-export function initialize<TFields extends ModelFieldsType, TAbstracts extends readonly (typeof Model)[]>(
+export function initialize<
+TFields extends ModelFieldsType,
+const TAbstracts extends readonly ReturnType<typeof model>[],
+TManagers extends {
+  [managerName: string]: {
+      [functionName: string]: (this: Manager<ReturnType<
+        typeof model<{
+          fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
+          options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
+        }>
+      > & {
+        fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
+        options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
+      }>,...args: any) => any;
+    };
+}>(
   modelName: string,
   args: {
     fields: TFields;
-    abstracts?: TAbstracts;
     options?: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
+    abstracts?: TAbstracts;
+    managers?: TManagers;
   }
 ) {
+
+  type ModelFields = TFields & ExtractFieldsFromAbstracts<TAbstracts>;
+  type AllManager = ExtractManagersFromAbstracts<TAbstracts> & {
+    [TManagerName in keyof TManagers]: Manager<ReturnType<
+        typeof model<{
+          fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
+          options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
+        }>
+      > & {
+        fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
+        options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
+      }> & {
+        [TFunctionName in keyof TManagers[TManagerName]]: TManagers[TManagerName][TFunctionName];
+      }
+  };
   class ModelConstructor extends model<ModelConstructor>() {
     static __cachedName = modelName;
     static __cachedOriginalName = modelName;
 
-    fields = args.fields as TFields;
+    fields = args.fields as ModelFields;
     options = args.options as ModelOptionsType<any>;
-    abstracts = args.abstracts as TAbstracts;
   }
+
+  for (const [managerName, managerInstance] of Object.entries(args.managers || {}))
+    (ModelConstructor as any)[managerName] = managerInstance;
 
   return ModelConstructor as unknown as ReturnType<
     typeof model<ModelConstructor & {
-      fields: TFields;
-      abstracts: TAbstracts;
+      fields: ModelFields;
       options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
     }>
-  >;
+  > & {
+    new (): {
+      fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
+      options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
+    }
+  } & AllManager
 }
+
+
 /*
-//class Profile
-export class Contract extends model<Contract>() {
-  fields = {
+const User = initialize('User', {
+  fields: {
     id: AutoField.new(),
-    status: EnumField.new({ isAuto: true, allowNull: true, choices: ['new', 'in_progress', 'terminated'] }),
-    contractorId: ForeignKeyField.new({
-      relatedTo: Profile,
-      onDelete: ON_DELETE.CASCADE,
-      toField: 'id',
-      relatedName: 'contractorContracts',
-      relationName: 'contractor',
-    }),
-    clientId: ForeignKeyField.new({
-      relatedTo: Profile,
-      onDelete: ON_DELETE.CASCADE,
-      toField: 'id',
-      relatedName: 'clientContracts',
-      relationName: 'client',
-    }),
-  };
-
-  options = {
-    tableName: 'contract' as const,
-  } satisfies ModelOptionsType<Contract>;
-}
-
-// Aqui é meu manager, onde armazeno as minhas queries
-class CustomProfileManager extends Manager<Profile> {
-  async getById(id: number) {
-    return this.get({ search: { id: id } });
-  }
-}
-
-export class Profile extends model<Profile>() {
-  fields = {
-    id: AutoField.new(),
-    type: EnumField.new({ isAuto: true, choices: ['client', 'contractor'] }),
-  };
-
-  options = {
-    tableName: 'profile' as const,
-  } satisfies ModelOptionsType<Profile>;
-
-  static custom = new CustomProfileManager();
-}
-
-const ExtendedProfile = Profile.appendFields({
-  profileId: ForeignKeyField.new({
-    relatedTo: Profile,
-    onDelete: ON_DELETE.CASCADE,
-    toField: 'id',
-    relatedName: 'extendedProfiles',
-    relationName: 'profile',
-  }),
+    username: CharField.new({ maxLength: 255 }),
+    password: CharField.new({ maxLength: 255 }),
+  },
+  options: {
+    tableName: 'user' as const,
+  },
+  managers: {
+    auth: {
+      async authorize(login: string, password: string): Promise<boolean> {
+        return true;
+      }
+    }
+  },
 });
 
-ExtendedProfile.default.get({
-  search: {
-    extendedProfiles: {
-      id: {},
-    },
+const ExtendedUser = initialize('ExtendedUser', {
+  fields: {
+    name: CharField.new({ maxLength: 255 }),
+    age: IntegerField.new({ allowNull: true }),
+    uuid: UuidField.new(),
   },
-  includes: [
-    {
-      model: ExtendedProfile,
-    },
-  ],
-});*/
+  options: {
+    tableName: 'extended_profile' as const,
+  },
+  abstracts: [User],
+  managers: {
+    custom: {
+      getById(name: string) {
+        return this.get({
+          fields: ['id']
+        });
+      }
+    }
+  },
+});
+
+
+ExtendedUser.auth.authorize()
+*/

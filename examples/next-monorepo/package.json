@@ -1,0 +1,8 @@
+{
+  "name": "@examples/next-monorepo",
+  "version": "0.0.1",
+  "description": "testing the serverless vercel on a next app",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

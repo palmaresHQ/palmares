@@ -6,7 +6,7 @@ import ServerResponseAdapter from '../response';
 import type ServerlessAdapter from '../serverless';
 import type ServerRequestAdapter from '../requests';
 
-type HandlerForServerless = {
+export type HandlerForServerless = {
   writeFile: (args: {
     pathOfHandlerFile: string[],
     /** This is the name of your current package as on package.json the import like: `import ${name} from ${projectName}` */
@@ -43,7 +43,6 @@ type HandlerForServerless = {
  */
 export function serverlessRouterAdapter<
   TParseRouteFunction extends ServerlessRouterAdapter['parseRoute'],
-  TParseHandlerFunction extends ServerlessRouterAdapter['parseHandler'],
   TParseHandlersFunction extends ServerlessRouterAdapter['parseHandlers'],
   TLoad404Function extends ServerlessRouterAdapter['load404'],
 >(args: {
@@ -94,37 +93,6 @@ export function serverlessRouterAdapter<
    * {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods.
    */
   load404: TLoad404Function;
-  /**
-   * Usually {@link parseHandlers()} is preferred, but if your framework supports all methods from the {@link MethodTypes} enum, you can use this method instead.
-   * This method is used to parse one handler at a time.
-   *
-   * IMPORTANT: Don't forget to handle the `all` method, so it can be used to accept all methods.
-   *
-   * @example
-   * ```ts
-   * parseHandler(server, path, method, handler, queryParams) {
-   *   const initializedServer = servers.get(server.serverName)?.server;
-   *   if (initializedServer) {
-   *     initializedServer[method](path, (req: Request, res: Response) => {
-   *       const serverRequestAndResponseData = {
-   *         req,
-   *         res,
-   *       };
-   *       handler(serverRequestAndResponseData);
-   *     });
-   *   }
-   * },
-   * ```
-   *
-   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
-   * @param _path - The retrieved by calling {@link parseRoute()} method.
-   * @param _method - The method to be used.
-   * @param _handler - The handler is a simple callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of
-   * {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods. What you return on {@link ServerResponseAdapter.redirect} or {@link ServerResponseAdapter.send} will be
-   * the return value of this method.
-   * @param _queryParams - The query params so you can parse it and validate as you wish.
-   */
-  parseHandler?: TParseHandlerFunction;
   /**
    * Use this method if you want to parse all handlers at once. Parse all handlers at once is ofter useful if your framework doesn't support the same methods as us. With this
    * method you can loop through each handler and parse it or you can listen to all methods and parse them during the request/response lifecycle.
@@ -194,7 +162,6 @@ export function serverlessRouterAdapter<
 }) {
   class CustomServerRouterAdapter extends ServerlessRouterAdapter {
     parseRoute = args.parseRoute as TParseRouteFunction;
-    parseHandler = args.parseHandler as TParseHandlerFunction;
     parseHandlers = args.parseHandlers as TParseHandlersFunction;
     load404 = args.load404 as TLoad404Function;
   }
@@ -202,7 +169,6 @@ export function serverlessRouterAdapter<
   return CustomServerRouterAdapter as {
     new (): ServerlessRouterAdapter & {
       parseRoute: TParseRouteFunction;
-      parseHandler: TParseHandlerFunction;
       parseHandlers: TParseHandlersFunction;
       load404: TLoad404Function;
     };
@@ -302,28 +268,6 @@ export default class ServerlessRouterAdapter {
     _partOfPath: string,
     _urlParamType?: Parameters<BaseRouter['__urlParamsAndPath']['params']['set']>[1]
   ): string | undefined {
-    return undefined;
-  }
-
-  /**
-   * Usually {@link parseHandlers()} is preferred, but if your framework supports all methods from the {@link MethodTypes} enum, you can use this method instead.
-   * This method is used to parse one handler at a time.
-   *
-   * IMPORTANT: Don't forget to handle the `all` method, so it can be used to accept all methods.
-   *
-   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
-   * @param _path - The retrieved by calling {@link parseRoute()} method.
-   * @param _method - The method to be used.
-   * @param _queryParams - The query params so you can parse it and validate as you wish.
-   */
-  async parseHandler(
-    _server: ServerlessAdapter,
-    _path: string,
-    _method: MethodTypes | 'all',
-    _handler: HandlerForServerless,
-    _options: RouterOptionsType['customRouterOptions'],
-    _queryParams: BaseRouter['__queryParamsAndPath']['params']
-  ) {
     return undefined;
   }
 

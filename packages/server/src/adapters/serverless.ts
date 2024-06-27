@@ -1,5 +1,5 @@
 import { Domain } from '@palmares/core';
-import { AllServerSettingsType, ServersSettingsType } from '../types';
+import { AllServerSettingsType, ServerSettingsType, ServersSettingsType } from '../types';
 import ServerRequestAdapter from './requests';
 import ServerResponseAdapter from './response';
 import ServerlessRouterAdapter from './routers/serverless';
@@ -54,22 +54,24 @@ export function serverlessAdapter<
 
 export default class ServerlessAdapter {
   serverName: string;
-  settings: AllServerSettingsType;
+  settings: ServerSettingsType;
+  allSettings: AllServerSettingsType;
   domains: Domain[];
   routers: ServerlessRouterAdapter = new ServerlessRouterAdapter();
   request: ServerRequestAdapter = new ServerRequestAdapter();
   response: ServerResponseAdapter = new ServerResponseAdapter();
 
-  constructor(serverName: string, settings: AllServerSettingsType, domains: Domain[]) {
+  constructor(serverName: string, allSettings:AllServerSettingsType,  settings: AllServerSettingsType['servers'][string], domains: Domain[]) {
     this.serverName = serverName;
     this.settings = settings;
+    this.allSettings = allSettings;
     this.domains = domains;
   }
 
   async load(
     _serverName: string,
     _domains: Domain[],
-    _settings: ServersSettingsType['servers'][string]
+    _settings: AllServerSettingsType['servers'][string]
   ): Promise<void> {
     return undefined;
   }
@@ -78,7 +80,7 @@ export default class ServerlessAdapter {
     return undefined;
   }
 
-  static customServerSettings(args: ServersSettingsType['servers'][string]['customServerSettings']) {
+  static customServerSettings(args: AllServerSettingsType['servers'][string]['customServerSettings']) {
     return args;
   }
 }

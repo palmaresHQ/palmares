@@ -7,7 +7,7 @@ import ConsoleLogging from '@palmares/console-logging';
 import ServerDomain, { Response } from '@palmares/server';
 
 import TestDomain from './test';
-
+import AuthDomain from './auth';
 import { dirname, resolve } from 'path';
 
 export default defineSettings({
@@ -40,6 +40,9 @@ export default defineSettings({
         servers: {
           default: {
             server: VercelServerlessAdapter,
+            customServerSettings: VercelServerlessAdapter.customServerSettings({
+              fileName: 'route'
+            }),
             validation: {
               handler: () => {
                 return Response.json({ message: 'query params invalid' });
@@ -61,5 +64,6 @@ export default defineSettings({
     ],
     // We have just created this custom domain, and it defines our routes.
     TestDomain,
+    AuthDomain,
   ],
 });
