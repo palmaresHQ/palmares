@@ -43,8 +43,8 @@ function getSchemaFromModelField(field: Field<any, any, any, any, any, any, any,
 
 export function modelObject<
   TModel extends ReturnType<typeof Model>,
-  const TOmit extends readonly (keyof ModelFields<InstanceType<TModel>>)[],
-  const TShow extends readonly (keyof ModelFields<InstanceType<TModel>>)[],
+  const TOmit extends readonly (keyof ModelFields<InstanceType<TModel>>)[] | undefined[] = undefined[],
+  const TShow extends readonly (keyof ModelFields<InstanceType<TModel>>)[] | undefined[] = undefined[],
   TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> | undefined = undefined,
   TAllModelFields = ModelFields<InstanceType<TModel>>,
 >(model: TModel, options?: {
@@ -76,8 +76,8 @@ export function modelObject<
   }
 
   type FieldsOnModel =
-    TOmit extends never
-      ? TShow extends never
+    TOmit extends undefined[]
+      ? TShow extends undefined[]
         ? TAllModelFields
         : Pick<
             TAllModelFields,
@@ -151,22 +151,32 @@ export function modelObject<
   }, DefinitionsOfSchemaType, Record<any, any>>;
 }
 
+
+
+
+
+
+
+
 class User extends Model<User>() {
   fields = {
     id: auto(),
     name: choice({ choices: ['a', 'b', 'c'] }),
-    email: text()
+    email: text(),
+    newField: text()
   }
 }
+
+
+
+
 const userSchema = modelObject(User, {
-  omit: ['id']
+  show: ['id', 'email']
 })
 
 const main = async () => {
   const data = await userSchema.data({
     email: 'test',
-    name: 'a'
+    id: 1,
   });
-
-  data
 }
