@@ -232,9 +232,10 @@ export type ValidationDataBasedOnType<TType> = TType extends 'number'
 
 export type ErrorCodes =
   | 'max'
-  | 'allowNegative'
-  | 'allowPositive'
   | 'negative'
+  | 'positive'
+  | 'maxDigits'
+  | 'decimalPlaces'
   | 'min'
   | 'integer'
   | 'required'

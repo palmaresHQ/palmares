@@ -31,6 +31,7 @@ export type ModelIndexType<TFields> = {
 type OrderingOfModelOptions<TFields> =
   | `-${TFields extends readonly any[] ? TFields[number] : never}`[]
   | TFields
+  | string[];
 
 export type ExtractFieldNames<TFieldsAndAbstracts, TModelAbstracts> = TFieldsAndAbstracts extends {
   fields: infer TFields;

@@ -2,7 +2,7 @@ import { FieldAdapter, BooleanFieldAdapter, BooleanAdapterTranslateArgs, SchemaA
 import * as z from 'zod';
 
 export default class ZodBooleanFieldSchemaAdapter extends BooleanFieldAdapter<z.ZodBoolean> {
-  translate(fieldAdapter: FieldAdapter<any>, args: BooleanAdapterTranslateArgs) {
+  translate(fieldAdapter: FieldAdapter, args: BooleanAdapterTranslateArgs) {
     let result = z.boolean();
 
     result = fieldAdapter.translate(fieldAdapter, args, result);
@@ -10,7 +10,7 @@ export default class ZodBooleanFieldSchemaAdapter extends BooleanFieldAdapter<z.
     return args.withFallback(['falseValues', 'trueValues'], result);
   }
 
-  async parse(_adapter: any,_fieldAdapter: FieldAdapter<any>, result: z.ZodObject<any>, value: any, _args: BooleanAdapterTranslateArgs) {
+  async parse(_adapter: any,_fieldAdapter: FieldAdapter, result: z.ZodObject<any>, value: any, _args: BooleanAdapterTranslateArgs) {
     try {
       const parsed = result.safeParse(value);
       return { errors: undefined, parsed: parsed.success ? parsed.data : undefined };

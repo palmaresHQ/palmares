@@ -4,6 +4,7 @@
     "declarationMap": true, /* go to js file when using IDE functions like. "Go to Definition" in VSCode */
     "emitDeclarationOnly": true,
     "allowJs": true,
+    "incremental": true,
     "outDir": "./dist/cjs",
     "preserveSymlinks": true,
     "target": "ES2020",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */

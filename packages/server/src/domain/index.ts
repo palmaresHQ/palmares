@@ -45,7 +45,6 @@ export default domain('@palmares/server', __dirname, {
           settings: settings as any,
           domains,
         });
-
       },
     }
   },

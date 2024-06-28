@@ -46,6 +46,7 @@ export default class Schema<
       options: Parameters<Schema['__transformToAdapter']>[0]
     ) => ReturnType<Schema['__validateByAdapter']>
   > = new Map();
+  protected __runBeforeParseAndData?: (self: any) => Promise<void>
   protected __rootFallbacksValidator!: Validator;
   protected __saveCallback?: (value: any) => Promise<any | void> | any | void;
   protected __parsers: Record<

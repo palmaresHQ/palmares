@@ -8,7 +8,7 @@ import {
 import * as z from 'zod';
 
 export default class ZodNumberFieldSchemaAdapter extends NumberAdapter<z.ZodNumber> {
-  translate(fieldAdapter: FieldAdapter<any>, args: NumberAdapterTranslateArgs) {
+  translate(fieldAdapter: FieldAdapter, args: NumberAdapterTranslateArgs) {
     let result = z.number();
     /**if (args.max) {
       if (args.max.inclusive) result = result.lte(args.max.value, args.max.message);
@@ -25,7 +25,7 @@ export default class ZodNumberFieldSchemaAdapter extends NumberAdapter<z.ZodNumb
     return args.withFallback(['max'], result);
   }
 
-  async parse(_adapter: SchemaAdapter, _fieldAdapter: FieldAdapter<any>, result: z.ZodNumber, value: any) {
+  async parse(_adapter: SchemaAdapter, _fieldAdapter: FieldAdapter, result: z.ZodNumber, value: any) {
     try {
       const parsed = result.safeParse(value);
       return { errors: undefined, parsed };
@@ -35,7 +35,7 @@ export default class ZodNumberFieldSchemaAdapter extends NumberAdapter<z.ZodNumb
     }
   }
 
-  async toString(adapter: SchemaAdapter, fieldAdapter: FieldAdapter<any>, args: NumberAdapterToStringArgs) {
+  async toString(adapter: SchemaAdapter, fieldAdapter: FieldAdapter, args: NumberAdapterToStringArgs) {
     let result = `z.number()`;
     if (args.max) {
       if (args.max.inclusive) result += `.lte(${args.max.value}, ${args.max.message})`;

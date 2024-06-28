@@ -4,14 +4,41 @@ import { AdapterToStringArgs, AdapterTranslateArgs, ErrorCodes } from '../types'
 import WithFallback from '../../utils';
 import { SupportedSchemas } from '../../types';
 
-export default class FieldAdapter<TResult = any> {
-  translate(_fieldAdapter: FieldAdapter<any>, _args: AdapterTranslateArgs<SupportedSchemas>, _base?: any): any | WithFallback<SupportedSchemas> {
+export function fieldAdapter<
+  TTranslate extends FieldAdapter['translate'],
+  TToString extends FieldAdapter['toString'],
+  TFormatError extends FieldAdapter['formatError'],
+  TParse extends FieldAdapter['parse']
+>(args: {
+  translate: TTranslate;
+  toString?: TToString;
+  formatError?: TFormatError;
+  parse?: TParse;
+}) {
+  class CustomFieldAdapter extends FieldAdapter {
+    translate = args.translate as TTranslate;
+    toString = args.toString as TToString;
+    formatError = args.formatError as TFormatError;
+    parse = args.parse as TParse;
+  }
+
+  return CustomFieldAdapter as typeof FieldAdapter & {
+    new (): FieldAdapter & {
+      translate: TTranslate;
+      toString: TToString;
+      formatError: TFormatError;
+      parse: TParse;
+    }
+  }
+}
+export default class FieldAdapter {
+  translate(_fieldAdapter: FieldAdapter, _args: AdapterTranslateArgs<SupportedSchemas>, _base?: any): any | WithFallback<SupportedSchemas> {
     throw new SchemaAdapterNotImplementedError({ className: this.constructor.name, functionName: 'translate' });
   }
 
   parse(
     _adapter: SchemaAdapter,
-    _fieldAdapter: FieldAdapter<any>,
+    _fieldAdapter: FieldAdapter,
     _result: any,
     _value: any,
     _args: Omit<AdapterTranslateArgs<SupportedSchemas>, 'withFallback'>,
@@ -21,7 +48,7 @@ export default class FieldAdapter<TResult = any> {
 
   toString(
     _adapter: SchemaAdapter,
-    _fieldAdapter: FieldAdapter<any>,
+    _fieldAdapter: FieldAdapter,
     _args: AdapterToStringArgs,
     _base?: any
   ): Promise<string> {
@@ -30,7 +57,7 @@ export default class FieldAdapter<TResult = any> {
 
   async formatError(
     _adapter: SchemaAdapter,
-    _fieldAdapter: FieldAdapter<any>,
+    _fieldAdapter: FieldAdapter,
     _error: any,
     _metadata?: any
   ): Promise<{

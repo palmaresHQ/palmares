@@ -35,7 +35,12 @@ export default appServer({
     for (const [serverName, serverSettings] of serverEntries) {
       const serverWasNotInitialized = !serverInstances.has(serverName);
       if (serverWasNotInitialized) {
-        const newServerInstance = new serverSettings.server(serverName, args.settings, args.domains);
+        const newServerInstance = new serverSettings.server(
+          serverName,
+          args.settings,
+          args.settings.servers[serverName],
+          args.domains
+        );
         serverInstances.set(serverName, { server: newServerInstance, settings: serverSettings });
         await newServerInstance.load(serverName, args.domains, serverSettings);
         await initializeRouters(args.domains, serverSettings, args.settings, newServerInstance);

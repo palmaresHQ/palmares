@@ -41,7 +41,8 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
-    "@palmares/core": "workspace:*"
+    "@palmares/core": "workspace:*",
+    "@palmares/databases": "workspace: *"
   },
   "devDependencies": {
     "@palmares/std": "workspace:*"

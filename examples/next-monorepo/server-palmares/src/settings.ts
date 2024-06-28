@@ -1,5 +1,6 @@
 import CoreDomain, { defineSettings } from '@palmares/core';
 import { VercelServerlessAdapter } from '@palmares/vercel-adapter';
+//import { ExpressServerAdapter } from '@palmares/express-adapter'
 import StdDomain from '@palmares/std';
 import NodeStd from '@palmares/node-std';
 import LoggingDomain from '@palmares/logging';
@@ -41,7 +42,7 @@ export default defineSettings({
           default: {
             server: VercelServerlessAdapter,
             customServerSettings: VercelServerlessAdapter.customServerSettings({
-              fileName: 'api/route'
+              fileName: 'route'
             }),
             serverlessFolderLocation: '../next-client-app/src/app',
             validation: {

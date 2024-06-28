@@ -1,6 +1,6 @@
 import { Serverless } from '@palmares/server';
 import { VercelServerlessAdapter } from '@palmares/vercel-adapter';
-import settings from '../../../../../../../../server-palmares/src/settings';
+import settings from '../../../../server-palmares/src/settings';
 
 async function GET(request: Request) {
   return Serverless.handleServerless(settings, {
@@ -9,9 +9,6 @@ async function GET(request: Request) {
     serverName: 'default',
     adapter: VercelServerlessAdapter,
     getMethod: () => request.method,
-    method: 'get',
-    route: '/test/<id: string>/customers/<customerId: number>',
-    domainRoutes: [test]
   });
 }
 export { GET };

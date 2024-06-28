@@ -7,6 +7,7 @@ import {
   onSetFunction,
   onRemoveFunction,
   ModelType,
+  ModelFields,
 } from './types';
 import {
   ModelCircularAbstractError,
@@ -17,7 +18,7 @@ import {
 import Manager, { DefaultManager } from './manager';
 import { getUniqueCustomImports, hashString } from '../utils';
 import { CustomImportsForFieldType, ON_DELETE } from './fields/types';
-import { AutoField, CharField, EnumField, Field, ForeignKeyField, IntegerField, UuidField } from './fields';
+import { AutoField, CharField, EnumField, Field, ForeignKeyField, IntegerField, TextField, UuidField, auto, choice, text } from './fields';
 import { defaultModelOptions, indirectlyRelatedModels, factoryFunctionForModelTranslate } from './utils';
 import { ExtractFieldsFromAbstracts, ExtractManagersFromAbstracts } from '../types';
 
@@ -553,7 +554,7 @@ export class Model extends BaseModelWithoutMethods {
 export default function model<TModel>() {
   let defaultManagerInstance: any = null;
 
-  const classToReturn = class DefaultModel extends Model {
+  class DefaultModel extends Model {
     static get default() {
       if (defaultManagerInstance === null) {
         defaultManagerInstance = new DefaultManager<TModel extends DefaultModel ? TModel : any>();
@@ -576,7 +577,9 @@ export default function model<TModel>() {
     }
   };
 
-  return classToReturn;
+  return DefaultModel as unknown as typeof DefaultModel & {
+    new (): DefaultModel
+  };
 }
 
 /**
@@ -644,48 +647,3 @@ TManagers extends {
     }
   } & AllManager
 }
-
-
-/*
-const User = initialize('User', {
-  fields: {
-    id: AutoField.new(),
-    username: CharField.new({ maxLength: 255 }),
-    password: CharField.new({ maxLength: 255 }),
-  },
-  options: {
-    tableName: 'user' as const,
-  },
-  managers: {
-    auth: {
-      async authorize(login: string, password: string): Promise<boolean> {
-        return true;
-      }
-    }
-  },
-});
-
-const ExtendedUser = initialize('ExtendedUser', {
-  fields: {
-    name: CharField.new({ maxLength: 255 }),
-    age: IntegerField.new({ allowNull: true }),
-    uuid: UuidField.new(),
-  },
-  options: {
-    tableName: 'extended_profile' as const,
-  },
-  abstracts: [User],
-  managers: {
-    custom: {
-      getById(name: string) {
-        return this.get({
-          fields: ['id']
-        });
-      }
-    }
-  },
-});
-
-
-ExtendedUser.auth.authorize()
-*/

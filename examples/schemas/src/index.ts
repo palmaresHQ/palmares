@@ -7,26 +7,40 @@ setDefaultAdapter(new ZodSchemaAdapter());
 const p = getSchemasWithDefaultAdapter<ZodSchemaAdapter>();
 
 
+const userSchema = p.object(User)
 const main = async () => {
-
   const testSchema = p.object({
-    test1: p.object({
-      isTest: p.boolean().trueValues(['hey', 1]),
-      name: p.string().omit(),
-      password: p.string(),
-    })
+    companyId: p.number().toRepresentation(async (value) => {
+      const company = await prisma.company.findOne({ where: { id: value } });
+      return company as unknown as {
+        id: string;
+        name: string;
+      }
+    }),
+    name: p.string().omit(),
+    password: p.string()
+  }).toRepresentation(async (value) => {
+    return {
+      ...value,
+      company: value.companyId
+    } as Omit<typeof value, 'companyId'> & { company: Pick<typeof value, 'companyId'>['companyId'] }
+  }).onSave(async (value) => {
+    return value;
   });
 
+  const resultOfValidation = await testSchema.validate({
+    companyId: 1,
+    name: 'Bruno',
+    password: '123456',
+  });
 
-  const value = await testSchema.data({
-    test1: {
-      isTest: 'hey',
-      name: 'Bruno',
-      password: '123456',
-    }
-  })
+  if (resultOfValidation.isValid) {
+    return Response.json(resultOfValidation.save())
+  }
 
-  console.log(value.test1.name);
+  resultOfValidation.
+
+
   /*const value = await testSchema.data({
     test: {
       isTest: 'hey',

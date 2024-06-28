@@ -357,6 +357,9 @@ importers:
       '@palmares/core':
         specifier: workspace:*
         version: link:../../../packages/core
+      '@palmares/express-adapter':
+        specifier: workspace:*
+        version: link:../../../libs/express-adapter
       '@palmares/logging':
         specifier: workspace:*
         version: link:../../../packages/logging
@@ -633,23 +636,13 @@ importers:
       '@palmares/core':
         specifier: workspace:*
         version: link:../core
+      '@palmares/databases':
+        specifier: 'workspace: *'
+        version: link:../databases
     devDependencies:
       '@palmares/std':
         specifier: workspace:*
         version: link:../std
-
-  packages/serializers:
-    dependencies:
-      '@palmares/core':
-        specifier: workspace:*
-        version: link:../core
-      '@palmares/databases':
-        specifier: workspace:*
-        version: link:../databases
-    devDependencies:
-      typescript:
-        specifier: ^5.3.3
-        version: 5.4.3
 
   packages/server:
     dependencies:
@@ -668,12 +661,6 @@ importers:
       '@palmares/core':
         specifier: workspace:*
         version: link:../core
-
-  packages/websockets:
-    devDependencies:
-      typescript:
-        specifier: ^5.3.3
-        version: 5.4.3
 
 packages:
 

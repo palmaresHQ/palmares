@@ -5,12 +5,41 @@ import type SchemaAdapter from '..';
 import type { UnionAdapterTranslateArgs } from '../types';
 import type WithFallback from '../../utils';
 
-export default class UnionFieldAdapter<TResult = any> extends FieldAdapter<TResult> {
-  translate(_fieldAdapter: FieldAdapter<any>, _args: UnionAdapterTranslateArgs): any | WithFallback<'union'> {}
+
+export function unionFieldAdapter<
+  TTranslate extends UnionFieldAdapter['translate'],
+  TToString extends UnionFieldAdapter['toString'],
+  TFormatError extends UnionFieldAdapter['formatError'],
+  TParse extends UnionFieldAdapter['parse']
+>(args: {
+  translate: TTranslate;
+  toString?: TToString;
+  formatError?: TFormatError;
+  parse?: TParse;
+}) {
+  class CustomUnionFieldAdapter extends UnionFieldAdapter {
+    translate = args.translate as TTranslate;
+    toString = args.toString as TToString;
+    formatError = args.formatError as TFormatError;
+    parse = args.parse as TParse;
+  }
+
+  return CustomUnionFieldAdapter as typeof UnionFieldAdapter & {
+    new (): UnionFieldAdapter & {
+      translate: TTranslate;
+      toString: TToString;
+      formatError: TFormatError;
+      parse: TParse;
+    }
+  }
+}
+
+export default class UnionFieldAdapter extends FieldAdapter {
+  translate(_fieldAdapter: FieldAdapter, _args: UnionAdapterTranslateArgs): any | WithFallback<'union'> {}
 
   parse(
     _adapter: SchemaAdapter,
-    _fieldAdapter: FieldAdapter<any>,
+    _fieldAdapter: FieldAdapter,
     _result: any,
     _value: any,
     _args: UnionAdapterTranslateArgs

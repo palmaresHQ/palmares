@@ -520,21 +520,7 @@ type AbstractsAsFields<
           TRelationsToIgnore,
           TIsCreateOrUpdate,
           TIsForSearch
-        > &
-        AbstractsAsFields<
-          InstanceType<TAbstract> extends {
-            abstracts: infer TAbstractsOfAbstract;
-          }
-            ? TAbstractsOfAbstract
-            : [],
-          TFieldsToConsider,
-          TRelationsToIgnore,
-          TIsCreateOrUpdate,
-          TIsForSearch
-        > &
-        (TRestAbstracts extends readonly any[]
-          ? AbstractsAsFields<TRestAbstracts, TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch>
-          : unknown)
+        >
     : unknown
   : unknown;
 
@@ -545,14 +531,7 @@ type BaseModelFieldsInQueries<
   TIsCreateOrUpdate extends boolean = false,
   TIsForSearch extends boolean = false,
 > = OptionalFields<TModel, TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch> &
-  RequiredFields<TModel, TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch> &
-  AbstractsAsFields<
-    TModel extends { abstracts: infer TAbstracts } ? TAbstracts : [],
-    TFieldsToConsider,
-    TRelationsToIgnore,
-    TIsCreateOrUpdate,
-    TIsForSearch
-  >;
+  RequiredFields<TModel, TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch>
 
 export type ModelFieldsInQueries<
   TModel,

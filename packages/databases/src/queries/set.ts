@@ -104,11 +104,7 @@ export default async function setQuery<
         undefined,
         undefined,
         false,
-        (allResultsOfSearch.length > 0 ? allResultsOfSearch : undefined) as ModelFieldsWithIncludes<
-          TModel,
-          TIncludes,
-          FieldsOFModelType<TModel>
-        >,
+        (allResultsOfSearch.length > 0 ? allResultsOfSearch : undefined) as any,
         data as TData,
         args.isToPreventEvents,
         transaction,

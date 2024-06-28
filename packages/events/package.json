@@ -2,10 +2,28 @@
   "name": "@palmares/events",
   "version": "0.0.1",
   "description": "This is the events framework for palmares, it's responsible for handling everything that is Pub/Sub like websockets, pub/sub like redis, and other types of asynchronous background tasks",
-  "main": "src/index.ts",
+  "main": "./dist/cjs/src/index.js",
+  "module": "./dist/esm/src/index.js",
+  "types": "./dist/cjs/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/cjs/types/index.d.ts",
+      "node": "./dist/cjs/src/index.js",
+      "require": "./dist/cjs/src/index.js",
+      "import": "./dist/esm/src/index.js",
+      "default": "./dist/esm/src/index.js"
+    }
+  },
   "scripts": {
-    "start": "tsx src/events/index.ts",
-    "test": "tsx src/test.ts"
+    "clear": "rimraf ./dist",
+    "build:types": "tsc --project tsconfig.types.json",
+    "build:cjs": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc",
+    "build:module": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc",
+    "build": "pnpm run clear && pnpm run build:cjs && pnpm run build:module && pnpm run build:types",
+    "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
+    "build:cjs:watch": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc --watch",
+    "build:module:watch": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc --watch",
+    "build:watch": "pnpm run build:cjs:watch & pnpm run build:module:watch & pnpm run build:types:watch"
   },
   "repository": {
     "type": "git",

@@ -5,6 +5,7 @@
   "main": "manage.ts",
   "scripts": {
     "serverless": "tsx manage.ts serverless",
+    "runserver": "tsx manage.ts runserver",
     "test": "tsx ./api/test/route.ts",
     "run": "node ./dist/src/api/test.js",
     "clear": "rimraf ./dist",
@@ -18,6 +19,7 @@
     "@palmares/logging": "workspace:*",
     "@palmares/core": "workspace:*",
     "@palmares/vercel-adapter": "workspace:*",
+    "@palmares/express-adapter": "workspace:*",
     "@palmares/node-std": "workspace:*",
     "@palmares/server": "workspace:*",
     "@palmares/std": "workspace:*",

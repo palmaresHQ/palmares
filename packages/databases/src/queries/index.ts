@@ -1221,15 +1221,7 @@ export default async function getResultsWithIncludes<
           includesForGet.ordering,
           includesForGet.limit,
           includesForGet.offset,
-          dataToAdd as ModelFieldsWithIncludes<
-            TModel,
-            TIncludes,
-            FieldsOFModelType<TModel>,
-            true,
-            false,
-            TSearch extends undefined ? false : true,
-            false
-          >,
+          dataToAdd as any,
           isToPreventEvents,
           transaction,
           palmaresTransaction

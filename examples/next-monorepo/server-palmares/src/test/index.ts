@@ -6,6 +6,6 @@ export default domain('test', __dirname, {
   getRoutes: () =>
     path('/test/api')
       .get(async () => {
-        return Response.json({ message: 'Hello Serverless!' });
+        return Response.json({ message: 'Olá 321!' });
       })
 });

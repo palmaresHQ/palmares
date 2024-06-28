@@ -6,6 +6,8 @@
   "scripts": {
     "seed": "tsx manage.ts seedDb",
     "help": "tsx manage.ts help",
+    "clear": "rimraf ./dist",
+    "help:prod": "node ./dist/manage.js help",
     "helloWorld": "tsx manage.ts helloWorld Nicolas",
     "dev": "nodemon --watch 'src/' --watch '../../packages/*/dist/**' --watch '../../libs/*/dist/**' --exec ' tsx manage.ts runserver' -e ts",
     "makemigrations": "tsx manage.ts makemigrations",

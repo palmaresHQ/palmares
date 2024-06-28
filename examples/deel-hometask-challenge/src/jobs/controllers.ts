@@ -1,9 +1,11 @@
 import { Response, pathNested } from '@palmares/server';
+import { getSettings } from '@palmares/core';
 
 import { getUnpaidJobs, payJobId } from './services';
 
 import type { unpaidJobsRouter, payJobIdRouter } from './routes';
 
+const settings = getSettings();
 export const unpaidJobsController = pathNested<typeof unpaidJobsRouter>()().get(async (request) => {
   // haven't defined any type, where does this comes from?
   const contract = await getUnpaidJobs(request.context.profile.id);

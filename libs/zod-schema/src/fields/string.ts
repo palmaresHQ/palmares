@@ -3,7 +3,7 @@ import { StringFieldAdapter, FieldAdapter, StringAdapterTranslateArgs } from '@p
 import * as z from 'zod';
 
 export default class ZodStringFieldSchemaAdapter extends StringFieldAdapter<z.ZodNumber> {
-  async translate(fieldAdapter: FieldAdapter<any>, args: StringAdapterTranslateArgs) {
+  async translate(fieldAdapter: FieldAdapter, args: StringAdapterTranslateArgs) {
     const result = z.string();
     return result;
   }

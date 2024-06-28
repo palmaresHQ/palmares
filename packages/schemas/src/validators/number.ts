@@ -107,3 +107,72 @@ export function negative(args: NumberSchema['__allowNegative']): ValidationFallb
     },
   };
 }
+
+export function positive(args: NumberSchema['__allowPositive']): ValidationFallbackReturnType {
+  return {
+    type: 'low',
+    callback: async (value: any, path?: (string | number)[]) => {
+      const isValid = args.allowZero ? value > 0 : value >= 0;
+
+      return {
+        parsed: value,
+        errors: isValid
+          ? []
+          : [
+              {
+                isValid: isValid,
+                message: args.message,
+                code: 'positive',
+                path: path || [],
+              },
+            ],
+      };
+    },
+  };
+}
+
+export function maxDigits(args: NumberSchema['__maxDigits']): ValidationFallbackReturnType {
+  return {
+    type: 'low',
+    callback: async (value: any, path?: (string | number)[]) => {
+      const isValid = value.toString().replace('.', '').length <= args.value;
+
+      return {
+        parsed: value,
+        errors: isValid
+          ? []
+          : [
+              {
+                isValid: isValid,
+                message: args.message,
+                code: 'maxDigits',
+                path: path || [],
+              },
+            ],
+      };
+    },
+  };
+}
+
+export function decimalPlaces(args: NumberSchema['__decimalPlaces']): ValidationFallbackReturnType {
+  return {
+    type: 'low',
+    callback: async (value: any, path?: (string | number)[]) => {
+      const isValid = value.toString().split('.')[1]?.length <= args.value;
+
+      return {
+        parsed: value,
+        errors: isValid
+          ? []
+          : [
+              {
+                isValid: isValid,
+                message: args.message,
+                code: 'decimalPlaces',
+                path: path || [],
+              },
+            ],
+      };
+    },
+  };
+}

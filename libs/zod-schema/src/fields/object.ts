@@ -9,12 +9,12 @@ import {
 import * as z from 'zod';
 
 export default class ZodObjectFieldSchemaAdapter extends ObjectFieldAdapter<z.ZodObject<any>> {
-  translate(fieldAdapter: FieldAdapter<any>, args: ObjectAdapterTranslateArgs) {
+  translate(fieldAdapter: FieldAdapter, args: ObjectAdapterTranslateArgs) {
     let result = fieldAdapter.translate(fieldAdapter, args, z.object(args.data));
     return result;
   }
 
-  async parse(_adapter: any,_fieldAdapter: FieldAdapter<any>, result: z.ZodObject<any>, value: any, _args: ObjectAdapterTranslateArgs) {
+  async parse(_adapter: any,_fieldAdapter: FieldAdapter, result: z.ZodObject<any>, value: any, _args: ObjectAdapterTranslateArgs) {
     try {
       const parsed = await result.parseAsync(value, { });
       return { errors: null, parsed };
@@ -24,13 +24,13 @@ export default class ZodObjectFieldSchemaAdapter extends ObjectFieldAdapter<z.Zo
     }
   }
 
-  formatError(_adapter:SchemaAdapter, _fieldAdapter: FieldAdapter<any>, error: any, _metadata?: any): Promise<{ message: string; path: (string | number)[]; code: ErrorCodes; }> {
+  formatError(_adapter:SchemaAdapter, _fieldAdapter: FieldAdapter, error: any, _metadata?: any): Promise<{ message: string; path: (string | number)[]; code: ErrorCodes; }> {
     return error
   }
 
   async toString(
     _adapter: SchemaAdapter,
-    _fieldAdapter: FieldAdapter<any>,
+    _fieldAdapter: FieldAdapter,
     args: ObjectAdapterToStringArgs,
     _base?: any
   ): Promise<string> {

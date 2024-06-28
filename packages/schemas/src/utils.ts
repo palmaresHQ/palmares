@@ -265,7 +265,7 @@ export async function defaultTransformToAdapter(
 
 export async function formatErrorFromParseMethod(
   adapter: SchemaAdapter,
-  fieldAdapter: FieldAdapter<any>,
+  fieldAdapter: FieldAdapter,
   error: any,
   path: ValidationFallbackCallbackReturnType['errors'][number]['path'],
   errorsAsHashedSet: Set<string>

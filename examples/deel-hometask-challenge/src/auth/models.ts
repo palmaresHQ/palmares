@@ -6,7 +6,6 @@ export class Profile extends Model<Profile>() {
     firstName: TextField.new({ allowNull: true }),
     lastName: TextField.new(),
     profession: TextField.new(),
-    boolean: BooleanField.new(),
     balance: DecimalField.new({ allowNull: true, maxDigits: 12, decimalPlaces: 2 }),
     type: EnumField.new({ choices: ['client', 'contractor'] }),
   };
