@@ -12,11 +12,11 @@ import { optional, nullable } from '../validators/schema';
 
 export default class ArraySchema<
   TType extends {
-    input: any[];
-    validate: any[];
-    internal: any[];
-    output: any[];
-    representation: any[];
+    input: any;
+    validate: any;
+    internal: any;
+    output: any;
+    representation: any;
   } = {
     input: any[];
     output: any[];
@@ -116,6 +116,52 @@ export default class ArraySchema<
       'array'
     );
   }
+
+  /**
+   * Allows the value to be either undefined or null.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schemas';
+   *
+   * const numberSchema = p.number().optional();
+   *
+   * const { errors, parsed } = await numberSchema.parse(undefined);
+   *
+   * console.log(parsed); // undefined
+   *
+   * const { errors, parsed } = await numberSchema.parse(null);
+   *
+   * console.log(parsed); // null
+   *
+   * const { errors, parsed } = await numberSchema.parse(1);
+   *
+   * console.log(parsed); // 1
+   * ```
+   *
+   * @returns - The schema we are working with.
+   */
+  optional<TOutputOnly extends boolean = false>(options?: { message?: string; allow?: false, outputOnly?: TOutputOnly}) {
+    return (options?.outputOnly ? this : super.optional(options)) as unknown as ArraySchema<(TOutputOnly extends true ?
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'] | undefined | null;
+        representation: TType['representation'];
+      } :
+      {
+        input: TType['input'] | undefined | null;
+        validate: TType['validate'] | undefined | null;
+        internal: TType['internal'] | undefined | null;
+        output: TType['output'] | undefined | null;
+        representation: TType['representation'] | undefined | null;
+      }),
+      TDefinitions,
+      TSchemas
+    >;
+  }
+
 
   minLength(value: number, inclusive = true, message?: string) {
     message = message || `The array must have a minimum length of ${value}`;

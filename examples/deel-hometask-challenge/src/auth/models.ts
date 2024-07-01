@@ -3,7 +3,7 @@ import { Model, AutoField, TextField, ModelOptionsType, DecimalField, EnumField,
 export class Profile extends Model<Profile>() {
   fields = {
     id: AutoField.new(),
-    firstName: TextField.new({ allowNull: true }),
+    firstName: TextField.new(),
     lastName: TextField.new(),
     profession: TextField.new(),
     balance: DecimalField.new({ allowNull: true, maxDigits: 12, decimalPlaces: 2 }),

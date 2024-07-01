@@ -1,8 +1,21 @@
 import { domain } from '@palmares/core';
+import { modelSchema } from '@palmares/schemas';
+import { Response, path, serverDomainModifier } from '@palmares/server';
+import { setDefaultAdapter } from '@palmares/schemas';
+import { ZodSchemaAdapter } from '@palmares/zod-schema';
+
 import { Profile } from '../auth/models';
 import { Contract } from '../contracts/models';
 import { Jobs } from '../jobs/models';
 
+setDefaultAdapter(new ZodSchemaAdapter());
+
+const contractSchema = modelSchema(Contract, {
+  fields: {
+    contractor: modelSchema(Profile, { many: true }).optional({ outputOnly: true})
+  },
+  show: ['id', 'status', 'contractorId']
+});
 
 export default domain('core', __dirname, {
   commands: {
@@ -252,4 +265,10 @@ export default domain('core', __dirname, {
       },
     },
   },
+  modifiers: [serverDomainModifier],
+  getRoutes: () => path('/test').get(async () => {
+    const contracts = await Contract.default.get();
+    const contract = await contractSchema.data(contracts[0]);
+    return Response.json(contract)
+  })
 });

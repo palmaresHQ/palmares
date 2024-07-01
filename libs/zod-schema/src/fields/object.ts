@@ -8,7 +8,7 @@ import {
 } from '@palmares/schemas';
 import * as z from 'zod';
 
-export default class ZodObjectFieldSchemaAdapter extends ObjectFieldAdapter<z.ZodObject<any>> {
+export default class ZodObjectFieldSchemaAdapter extends ObjectFieldAdapter {
   translate(fieldAdapter: FieldAdapter, args: ObjectAdapterTranslateArgs) {
     let result = fieldAdapter.translate(fieldAdapter, args, z.object(args.data));
     return result;

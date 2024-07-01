@@ -46,6 +46,7 @@ export default class Schema<
       options: Parameters<Schema['__transformToAdapter']>[0]
     ) => ReturnType<Schema['__validateByAdapter']>
   > = new Map();
+  protected __alreadyAppliedModel = false;
   protected __runBeforeParseAndData?: (self: any) => Promise<void>
   protected __rootFallbacksValidator!: Validator;
   protected __saveCallback?: (value: any) => Promise<any | void> | any | void;
@@ -255,6 +256,7 @@ export default class Schema<
     path: ValidationFallbackCallbackReturnType['errors'][number]['path'] = [],
     options: Parameters<Schema['__transformToAdapter']>[0]
   ): Promise<{ errors: any[]; parsed: TType['internal'] }> {
+    if (typeof this.__runBeforeParseAndData === 'function') await this.__runBeforeParseAndData(this);
     // This is used to run the toInternal command. If we didn't do this, we would need to parse through all of the schemas to run the toInternal command,
     // from the leafs (ObjectSchemas) to the root schema. This is not a good idea, so what we do is that during validation the leafs attach a function to
     // the options.toInternalToBubbleUp like `options.toInternalToBubbleUp.push(async () => (value[key] = await (schema as any).__toInternal(parsed)));``
@@ -416,7 +418,7 @@ export default class Schema<
    *
    * @returns - The schema we are working with.
    */
-  optional(options?: { message: string; allow: false }) {
+  optional(options?: { message?: string; allow?: false }) {
     this.__optional = {
       message: typeof options?.message === 'string' ? options.message : 'Required',
       allow: typeof options?.allow === 'boolean' ? options.allow : true,
@@ -780,6 +782,8 @@ export default class Schema<
    * ```
    */
   async data(value: TType['output']): Promise<TType['representation']> {
+    if (typeof this.__runBeforeParseAndData === 'function') await this.__runBeforeParseAndData(this);
+
     value = await this.__parsersToTransformValue(value)
 
     if (this.__toRepresentation) value = await Promise.resolve(this.__toRepresentation(value));

@@ -7,7 +7,7 @@ import {
 } from '@palmares/schemas';
 import * as z from 'zod';
 
-export default class ZodUnionFieldSchemaAdapter extends UnionFieldAdapter<z.ZodOptional<any>> {
+export default class ZodUnionFieldSchemaAdapter extends UnionFieldAdapter {
   translate(
     fieldAdapter: UnionFieldAdapter,
     args: UnionAdapterTranslateArgs<readonly [z.ZodTypeAny, z.ZodTypeAny, ...z.ZodTypeAny[]]>

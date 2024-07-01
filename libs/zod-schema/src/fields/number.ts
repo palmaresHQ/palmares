@@ -7,7 +7,7 @@ import {
 } from '@palmares/schemas';
 import * as z from 'zod';
 
-export default class ZodNumberFieldSchemaAdapter extends NumberAdapter<z.ZodNumber> {
+export default class ZodNumberFieldSchemaAdapter extends NumberAdapter {
   translate(fieldAdapter: FieldAdapter, args: NumberAdapterTranslateArgs) {
     let result = z.number();
     /**if (args.max) {

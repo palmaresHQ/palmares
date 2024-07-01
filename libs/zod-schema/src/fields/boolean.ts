@@ -1,7 +1,7 @@
-import { FieldAdapter, BooleanFieldAdapter, BooleanAdapterTranslateArgs, SchemaAdapter } from '@palmares/schemas';
+import { FieldAdapter, BooleanFieldAdapter, BooleanAdapterTranslateArgs } from '@palmares/schemas';
 import * as z from 'zod';
 
-export default class ZodBooleanFieldSchemaAdapter extends BooleanFieldAdapter<z.ZodBoolean> {
+export default class ZodBooleanFieldSchemaAdapter extends BooleanFieldAdapter {
   translate(fieldAdapter: FieldAdapter, args: BooleanAdapterTranslateArgs) {
     let result = z.boolean();
 

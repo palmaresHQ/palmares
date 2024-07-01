@@ -9,3 +9,9 @@ export class NoAdapterFoundError extends Error {
     super('No adapter found, please define an adapter using setDefaultAdapter() before using any schema.');
   }
 }
+
+export class TranslatableFieldNotImplementedError extends Error {
+  constructor(fieldName: string) {
+    super(`TranslatableField '${fieldName}' did not implement the 'schema' key on 'customAttributes'`);
+  }
+}

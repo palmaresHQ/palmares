@@ -155,7 +155,8 @@ export default class ObjectSchema<
       await Promise.all(
         dataAsEntries.map(async ([key, valueToTransform]) => {
           const isValueToTransformASchemaAndNotUndefined =
-            valueToTransform instanceof Schema && (value[key] !== undefined || (valueToTransform as any).__defaultFunction);
+            valueToTransform instanceof Schema &&
+            (value[key] !== undefined || (valueToTransform as any).__defaultFunction);
           if (isValueToTransformASchemaAndNotUndefined) {
             const transformedValue = await valueToTransform.data(value[key]);
             (parsedValue as any)[key] = transformedValue;
@@ -225,8 +226,15 @@ export default class ObjectSchema<
    *
    * @returns - The schema we are working with.
    */
-  optional(options?: { message: string; allow: false }) {
-    return super.optional(options) as unknown as ObjectSchema<
+  optional<TOutputOnly extends boolean = false>(options?: { message?: string; allow?: false, outputOnly?: TOutputOnly}) {
+    return (options?.outputOnly ? this : super.optional(options)) as unknown as ObjectSchema<TOutputOnly extends true ?
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'] | undefined | null;
+        representation: TType['representation'];
+      } :
       {
         input: TType['input'] | undefined | null;
         validate: TType['validate'] | undefined | null;
@@ -589,6 +597,47 @@ export default class ObjectSchema<
       TDefinitions,
       TData
     >;
+  }
+
+  /**
+   * Remove extraneous keys from the object, in other words, remove keys that are not in the schema.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schemas';
+   *
+   * const userSchema = p.object({
+   *   id: p.number().optional(),
+   *   name: p.string(),
+   * }).removeExtraneous();
+   *
+   * const { errors, parsed } = await userSchema.parse({
+   *   id: 1,
+   *   name: 'John Doe',
+   *   password: '123456'
+   * });
+   *
+   * console.log(parsed); // { id: 1, name: 'John Doe' }
+   * ```
+   *
+   * @returns The schema.
+   */
+  removeExtraneous() {
+    this.__parsers.medium.set('removeExtraneous', (value) => {
+      if (typeof value !== 'object' || value === null) return value;
+
+      const valueKeys = Object.keys(value);
+      for (const key of valueKeys) {
+        if (key in this.__data) continue;
+        delete value[key];
+      }
+
+      return {
+        value,
+      };
+    });
+
+    return this;
   }
 
   static new<

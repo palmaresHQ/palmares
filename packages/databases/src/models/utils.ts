@@ -68,8 +68,10 @@ export const defaultModelOptions = {
 };
 
 /**
- * The idea here is used to parse foreign key lazily, let's say that we have a foreign key field, but it's related to a model that IS NOT used by the engine.
- * What we do is that we convert the value of the foreign key field to the value of the field that is going to be used by the engine. So instead of a foreign key field
+ * The idea here is used to parse foreign key lazily, let's say that we have a foreign key field, but it's related to
+ * a model that IS NOT used by the engine.
+ * What we do is that we convert the value of the foreign key field to the value of the field that is
+ * going to be used by the engine. So instead of a foreign key field
  * we will be parsing, let's say, a normal integer field.
  */
 async function foreignKeyFieldParser(engine: DatabaseAdapter, field: ForeignKeyField): Promise<any> {
@@ -130,8 +132,10 @@ export async function parse(
 ): Promise<any> {
   let shouldReturnData = true;
   /**
-   * This will pretty much stack the callbacks for lazy evaluation. What this does is that for some ORMs we might want to manage the foreign key fields after all the models
-   * are created. That's pretty much the default behavior, since we can have lazy circular relations. So what this does is that it'll save that data on a global variable
+   * This will pretty much stack the callbacks for lazy evaluation. What this does is that for some
+   * ORMs we might want to manage the foreign key fields after all the models
+   * are created. That's pretty much the default behavior, since we can have lazy circular relations.
+   * So what this does is that it'll save that data on a global variable
    * and then we can use it after all the models have been created.
    *
    * @param shouldReturnDataOnDefaultParse - Pretty much for foreign key fields you can either return the data translated or not. If you choose to not return the data

@@ -253,6 +253,9 @@ export type ErrorCodes =
   | 'minLength'
   | 'maxLength'
   | 'regex'
+  | 'uuid'
+  | 'email'
   | 'includes'
   | 'endsWith'
-  | 'startsWith';
+  | 'startsWith'
+  | `customError${string}`;

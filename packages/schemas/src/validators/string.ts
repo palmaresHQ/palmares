@@ -161,3 +161,55 @@ export function regex(args: StringSchema['__regex']): ValidationFallbackReturnTy
     },
   };
 }
+
+export function uuid(args: StringSchema['__uuid']): ValidationFallbackReturnType {
+  // const uuidRegex =
+  //   /^([a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[a-f0-9]{4}-[a-f0-9]{12}|00000000-0000-0000-0000-000000000000)$/i;
+  const uuidRegex =
+    /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/i;
+  return {
+    type: 'low',
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
+      const isValid = uuidRegex.test(value);
+
+      return {
+        parsed: value,
+        errors: isValid
+          ? []
+          : [
+              {
+                isValid: false,
+                code: 'uuid',
+                path: path || [],
+                message: args.message,
+              },
+            ],
+      };
+    }
+  }
+}
+
+export function email(args: StringSchema['__email']): ValidationFallbackReturnType {
+  const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+  return {
+    type: 'low',
+    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
+      const isValid = emailRegex.test(value);
+
+      return {
+        parsed: value,
+        errors: isValid
+          ? []
+          : [
+              {
+                isValid: false,
+                code: 'email',
+                path: path || [],
+                message: args.message,
+              },
+            ],
+      };
+    }
+  }
+}
+

@@ -68,7 +68,7 @@ export function handleRelatedField(
   field: ForeignKeyField,
   fieldAttributes: ModelAttributeColumnOptions & ForeignKeyOptions
 ) {
-  const modelWithForeignKeyField: ModelCtor<Model> = engine.initializedModels[field.model.name] as ModelCtor<Model>;
+  const modelWithForeignKeyField: ModelCtor<Model> = engine.initializedModels[field.model.getName()] as ModelCtor<Model>;
   const relatedToModel: ModelCtor<Model> = engine.initializedModels[field.relatedTo] as ModelCtor<Model>;
   const isRelatedModelAndModelOfForeignDefined = relatedToModel !== undefined && modelWithForeignKeyField !== undefined;
 
@@ -82,15 +82,14 @@ export function handleRelatedField(
       onDelete: translatedOnDelete,
       sourceKey: field.toField,
     };
-    switch (field.typeName) {
-      case fields.ForeignKeyField.name:
-        relationOptions.as = field.relatedName as string;
-        relatedToModel.hasMany(modelWithForeignKeyField, relationOptions);
 
-        relationOptions.as = field.relationName as string;
-        modelWithForeignKeyField.belongsTo(relatedToModel, relationOptions);
+    if (field instanceof ForeignKeyField) {
+      relationOptions.as = field.relatedName as string;
+      relatedToModel.hasMany(modelWithForeignKeyField, relationOptions);
 
-        return false;
+      relationOptions.as = field.relationName as string;
+      modelWithForeignKeyField.belongsTo(relatedToModel, relationOptions);
+      return false
     }
   }
   return true;

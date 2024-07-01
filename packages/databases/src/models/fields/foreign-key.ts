@@ -222,6 +222,7 @@ export default class ForeignKeyField<
   toField: TRelatedField;
   relationName: TRelationName;
   _originalRelatedName?: string;
+  protected _fieldOfRelation?: Field<any, any, any, any, any, any, any, any>;
 
   constructor(
     params: ForeignKeyFieldParamsType<
@@ -565,7 +566,10 @@ export default class ForeignKeyField<
   async isRelatedModelFromEngineInstance(engineInstance: DatabaseAdapter): Promise<[boolean, Field?]> {
     const relatedToAsString = this.relatedTo as string;
     const relatedModel = engineInstance.__modelsOfEngine[relatedToAsString];
-    if (relatedModel !== undefined) return [true, undefined];
+    if (relatedModel !== undefined) {
+      (this.modelRelatedTo as any) = relatedModel;
+      return [true, undefined];
+    }
     else {
       const modelRelatedTo = engineInstance.__modelsFilteredOutOfEngine[relatedToAsString];
       if (modelRelatedTo === undefined) return [true, undefined];

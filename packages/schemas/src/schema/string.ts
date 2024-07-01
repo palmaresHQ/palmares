@@ -27,6 +27,15 @@ export default class StringSchema<
     message: string;
   };
 
+  protected __email!: {
+    message: string;
+  };
+
+
+  protected __uuid!: {
+    message: string;
+  };
+
   protected __minLength!: {
     value: number;
     inclusive: boolean;
@@ -717,6 +726,56 @@ export default class StringSchema<
       message: options?.message || `The value should have a minimum length of ${value}`,
       inclusive: typeof options?.inclusive === 'boolean' ? options?.inclusive : false,
     };
+    return this;
+  }
+
+  /**
+   * Validates if the string is a valid UUID.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schema';
+   *
+   * const schema = p.string().uuid();
+   *
+   * schema.parse('550e8400-e29b-41d4-a716-446655440000'); // { errors: [], parsed: '550e8400-e29b-41d4-a716-446655440000' }
+   * ```
+   *
+   * @param options - The options for the uuid function.
+   * @param options.message - The message to be shown when the value is not a valid UUID. Defaults to 'The value should be a valid UUID'.
+   *
+   * @returns - The schema instance.
+   */
+  uuid(options?: StringSchema['__uuid']) {
+    this.__uuid = {
+      message: options?.message || 'The value should be a valid UUID',
+    };
+    return this;
+  }
+
+
+  /**
+   * Validates if the string is a valid email or not
+   *
+   * @example
+   * ```typescript
+   *
+   * import * as p from '@palmares/schema';
+   *
+   * const schema = p.string().email();
+   *
+   * schema.parse('john.doe@example.com'); // { errors: [], parsed: 'john.doe@example.com' }
+   * ```
+   *
+   * @param options - The options for the email function.
+   * @param options.message - The message to be shown when the value is not a valid email. Defaults to 'The value should be a valid email'.
+   *
+   * @returns - The schema instance.
+   */
+  email(options?: StringSchema['__email']) {
+    this.__email = {
+      message: options?.message || 'The value should be a valid email',
+    }
     return this;
   }
 

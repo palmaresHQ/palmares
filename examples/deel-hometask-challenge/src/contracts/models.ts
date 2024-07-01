@@ -33,9 +33,8 @@ export const Contract = define('Contract', {
 export class Contract extends Model<Contract>() {
   fields = {
     id: auto(),
-    terms: text({ allowNull: true, defaultValue: 'No terms' }),
-    terms1: text({ defaultValue: 'sei la'}),
-    status: choice({ allowNull: true, choices: ['new', 'in_progress', 'terminated', 'test'] }),
+    terms: text(),
+    status: choice({ allowNull: true, choices: ['new', 'in_progress', 'terminated'] }),
     contractorId: foreignKey({
       relatedTo: Profile,
       onDelete: fields.ON_DELETE.CASCADE,

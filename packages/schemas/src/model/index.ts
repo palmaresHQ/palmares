@@ -1,7 +1,7 @@
 import ObjectSchema from "../schema/object"
 
-import { Model, auto, char, text, define, type ModelFields, choice, AllFieldsOfModel,
-  InternalModelClass_DoNotUse,
+import {
+  Model,
   AutoField,
   Field,
   DecimalField,
@@ -13,15 +13,27 @@ import { Model, auto, char, text, define, type ModelFields, choice, AllFieldsOfM
   DateField,
   UuidField,
   EnumField,
-  ForeignKeyField
+  ForeignKeyField,
+  TranslatableField,
+  type InternalModelClass_DoNotUse,
+  type ModelBaseClass,
+  type ModelFields,
 } from "@palmares/databases";
+
 import { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from "../schema/types";
 import Schema from "../schema/schema";
 import { string } from "../schema/string";
 import { number } from "../schema";
 import { boolean } from "../schema/boolean";
+import { datetime } from "../schema/datetime";
+import { union } from "../schema/union";
+import { TranslatableFieldNotImplementedError } from "../exceptions";
 
-function getSchemaFromModelField(field: Field<any, any, any, any, any, any, any, any>) {
+async function getSchemaFromModelField(
+  model: ReturnType<typeof Model>,
+  field: Field<any, any, any, any, any, any, any, any>,
+  engineInstanceName?: string
+) {
   let schema: Schema<any, any> | undefined = undefined;
   if (field instanceof AutoField || field instanceof BigAutoField)
     schema = number().integer().optional();
@@ -33,6 +45,42 @@ function getSchemaFromModelField(field: Field<any, any, any, any, any, any, any,
     schema = number().integer();
   else if (field instanceof BooleanField)
     schema = boolean()
+  else if (field instanceof TextField || field instanceof CharField || field instanceof UuidField) {
+    schema = string()
+    if (field.allowBlank === false) schema = (schema as ReturnType<typeof string>).minLength(1);
+    if (field instanceof CharField && typeof field.maxLength === 'number')
+      schema = (schema as ReturnType<typeof string>).maxLength(field.maxLength);
+    if (field instanceof UuidField) {
+      schema = (schema as ReturnType<typeof string>).uuid();
+      if (field.autoGenerate) schema = (schema as ReturnType<typeof string>).optional();
+    }
+  } else if (field instanceof DateField) {
+    schema = datetime().allowString();
+    if (field.autoNow || field.autoNowAdd) schema = (schema as ReturnType<typeof datetime>).optional();
+  } else if (field instanceof EnumField) {
+    const allChoicesOfTypeStrings = field.choices.filter((choice: any) => typeof choice === 'string');
+    const allChoicesOfTypeNumbers = field.choices.filter((choice: any) => typeof choice === 'number');
+
+    let schemaForChoicesAsStrings: Schema<any, any>  | undefined = undefined;
+    let schemaForChoicesAsNumbers: Schema<any, any> | undefined = undefined;
+    if (allChoicesOfTypeStrings) schemaForChoicesAsStrings = string().is([...allChoicesOfTypeStrings]);
+    if (allChoicesOfTypeNumbers) schemaForChoicesAsNumbers = number().is([...allChoicesOfTypeNumbers]);
+    if (schemaForChoicesAsStrings && schemaForChoicesAsNumbers)
+      schema = union([schemaForChoicesAsStrings, schemaForChoicesAsNumbers]);
+    else if (schemaForChoicesAsStrings) schema = schemaForChoicesAsStrings;
+    else if (schemaForChoicesAsNumbers) schema = schemaForChoicesAsNumbers;
+  } else if (field instanceof ForeignKeyField) {
+    const relatedToModel = field.relatedTo;
+    const toField = field.toField;
+    const engineInstance = await model.default.getEngineInstance(engineInstanceName);
+    const relatedToModelInstance = engineInstance.__modelsOfEngine[relatedToModel];
+    const modelFieldsOfRelatedModel = (relatedToModelInstance as unknown as ModelBaseClass).fields[toField];
+    return getSchemaFromModelField(relatedToModelInstance, modelFieldsOfRelatedModel, engineInstanceName);
+  } else if (field instanceof TranslatableField && field.customAttributes.schema) {
+    if (field.customAttributes.schema instanceof Schema ===  false)
+      throw new TranslatableFieldNotImplementedError(field.fieldName)
+    schema = field.customAttributes.schema;
+  }
 
   if (field.allowNull && schema) schema = schema.nullable().optional();
   if (field.defaultValue && schema) schema = schema.default(field.defaultValue);
@@ -48,6 +96,7 @@ export function modelObject<
   TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> | undefined = undefined,
   TAllModelFields = ModelFields<InstanceType<TModel>>,
 >(model: TModel, options?: {
+  engineInstance?: string;
   fields?: TFields;
   omit?: TOmit;
   show?: TShow;
@@ -55,7 +104,11 @@ export function modelObject<
   const lazyModelSchema = ObjectSchema.new({} as any) as ObjectSchema<any, any, any> & {
     __runBeforeParseAndData: Required<Schema<any, any>['__runBeforeParseAndData']>;
   }
-  lazyModelSchema.__runBeforeParseAndData = async (self: any) => {
+  // Add this callback to transform the model fields
+  lazyModelSchema.__runBeforeParseAndData = async (self: ObjectSchema<any, any, any> & {
+    __data: ObjectSchema<any, any, any>['__data'];
+    __alreadyAppliedModel: boolean;
+  }) => {
     if (self.__alreadyAppliedModel) return;
     self.__alreadyAppliedModel = true;
     const omitAsSet = new Set(options?.omit || []);
@@ -64,15 +117,19 @@ export function modelObject<
     const fieldsOfModels = (model as unknown as typeof InternalModelClass_DoNotUse)._fields();
     const fieldsAsEntries = Object.entries(fieldsOfModels);
 
-    const fields = fieldsAsEntries.reduce((accumulator, [key, value]) => {
+    const fields = fieldsAsEntries.reduce(async (accumulatorAsPromise, [key, value]) => {
+      const accumulator = await accumulatorAsPromise;
       if (omitAsSet.has(key as any)) return accumulator;
       if (showAsSet.size > 0 && !showAsSet.has(key as any)) return accumulator;
 
       let schema = (fieldsAsObject as any)[key as any];
-      if (!schema) schema = getSchemaFromModelField(value);
+      if (!schema) schema = await getSchemaFromModelField(model, value, options?.engineInstance);
 
+      accumulator[key] = schema;
       return accumulator;
-    }, {} as Record<any, Schema<any, any>>);
+    }, Promise.resolve({} as Record<any, Schema<any, any>>));
+
+    self.__data = fields as any;
   }
 
   type FieldsOnModel =
@@ -156,14 +213,12 @@ export function modelObject<
 
 
 
-
-
+/*
 class User extends Model<User>() {
   fields = {
     id: auto(),
     name: choice({ choices: ['a', 'b', 'c'] }),
     email: text(),
-    newField: text()
   }
 }
 
@@ -179,4 +234,4 @@ const main = async () => {
     email: 'test',
     id: 1,
   });
-}
+}*/
