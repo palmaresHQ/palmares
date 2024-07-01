@@ -1,0 +1,22 @@
+{
+  "name": "@examples/schemas",
+  "version": "0.0.1",
+  "description": "asdasdasd",
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "tsx ./src/index.ts"
+  },
+  "keywords": [
+    "Deel",
+    "Hometask",
+    "Challenge"
+  ],
+  "author": "Nicolas Melo",
+  "license": "MIT",
+  "dependencies": {
+    "@palmares/schemas": "workspace:*",
+    "@palmares/zod-schema": "workspace:*",
+    "yup": "^1.3.2",
+    "zod": "^3.22.2"
+  }
+}

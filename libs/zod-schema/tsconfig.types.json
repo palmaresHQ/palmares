@@ -1,0 +1,16 @@
+{
+  "extends": "../../build/tsconfig.types.json",
+  "compilerOptions": {
+    "declaration": true, /* Generate d.ts files */
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "rootDir": "./src",
+    "outDir": "./dist/cjs/types",
+    "paths": {
+      "*": ["node_modules/*"],
+      "@palmares/schema": ["../../packages/schema/dist"],
+      "@palmares/core": ["../../packages/schema/node_modules/@palmares/core"],
+    }
+  },
+  "include": ["src/**/*"],
+}

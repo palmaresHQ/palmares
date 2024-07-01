@@ -68,7 +68,7 @@ export function foreignKey<
     TRelationName
   >
 ) {
-  return new ForeignKeyField(params);
+  return ForeignKeyField.new(params);
 }
 
 /**
@@ -222,6 +222,7 @@ export default class ForeignKeyField<
   toField: TRelatedField;
   relationName: TRelationName;
   _originalRelatedName?: string;
+  protected _fieldOfRelation?: Field<any, any, any, any, any, any, any, any>;
 
   constructor(
     params: ForeignKeyFieldParamsType<
@@ -565,7 +566,10 @@ export default class ForeignKeyField<
   async isRelatedModelFromEngineInstance(engineInstance: DatabaseAdapter): Promise<[boolean, Field?]> {
     const relatedToAsString = this.relatedTo as string;
     const relatedModel = engineInstance.__modelsOfEngine[relatedToAsString];
-    if (relatedModel !== undefined) return [true, undefined];
+    if (relatedModel !== undefined) {
+      (this.modelRelatedTo as any) = relatedModel;
+      return [true, undefined];
+    }
     else {
       const modelRelatedTo = engineInstance.__modelsFilteredOutOfEngine[relatedToAsString];
       if (modelRelatedTo === undefined) return [true, undefined];
@@ -661,8 +665,12 @@ export default class ForeignKeyField<
    * class CustomForeignKeyField extends ForeignKeyField {
    *   aCustomValue: string;
    *
-   *   async compare(field:Field) {
-   *      return (await super.compare(field)) && fieldAsText.aCustomValue === this.aCustomValue;
+   *   compare(field:Field) {
+   *      const fieldAsText = field as TextField;
+   *      const isCustomValueEqual = fieldAsText.aCustomValue === this.aCustomValue;
+   *      const [isEqual, changedAttributes] = super.compare(field);
+   *      if (!isCustomValueEqual) changedAttributes.push('aCustomValue');
+   *      return [isCustomValueEqual && isEqual, changedAttributes]
    *   }
    * }
    * ```
@@ -671,16 +679,23 @@ export default class ForeignKeyField<
    *
    * @returns A promise that resolves to a boolean indicating if the field is equal to the other field.
    */
-  async compare(field: Field): Promise<boolean> {
+  compare(field: Field): [boolean, string[]] {
     const fieldAsForeignKey = field as ForeignKeyField;
-    return (
-      (await super.compare(field)) &&
-      fieldAsForeignKey._originalRelatedName === this._originalRelatedName &&
-      fieldAsForeignKey.relatedTo === this.relatedTo &&
-      fieldAsForeignKey.toField === this.toField &&
-      fieldAsForeignKey.onDelete === this.onDelete &&
-      fieldAsForeignKey.customName === this.customName
-    );
+    const fieldAsForeignKeyRelatedToAsString = fieldAsForeignKey.relatedTo as string;
+    const isCustomNameEqual = fieldAsForeignKey.customName === this.customName;
+    const isRelatedToEqual = fieldAsForeignKeyRelatedToAsString === this.relatedTo;
+    const isToFieldEqual = fieldAsForeignKey.toField === this.toField;
+    const isOnDeleteEqual = fieldAsForeignKey.onDelete === this.onDelete;
+    const isRelationNameEqual = fieldAsForeignKey.relationName === this.relationName;
+
+    const [isEqual, changedAttributes] = super.compare(field);
+    if (!isCustomNameEqual) changedAttributes.push('customName');
+    if (!isRelatedToEqual) changedAttributes.push('relatedTo');
+    if (!isToFieldEqual) changedAttributes.push('toField');
+    if (!isOnDeleteEqual) changedAttributes.push('onDelete');
+    if (!isRelationNameEqual) changedAttributes.push('relationName');
+
+    return [isCustomNameEqual && isRelatedToEqual && isToFieldEqual && isOnDeleteEqual && isRelationNameEqual && isEqual, changedAttributes];
   }
 
   /**

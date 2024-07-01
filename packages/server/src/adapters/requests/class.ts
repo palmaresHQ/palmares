@@ -4,6 +4,7 @@ import type ServerAdapter from '..';
 import type ServerRouterAdapter from '../routers';
 import type Request from '../../request';
 import type { FormDataLike } from '../../request/types';
+import ServerlessAdapter from '../serverless';
 
 export default class ServerRequestAdapter {
   /**
@@ -19,11 +20,11 @@ export default class ServerRequestAdapter {
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    */
-  url(_server: ServerAdapter, _serverRequestAndResponseData: any): string {
+  url(_server: ServerAdapter | ServerlessAdapter, _serverRequestAndResponseData: any): string {
     return '';
   }
 
@@ -46,14 +47,14 @@ export default class ServerRequestAdapter {
    * },
    * ```
    *
-   * @param _server -  The {@link ServerAdapter} instance.
+   * @param _server -  The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    * @param _key - The key of the header that the user wants to extract.
    *
    * @returns - The value of the header if it exists, otherwise undefined.
    */
-  headers(_server: ServerAdapter, _serverRequestAndResponseData: any, _key: string): string | undefined {
+  headers(_server: ServerAdapter | ServerlessAdapter, _serverRequestAndResponseData: any, _key: string): string | undefined {
     return undefined;
   }
 
@@ -70,13 +71,13 @@ export default class ServerRequestAdapter {
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    *
    * @returns - The method of the request.
    */
-  method(_server: ServerAdapter, _serverRequestAndResponseData: any): string {
+  method(_server: ServerAdapter | ServerlessAdapter, _serverRequestAndResponseData: any): string {
     return '';
   }
 
@@ -98,14 +99,14 @@ export default class ServerRequestAdapter {
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    * @param _key - The key of the param that the user wants to extract.
    *
    * @returns - The value of the param if it exists, otherwise undefined.
    */
-  params(_server: ServerAdapter, _serverRequestAndResponseData: any, _key: string): string | undefined {
+  params?(_server: ServerAdapter | ServerlessAdapter, _serverRequestAndResponseData: any, _key: string): string | undefined {
     return undefined;
   }
 
@@ -127,14 +128,14 @@ export default class ServerRequestAdapter {
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    * @param _key - The key of the query that the user wants to extract.
    *
    * @returns - The value of the query if it exists, otherwise undefined.
    */
-  query(_server: ServerAdapter, _serverRequestAndResponseData: any, _key: string): string | undefined {
+  query(_server: ServerAdapter | ServerlessAdapter, _serverRequestAndResponseData: any, _key: string): string | undefined {
     return undefined;
   }
 
@@ -159,7 +160,7 @@ export default class ServerRequestAdapter {
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    * @param _options - Any type of custom options that you want to be able to pass when converting to json. If you want to support custom options, please override the
@@ -167,7 +168,7 @@ export default class ServerRequestAdapter {
    *
    * @returns - A promise that resolves to the parsed json.
    */
-  toJson(_server: ServerAdapter, _serverRequestAndResponseData: any, _options: any): Promise<object | undefined> {
+  toJson(_server: ServerAdapter | ServerlessAdapter, _serverRequestAndResponseData: any, _options: any): Promise<object | undefined> {
     return new Promise((resolve) => resolve(undefined));
   }
 
@@ -290,7 +291,7 @@ export default class ServerRequestAdapter {
    * }
    * ```
    *
-   * @param _server - The {@link ServerAdapter} adapter.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} adapter.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    * @param _formDataConstructor - The constructor of the FormData-like class. It's a class so you should use it like this: `new formDataConstructor()`. You can pass a custom
@@ -302,7 +303,7 @@ export default class ServerRequestAdapter {
    * @returns -A promise that resolves to a FormData-like instance.
    */
   toFormData(
-    _server: ServerAdapter,
+    _server: ServerAdapter | ServerlessAdapter,
     _serverRequestAndResponseData: any,
     _formDataConstructor: FormDataLike<any>,
     _isUrlEncoded: boolean,
@@ -332,7 +333,7 @@ export default class ServerRequestAdapter {
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    * @param _options - Any type of custom options that you want to be able to pass when converting to ArrayBuffer. If you want to support custom options, please override the
@@ -341,7 +342,7 @@ export default class ServerRequestAdapter {
    * @returns - A promise that resolves to the parsed ArrayBuffer.
    */
   toArrayBuffer(
-    _server: ServerAdapter,
+    _server: ServerAdapter | ServerlessAdapter,
     _serverRequestAndResponseData: any,
     _options: any
   ): Promise<ArrayBuffer | undefined> {
@@ -367,7 +368,7 @@ export default class ServerRequestAdapter {
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    * @param _options - Any type of custom options that you want to be able to pass when converting to Blob. If you want to support custom options, please override the
@@ -375,7 +376,7 @@ export default class ServerRequestAdapter {
    *
    * @returns - A promise that resolves to the parsed Blob.
    */
-  toBlob(_server: ServerAdapter, _serverRequestAndResponseData: any, _options: any): Promise<Blob | File | undefined> {
+  toBlob(_server: ServerAdapter | ServerlessAdapter, _serverRequestAndResponseData: any, _options: any): Promise<Blob | File | undefined> {
     return new Promise((resolve) => resolve(undefined));
   }
 
@@ -400,7 +401,7 @@ export default class ServerRequestAdapter {
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    * @param _options - Any type of custom options that you want to be able to pass when converting to raw. If you want to support custom options, please override the
@@ -408,7 +409,7 @@ export default class ServerRequestAdapter {
    *
    * @returns - A promise that resolves to the parsed raw data.
    */
-  toRaw(_server: ServerAdapter, _serverRequestAndResponseData: any, _options: any): Promise<any> {
+  toRaw(_server: ServerAdapter | ServerlessAdapter, _serverRequestAndResponseData: any, _options: any): Promise<any> {
     return new Promise((resolve) => resolve(undefined));
   }
 
@@ -432,7 +433,7 @@ export default class ServerRequestAdapter {
    * },
    * ```
    *
-   * @param _server - The {@link ServerAdapter} instance.
+   * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _serverRequestAndResponseData - The server request and response data that you have defined on {@link ServerRouterAdapter.parseHandler} or
    * {@link ServerRouterAdapter.parseHandlers} on the router.
    * @param _options - Any type of custom options that you want to be able to pass when converting to raw. If you want to support custom options, please override the
@@ -440,7 +441,7 @@ export default class ServerRequestAdapter {
    *
    * @returns A promise that resolves to a string.
    */
-  toText(_server: ServerAdapter, _serverRequestAndResponseData: any, _options: any): Promise<string | undefined> {
+  toText(_server: ServerAdapter | ServerlessAdapter, _serverRequestAndResponseData: any, _options: any): Promise<string | undefined> {
     return new Promise((resolve) => resolve(undefined));
   }
 

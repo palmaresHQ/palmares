@@ -77,7 +77,4 @@ export default serverRouterAdapter({
       });
     }
   },
-  load500: async (server, handler) => {
-    console.log('load500');
-  },
 });

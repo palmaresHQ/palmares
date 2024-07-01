@@ -220,8 +220,12 @@ export default class EnumField<
    * class CustomEnumField extends EnumField {
    *   aCustomValue: string;
    *
-   *   async compare(field:Field) {
-   *      return (await super.compare(field)) && fieldAsText.aCustomValue === this.aCustomValue;
+   *   compare(field:Field) {
+   *      const fieldAsText = field as TextField;
+   *      const isCustomValueEqual = fieldAsText.aCustomValue === this.aCustomValue;
+   *      const [isEqual, changedAttributes] = super.compare(field);
+   *      if (!isCustomValueEqual) changedAttributes.push('aCustomValue');
+   *      return [isCustomValueEqual && isEqual, changedAttributes]
    *   }
    * }
    * ```
@@ -230,9 +234,13 @@ export default class EnumField<
    *
    * @returns A promise that resolves to a boolean indicating if the field is equal to the other field.
    */
-  async compare(field: Field): Promise<boolean> {
+  compare(field: Field): [boolean, string[]] {
     const fieldAsEnum = field as EnumField<any, any, any, any, any, any, any>;
-    return (await super.compare(field)) && JSON.stringify(this.choices) === JSON.stringify(fieldAsEnum.choices);
+    const isChoicesEqual = JSON.stringify(this.choices) === JSON.stringify(fieldAsEnum.choices);
+    const [isEqual, changedAttributes] = super.compare(field);
+
+    if (!isChoicesEqual) changedAttributes.push('choices');
+    return [isChoicesEqual && isEqual, changedAttributes]
   }
 
   /**

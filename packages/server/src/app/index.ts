@@ -4,12 +4,13 @@ import { ServerAlreadyInitializedError } from './exceptions';
 import { initializeRouters } from './utils';
 import { DEFAULT_SERVER_PORT } from '../defaults';
 import { serverLogger } from '../logging';
+import ServerAdapter from '../adapters';
 
-import type Server from '../adapters';
 import type { ServerSettingsType, AllServerSettingsType } from '../types';
 import type { ServerDomain } from '../domain/types';
+import type ServerlessAdapter from '../adapters/serverless';
 
-let serverInstances: Map<string, { server: Server; settings: ServerSettingsType }> = new Map();
+let serverInstances: Map<string, { server: ServerAdapter | ServerlessAdapter; settings: ServerSettingsType }> = new Map();
 
 /**
  * This is the http app server, it is responsible for loading the server and starting it configuring all of the routes of the application.
@@ -34,21 +35,28 @@ export default appServer({
     for (const [serverName, serverSettings] of serverEntries) {
       const serverWasNotInitialized = !serverInstances.has(serverName);
       if (serverWasNotInitialized) {
-        const newServerInstance = new serverSettings.server(serverName, args.settings, args.domains);
+        const newServerInstance = new serverSettings.server(
+          serverName,
+          args.settings,
+          args.settings.servers[serverName],
+          args.domains
+        );
         serverInstances.set(serverName, { server: newServerInstance, settings: serverSettings });
         await newServerInstance.load(serverName, args.domains, serverSettings);
-        await initializeRouters(args.domains, serverSettings, newServerInstance);
+        await initializeRouters(args.domains, serverSettings, args.settings, newServerInstance);
       } else throw new ServerAlreadyInitializedError();
     }
   },
   start: async (configureCleanup) => {
     const promises: Promise<void>[] = [];
     for (const [serverName, { server, settings }] of serverInstances.entries()) {
-      promises.push(
-        server.start(serverName, settings.port || DEFAULT_SERVER_PORT, () => {
-          serverLogger.logMessage('START_SERVER', { port: settings.port || DEFAULT_SERVER_PORT, serverName });
-        })
-      );
+      if (server instanceof ServerAdapter) {
+        promises.push(
+          server.start(serverName, settings.port || DEFAULT_SERVER_PORT, () => {
+            serverLogger.logMessage('START_SERVER', { port: settings.port || DEFAULT_SERVER_PORT, serverName });
+          })
+        );
+      }
     }
     await Promise.all(promises.concat(configureCleanup()));
   },
@@ -57,7 +65,7 @@ export default appServer({
       serverLogger.logMessage('STOP_SERVER', {
         serverName,
       });
-      await server.close();
+      if (server instanceof ServerAdapter) await server.close();
     }
   },
 });

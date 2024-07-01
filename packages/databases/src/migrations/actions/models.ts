@@ -41,6 +41,7 @@ export class CreateModel extends Operation {
     modelConstructor.domainPath = domainPath;
     model.fields = this.fields;
     model.options = this.options;
+    state.set(this.modelName, model)
   }
 
   async run(
@@ -148,6 +149,7 @@ export class ChangeModel extends Operation {
 
     modelConstructor.domainName = domainName;
     modelConstructor.domainPath = domainPath;
+
     model.options = this.optionsAfter;
   }
 

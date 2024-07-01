@@ -255,21 +255,29 @@ export default class DateField<
    * class CustomDateField extends DateField {
    *   aCustomValue: string;
    *
-   *   async compare(field:Field) {
-   *      return (await super.compare(field)) && fieldAsText.aCustomValue === this.aCustomValue;
+   *   compare(field:Field) {
+   *      const fieldAsText = field as TextField;
+   *      const isCustomValueEqual = fieldAsText.aCustomValue === this.aCustomValue;
+   *      const [isEqual, changedAttributes] = super.compare(field);
+   *      if (!isCustomValueEqual) changedAttributes.push('aCustomValue');
+   *      return [isCustomValueEqual && isEqual, changedAttributes]
    *   }
    * }
    * ```
    *
    * @param field - The field to compare.
    *
-   * @returns A promise that resolves to a boolean indicating if the field is equal to the other field.
+   * @returns A promise that resolves to a tuple containing a boolean and the changed attributes.
    */
-  async compare(field: Field): Promise<boolean> {
+  compare(field: Field): [boolean, string[]] {
     const fieldAsDate = field as DateField;
-    return (
-      (await super.compare(field)) && fieldAsDate.autoNow === this.autoNow && fieldAsDate.autoNowAdd === this.autoNowAdd
-    );
+    const isAutoNowEqual = fieldAsDate.autoNow === this.autoNow;
+    const isAutoNowAddEqual = fieldAsDate.autoNowAdd === this.autoNowAdd;
+    const [isEqual, changedAttributes] = super.compare(field);
+
+    if (!isAutoNowEqual) changedAttributes.push('autoNow');
+    if (!isAutoNowAddEqual) changedAttributes.push('autoNowAdd');
+    return [isAutoNowEqual && isAutoNowAddEqual && isEqual, changedAttributes];
   }
 
   /**

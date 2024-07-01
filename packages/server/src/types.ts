@@ -1,25 +1,28 @@
 import { SettingsType2 } from '@palmares/core';
 
-import type Server from './adapters';
+import type ServerAdapter from './adapters';
+import type ServerlessAdapter from './adapters/serverless';
 import type { Middleware } from './middleware';
 import type Request from './request';
-import Response from './response';
+import type Response from './response';
 
 export type AllServerSettingsType<TCustomServerSettings = unknown> = SettingsType2 &
   ServersSettingsType<TCustomServerSettings>;
 
 export type ServerSettingsType<TCustomServerSettings = unknown> = {
-  server: typeof Server;
+  server: typeof ServerAdapter | typeof ServerlessAdapter;
   /**
    * The root middlewares to be used by the server, all routes will be wrapped by those middlewares. Use case is for cors, authentication and so on.
    */
   middlewares?: Middleware[];
   /** Defaults to 4000 */
   port?: number;
+  debug?: boolean;
   /** This is the settings for when initializing the server, for example custom options for express initialization or custom options for fastify initialization */
   customServerSettings?: TCustomServerSettings;
   prefix?: string;
   handler404?: Required<Middleware>['response'];
+  serverlessFolderLocation?: string;
   validation?: {
     handler?: (request: Request<any, any>) => Response<any, any>;
     /**

@@ -15,7 +15,15 @@ export const serverLogger = new Logger(
     },
     REQUEST_RECEIVED: {
       category: 'info',
-      handler: (args: { method: string; url: string }) => `\x1b[3m${args.method}\x1b[0m ${args.url}`,
+      handler: (args: { method: string; url: string, timePassed: number }) => `\x1b[3m${args.method}\x1b[0m ${args.url} ${args.timePassed}`,
+    },
+    SERVERLESS_HANDLER_CREATED: {
+      category: 'info',
+      handler: (args: { url: string, path: string }) => `Serverless handler created for ${args.url} on \x1b[3m${args.path}\x1b[0m`,
+    },
+    SERVERLESS_HANDLER_UPDATED: {
+      category: 'info',
+      handler: (args: { method: string; url: string, path: string }) => `Serverless handler updated for \x1b[1m${args.method}\x1b[0m ${args.url} on \x1b[3m${args.path}\x1b[0m`,
     },
   }
 );

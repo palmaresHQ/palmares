@@ -191,8 +191,12 @@ export default class DecimalField<
    * class CustomDecimalField extends DecimalField {
    *   aCustomValue: string;
    *
-   *   async compare(field:Field) {
-   *      return (await super.compare(field)) && fieldAsText.aCustomValue === this.aCustomValue;
+   *   compare(field:Field) {
+   *      const fieldAsText = field as TextField;
+   *      const isCustomValueEqual = fieldAsText.aCustomValue === this.aCustomValue;
+   *      const [isEqual, changedAttributes] = super.compare(field);
+   *      if (!isCustomValueEqual) changedAttributes.push('aCustomValue');
+   *      return [isCustomValueEqual && isEqual, changedAttributes]
    *   }
    * }
    * ```
@@ -201,13 +205,15 @@ export default class DecimalField<
    *
    * @returns A promise that resolves to a boolean indicating if the field is equal to the other field.
    */
-  async compare(field: Field): Promise<boolean> {
-    const fieldAsDecimal = field as DecimalField;
-    return (
-      (await super.compare(field)) &&
-      fieldAsDecimal.maxDigits === this.maxDigits &&
-      fieldAsDecimal.decimalPlaces === this.decimalPlaces
-    );
+  compare(field: Field): [boolean, string[]] {
+    const fieldAsDate = field as DecimalField;
+    const isMaxDigitsEqual = fieldAsDate.maxDigits === this.maxDigits;
+    const isDecimalPlacesEqual = fieldAsDate.decimalPlaces === this.decimalPlaces;
+    const [isEqual, changedAttributes] = super.compare(field);
+
+    if (!isMaxDigitsEqual) changedAttributes.push('maxDigits');
+    if (!isDecimalPlacesEqual) changedAttributes.push('decimalPlaces');
+    return [isMaxDigitsEqual && isDecimalPlacesEqual && isEqual, changedAttributes];
   }
 
   /**

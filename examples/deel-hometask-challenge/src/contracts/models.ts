@@ -1,19 +1,48 @@
-import { Model, fields, AutoField, TextField, ModelOptionsType, EnumField, ForeignKeyField } from '@palmares/databases';
+import { Model, fields, ModelOptionsType, auto, text, choice, foreignKey, define } from '@palmares/databases';
 import { Profile } from '../auth/models';
 
-export class Contract extends Model<Contract>() {
-  fields = {
-    id: AutoField.new(),
-    terms: TextField.new(),
-    status: EnumField.new({ allowNull: true, choices: ['new', 'in_progress', 'terminated'] }),
-    contractorId: ForeignKeyField.new({
+
+/*
+export const Contract = define('Contract', {
+  fields: {
+    id: auto(),
+    terms: text({ allowNull: true, defaultValue: 'No terms' }),
+    status: choice({ allowNull: true, choices: ['new', 'in_progress', 'terminated', 'test'] }),
+    contractorId: foreignKey({
       relatedTo: Profile,
       onDelete: fields.ON_DELETE.CASCADE,
       toField: 'id',
       relatedName: 'contractorContracts',
       relationName: 'contractor',
     }),
-    clientId: ForeignKeyField.new({
+    clientId: foreignKey({
+      relatedTo: Profile,
+      onDelete: fields.ON_DELETE.CASCADE,
+      toField: 'id',
+      relatedName: 'clientContracts',
+      relationName: 'client',
+    }),
+  },
+  options: {
+    tableName: 'contract',
+  },
+})*/
+
+
+
+export class Contract extends Model<Contract>() {
+  fields = {
+    id: auto(),
+    terms: text(),
+    status: choice({ allowNull: true, choices: ['new', 'in_progress', 'terminated'] }),
+    contractorId: foreignKey({
+      relatedTo: Profile,
+      onDelete: fields.ON_DELETE.CASCADE,
+      toField: 'id',
+      relatedName: 'contractorContracts',
+      relationName: 'contractor',
+    }),
+    clientId: foreignKey({
       relatedTo: Profile,
       onDelete: fields.ON_DELETE.CASCADE,
       toField: 'id',
@@ -26,3 +55,4 @@ export class Contract extends Model<Contract>() {
     tableName: 'contract',
   };
 }
+

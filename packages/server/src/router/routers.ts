@@ -1,4 +1,4 @@
-import type { Narrow } from '@palmares/core';
+import type { Domain, Narrow } from '@palmares/core';
 import type { Middleware } from '../middleware';
 import type {
   AlreadyDefinedMethodsType,
@@ -36,14 +36,15 @@ import { RequestMethodTypes } from '../request/types';
 export class BaseRouter<
   TParentRouter extends DefaultRouterType | undefined = undefined,
   TChildren extends readonly DefaultRouterType[] | undefined = undefined,
-  TMiddlewares extends readonly Middleware[] = never[],
+  TMiddlewares extends readonly Middleware<any>[] = never[],
   TRootPath extends string | undefined = undefined,
   TAlreadyDefinedHandlers extends
     | AlreadyDefinedMethodsType<TRootPath extends string ? TRootPath : '', readonly Middleware[]>
-    | unknown = unknown
+    | unknown = unknown,
 > {
   path!: TRootPath;
 
+  protected __domain!: Domain<any>
   protected __partsOfPath: {
     part: string;
     isUrlParam: boolean;
@@ -129,7 +130,7 @@ export class BaseRouter<
     return <
       TPath extends string,
       TFullPath = MergeParentAndChildPathsType<TParentRouter, TPath>,
-      TMergedMiddlewares = MergeParentMiddlewaresType<TParentRouter>
+      TMergedMiddlewares = MergeParentMiddlewaresType<TParentRouter>,
     >(
       path: TPath
     ) => {
@@ -149,7 +150,7 @@ export class BaseRouter<
    * Used for including other routers inside of this router. This way we can construct a tree of routers. And you
    * can use it to use the same middlewares and handlers for multiple routes.
    */
-  nested<TIncludes extends readonly (DefaultRouterType | Omit<DefaultRouterType, never>)[]>(
+  nested<const TIncludes extends readonly (DefaultRouterType | Omit<DefaultRouterType, never>)[]>(
     children:
       | ((
           router: ReturnType<IncludesRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, undefined>['child']>
@@ -237,7 +238,7 @@ export class BaseRouter<
     }
   }
 
-  middlewares<TRouterMiddlewares extends readonly Middleware[]>(definedMiddlewares: Narrow<TRouterMiddlewares>) {
+  middlewares<const TRouterMiddlewares extends readonly Middleware[]>(definedMiddlewares: Narrow<TRouterMiddlewares>) {
     const middlewaresAsMutable = this.__middlewares as unknown as Middleware[];
     (this.__middlewares as unknown as Middleware[]) = middlewaresAsMutable.concat(definedMiddlewares as Middleware[]);
     for (const handler of this.__completePaths.values())
@@ -246,7 +247,7 @@ export class BaseRouter<
     return this as unknown as MethodsRouter<
       TParentRouter,
       TChildren,
-      readonly [...TMiddlewares, ...TRouterMiddlewares],
+      readonly [...(TMiddlewares['length'] extends 0 ? [] : TMiddlewares), ...TRouterMiddlewares],
       TRootPath,
       TAlreadyDefinedHandlers
     >;
@@ -395,7 +396,7 @@ export class BaseRouter<
 
     params[urlParamName] = {
       type: [urlParamType] as ('number' | 'string' | 'boolean')[],
-      regex: new RegExp(urlParamRegex),
+      regex: urlParamRegex !== '' ? new RegExp(urlParamRegex) : new RegExp(urlParamType === 'number' ? `^(?<${urlParamName}>\\d+)$` : urlParamType === 'boolean' ? `^(?<${urlParamName}>true|false)$` : `^(?<${urlParamName}>\\w+)$`)
     };
     index++;
     return index;
@@ -484,7 +485,7 @@ export class IncludesRouter<
   TRootPath extends string | undefined = undefined,
   TAlreadyDefinedMethods extends
     | AlreadyDefinedMethodsType<TRootPath extends string ? TRootPath : '', readonly Middleware[]>
-    | undefined = undefined
+    | undefined = undefined,
 > extends BaseRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, TAlreadyDefinedMethods> {
   /**
    * Syntax sugar for creating a nested router inside of the `include` method when passing a function instead of an array.
@@ -506,7 +507,7 @@ export class MethodsRouter<
   TRootPath extends string | undefined = undefined,
   TAlreadyDefinedMethods extends
     | AlreadyDefinedMethodsType<TRootPath extends string ? TRootPath : '', readonly Middleware[]>
-    | unknown = unknown
+    | unknown = unknown,
 > extends BaseRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, TAlreadyDefinedMethods> {
   get<
     THandler extends HandlerType<
@@ -515,7 +516,7 @@ export class MethodsRouter<
       'GET',
       TOptions['responses']
     >,
-    TOptions extends RouterOptionsType
+    TOptions extends RouterOptionsType,
   >(handler: THandler, options?: TOptions) {
     const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
@@ -558,7 +559,7 @@ export class MethodsRouter<
       'POST',
       TOptions['responses']
     >,
-    TOptions extends RouterOptionsType
+    TOptions extends RouterOptionsType,
   >(handler: THandler, options?: TOptions) {
     const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
@@ -601,7 +602,7 @@ export class MethodsRouter<
       'DELETE',
       TOptions['responses']
     >,
-    TOptions extends RouterOptionsType
+    TOptions extends RouterOptionsType,
   >(handler: THandler, options?: TOptions) {
     const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
@@ -644,7 +645,7 @@ export class MethodsRouter<
       'OPTIONS',
       TOptions['responses']
     >,
-    TOptions extends RouterOptionsType
+    TOptions extends RouterOptionsType,
   >(handler: THandler, options?: TOptions) {
     const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
@@ -687,7 +688,7 @@ export class MethodsRouter<
       'HEAD',
       TOptions['responses']
     >,
-    TOptions extends RouterOptionsType
+    TOptions extends RouterOptionsType,
   >(handler: THandler, options?: TOptions) {
     const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
@@ -730,7 +731,7 @@ export class MethodsRouter<
       'PUT',
       TOptions['responses']
     >,
-    TOptions extends RouterOptionsType
+    TOptions extends RouterOptionsType,
   >(handler: THandler, options?: TOptions) {
     const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
@@ -773,7 +774,7 @@ export class MethodsRouter<
       'PATCH',
       TOptions['responses']
     >,
-    TOptions extends RouterOptionsType
+    TOptions extends RouterOptionsType,
   >(handler: THandler, options?: TOptions) {
     const existingHandlers = ((this.__handlers as any) ? this.__handlers : {}) as any;
     delete existingHandlers.all; // we don't want want to keep the `all` handler if it was defined before since we are now defining a handler for a specific method.
@@ -816,7 +817,7 @@ export class MethodsRouter<
       RequestMethodTypes,
       TOptions['responses']
     >,
-    TOptions extends RouterOptionsType
+    TOptions extends RouterOptionsType,
   >(handler: THandler, options?: TOptions) {
     const handlersAsAny = this.__handlers as any;
 

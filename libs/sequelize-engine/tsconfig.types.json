@@ -3,6 +3,7 @@
   "compilerOptions": {
     "declaration": true,
     "esModuleInterop": true,
+    "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "rootDir": "./src",
     "outDir": "./dist/cjs/types",

@@ -66,7 +66,7 @@ async function parseData(
   if (data) {
     const connectionName = engine.connectionName;
     const modelConstructor = modelInstance.constructor as ReturnType<typeof model> & typeof BaseModel;
-    const fieldsInModel = modelConstructor._fields();
+    const fieldsInModel = modelConstructor._fields(modelInstance as any);
     const fieldNamesInModel = Object.keys(fieldsInModel);
 
     const dataAsArray = Array.isArray(data) ? data : [data];
@@ -429,7 +429,7 @@ async function callQueryDataFn<
   ]);
 
   const modelName = modelConstructor.getName();
-  const modelFields = modelConstructor._fields();
+  const modelFields = modelConstructor._fields(modelInstanceAsModel);
   const fieldsToParseOutput = modelConstructor.fieldParsersByEngine.get(engine.connectionName)?.output;
   if (Array.isArray(args.results)) {
     if (args.isSetOperation)
@@ -1221,15 +1221,7 @@ export default async function getResultsWithIncludes<
           includesForGet.ordering,
           includesForGet.limit,
           includesForGet.offset,
-          dataToAdd as ModelFieldsWithIncludes<
-            TModel,
-            TIncludes,
-            FieldsOFModelType<TModel>,
-            true,
-            false,
-            TSearch extends undefined ? false : true,
-            false
-          >,
+          dataToAdd as any,
           isToPreventEvents,
           transaction,
           palmaresTransaction

@@ -21,9 +21,9 @@ import { BaseModel } from '../../models';
 export class CreateField extends Operation {
   modelName: string;
   fieldName: string;
-  fieldDefinition: Field<any, any, any, any, any, any>;
+  fieldDefinition: Field<any, any, any, any, any, any, any, any>;
 
-  constructor(modelName: string, fieldName: string, fieldDefinition: Field<any, any, any, any, any, any>) {
+  constructor(modelName: string, fieldName: string, fieldDefinition: Field<any, any, any, any, any, any, any, any>) {
     super();
     this.modelName = modelName;
     this.fieldName = fieldName;
@@ -86,14 +86,14 @@ export class CreateField extends Operation {
 export class ChangeField extends Operation {
   modelName: string;
   fieldName: string;
-  fieldDefinitionBefore: Field<any, any, any, any, any, any>;
-  fieldDefinitionAfter: Field<any, any, any, any, any, any>;
+  fieldDefinitionBefore: Field<any, any, any, any, any, any, any, any>;
+  fieldDefinitionAfter: Field<any, any, any, any, any, any, any, any>;
 
   constructor(
     modelName: string,
     fieldName: string,
-    fieldDefinitionBefore: Field<any, any, any, any, any, any>,
-    fieldDefinitionAfter: Field<any, any, any, any, any, any>
+    fieldDefinitionBefore: Field<any, any, any, any, any, any, any, any>,
+    fieldDefinitionAfter: Field<any, any, any, any, any, any, any, any>
   ) {
     super();
     this.modelName = modelName;
@@ -155,7 +155,7 @@ export class ChangeField extends Operation {
   }
 
   static async describe(data: ActionToGenerateType<ChangeFieldToGenerateData>): Promise<string> {
-    return `Changed one of the attributes of the '${data.data.fieldName}' field on the '${data.modelName}' model`;
+    return `Changed the ${`attribute${data.data.changedAttributes.length > 1 ? 's' : ''} ${data.data.changedAttributes.map((attribute) => `'${attribute}'`).join(', ').replace(/,(?!.*,)/, ' and')}`} of the '${data.data.fieldName}' field on the '${data.modelName}' model`;
   }
 }
 
@@ -163,13 +163,13 @@ export class RenameField extends Operation {
   modelName: string;
   fieldNameBefore: string;
   fieldNameAfter: string;
-  fieldDefinition: Field<any, any, any, any, any, any>;
+  fieldDefinition: Field<any, any, any, any, any, any, any, any>;
 
   constructor(
     modelName: string,
     fieldNameBefore: string,
     fieldNameAfter: string,
-    fieldDefinition: Field<any, any, any, any, any, any>
+    fieldDefinition: Field<any, any, any, any, any, any, any, any>
   ) {
     super();
     this.modelName = modelName;
@@ -187,8 +187,9 @@ export class RenameField extends Operation {
     const hasNamesReallyChanged = this.fieldNameAfter !== this.fieldNameBefore;
     if (hasNamesReallyChanged) {
       model.fields[this.fieldNameAfter] = model.fields[this.fieldNameBefore];
-      delete model.fields[this.fieldNameBefore];
+      delete model.fields[this.fieldNameBefore]
     }
+
     model.fields[this.fieldNameAfter] = this.fieldDefinition;
     await state.set(this.modelName, model);
   }

@@ -1,6 +1,6 @@
 import type { EventEmitter } from '@palmares/events';
 
-import { BaseModel, model } from './models';
+import { BaseModel, Manager, model } from './models';
 import DatabaseAdapter from './engine';
 
 export interface DatabaseConfigurationType {
@@ -10,6 +10,18 @@ export interface DatabaseConfigurationType {
     channels?: string[];
   };
 }
+
+export type ExtractFieldsFromAbstracts<TAbstracts extends readonly any[]> =
+TAbstracts extends readonly [infer TAbstract, ...infer TRest] ?
+TAbstract extends {
+  new(): { fields: infer TFields }
+} ?
+TFields & ExtractFieldsFromAbstracts<TRest extends readonly any[] ? TRest: []> : unknown: unknown;
+
+export type ExtractManagersFromAbstracts<TAbstracts extends readonly any[]> =
+TAbstracts extends readonly [infer TAbstract, ...infer TRest] ? {
+  [TKey in keyof TAbstract as TAbstract[TKey] extends Manager<any> ? TKey : never]: TAbstract[TKey];
+} & ExtractManagersFromAbstracts<TRest extends readonly any[] ? TRest : []> : unknown
 
 export type InitializedEngineInstancesType = {
   [key: string]: InitializedEngineInstanceWithModelsType;

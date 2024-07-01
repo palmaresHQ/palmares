@@ -23,14 +23,15 @@ export type ManagersOfInstanceType = {
   [key: string]: Manager;
 };
 
-export type ModelIndexType<TFields = string> = {
+export type ModelIndexType<TFields> = {
   unique: boolean;
-  fields: TFields[];
+  fields: TFields;
 };
 
 type OrderingOfModelOptions<TFields> =
-  | keyof { [F in TFields as F extends string ? `-${F}` : never]: F }
-  | keyof { [F in TFields as F extends string ? `${F}` : never]: F };
+  | `-${TFields extends readonly any[] ? TFields[number] : never}`[]
+  | TFields
+  | string[];
 
 export type ExtractFieldNames<TFieldsAndAbstracts, TModelAbstracts> = TFieldsAndAbstracts extends {
   fields: infer TFields;
@@ -38,9 +39,9 @@ export type ExtractFieldNames<TFieldsAndAbstracts, TModelAbstracts> = TFieldsAnd
   ?
       | keyof TFields
       | (TModelAbstracts extends readonly [infer TAbstract, ...infer TRestAbstracts]
-          ? TAbstract extends { fields: any } | { fields: any; abstracts: infer TAbstractsOfAbstract }
+          ? TAbstract extends { fields: any } | { fields: any;}
             ?
-                | ExtractFieldNames<TAbstract, TAbstractsOfAbstract>
+                | ExtractFieldNames<TAbstract, []>
                 | ExtractFieldNames<
                     TFieldsAndAbstracts,
                     TRestAbstracts extends { fields: any } | { fields: any; abstracts: readonly any[] }
@@ -78,7 +79,7 @@ type ExtractFieldTypes<
       (TModelAbstracts extends readonly [infer TAbstract, ...infer TRestAbstracts]
         ? TAbstract extends { fields: any } | { fields: any; abstracts: infer TAbstractsOfAbstract }
           ?
-              | ExtractFieldTypes<TAbstract, TAbstractsOfAbstract>
+              | ExtractFieldTypes<TAbstract, []>
               | ExtractFieldTypes<
                   TFieldsAndAbstracts,
                   TRestAbstracts extends { fields: any } | { fields: any; abstracts: readonly any[] }
@@ -90,8 +91,8 @@ type ExtractFieldTypes<
   : unknown;
 
 export type onSetFunction<M = any> = (args: {
-  data: ExtractFieldTypes<M, M extends { abstracts: infer TAbstracts } ? TAbstracts : never[], false>;
-  search: ExtractFieldTypes<M, M extends { abstracts: infer TAbstracts } ? TAbstracts : never[], true>;
+  data: ExtractFieldTypes<M, [], false>;
+  search: ExtractFieldTypes<M, [], true>;
 }) => Promise<any[]>;
 
 export type onRemoveFunction<M = any> = (args: {
@@ -99,7 +100,7 @@ export type onRemoveFunction<M = any> = (args: {
   shouldRemove?: boolean;
   /** Should you return the data that you are removing? By default yes, you should, in case this is false you should not. */
   shouldReturnData?: boolean;
-  search: ExtractFieldTypes<M, M extends { abstracts: infer TAbstracts } ? TAbstracts : never[], true>;
+  search: ExtractFieldTypes<M, [], true>;
 }) => Promise<any[]>;
 
 /**
@@ -107,7 +108,7 @@ export type onRemoveFunction<M = any> = (args: {
  */
 export type ModelOptionsType<TModel = any> = {
   indexes?: ModelIndexType<FieldsOFModelType<TModel>>[];
-  ordering?: OrderingOfModelOptions<FieldsOFModelType<TModel>>[] | string[];
+  ordering?: OrderingOfModelOptions<FieldsOFModelType<TModel>>;
   /**
    * Sometimes a ORM can let you define custom hooks to be fired for example on certain lifecycle events, or for example, sequelize let's you define relations on the model after it was defined.
    * This is a function that will be called after the model is translated so you can apply your custom hooks.
@@ -120,7 +121,7 @@ export type ModelOptionsType<TModel = any> = {
   databases?: string[];
   customOptions?: any;
   onGet?: (args: {
-    search: ExtractFieldTypes<TModel, TModel extends { abstracts: infer TAbstracts } ? TAbstracts : never[], true>;
+    search: ExtractFieldTypes<TModel, [], true>;
     fields: FieldsOFModelType<TModel>;
     ordering?: OrderingOfModelOptions<FieldsOFModelType<TModel>>[];
     limit?: number;

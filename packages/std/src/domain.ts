@@ -1,4 +1,4 @@
-import { Domain, domain } from '@palmares/core';
+import { domain } from '@palmares/core';
 
 import Std from './interfaces';
 import { setDefaultStd } from './config';

@@ -1,10 +1,9 @@
-import { ChildProcess, ImportsError, imports } from '@palmares/std';
+import { ChildProcess } from '@palmares/std';
 
+import { exec, spawn } from 'child_process';
 export default class ChildProcessNode implements ChildProcess {
   async executeAndOutput(command: string) {
-    const exec = await imports<typeof import('child_process').exec>('child_process', { apiName: 'exec' });
-    if (!exec) throw new ImportsError('nodejs child_process exec');
-    return new Promise<string>((resolve, reject) => {
+      return new Promise<string>((resolve, reject) => {
       exec(command, (error, stdout, _) => {
         if (error) reject(error);
         else resolve(stdout);
@@ -25,9 +24,6 @@ export default class ChildProcessNode implements ChildProcess {
       detached?: boolean;
     }
   ) {
-    const spawn = await imports<typeof import('child_process').spawn>('child_process', { apiName: 'spawn' });
-    if (!spawn) throw new ImportsError('nodejs child_process spawn');
-
     const child = spawn(command, args, options);
     if (options.onExit) child.on('exit', options.onExit);
     if (options.onError) child.on('error', options.onError);

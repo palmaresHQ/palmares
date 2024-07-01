@@ -1,4 +1,4 @@
-import { Model, AutoField, TextField, ModelOptionsType, DecimalField, EnumField } from '@palmares/databases';
+import { Model, AutoField, TextField, ModelOptionsType, DecimalField, EnumField, BooleanField } from '@palmares/databases';
 
 export class Profile extends Model<Profile>() {
   fields = {

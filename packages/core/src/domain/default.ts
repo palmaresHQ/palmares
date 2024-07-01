@@ -1,5 +1,4 @@
 import help from '../commands/help';
-import { DomainHandlerFunctionArgs } from '../commands/types';
 import { CoreSettingsType } from '../conf/types';
 import { PACKAGE_NAME } from '../utils';
 import domain from './function';
@@ -25,8 +24,8 @@ const coreDomain = domain(PACKAGE_NAME, __dirname, {
           type: 'string',
           canBeMultiple: true,
         },
-      },
-      handler: (options: DomainHandlerFunctionArgs) => {
+      } as const,
+      handler: (options) => {
         help(options.domains, options.commandLineArgs.keywordArgs);
       },
     },

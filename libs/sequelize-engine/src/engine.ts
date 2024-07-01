@@ -85,7 +85,7 @@ const sequelizeDatabaseAdapter = databaseAdapter({
           } catch (e) {
             reject(e);
           }
-        });
+        }).catch(reject);
       } catch (e) {
         reject(e);
       }
@@ -96,7 +96,9 @@ const sequelizeDatabaseAdapter = databaseAdapter({
   },
   close: async (databaseAdapter): Promise<void> => {
     const instanceData = checkIfInstanceSavedOrSave(databaseAdapter.connectionName, databaseAdapter.instance);
-    await Promise.resolve(instanceData.instance?.close());
+    try {
+      await Promise.resolve(instanceData.instance?.close());
+    } catch (_) {}
   },
 });
 

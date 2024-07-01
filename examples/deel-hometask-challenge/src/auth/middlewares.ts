@@ -9,8 +9,10 @@ export const getProfileMiddleware = middleware({
       search: { id: parseInt(requestWithHeaders.headers['profile_id']) || 0 },
     });
     if (!profiles || profiles.length == 0) return Response.text('', { status: 401 });
-
-    const clonedRequest = request.clone({ context: { profile: profiles[0] } });
+    // from the middleware definition!!!
+    const clonedRequest = requestWithHeaders.clone({
+      context: { profile: profiles[0], olaBruno: 'string', dataFromMiddleware: 'admin@admin.com' },
+    });
     return clonedRequest;
   },
 });

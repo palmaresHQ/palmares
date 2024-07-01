@@ -6,6 +6,7 @@ import defaultSettings from './settings';
 import { defaultMigrations, defaultModels } from './defaults';
 import Databases from './databases';
 import { DatabaseDomainInterface } from './interfaces';
+import { model as BaseModel } from './models';
 
 let databases: Databases | undefined = undefined;
 let cachedDatabaseDomains: DatabaseDomainInterface[] | undefined = undefined;
@@ -17,7 +18,7 @@ function loadDatabases(databaseDomains?: DatabaseDomainInterface[]) {
 }
 
 const databaseDomainModifier = domain<{
-  getModels: () => Promise<any> | any;
+  getModels: () => Promise<Record<string, ReturnType<typeof BaseModel>> | ReturnType<typeof BaseModel>[]> | Record<string, ReturnType<typeof BaseModel>> | ReturnType<typeof BaseModel>[];
   getMigrations: () => Promise<any> | any;
 }>('@palmares/database', __dirname, {});
 
@@ -44,7 +45,6 @@ export default domain('@palmares/database', __dirname, {
     },
     migrate: {
       description: 'Run the pending migrations on your database',
-      syntax: '',
       positionalArgs: undefined,
       keywordArgs: undefined,
       handler: async (options: DomainHandlerFunctionArgs) => {

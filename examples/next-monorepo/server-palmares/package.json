@@ -1,0 +1,33 @@
+{
+  "name": "@examples/server-palmares",
+  "version": "0.0.1",
+  "description": "testing the serverless vercel",
+  "main": "manage.ts",
+  "scripts": {
+    "serverless": "tsx manage.ts serverless",
+    "runserver": "tsx manage.ts runserver",
+    "test": "tsx ./api/test/route.ts",
+    "run": "node ./dist/src/api/test.js",
+    "clear": "rimraf ./dist",
+    "build": "pnpm run clear && swc . -d ./dist --config-file  ../../build/.commonjs.swcrc --ignore node_modules dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@palmares/console-logging": "workspace:*",
+    "@palmares/logging": "workspace:*",
+    "@palmares/core": "workspace:*",
+    "@palmares/vercel-adapter": "workspace:*",
+    "@palmares/express-adapter": "workspace:*",
+    "@palmares/node-std": "workspace:*",
+    "@palmares/server": "workspace:*",
+    "@palmares/std": "workspace:*",
+    "cors": "^2.8.5",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/qs": "^6.9.8",
+    "nodemon": "^3.0.1"
+  }
+}

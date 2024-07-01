@@ -1,15 +1,11 @@
-import { Os, imports, ImportsError } from '@palmares/std';
+import { Os } from '@palmares/std';
+
+import { platform as nodePlatform, release as nodeRelease } from 'os';
 export default class NodeOs implements Os {
   async release() {
-    const nodeRelease = await imports<typeof import('os').release>('os', { apiName: 'release' });
-    if (!nodeRelease) throw new ImportsError('nodejs os release');
-
     return nodeRelease();
   }
   async platform() {
-    const nodePlatform = await imports<typeof import('os').platform>('os', { apiName: 'platform' });
-    if (!nodePlatform) throw new ImportsError('nodejs os platform');
-
     switch (nodePlatform()) {
       case 'darwin':
         return 'darwin';

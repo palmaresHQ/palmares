@@ -2,7 +2,29 @@
   "name": "@palmares/zod-schema",
   "version": "0.0.1",
   "description": "Zod as the validation schema for palmares so we are able to validate through zod instead of using serializers",
-  "main": "src/index.ts",
+  "main": "./dist/cjs/src/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/cjs/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/cjs/types/index.d.ts",
+      "node": "./dist/cjs/src/index.js",
+      "require": "./dist/cjs/src/index.js",
+      "import": "./dist/esm/index.js",
+      "default": "./dist/esm/index.js"
+    }
+  },
+  "scripts": {
+    "clear": "rimraf ./dist",
+    "build:types": "tsc --project tsconfig.types.json",
+    "build:cjs": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc",
+    "build:module": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc",
+    "build": "pnpm run clear && pnpm run build:cjs & pnpm run build:module & pnpm run build:types",
+    "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
+    "build:cjs:watch": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc --watch",
+    "build:module:watch": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc --watch",
+    "build:watch": "pnpm run build:cjs:watch & pnpm run build:module:watch & pnpm run build:types:watch"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/palmaresHQ/palmares.git"
@@ -19,10 +41,10 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
-    "@palmares/serializers": "*",
+    "@palmares/schemas": "workspace:*",
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "typescript": "^5.2.2"
+    "typescript": "^5.3.3"
   }
 }

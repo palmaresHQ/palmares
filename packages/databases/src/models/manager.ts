@@ -260,7 +260,7 @@ export default class Manager<TModel = Model, EI extends DatabaseAdapter | null =
 
     const modelInstance = this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName) as Model;
     const modelConstructor = modelInstance.constructor as ModelType;
-    const allFieldsOfModel = Object.keys(modelConstructor._fields());
+    const allFieldsOfModel = Object.keys((modelConstructor as any)._fields(modelInstance));
     return getQuery(
       {
         fields: (args?.fields || allFieldsOfModel) as unknown as TFields,

@@ -6,9 +6,13 @@
   "scripts": {
     "seed": "tsx manage.ts seedDb",
     "help": "tsx manage.ts help",
+    "clear": "rimraf ./dist",
+    "help:prod": "node ./dist/manage.js help",
+    "helloWorld": "tsx manage.ts helloWorld Nicolas",
     "dev": "nodemon --watch 'src/' --watch '../../packages/*/dist/**' --watch '../../libs/*/dist/**' --exec ' tsx manage.ts runserver' -e ts",
     "makemigrations": "tsx manage.ts makemigrations",
-    "migrate": "tsx manage.ts migrate"
+    "migrate": "tsx manage.ts migrate",
+    "express": "node bench.js"
   },
   "keywords": [
     "Deel",
@@ -18,6 +22,8 @@
   "author": "Nicolas Melo",
   "license": "MIT",
   "dependencies": {
+    "@palmares/schemas": "workspace:*",
+    "@palmares/zod-schema": "workspace:*",
     "@palmares/console-logging": "workspace:*",
     "@palmares/core": "workspace:*",
     "@palmares/databases": "workspace:*",
@@ -27,7 +33,9 @@
     "@palmares/sequelize-engine": "workspace:*",
     "@palmares/server": "workspace:*",
     "@palmares/std": "workspace:*",
+    "autocannon": "^7.12.0",
     "cors": "^2.8.5",
+    "express": "^4.18.2",
     "sequelize": "^6.21.0",
     "sqlite3": "^5.1.6",
     "zod": "^3.22.4"

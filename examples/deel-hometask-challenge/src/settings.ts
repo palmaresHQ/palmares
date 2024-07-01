@@ -13,10 +13,13 @@ import AuthDomain from './auth';
 import ContractsDomain from './contracts';
 import JobsDomain from './jobs';
 import AdminDomain from './admin';
+
 import { dirname, resolve } from 'path';
+
 
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
+  settingsLocation: __dirname,
   installedDomains: [
     [
       LoggingDomain,
@@ -45,6 +48,7 @@ export default defineSettings({
         servers: {
           default: {
             server: ExpressServerAdapter,
+            debug: true,
             port: 3001,
             validation: {
               handler: () => {
@@ -58,7 +62,7 @@ export default defineSettings({
                   message: 'Not found',
                 },
               }),
-            handler500: async (response) => {
+            handler500: async (response: any) => {
               return response;
             },
           },

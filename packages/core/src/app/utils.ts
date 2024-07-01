@@ -9,8 +9,9 @@ import { Domain } from '../domain';
  * The lifecycle of the app is:
  * - `load`: Loads the constructor.
  * - `start`: Starts the appServer.
- * - `close`: Stops the appServer. The close method is called when SIGINT is received. It's really important that the library author correctly implement
- * this method, otherwise the app might not close correctly.
+ * - `close`: Stops the appServer. The close method is called when SIGINT is received. It's really
+ * important that the library author correctly implement this method, otherwise the app might not
+ * close correctly.
  *
  * @param domains - The domains to be loaded.
  * @param settings - All of the settings of the application.

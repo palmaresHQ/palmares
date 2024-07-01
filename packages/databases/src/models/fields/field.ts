@@ -134,7 +134,7 @@ export default class Field<
     const isAlreadyInitialized = this.model !== undefined && typeof this.fieldName === 'string';
     if (isAlreadyInitialized) return;
 
-    const isUnderscored: boolean = (this.underscored || model._options()?.underscored) === true;
+    const isUnderscored: boolean = (this.underscored || (model as any).__cachedOptions?.underscored) === true;
     this.fieldName = fieldName;
     this.model = model;
 
@@ -172,18 +172,29 @@ export default class Field<
    *
    * @return - Returns true if the fields are equal and false otherwise
    */
-  async compare(field: Field): Promise<boolean> {
-    return (
-      field.typeName === this.typeName &&
-      field.allowNull === this.allowNull &&
-      JSON.stringify(field.customAttributes) === JSON.stringify(this.customAttributes) &&
-      field.primaryKey === this.primaryKey &&
-      field.defaultValue === this.defaultValue &&
-      field.unique === this.unique &&
-      field.dbIndex === this.dbIndex &&
-      field.databaseName === this.databaseName &&
-      field.underscored === this.underscored
-    );
+  compare(field: Field): [boolean, string[]] {
+    const isTypeNameEqual = field.typeName === this.typeName;
+    const isAllowNullEqual = field.allowNull === this.allowNull;
+    const isCustomAttributesEqual = JSON.stringify(field.customAttributes) === JSON.stringify(this.customAttributes);
+    const isPrimaryKeyEqual = field.primaryKey === this.primaryKey;
+    const isDefaultValueEqual = field.defaultValue === this.defaultValue;
+    const isUniqueEqual = field.unique === this.unique;
+    const isDbIndexEqual = field.dbIndex === this.dbIndex;
+    const isDatabaseNameEqual = field.databaseName === this.databaseName;
+    const isUnderscoredEqual = field.underscored === this.underscored;
+    const changedAttributes = [
+      !isTypeNameEqual && 'typeName',
+      !isAllowNullEqual && 'allowNull',
+      !isCustomAttributesEqual && 'customAttributes',
+      !isPrimaryKeyEqual && 'primaryKey',
+      !isDefaultValueEqual && 'defaultValue',
+      !isUniqueEqual && 'unique',
+      !isDbIndexEqual && 'dbIndex',
+      !isDatabaseNameEqual && 'databaseName',
+      !isUnderscoredEqual && 'underscored',
+    ].filter((attr) => typeof attr === 'string');
+
+    return [changedAttributes.length === 0, changedAttributes as string[]]
   }
 
   /**

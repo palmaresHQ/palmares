@@ -1,6 +1,6 @@
 import type { DomainReadyFunctionArgs, ExtractModifierArguments } from './types';
 import Domain from './domain';
-import type { DefaultCommandType } from '../commands/types';
+import type { DefaultCommandType,} from '../commands/types';
 
 /**
  * Functional approach to how one can create a domain. It's similar to the class approach, but can be more flexible then the class counter-part.
@@ -24,13 +24,14 @@ import type { DefaultCommandType } from '../commands/types';
  * ```
  */
 export default function domain<
-  TModifierArguments = object,
-  TModifiers extends readonly (abstract new (...args: any) => {
+  const TModifierArguments = object,
+  const TModifiers extends (abstract new (...args: any) => {
     modifiers: any;
-  })[] = readonly (abstract new (...args: any) => {
+  })[] = (abstract new (...args: any) => {
     modifiers: any;
   })[],
-  TCommands extends DefaultCommandType = DefaultCommandType,
+
+  const TCommands extends DefaultCommandType = DefaultCommandType,
   TLoadFunction extends (
     settings: any
   ) =>
@@ -46,7 +47,7 @@ export default function domain<
     | Promise<(args: DomainReadyFunctionArgs<unknown, any>) => void | Promise<void>>,
   TReadyFunction extends (args: DomainReadyFunctionArgs<any, any>) => void | Promise<void> = (
     args: DomainReadyFunctionArgs<unknown, any>
-  ) => void | Promise<void>
+  ) => void | Promise<void>,
 >(
   /**
    * The name of the domain. It will be used to identify the domain and to load the settings for it.

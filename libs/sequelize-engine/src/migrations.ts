@@ -6,7 +6,7 @@ import {
   DatabaseAdapter,
   adapterMigrations,
 } from '@palmares/databases';
-import { ModelCtor, Model, QueryInterface, QueryInterfaceIndexOptions, Sequelize } from 'sequelize';
+import { ModelCtor, Model, QueryInterface, QueryInterfaceIndexOptions, Sequelize, ModelAttributeColumnOptions } from 'sequelize';
 
 import type { SetRequired } from 'sequelize/types/utils/set-required';
 
@@ -21,6 +21,19 @@ import type {
 let circularDependenciesInMigration: CircularDependenciesInMigrationType[] = [];
 let indexesToAddOnNextIteration: IndexesToAddOnNextIterationType[] = [];
 
+function formatForeignKeyFields(
+  model: ModelCtor<Model>,
+  field: ModelAttributeColumnOptions<Model<any, any>>
+) {
+  if (field.type === 'foreign-key') {
+    const modelAssociation = Object.values(model.associations).find((association) =>
+      association.foreignKey === ((field as any).name || (field as any).fieldName)
+    );
+    const actualField = modelAssociation?.target?.getAttributes()?.[(field.references as any)?.key as string]
+    if (actualField) field.type = actualField.type;
+  }
+  return field;
+}
 /**
  * When the model references itself we need to evaluate it lazily. What this does is: First check if it has a circular dependency,
  * all circular dependencies will add a new column.
@@ -203,6 +216,8 @@ async function addField(
   queryInterface: QueryInterface
 ) {
   let sequelizeAttribute = toModel.initialized.getAttributes()[fieldName];
+  sequelizeAttribute = formatForeignKeyFields(toModel.initialized, sequelizeAttribute);
+
   const doesNotExistSequelizeAttribute = sequelizeAttribute === undefined;
   if (doesNotExistSequelizeAttribute) {
     const originalFieldName = toModel.original.fields[fieldName]?.fieldName;
@@ -242,16 +257,23 @@ export default adapterMigrations({
   ): Promise<void> => {
     const model = toModel.initialized;
 
+    const formattedFields = Object.entries(model.getAttributes())
+      .reduce((accumulator, [fieldName, field]) => {
+        accumulator[fieldName] = formatForeignKeyFields(model, field);;
+        return accumulator;
+      }, {} as any);
+
     await queryInterface.createTable(
       model.options.tableName as string,
-      model.getAttributes(),
+      formattedFields,
       Object.assign(model.options, {
         transaction: migration.transaction,
       })
     );
-    await handleCircularDependencies(engine, migration.transaction, { toModel }, queryInterface);
-    await handleIndexes(migration.transaction, { toModel }, queryInterface);
+    await handleCircularDependencies(engine, migration, { toModel }, queryInterface);
+    await handleIndexes(migration, { toModel }, queryInterface);
   },
+
   /**
    * Removes a model/table from from the database in a running migration.
    *
@@ -352,7 +374,9 @@ export default adapterMigrations({
     queryInterface: QueryInterface
   ): Promise<void> => {
     engine = engine as InstanceType<typeof SequelizeEngine>;
-    const attributesAsArray = Object.values(toModel.initialized.getAttributes());
+    const attributesAsArray = Object.values(toModel.initialized.getAttributes()).map((attribute) =>
+      formatForeignKeyFields(toModel.initialized, attribute)
+    );
     const initializedAttribute = attributesAsArray.find((attribute) => attribute.field === fieldAfter.databaseName);
     const tableName = toModel.initialized.options.tableName as string;
     if (initializedAttribute) {

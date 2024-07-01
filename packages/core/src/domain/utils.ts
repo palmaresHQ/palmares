@@ -75,9 +75,14 @@ export async function retrieveDomains(settings: CoreSettingsType & SettingsType2
  *  We will append all of the commands to an object so at runtime we can access it
  * and know which commands are available to run.
  */
-export async function initializeDomains(settings: SettingsType2) {
-  if (cachedInitializedDomains)
+export async function initializeDomains(
+  settings: SettingsType2,
+  options?: { ignoreCache?: boolean; ignoreCommands?: boolean}
+) {
+  const ignoreCache = options?.ignoreCache === true;
+  if (cachedInitializedDomains && ignoreCache !== true)
     return {
+      settings,
       domains: cachedInitializedDomains,
       commands: getCommands(),
     };
@@ -101,10 +106,11 @@ export async function initializeDomains(settings: SettingsType2) {
       }
       initializedDomain.isLoaded = true;
     }
-    commands = {
-      ...commands,
-      ...initializedDomain.commands,
-    };
+    if (options?.ignoreCommands !== true)
+      commands = {
+        ...commands,
+        ...initializedDomain.commands,
+      };
     initializedDomains.push(initializedDomain);
   }
 
@@ -119,10 +125,21 @@ export async function initializeDomains(settings: SettingsType2) {
         })
       );
   }
-  cachedInitializedDomains = initializedDomains;
 
-  return {
-    commands: commands,
-    domains: cachedInitializedDomains,
-  };
+  if (ignoreCache !== true) {
+    cachedInitializedDomains = initializedDomains;
+
+    return {
+      commands: commands,
+      settings: settings,
+      domains: cachedInitializedDomains,
+    };
+  } else {
+    return {
+      settings: settings,
+      commands: {},
+      domains: initializedDomains,
+    }
+  }
 }
+

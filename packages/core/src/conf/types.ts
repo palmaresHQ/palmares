@@ -80,7 +80,7 @@ export type ValidateDomains<
             >
           ]
       : never
-    : string
+    : never
   : TDomains;
 
 export type InstalledDomainsType = Promise<{ default: typeof Domain }>[] | typeof Domain[];
@@ -97,6 +97,7 @@ export type SettingsType2<
   )[] = readonly any[]
 > = {
   installedDomains: ValidateDomains<Narrow<TDomains>>;
+  settingsLocation: string;
   basePath: string;
 };
 

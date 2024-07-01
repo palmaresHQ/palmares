@@ -55,7 +55,6 @@ export default serverRequestAdapter({
   toJson: async (server, serverRequestAndResponseData: { req: Request }) => {
     const serverInstanceAndSettings = servers.get(server.serverName);
     const { req, res } = serverRequestAndResponseData as { req: Request; res: Response };
-
     return new Promise((resolve) => {
       let jsonParser = serverInstanceAndSettings?.jsonParser;
       if (serverInstanceAndSettings && !serverInstanceAndSettings?.jsonParser) {

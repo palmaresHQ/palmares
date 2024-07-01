@@ -8,7 +8,7 @@ type ExtractTypeFromArg<
   TArgument extends
     | NonNullable<NonNullable<Domain['commands']>[string]['keywordArgs']>[string]
     | NonNullable<NonNullable<Domain['commands']>[string]['positionalArgs']>[string],
-  TPositionalOrKeyword extends 'positionalArgs' | 'keywordArgs'
+  TPositionalOrKeyword extends 'positionalArgs' | 'keywordArgs',
 > = TArgument['type'] extends 'string'
   ? TArgument['canBeMultiple'] extends true
     ? string[]
@@ -38,7 +38,7 @@ type ExtractTypeFromArg<
  */
 export type ExtractCommandsType<
   TDomain extends typeof Domain | ReturnType<typeof domain>,
-  TCommand extends keyof NonNullable<InstanceType<TDomain>['commands']>
+  TCommand extends keyof NonNullable<InstanceType<TDomain>['commands']>,
 > = {
   keywordArgs: {
     [Key in keyof NonNullable<InstanceType<TDomain>['commands']>[TCommand]['keywordArgs']]?: ExtractTypeFromArg<
@@ -67,6 +67,8 @@ export type DomainHandlerFunctionArgs = {
   };
 };
 
+
+
 export type DefaultCommandType = {
   [key: string]: {
     /**
@@ -78,68 +80,67 @@ export type DefaultCommandType = {
      */
     positionalArgs:
       | {
-          [key: string]: {
-            /**
-             * The description of the argument, try to explain in a few words what the argument does and what it is used for.
-             */
-            description: string;
-            /**
-             * If the argument is required or not. If you don't specify it, it will default to true.
-             *
-             * @default true
-             */
-            required?: boolean;
-            /**
-             * If can be multiple is set to true, you can use the argument multiple times. If you don't specify it, it will default to false.
-             *
-             * @default false
-             */
-            canBeMultiple?: boolean;
-            /**
-             * The type of the argument. If you don't specify it, it will default to a string.
-             *
-             * @default 'string'
-             */
-            type?: 'string' | 'number' | 'boolean';
-          };
-        }
+        [key: string]: {
+          /**
+           * The description of the argument, try to explain in a few words what the argument does and what it is used for.
+           */
+          description: string;
+          /**
+           * If the argument is required or not. If you don't specify it, it will default to true.
+           *
+           * @default true
+           */
+          required?: boolean;
+          /**
+           * If can be multiple is set to true, you can use the argument multiple times. If you don't specify it, it will default to false.
+           *
+           * @default false
+           */
+          canBeMultiple?: boolean;
+          /**
+           * The type of the argument. If you don't specify it, it will default to a string.
+           *
+           * @default 'string'
+           */
+          type?: 'string' | 'number' | 'boolean';
+        };
+      }
       | undefined;
     keywordArgs:
       | {
           [key: string]: {
-            /**
-             * The description of the argument, try to explain in a few words what the argument does and what it is used for.
-             */
-            description: string;
-            /**
-             * Let's say you have an argument called `--name` and you want to be able to use `-n` instead of `--name`, you can set `hasFlag` to true and it will take the `n` and use it as acronym.
-             * If you have for example `--name` and `--number` and you set `hasFlag` for both of them, it will not work as expected, it will just work for the first one. If `name` comes before `number` in the command,
-             * it will work for `name`, if `number` comes before `name` in the command, it will work for `number`. If you don't specify it, it will default to false.
-             *
-             * @default false.
-             */
-            hasFlag?: boolean;
-            /**
-             * If can be multiple is set to true, you can use the argument multiple times. If you don't specify it, it will default to false.
-             *
-             * @default false
-             */
-            canBeMultiple?: boolean;
-            /**
-             * A default value for the argument. If you don't specify it, it will default to undefined.
-             *
-             * @default undefined
-             */
-            default?: any;
-            /**
-             * The type of the argument. If an array of string is provided, this will be all of the choices that the user can define. If you don't specify it, it will default to 'boolean'.
-             *
-             * @default 'boolean'
-             */
-            type?: 'string' | 'number' | 'boolean' | readonly string[] | string[];
-          };
+          /**
+           * The description of the argument, try to explain in a few words what the argument does and what it is used for.
+           */
+          description: string;
+          /**
+           * Let's say you have an argument called `--name` and you want to be able to use `-n` instead of `--name`, you can set `hasFlag` to true and it will take the `n` and use it as acronym.
+           * If you have for example `--name` and `--number` and you set `hasFlag` for both of them, it will not work as expected, it will just work for the first one. If `name` comes before `number` in the command,
+           * it will work for `name`, if `number` comes before `name` in the command, it will work for `number`. If you don't specify it, it will default to false.
+           *
+           * @default false.
+           */
+          hasFlag?: boolean;
+          /**
+           * If can be multiple is set to true, you can use the argument multiple times. If you don't specify it, it will default to false.
+           *
+           * @default false
+           */
+          canBeMultiple?: boolean;
+          /**
+           * A default value for the argument. If you don't specify it, it will default to undefined.
+           *
+           * @default undefined
+           */
+          default?: any;
+          /**
+           * The type of the argument. If an array of string is provided, this will be all of the choices that the user can define. If you don't specify it, it will default to 'boolean'.
+           *
+           * @default 'boolean'
+           */
+          type?: 'string' | 'number' | 'boolean' | readonly string[] | string[];
         }
-      | undefined;
+      } | undefined;
     /**
      * This is the function that will be called when the command is executed.
      *
@@ -153,3 +154,4 @@ export type DefaultCommandType = {
       | (void | typeof AppServer | ReturnType<typeof appServer>);
   };
 };
+

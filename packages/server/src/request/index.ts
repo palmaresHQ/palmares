@@ -1,12 +1,12 @@
 import ServerRequestAdapter from '../adapters/requests';
 import { parseParamsValue, parseQueryParams, formDataLikeFactory } from './utils';
-import { BaseRouter } from '../router/routers';
-import ServerAdapter from '../adapters';
 import {
   DEFAULT_REQUEST_CONTENT_HEADER_VALUE_URLENCODED,
   DEFAULT_REQUEST_HEADERS_CONTENT_HEADER_KEY,
   DEFAULT_SERVER_ERROR_INVALID_QUERY_OR_PARAMS,
 } from '../defaults';
+import { AbortedRequestError } from './exceptions';
+import Response from '../response';
 
 import type {
   ExtractQueryParamsFromPathType,
@@ -18,10 +18,12 @@ import type {
   RequestDestination,
   RequestMode,
   RequestRedirect,
-} from './types';
-import { AbortedRequestError } from './exceptions';
-import Response from '../response';
-import { AllServerSettingsType } from '../types';
+} from './types'
+;
+import type { BaseRouter } from '../router/routers';
+import type { AllServerSettingsType } from '../types';
+import type ServerAdapter from '../adapters';
+import type ServerlessAdapter from '../adapters/serverless';
 
 export default class Request<
   TRoutePath extends string = string,
@@ -53,7 +55,7 @@ export default class Request<
     referrer: string;
     redirect: RequestRedirect;
     referrerPolicy: ReferrerPolicy;
-  }
+  },
 > {
   /**
    * All of those private methods are not really private, we use them internally so we do a typescript mangling to use them.
@@ -62,7 +64,7 @@ export default class Request<
    */
   private __queryParams: BaseRouter['__queryParamsAndPath']['params'] | undefined = undefined;
   private __urlParams: BaseRouter['__urlParamsAndPath']['params'] | undefined = undefined;
-  private __serverAdapter: ServerAdapter | undefined = undefined;
+  private __serverAdapter: ServerAdapter | ServerlessAdapter | undefined = undefined;
   private __requestAdapter: ServerRequestAdapter | undefined = undefined;
   /**
    * This is data sent by the server, you can use it to translate your request and response during the lifecycle of Request/Response.
@@ -377,7 +379,7 @@ export default class Request<
     if (!this.__urlParams) return undefined;
     const nonNullableRequestAdapter = this.__requestAdapter as NonNullable<typeof this.__requestAdapter>;
     const parserData = this.__urlParams.get(key);
-    const dataFromUrl = nonNullableRequestAdapter.params(
+    const dataFromUrl = nonNullableRequestAdapter.params?.(
       this.__serverAdapter as NonNullable<Request['__serverAdapter']>,
       this.__serverRequestAndResponseData,
       key
@@ -642,7 +644,7 @@ export default class Request<
       referrer: string;
       referrerPolicy: ReferrerPolicy;
       redirect: RequestRedirect;
-    }
+    },
   >(args?: TNewRequest, options?: { inPlace: boolean }) {
     const isInPlace = options?.inPlace !== false;
     const newRequest = isInPlace
@@ -742,7 +744,56 @@ export default class Request<
     newRequest.__requestAdapter = this.__requestAdapter;
     newRequest.__serverRequestAndResponseData = this.__serverRequestAndResponseData;
 
-    return newRequest;
+    return newRequest as Request<
+      TRoutePath,
+      {
+        body: TNewRequest['body'] extends object | string ? TNewRequest['body'] : TRequest['body'];
+        headers: TNewRequest['headers'] extends object ? TNewRequest['headers'] : TRequest['headers'];
+        context: TNewRequest['context'] extends object ? TNewRequest['context'] : TRequest['context'];
+        method: TRequest['method'];
+        mode: TNewRequest['mode'] extends RequestMode
+          ? TNewRequest['mode']
+          : TRequest['mode'] extends RequestMode
+          ? TRequest['mode']
+          : RequestMode;
+        cache: TNewRequest['cache'] extends RequestCache
+          ? TNewRequest['cache']
+          : TRequest['cache'] extends RequestCache
+          ? TRequest['cache']
+          : RequestCache;
+        credentials: TNewRequest['credentials'] extends RequestCredentials
+          ? TNewRequest['credentials']
+          : TRequest['credentials'] extends RequestCredentials
+          ? TRequest['credentials']
+          : RequestCredentials;
+        integrity: TNewRequest['integrity'] extends string
+          ? TNewRequest['integrity']
+          : TRequest['integrity'] extends string
+          ? TRequest['integrity']
+          : string;
+        destination: TNewRequest['destination'] extends RequestDestination
+          ? TNewRequest['destination']
+          : TRequest['destination'] extends RequestDestination
+          ? TRequest['destination']
+          : RequestDestination;
+        referrer: TNewRequest['referrer'] extends string
+          ? TNewRequest['referrer']
+          : TRequest['referrer'] extends string
+          ? TRequest['referrer']
+          : string;
+        redirect: TNewRequest['redirect'] extends RequestRedirect
+          ? TNewRequest['redirect']
+          : TRequest['redirect'] extends RequestRedirect
+          ? TRequest['redirect']
+          : RequestRedirect;
+        referrerPolicy: TNewRequest['referrerPolicy'] extends ReferrerPolicy
+          ? TNewRequest['referrerPolicy']
+          : TRequest['referrerPolicy'] extends ReferrerPolicy
+          ? TRequest['referrerPolicy']
+          : ReferrerPolicy;
+        responses: TRequest['responses'];
+      }
+    >;
   }
 
   /**
@@ -849,7 +900,7 @@ export default class Request<
    * @param options - Those options are custom options you want to pass to the underlying adapter instance when retrieving the json, see the documentation of the underlying
    * adapter. You can retrieve those options by: 'MyCustomFrameworkRequestAdapter.customToJsonOptions?.()' if it is implemented.
    */
-  async json(options?: any) {
+  async json(options?: any): Promise<TRequest['body'] | undefined> {
     if (typeof this.body === 'object' && this.body !== null) return this.body;
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
       return this.__requestAdapter.toJson(this.__serverAdapter, this.__serverRequestAndResponseData, options);

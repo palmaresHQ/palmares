@@ -1,0 +1,34 @@
+{
+  "title": "core",
+  "path": "/core/introduction",
+  "routes": [
+    {
+      "isSubsection": true,
+      "title": "Getting Started",
+      "routes": [
+        {
+          "title": "Introduction",
+          "path": "/core/introduction"
+        },
+        {
+          "title": "Using",
+          "path": "/core/using"
+        }
+      ]
+    },
+    {
+      "isSubsection": true,
+      "title": "New Section",
+      "routes": [
+        {
+          "title": "Introduction",
+          "path": "/core/introduction"
+        },
+        {
+          "title": "Using",
+          "path": "/core/using"
+        }
+      ]
+    }
+  ]
+}
