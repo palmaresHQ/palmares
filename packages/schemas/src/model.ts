@@ -315,6 +315,7 @@ export function modelSchema<
   fields?: TFields;
   omit?: TOmit;
   show?: TShow;
+  omitRelation?: readonly (keyof TFields)[];
   many?: TMany
 }): TMany extends true ? ArraySchema<{
   input: TReturnType['input'][];
@@ -343,14 +344,23 @@ export function modelSchema<
     __runBeforeParseAndData: Required<Schema<any, any>['__runBeforeParseAndData']>;
   }
   const parentSchema = options?.many === true ? ArraySchema.new([lazyModelSchema]) : lazyModelSchema as any;
-
+  const omitRelationAsSet = new Set(options?.omitRelation || []);
   const omitAsSet = new Set(options?.omit || []);
   const showAsSet = new Set(options?.show || []);
   const fieldsAsObject = (options?.fields || {});
   const customFieldValues = Object.values(fieldsAsObject);
 
+  (lazyModelSchema as any).__omitRelation = omitRelationAsSet;
   (parentSchema as any).__model = model;
   (lazyModelSchema as any).__model = model;
+
+  for (const schema of customFieldValues) {
+    const schemaWithProtected: Schema<any, any> & {
+      __getParent: Schema['__getParent']
+    } = schema as any;
+    schemaWithProtected.__getParent = () => lazyModelSchema;
+  };
+
   // Add this callback to transform the model fields
   parentSchema.__runBeforeParseAndData = async () => {
     if (parentSchema.__alreadyAppliedModel) return;
@@ -371,14 +381,17 @@ export function modelSchema<
 
       let schema = (fieldsAsObject as any)[key as any];
       let optionsForForeignKeyRelation: any = {};
-      if (!schema) schema = await getSchemaFromModelField(
-        model,
-        value,
-        (parentSchema as any)?.__getParent?.(),
-        options?.fields,
-        options?.engineInstance,
-        optionsForForeignKeyRelation
-      );
+      if (!schema || value instanceof ForeignKeyField) {
+        const newSchema = await getSchemaFromModelField(
+          model,
+          value,
+          (parentSchema as any)?.__getParent?.(),
+          options?.fields,
+          options?.engineInstance,
+          optionsForForeignKeyRelation
+        );
+        if (!schema) schema = newSchema;
+      }
 
       // Appends the foreign key relation to the schema automatically.
       if (optionsForForeignKeyRelation.foreignKeyRelation) {
@@ -405,8 +418,8 @@ export function modelSchema<
       return accumulator;
     }, Promise.resolve(fieldsAsObject as Record<any, Schema<any, any>>));
 
-    // This way we can parallelize all of the relations with Promise.all
     if (fieldsWithAutomaticRelations.size > 0) {
+      // This way we can get all of the relations concurrently with Promise.all
       for (const [schema, relations] of fieldsWithAutomaticRelations.entries()) {
         schema.toRepresentation(async (data: any | any[]) => {
           const allData = Array.isArray(data) ? data : [data];
@@ -423,22 +436,25 @@ export function modelSchema<
               });
               if (relation.isArray !== true) relationData = relationData[0];
               data[relation.relationOrRelatedName] = relationData;
+              if ((schema as any).__omitRelation.has(relation.relationOrRelatedName as any)) delete data[relation.fieldToGetFromData]
             }))
           ))
 
           return data;
+        }, {
+          after: true
         });
       }
     }
 
     (lazyModelSchema as any).__data = fields as any;
 
-    for (const schema of customFieldValues) {
-      if ((schema as any).__runBeforeParseAndData) {
-        (schema as any).__getParent = () => lazyModelSchema;
-        await (schema as any).__runBeforeParseAndData(schema);
-      }
-    };
+    await Promise.all(customFieldValues.map(async (schema) => {
+      const schemaWithProtected = schema as Schema<any, any> & {
+        __runBeforeParseAndData: Schema['__runBeforeParseAndData']
+      };
+      if (schemaWithProtected.__runBeforeParseAndData) await schemaWithProtected.__runBeforeParseAndData(schema);
+    }));
   }
 
   if (options?.ignoreExtraneousFields !== true) lazyModelSchema.removeExtraneous()

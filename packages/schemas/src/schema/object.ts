@@ -514,13 +514,20 @@ export default class ObjectSchema<
    * });
    * ```
    * @param toRepresentationCallback - The callback that will be called to transform the value to the representation.
+   * @param options - Options for the toRepresentation function.
+   * @param options.after - Whether the toRepresentationCallback should be called after the existing toRepresentationCallback. Defaults to true.
+   * @param options.before - Whether the toRepresentationCallback should be called before the existing toRepresentationCallback. Defaults to true.
    *
    * @returns The schema with a new return type
    */
   toRepresentation<TRepresentation>(
-    toRepresentationCallback: (value: TType['representation']) => Promise<TRepresentation>
+    toRepresentationCallback: (value: TType['representation']) => Promise<TRepresentation>,
+    options?: {
+      after?: boolean;
+      before?: boolean;
+    }
   ) {
-    return super.toRepresentation(toRepresentationCallback) as unknown as ObjectSchema<
+    return super.toRepresentation(toRepresentationCallback, options) as unknown as ObjectSchema<
       {
         input: TType['input'];
         validate: TType['validate'];

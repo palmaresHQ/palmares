@@ -1,5 +1,5 @@
 import { domain } from '@palmares/core';
-import { modelSchema } from '@palmares/schemas';
+import * as p from '@palmares/schemas';
 import { Response, path, serverDomainModifier } from '@palmares/server';
 import { setDefaultAdapter } from '@palmares/schemas';
 import { ZodSchemaAdapter } from '@palmares/zod-schema';
@@ -10,18 +10,20 @@ import { Jobs } from '../jobs/models';
 
 setDefaultAdapter(new ZodSchemaAdapter());
 
-const profileSchema = modelSchema(Profile, {
+const profileSchema = p.modelSchema(Profile, {
   fields: {
-    contractorContracts: modelSchema(Contract, { many: true }).optional({ outputOnly: true})
+    contractorContracts: p.modelSchema(Contract, { many: true }).optional({ outputOnly: true})
   },
-  show: ['id', 'firstName', 'lastName']
+  show: ['id', 'firstName', 'lastName'],
+  omitRelation: ['contractorContracts']
 });
 
-const contractSchema = modelSchema(Contract, {
+const contractSchema = p.modelSchema(Contract, {
   fields: {
-    contractor: modelSchema(Profile).optional({ outputOnly: true})
+    contractor: p.modelSchema(Profile).optional({ outputOnly: true})
   },
-  show: ['id', 'terms', 'status', 'contractorId']
+  show: ['id', 'terms', 'status', 'contractorId'],
+  omitRelation: ['contractor']
 });
 
 export default domain('core', __dirname, {

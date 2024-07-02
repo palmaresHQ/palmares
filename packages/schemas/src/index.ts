@@ -238,7 +238,7 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
       omit?: TOmit;
       show?: TShow;
       many?: TMany
-    }):  TMany extends true ? ArraySchema<{
+    }): TMany extends true ? ArraySchema<{
       input: TReturnType['input'][];
       output: TReturnType['output'][];
       internal: TReturnType['internal'][];
