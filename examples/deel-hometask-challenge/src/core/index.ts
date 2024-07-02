@@ -10,11 +10,18 @@ import { Jobs } from '../jobs/models';
 
 setDefaultAdapter(new ZodSchemaAdapter());
 
+const profileSchema = modelSchema(Profile, {
+  fields: {
+    contractorContracts: modelSchema(Contract, { many: true }).optional({ outputOnly: true})
+  },
+  show: ['id', 'firstName', 'lastName']
+});
+
 const contractSchema = modelSchema(Contract, {
   fields: {
-    contractor: modelSchema(Profile, { many: true }).optional({ outputOnly: true})
+    contractor: modelSchema(Profile).optional({ outputOnly: true})
   },
-  show: ['id', 'status', 'contractorId']
+  show: ['id', 'terms', 'status', 'contractorId']
 });
 
 export default domain('core', __dirname, {
@@ -267,8 +274,10 @@ export default domain('core', __dirname, {
   },
   modifiers: [serverDomainModifier],
   getRoutes: () => path('/test').get(async () => {
-    const contracts = await Contract.default.get();
-    const contract = await contractSchema.data(contracts[0]);
-    return Response.json(contract)
+    const profile = await Profile.default.get({ search: { id: 7 }});
+    const profileData = await profileSchema.data(profile[0]);
+    const contract = await Contract.default.get({ search: { id: 6 }});
+    const contractData = await contractSchema.data(contract[0]);
+    return Response.json([profileData, contractData])
   })
 });

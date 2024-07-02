@@ -783,7 +783,6 @@ export default class Schema<
    */
   async data(value: TType['output']): Promise<TType['representation']> {
     if (typeof this.__runBeforeParseAndData === 'function') await this.__runBeforeParseAndData(this);
-
     value = await this.__parsersToTransformValue(value)
 
     if (this.__toRepresentation) value = await Promise.resolve(this.__toRepresentation(value));

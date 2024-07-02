@@ -148,6 +148,7 @@ export default class ObjectSchema<
    */
   async data(value: TType['output']): Promise<TType['representation']> {
     const parsedValue = await super.data(value);
+
     const dataAsEntries = this.__retrieveDataAsEntriesAndCache();
     const isValueAnObject = typeof parsedValue === 'object' && parsedValue !== null;
 
@@ -198,12 +199,14 @@ export default class ObjectSchema<
         internal: TType['internal'];
         output: TType['output'];
         representation: TType['representation'];
-      }, TDefinitions
+      }, TDefinitions, TData
     >;
   }
 
   /**
-   * Allows the value to be either undefined or null.
+   * Allows the value to be either undefined or null. Different from the `optional` method on other schemas, You can pass `outputOnly` as `true` to this method.
+   * This will allow you to pass `null` or `undefined` as a value on the {@link Schema.data} method, but it will not allow the value to be `null` or `undefined`.
+   * This is useful for typing purposes
    *
    * @example
    * ```typescript
@@ -222,6 +225,17 @@ export default class ObjectSchema<
    * const { errors, parsed } = await numberSchema.parse(1);
    *
    * console.log(parsed); // 1
+   *
+   *
+   * const companySchema = p.object({ id: p.number(), name: p.string() });
+   * const userSchema = p.object({
+   *   id: p.number(),
+   *   name: p.string(),
+   *   company: companySchema.optional({ outputOnly: true })
+   * });
+   *
+   * const { errors, parsed } = await userSchema.data({ id: 1, name: 'John Doe' }); // Will not allow the company to be null or undefined on a typing level.
+   * const value = await userSchema.data({ id: 1, name: 'John Doe' }); // Will allow the company to be null or undefined on a typing level
    * ```
    *
    * @returns - The schema we are working with.
@@ -624,7 +638,10 @@ export default class ObjectSchema<
    */
   removeExtraneous() {
     this.__parsers.medium.set('removeExtraneous', (value) => {
-      if (typeof value !== 'object' || value === null) return value;
+      if (typeof value !== 'object' || value === null) return {
+        value,
+        preventNextParsers: false,
+      };
 
       const valueKeys = Object.keys(value);
       for (const key of valueKeys) {
@@ -634,6 +651,7 @@ export default class ObjectSchema<
 
       return {
         value,
+        preventNextParsers: false,
       };
     });
 
