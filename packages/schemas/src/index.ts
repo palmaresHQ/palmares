@@ -236,9 +236,10 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
       engineInstance?: string;
       fields?: TFields;
       omit?: TOmit;
+      omitRelation?: readonly (keyof TFields)[];
       show?: TShow;
       many?: TMany
-    }):  TMany extends true ? ArraySchema<{
+    }): TMany extends true ? ArraySchema<{
       input: TReturnType['input'][];
       output: TReturnType['output'][];
       internal: TReturnType['internal'][];
@@ -289,46 +290,3 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
     >(model, options)
   };
 }
-/*
-const prisma = {
-  user: {
-    create: (data: { email: string; password: string }) => {
-      return { id: '1', ...data };
-    },
-  },
-};
-function express() {
-  return {
-    post(path: string, callback: (req: any, res: any) => void) {
-      callback();
-    },
-  };
-}
-
-const userSchema = object({
-  id: string().nullable().optional(),
-  email: string(),
-  password: string(),
-})
-  .onSave(async (data) => {
-    const user = prisma.user.create({ email: data.email, password: data.password });
-    return user;
-  })
-  .toRepresentation(async (createdUser) => {
-    return { id: createdUser.id as string, email: createdUser.email };
-  });
-
-const app = express();
-
-app.post('/login', async (req, res) => {
-  const validatedResult = await userSchema.validate(req.body);
-
-  if (validatedResult.isValid) {
-    const user = await validatedResult.save();
-    res.json(user);
-    return;
-  }
-
-  res.json(validatedResult.errors);
-});
-*/

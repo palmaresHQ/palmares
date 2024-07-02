@@ -1,5 +1,5 @@
 import { domain } from '@palmares/core';
-import { modelSchema } from '@palmares/schemas';
+import * as p from '@palmares/schemas';
 import { Response, path, serverDomainModifier } from '@palmares/server';
 import { setDefaultAdapter } from '@palmares/schemas';
 import { ZodSchemaAdapter } from '@palmares/zod-schema';
@@ -10,11 +10,20 @@ import { Jobs } from '../jobs/models';
 
 setDefaultAdapter(new ZodSchemaAdapter());
 
-const contractSchema = modelSchema(Contract, {
+const profileSchema = p.modelSchema(Profile, {
   fields: {
-    contractor: modelSchema(Profile, { many: true }).optional({ outputOnly: true})
+    contractorContracts: p.modelSchema(Contract, { many: true }).optional({ outputOnly: true})
   },
-  show: ['id', 'status', 'contractorId']
+  show: ['id', 'firstName', 'lastName'],
+  omitRelation: ['contractorContracts']
+});
+
+const contractSchema = p.modelSchema(Contract, {
+  fields: {
+    contractor: p.modelSchema(Profile).optional({ outputOnly: true})
+  },
+  show: ['id', 'terms', 'status', 'contractorId'],
+  omitRelation: ['contractor']
 });
 
 export default domain('core', __dirname, {
@@ -267,8 +276,10 @@ export default domain('core', __dirname, {
   },
   modifiers: [serverDomainModifier],
   getRoutes: () => path('/test').get(async () => {
-    const contracts = await Contract.default.get();
-    const contract = await contractSchema.data(contracts[0]);
-    return Response.json(contract)
+    const profile = await Profile.default.get({ search: { id: 7 }});
+    const profileData = await profileSchema.data(profile[0]);
+    const contract = await Contract.default.get({ search: { id: 6 }});
+    const contractData = await contractSchema.data(contract[0]);
+    return Response.json([profileData, contractData])
   })
 });

@@ -2,9 +2,13 @@ import SchemaAdapter from '../adapter';
 import FieldAdapter from '../adapter/fields';
 import { ValidationDataBasedOnType } from '../adapter/types';
 import { getDefaultAdapter } from '../conf';
+import { NotInModelSchemaError } from '../exceptions';
 import { formatErrorFromParseMethod } from '../utils';
 import Validator from '../validators/utils';
-import {
+import ObjectSchema from './object';
+
+import { type modelSchema } from '../model';
+import type {
   DefinitionsOfSchemaType,
   OnlyFieldAdaptersFromSchemaAdapter,
   ValidationFallbackCallbackReturnType,
@@ -46,10 +50,23 @@ export default class Schema<
       options: Parameters<Schema['__transformToAdapter']>[0]
     ) => ReturnType<Schema['__validateByAdapter']>
   > = new Map();
+
+  protected __cachedGetParent?: (() => Schema<any, any>);
+  protected set __getParent(value: (() => Schema<any, any>)) {
+    this.__cachedGetParent = value;
+    console.log('tessst', typeof this.__modelOmitCallback === 'function')
+    if (typeof this.__modelOmitCallback === 'function') this.__modelOmitCallback();
+
+  }
+  protected get __getParent(): (() => Schema<any, any>) | undefined {
+    return this?.__cachedGetParent
+  }
+
   protected __alreadyAppliedModel = false;
   protected __runBeforeParseAndData?: (self: any) => Promise<void>
   protected __rootFallbacksValidator!: Validator;
   protected __saveCallback?: (value: any) => Promise<any | void> | any | void;
+  protected __modelOmitCallback?: () => void;
   protected __parsers: Record<
     'high' | 'medium' | 'low',
     Map<
@@ -783,7 +800,6 @@ export default class Schema<
    */
   async data(value: TType['output']): Promise<TType['representation']> {
     if (typeof this.__runBeforeParseAndData === 'function') await this.__runBeforeParseAndData(this);
-
     value = await this.__parsersToTransformValue(value)
 
     if (this.__toRepresentation) value = await Promise.resolve(this.__toRepresentation(value));
@@ -916,17 +932,27 @@ export default class Schema<
    * });
    * ```
    * @param toRepresentationCallback - The callback that will be called to transform the value to the representation.
+   * @param options - Options for the toRepresentation function.
+   * @param options.after - Whether the toRepresentationCallback should be called after the existing toRepresentationCallback. Defaults to true.
+   * @param options.before - Whether the toRepresentationCallback should be called before the existing toRepresentationCallback. Defaults to true.
    *
    * @returns The schema with a new return type
    */
   toRepresentation<TRepresentation>(
-    toRepresentationCallback: (value: TType['representation']) => Promise<TRepresentation>
+    toRepresentationCallback: (value: TType['representation']) => Promise<TRepresentation>,
+    options?: {
+      after?: boolean;
+      before?: boolean;
+    }
   ) {
     if (this.__toRepresentation) {
-      const toRepresentation = this.__toRepresentation;
+      const before = typeof options?.before === 'boolean' ? options.before :
+        (typeof options?.after === 'boolean' ? !options.after : true);
+      const existingToRepresentation = this.__toRepresentation;
+      console.log('existing to representation', existingToRepresentation, before, options?.after)
       this.__toRepresentation = async (value) => {
-        const newValue = await toRepresentation(value);
-        return toRepresentationCallback(newValue);
+        if (before) return toRepresentationCallback(await existingToRepresentation(value))
+        else return existingToRepresentation(await toRepresentationCallback(value));
       };
     } else this.__toRepresentation = toRepresentationCallback;
 

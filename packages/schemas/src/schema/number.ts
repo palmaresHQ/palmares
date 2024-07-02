@@ -260,7 +260,7 @@ export default class NumberSchema<
   omit<
     TToInternal extends boolean,
     TToRepresentation extends boolean = boolean extends TToInternal ? true : false
-  >(args?: { toInternal?: TToInternal, toRepresentation?: TToRepresentation }) {
+  >(args?: { toInternal?: TToInternal, toRepresentation?: TToRepresentation, parent?: boolean }) {
     return super.omit(args) as unknown as NumberSchema<
       {
         input: TToInternal extends true ? TType['input'] | undefined : TType['input'];
