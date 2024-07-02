@@ -354,13 +354,6 @@ export function modelSchema<
   (parentSchema as any).__model = model;
   (lazyModelSchema as any).__model = model;
 
-  for (const schema of customFieldValues) {
-    const schemaWithProtected: Schema<any, any> & {
-      __getParent: Schema['__getParent']
-    } = schema as any;
-    schemaWithProtected.__getParent = () => lazyModelSchema;
-  };
-
   // Add this callback to transform the model fields
   parentSchema.__runBeforeParseAndData = async () => {
     if (parentSchema.__alreadyAppliedModel) return;
@@ -436,9 +429,11 @@ export function modelSchema<
               });
               if (relation.isArray !== true) relationData = relationData[0];
               data[relation.relationOrRelatedName] = relationData;
+
               if ((schema as any).__omitRelation.has(relation.relationOrRelatedName as any)) delete data[relation.fieldToGetFromData]
             }))
           ))
+
 
           return data;
         }, {
@@ -451,8 +446,10 @@ export function modelSchema<
 
     await Promise.all(customFieldValues.map(async (schema) => {
       const schemaWithProtected = schema as Schema<any, any> & {
+        __getParent: Schema<any, any>['__getParent'];
         __runBeforeParseAndData: Schema['__runBeforeParseAndData']
       };
+      schemaWithProtected.__getParent = () => lazyModelSchema;
       if (schemaWithProtected.__runBeforeParseAndData) await schemaWithProtected.__runBeforeParseAndData(schema);
     }));
   }
