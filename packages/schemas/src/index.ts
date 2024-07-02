@@ -236,6 +236,7 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
       engineInstance?: string;
       fields?: TFields;
       omit?: TOmit;
+      omitRelation?: readonly (keyof TFields)[];
       show?: TShow;
       many?: TMany
     }): TMany extends true ? ArraySchema<{
