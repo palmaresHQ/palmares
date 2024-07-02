@@ -15,7 +15,6 @@ import {
   ForeignKeyField,
   TranslatableField,
   type InternalModelClass_DoNotUse,
-  type ModelBaseClass,
   type ModelFields,
 } from "@palmares/databases";
 
@@ -435,37 +434,13 @@ export function modelSchema<
     (lazyModelSchema as any).__data = fields as any;
 
     for (const schema of customFieldValues) {
-      (schema as any).__getParent = () => lazyModelSchema;
-      if ((schema as any).__runBeforeParseAndData) await (schema as any).__runBeforeParseAndData(schema);
+      if ((schema as any).__runBeforeParseAndData) {
+        (schema as any).__getParent = () => lazyModelSchema;
+        await (schema as any).__runBeforeParseAndData(schema);
+      }
     };
   }
 
   if (options?.ignoreExtraneousFields !== true) lazyModelSchema.removeExtraneous()
   return parentSchema
 }
-
-
-
-
-/*
-class User extends Model<User>() {
-  fields = {
-    id: auto(),
-    name: choice({ choices: ['a', 'b', 'c'] }),
-    email: text(),
-  }
-}
-
-
-
-
-const userSchema = modelObject(User, {
-  show: ['id', 'email']
-})
-
-const main = async () => {
-  const data = await userSchema.data({
-    email: 'test',
-    id: 1,
-  });
-}*/

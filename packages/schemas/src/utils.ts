@@ -287,6 +287,7 @@ export async function transformSchemaAndCheckIfShouldBeHandledByFallbackOnComple
   options: Parameters<Schema['__transformToAdapter']>[0]
 ) {
   const schemaWithProtected = schema as Schema & {
+    __runBeforeParseAndData: Schema['__runBeforeParseAndData']
     __toInternal: Schema['__toInternal'];
     __toValidate: Schema['__toValidate'];
     __toRepresentation: Schema['__toRepresentation'];
@@ -302,6 +303,7 @@ export async function transformSchemaAndCheckIfShouldBeHandledByFallbackOnComple
   const doesKeyHaveToInternal = typeof schemaWithProtected.__toInternal === 'function';
   const doesKeyHaveToValidate = typeof schemaWithProtected.__toValidate === 'function';
   const doesKeyHaveToDefault = typeof schemaWithProtected.__defaultFunction === 'function';
+  const doesKeyHaveRunBeforeParseAndData = typeof schemaWithProtected.__runBeforeParseAndData === 'function';
   const doesKeyHaveParserFallback = schemaWithProtected.__parsers._fallbacks.size > 0;
   const shouldAddFallbackValidation =
     doesKeyHaveFallback ||
@@ -309,6 +311,7 @@ export async function transformSchemaAndCheckIfShouldBeHandledByFallbackOnComple
     doesKeyHaveToValidate ||
     doesKeyHaveToDefault ||
     doesKeyHaveParserFallback ||
+    doesKeyHaveRunBeforeParseAndData ||
     transformedData === undefined;
 
   return [transformedData, shouldAddFallbackValidation] as const;
