@@ -25,6 +25,10 @@ export default interface FilesAndFolders {
   /**
    * When the path is a simple string work normally, if the path is an array of strings, join the strings with .join() and then work normally
    */
+  removeFile(path: string | string[]): Promise<void>;
+  /**
+   * When the path is a simple string work normally, if the path is an array of strings, join the strings with .join() and then work normally
+   */
   basename(path: string | string[]): Promise<string>;
   /**
    * Solve the relative path from {from} to {to}.

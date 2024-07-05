@@ -11,7 +11,7 @@ export const getProfileMiddleware = middleware({
     if (!profiles || profiles.length == 0) return Response.text('', { status: 401 });
     // from the middleware definition!!!
     const clonedRequest = requestWithHeaders.clone({
-      context: { profile: profiles[0], olaBruno: 'string', dataFromMiddleware: 'admin@admin.com' },
+      context: { profile: profiles[0],  dataFromMiddleware: 'admin@admin.com' },
     });
     return clonedRequest;
   },

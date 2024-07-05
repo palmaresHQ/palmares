@@ -1,4 +1,3 @@
-
 import {
   Model,
   AutoField,
@@ -137,7 +136,7 @@ async function getSchemaFromModelField(
 }
 
 /**
- * Different from other models, this function is a factory function that returns either an ObjectSchema or an ArraySchema.
+ * Different from other schemas, this function is a factory function that returns either an ObjectSchema or an ArraySchema.
  * The idea is to build the schema of a model dynamically based on its fields.
  *
  * Another feature is that it can automatically add the foreign key relation to the schema, but for that you need to define
@@ -197,20 +196,25 @@ async function getSchemaFromModelField(
  *   fields: {
  *      company: p.modelSchema(Company).optional({ outputOnly: true });
  *   },
- *   show: ['type', 'companyId']
+ *   show: ['type', 'companyId'], // 'companyId' is required for the automatic relation to work, otherwise it won't show
+ *   omitRelation: ['company']
  * });
  *
  * const companySchema = p.modelSchema(Company, {
  *   fields: {
  *      usersOfCompany: p.modelSchema(User, { many: true }).optional({ outputOnly: true });
  *   },
- *   show: ['id', 'type']
+ *   show: ['id', 'type'] // The `companyId` field on the 'User' model is tied to the `id` field on the 'Company' model so 'id' is required.
  * });
  *```
  * @param model - The model that you want to build the schema from.
  * @param options - The options to build the schema.
  * @param options.ignoreExtraneousFields - If you want to ignore extraneous fields set this to true.
  * @param options.engineInstance - What engine instance you want to use to fetch the data. Defaults to the first one.
+ * @param options.omitRelation - Fields that you want to omit from the relation. For example, on the example above, on the
+ * `userSchema` you can omit the `companyId` field from the relation by just passing `['company']`, on the `companySchema`
+ * you can omit the `id` field from company by passing `['usersOfCompany']`.
+ *
  * @param options.fields - Extra fields that you want to add to the schema. If it has the same name as the model field,
  * We will not create a schema for that field and use the one you have defined here.
  * @param options.omit - Fields that you want to omit from the schema. If that is defined, we ignore `show` option.
@@ -348,8 +352,9 @@ export function modelSchema<
   const omitAsSet = new Set(options?.omit || []);
   const showAsSet = new Set(options?.show || []);
   const fieldsAsObject = (options?.fields || {});
-  const customFieldValues = Object.values(fieldsAsObject);
+  const customFieldValues = Object.values(fieldsAsObject) as Schema<any, any>[];
 
+  // We need to add it to the instance to be able to access it on the `toRepresentation` callback
   (lazyModelSchema as any).__omitRelation = omitRelationAsSet;
   (parentSchema as any).__model = model;
   (lazyModelSchema as any).__model = model;
@@ -432,8 +437,7 @@ export function modelSchema<
 
               if ((schema as any).__omitRelation.has(relation.relationOrRelatedName as any)) delete data[relation.fieldToGetFromData]
             }))
-          ))
-
+          ));
 
           return data;
         }, {
@@ -445,12 +449,8 @@ export function modelSchema<
     (lazyModelSchema as any).__data = fields as any;
 
     await Promise.all(customFieldValues.map(async (schema) => {
-      const schemaWithProtected = schema as Schema<any, any> & {
-        __getParent: Schema<any, any>['__getParent'];
-        __runBeforeParseAndData: Schema['__runBeforeParseAndData']
-      };
-      schemaWithProtected.__getParent = () => lazyModelSchema;
-      if (schemaWithProtected.__runBeforeParseAndData) await schemaWithProtected.__runBeforeParseAndData(schema);
+      schema['__getParent'] = () => lazyModelSchema;
+      if (schema['__runBeforeParseAndData']) await schema['__runBeforeParseAndData'](schema);
     }));
   }
 

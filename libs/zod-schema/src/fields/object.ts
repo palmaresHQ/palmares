@@ -10,7 +10,8 @@ import * as z from 'zod';
 
 export default class ZodObjectFieldSchemaAdapter extends ObjectFieldAdapter {
   translate(fieldAdapter: FieldAdapter, args: ObjectAdapterTranslateArgs) {
-    let result = fieldAdapter.translate(fieldAdapter, args, z.object(args.data));
+    let result = z.object(args.data);
+    result = fieldAdapter.translate(fieldAdapter, args, result);
     return result;
   }
 

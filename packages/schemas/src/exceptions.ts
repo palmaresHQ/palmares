@@ -15,9 +15,3 @@ export class TranslatableFieldNotImplementedError extends Error {
     super(`TranslatableField '${fieldName}' did not implement the 'schema' key on 'customAttributes'`);
   }
 }
-
-export class NotInModelSchemaError extends Error {
-  constructor() {
-    super(`This schema does not have a 'modelSchema' parent`);
-  }
-}

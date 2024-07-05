@@ -1,0 +1,35 @@
+{
+  "name": "@example/tests",
+  "version": "0.0.1",
+  "description": "testing the tests",
+  "main": "manage.ts",
+  "scripts": {
+    "serverless": "tsx manage.ts serverless",
+    "help": "tsx manage.ts help",
+    "test": "tsx manage.ts test",
+    "run": "node ./dist/src/api/test.js",
+    "clear": "rimraf ./dist",
+    "build": "pnpm run clear && swc . -d ./dist --config-file  ../../build/.commonjs.swcrc --ignore node_modules dist"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@palmares/console-logging": "workspace:*",
+    "@palmares/core": "workspace:*",
+    "@palmares/jest-tests": "workspace:*",
+    "@palmares/logging": "workspace:*",
+    "@palmares/node-std": "workspace:*",
+    "@palmares/std": "workspace:*",
+    "@palmares/tests": "workspace:*",
+    "cors": "^2.8.5",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@types/jest": "^29.5.12",
+    "@types/qs": "^6.9.8",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.1"
+  }
+}
