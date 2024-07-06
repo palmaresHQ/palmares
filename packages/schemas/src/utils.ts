@@ -1,9 +1,9 @@
 import SchemaAdapter from './adapter';
 import FieldAdapter from './adapter/fields';
-import { NumberAdapterTranslateArgs, ValidationDataBasedOnType } from './adapter/types';
+import { ValidationDataBasedOnType } from './adapter/types';
 import Schema from './schema/schema';
 import { ValidationFallbackCallbackReturnType, ValidationFallbackReturnType } from './schema/types';
-import { FallbackFunctionsType, MaybePromise, SupportedSchemas } from './types';
+import { FallbackFunctionsType, SupportedSchemas } from './types';
 import { checkType, nullable, optional } from './validators/schema';
 import Validator from './validators/utils';
 

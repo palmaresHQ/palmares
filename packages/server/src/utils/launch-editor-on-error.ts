@@ -1,7 +1,7 @@
 // Pretty much this hole file was copied from the next.js repo: https://github.com/vercel/next.js/blob/canary/packages/react-dev-overlay/src/internal/helpers/launchEditor.ts
 // Give them proper credit, and let's try to keep it up to date.
 // We modified it so it uses our own std lib with that, this piece of code will work on any environment without bundling.
-import { getDefaultStd } from '@palmares/std';
+import { getDefaultStd } from '@palmares/core';
 
 function isTerminalEditor(editor: string) {
   switch (editor) {

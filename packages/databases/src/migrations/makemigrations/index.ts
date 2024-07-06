@@ -1,6 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { FRAMEWORK_NAME, SettingsType2, retrieveDomains } from '@palmares/core';
-import { getDefaultStd } from '@palmares/std';
+import { FRAMEWORK_NAME, SettingsType2, retrieveDomains, getDefaultStd } from '@palmares/core';
 
 import { EmptyOptionsOnGenerateFilesType, FieldOrModelParamType } from './types';
 import { FoundMigrationsFileType, OriginalOrStateModelsByNameType } from '../types';

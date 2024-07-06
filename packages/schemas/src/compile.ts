@@ -1,4 +1,4 @@
-import { getDefaultStd } from '@palmares/std';
+import { getDefaultStd } from '@palmares/core';
 
 import { getDefaultAdapter } from './conf';
 import Schema from './schema/schema';

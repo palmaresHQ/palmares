@@ -1,11 +1,11 @@
-import { getDefaultStd } from '@palmares/std';
+import { getDefaultStd } from '@palmares/core';
 
 import { AllTestsSettingsType, TestDomain } from '../types';
-import { getTestAdapter, setTestAdapter } from '../utils';
+import { setTestAdapter } from '../utils';
 
 const filesToTest: string[] = [];
 
-export default function test(domains:TestDomain[], settings: AllTestsSettingsType){
+export default async function test(domains:TestDomain[], settings: AllTestsSettingsType){
   for (const domain of domains) {
     if (domain.getTests) {
       const testFilesOrTestFile = domain.getTests();
@@ -13,13 +13,14 @@ export default function test(domains:TestDomain[], settings: AllTestsSettingsTyp
       else filesToTest.push(testFilesOrTestFile);
     }
   }
-  console.log(filesToTest)
-  setTestAdapter(new settings.testAdapter());
+  const newTestAdapter = new settings.testAdapter();
+  setTestAdapter(newTestAdapter);
   const std = getDefaultStd();
-  getTestAdapter().run(
+  return newTestAdapter.run(
     filesToTest,
     `require('@palmares/tests').run('${settings.settingsLocation}');`,
     {
+      mkdir: std.files.makeDirectory,
       join: std.files.join,
       writeFile: std.files.writeFile,
       removeFile: std.files.removeFile,

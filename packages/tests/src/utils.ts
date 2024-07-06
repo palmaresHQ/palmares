@@ -1,5 +1,4 @@
 import TestAdapter from './adapter';
-
 let testAdapter: TestAdapter | undefined = undefined;
 
 export function setTestAdapter(adapter: TestAdapter) {

@@ -1,8 +1,16 @@
-import { TestAdapter, TestExpectAdapter } from "@palmares/tests";
+import { TestAdapter } from "@palmares/tests";
 import { run as runJest } from 'jest';
 
 import JestTestFunctionsAdapter from "./functions";
 import JestExpectAdapter from "./expect";
+
+let defaultConfig: import('jest').Config = {
+  preset: "ts-jest",
+  testEnvironment: "node",
+  rootDir: process.cwd(),
+};
+
+let cliOptions: string[] = [];
 
 export default class JestTestAdapter extends TestAdapter {
   functions = new JestTestFunctionsAdapter();
@@ -34,23 +42,63 @@ export default class JestTestAdapter extends TestAdapter {
     filesToRun: string[],
     globalSetupFunctionBody: string,
     std: {
-    join: (...args: string[]) => Promise<string>,
-    writeFile: (path: string | string[], content: string) => Promise<void>;
-    removeFile: (path: string | string[]) => Promise<void>;
+      mkdir: (path: string | string[]) => Promise<void>,
+      join: (...args: string[]) => Promise<string>,
+      writeFile: (path: string | string[], content: string) => Promise<void>;
+      removeFile: (path: string | string[]) => Promise<void>;
   }) {
-    const whereToCreateJestConfig = await std.join(__dirname, 'jest.config.js')
-    const whereToCreateGlobalSetup = await std.join(__dirname, 'setup-jest.js')
+    const [_, __, whereToCreateJestConfig,whereToCreateGlobalSetup] = await Promise.all([
+      std.mkdir(await std.join(__dirname, '.jest')),
+      std.mkdir(await std.join(__dirname, '.jest')),
+      std.join(__dirname,'.jest', 'jest.config.js'),
+      std.join(__dirname, '.jest', 'setup-jest.js')
+    ])
     await std.writeFile(whereToCreateGlobalSetup, globalSetupFunctionBody);
+    defaultConfig.testRegex = filesToRun.concat(defaultConfig.testRegex || []);
+    defaultConfig.setupFiles = [whereToCreateGlobalSetup].concat(defaultConfig.setupFiles || []);
+    const defaultConfigAsString = JSON.stringify(defaultConfig, null, 2);
     await std.writeFile(whereToCreateJestConfig,
-      'module.exports = {\n' +
-      '  preset: "ts-jest",\n' +
-      '  testEnvironment: "node",\n' +
-      '  rootDir: process.cwd(),\n' +
-      `  testRegex: [${filesToRun.map((fileToRun) => `'${fileToRun}'`).join(', ')}],\n` +
-      `  setupFiles: ['${whereToCreateGlobalSetup}'],\n` +
-      '};'
+      `module.exports = ${defaultConfigAsString};`
     )
-    await runJest(['--config', whereToCreateJestConfig]);
+    await runJest(['--config', whereToCreateJestConfig].concat(cliOptions));
     await Promise.all([std.removeFile(whereToCreateJestConfig), std.removeFile(whereToCreateGlobalSetup)])
+  }
+
+  static new(args?: {
+    config?: import('jest').Config,
+    cliOptions?: [
+      '--watch',
+      '--watchAll',
+      '-o',
+      '-t',
+      ['--collect-coverage', string],
+      '--colors',
+      '--coverage',
+      ['--coverage', boolean],
+      ['--coverageDirectory', string],
+      ['--coverageProvider', 'babel' | 'v8'],
+      '--debug',
+      ['--filter', string],
+      '--lastCommit',
+      '--onlyChanged',
+      '--listTests',
+      ['--maxWorkers', number | string],
+      '--noStackTrace',
+    ][number][]
+  }) {
+    if (args?.config) {
+      defaultConfig = {
+        ...defaultConfig,
+        ...args.config,
+      }
+    }
+    if (args?.cliOptions) {
+      cliOptions = args.cliOptions.map((option) => {
+        if (Array.isArray(option)) return option.join('=');
+        return option;
+      });
+    }
+
+    return this;
   }
 }

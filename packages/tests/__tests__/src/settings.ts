@@ -2,14 +2,14 @@ import CoreDomain, { defineSettings } from '@palmares/core';
 import TestsDomain from '@palmares/tests';
 import JestTestAdapter from '@palmares/jest-tests';
 
-import StdDomain from '@palmares/std';
 import NodeStd from '@palmares/node-std';
 import LoggingDomain from '@palmares/logging';
 import ConsoleLogging from '@palmares/console-logging';
 
 import TestDomain from './test';
-import AuthDomain from './auth';
 import { dirname, resolve } from 'path';
+
+const watch = process.env.WATCH === 'true';
 
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
@@ -32,11 +32,15 @@ export default defineSettings({
     [
       TestsDomain,
       {
-        testAdapter: JestTestAdapter,
+        testAdapter: JestTestAdapter.new({
+          cliOptions: watch ? ['--watchAll'] : [],
+          config: {
+
+          }
+        }),
       }
     ],
     // We have just created this custom domain, and it defines our routes.
     TestDomain,
-    AuthDomain,
   ],
 });

@@ -11,23 +11,31 @@ export default class TestExpectAdapter {
     throw new Error('Not implemented');
   }
 
+  toBeDefined(value: any, isNot: boolean) {
+    throw new Error('Not implemented');
+  }
+
+  toBeInstanceOf(value: any, expected: any, isNot: boolean) {
+    throw new Error('Not implemented');
+  }
+
   toHaveBeenCalled(value: any, isNot: boolean) {
     throw new Error('Not implemented');
   }
 
-  toHaveBeenCalledTimes(value: any, isNot: boolean) {
+  async toHaveBeenCalledTimes(value: any, isNot: boolean) {
     throw new Error('Not implemented');
   }
 
-  toHaveBeenCalledWith(value: any, args: any[], isNot: boolean) {
+  async toHaveBeenCalledWith(value: any, args: any[], isNot: boolean) {
     throw new Error('Not implemented');
   }
 
-  toHaveReturned(value: (...args: any[]) => any, isNot: boolean) {
+  async toHaveReturned(value: (...args: any[]) => any, isNot: boolean) {
     throw new Error('Not implemented');
   }
 
-  toHaveReturnedTimes(value: any, expected: number, isNot: boolean) {
+  async toHaveReturnedTimes(value: any, expected: number, isNot: boolean) {
     throw new Error('Not implemented');
   }
 }

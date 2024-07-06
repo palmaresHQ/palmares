@@ -1,5 +1,5 @@
 import { FoundMigrationsFileType, StateModelsType, OriginalOrStateModelsByNameType } from './types';
-import model, { BaseModel, Model } from '../models/model';
+import model, { BaseModel } from '../models/model';
 import { InitializedModelsType } from '../types';
 import DatabaseAdapter from '../engine';
 import { defaultEngineDuplicate } from '../engine/utils';

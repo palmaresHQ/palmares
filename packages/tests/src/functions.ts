@@ -27,7 +27,6 @@ export function test<TTestAdapter extends TestAdapter = TestAdapter>(testName: s
   }));
 }
 
-
 export function expect<TValue>(value: TValue): Expect<TValue, false> {
   return getExpect<TValue>(value, getTestAdapter());
 }

@@ -1,14 +1,10 @@
 import CoreDomain, { defineSettings } from '@palmares/core';
-import TestsDomain from '@palmares/tests';
-import JestTestAdapter from '@palmares/jest-tests';
+import TestsDomain, { TestAdapter } from '@palmares/tests';
 
-import StdDomain from '@palmares/std';
 import NodeStd from '@palmares/node-std';
 import LoggingDomain from '@palmares/logging';
 import ConsoleLogging from '@palmares/console-logging';
 
-import TestDomain from './test';
-import AuthDomain from './auth';
 import { dirname, resolve } from 'path';
 
 export default defineSettings({
@@ -32,11 +28,8 @@ export default defineSettings({
     [
       TestsDomain,
       {
-        testAdapter: JestTestAdapter,
+        testAdapter: TestAdapter
       }
     ],
-    // We have just created this custom domain, and it defines our routes.
-    TestDomain,
-    AuthDomain,
   ],
 });

@@ -42,7 +42,6 @@
   "dependencies": {
     "@palmares/logging": "workspace:*",
     "@palmares/core": "workspace:*",
-    "@palmares/std": "workspace:*",
     "@palmares/events": "workspace:*"
   }
 }

@@ -20,7 +20,6 @@
     "@palmares/jest-tests": "workspace:*",
     "@palmares/logging": "workspace:*",
     "@palmares/node-std": "workspace:*",
-    "@palmares/std": "workspace:*",
     "@palmares/tests": "workspace:*",
     "cors": "^2.8.5",
     "zod": "^3.22.4"

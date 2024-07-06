@@ -1,4 +1,4 @@
-import { getDefaultStd } from '@palmares/std';
+import { getDefaultStd } from '@palmares/core';
 
 class Asker {
   async theNewAttributeCantHaveNullDoYouWishToContinue(modelName: string, fieldName: string): Promise<boolean> {

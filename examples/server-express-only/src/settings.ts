@@ -1,6 +1,5 @@
 import CoreDomain, { defineSettings } from '@palmares/core';
 import { ExpressServerAdapter } from '@palmares/express-adapter';
-import StdDomain from '@palmares/std';
 import NodeStd from '@palmares/node-std';
 import LoggingDomain from '@palmares/logging';
 import ConsoleLogging from '@palmares/console-logging';
@@ -14,17 +13,13 @@ import ResponsesDomain from './responses';
 
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
+  settingsLocation: __filename,
+  std: NodeStd,
   installedDomains: [
     [
       LoggingDomain,
       {
         logger: ConsoleLogging,
-      },
-    ],
-    [
-      StdDomain,
-      {
-        STD: NodeStd,
       },
     ],
     // Domain Core, required for palmares to work
