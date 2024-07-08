@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "outDir": "./dist",
+    "types":["drizzle-orm", "node", "better-sqlite3"],
+  },
+  "include": ["src/**/*"]
+}

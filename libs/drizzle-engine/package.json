@@ -1,7 +1,7 @@
 {
-  "name": "@palmares/sequelize-engine",
+  "name": "@palmares/drizzle-engine",
   "version": "0.0.1",
-  "description": "This is the engine that wraps the hole sequelize interface in a way palmares can understand and have full control of",
+  "description": "This is the engine that wraps the hole drizzle interface in a way palmares can understand and have full control of",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
   "types": "./dist/cjs/types/index.d.ts",
@@ -26,8 +26,8 @@
     "build:watch": "pnpm run build:cjs:watch & pnpm run build:module:watch & pnpm run build:types:watch"
   },
   "keywords": [
-    "sequelize",
-    "sequelize-engine",
+    "drizzle",
+    "drizzle-engine",
     "palmares"
   ],
   "repository": {
@@ -43,9 +43,7 @@
   "dependencies": {
     "@palmares/core": "workspace:*",
     "@palmares/databases": "workspace:*",
-    "sequelize": "^6.21.0"
-  },
-  "devDependencies": {
-    "@types/sequelize": "^4.28.14"
+    "@types/better-sqlite3": "^7.6.11",
+    "drizzle-orm": "^0.31.2"
   }
 }

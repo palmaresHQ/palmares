@@ -173,7 +173,7 @@ export default class Databases {
       }
 
       const isAnEngineInstanceDefinedForDatabase = isProbablyAnEngineInstanceDefinedForDatabase
-        ? engineInstance.constructor.prototype instanceof DatabaseAdapter
+        ? engineInstance instanceof DatabaseAdapter
         : false;
       if (!isAnEngineInstanceDefinedForDatabase) throw new Error('You must define an engine for the database.');
     }

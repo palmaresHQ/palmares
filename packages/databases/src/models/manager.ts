@@ -10,7 +10,6 @@ import {
   FieldsOFModelType,
   OrderingOfModelsType,
   FieldsOfModelOptionsType,
-  RelatedFieldToModel,
   ModelType,
 } from './types';
 import { ManagerEngineInstanceNotFoundError } from './exceptions';

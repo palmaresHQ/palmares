@@ -376,7 +376,7 @@ export function factoryFunctionForModelTranslate(
           : await defaultParseFieldCallback(field);
 
       const isTranslatedAttributeDefined =
-        translatedAttributes !== undefined && translatedAttributes !== null && typeof translatedAttributes === 'object';
+        translatedAttributes !== undefined && translatedAttributes !== null;
       if (isTranslatedAttributeDefined) translatedFieldDataByFieldName[fieldName] = translatedAttributes;
     }
 

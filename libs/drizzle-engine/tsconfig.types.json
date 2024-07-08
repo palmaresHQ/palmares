@@ -1,0 +1,13 @@
+{
+  "extends": "../../build/tsconfig.types.json",
+  "compilerOptions": {
+    "declaration": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "rootDir": "./src",
+    "outDir": "./dist/cjs/types",
+    "types": ["drizzle-orm", "node", "better-sqlite3"],
+  },
+  "include": ["src/**/*"]
+}
