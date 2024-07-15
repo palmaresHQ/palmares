@@ -14,6 +14,7 @@ export default adapterUuidFieldParser({
     const defaultOptions = await args.fieldParser.translate(args);
     const field = args.field;
     const mainType = args.engine.instance.mainType
+
     if (field.autoGenerate) {
       args.lazyEvaluate({
         type: 'uuid',
