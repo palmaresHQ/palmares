@@ -4,7 +4,10 @@
     "declaration": true, /* Generate d.ts files */
     "rootDir": "./src",
     "outDir": "./dist/cjs/types",
-    "types": ["node"]
+    "types": ["node"],
+    "paths": {
+      "@palmares/core": ["./node_modules/@palmares/core"],
+    }
   },
   "include": ["src/**/*"]
 }

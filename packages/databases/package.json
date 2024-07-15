@@ -41,8 +41,9 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
-    "@palmares/logging": "workspace:*",
     "@palmares/core": "workspace:*",
-    "@palmares/events": "workspace:*"
+    "@palmares/events": "workspace:*",
+    "@palmares/logging": "workspace:*",
+    "drizzle-kit": "^0.22.8"
   }
 }

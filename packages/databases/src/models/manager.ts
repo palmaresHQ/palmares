@@ -139,9 +139,10 @@ export default class Manager<TModel = Model, EI extends DatabaseAdapter | null =
   async getInstance<T extends DatabaseAdapter = DatabaseAdapter>(
     engineName?: string
   ): Promise<EI extends DatabaseAdapter ? EI['ModelType'] : T['ModelType']> {
+
     const engineInstanceName = engineName || this.defaultEngineInstanceName;
     const doesInstanceExists = this.instances[engineInstanceName] !== undefined;
-    if (doesInstanceExists) return this.instances[engineInstanceName];
+    if (doesInstanceExists) return this.instances[engineInstanceName].instance;
 
     const hasLazilyInitialized = await this.verifyIfNotInitializedAndInitializeModels(engineInstanceName);
     if (hasLazilyInitialized) return this.getInstance(engineName);

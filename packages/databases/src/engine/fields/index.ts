@@ -14,6 +14,7 @@ import AdapterTextFieldParser from './text';
 import AdapterEnumFieldParser from './enum';
 import AdapterBooleanFieldParser from './boolean';
 import { NotImplementedAdapterFieldsException } from '../exceptions';
+import { BaseModel, Model } from '../../models';
 
 /**
  * Functional approach to create a custom {@link AdapterFields} class.
@@ -306,7 +307,8 @@ export default class AdapterFields {
     _modelName: string,
     _translatedModel: any,
     _field: Field,
-    _fieldTranslated: any
+    _fieldTranslated: any,
+    _parse: (model: Model, field: Field<any, any, any, any, any, any, any, any>) => Promise<any>
   ): Promise<any> {
     throw new NotImplementedAdapterFieldsException('lazyEvaluateField');
   }

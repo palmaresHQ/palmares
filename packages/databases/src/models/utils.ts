@@ -56,7 +56,7 @@ export const indirectlyRelatedModels: {
 /**
  * Those are the default model options. It will exist in every model and will be used to define the default options of the model.
  */
-export const defaultModelOptions = {
+export const getDefaultModelOptions = () => ({
   abstract: false,
   underscored: true,
   tableName: undefined,
@@ -65,7 +65,7 @@ export const defaultModelOptions = {
   indexes: [],
   databases: ['default'],
   customOptions: {},
-};
+});
 
 /**
  * The idea here is used to parse foreign key lazily, let's say that we have a foreign key field, but it's related to
@@ -268,12 +268,15 @@ export async function initializeModels(
   engine: DatabaseAdapter,
   models: (typeof BaseModel & ReturnType<typeof model>)[]
 ) {
-  const initializedModels: InitializedModelsType[] = [];
-  const auxiliaryIndexByModelName: Record<string, number> = {};
-  const fieldsToEvaluateAfter: {
+  const initializedModels: (InitializedModelsType & { modifyItself: (newModel: any) => void })[] = [];
+  let fieldsToEvaluateAfter: {
     model: InstanceType<ReturnType<typeof model>> & BaseModel;
     field: Field;
     translatedField: any;
+    getInitialized: () => {
+      instance: any;
+      modifyItself: (newModel: any) => void;
+    }
   }[] = [];
 
   // Initialize the models and add it to the initialized models array, we need to keep track of the index of the model so that we can update it later
@@ -286,7 +289,6 @@ export async function initializeModels(
         ? modelInstance.options?.databases.includes(engine.connectionName)
         : true;
 
-    const modelName = modelClass.getName();
     const domainName = modelClass.domainName;
     const domainPath = modelClass.domainPath;
 
@@ -296,52 +298,64 @@ export async function initializeModels(
           model: modelInstance,
           field,
           translatedField,
+          getInitialized: () => initializedModel,
         })
       );
+      const originalModifyItself = initializedModel.modifyItself;
+      initializedModel.modifyItself = (newModel: any) => {
+        initializedModels[index].initialized = newModel;
+        originalModifyItself(newModel);
+      }
       initializedModels.splice(index, 0, {
         domainName: domainPath,
         domainPath: domainPath,
         class: modelClass,
-        initialized: initializedModel,
+        initialized: initializedModel.instance,
+        modifyItself: initializedModel.modifyItself,
         original: modelInstance,
       });
-      auxiliaryIndexByModelName[modelName] = index;
     }
 
   });
   await Promise.all(initializeModelPromises);
 
+  const markedFieldsCallbacksToRemove: number[] = [];
   // When we evaluate the fields later we need to update the initialized model as well.
-  const evaluateLaterFieldsPromises = fieldsToEvaluateAfter.map(async ({ model, field, translatedField }) => {
+  const evaluateLaterFieldsPromises = fieldsToEvaluateAfter.map(async ({ model, field, translatedField, getInitialized }, index) => {
+    const initialized = getInitialized();
     const modelConstructor = model.constructor as ModelType;
-    const indexToUpdate = auxiliaryIndexByModelName[modelConstructor.getName()];
-    const existsInInitializedModels = initializedModels[indexToUpdate] !== undefined;
-    if (typeof indexToUpdate === 'number' && existsInInitializedModels) {
-      const translatedModel = initializedModels[indexToUpdate].initialized;
-      initializedModels[indexToUpdate].initialized = await engine.fields.lazyEvaluateField(
-        engine,
-        modelConstructor.getName(),
-        translatedModel,
-        field,
-        translatedField
-      );
+    const lazyEvaluatedFieldResult = await engine.fields.lazyEvaluateField(
+      engine,
+      modelConstructor.getName(),
+      initialized.instance,
+      field,
+      translatedField,
+      (model, field) => parse(engine, engine.fields, model, field, () => {})
+    )
+    if (lazyEvaluatedFieldResult !== undefined && lazyEvaluatedFieldResult !== null) {
+      initialized.modifyItself(lazyEvaluatedFieldResult);
+      markedFieldsCallbacksToRemove.push(index);
     }
   });
   await Promise.all(evaluateLaterFieldsPromises);
-
+  fieldsToEvaluateAfter = fieldsToEvaluateAfter.filter((_, index) => !markedFieldsCallbacksToRemove.includes(index));
 
   if (engine.models.afterModelsTranslation) {
+    const { modelEntries, modelsByName } = initializedModels.reduce((acc, model) => {
+      const modelName = model.class.getName();
+      acc.modelsByName[modelName] = model;
+      acc.modelEntries.push([modelName, model.initialized]);
+      return acc;
+    }, {
+      modelsByName: {} as Record<string, (InitializedModelsType & { modifyItself: (newModel: any) => void })>,
+      modelEntries: [] as [string, InitializedModelsType][]
+    });
     const returnedValueFromLastTranslation = await engine.models.afterModelsTranslation(
       engine,
-      initializedModels.map((model) => [model.class.getName(), model.initialized])
+      modelEntries
     );
-
     if (Array.isArray(returnedValueFromLastTranslation)) {
-      for (let i = 0; i < returnedValueFromLastTranslation.length; i++) {
-        const [modelName, returnedValue] = returnedValueFromLastTranslation[i];
-        const indexToUpdate = auxiliaryIndexByModelName[modelName];
-        if (typeof indexToUpdate === 'number') initializedModels[i].initialized = returnedValue;
-      }
+      for (const [modelName, returnedValue] of returnedValueFromLastTranslation) modelsByName[modelName].modifyItself(returnedValue);
     }
   }
 

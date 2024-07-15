@@ -1,4 +1,4 @@
-import { AdapterFieldParserTranslateArgs, adapterDecimalFieldParser } from '@palmares/databases';
+import { AdapterFieldParserTranslateArgs, adapterDecimalFieldParser, auto } from '@palmares/databases';
 
 import DrizzleEngineFieldParser from './field';
 
@@ -10,9 +10,40 @@ export default adapterDecimalFieldParser({
       InstanceType<typeof DrizzleEngineFieldParser>,
       any
     >
-  ): Promise<any> => {
+  ): Promise<string> => {
     const defaultOptions = await args.fieldParser.translate(args);
+    const field = args.field;
+    const mainType = args.engine.instance.mainType;
 
-    return defaultOptions;
+    switch (mainType) {
+      case 'sqlite':
+        return `d.real('${field.databaseName}')${
+          defaultOptions.primaryKey ? '.primaryKey()' : ''
+        }${defaultOptions.default ? `.default(${defaultOptions.default})` : ''}${
+        defaultOptions.nullable !== true ? `.notNull()` : ''
+        }${
+        defaultOptions.unique ? `.unique()` : ''
+        }`
+      case 'postgres':
+        return `d.numeric('${field.databaseName}', { precision: ${field.decimalPlaces}, scale: ${field.maxDigits} })${
+          defaultOptions.primaryKey ? '.primaryKey()' : ''
+        }${
+          defaultOptions.default ? `.default(${defaultOptions.default})` : ''
+        }${
+          defaultOptions.nullable !== true ? `.notNull()` : ''
+        }${
+          defaultOptions.unique ? `.unique()` : ''
+        }`
+      default:
+        return `d.decimal('${field.databaseName}', { precision: ${field.decimalPlaces}, scale: ${field.maxDigits} })${
+          defaultOptions.primaryKey ? '.primaryKey()' : ''
+        }${
+          defaultOptions.default ? `.default(${defaultOptions.default})` : ''
+        }${
+          defaultOptions.nullable !== true ? `.notNull()` : ''
+        }${
+          defaultOptions.unique ? `.unique()` : ''
+        }`
+    }
   },
 });

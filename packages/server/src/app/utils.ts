@@ -1,4 +1,4 @@
-import { getDefaultStd } from '@palmares/std';
+import { getDefaultStd } from '@palmares/core';
 
 import ServerAdapter from '../adapters';
 import ServerlessAdapter from '../adapters/serverless';
@@ -28,7 +28,7 @@ import {
 import { serverLogger } from '../logging';
 import { AsyncGeneratorFunction, FileLike, GeneratorFunction } from '../response/utils';
 import type ServerRouterAdapter from '../adapters/routers';
-import type ServerlessRouterAdapter from '../adapters/routers/serverless';
+//import type ServerlessRouterAdapter from '../adapters/routers/serverless';
 import { HandlerForServerless } from '../adapters/routers/serverless';
 
 /**

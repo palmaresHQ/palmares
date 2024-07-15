@@ -1,4 +1,4 @@
-import { ChildProcess } from '@palmares/std';
+import { ChildProcess } from '@palmares/core';
 
 import { exec, spawn } from 'child_process';
 export default class ChildProcessNode implements ChildProcess {

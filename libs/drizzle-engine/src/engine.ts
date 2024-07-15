@@ -1,7 +1,8 @@
 import { DatabaseAdapter, databaseAdapter, AdapterMigrations, AdapterQuery, AdapterModels, AdapterFields } from '@palmares/databases';
-
 import DrizzleModels from './model';
 import DrizzleFields from './fields';
+import DrizzleQuery from './query';
+import { ParametersByType, ReturnTypeByType } from './types';
 
 type allDrizzleTypes =
   typeof import('drizzle-orm/postgres-js')['drizzle'] |
@@ -66,10 +67,9 @@ const checkIfInstanceSavedOrSave = (
 
 const drizzleDatabaseAdapter = databaseAdapter({
   fields: new DrizzleFields(),
-  migrations: new AdapterMigrations(),
   models: new DrizzleModels(),
-  query: new AdapterQuery(),
-  new: async<
+  query: new DrizzleQuery(),
+  new: <
   TType extends
     'postgres-js' |
     'node-postgres' |
@@ -85,111 +85,51 @@ const drizzleDatabaseAdapter = databaseAdapter({
     'expo-sqlite' |
     'op-sqlite' |
     'better-sqlite3',
+  TDrizzleInstance extends ReturnTypeByType<TType>,
   >(args: {
+    output: string;
     type: TType;
-    options: (TType extends 'postgres-js' ?
-      Parameters<typeof import('drizzle-orm/postgres-js')['drizzle']> :
-      TType extends 'node-postgres' ?
-      Parameters<typeof import('drizzle-orm/node-postgres')['drizzle']>
-      : TType extends 'neon-http' ?
-      Parameters<typeof import('drizzle-orm/neon-http')['drizzle']>
-      : TType extends 'xata-http' ?
-      Parameters<typeof import('drizzle-orm/xata-http')['drizzle']>
-      : TType extends 'pglite' ?
-      Parameters<typeof import('drizzle-orm/pglite')['drizzle']>
-      : TType extends 'vercel-postgres' ?
-      Parameters<typeof import('drizzle-orm/vercel-postgres')['drizzle']>
-      : TType extends 'aws-data-api/pg' ?
-      Parameters<typeof import('drizzle-orm/aws-data-api/pg')['drizzle']>
-      : TType extends 'pg-proxy' ?
-      Parameters<typeof import('drizzle-orm/pg-proxy')['drizzle']>
-      : TType extends 'libsql' ?
-      Parameters<typeof import('drizzle-orm/libsql')['drizzle']>
-      : TType extends 'd1' ?
-      Parameters<typeof import('drizzle-orm/d1')['drizzle']>
-      : TType extends 'bun-sqlite' ?
-      Parameters<typeof import('drizzle-orm/bun-sqlite')['drizzle']>
-      : TType extends 'expo-sqlite' ?
-      Parameters<typeof import('drizzle-orm/expo-sqlite')['drizzle']>
-      : TType extends 'op-sqlite' ?
-      Parameters<typeof import('drizzle-orm/op-sqlite')['drizzle']>
-      : TType extends 'better-sqlite3' ?
-      Parameters<typeof import('drizzle-orm/better-sqlite3')['drizzle']>
-      : [])
+    drizzle: TDrizzleInstance;
     closeCallback?: () => void | Promise<void>;
-  }): Promise<[{
+  }): [{
+    output: string;
     type: TType;
-    options: TType extends 'postgres-js' ?
-    Parameters<typeof import('drizzle-orm/postgres-js')['drizzle']> :
-    TType extends 'node-postgres' ?
-    Parameters<typeof import('drizzle-orm/node-postgres')['drizzle']>
-    : TType extends 'neon-http' ?
-    Parameters<typeof import('drizzle-orm/neon-http')['drizzle']>
-    : TType extends 'xata-http' ?
-    Parameters<typeof import('drizzle-orm/xata-http')['drizzle']>
-    : TType extends 'pglite' ?
-    Parameters<typeof import('drizzle-orm/pglite')['drizzle']>
-    : TType extends 'vercel-postgres' ?
-    Parameters<typeof import('drizzle-orm/vercel-postgres')['drizzle']>
-    : TType extends 'aws-data-api/pg' ?
-    Parameters<typeof import('drizzle-orm/aws-data-api/pg')['drizzle']>
-    : TType extends 'pg-proxy' ?
-    Parameters<typeof import('drizzle-orm/pg-proxy')['drizzle']>
-    : TType extends 'libsql' ?
-    Parameters<typeof import('drizzle-orm/libsql')['drizzle']>
-    : TType extends 'd1' ?
-    Parameters<typeof import('drizzle-orm/d1')['drizzle']>
-    : TType extends 'bun-sqlite' ?
-    Parameters<typeof import('drizzle-orm/bun-sqlite')['drizzle']>
-    : TType extends 'expo-sqlite' ?
-    Parameters<typeof import('drizzle-orm/expo-sqlite')['drizzle']>
-    : TType extends 'op-sqlite' ?
-    Parameters<typeof import('drizzle-orm/op-sqlite')['drizzle']>
-    : TType extends 'better-sqlite3' ?
-    Parameters<typeof import('drizzle-orm/better-sqlite3')['drizzle']>
-    : [];
+    drizzle: TDrizzleInstance;
     closeCallback?: () => void | Promise<void>;
-  }, any]> => {
-    const importedModule = await (args.type ==='pglite' ?
-      import('drizzle-orm/pglite')
-      : args.type === 'postgres-js' ?
-      import('drizzle-orm/postgres-js')
-      : args.type === 'node-postgres' ?
-      import('drizzle-orm/node-postgres')
-      : args.type === 'neon-http' ?
-      import('drizzle-orm/neon-http')
-      : args.type === 'xata-http' ?
-      import('drizzle-orm/xata-http')
-      : args.type === 'vercel-postgres' ?
-      import('drizzle-orm/vercel-postgres')
-      : args.type === 'aws-data-api/pg' ?
-      import('drizzle-orm/aws-data-api/pg')
-      : args.type === 'pg-proxy' ?
-      import('drizzle-orm/pg-proxy')
-      : args.type === 'libsql' ?
-      import('drizzle-orm/libsql')
-      : args.type === 'd1' ?
-      import('drizzle-orm/d1')
-      : args.type === 'bun-sqlite' ?
-      import('drizzle-orm/bun-sqlite')
-      : args.type === 'expo-sqlite' ?
-      import('drizzle-orm/expo-sqlite')
-      : args.type === 'op-sqlite' ?
-      import('drizzle-orm/op-sqlite')
-      : args.type === 'better-sqlite3' ?
-      import('drizzle-orm/better-sqlite3')
-      : null);
-    const argsOfDrizzle = args.options as any[]
-    const drizzleInstance = (importedModule?.drizzle as (...args:any) => any)(...argsOfDrizzle);
+  }, Omit<InstanceType<ReturnType<typeof databaseAdapter>>, 'instance'> & {
+    instance: {
+      instance: ReturnTypeByType<TType, TDrizzleInstance extends ReturnTypeByType<TType, infer TSchema> ? TSchema : never>,
+      mainType: 'postgres' | 'mysql' | 'sqlite',
+      type: 'postgres-js' | 'node-postgres' | 'neon-http' | 'xata-http' | 'pglite' | 'vercel-postgres' | 'aws-data-api/pg' | 'pg-proxy',
+      output: string,
+      closeCallback?: () => void | Promise<void>,
+    }
+  }] => {
 
     const engineInstance = new drizzleDatabaseAdapter();
     engineInstance.instance = {
+      output: args.output,
       type: args.type,
       mainType: args.type.includes('sqlite') ? 'sqlite' : 'postgres',
-      instance: drizzleInstance,
+      instance: args.drizzle as any,
       closeCallback: args.closeCallback,
+    } as {
+      instance: any,
+      mainType: 'postgres' | 'mysql' | 'sqlite',
+      type: 'postgres-js' | 'node-postgres' | 'neon-http' | 'xata-http' | 'pglite' | 'vercel-postgres' | 'aws-data-api/pg' | 'pg-proxy',
+      output: string,
+      closeCallback?: () => void | Promise<void>,
     };
-    return [args, engineInstance];
+
+    return [args, engineInstance as unknown as Omit<InstanceType<ReturnType<typeof databaseAdapter>>, 'instance'> & {
+      instance: {
+        instance: ReturnTypeByType<TType, TDrizzleInstance extends ReturnTypeByType<TType, infer TSchema> ? TSchema : never>,
+        mainType: 'postgres' | 'mysql' | 'sqlite',
+        type: 'postgres-js' | 'node-postgres' | 'neon-http' | 'xata-http' | 'pglite' | 'vercel-postgres' | 'aws-data-api/pg' | 'pg-proxy',
+        output: string,
+        closeCallback?: () => void | Promise<void>,
+      }
+    }];
   },
   isConnected: async (): Promise<boolean> => {
     return true;

@@ -1,4 +1,4 @@
-import { Asker } from '@palmares/std';
+import { Asker } from '@palmares/core';
 
 import { createInterface } from 'readline';
 import { stdin as input, stdout as output } from 'process';

@@ -4,7 +4,7 @@ import { BaseModel, Manager, model } from './models';
 import DatabaseAdapter from './engine';
 
 export interface DatabaseConfigurationType {
-  engine: Promise<[any, DatabaseAdapter]> | { default: Promise<[any, DatabaseAdapter]> };
+  engine: [any, DatabaseAdapter];
   events?: {
     emitter: EventEmitter | Promise<EventEmitter>;
     channels?: string[];

@@ -2,48 +2,92 @@ import { adapterSearchQuery } from '@palmares/databases';
 import { Op } from 'sequelize';
 
 export default adapterSearchQuery({
-  parseSearchFieldValue: async (operationType, value, result, options) => {
+  parseSearchFieldValue: async (operationType, key, _model, value, result, options) => {
     switch (operationType) {
       case 'like':
-        if (options?.ignoreCase) result[Op.iLike] = value;
-        else if (options?.isNot && options.ignoreCase) result[Op.notILike] = value;
-        else if (options?.isNot) result[Op.notLike] = value;
-        else result[Op.like] = value;
+        if (options?.ignoreCase) result[key] = {
+          [Op.iLike]: value
+        };
+        else if (options?.isNot && options.ignoreCase) result[key] = {
+          [Op.notILike]: value
+        };
+        else if (options?.isNot) result[key] = {
+          [Op.notLike]: value
+        };
+        else result[key] = {
+          [Op.like]: value
+        };
         return;
       case 'is':
-        if (value === null && options?.isNot) result[Op.not] = value;
-        else if (value === null) result[Op.is] = value;
-        else if (options?.isNot) result[Op.ne] = value;
-        else result[Op.eq] = value;
+        if (value === null && options?.isNot)
+          result[key] = {
+            [Op.not]: value
+          };
+        else if (value === null)
+          result[key] = {
+            [Op.is]: value
+          };
+        else if (options?.isNot)
+          result[key] = {
+            [Op.ne]: value
+          };
+        else
+          result[key] = {
+            [Op.ne]: value
+          };
         return;
       case 'in':
-        if (options?.isNot) result[Op.notIn] = value;
-        else result[Op.in] = value;
+        if (options?.isNot)
+          result[key] = {
+            [Op.notIn]: value
+          };
+        else
+          result[key] = {
+            [Op.in]: value
+          };
         return;
       case 'between':
-        if (options?.isNot) result[Op.notBetween] = value;
-        else result[Op.between] = value;
+        if (options?.isNot)
+          result[key] = {
+            [Op.notBetween]: value
+          };
+        else
+          result[key] = {
+            [Op.between]: value
+          };
         return;
       case 'and':
-        result[Op.and] = value;
+        result[key] = {
+          [Op.and]: value
+        };
         return;
       case 'or':
-        result[Op.or] = value;
+        result[key] = {
+          [Op.or]: value
+        };
         return;
       case 'greaterThan':
-        result[Op.gt] = value;
+        result[key] = {
+          [Op.gt]: value
+        };
         return;
       case 'greaterThanOrEqual':
-        result[Op.gte] = value;
+        result[key] = {
+          [Op.gte]: value
+        };
         return;
       case 'lessThan':
-        result[Op.lt] = value;
+        result[key] = {
+          [Op.lt]: value
+        };
         return;
       case 'lessThanOrEqual':
-        result[Op.lte] = value;
+        result[key] = {
+          [Op.lte]: value
+        };
         return;
       default:
-        return;
+        result[key] = value
     }
-  },
+  }
 });

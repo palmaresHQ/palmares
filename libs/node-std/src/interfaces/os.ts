@@ -1,4 +1,4 @@
-import { Os } from '@palmares/std';
+import { Os } from '@palmares/core';
 
 import { platform as nodePlatform, release as nodeRelease } from 'os';
 export default class NodeOs implements Os {

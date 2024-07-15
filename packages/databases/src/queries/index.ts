@@ -169,6 +169,8 @@ async function storePalmaresTransaction<
 }
 
 /**
+ * TODO: This will fail, should be fixed.
+ *
  * This method will fire the events that are related to the query. In other words, if we are doing a `set` operation for example we can notify
  * every listener that we are doing a `set` operation on this model. The nice thing about this is that it will use a layer if it exists.
  *
@@ -314,20 +316,14 @@ async function callQueryDataFn<
   const modelInstanceAsModel = modelInstance as InstanceType<ReturnType<typeof model>> & BaseModel;
   const modelConstructor = modelInstanceAsModel.constructor as ReturnType<typeof model> & typeof BaseModel;
   const fields = (args.fields || Object.keys(modelInstanceAsModel.fields)) as TFields;
-
   const mergedSearchForData =
     resultToMergeWithData !== undefined ? Object.assign(search ? search : {}, resultToMergeWithData) : search;
 
   const mergedData = (
     resultToMergeWithData !== undefined
       ? Array.isArray(data)
-        ? await Promise.all(
-            data.map(async (dataToAdd) => ({
-              ...resultToMergeWithData,
-              ...dataToAdd,
-            }))
-          ) // trust me, doing this async is faster than doing it sync
-        : [{ ...resultToMergeWithData, ...(data as any) }]
+        ? data // trust me, doing this async is faster than doing it sync
+        : [data]
       : Array.isArray(data)
       ? data
       : [data]
@@ -343,22 +339,22 @@ async function callQueryDataFn<
       >[]
     | undefined;
 
-  const [parsedSearch, parsedData, parsedOrdering] = await Promise.all([
-    parseSearch(
-      engine,
-      modelInstance as InstanceType<ReturnType<typeof model>>,
-      mergedSearchForData,
-      typeof args.useParsers.input === 'boolean' ? args.useParsers.input : true
-    ),
-    parseData(engine, args.useParsers.input, modelInstanceAsModel, mergedData),
-    (async () => {
-      if (Array.isArray(ordering))
-        return engine.query.ordering.parseOrdering(ordering as (`${string}` | `${string}`)[]);
-    })(),
-  ]);
-
   async function fetchFromDatabase() {
     const translatedModelInstance = await modelConstructor.default.getInstance(engine.connectionName);
+    const [parsedSearch, parsedData, parsedOrdering] = await Promise.all([
+      parseSearch(
+        engine,
+        modelInstance as InstanceType<ReturnType<typeof model>>,
+        translatedModelInstance,
+        mergedSearchForData,
+        typeof args.useParsers.input === 'boolean' ? args.useParsers.input : true
+      ),
+      parseData(engine, args.useParsers.input, modelInstanceAsModel, mergedData),
+      (async () => {
+        if (Array.isArray(ordering))
+          return engine.query.ordering.parseOrdering(translatedModelInstance, ordering as (`${string}` | `${string}`)[]);
+      })(),
+    ]);
     return (queryDataFn as any)(engine, {
       modelOfEngineInstance: translatedModelInstance,
       search: parsedSearch,
@@ -378,8 +374,8 @@ async function callQueryDataFn<
       const onSetHandler = extractDefaultEventsHandlerFromModel(modelInstanceAsModel, 'onSet');
       if (onSetHandler) {
         const dataForFunction = await getDataForOnSetOrOnRemoveOptionFunctions('onSet', {
-          data: parsedData,
-          search: parsedSearch,
+          data: mergedData,
+          search: mergedSearchForData,
           shouldRemove: shouldRemove,
           shouldReturnData: args.shouldReturnData,
         });
@@ -389,8 +385,8 @@ async function callQueryDataFn<
       const onRemoveHandler = extractDefaultEventsHandlerFromModel(modelInstanceAsModel, 'onRemove');
       if (onRemoveHandler) {
         const dataForFunction = await getDataForOnSetOrOnRemoveOptionFunctions('onRemove', {
-          data: parsedData,
-          search: parsedSearch,
+          data: mergedData,
+          search: mergedSearchForData,
           shouldRemove: shouldRemove,
           shouldReturnData: args.shouldReturnData,
         });
@@ -398,9 +394,9 @@ async function callQueryDataFn<
       }
     } else if (modelInstanceAsModel.options?.onGet)
       return modelInstanceAsModel.options.onGet({
-        search: parsedSearch as any,
+        search: mergedSearchForData as any,
         fields: fields as any,
-        ordering: parsedOrdering,
+        ordering: ordering as any,
         offset,
         limit,
       });
@@ -414,41 +410,48 @@ async function callQueryDataFn<
   const isToFetchExternally = modelInstanceAsModel.options?.managed === false;
   const queryDataResults = isToFetchExternally ? await fetchFromExternalSource() : await fetchFromDatabase();
 
+  // TODO: Not working anymore, should check
   await Promise.all([
     fireEventsAfterQueryDataFn(engine, {
       isToPreventEvents: args.isToPreventEvents || false,
       isRemoveOperation: args.isRemoveOperation || false,
       isSetOperation: args.isSetOperation || false,
       modelInstance: modelInstanceAsModel,
-      parsedSearch: parsedSearch,
-      parsedData: parsedData,
+      parsedSearch: mergedSearchForData,
+      parsedData: mergedData,
       shouldRemove: args.shouldRemove || false,
       shouldReturnData: args.shouldReturnData || false,
     }),
-    storePalmaresTransaction(engine, args.palmaresTransaction, modelConstructor, parsedSearch, queryDataResults),
+    storePalmaresTransaction(engine, args.palmaresTransaction, modelConstructor, mergedSearchForData, queryDataResults),
   ]);
 
   const modelName = modelConstructor.getName();
   const modelFields = modelConstructor._fields(modelInstanceAsModel);
   const fieldsToParseOutput = modelConstructor.fieldParsersByEngine.get(engine.connectionName)?.output;
   if (Array.isArray(args.results)) {
-    if (args.isSetOperation)
-      args.results.push(
-        ...(await Promise.all(
-          queryDataResults.map(async (eachResult: [boolean, ModelFieldsWithIncludes<TModel, undefined, TFields>]) =>
-            args.useParsers.output && Array.isArray(fieldsToParseOutput) && fieldsToParseOutput.length > 0
-              ? await parseResults(
+    if (args.isSetOperation) {
+      await Promise.all(
+        queryDataResults.map(async (eachResult: [boolean, ModelFieldsWithIncludes<TModel, undefined, TFields>]) => {
+          const isEachResultAnArray = Array.isArray(eachResult[1]);
+          const eachResultAsArray = isEachResultAnArray ? eachResult[1] : [eachResult[1]];
+          await Promise.all((eachResultAsArray as any).map(async (eachResultData: any) => {
+            if (args.useParsers.output && Array.isArray(fieldsToParseOutput) && fieldsToParseOutput.length > 0)
+              args.results?.push(
+                await parseResults(
                   engine,
                   modelName,
                   modelInstanceAsModel,
                   fieldsToParseOutput,
                   modelFields,
-                  eachResult[1]
-                )
-              : eachResult[1]
-          )
-        ))
-      );
+                  eachResultData
+                ) as any
+              );
+            else
+              args.results?.push(eachResultData);
+          }));
+        })
+      )
+    }
     else {
       if (args.useParsers.output && Array.isArray(fieldsToParseOutput) && fieldsToParseOutput.length > 0) {
         await Promise.all(

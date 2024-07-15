@@ -78,12 +78,12 @@ export default class Migration {
    */
   private async run(): Promise<(() => Promise<void>)[]> {
     let returnOfInit: any = undefined;
-    if (this.engineInstance.migrations.init)
-      returnOfInit = await this.engineInstance.migrations.init(this.engineInstance);
+    if (this.engineInstance?.migrations?.init)
+      returnOfInit = await this.engineInstance?.migrations?.init(this.engineInstance);
     const connectionsToClose = await this.engineInstance.useTransaction(this.#runOnTransaction.bind(this), this.allMigrations, returnOfInit);
 
-    if (this.engineInstance.migrations.finish)
-      await this.engineInstance.migrations.finish(this.engineInstance, returnOfInit);
+    if (this.engineInstance?.migrations?.finish)
+      await this.engineInstance?.migrations?.finish(this.engineInstance, returnOfInit);
 
     return connectionsToClose;
   }

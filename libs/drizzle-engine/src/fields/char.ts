@@ -19,11 +19,19 @@ export default adapterCharFieldParser({
       case 'sqlite':
         return `d.text('${field.databaseName}', { length: ${args.field.maxLength} })${
           defaultOptions.primaryKey ? '.primaryKey()' : ''
-        }${defaultOptions.default ? `.default("${defaultOptions.default}")` : ''}`
+        }${defaultOptions.default ? `.default("${defaultOptions.default}")` : ''}${
+        defaultOptions.nullable !== true ? `.notNull()` : ''
+        }${
+        defaultOptions.unique ? `.unique()` : ''
+        }`
       default:
         return `d.varchar('${field.databaseName}', { length: ${args.field.maxLength} })${
           defaultOptions.primaryKey ? '.primaryKey()' : ''
-        }${defaultOptions.default ? `.default("${defaultOptions.default}")` : ''}`
+        }${defaultOptions.default ? `.default("${defaultOptions.default}")` : ''}${
+        defaultOptions.nullable !== true ? `.notNull()` : ''
+        }${
+        defaultOptions.unique ? `.unique()` : ''
+        }`
     }
   },
 });

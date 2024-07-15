@@ -19,7 +19,7 @@ import Manager, { DefaultManager } from './manager';
 import { getUniqueCustomImports, hashString } from '../utils';
 import { CustomImportsForFieldType, ON_DELETE } from './fields/types';
 import { AutoField, CharField, EnumField, Field, ForeignKeyField, IntegerField, TextField, UuidField, auto, choice, text } from './fields';
-import { defaultModelOptions, indirectlyRelatedModels, factoryFunctionForModelTranslate } from './utils';
+import { getDefaultModelOptions, indirectlyRelatedModels, factoryFunctionForModelTranslate } from './utils';
 import { ExtractFieldsFromAbstracts, ExtractManagersFromAbstracts } from '../types';
 
 export class BaseModel {
@@ -74,7 +74,10 @@ export class BaseModel {
   async #initializeManagers(
     engineInstance: DatabaseAdapter,
     modelInstance: Model & BaseModel,
-    translatedModelInstance: any
+    translatedModelInstance: {
+      instance: any,
+      modifyItself: (newTranslation: any) => void;
+    }
   ) {
     const modelConstructor = this.constructor as ModelType;
     const managers: ManagersOfInstanceType = modelConstructor.__getManagers(modelConstructor);
@@ -153,6 +156,7 @@ export class BaseModel {
     domainPath: string,
     lazyLoadFieldsCallback: (field: Field, translatedField: any) => void
   ) {
+
     if (this._initialized[engineInstance.connectionName]) return this._initialized[engineInstance.connectionName];
 
     const currentPalmaresModelInstance = new this() as Model & BaseModel;
@@ -160,7 +164,6 @@ export class BaseModel {
     this.domainName = domainName;
     this.domainPath = domainPath;
 
-    let translatedModelInstance = null;
     const functionToCallToTranslateModel = factoryFunctionForModelTranslate(
       engineInstance,
       currentPalmaresModelInstance,
@@ -171,17 +174,22 @@ export class BaseModel {
       functionToCallToTranslateModel(),
       currentPalmaresModelInstance.#initializeEvents(engineInstance),
     ]);
-    translatedModelInstance = initializedModelInstance;
+    const translated = {
+      instance: initializedModelInstance,
+      modifyItself: (newTranslatedInstance: any) => {
+        translated.instance = newTranslatedInstance;
+      },
+    }
 
     await currentPalmaresModelInstance.#initializeManagers(
       engineInstance,
       currentPalmaresModelInstance,
-      initializedModelInstance
+      translated
     );
     (this.constructor as typeof BaseModel)._initialized = {
-      [engineInstance.connectionName]: translatedModelInstance,
+      [engineInstance.connectionName]: translated,
     };
-    return translatedModelInstance;
+    return translated
   }
 
   /**
@@ -311,12 +319,12 @@ export class BaseModel {
     if (!modelInstance) modelInstance = new this() as Model & BaseModel;
 
     this.__initializeAbstracts();
-
+    const defaultOptions = getDefaultModelOptions()
     if (this.__cachedOptions === undefined) {
-      const keysOfDefaultOptions = Object.keys(defaultModelOptions);
+      const keysOfDefaultOptions = Object.keys(defaultOptions);
       for (const defaultModelOptionKey of keysOfDefaultOptions) {
         if (defaultModelOptionKey in (modelInstance.options || {}) === false)
-          (modelInstance.options as any)[defaultModelOptionKey] = (defaultModelOptions as any)[defaultModelOptionKey];
+          (modelInstance.options as any)[defaultModelOptionKey] = (defaultOptions as any)[defaultModelOptionKey];
       }
       this.__cachedOptions = modelInstance.options;
     }
@@ -423,7 +431,7 @@ export class BaseModel {
     const optionsIndent = '  '.repeat(indentation + 1);
 
     const newOptions = {
-      ...defaultModelOptions,
+      ...getDefaultModelOptions(),
       ...options,
     };
     return (

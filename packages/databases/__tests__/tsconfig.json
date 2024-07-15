@@ -4,6 +4,7 @@
     "declaration": false,
     "outDir": "./dist",
     "types": ["node"],
+    "module": "NodeNext",
     "lib": ["DOM", "ES2020", "DOM.Iterable"],
     "paths": {
       "*": ["node_modules/*"],

@@ -1,4 +1,4 @@
-import { FilesAndFolders } from '@palmares/std';
+import { FilesAndFolders } from '@palmares/core';
 
 import { join, basename, relative, } from 'path';
 import { env } from 'process';

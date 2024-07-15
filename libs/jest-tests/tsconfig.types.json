@@ -6,11 +6,8 @@
     "allowSyntheticDefaultImports": true,
     "rootDir": "./src",
     "outDir": "./dist/cjs/types",
-    "types": ["node"],
     "paths": {
-      "*": ["node_modules/*"],
-      "@palmares/server": ["../../packages/server/dist"],
-      "@palmares/core": ["../../packages/server/node_modules/@palmares/core"],
+      "@palmares/core": ["./node_modules/@palmares/core"],
     }
   },
   "include": ["src/**/*"],

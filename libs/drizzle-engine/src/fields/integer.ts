@@ -1,6 +1,8 @@
 import { AdapterFieldParserTranslateArgs, adapterIntegerFieldParser } from '@palmares/databases';
 
 import DrizzleEngineFieldParser from './field';
+import { integer, pgTable } from 'drizzle-orm/pg-core';
+
 
 export default adapterIntegerFieldParser({
   translate: async (
@@ -18,16 +20,28 @@ export default adapterIntegerFieldParser({
       case 'sqlite':
         return `d.integer('${field.databaseName}', { mode: 'number' })${
           defaultOptions.primaryKey ? defaultOptions.autoincrement ? '.primaryKey({ autoIncrement: true })' : '.primaryKey()' : ''
-        }${defaultOptions.default ? `.default(${defaultOptions.default})` : ''}`
+        }${defaultOptions.default ? `.default(${defaultOptions.default})` : ''}${
+        defaultOptions.nullable !== true ? `.notNull()` : ''
+        }${
+        defaultOptions.unique ? `.unique()` : ''
+        }`
       case 'postgres':
         return `d.${defaultOptions.autoincrement ? 'serial' : 'integer'}('${field.databaseName}')${defaultOptions.primaryKey ? '.primaryKey()' : ''}${
           defaultOptions.default ? `.default(${defaultOptions.default})` : ''
+        }${
+        defaultOptions.nullable !== true ? `.notNull()` : ''
+        }${
+        defaultOptions.unique ? `.unique()` : ''
         }`
       default:
         return `d.int('${field.databaseName}')${
           defaultOptions.autoincrement ? '.autoIncrement()' : ''
         }${defaultOptions.primaryKey ? '.primaryKey()' : ''}${
           defaultOptions.default ? `.default(${defaultOptions.default})` : ''
+        }${
+        defaultOptions.nullable !== true ? `.notNull()` : ''
+        }${
+        defaultOptions.unique ? `.unique()` : ''
         }`
     }
   },

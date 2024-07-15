@@ -10,16 +10,15 @@ import DatabasesDomain from '@palmares/databases';
 
 import TestDomain from './test';
 import { dirname, resolve } from 'path';
-import Database from 'better-sqlite3';
 //import * as schema from '../.drizzle/schema';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-
-const database = new Database('sqlite.db');
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+const queryClient = postgres("postgres://postgres:@localhost:5432/postgres");
 
 const args = DrizzleEngine.new({
   output: './.drizzle',
-  type: 'better-sqlite3',
-  drizzle: drizzle(database, {  })
+  type: 'postgres-js',
+  drizzle: drizzle(queryClient)
 })
 export const db = args[1].instance.instance
 

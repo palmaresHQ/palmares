@@ -6,29 +6,35 @@ import {
   adapterFieldParser,
   AdapterFieldParserTranslateArgs,
 } from '@palmares/databases';
-import { primaryKey } from 'drizzle-orm/mysql-core';
-
 
 export default adapterFieldParser({
-  translate: async ({
-    engine,
-    field,
-    modelName,
-  }: AdapterFieldParserTranslateArgs<
+  translate: async (args: AdapterFieldParserTranslateArgs<
     any,
     any,
     any,
     any
   >) => {
+    if (args.field.dbIndex) {
+      args.lazyEvaluate({
+        type: 'index',
+        indexAttributes: {
+          modelName: args.modelName,
+          fieldName: args.field.fieldName,
+          databaseName: args.field.databaseName,
+          unique: args.field.unique,
+        },
+      })
+    }
+
     const fieldData = {
-      fieldName: field.fieldName,
-      primaryKey: field.primaryKey,
-      unique: field.unique,
-      nullable: field.allowNull,
-      dbIndex: field.dbIndex,
-      default: field.defaultValue,
-      autoincrement: field.isAuto,
-      databaseName: field.databaseName,
+      fieldName: args.field.fieldName,
+      primaryKey: args.field.primaryKey,
+      unique: args.field.unique,
+      nullable: args.field.allowNull as boolean,
+      dbIndex: args.field.dbIndex,
+      default: args.field.defaultValue,
+      autoincrement: args.field.isAuto,
+      databaseName: args.field.databaseName,
     }
     return fieldData
   },

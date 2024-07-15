@@ -1,0 +1,9 @@
+version: '3.3'
+services:
+  databses_pg_test:
+    tty: true
+    image: postgres
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - "5432:5432"

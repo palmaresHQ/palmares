@@ -8,7 +8,10 @@ import { FieldsOFModelType, ModelFieldsInQueries } from './queries';
 export type ModelType = typeof BaseModel & typeof Model;
 
 export type ManagerInstancesType = {
-  [engineName: string]: any;
+  [engineName: string]: {
+    instance: any,
+    modifyItself: () => void;
+  };
 };
 
 export type ManagerEngineInstancesType = {
