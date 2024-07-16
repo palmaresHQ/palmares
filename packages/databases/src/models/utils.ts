@@ -399,8 +399,10 @@ export function factoryFunctionForModelTranslate(
 
   return async () => {
     const modelName = modelConstructor.getName();
-
-    const modelInstance = await engine.models.translate(
+    const alreadyHasAnInstance = engine.initializedModels[modelName] !== undefined || model.options?.instance !== undefined;
+    const modelInstance = alreadyHasAnInstance ?
+    (engine.initializedModels[modelName] !== undefined ? engine.initializedModels[modelName] : model.options?.instance)
+    : await engine.models.translate(
       engine,
       modelName,
       model,
@@ -438,7 +440,7 @@ export function factoryFunctionForModelTranslate(
     // This lets you apply custom hooks to your translated model directly.
     // Something like that: https://www.prisma.io/docs/concepts/components/prisma-client/middleware
     // Or: https://sequelize.org/docs/v6/other-topics/hooks/
-    if (modelOptions.applyToTranslatedModel) {
+    if (modelOptions.applyToTranslatedModel && alreadyHasAnInstance === false) {
       const translatedModelInstance =
         typeof engine.models.getModelInstanceForCustomHooks === 'function'
           ? await engine.models.getModelInstanceForCustomHooks(engine, modelName, modelInstance)

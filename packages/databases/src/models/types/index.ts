@@ -123,6 +123,10 @@ export type ModelOptionsType<TModel = any> = {
   managed?: boolean;
   databases?: string[];
   customOptions?: any;
+  /** The translated instance, with that we bypass the model translation step we just assign it directly to the instance.
+   * P.S.: Make sure that the instance is up to date with the model, otherwise you will have problems (and it'll not be our fault).
+   */
+  instance?: any;
   onGet?: (args: {
     search: ExtractFieldTypes<TModel, [], true>;
     fields: FieldsOFModelType<TModel>;

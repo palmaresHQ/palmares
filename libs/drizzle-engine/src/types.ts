@@ -13,8 +13,6 @@ import type { drizzle as drizzleExpoSqlite } from 'drizzle-orm/expo-sqlite';
 import type { drizzle as drizzleOpSqlite } from 'drizzle-orm/op-sqlite';
 import type { drizzle as drizzleBetterSqlite3 } from 'drizzle-orm/better-sqlite3';
 
-
-
 export type ParametersByType<TType> =
   TType extends 'postgres-js' ?
   Parameters<typeof import('drizzle-orm/postgres-js')['drizzle']> :
@@ -46,11 +44,11 @@ export type ParametersByType<TType> =
   [any, Parameters<typeof import('drizzle-orm/better-sqlite3')['drizzle']>[1]]
   : [];
 
-export type ReturnTypeByType<TType, TSchema extends Record<any, any> = Record<any, any>> =
+export type ReturnTypeByType<TType, TSchema extends Record<string, unknown> = Record<string, unknown>> =
   TType extends 'postgres-js' ?
   ReturnType<typeof drizzlePostgresJs<TSchema>> :
   TType extends 'node-postgres' ?
-  ReturnType<typeof drizzlePostgresJs<TSchema>>
+  ReturnType<typeof drizzleNodePostgres<TSchema>>
   : TType extends 'neon-http' ?
   ReturnType<typeof drizzleNeonHttp<TSchema>>
   : TType extends 'xata-http' ?

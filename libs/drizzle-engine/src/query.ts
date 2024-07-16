@@ -50,7 +50,7 @@ const setQuery = adapterSetQuery({
       })
     );
   }
-})
+});
 
 const removeQuery = adapterRemoveQuery({
   queryData: async (engine, args) => {

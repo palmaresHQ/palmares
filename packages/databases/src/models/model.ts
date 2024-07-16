@@ -7,7 +7,6 @@ import {
   onSetFunction,
   onRemoveFunction,
   ModelType,
-  ModelFields,
 } from './types';
 import {
   ModelCircularAbstractError,
@@ -17,8 +16,8 @@ import {
 } from './exceptions';
 import Manager, { DefaultManager } from './manager';
 import { getUniqueCustomImports, hashString } from '../utils';
-import { CustomImportsForFieldType, ON_DELETE } from './fields/types';
-import { AutoField, CharField, EnumField, Field, ForeignKeyField, IntegerField, TextField, UuidField, auto, choice, text } from './fields';
+import { CustomImportsForFieldType } from './fields/types';
+import {  Field, ForeignKeyField } from './fields';
 import { getDefaultModelOptions, indirectlyRelatedModels, factoryFunctionForModelTranslate } from './utils';
 import { ExtractFieldsFromAbstracts, ExtractManagersFromAbstracts } from '../types';
 

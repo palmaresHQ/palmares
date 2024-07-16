@@ -1,6 +1,6 @@
 import { FilesAndFolders } from '@palmares/core';
 
-import { join, basename, relative, } from 'path';
+import { join, basename, relative, dirname, } from 'path';
 import { env } from 'process';
 import { readFile, access, constants, writeFile, appendFile, mkdir, readdir, rm } from 'fs';
 
@@ -65,6 +65,11 @@ export default class FilesAndFoldersNode implements FilesAndFolders {
         else resolve(undefined);
       });
     });
+  }
+
+  async dirname(path: string | string[]): Promise<string> {
+    const pathToUse = Array.isArray(path) ? await this.join(...path) : path;
+    return dirname(pathToUse);
   }
 
   async makeDirectory(path: string | string[]): Promise<void> {

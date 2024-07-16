@@ -1,5 +1,5 @@
 import { AutoField, CharField, DateField, EnumField, ForeignKeyField, IntegerField, Model, ModelOptionsType, ON_DELETE, UuidField } from '@palmares/databases';
-
+//import { User as DrizzleUser, Company as DrizzleCompany } from '../../.drizzle/schema'
 export class User extends Model<User>() {
   fields = {
     id: AutoField.new(),

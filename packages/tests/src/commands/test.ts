@@ -16,6 +16,7 @@ export default async function test(domains:TestDomain[], settings: AllTestsSetti
   const newTestAdapter = new settings.testAdapter();
   setTestAdapter(newTestAdapter);
   const std = getDefaultStd();
+
   return newTestAdapter.run(
     filesToTest,
     `require('@palmares/tests').run('${settings.settingsLocation}');`,

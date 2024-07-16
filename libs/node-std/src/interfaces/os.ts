@@ -5,6 +5,9 @@ export default class NodeOs implements Os {
   async release() {
     return nodeRelease();
   }
+  async cwd() {
+    return process.cwd();
+  }
   async platform() {
     switch (nodePlatform()) {
       case 'darwin':

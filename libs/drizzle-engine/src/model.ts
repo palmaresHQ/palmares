@@ -1,6 +1,5 @@
 import { adapterModels, ModelOptionsType } from '@palmares/databases';
-import fs from 'fs';
-import path from 'path';
+import { getDefaultStd } from '@palmares/core';
 
 
 export default adapterModels({
@@ -11,11 +10,11 @@ export default adapterModels({
   },
 
   translate: async (
-    engine,
-    modelName,
+    _engine,
+    _modelName,
     _model,
     _fieldEntriesOfModel,
-    modelOptions,
+    _modelOptions,
     defaultTranslateCallback: () => Promise<{ options: {}, fields: {}}>,
     _,
     __
@@ -32,12 +31,15 @@ export default adapterModels({
 
   afterModelsTranslation: async (engine, models): Promise<[string, any][]> => {
     let fileContent = '';
+    const std = getDefaultStd();
+    const [cwd, directoryName] = await Promise.all([std.os.cwd(), std.files.dirname(engine.instance.output)]);
+    const [folderName, locationToRequire] = await Promise.all([
+      std.files.join(cwd, directoryName),
+      std.files.join(cwd, engine.instance.output)
+    ]);
     const imports = new Set([
       `import * as d from 'drizzle-orm/${engine.instance.mainType === 'postgres' ? 'pg' : engine.instance.mainType === 'sqlite' ? 'sqlite' : 'mysql'}-core';`
     ]);
-
-    const folderName = path.join(process.cwd(), engine.instance.output)
-    fs.mkdirSync(folderName, { recursive: true });
 
     const relationships = new Map<string, Record<string, string>>();
     const tableType = engine.instance.mainType === 'postgres' ? 'pgTable' : engine.instance.mainType === 'sqlite' ? 'sqliteTable' : 'mysqlTable'
@@ -67,7 +69,7 @@ export default adapterModels({
       }) => `  ${index.fieldName}Idx: d.${index.unique ? 'uniqueIndex': 'index'}('${model.options.tableName}_${index.databaseName}_idx').on(table.${index.fieldName})`).join(',\n')
       }\n})` : ''});\n\n`;
       fileContent += modelContent;
-      models[i] = [modelName, Function('require', `return require('${path.join(process.cwd(), engine.instance.output, 'schema.ts')}').${modelName}`)];
+      models[i] = [modelName, Function('require', `return require('${locationToRequire}').${modelName}`)];
     }
 
     if (relationships.size > 0) imports.add(`import * as drzl from 'drizzle-orm';`);
@@ -76,7 +78,8 @@ export default adapterModels({
       fileContent += `export const ${modelName}Relations = drzl.relations(${modelName}, (args) => ({\n${Object.entries(relations).map(([relationName, relation]) => `  ${relationName}: ${relation}`).join(',\n')}\n}));\n\n`;
     }
 
-    fs.writeFileSync(path.join(folderName, 'schema.ts'), `${Array.from(imports).join('\n')}\n\n${fileContent}`);
+    await std.files.makeDirectory(folderName);
+    await std.files.writeFile(locationToRequire, `${Array.from(imports).join('\n')}\n\n${fileContent}`);
 
     const modelsImported = await Promise.all(models.map(async ([modelName, model]) => [modelName, model(require)])) as [string, any][];
     return modelsImported;

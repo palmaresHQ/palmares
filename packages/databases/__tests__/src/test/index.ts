@@ -13,7 +13,7 @@ export default domain('testingDatabases', __dirname, {
       keywordArgs: undefined,
       positionalArgs: undefined,
       handler: async () => {
-        migrate(db, { migrationsFolder: './.drizzle/migrations' });
+        migrate(db as any, { migrationsFolder: './.drizzle/migrations' });
       },
     }
   },
