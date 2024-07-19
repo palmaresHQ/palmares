@@ -1,14 +1,14 @@
-import Field from './field';
-import DatabaseAdapter from '../../engine';
-import AdapterFields from '../../engine/fields';
-import { Model } from '../model';
-
+import type Field from './field';
+import type DatabaseAdapter from '../../engine';
+import type AdapterFields from '../../engine/fields';
+import type { Model } from '../model';
 import type { Narrow } from '@palmares/core';
 
 export type DefaultFieldType = Field<any, any, any, any, any, any, any, any>;
 
-export type MaybeNull<Type, IsNull extends boolean> = IsNull extends true ? Type | null | undefined : Type;
+export type MaybeNull<TType, TIsNull extends boolean> = TIsNull extends true ? TType | null | undefined : TType;
 
+// eslint-disable-next-line no-shadow
 export enum ON_DELETE {
   CASCADE = 'cascade',
   SET_NULL = 'set_null',
@@ -23,8 +23,8 @@ export type CustomImportsForFieldType = {
 };
 
 export interface TranslatableFieldType {
-  translate?(engine: DatabaseAdapter, engineFields: AdapterFields): Promise<any>;
-  toString(indentation: number, customParams: string | undefined): Promise<string>;
+  translate?: (engine: DatabaseAdapter, engineFields: AdapterFields) => Promise<any>;
+  toString: (indentation: number, customParams: string | undefined) => Promise<string>;
 }
 
 export type ClassConstructor<T> = {

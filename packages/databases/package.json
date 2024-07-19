@@ -15,7 +15,7 @@
     }
   },
   "scripts": {
-    "lint": "eslint",
+    "lint": "eslint .",
     "clear": "rimraf ./dist",
     "test": "pnpm --filter @tests/databases test",
     "build:types": "tsc --project tsconfig.types.json",

@@ -1,11 +1,13 @@
-import { ON_DELETE, ForeignKeyFieldParamsType, ClassConstructor, MaybeNull } from './types';
-import Field, { UnopinionatedField } from './field';
 import { ForeignKeyFieldRequiredParamsMissingError } from './exceptions';
-import DatabaseAdapter from '../../engine';
+import { UnopinionatedField } from './field';
 import { generateUUID } from '../../utils';
-import { This } from '../../types';
-import { Model } from '../model';
-import { ModelType } from '../..';
+
+import type Field from './field';
+import type { ClassConstructor, ForeignKeyFieldParamsType, MaybeNull, ON_DELETE } from './types';
+import type { ModelType } from '../..';
+import type DatabaseAdapter from '../../engine';
+import type { This } from '../../types';
+import type { Model } from '../model';
 
 /**
  * This allows us to create a foreign key field on the database. A foreign key field represents a relation between two models. So pretty much a model will be related
@@ -248,7 +250,7 @@ export default class ForeignKeyField<
 
     const isRelationNameDefined = typeof params.relationName === 'string';
 
-    if (isRelationNameDefined) this.relationName = params.relationName as TRelationName;
+    if (isRelationNameDefined) this.relationName = params.relationName;
     else this.relationName = (relatedToAsString.charAt(0).toLowerCase() + relatedToAsString.slice(1)) as TRelationName;
 
     this.relatedTo = relatedToAsString as unknown as TRelatedModel;
@@ -299,8 +301,10 @@ export default class ForeignKeyField<
    *
    * With that we can lazy load the relation while still maintaining the type of the related model.
    */
+  // eslint-disable-next-line no-shadow
   static lazy<TRelatedModel>() {
     return <
+      // eslint-disable-next-line no-shadow
       TDefaultValue extends MaybeNull<
         | (TCustomType extends undefined
             ? TRelatedModel extends typeof Model
@@ -321,14 +325,23 @@ export default class ForeignKeyField<
         | undefined,
         TNull
       > = undefined,
+      // eslint-disable-next-line no-shadow
       TUnique extends boolean = false,
+      // eslint-disable-next-line no-shadow
       TNull extends boolean = false,
+      // eslint-disable-next-line no-shadow
       TAuto extends boolean = false,
+      // eslint-disable-next-line no-shadow
       TDatabaseName extends string | null | undefined = undefined,
+      // eslint-disable-next-line no-shadow
       TCustomAttributes = any,
+      // eslint-disable-next-line no-shadow
       TCustomType = undefined,
+      // eslint-disable-next-line no-shadow
       TRelatedField extends string = any,
+      // eslint-disable-next-line no-shadow
       TRelatedName extends string = any,
+      // eslint-disable-next-line no-shadow
       TRelationName extends string = any,
     >(
       params: Omit<
@@ -351,52 +364,13 @@ export default class ForeignKeyField<
         relatedTo: string;
       }
     ) =>
-      new this(params as any) as ForeignKeyField<
-        {
-          input: TCustomType extends undefined
-            ? TRelatedModel extends abstract new (...args: any) => any
-              ? InstanceType<TRelatedModel> extends {
-                  fields: infer TModelFields;
-                }
-                ? TRelatedField extends keyof TModelFields
-                  ? TModelFields[TRelatedField] extends Field<any, any, any, any, any, any, any, any>
-                    ? TModelFields[TRelatedField]['_type']['input']
-                    : never
-                  : never
-                : never
-              : never
-            : TCustomType;
-          output: TCustomType extends undefined
-            ? TRelatedModel extends abstract new (...args: any) => any
-              ? InstanceType<TRelatedModel> extends {
-                  fields: infer TModelFields;
-                }
-                ? TRelatedField extends keyof TModelFields
-                  ? TModelFields[TRelatedField] extends Field<any, any, any, any, any, any, any, any>
-                    ? TModelFields[TRelatedField]['_type']['output']
-                    : never
-                  : never
-                : never
-              : never
-            : TCustomType;
-        },
-        ForeignKeyField,
-        TDefaultValue,
-        TUnique,
-        TNull,
-        TAuto,
-        TDatabaseName,
-        TCustomAttributes,
-        TCustomType,
-        TRelatedModel,
-        TRelatedField,
-        TRelatedName,
-        TRelationName
-      >;
+      new this(params as any);
   }
 
   static new<
+    // eslint-disable-next-line no-shadow
     TField extends This<typeof ForeignKeyField>,
+    // eslint-disable-next-line no-shadow
     TDefaultValue extends MaybeNull<
       | (TCustomType extends undefined
           ? TRelatedModel extends typeof Model
@@ -408,15 +382,25 @@ export default class ForeignKeyField<
       | undefined,
       TNull
     > = undefined,
+    // eslint-disable-next-line no-shadow
     TUnique extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TNull extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TAuto extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TDatabaseName extends string | null | undefined = undefined,
+    // eslint-disable-next-line no-shadow
     TCustomAttributes = any,
+    // eslint-disable-next-line no-shadow
     TCustomType = undefined,
+    // eslint-disable-next-line no-shadow
     TRelatedModel = any,
+    // eslint-disable-next-line no-shadow
     TRelatedField extends string = any,
+    // eslint-disable-next-line no-shadow
     TRelatedName extends string = any,
+    // eslint-disable-next-line no-shadow
     TRelationName extends string = any,
   >(
     this: TField,
@@ -486,16 +470,18 @@ export default class ForeignKeyField<
 
     if (isRelatedToAndOnDeleteNotDefined) throw new ForeignKeyFieldRequiredParamsMissingError(this.fieldName);
 
+    const modelAssociations = model.associations as any;
     const hasNotIncludesAssociation =
-      (model.associations[relatedToAsString] || []).some((association) => association.fieldName === fieldName) ===
+      (modelAssociations[relatedToAsString] || []).some((association: Field<any, any, any, any, any, any, any>) => association.fieldName === fieldName) ===
       false;
     if (hasNotIncludesAssociation) {
-      model.associations[relatedToAsString] = model.associations[relatedToAsString] || [];
+      model.associations[relatedToAsString] = modelAssociations[relatedToAsString] || [];
       model.associations[relatedToAsString].push(this);
     }
 
+    const modelDirectlyRelatedTo = model.directlyRelatedTo as any;
     // Appends to the model the other models this model is related to.
-    model.directlyRelatedTo[relatedToAsString] = model.directlyRelatedTo[relatedToAsString] || [];
+    model.directlyRelatedTo[relatedToAsString] = modelDirectlyRelatedTo[relatedToAsString] || [];
     model.directlyRelatedTo[relatedToAsString].push(this.relationName);
 
     // this will update the indirectly related models of the engine instance.
@@ -504,9 +490,9 @@ export default class ForeignKeyField<
     // Because of this we update this value on the engine instance. Updating the array on the engine instance
     // will also reflect on the `relatedTo` array in the model instance.
     if (this._originalRelatedName) {
-      model.indirectlyRelatedModels[relatedToAsString] = model.indirectlyRelatedModels[relatedToAsString] || {};
+      model.indirectlyRelatedModels[relatedToAsString] = modelDirectlyRelatedTo[relatedToAsString] || {};
       model.indirectlyRelatedModels[relatedToAsString][originalNameOfModel] =
-        model.indirectlyRelatedModels[relatedToAsString][originalNameOfModel] || [];
+        (model.indirectlyRelatedModels as any)[relatedToAsString][originalNameOfModel] || [];
       model.indirectlyRelatedModels[relatedToAsString][originalNameOfModel].push(this._originalRelatedName);
     }
     super.init(fieldName, model);
@@ -565,13 +551,13 @@ export default class ForeignKeyField<
    */
   async isRelatedModelFromEngineInstance(engineInstance: DatabaseAdapter): Promise<[boolean, Field?]> {
     const relatedToAsString = this.relatedTo as string;
-    const relatedModel = engineInstance.__modelsOfEngine[relatedToAsString];
+    const relatedModel = engineInstance.__modelsOfEngine[relatedToAsString] as any;
     if (relatedModel !== undefined) {
       (this.modelRelatedTo as any) = relatedModel;
       return [true, undefined];
     }
     else {
-      const modelRelatedTo = engineInstance.__modelsFilteredOutOfEngine[relatedToAsString];
+      const modelRelatedTo = engineInstance.__modelsFilteredOutOfEngine[relatedToAsString] as any;
       if (modelRelatedTo === undefined) return [true, undefined];
       else {
         const modelInstance = new modelRelatedTo();
@@ -581,12 +567,12 @@ export default class ForeignKeyField<
         clonedField.model = this.model;
         clonedField.fieldName = this.fieldName;
         clonedField.databaseName = this.databaseName as undefined;
-        (clonedField as any).defaultValue = this.defaultValue;
-        (clonedField as any).allowNull = this.allowNull;
+        (clonedField).defaultValue = this.defaultValue;
+        (clonedField).allowNull = this.allowNull;
         clonedField.dbIndex = this.dbIndex;
-        (clonedField as any).hasDefaultValue = this.hasDefaultValue;
+        (clonedField).hasDefaultValue = this.hasDefaultValue;
         clonedField.underscored = this.underscored;
-        (clonedField as any).unique = this.unique;
+        (clonedField).unique = this.unique;
         clonedField.isAuto = false;
         clonedField.primaryKey = false;
         modelInstance.fields[this.fieldName] = clonedField;
@@ -606,7 +592,7 @@ export default class ForeignKeyField<
    * @return - Returns a random relatedName if it is a state model, otherwise returns the normal related name.
    */
   get relatedName() {
-    const isModelDefined = this.model !== undefined;
+    const isModelDefined = (this.model as any) !== undefined;
     const modelConstructor = this.model.constructor as ModelType;
     const isModelAStateModel = isModelDefined && modelConstructor.isState === true;
     if (isModelAStateModel) return `${generateUUID()}-${this._originalRelatedName}`;
@@ -640,7 +626,6 @@ export default class ForeignKeyField<
    */
   async toString(
     indentation = 0,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _customParams: string | undefined = undefined
   ) {
     const ident = '  '.repeat(indentation + 1);

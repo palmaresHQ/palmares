@@ -4,7 +4,6 @@ import { fileURLToPath } from 'url';
 import importPlugin from 'eslint-plugin-import-x';
 import nodePlugin from 'eslint-plugin-n'
 import tseslint from 'typescript-eslint'
-import parser from 'typescript-eslint'
 import globals from 'globals'
 
 import { javascript } from './resources/eslint/javascript.js';
@@ -32,15 +31,18 @@ const config = tseslint.config(
     files: TO_INCLUDE,
     ignores: TO_EXCLUDE,
     languageOptions: {
+      sourceType: 'module',
+      ecmaVersion: 2020,
+      // @ts-expect-error
+      parser: tseslint.parser,
       parserOptions: {
+        project: true,
         parser: tseslint.parser,
-        sourceType: 'module',
-        ecmaVersion: 2020,
-        globals: {
-          ...globals.browser,
-          ...globals.node,
-        }
-      }
+      },
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
     },
     plugins: {
       ts: tseslint.plugin,

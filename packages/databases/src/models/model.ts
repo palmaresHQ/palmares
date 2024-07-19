@@ -1,13 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
-import DatabaseAdapter from '../engine';
-import {
-  ModelFieldsType,
-  ModelOptionsType,
-  ManagersOfInstanceType,
-  onSetFunction,
-  onRemoveFunction,
-  ModelType,
-} from './types';
 import {
   ModelCircularAbstractError,
   ModelInvalidAbstractFieldError,
@@ -15,11 +5,21 @@ import {
   ModelNoUniqueFieldsError,
 } from './exceptions';
 import Manager, { DefaultManager } from './manager';
+import { factoryFunctionForModelTranslate, getDefaultModelOptions, indirectlyRelatedModels } from './utils';
 import { getUniqueCustomImports, hashString } from '../utils';
-import { CustomImportsForFieldType } from './fields/types';
-import {  Field, ForeignKeyField } from './fields';
-import { getDefaultModelOptions, indirectlyRelatedModels, factoryFunctionForModelTranslate } from './utils';
-import { ExtractFieldsFromAbstracts, ExtractManagersFromAbstracts } from '../types';
+
+import type {  Field, ForeignKeyField } from './fields';
+import type { CustomImportsForFieldType } from './fields/types';
+import type {
+  ManagersOfInstanceType,
+  ModelFieldsType,
+  ModelOptionsType,
+  ModelType,
+  onRemoveFunction,
+  onSetFunction,
+} from './types';
+import type DatabaseAdapter from '../engine';
+import type { ExtractFieldsFromAbstracts, ExtractManagersFromAbstracts } from '../types';
 
 export class BaseModel {
   className: string = this.constructor.name;
@@ -49,8 +49,8 @@ export class BaseModel {
   static domainName: string;
   static domainPath: string;
 
-  static __lazyFields: ModelFieldsType = {};
-  protected static __cachedHashedName: string;
+  static __lazyFields?: ModelFieldsType = {};
+  protected static __cachedHashedName?: string;
   protected static __cachedName: string;
   protected static __cachedOriginalName: string;
   protected static __cachedFields: ModelFieldsType | undefined = undefined;
@@ -100,7 +100,7 @@ export class BaseModel {
    */
   async #initializeEvents(engineInstance: DatabaseAdapter) {
     if (!engineInstance) return;
-    if (!engineInstance.databaseSettings?.events?.emitter) return;
+    if (!engineInstance.databaseSettings.events?.emitter) return;
 
     const existingEngineInstanceName = engineInstance.connectionName;
     const modelInstance = this as unknown as Model & BaseModel;
@@ -327,7 +327,7 @@ export class BaseModel {
       const keysOfDefaultOptions = Object.keys(defaultOptions);
       for (const defaultModelOptionKey of keysOfDefaultOptions) {
         if (defaultModelOptionKey in (modelInstance.options || {}) === false)
-          (modelInstance.options as any)[defaultModelOptionKey] = (defaultOptions as any)[defaultModelOptionKey];
+          (modelInstance.options)[defaultModelOptionKey] = (defaultOptions as any)[defaultModelOptionKey];
       }
       this.__cachedOptions = modelInstance.options;
     }
@@ -347,8 +347,8 @@ export class BaseModel {
       const allFields = Object.entries(fieldsDefinedOnModel);
 
       for (const [fieldName, field] of allFields) {
-        if ((field as Field<any, any, any, any, any, any, any, any>).unique) modelHasNoUniqueFields = false;
-        (field as Field<any, any, any, any, any, any, any, any>).init(fieldName, this as ModelType);
+        if ((field).unique) modelHasNoUniqueFields = false;
+        (field).init(fieldName, this as ModelType);
       }
 
       if (modelHasNoUniqueFields) {
@@ -429,6 +429,7 @@ export class BaseModel {
     };
   }
 
+  // eslint-disable-next-line ts/require-await
   static async _optionsToString(indentation = 0, options: ModelOptionsType) {
     const ident = '  '.repeat(indentation);
     const optionsIndent = '  '.repeat(indentation + 1);
@@ -446,19 +447,19 @@ export class BaseModel {
       },\n` +
       `${optionsIndent}managed: ${newOptions.managed},\n` +
       `${optionsIndent}ordering: [${
-        newOptions.ordering ? newOptions.ordering?.map((field) => `"${field as string}"`) : ''
+        options.ordering ? newOptions.ordering.map((field) => `"${field}"`) : ''
       }],\n` +
       `${optionsIndent}indexes: [${
-        newOptions.indexes
-          ? newOptions.indexes?.map(
+        options.indexes
+          ? newOptions.indexes.map(
               (dbIndex, i) =>
                 `{ unique: ${dbIndex.unique}, fields: ${dbIndex.fields.map((field) => `"${field}"`)} }` +
-                `${i === (newOptions.indexes?.length || 1) - 1 ? '' : ','}`
+                `${i === (newOptions.indexes.length || 1) - 1 ? '' : ','}`
             )
           : ''
       }],\n` +
       `${optionsIndent}databases: [${
-        newOptions.databases ? newOptions.databases?.map((database) => `"${database}"`) : ''
+        options.databases ? newOptions.databases.map((database) => `"${database}"`) : ''
       }],\n` +
       `${optionsIndent}customOptions: ${JSON.stringify(newOptions.customOptions)}\n` +
       `${ident}}`
@@ -580,7 +581,11 @@ export default function model<TModel>() {
     static appendFields<TOtherFields extends ModelFieldsType>(fields: TOtherFields) {
       const modelConstructor = this as unknown as typeof Model & typeof BaseModel;
       const allFieldEntries = Object.entries(fields);
-      for (const [fieldName, field] of allFieldEntries) modelConstructor.__lazyFields[fieldName] = field;
+      for (const [fieldName, field] of allFieldEntries) {
+        if (modelConstructor.__lazyFields?.[fieldName]) {
+          modelConstructor.__lazyFields[fieldName] = field
+        };
+      }
 
       return this as unknown as ReturnType<typeof model<TModel & { fields: TOtherFields }>> & {
         new (): TModel & { fields: TOtherFields };
@@ -609,6 +614,7 @@ TManagers extends {
       > & {
         fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
         options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
+      // eslint-disable-next-line no-shadow
       }>,...args: any) => any;
     };
 }>(

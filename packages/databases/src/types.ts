@@ -10,7 +10,6 @@ export interface DatabaseConfigurationType {
   };
 }
 
-type Test<Key> = Key;
 export type ExtractFieldsFromAbstracts<TAbstracts extends readonly any[]> = TAbstracts extends readonly [
   infer TAbstract,
   ...infer TRest,

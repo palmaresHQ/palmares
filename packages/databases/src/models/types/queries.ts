@@ -1,5 +1,6 @@
-import model from '../model';
-import type { ForeignKeyField, Field } from '../fields';
+import type { Field, ForeignKeyField } from '../fields';
+import type model from '../model';
+
 
 export type PalmaresTransactionsType = {
   isSetOrRemoveOperation: 'set' | 'remove';
@@ -39,9 +40,9 @@ export type OrderingOfModelsType<TFields extends string> = readonly (TFields | T
  *
  * If both are equal, then we are referring to the same model, otherwise we are not.
  */
-export type AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<TModel1, TModel2> =
-  keyof AllFieldsOfModel<TModel1> extends keyof AllFieldsOfModel<TModel2>
-    ? AllOptionsOfModel<TModel1> extends AllOptionsOfModel<TModel2>
+export type AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<TModelA, TModelB> =
+  keyof AllFieldsOfModel<TModelA> extends keyof AllFieldsOfModel<TModelB>
+    ? AllOptionsOfModel<TModelA> extends AllOptionsOfModel<TModelB>
       ? true
       : false
     : false;
@@ -122,7 +123,7 @@ export type ExtractRelationsNames<TParentModel, TChildModel> = readonly ValueOf<
       any,
       infer TRelatedName,
       any
-    > // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    >
       ? TRelatedName
       : unknown;
   }
@@ -797,7 +798,7 @@ export type RelatedFieldToModel<
 };
 
 type BaseFieldsWithRelationsFromIncludesType<
-  Type,
+  TType,
   TModel, // The model that is being queried
   TIncludedModel extends abstract new (...args: any) => any, // This is a single included model on the query. It is the model class, not it's instance.
   TToInclude extends Includes,
@@ -807,7 +808,7 @@ type BaseFieldsWithRelationsFromIncludesType<
   TIsAllRequired extends boolean = false,
   TIsAllOptional extends boolean = false,
   TIsForSearch extends boolean = false,
-> = Type &
+> = TType &
   RelatedFieldOfModelOptional<
     TModel,
     InstanceType<TIncludedModel>,
@@ -843,7 +844,7 @@ type BaseFieldsWithRelationsFromIncludesType<
   >;
 
 export type FieldsWithRelationsFromIncludesType<
-  Type,
+  TType,
   TModel,
   TIncludedModel,
   TToInclude extends Includes,
@@ -856,7 +857,7 @@ export type FieldsWithRelationsFromIncludesType<
 > = TIsAllRequired extends true
   ? Required<
       BaseFieldsWithRelationsFromIncludesType<
-        Type,
+        TType,
         TModel,
         TIncludedModel extends abstract new (...args: any) => any ? TIncludedModel : never,
         TToInclude,
@@ -871,7 +872,7 @@ export type FieldsWithRelationsFromIncludesType<
   : TIsAllOptional extends true
   ? Partial<
       BaseFieldsWithRelationsFromIncludesType<
-        Type,
+        TType,
         TModel,
         TIncludedModel extends abstract new (...args: any) => any ? TIncludedModel : never,
         TToInclude,
@@ -884,7 +885,7 @@ export type FieldsWithRelationsFromIncludesType<
       >
     >
   : BaseFieldsWithRelationsFromIncludesType<
-      Type,
+      TType,
       TModel,
       TIncludedModel extends abstract new (...args: any) => any ? TIncludedModel : never,
       TToInclude,
@@ -897,7 +898,7 @@ export type FieldsWithRelationsFromIncludesType<
     >;
 
 export type IncludesRelatedModels<
-  Type,
+  TType,
   TModel,
   TIncludes extends Includes,
   TFieldsOfModel extends FieldsOFModelType<TModel>,
@@ -928,9 +929,9 @@ export type IncludesRelatedModels<
   ? TFirstIncludes extends abstract new (...args: any) => any
     ? TRestIncludes extends Includes
       ? TFirstModelIncludes extends Includes
-        ? Type &
+        ? TType &
             FieldsWithRelationsFromIncludesType<
-              Type,
+            TType,
               TModel,
               TFirstIncludes,
               TFirstModelIncludes,
@@ -942,7 +943,7 @@ export type IncludesRelatedModels<
               TIsForSearch
             > &
             IncludesRelatedModels<
-              Type,
+              TType,
               TModel,
               TRestIncludes,
               TFieldsOfModel,
@@ -951,9 +952,9 @@ export type IncludesRelatedModels<
               TIsAllOptional,
               TIsForSearch
             >
-        : Type &
+        : TType &
             FieldsWithRelationsFromIncludesType<
-              Type,
+              TType,
               TModel,
               TFirstIncludes,
               [],
@@ -965,7 +966,7 @@ export type IncludesRelatedModels<
               TIsForSearch
             > &
             IncludesRelatedModels<
-              Type,
+              TType,
               TModel,
               TRestIncludes,
               TFieldsOfModel,
@@ -976,7 +977,7 @@ export type IncludesRelatedModels<
             >
       : never
     : never
-  : Type;
+  : TType;
 
 // This is the type that will be used in the queries. We add the includes to the model fields and with that we can infer the type of the query. It's result as well as the
 // data that needs to be passed to the query on the creation or update and etc.

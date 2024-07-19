@@ -1,8 +1,8 @@
 import TextField from './text';
-import Field from './field';
 
-import type { This } from '../../types';
+import type Field from './field';
 import type { MaybeNull, UUIDFieldParamsType } from './types';
+import type { This } from '../../types';
 
 /**
  * Functional approach for the creation of a UuidField.
@@ -90,13 +90,21 @@ export default class UuidField<
   }
 
   static new<
+    // eslint-disable-next-line no-shadow
     TField extends This<typeof TextField>,
+    // eslint-disable-next-line no-shadow
     TDefaultValue extends MaybeNull<InstanceType<TField>['_type']['input'] | undefined, TNull> = undefined,
+    // eslint-disable-next-line no-shadow
     TUnique extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TNull extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TAuto extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TDatabaseName extends string | null | undefined = undefined,
+    // eslint-disable-next-line no-shadow
     TCustomAttributes = any,
+    // eslint-disable-next-line no-shadow
     TAutoGenerate extends boolean = false,
   >(
     this: TField,

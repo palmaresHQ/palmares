@@ -1,6 +1,8 @@
-import Field, { UnopinionatedField } from './field';
-import type { This } from '../../types';
+import { UnopinionatedField } from './field';
+
+import type Field from './field';
 import type { DecimalFieldParamsType, MaybeNull } from './types';
+import type { This } from '../../types';
 
 /**
  * Functional approach for the creation of a DecimalField.
@@ -99,11 +101,17 @@ export default class DecimalField<
   static overrideType<TNewType extends { input: any; output: any }>() {
     return this as unknown as {
       new: <
+        // eslint-disable-next-line no-shadow
         TDefaultValue extends MaybeNull<TNewType['input'] | undefined, TNull> = undefined,
+        // eslint-disable-next-line no-shadow
         TUnique extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TNull extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TAuto extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TDatabaseName extends string | null | undefined = undefined,
+        // eslint-disable-next-line no-shadow
         TCustomAttributes = any,
       >(
         params: DecimalFieldParamsType<
@@ -120,12 +128,19 @@ export default class DecimalField<
   }
 
   static new<
+    // eslint-disable-next-line no-shadow
     TField extends This<typeof DecimalField>,
+    // eslint-disable-next-line no-shadow
     TDefaultValue extends MaybeNull<InstanceType<TField>['_type']['input'] | undefined, TNull> = undefined,
+    // eslint-disable-next-line no-shadow
     TUnique extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TNull extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TAuto extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TDatabaseName extends string | null | undefined = undefined,
+    // eslint-disable-next-line no-shadow
     TCustomAttributes = any,
   >(
     this: TField,
