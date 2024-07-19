@@ -30,6 +30,14 @@ export default adapterUuidFieldParser({
         }${
         defaultOptions.unique ? `.unique()` : ''
         }${field.autoGenerate as boolean ? `.$defaultFn(() => pdb.generateUUID())` : ''}`
+      case 'postgres':
+        return `d.uuid('${field.databaseName}', { length: 36 })${
+          defaultOptions.primaryKey ? '.primaryKey()' : ''
+        }${defaultOptions.default && field.autoGenerate as boolean !== true ? `.default("${defaultOptions.default}")` : ''}${
+        defaultOptions.nullable !== true ? `.notNull()` : ''
+        }${
+        defaultOptions.unique ? `.unique()` : ''
+        }${field.autoGenerate as boolean ? `.defaultRandom()` : ''}`
       default:
         return `d.varchar('${field.databaseName}', { length: 36 })${
           defaultOptions.primaryKey ? '.primaryKey()' : ''

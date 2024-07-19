@@ -137,8 +137,8 @@ export default adapterFields({
       }
       case 'index': {
         if (modelName === fieldTranslated.indexAttributes.modelName) {
-          translatedModel.options.indexes ??= [];
-          translatedModel.options.indexes.push(fieldTranslated.indexAttributes);
+          translatedModel.options.drizzleIndexes ??= [];
+          translatedModel.options.drizzleIndexes.push(fieldTranslated.indexAttributes);
           return translatedModel;
         }
         break

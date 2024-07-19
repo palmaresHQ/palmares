@@ -3,7 +3,20 @@ import { getDefaultStd } from '@palmares/core';
 
 
 export default adapterModels({
-  translateOptions: async (_engine, _modelName, options): Promise<{}> => {
+  translateOptions: async (_engine, modelName, options): Promise<{}> => {
+    const optionsWithConjunctiveIndexes = options as typeof options & { conjunctiveIndexes: string[] };
+    if (options.indexes)
+      optionsWithConjunctiveIndexes.conjunctiveIndexes = options.indexes.map((index) => {
+        const indexFields = index.fields.join('_');
+        const indexAsCamel = indexFields.toLowerCase().replace(/(^([a-z]+))|([-_][a-z])/g, (group) => {
+          const groupWithoutDash = group.replace(/[-_]/, '');
+          const firstLetterUpper = groupWithoutDash[0].toUpperCase();
+          return firstLetterUpper + groupWithoutDash.slice(1);
+        });
+        const indexFieldsForOnClause = index.fields.map((field) => `table.${field}`).join(', ');
+        return `  ${modelName.slice(0, 1).toLowerCase() + modelName.slice(1)}${indexAsCamel}:  d.${index.unique ? 'uniqueIndex': 'index'}('${options?.tableName || modelName}_${indexFields}').on(${indexFieldsForOnClause})`;
+      })
+
     return {
       ...options
     };
@@ -50,7 +63,7 @@ export default adapterModels({
         relationships.set(relationModelName, {...(relationships.get(relationModelName) || {}), ...relations as any});
       }
 
-      const indexesOfModel = model.options.indexes || [];
+      const indexesOfModel = model.options.drizzleIndexes || [];
       const entriesOfFields = Object.entries(model.fields);
       const hasEnums = (model.options.enums || []).length > 0;
 
@@ -66,7 +79,9 @@ export default adapterModels({
         fieldName: string;
         databaseName: string;
         unique: boolean;
-      }) => `  ${index.fieldName}Idx: d.${index.unique ? 'uniqueIndex': 'index'}('${model.options.tableName}_${index.databaseName}_idx').on(table.${index.fieldName})`).join(',\n')
+      }) => `  ${index.fieldName}Idx: d.${index.unique ? 'uniqueIndex': 'index'}('${model.options.tableName}_${index.databaseName}_idx').on(table.${index.fieldName})`)
+      .concat(model.options.conjunctiveIndexes || [])
+      .join(',\n')
       }\n})` : ''});\n\n`;
       fileContent += modelContent;
       models[i] = [modelName, Function('require', `return require('${locationToRequire}').${modelName}`)];

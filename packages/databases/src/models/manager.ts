@@ -265,7 +265,7 @@ export default class Manager<TModel = Model, EI extends DatabaseAdapter | null =
       {
         fields: (args?.fields || allFieldsOfModel) as unknown as TFields,
         search: (args?.search || {}) as ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true>,
-        ordering: args?.ordering,
+        ordering: args?.ordering || modelInstance.options?.ordering as any,
         limit: args?.limit,
         offset: args?.offset,
       },

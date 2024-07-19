@@ -153,7 +153,10 @@ export class BaseModel {
     engineInstance: DatabaseAdapter,
     domainName: string,
     domainPath: string,
-    lazyLoadFieldsCallback: (field: Field, translatedField: any) => void
+    lazyLoadFieldsCallback: (field: Field, translatedField: any) => void,
+    options?: {
+      forceTranslate?: boolean;
+    }
   ) {
 
     if (this._initialized[engineInstance.connectionName]) return this._initialized[engineInstance.connectionName];
@@ -166,7 +169,8 @@ export class BaseModel {
     const functionToCallToTranslateModel = factoryFunctionForModelTranslate(
       engineInstance,
       currentPalmaresModelInstance,
-      lazyLoadFieldsCallback
+      lazyLoadFieldsCallback,
+      options || {}
     );
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [initializedModelInstance, _] = await Promise.all([

@@ -1,7 +1,6 @@
 import { AdapterFieldParserTranslateArgs, adapterIntegerFieldParser } from '@palmares/databases';
 
 import DrizzleEngineFieldParser from './field';
-import { integer, pgTable } from 'drizzle-orm/pg-core';
 
 
 export default adapterIntegerFieldParser({

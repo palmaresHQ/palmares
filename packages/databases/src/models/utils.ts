@@ -16,11 +16,13 @@ import {
 import {
   EngineDoesNotSupportFieldTypeException,
   RelatedModelFromForeignKeyIsNotFromEngineException,
+  ShouldAssignAllInstancesException,
 } from './exceptions';
 import model, { BaseModel, Model } from './model';
 import { InitializedModelsType } from '../types';
 import UuidField from './fields/uuid';
 import AdapterFields from '../engine/fields';
+import { getDefaultStd } from '@palmares/core';
 
 import type DatabaseAdapter from '../engine';
 import type { ModelType } from './types';
@@ -268,98 +270,125 @@ export async function initializeModels(
   engine: DatabaseAdapter,
   models: (typeof BaseModel & ReturnType<typeof model>)[]
 ) {
-  const initializedModels: (InitializedModelsType & { modifyItself: (newModel: any) => void })[] = [];
-  let fieldsToEvaluateAfter: {
-    model: InstanceType<ReturnType<typeof model>> & BaseModel;
-    field: Field;
-    translatedField: any;
-    getInitialized: () => {
-      instance: any;
-      modifyItself: (newModel: any) => void;
-    }
-  }[] = [];
+  const recursiveOptionsToEvaluateModels: {
+    forceTranslation?: boolean;
+  }[] = [{}]
 
-  // Initialize the models and add it to the initialized models array, we need to keep track of the index of the model so that we can update it later
-  // When we set to evaluate the fields later we will update the initialized model.
-  const initializeModelPromises = models.map(async (modelClass, index) => {
-    const modelInstance = new modelClass() as InstanceType<ReturnType<typeof model>> & BaseModel;
-    const doesModelIncludesTheConnection =
-      Array.isArray(modelInstance?.options?.databases) &&
-      typeof engine.connectionName === 'string'
-        ? modelInstance.options?.databases.includes(engine.connectionName)
-        : true;
-
-    const domainName = modelClass.domainName;
-    const domainPath = modelClass.domainPath;
-
-    if (doesModelIncludesTheConnection) {
-      const initializedModel = await modelClass._init(engine, domainName, domainPath, (field, translatedField) =>
-        fieldsToEvaluateAfter.push({
-          model: modelInstance,
-          field,
-          translatedField,
-          getInitialized: () => initializedModel,
-        })
-      );
-      const originalModifyItself = initializedModel.modifyItself;
-      initializedModel.modifyItself = (newModel: any) => {
-        initializedModels[index].initialized = newModel;
-        originalModifyItself(newModel);
+  // It is a loop so we can evaluate the models again if needed.
+  while (recursiveOptionsToEvaluateModels) {
+    const options = recursiveOptionsToEvaluateModels.shift();
+    const initializedModels: (InitializedModelsType & { modifyItself: (newModel: any) => void })[] = [];
+    let fieldsToEvaluateAfter: {
+      model: InstanceType<ReturnType<typeof model>> & BaseModel;
+      field: Field;
+      translatedField: any;
+      getInitialized: () => {
+        instance: any;
+        modifyItself: (newModel: any) => void;
       }
-      initializedModels.splice(index, 0, {
-        domainName: domainPath,
-        domainPath: domainPath,
-        class: modelClass,
-        initialized: initializedModel.instance,
-        modifyItself: initializedModel.modifyItself,
-        original: modelInstance,
-      });
-    }
+    }[] = [];
 
-  });
-  await Promise.all(initializeModelPromises);
+    // Initialize the models and add it to the initialized models array, we need to keep track of the index of the model so that we can update it later
+    // When we set to evaluate the fields later we will update the initialized model.
+    const initializeModelPromises = models.map(async (modelClass, index) => {
+      const modelInstance = new modelClass() as InstanceType<ReturnType<typeof model>> & BaseModel;
+      const doesModelIncludesTheConnection =
+        Array.isArray(modelInstance?.options?.databases) &&
+        typeof engine.connectionName === 'string'
+          ? modelInstance.options?.databases.includes(engine.connectionName)
+          : true;
 
-  const markedFieldsCallbacksToRemove: number[] = [];
-  // When we evaluate the fields later we need to update the initialized model as well.
-  const evaluateLaterFieldsPromises = fieldsToEvaluateAfter.map(async ({ model, field, translatedField, getInitialized }, index) => {
-    const initialized = getInitialized();
-    const modelConstructor = model.constructor as ModelType;
-    const lazyEvaluatedFieldResult = await engine.fields.lazyEvaluateField(
-      engine,
-      modelConstructor.getName(),
-      initialized.instance,
-      field,
-      translatedField,
-      (model, field) => parse(engine, engine.fields, model, field, () => {})
-    )
-    if (lazyEvaluatedFieldResult !== undefined && lazyEvaluatedFieldResult !== null) {
-      initialized.modifyItself(lazyEvaluatedFieldResult);
-      markedFieldsCallbacksToRemove.push(index);
-    }
-  });
-  await Promise.all(evaluateLaterFieldsPromises);
-  fieldsToEvaluateAfter = fieldsToEvaluateAfter.filter((_, index) => !markedFieldsCallbacksToRemove.includes(index));
+      const domainName = modelClass.domainName;
+      const domainPath = modelClass.domainPath;
 
-  if (engine.models.afterModelsTranslation) {
-    const { modelEntries, modelsByName } = initializedModels.reduce((acc, model) => {
-      const modelName = model.class.getName();
-      acc.modelsByName[modelName] = model;
-      acc.modelEntries.push([modelName, model.initialized]);
-      return acc;
-    }, {
-      modelsByName: {} as Record<string, (InitializedModelsType & { modifyItself: (newModel: any) => void })>,
-      modelEntries: [] as [string, InitializedModelsType][]
+      if (doesModelIncludesTheConnection) {
+        const initializedModel = await modelClass._init(engine, domainName, domainPath, (field, translatedField) =>
+          fieldsToEvaluateAfter.push({
+            model: modelInstance,
+            field,
+            translatedField,
+            getInitialized: () => initializedModel,
+          }),
+          {
+            forceTranslate: options?.forceTranslation === true,
+          }
+        );
+        const originalModifyItself = initializedModel.modifyItself;
+        initializedModel.modifyItself = (newModel: any) => {
+          initializedModels[index].initialized = newModel;
+          originalModifyItself(newModel);
+        }
+        initializedModels.splice(index, 0, {
+          domainName: domainPath,
+          domainPath: domainPath,
+          class: modelClass,
+          initialized: initializedModel.instance,
+          modifyItself: initializedModel.modifyItself,
+          original: modelInstance,
+        });
+      }
+
     });
-    const returnedValueFromLastTranslation = await engine.models.afterModelsTranslation(
-      engine,
-      modelEntries
-    );
-    if (Array.isArray(returnedValueFromLastTranslation)) {
-      for (const [modelName, returnedValue] of returnedValueFromLastTranslation) modelsByName[modelName].modifyItself(returnedValue);
-    }
-  }
+    await Promise.all(initializeModelPromises);
 
-  return initializedModels;
+    const markedFieldsCallbacksToRemove: number[] = [];
+    // When we evaluate the fields later we need to update the initialized model as well.
+    const evaluateLaterFieldsPromises = fieldsToEvaluateAfter.map(async ({ model, field, translatedField, getInitialized }, index) => {
+      const initialized = getInitialized();
+      const modelConstructor = model.constructor as ModelType;
+      const lazyEvaluatedFieldResult = await engine.fields.lazyEvaluateField(
+        engine,
+        modelConstructor.getName(),
+        initialized.instance,
+        field,
+        translatedField,
+        (model, field) => parse(engine, engine.fields, model, field, () => {})
+      )
+      if (lazyEvaluatedFieldResult !== undefined && lazyEvaluatedFieldResult !== null) {
+        initialized.modifyItself(lazyEvaluatedFieldResult);
+        markedFieldsCallbacksToRemove.push(index);
+      }
+    });
+    await Promise.all(evaluateLaterFieldsPromises);
+    fieldsToEvaluateAfter = fieldsToEvaluateAfter.filter((_, index) => !markedFieldsCallbacksToRemove.includes(index));
+
+    if (engine.models.afterModelsTranslation) {
+      const { modelEntries, modelsByName } = initializedModels.reduce((acc, model) => {
+        if (model.original.options?.instance && options?.forceTranslation !== true) return acc;
+        const modelName = model.class.getName();
+        acc.modelsByName[modelName] = model;
+        acc.modelEntries.push([modelName, model.initialized]);
+        return acc;
+      }, {
+        modelsByName: {} as Record<string, (InitializedModelsType & { modifyItself: (newModel: any) => void })>,
+        modelEntries: [] as [string, InitializedModelsType][]
+      });
+      if (modelEntries.length > 0 && modelEntries.length !== initializeModels.length) {
+        const std = getDefaultStd();
+        const answer = await std.asker.ask(`\nYou have translated the model before. And you have assigned 'instance' to the model options. Should we refresh all of the model instances?`+
+          `\n\nType either: 'y' and press Enter to accept or Ctrl+C to make changes before continuing\n\n`+
+          `Note: If this engine generate files it will overwrite all the files it has previously generated. Also don't forget to assign the generated models to 'instance' on the model options \n`);
+
+        if (answer !== 'y') throw new ShouldAssignAllInstancesException();
+
+        recursiveOptionsToEvaluateModels.push({
+          forceTranslation: true
+        });
+      }
+
+      if (modelEntries.length > 0) {
+        const returnedValueFromLastTranslation = await engine.models.afterModelsTranslation(
+          engine,
+          modelEntries
+        );
+        if (Array.isArray(returnedValueFromLastTranslation)) {
+          for (const [modelName, returnedValue] of returnedValueFromLastTranslation) modelsByName[modelName].modifyItself(returnedValue);
+        }
+      }
+    }
+    if (recursiveOptionsToEvaluateModels.length <= 0) return initializedModels;
+  }
+  return []
 }
 
 /**
@@ -368,7 +397,10 @@ export async function initializeModels(
 export function factoryFunctionForModelTranslate(
   engine: DatabaseAdapter,
   model: Model,
-  callbackToParseAfterAllModelsAreTranslated: (field: Field, translatedField: any) => void
+  callbackToParseAfterAllModelsAreTranslated: (field: Field, translatedField: any) => void,
+  options: {
+    forceTranslate?: boolean;
+  }
 ) {
   const modelConstructor = model.constructor as ModelType;
   const modelOptions = modelConstructor._options(model) as ModelOptionsType;
@@ -399,7 +431,7 @@ export function factoryFunctionForModelTranslate(
 
   return async () => {
     const modelName = modelConstructor.getName();
-    const alreadyHasAnInstance = engine.initializedModels[modelName] !== undefined || model.options?.instance !== undefined;
+    const alreadyHasAnInstance = options.forceTranslate !== true && (engine.initializedModels[modelName] !== undefined || model.options?.instance !== undefined);
     const modelInstance = alreadyHasAnInstance ?
     (engine.initializedModels[modelName] !== undefined ? engine.initializedModels[modelName] : model.options?.instance)
     : await engine.models.translate(
@@ -448,6 +480,7 @@ export function factoryFunctionForModelTranslate(
 
       modelOptions.applyToTranslatedModel(translatedModelInstance);
     }
+
     return modelInstance;
   };
 }
