@@ -23,7 +23,7 @@
     "@palmares/node-std": "workspace:*",
     "@palmares/tests": "workspace:*",
     "better-sqlite3": "^11.1.2",
-    "drizzle-kit": "^0.22.8",
+    "drizzle-kit": "^0.23.0",
     "drizzle-orm": "^0.31.2",
     "postgres": "^3.4.4"
   },

@@ -44,6 +44,6 @@
     "@palmares/core": "workspace:*",
     "@palmares/events": "workspace:*",
     "@palmares/logging": "workspace:*",
-    "drizzle-kit": "^0.22.8"
+    "drizzle-kit": "^0.23.0"
   }
 }
