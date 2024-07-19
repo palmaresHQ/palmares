@@ -1,22 +1,23 @@
 import { getSettings, retrieveDomains } from '@palmares/core';
 import { EventEmitter } from '@palmares/events';
 
-import {
-  DatabaseSettingsType,
+import DatabaseAdapter from './engine';
+import { databaseLogger } from './logging';
+import Migrations from './migrations';
+import { initializeModels } from './models/utils';
+
+import type { DatabaseDomainInterface } from './interfaces';
+import type { Model } from './models';
+import type { BaseModel } from './models/model';
+import type model from './models/model';
+import type {
   DatabaseConfigurationType,
+  DatabaseSettingsType,
   FoundModelType,
-  InitializedModelsType,
   InitializedEngineInstancesType,
   InitializedEngineInstanceWithModelsType,
   OptionalMakemigrationsArgsType,
 } from './types';
-import { DatabaseDomainInterface } from './interfaces';
-import DatabaseAdapter from './engine';
-import { Model } from './models';
-import Migrations from './migrations';
-import model, { BaseModel } from './models/model';
-import { databaseLogger } from './logging';
-import { initializeModels } from './models/utils';
 
 export default class Databases {
   settings!: DatabaseSettingsType;
@@ -27,7 +28,7 @@ export default class Databases {
   #cachedModelsByModelName: {
     [modelName: string]: FoundModelType;
   } = {};
-  private static __instance: Databases;
+  private static __instance?: Databases;
 
   constructor() {
     if (Databases.__instance) return Databases.__instance;
@@ -78,17 +79,18 @@ export default class Databases {
       if (isDatabaseDefined) {
         const databaseEntries: [string, DatabaseConfigurationType][] = Object.entries(settings.databases);
         const existsEventEmitterForAllEngines =
-          settings?.eventEmitter instanceof EventEmitter || (settings?.eventEmitter || {}) instanceof Promise;
+          settings.eventEmitter instanceof EventEmitter || (settings.eventEmitter || {}) instanceof Promise;
 
         for (const [databaseName, databaseSettings] of databaseEntries) {
           const existsEventEmitterForSpecificEngine =
-            databaseSettings?.events?.emitter instanceof EventEmitter ||
-            databaseSettings?.events?.emitter instanceof Promise;
+            databaseSettings.events?.emitter instanceof EventEmitter ||
+            databaseSettings.events?.emitter instanceof Promise;
 
-          if (existsEventEmitterForSpecificEngine === false && existsEventEmitterForAllEngines)
+          if (existsEventEmitterForSpecificEngine === false && existsEventEmitterForAllEngines) {
             databaseSettings.events = {
               emitter: settings.eventEmitter as EventEmitter | Promise<EventEmitter>,
             };
+          }
           await this.initializeDatabase(databaseName, databaseSettings, domains);
         }
         this.isInitialized = true;
@@ -159,9 +161,8 @@ export default class Databases {
       this.initializedEngineInstances[engineName].engineInstance !== undefined;
     const isProbablyAnEngineInstanceDefinedForDatabase = databaseSettings.engine !== undefined;
 
-    if (doesAnEngineInstanceAlreadyExist) {
-      engineInstance = this.initializedEngineInstances[engineName].engineInstance;
-    } else {
+    if (doesAnEngineInstanceAlreadyExist) engineInstance = this.initializedEngineInstances[engineName].engineInstance;
+    else {
       const engineArgs = databaseSettings.engine;
       argumentsToPassOnNew = engineArgs[0];
       engineInstance = engineArgs[1];
@@ -190,7 +191,7 @@ export default class Databases {
       const isModelManagedByEngine =
         modelInstance.options?.managed !== false &&
         (Array.isArray(modelInstance.options?.databases) === false ||
-          modelInstance.options?.databases?.includes(engineName) === true);
+          modelInstance.options.databases.includes(engineName) === true);
       const modelName =
         (foundModel.model as unknown as typeof BaseModel & typeof Model).getName() || modelInstance.constructor.name;
 
@@ -219,7 +220,7 @@ export default class Databases {
 
     if (isDatabaseConnected) {
       const { projectModels } = await this.initializeModels(engineInstance, modelsFilteredForDatabase);
-      const mergedProjectModels = (this.initializedEngineInstances[engineName]?.projectModels || []).concat(
+      const mergedProjectModels = (this.initializedEngineInstances[engineName].projectModels || []).concat(
         projectModels
       );
 

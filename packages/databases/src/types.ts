@@ -1,7 +1,6 @@
+import type DatabaseAdapter from './engine';
+import type { BaseModel, Manager, model } from './models';
 import type { EventEmitter } from '@palmares/events';
-
-import { BaseModel, Manager, model } from './models';
-import DatabaseAdapter from './engine';
 
 export interface DatabaseConfigurationType {
   engine: [any, DatabaseAdapter];
@@ -11,17 +10,26 @@ export interface DatabaseConfigurationType {
   };
 }
 
-export type ExtractFieldsFromAbstracts<TAbstracts extends readonly any[]> =
-TAbstracts extends readonly [infer TAbstract, ...infer TRest] ?
-TAbstract extends {
-  new(): { fields: infer TFields }
-} ?
-TFields & ExtractFieldsFromAbstracts<TRest extends readonly any[] ? TRest: []> : unknown: unknown;
+type Test<Key> = Key;
+export type ExtractFieldsFromAbstracts<TAbstracts extends readonly any[]> = TAbstracts extends readonly [
+  infer TAbstract,
+  ...infer TRest,
+]
+  ? TAbstract extends {
+      new (): { fields: infer TFields };
+    }
+    ? TFields & ExtractFieldsFromAbstracts<TRest extends readonly any[] ? TRest : []>
+    : unknown
+  : unknown;
 
-export type ExtractManagersFromAbstracts<TAbstracts extends readonly any[]> =
-TAbstracts extends readonly [infer TAbstract, ...infer TRest] ? {
-  [TKey in keyof TAbstract as TAbstract[TKey] extends Manager<any> ? TKey : never]: TAbstract[TKey];
-} & ExtractManagersFromAbstracts<TRest extends readonly any[] ? TRest : []> : unknown
+export type ExtractManagersFromAbstracts<TAbstracts extends readonly any[]> = TAbstracts extends readonly [
+  infer TAbstract,
+  ...infer TRest,
+]
+  ? {
+      [TKey in keyof TAbstract as TAbstract[TKey] extends Manager<any> ? TKey : never]: TAbstract[TKey];
+    } & ExtractManagersFromAbstracts<TRest extends readonly any[] ? TRest : []>
+  : unknown;
 
 export type InitializedEngineInstancesType = {
   [key: string]: InitializedEngineInstanceWithModelsType;

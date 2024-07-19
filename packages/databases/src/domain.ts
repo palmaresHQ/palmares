@@ -1,13 +1,15 @@
-import { DomainReadyFunctionArgs, DomainHandlerFunctionArgs, domain, SettingsType2 } from '@palmares/core';
+import { domain } from '@palmares/core';
 
-import { DatabaseSettingsType } from './types';
 import { makeMigrations, migrate } from './commands';
-import defaultSettings from './settings';
-import { defaultMigrations, defaultModels } from './defaults';
 import Databases from './databases';
-import { DatabaseDomainInterface } from './interfaces';
-import { model as BaseModel } from './models';
-import { DatabaseAdapter } from '.';
+import type { DatabaseAdapter } from '.';
+import { defaultMigrations, defaultModels } from './defaults';
+import defaultSettings from './settings';
+
+import type { DatabaseDomainInterface } from './interfaces';
+import type { model as BaseModel } from './models';
+import type { DatabaseSettingsType } from './types';
+import type { DomainHandlerFunctionArgs, DomainReadyFunctionArgs, SettingsType2 } from '@palmares/core';
 
 let databases: Databases | undefined = undefined;
 let cachedDatabaseDomains: DatabaseDomainInterface[] | undefined = undefined;
@@ -19,7 +21,12 @@ function loadDatabases(databaseDomains?: DatabaseDomainInterface[]) {
 }
 
 const databaseDomainModifier = domain<{
-  getModels: (engineInstance: DatabaseAdapter) => Promise<Record<string, ReturnType<typeof BaseModel>> | ReturnType<typeof BaseModel>[]> | Record<string, ReturnType<typeof BaseModel>> | ReturnType<typeof BaseModel>[];
+  getModels: (
+    engineInstance: DatabaseAdapter
+  ) =>
+    | Promise<Record<string, ReturnType<typeof BaseModel>> | ReturnType<typeof BaseModel>[]>
+    | Record<string, ReturnType<typeof BaseModel>>
+    | ReturnType<typeof BaseModel>[];
   getMigrations: () => Promise<any> | any;
 }>('@palmares/database', __dirname, {});
 
@@ -85,6 +92,6 @@ export default domain('@palmares/database', __dirname, {
   getMigrations: async () => defaultMigrations,
   getModels: async (engineInstance: DatabaseAdapter) => {
     if (engineInstance.migrations) return defaultModels;
-    else return []
+    else return [];
   },
 });
