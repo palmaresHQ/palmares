@@ -6,7 +6,7 @@
 
 ## Description
 
-**Palmares** is a framework that aims for unification and freedom. It's heavily opinionated at the same time it's highly customizable and let's you bring your own tools. You can use it even without a server!
+**Palmares** is a framework that aims for unification and freedom. It's opinionated at the same time it's not. Bring your own tools, forget thinking if X works with Y. With Palmares it just works! You can use it even without a server!
 
 It's aimed to work well on monorepos and have **ZERO** dependencies at it's core. You should be able to use it with most available runtimes.
 
