@@ -44,7 +44,7 @@
   "devDependencies": {
     "@changesets/cli": "^2.27.5",
     "@swc/cli": "^0.4.0",
-    "@swc/core": "^1.5.25",
+    "@swc/core": "^1.7.0",
     "@types/node": "^20.14.11",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
