@@ -43,9 +43,9 @@
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "devDependencies": {
     "@changesets/cli": "^2.27.5",
-    "@swc/cli": "^0.3.12",
+    "@swc/cli": "^0.4.0",
     "@swc/core": "^1.5.25",
-    "@types/node": "^20.14.2",
+    "@types/node": "^20.14.11",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "chokidar": "^3.6.0",
