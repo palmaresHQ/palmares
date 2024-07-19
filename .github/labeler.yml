@@ -1,0 +1,75 @@
+ghaction:
+  - changed-files:
+      - any-glob-to-any-file: '.github/**/*'
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file: 'docs/**/*'
+
+examples:
+  - changed-files:
+      - any-glob-to-any-file: 'examples/**/*'
+
+libs:
+  - changed-files:
+      - any-glob-to-any-file: 'libs/**/*'
+
+console-logging:
+  - changed-files:
+      - any-glob-to-any-file: 'libs/console-logging/**/*'
+
+drizzle-engine:
+  - changed-files:
+      - any-glob-to-any-file: 'libs/drizzle-engine/**/*'
+
+eventsemitter2-emitter:
+  - changed-files:
+      - any-glob-to-any-file: 'libs/eventsemitter2-emitter/**/*'
+
+express-adapter:
+  - changed-files:
+      - any-glob-to-any-file: 'libs/express-adapter/**/*'
+
+jest-tests:
+  - changed-files:
+      - any-glob-to-any-file: 'libs/jest-adapter/**/*'
+
+node-std:
+  - changed-files:
+      - any-glob-to-any-file: 'libs/node-std/**/*'
+
+sequelize-engine:
+  - changed-files:
+      - any-glob-to-any-file: 'libs/sequelize-engine/**/*'
+
+main:
+  - changed-files:
+      - any-glob-to-any-file: 'packages/**/*'
+
+core:
+  - changed-files:
+      - any-glob-to-any-file: 'packages/core/**/*'
+
+databases:
+  - changed-files:
+      - any-glob-to-any-file: 'packages/databases/**/*'
+
+events:
+  - changed-files:
+      - any-glob-to-any-file: 'packages/events/**/*'
+
+logging:
+  - changed-files:
+      - any-glob-to-any-file: 'packages/logging/**/*'
+
+schemas:
+  - changed-files:
+      - any-glob-to-any-file: 'packages/schemas/**/*'
+
+server:
+  - changed-files:
+      - any-glob-to-any-file: 'packages/server/**/*'
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file: 'packages/tests/**/*'
