@@ -1,4 +1,4 @@
-import { Std } from '@palmares/std';
+import { Std } from '@palmares/core';
 
 import { FilesAndFoldersNode, ChildProcessNode, AskerNode, NodeOs } from './interfaces';
 

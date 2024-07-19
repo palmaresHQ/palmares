@@ -1,9 +1,12 @@
-import { Os } from '@palmares/std';
+import { Os } from '@palmares/core';
 
 import { platform as nodePlatform, release as nodeRelease } from 'os';
 export default class NodeOs implements Os {
   async release() {
     return nodeRelease();
+  }
+  async cwd() {
+    return process.cwd();
   }
   async platform() {
     switch (nodePlatform()) {

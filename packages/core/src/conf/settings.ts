@@ -1,6 +1,8 @@
-import { SettingsType2, StdLike } from './types';
+import { SettingsType2 } from './types';
+import Std from '../std-adapter';
 import { PALMARES_SETTINGS_MODULE_ENVIRONMENT_VARIABLE } from '../utils';
 import { SettingsNotFoundException } from './exceptions';
+import { setDefaultStd } from '../std/config';
 
 let cachedSettings: SettingsType2 | null = null;
 
@@ -14,12 +16,14 @@ export function getSettings() {
  * if you are using NodeStd and trying to run the code on the browser it WILL fail. Just use it if you are completely sure that it will
  * only run on that runtime and any other.
  */
-async function extractSettingsFromPath(stdToUse: StdLike, path?: string) {
-  const pathToUse: string = path || (await stdToUse.files.readFromEnv(PALMARES_SETTINGS_MODULE_ENVIRONMENT_VARIABLE));
+async function extractSettingsFromPath(stdToUse: Std, path?: string) {
+  setDefaultStd(stdToUse);
+  const pathToUse: string = typeof path === 'string' ? path :
+   (await stdToUse.files.readFromEnv(PALMARES_SETTINGS_MODULE_ENVIRONMENT_VARIABLE));
+
   if (!pathToUse) throw new SettingsNotFoundException();
   try {
-    const settingsModule = await stdToUse.files.readFile(pathToUse);
-    cachedSettings = ((await import(settingsModule)) as { default: SettingsType2 }).default;
+    cachedSettings = ((await import(pathToUse)) as { default: SettingsType2 }).default;
   } catch (e) {
     throw new SettingsNotFoundException();
   }
@@ -32,11 +36,11 @@ export async function setSettings(
   settingsOrStd:
     | Promise<{ default: SettingsType2 }>
     | SettingsType2
-    | StdLike
-    | Promise<{ default: StdLike }>
+    | Std
+    | Promise<{ default: Std }>
     | {
         settingsPathLocation: string;
-        std: StdLike;
+        std: Std;
       }
 ) {
   if (settingsOrStd instanceof Promise) {
@@ -49,5 +53,6 @@ export async function setSettings(
   } else cachedSettings = settingsOrStd;
 
   if (!cachedSettings) throw new SettingsNotFoundException();
+  setDefaultStd(new cachedSettings.std())
   return cachedSettings;
 }

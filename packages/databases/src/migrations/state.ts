@@ -1,5 +1,5 @@
 import { FoundMigrationsFileType, StateModelsType, OriginalOrStateModelsByNameType } from './types';
-import model, { BaseModel, Model } from '../models/model';
+import model, { BaseModel } from '../models/model';
 import { InitializedModelsType } from '../types';
 import DatabaseAdapter from '../engine';
 import { defaultEngineDuplicate } from '../engine/utils';
@@ -22,7 +22,7 @@ import { initializeModels } from '../models/utils';
 export default class State {
   modelsByName: StateModelsType = {};
   initializedModelsByName: OriginalOrStateModelsByNameType = {};
-
+  stateNumber: number = 0;
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private constructor() {}
 
@@ -97,12 +97,14 @@ export default class State {
    */
   async initializeStateModels(engineInstance: DatabaseAdapter): Promise<InitializedModelsType[]> {
     const modelsInState = Object.values(this.modelsByName);
+    const stateNumber = this.stateNumber;
     return initializeModels(
       engineInstance,
       modelsInState.map((stateModel) => {
         const ModelClass = class StateModel extends model() {
           static isState = true;
-          static _initialized = {}
+          static __stateNumber = stateNumber;
+          static _initialized = {};
           static domainName = (stateModel.constructor as any).domainName;
           static domainPath = (stateModel.constructor as any).domainPath;
           static __cachedOriginalName: string = (stateModel.constructor as any).__cachedName;

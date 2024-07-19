@@ -162,18 +162,12 @@ export default class Databases {
     if (doesAnEngineInstanceAlreadyExist) {
       engineInstance = this.initializedEngineInstances[engineName].engineInstance;
     } else {
-      const maybeEngine = await Promise.resolve(databaseSettings.engine);
-      if (Array.isArray(maybeEngine)) {
-        argumentsToPassOnNew = maybeEngine[0];
-        engineInstance = maybeEngine[1];
-      } else {
-        const awaitedEngineAndArgs = await Promise.resolve(maybeEngine.default);
-        argumentsToPassOnNew = awaitedEngineAndArgs[0];
-        engineInstance = awaitedEngineAndArgs[1];
-      }
+      const engineArgs = databaseSettings.engine;
+      argumentsToPassOnNew = engineArgs[0];
+      engineInstance = engineArgs[1];
 
       const isAnEngineInstanceDefinedForDatabase = isProbablyAnEngineInstanceDefinedForDatabase
-        ? engineInstance.constructor.prototype instanceof DatabaseAdapter
+        ? engineInstance instanceof DatabaseAdapter
         : false;
       if (!isAnEngineInstanceDefinedForDatabase) throw new Error('You must define an engine for the database.');
     }
@@ -181,7 +175,7 @@ export default class Databases {
     engineInstance.connectionName = engineName;
     engineInstance.databaseSettings = databaseSettings;
 
-    const models: FoundModelType[] = Object.values(await this.getModels(domains));
+    const models: FoundModelType[] = Object.values(await this.getModels(engineInstance, domains));
 
     const onlyTheModelsFiltered: {
       [modelName: string]: ReturnType<typeof model>;
@@ -283,7 +277,7 @@ export default class Databases {
    *
    * @returns - Returns an array of models.
    */
-  async getModels(domains?: DatabaseDomainInterface[]) {
+  async getModels(engineInstance: DatabaseAdapter, domains?: DatabaseDomainInterface[]) {
     const settings = getSettings();
     if (domains === undefined && settings)
       domains = (await retrieveDomains(settings)).map((domainClass) => new domainClass() as DatabaseDomainInterface);
@@ -293,7 +287,7 @@ export default class Databases {
       const promises: Promise<void>[] = domains.map(async (domain) => {
         const hasGetModelsMethodDefined = typeof domain.getModels === 'function';
         if (hasGetModelsMethodDefined) {
-          const models = await Promise.resolve(domain.getModels());
+          const models = await Promise.resolve(domain.getModels(engineInstance));
           if (Array.isArray(models)) {
             for (const model of models) {
               this.#cachedModelsByModelName[model.name] = {

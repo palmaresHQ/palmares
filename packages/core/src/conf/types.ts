@@ -2,13 +2,8 @@ import Domain from '../domain/domain';
 import { DomainReadyFunctionArgs } from '../domain/types';
 import { Narrow } from '../utils';
 import domain from '../domain/function';
+import Std from '../std-adapter'
 
-export type StdLike = {
-  files: {
-    readFromEnv<T = string>(envName: string): Promise<T>;
-    readFile(path: string | string[]): Promise<string>;
-  };
-};
 
 export type ValidateDomains<
   TDomains extends
@@ -97,6 +92,7 @@ export type SettingsType2<
   )[] = readonly any[]
 > = {
   installedDomains: ValidateDomains<Narrow<TDomains>>;
+  std: typeof Std;
   settingsLocation: string;
   basePath: string;
 };

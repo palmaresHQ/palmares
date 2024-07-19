@@ -16,11 +16,13 @@ import {
 import {
   EngineDoesNotSupportFieldTypeException,
   RelatedModelFromForeignKeyIsNotFromEngineException,
+  ShouldAssignAllInstancesException,
 } from './exceptions';
 import model, { BaseModel, Model } from './model';
 import { InitializedModelsType } from '../types';
 import UuidField from './fields/uuid';
 import AdapterFields from '../engine/fields';
+import { getDefaultStd } from '@palmares/core';
 
 import type DatabaseAdapter from '../engine';
 import type { ModelType } from './types';
@@ -56,7 +58,7 @@ export const indirectlyRelatedModels: {
 /**
  * Those are the default model options. It will exist in every model and will be used to define the default options of the model.
  */
-export const defaultModelOptions = {
+export const getDefaultModelOptions = () => ({
   abstract: false,
   underscored: true,
   tableName: undefined,
@@ -65,7 +67,7 @@ export const defaultModelOptions = {
   indexes: [],
   databases: ['default'],
   customOptions: {},
-};
+});
 
 /**
  * The idea here is used to parse foreign key lazily, let's say that we have a foreign key field, but it's related to
@@ -268,84 +270,125 @@ export async function initializeModels(
   engine: DatabaseAdapter,
   models: (typeof BaseModel & ReturnType<typeof model>)[]
 ) {
-  const initializedModels: InitializedModelsType[] = [];
-  const auxiliaryIndexByModelName: Record<string, number> = {};
-  const fieldsToEvaluateAfter: {
-    model: InstanceType<ReturnType<typeof model>> & BaseModel;
-    field: Field;
-    translatedField: any;
-  }[] = [];
+  const recursiveOptionsToEvaluateModels: {
+    forceTranslation?: boolean;
+  }[] = [{}]
 
-  // Initialize the models and add it to the initialized models array, we need to keep track of the index of the model so that we can update it later
-  // When we set to evaluate the fields later we will update the initialized model.
-  const initializeModelPromises = models.map(async (modelClass, index) => {
-    const modelInstance = new modelClass() as InstanceType<ReturnType<typeof model>> & BaseModel;
-    const doesModelIncludesTheConnection =
-      Array.isArray(modelInstance?.options?.databases) &&
-      typeof engine.connectionName === 'string'
-        ? modelInstance.options?.databases.includes(engine.connectionName)
-        : true;
+  // It is a loop so we can evaluate the models again if needed.
+  while (recursiveOptionsToEvaluateModels) {
+    const options = recursiveOptionsToEvaluateModels.shift();
+    const initializedModels: (InitializedModelsType & { modifyItself: (newModel: any) => void })[] = [];
+    let fieldsToEvaluateAfter: {
+      model: InstanceType<ReturnType<typeof model>> & BaseModel;
+      field: Field;
+      translatedField: any;
+      getInitialized: () => {
+        instance: any;
+        modifyItself: (newModel: any) => void;
+      }
+    }[] = [];
 
-    const modelName = modelClass.getName();
-    const domainName = modelClass.domainName;
-    const domainPath = modelClass.domainPath;
+    // Initialize the models and add it to the initialized models array, we need to keep track of the index of the model so that we can update it later
+    // When we set to evaluate the fields later we will update the initialized model.
+    const initializeModelPromises = models.map(async (modelClass, index) => {
+      const modelInstance = new modelClass() as InstanceType<ReturnType<typeof model>> & BaseModel;
+      const doesModelIncludesTheConnection =
+        Array.isArray(modelInstance?.options?.databases) &&
+        typeof engine.connectionName === 'string'
+          ? modelInstance.options?.databases.includes(engine.connectionName)
+          : true;
 
-    if (doesModelIncludesTheConnection) {
-      const initializedModel = await modelClass._init(engine, domainName, domainPath, (field, translatedField) =>
-        fieldsToEvaluateAfter.push({
-          model: modelInstance,
-          field,
-          translatedField,
-        })
-      );
-      initializedModels.splice(index, 0, {
-        domainName: domainPath,
-        domainPath: domainPath,
-        class: modelClass,
-        initialized: initializedModel,
-        original: modelInstance,
-      });
-      auxiliaryIndexByModelName[modelName] = index;
-    }
+      const domainName = modelClass.domainName;
+      const domainPath = modelClass.domainPath;
 
-  });
-  await Promise.all(initializeModelPromises);
+      if (doesModelIncludesTheConnection) {
+        const initializedModel = await modelClass._init(engine, domainName, domainPath, (field, translatedField) =>
+          fieldsToEvaluateAfter.push({
+            model: modelInstance,
+            field,
+            translatedField,
+            getInitialized: () => initializedModel,
+          }),
+          {
+            forceTranslate: options?.forceTranslation === true,
+          }
+        );
+        const originalModifyItself = initializedModel.modifyItself;
+        initializedModel.modifyItself = (newModel: any) => {
+          initializedModels[index].initialized = newModel;
+          originalModifyItself(newModel);
+        }
+        initializedModels.splice(index, 0, {
+          domainName: domainPath,
+          domainPath: domainPath,
+          class: modelClass,
+          initialized: initializedModel.instance,
+          modifyItself: initializedModel.modifyItself,
+          original: modelInstance,
+        });
+      }
 
-  // When we evaluate the fields later we need to update the initialized model as well.
-  const evaluateLaterFieldsPromises = fieldsToEvaluateAfter.map(async ({ model, field, translatedField }) => {
-    const modelConstructor = model.constructor as ModelType;
-    const indexToUpdate = auxiliaryIndexByModelName[modelConstructor.getName()];
-    const existsInInitializedModels = initializedModels[indexToUpdate] !== undefined;
-    if (typeof indexToUpdate === 'number' && existsInInitializedModels) {
-      const translatedModel = initializedModels[indexToUpdate].initialized;
-      initializedModels[indexToUpdate].initialized = await engine.fields.lazyEvaluateField(
+    });
+    await Promise.all(initializeModelPromises);
+
+    const markedFieldsCallbacksToRemove: number[] = [];
+    // When we evaluate the fields later we need to update the initialized model as well.
+    const evaluateLaterFieldsPromises = fieldsToEvaluateAfter.map(async ({ model, field, translatedField, getInitialized }, index) => {
+      const initialized = getInitialized();
+      const modelConstructor = model.constructor as ModelType;
+      const lazyEvaluatedFieldResult = await engine.fields.lazyEvaluateField(
         engine,
         modelConstructor.getName(),
-        translatedModel,
+        initialized.instance,
         field,
-        translatedField
-      );
-    }
-  });
-  await Promise.all(evaluateLaterFieldsPromises);
+        translatedField,
+        (model, field) => parse(engine, engine.fields, model, field, () => {})
+      )
+      if (lazyEvaluatedFieldResult !== undefined && lazyEvaluatedFieldResult !== null) {
+        initialized.modifyItself(lazyEvaluatedFieldResult);
+        markedFieldsCallbacksToRemove.push(index);
+      }
+    });
+    await Promise.all(evaluateLaterFieldsPromises);
+    fieldsToEvaluateAfter = fieldsToEvaluateAfter.filter((_, index) => !markedFieldsCallbacksToRemove.includes(index));
 
+    if (engine.models.afterModelsTranslation) {
+      const { modelEntries, modelsByName } = initializedModels.reduce((acc, model) => {
+        if (model.original.options?.instance && options?.forceTranslation !== true) return acc;
+        const modelName = model.class.getName();
+        acc.modelsByName[modelName] = model;
+        acc.modelEntries.push([modelName, model.initialized]);
+        return acc;
+      }, {
+        modelsByName: {} as Record<string, (InitializedModelsType & { modifyItself: (newModel: any) => void })>,
+        modelEntries: [] as [string, InitializedModelsType][]
+      });
+      if (modelEntries.length > 0 && modelEntries.length !== initializeModels.length) {
+        const std = getDefaultStd();
+        const answer = await std.asker.ask(`\nYou have translated the model before. And you have assigned 'instance' to the model options. Should we refresh all of the model instances?`+
+          `\n\nType either: 'y' and press Enter to accept or Ctrl+C to make changes before continuing\n\n`+
+          `Note: If this engine generate files it will overwrite all the files it has previously generated. Also don't forget to assign the generated models to 'instance' on the model options \n`);
 
-  if (engine.models.afterModelsTranslation) {
-    const returnedValueFromLastTranslation = await engine.models.afterModelsTranslation(
-      engine,
-      initializedModels.map((model) => [model.class.getName(), model.initialized])
-    );
+        if (answer !== 'y') throw new ShouldAssignAllInstancesException();
 
-    if (Array.isArray(returnedValueFromLastTranslation)) {
-      for (let i = 0; i < returnedValueFromLastTranslation.length; i++) {
-        const [modelName, returnedValue] = returnedValueFromLastTranslation[i];
-        const indexToUpdate = auxiliaryIndexByModelName[modelName];
-        if (typeof indexToUpdate === 'number') initializedModels[i].initialized = returnedValue;
+        recursiveOptionsToEvaluateModels.push({
+          forceTranslation: true
+        });
+      }
+
+      if (modelEntries.length > 0) {
+        const returnedValueFromLastTranslation = await engine.models.afterModelsTranslation(
+          engine,
+          modelEntries
+        );
+        if (Array.isArray(returnedValueFromLastTranslation)) {
+          for (const [modelName, returnedValue] of returnedValueFromLastTranslation) modelsByName[modelName].modifyItself(returnedValue);
+        }
       }
     }
+    if (recursiveOptionsToEvaluateModels.length <= 0) return initializedModels;
   }
-
-  return initializedModels;
+  return []
 }
 
 /**
@@ -354,7 +397,10 @@ export async function initializeModels(
 export function factoryFunctionForModelTranslate(
   engine: DatabaseAdapter,
   model: Model,
-  callbackToParseAfterAllModelsAreTranslated: (field: Field, translatedField: any) => void
+  callbackToParseAfterAllModelsAreTranslated: (field: Field, translatedField: any) => void,
+  options: {
+    forceTranslate?: boolean;
+  }
 ) {
   const modelConstructor = model.constructor as ModelType;
   const modelOptions = modelConstructor._options(model) as ModelOptionsType;
@@ -376,7 +422,7 @@ export function factoryFunctionForModelTranslate(
           : await defaultParseFieldCallback(field);
 
       const isTranslatedAttributeDefined =
-        translatedAttributes !== undefined && translatedAttributes !== null && typeof translatedAttributes === 'object';
+        translatedAttributes !== undefined && translatedAttributes !== null;
       if (isTranslatedAttributeDefined) translatedFieldDataByFieldName[fieldName] = translatedAttributes;
     }
 
@@ -385,8 +431,10 @@ export function factoryFunctionForModelTranslate(
 
   return async () => {
     const modelName = modelConstructor.getName();
-
-    const modelInstance = await engine.models.translate(
+    const alreadyHasAnInstance = options.forceTranslate !== true && (engine.initializedModels[modelName] !== undefined || model.options?.instance !== undefined);
+    const modelInstance = alreadyHasAnInstance ?
+    (engine.initializedModels[modelName] !== undefined ? engine.initializedModels[modelName] : model.options?.instance)
+    : await engine.models.translate(
       engine,
       modelName,
       model,
@@ -424,7 +472,7 @@ export function factoryFunctionForModelTranslate(
     // This lets you apply custom hooks to your translated model directly.
     // Something like that: https://www.prisma.io/docs/concepts/components/prisma-client/middleware
     // Or: https://sequelize.org/docs/v6/other-topics/hooks/
-    if (modelOptions.applyToTranslatedModel) {
+    if (modelOptions.applyToTranslatedModel && alreadyHasAnInstance === false) {
       const translatedModelInstance =
         typeof engine.models.getModelInstanceForCustomHooks === 'function'
           ? await engine.models.getModelInstanceForCustomHooks(engine, modelName, modelInstance)
@@ -432,6 +480,7 @@ export function factoryFunctionForModelTranslate(
 
       modelOptions.applyToTranslatedModel(translatedModelInstance);
     }
+
     return modelInstance;
   };
 }

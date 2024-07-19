@@ -41,5 +41,6 @@ export { default as Migration } from './migrations/migrate/migration';
 export { default as Database } from './databases';
 export { DatabaseDomainInterface } from './interfaces';
 export { databaseDomainModifier } from './domain';
+export { generateUUID } from './utils/index'
 
 export default DatabasesDomain;

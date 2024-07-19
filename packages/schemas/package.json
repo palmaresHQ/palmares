@@ -43,8 +43,5 @@
   "dependencies": {
     "@palmares/core": "workspace:*",
     "@palmares/databases": "workspace: *"
-  },
-  "devDependencies": {
-    "@palmares/std": "workspace:*"
   }
 }

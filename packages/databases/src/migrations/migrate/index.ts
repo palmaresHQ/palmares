@@ -90,7 +90,7 @@ export default class Migrate {
 
     if (filteredMigrationsOfDatabase.length > 0) {
       // Run the migrations in batch, so just get the current state and let the ORM handle the rest.
-      if (engineInstance.migrations.batchAll) {
+      if (engineInstance.migrations?.batchAll) {
         databaseLogger.logMessage('MIGRATION_RUNNING_IN_BATCH', {
           databaseName: engineInstance.connectionName,
         });
@@ -112,7 +112,7 @@ export default class Migrate {
       for (const migrationFile of filteredMigrationsOfDatabase) {
         const migrationName = migrationFile.migration.name;
 
-        if (engineInstance.migrations.batchAll === undefined) {
+        if (engineInstance.migrations?.batchAll === undefined) {
           databaseLogger.logMessage('MIGRATIONS_RUNNING_FILE_NAME', {
             title: migrationName,
           });

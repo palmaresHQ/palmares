@@ -1,4 +1,4 @@
-import { DomainReadyFunctionArgs, DomainHandlerFunctionArgs, domain } from '@palmares/core';
+import { DomainReadyFunctionArgs, DomainHandlerFunctionArgs, domain, SettingsType2 } from '@palmares/core';
 
 import { DatabaseSettingsType } from './types';
 import { makeMigrations, migrate } from './commands';
@@ -7,6 +7,7 @@ import { defaultMigrations, defaultModels } from './defaults';
 import Databases from './databases';
 import { DatabaseDomainInterface } from './interfaces';
 import { model as BaseModel } from './models';
+import { DatabaseAdapter } from '.';
 
 let databases: Databases | undefined = undefined;
 let cachedDatabaseDomains: DatabaseDomainInterface[] | undefined = undefined;
@@ -18,7 +19,7 @@ function loadDatabases(databaseDomains?: DatabaseDomainInterface[]) {
 }
 
 const databaseDomainModifier = domain<{
-  getModels: () => Promise<Record<string, ReturnType<typeof BaseModel>> | ReturnType<typeof BaseModel>[]> | Record<string, ReturnType<typeof BaseModel>> | ReturnType<typeof BaseModel>[];
+  getModels: (engineInstance: DatabaseAdapter) => Promise<Record<string, ReturnType<typeof BaseModel>> | ReturnType<typeof BaseModel>[]> | Record<string, ReturnType<typeof BaseModel>> | ReturnType<typeof BaseModel>[];
   getMigrations: () => Promise<any> | any;
 }>('@palmares/database', __dirname, {});
 
@@ -52,6 +53,18 @@ export default domain('@palmares/database', __dirname, {
         await migrate(databases, options);
       },
     },
+    ['load-models']: {
+      description: 'Load the databases. For some engines, it will just create the models locally',
+      positionalArgs: undefined,
+      keywordArgs: undefined,
+      handler: async (options: DomainHandlerFunctionArgs) => {
+        const settingsAsDatabaseSettings = options.settings as DatabaseSettingsType & SettingsType2;
+        const [databases] = loadDatabases();
+        const settingsWithDefault = defaultSettings(settingsAsDatabaseSettings);
+        await databases.init(settingsWithDefault, options.domains as DatabaseDomainInterface[]);
+        if (databases) await Promise.all([databases.close()]);
+      },
+    },
   },
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   load: async (_: DatabaseSettingsType) => {
@@ -70,7 +83,8 @@ export default domain('@palmares/database', __dirname, {
     if (databases) await Promise.all([databases.close()]);
   },
   getMigrations: async () => defaultMigrations,
-  getModels: async () => {
-    return defaultModels;
+  getModels: async (engineInstance: DatabaseAdapter) => {
+    if (engineInstance.migrations) return defaultModels;
+    else return []
   },
 });

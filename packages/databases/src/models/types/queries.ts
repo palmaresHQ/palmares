@@ -417,6 +417,7 @@ type RequiredFields<
 };
 
 export type OperatorsOfQuery =
+  | 'eq'
   | 'is'
   | 'or'
   | 'and'
@@ -429,6 +430,7 @@ export type OperatorsOfQuery =
   | 'like';
 
 export type FieldWithOperationType<TFieldType> = {
+  ['eq']?: TFieldType;
   ['is']?:
     | {
         not: TFieldType;

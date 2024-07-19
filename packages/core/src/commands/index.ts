@@ -1,4 +1,5 @@
-import { SettingsType2, StdLike } from '../conf/types';
+import { SettingsType2 } from '../conf/types';
+import Std from '../std-adapter';
 import { CommandNotFoundException } from './exceptions';
 import { DefaultCommandType, DomainHandlerFunctionArgs } from './types';
 import { initializeDomains } from '../domain/utils';
@@ -138,11 +139,11 @@ export async function handleCommands(
   settingsOrSettingsPath:
     | Promise<{ default: SettingsType2 }>
     | SettingsType2
-    | StdLike
-    | Promise<{ default: StdLike }>
+    | Std
+    | Promise<{ default: Std }>
     | {
         settingsPathLocation: string;
-        std: StdLike;
+        std: Std;
       },
   args: string[]
 ): Promise<void> {
@@ -150,9 +151,8 @@ export async function handleCommands(
   logger.info(new Date().toISOString());
   logger.info('Loading the settings and domains...');
   const commandType = args[0];
-  const settings = await setSettings(settingsOrSettingsPath);
 
-  const { domains, commands: availableCommands } = await initializeDomains(settings);
+  const { settings, domains, commands: availableCommands } = await initializeDomains(settingsOrSettingsPath);
 
   // the '@palmares/logging' package sends a new logger constructor through the settings, if that exist we will use it, otherwise it'll just be a default `console.info`
   const loggerConstructorFromPalmaresLoggingPackage = (settings as any)?.__logger as
@@ -182,7 +182,7 @@ export async function handleCommands(
   if (isCommandDefined) {
     formattedCommandLineArgs = await formatArgs(availableCommands[commandType], args.slice(1, args.length));
 
-    logger.info(`Domains loaded, running the command [${commandType}]`);
+    logger?.info?.(`Domains loaded, running the command [${commandType}]`);
 
     returnOfCommand = await Promise.resolve(
       availableCommands[commandType].handler({
@@ -198,7 +198,7 @@ export async function handleCommands(
   // This will start the app server if your command returns an app server class. Please, don't try to run the app server manually, unless you REALLY know
   // what you are doing, since it has it's own lifecycle.
   if (returnOfCommand?.prototype instanceof AppServer) {
-    logger.info(`Command wants to start the app server, starting it...`);
+    logger?.info?.(`Command wants to start the app server, starting it...`);
 
     initializeApp(domains, settings, formattedCommandLineArgs, returnOfCommand);
   }

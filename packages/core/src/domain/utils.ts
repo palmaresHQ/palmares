@@ -1,12 +1,13 @@
 import Domain from './domain';
 import { NotAValidDomainDefaultExportedError } from './exceptions';
-import { setSettings } from '../conf/settings';
+import { getSettings, setSettings } from '../conf/settings';
 import { getCommands } from '../commands';
 import { AppServer, appServer } from '../app';
 
 import type { DefaultCommandType } from '../commands/types';
 import type { DomainReadyFunctionArgs } from './types';
 import type { CoreSettingsType, SettingsType2 } from '../conf/types';
+import Std from '../std-adapter';
 
 let cachedDomains: (typeof Domain)[] | null = null;
 let cachedInitializedDomains: Domain<any>[] | null = null;
@@ -19,9 +20,11 @@ let cachedInitializedDomains: Domain<any>[] | null = null;
  *
  * @returns - Returns all of the domains from the settings.
  */
-export async function retrieveDomains(settings: CoreSettingsType & SettingsType2): Promise<(typeof Domain)[]> {
+export async function retrieveDomains(settings: CoreSettingsType & SettingsType2, options?: {
+  ignoreCache?: boolean;
+}): Promise<(typeof Domain)[]> {
   const isNotDynamicDomains = settings?.isDynamicDomains !== true;
-  if (cachedDomains && isNotDynamicDomains) return cachedDomains;
+  if (cachedDomains && isNotDynamicDomains && options?.ignoreCache !== true) return cachedDomains;
 
   const mergedSettings: any = settings;
   const domainClasses: (typeof Domain)[] = [];
@@ -72,24 +75,40 @@ export async function retrieveDomains(settings: CoreSettingsType & SettingsType2
  * command like `makemigrations` or `migrate` the command already receives all of the domains initialized.
  *
  *
- *  We will append all of the commands to an object so at runtime we can access it
+ * We will append all of the commands to an object so at runtime we can access it
  * and know which commands are available to run.
  */
 export async function initializeDomains(
-  settings: SettingsType2,
+  settingsOrSettingsPath:
+  | Promise<{ default: SettingsType2 }>
+  | SettingsType2
+  | Std
+  | Promise<{ default: Std }>
+  | {
+      settingsPathLocation: string;
+      std: Std;
+    },
   options?: { ignoreCache?: boolean; ignoreCommands?: boolean}
-) {
+): Promise<{
+  settings: SettingsType2;
+  domains: Domain<any>[];
+  commands: DefaultCommandType;
+}> {
+
   const ignoreCache = options?.ignoreCache === true;
   if (cachedInitializedDomains && ignoreCache !== true)
     return {
-      settings,
+      settings: getSettings() as SettingsType2,
       domains: cachedInitializedDomains,
       commands: getCommands(),
     };
 
+  const settings = await setSettings(settingsOrSettingsPath);
   let commands = {} as DefaultCommandType;
   const initializedDomains: Domain<any>[] = [];
-  const domainClasses = await retrieveDomains(settings);
+  const domainClasses = await retrieveDomains(settings, {
+    ignoreCache: options?.ignoreCache,
+  });
   const readyFunctionsToCallAfterAllDomainsAreLoaded = [] as ((
     args: DomainReadyFunctionArgs<any, any>
   ) => void | Promise<void>)[];
@@ -97,7 +116,7 @@ export async function initializeDomains(
   for (const domainClass of domainClasses) {
     const initializedDomain = new domainClass();
     const domainIsNotLoadedAndHasLoadFunction =
-      typeof initializedDomain.load === 'function' && !initializedDomain.isLoaded;
+      typeof initializedDomain.load === 'function' && (!initializedDomain.isLoaded && options?.ignoreCache !== true);
     if (domainIsNotLoadedAndHasLoadFunction) {
       if (initializedDomain.load) {
         const readyFunctionToCallOrNot = await initializedDomain.load(settings);

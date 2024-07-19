@@ -22,7 +22,7 @@ export function databaseAdapter<
   fields: TFieldsAdapter;
   models: TModelsAdapter;
   query: TQueryAdapter;
-  migrations: TMigrationsAdapter;
+  migrations?: TMigrationsAdapter;
   new: TFunctionNew;
   duplicate: TFunctionDuplicate;
   isConnected: TFunctionIsConnected;
@@ -30,13 +30,13 @@ export function databaseAdapter<
   transaction: TFunctionTransaction;
 }) {
   class CustomDatabaseAdapter extends DatabaseAdapter<
-    any,
+    Awaited<ReturnType<TFunctionNew>>[1]['instance'],
     TFieldsAdapter,
     TModelsAdapter,
     TQueryAdapter,
     TMigrationsAdapter
   > {
-    declare instance: any;
+    declare instance: Awaited<ReturnType<TFunctionNew>>[1]['instance'];
     fields = args.fields as TFieldsAdapter;
     models = args.models as TModelsAdapter;
     query = args.query as TQueryAdapter;
@@ -49,24 +49,7 @@ export function databaseAdapter<
     transaction = args.transaction as TFunctionTransaction;
   }
 
-  return CustomDatabaseAdapter as unknown as {
-    new (...args: any[]): CustomDatabaseAdapter;
-    new: (...args: Parameters<TFunctionNew>) => Promise<
-      [
-        Parameters<TFunctionNew>,
-        CustomDatabaseAdapter & {
-          fields: TFieldsAdapter;
-          models: TModelsAdapter;
-          query: TQueryAdapter;
-          migrations: TMigrationsAdapter;
-          duplicate: TFunctionDuplicate;
-          isConnected: TFunctionIsConnected;
-          close: TFunctionClose;
-          transaction: TFunctionTransaction;
-        },
-      ]
-    >;
-  };
+  return CustomDatabaseAdapter
 }
 
 /**
@@ -97,7 +80,7 @@ export default class DatabaseAdapter<
   models!: TModelsAdapter;
   fields!: TFieldsAdapter;
   query!: TQueryAdapter;
-  migrations!: TMigrationsAdapter;
+  migrations?: TMigrationsAdapter;
   ModelType: any;
   instance?: TInstanceType;
   __argumentsUsed!: any;
@@ -114,7 +97,7 @@ export default class DatabaseAdapter<
    *
    * @returns - Will return a new engine instance.
    */
-  static async new(..._args: any[]): Promise<[any, DatabaseAdapter]> {
+  static new(..._args: any[]): [any, DatabaseAdapter] {
     throw new NotImplementedAdapterException('new');
   }
 

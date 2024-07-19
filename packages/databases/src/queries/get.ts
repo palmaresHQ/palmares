@@ -56,16 +56,17 @@ export default async function getQuery<
   };
   let hasRun = false;
   if (internal.engine.query.get?.queryDataNatively) {
+    const modelConstructor = modelInstanceAsModel.constructor as ReturnType<typeof model>;
     try {
       hasRun = true;
       return await internal.engine.query.get?.queryDataNatively?.(
         internal.engine,
-        modelInstanceAsModel.constructor as ReturnType<typeof model>,
+        modelConstructor,
         args.search,
         selectedFields as unknown as string[],
         internal.includes,
         async (modelInstance: InstanceType<ReturnType<typeof model>>, search: any) =>
-          parseSearch(internal.engine, modelInstance, search)
+          parseSearch(internal.engine, modelInstance, await modelConstructor.default.getInstance(internal.engine.connectionName), search)
       );
     } catch (e) {
       if ((e as Error).name === NotImplementedAdapterException.name) hasRun = false;

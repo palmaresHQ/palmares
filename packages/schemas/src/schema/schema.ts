@@ -2,12 +2,9 @@ import SchemaAdapter from '../adapter';
 import FieldAdapter from '../adapter/fields';
 import { ValidationDataBasedOnType } from '../adapter/types';
 import { getDefaultAdapter } from '../conf';
-import { NotInModelSchemaError } from '../exceptions';
 import { formatErrorFromParseMethod } from '../utils';
 import Validator from '../validators/utils';
-import ObjectSchema from './object';
 
-import { type modelSchema } from '../model';
 import type {
   DefinitionsOfSchemaType,
   OnlyFieldAdaptersFromSchemaAdapter,
@@ -54,9 +51,6 @@ export default class Schema<
   protected __cachedGetParent?: (() => Schema<any, any>);
   protected set __getParent(value: (() => Schema<any, any>)) {
     this.__cachedGetParent = value;
-    console.log('tessst', typeof this.__modelOmitCallback === 'function')
-    if (typeof this.__modelOmitCallback === 'function') this.__modelOmitCallback();
-
   }
   protected get __getParent(): (() => Schema<any, any>) | undefined {
     return this?.__cachedGetParent

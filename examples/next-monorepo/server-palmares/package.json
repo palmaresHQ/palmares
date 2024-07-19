@@ -22,7 +22,6 @@
     "@palmares/express-adapter": "workspace:*",
     "@palmares/node-std": "workspace:*",
     "@palmares/server": "workspace:*",
-    "@palmares/std": "workspace:*",
     "cors": "^2.8.5",
     "zod": "^3.22.4"
   },

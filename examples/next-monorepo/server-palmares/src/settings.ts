@@ -1,7 +1,6 @@
 import CoreDomain, { defineSettings } from '@palmares/core';
 import { VercelServerlessAdapter } from '@palmares/vercel-adapter';
-//import { ExpressServerAdapter } from '@palmares/express-adapter'
-import StdDomain from '@palmares/std';
+import { ExpressServerAdapter } from '@palmares/express-adapter'
 import NodeStd from '@palmares/node-std';
 import LoggingDomain from '@palmares/logging';
 import ConsoleLogging from '@palmares/console-logging';
@@ -14,17 +13,12 @@ import { dirname, resolve } from 'path';
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
   settingsLocation: __filename,
+  std: NodeStd,
   installedDomains: [
     [
       LoggingDomain,
       {
         logger: ConsoleLogging,
-      },
-    ],
-    [
-      StdDomain,
-      {
-        STD: NodeStd,
       },
     ],
     // Domain Core, required for palmares to work

@@ -1,0 +1,48 @@
+{
+  "name": "@palmares/tests",
+  "version": "0.0.0",
+  "description": "This defines a default test framework testing stuff inside of the framework",
+  "main": "./dist/cjs/src/index.js",
+  "module": "./dist/esm/src/index.js",
+  "types": "./dist/cjs/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/cjs/types/index.d.ts",
+      "node": "./dist/cjs/src/index.js",
+      "require": "./dist/cjs/src/index.js",
+      "import": "./dist/esm/src/index.js",
+      "default": "./dist/esm/src/index.js"
+    }
+  },
+  "scripts": {
+    "clear": "rimraf ./dist",
+    "test": "pnpm --filter @tests/test test",
+    "test:watch": "pnpm --filter @tests/test test:watch",
+    "build:types": "tsc --project tsconfig.types.json",
+    "build:cjs": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc",
+    "build:module": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc",
+    "build": "pnpm run clear && pnpm run build:cjs && pnpm run build:module && pnpm run build:types",
+    "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
+    "build:cjs:watch": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc --watch",
+    "build:module:watch": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc --watch",
+    "build:watch": "pnpm run build:cjs:watch & pnpm run build:module:watch & pnpm run build:types:watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/palmaresHQ/palmares.git"
+  },
+  "keywords": [
+    "palmares",
+    "test",
+    "package"
+  ],
+  "author": "Nicolas Melo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/palmaresHQ/palmares/issues"
+  },
+  "homepage": "https://github.com/palmaresHQ/palmares#readme",
+  "dependencies": {
+    "@palmares/core": "workspace:*"
+  }
+}

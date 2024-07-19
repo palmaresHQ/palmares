@@ -1,5 +1,4 @@
-import { ERR_MODULE_NOT_FOUND } from '@palmares/core';
-import { getDefaultStd } from '@palmares/std';
+import { ERR_MODULE_NOT_FOUND, getDefaultStd } from '@palmares/core';
 
 import { DatabaseDomainInterface } from '../interfaces';
 import { DatabaseSettingsType, InitializedEngineInstancesType, OptionalMakemigrationsArgsType } from '../types';

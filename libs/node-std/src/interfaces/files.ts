@@ -1,8 +1,9 @@
-import { FilesAndFolders } from '@palmares/std';
+import { FilesAndFolders } from '@palmares/core';
 
-import { join, basename, relative, } from 'path';
+import { join, basename, relative, dirname, } from 'path';
 import { env } from 'process';
-import { readFile, access, constants, writeFile, appendFile, mkdir, readdir } from 'fs';
+import { readFile, access, constants, writeFile, appendFile, mkdir, readdir, rm } from 'fs';
+
 export default class FilesAndFoldersNode implements FilesAndFolders {
   async basename(path: string | string[]): Promise<string> {
     const pathToUse = Array.isArray(path) ? await this.join(...path) : path;
@@ -66,6 +67,11 @@ export default class FilesAndFoldersNode implements FilesAndFolders {
     });
   }
 
+  async dirname(path: string | string[]): Promise<string> {
+    const pathToUse = Array.isArray(path) ? await this.join(...path) : path;
+    return dirname(pathToUse);
+  }
+
   async makeDirectory(path: string | string[]): Promise<void> {
     const pathToCreateDirectory = Array.isArray(path) ? await this.join(...path) : path;
     return new Promise((resolve, reject) => {
@@ -82,6 +88,16 @@ export default class FilesAndFoldersNode implements FilesAndFolders {
       readdir(pathToReadDirectory, (error, files) => {
         if (error) reject(error);
         else resolve(files);
+      });
+    });
+  }
+
+  async removeFile(path: string | string[]): Promise<void> {
+    const pathToRemove = Array.isArray(path) ? await this.join(...path) : path;
+    return new Promise((resolve, reject) => {
+      rm(pathToRemove, (error) => {
+        if (error) reject(error);
+        else resolve(undefined);
       });
     });
   }

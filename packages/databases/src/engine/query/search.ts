@@ -149,6 +149,8 @@ export default class AdapterSearchQuery {
    * ```
    *
    * @param operationType - The operation type of the query, this can be `like`, `in`, `is`, `between` and so on.
+   * @param key - The key of the query, this is the field name that we are querying.
+   * @param modelInstance - The model instance that we are querying.
    * @param value - The value of the query, if the operation is `or`, `and`, `in` or `between` this will be an array of values, otherwise this can be a string, a number and such. Be aware that
    * this respects the `inputParser` of the field if you have implemented it on {@link AdapterFieldParser}. This is nice because we can maintain the types of the fields through the framework
    * and you can parse the way that makes sense for your engine.
@@ -159,6 +161,10 @@ export default class AdapterSearchQuery {
    */
   async parseSearchFieldValue<OperationType extends OperatorsOfQuery>(
     _operationType: OperationType,
+    /** The key of the query, this is the field name that we are querying. */
+    _key: string,
+    /** The model instance that we are querying. */
+    _modelInstance: any,
     /**
      * This is the value of the query, if the operation is `or`, `and`, `in` or `between` this will be an array of values.
      */

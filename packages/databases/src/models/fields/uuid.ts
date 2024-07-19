@@ -83,6 +83,7 @@ export default class UuidField<
   ) {
     super({
       isAuto: (typeof params.autoGenerate === 'boolean' ? params.autoGenerate : false) as any,
+      unique: (typeof params.autoGenerate === 'boolean' && params.autoGenerate ? true : params.unique) as any,
       ...params,
     });
     this.autoGenerate = typeof params.autoGenerate === 'boolean' ? params.autoGenerate : (false as TAutoGenerate);

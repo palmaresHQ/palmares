@@ -48,7 +48,7 @@ export class CreateField extends Operation {
   ) {
     const toModel = toState[this.modelName];
     const fromModel = fromState[this.modelName];
-    await engineInstance.migrations.addField(
+    await engineInstance?.migrations?.addField(
       engineInstance,
       toModel,
       fromModel,
@@ -120,7 +120,7 @@ export class ChangeField extends Operation {
   ) {
     const fromModel = fromState[this.modelName];
     const toModel = toState[this.modelName];
-    await engineInstance.migrations.changeField(
+    await engineInstance.migrations?.changeField(
       engineInstance,
       toModel,
       fromModel,
@@ -203,7 +203,7 @@ export class RenameField extends Operation {
   ): Promise<void> {
     const fromModel = fromState[this.modelName];
     const toModel = toState[this.modelName];
-    await engineInstance.migrations.renameField(
+    await engineInstance.migrations?.renameField(
       engineInstance,
       toModel,
       fromModel,
@@ -269,7 +269,7 @@ export class DeleteField extends Operation {
   ) {
     const fromModel = fromState[this.modelName];
     const toModel = toState[this.modelName];
-    await engineInstance.migrations.removeField(
+    await engineInstance.migrations?.removeField(
       engineInstance,
       toModel,
       fromModel,

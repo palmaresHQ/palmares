@@ -52,7 +52,7 @@ export class CreateModel extends Operation {
     returnOfInit: any
   ): Promise<void> {
     const toModel = toState[this.modelName];
-    await engineInstance.migrations.addModel(engineInstance, toModel, migration, returnOfInit);
+    await engineInstance.migrations?.addModel(engineInstance, toModel, migration, returnOfInit);
   }
 
   static async toGenerate(domainName: string, domainPath: string, modelName: string, data: CreateModelToGenerateData) {
@@ -106,7 +106,7 @@ export class DeleteModel extends Operation {
     returnOfInit: any
   ): Promise<void> {
     const fromModel = fromState[this.modelName];
-    await engineInstance.migrations.removeModel(engineInstance, fromModel, migration, returnOfInit);
+    await engineInstance.migrations?.removeModel(engineInstance, fromModel, migration, returnOfInit);
   }
 
   static async toGenerate(domainName: string, domainPath: string, modelName: string) {
@@ -162,7 +162,7 @@ export class ChangeModel extends Operation {
   ) {
     const toModel = toState[this.modelName];
     const fromModel = fromState[this.modelName];
-    await engineInstance.migrations.changeModel(engineInstance, toModel, fromModel, migration, returnOfInit);
+    await engineInstance.migrations?.changeModel(engineInstance, toModel, fromModel, migration, returnOfInit);
   }
 
   static async toGenerate(domainName: string, domainPath: string, modelName: string, data: ChangeModelToGenerateData) {

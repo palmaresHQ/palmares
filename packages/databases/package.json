@@ -16,6 +16,7 @@
   },
   "scripts": {
     "clear": "rimraf ./dist",
+    "test": "pnpm --filter @tests/databases test",
     "build:types": "tsc --project tsconfig.types.json",
     "build:cjs": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc",
     "build:module": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc",
@@ -40,9 +41,9 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
-    "@palmares/logging": "workspace:*",
     "@palmares/core": "workspace:*",
-    "@palmares/std": "workspace:*",
-    "@palmares/events": "workspace:*"
+    "@palmares/events": "workspace:*",
+    "@palmares/logging": "workspace:*",
+    "drizzle-kit": "^0.22.8"
   }
 }

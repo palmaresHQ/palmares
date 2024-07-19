@@ -37,7 +37,7 @@ const sequelizeDatabaseAdapter = databaseAdapter({
   migrations: new SequelizeMigrations(),
   models: new SequelizeEngineModels(),
   query: new SequelizeEngineQuery(),
-  new: async <TArgs extends Options & { url?: string }>(args: TArgs): Promise<[TArgs, DatabaseAdapter]> => {
+  new: <TArgs extends Options & { url?: string }>(args: TArgs): [TArgs, DatabaseAdapter] => {
     const isUrlDefined: boolean = typeof args.url === 'string';
     if (isUrlDefined) {
       const databaseUrl: string = args.url || '';

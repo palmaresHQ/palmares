@@ -4,6 +4,7 @@ import type { baseContractRoute, contractByIdRoute } from './routes';
 import { getContractByIdAndProfileId, getContractsByProfileId } from './services';
 
 export const contractByIdController = pathNested<typeof contractByIdRoute>()().get(async (request) => {
+  request.params.id
   const contract = await getContractByIdAndProfileId(request.params.id, request.context.profile.id);
 
   if (!contract) return Response.text('', { status: 404 });

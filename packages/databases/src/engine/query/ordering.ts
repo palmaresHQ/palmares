@@ -69,7 +69,7 @@ export default class AdapterOrderingQuery {
    *
    * @returns - Returns the parsed ordering to be used on your query.
    */
-  async parseOrdering(_ordering: (`${string}` | `-${string}`)[]): Promise<any> {
+  async parseOrdering(_modelInstance: any, _ordering: (`${string}` | `-${string}`)[]): Promise<any> {
     throw new NotImplementedAdapterException('parseOrdering');
   }
 }

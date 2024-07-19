@@ -14,6 +14,7 @@ import AdapterTextFieldParser from './text';
 import AdapterEnumFieldParser from './enum';
 import AdapterBooleanFieldParser from './boolean';
 import { NotImplementedAdapterFieldsException } from '../exceptions';
+import { BaseModel, Model } from '../../models';
 
 /**
  * Functional approach to create a custom {@link AdapterFields} class.
@@ -37,8 +38,10 @@ export function adapterFields<
 >(args: {
   /** An {@link AdapterFieldParser}, it allows you to have a default translate function for all fields. By default, the translate function will receive the fields parser */
   fieldsParser: TFieldsParser;
-  autoFieldParser: TAutoFieldParser;
-  bigAutoFieldParser: TBigAutoFieldParser;
+  /** If you do not want to define it, we fallback to {@link AdapterIntegerFieldParser} as the parser */
+  autoFieldParser?: TAutoFieldParser;
+  /** If you do not want to define it, we fallback to {@link AdapterBigIntegerFieldParser} as the parser */
+  bigAutoFieldParser?: TBigAutoFieldParser;
   bigIntegerFieldParser: TBigIntegerFieldParser;
   charFieldParser: TCharFieldParser;
   dateFieldParser: TDateFieldParser;
@@ -170,8 +173,8 @@ export function adapterFields<
 }) {
   class CustomAdapterFields extends AdapterFields {
     fieldsParser = args.fieldsParser as TFieldsParser;
-    autoFieldParser = args.autoFieldParser as TAutoFieldParser;
-    bigAutoFieldParser = args.bigAutoFieldParser as TBigAutoFieldParser;
+    autoFieldParser = (typeof args.autoFieldParser === 'function' ? args.autoFieldParser : args.integerFieldParser) as unknown as TAutoFieldParser ;
+    bigAutoFieldParser = (typeof args.bigAutoFieldParser === 'function' ? args.bigAutoFieldParser : args.bigIntegerFieldParser) as unknown as TBigAutoFieldParser;
     bigIntegerFieldParser = args.bigIntegerFieldParser as TBigIntegerFieldParser;
     charFieldParser = args.charFieldParser as TCharFieldParser;
     dateFieldParser = args.dateFieldParser as TDateFieldParser;
@@ -304,7 +307,8 @@ export default class AdapterFields {
     _modelName: string,
     _translatedModel: any,
     _field: Field,
-    _fieldTranslated: any
+    _fieldTranslated: any,
+    _parse: (model: Model, field: Field<any, any, any, any, any, any, any, any>) => Promise<any>
   ): Promise<any> {
     throw new NotImplementedAdapterFieldsException('lazyEvaluateField');
   }
