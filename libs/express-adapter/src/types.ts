@@ -1,6 +1,5 @@
-import { ServerSettingsType } from '@palmares/server';
-
-import type { IRouterHandler, Express, json, raw, text, urlencoded } from 'express';
+import type { ServerSettingsType } from '@palmares/server';
+import type { Express, IRouterHandler, json, raw, text, urlencoded } from 'express';
 import type multer from 'multer';
 
 export type ToFormDataOptions<TType extends keyof ReturnType<typeof multer>> = {

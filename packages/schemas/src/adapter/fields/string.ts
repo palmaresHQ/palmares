@@ -2,8 +2,8 @@ import FieldAdapter from '.';
 import { SchemaAdapterNotImplementedError } from '../../exceptions';
 
 import type SchemaAdapter from '..';
-import type { StringAdapterTranslateArgs } from '../types';
 import type WithFallback from '../../utils';
+import type { StringAdapterTranslateArgs } from '../types';
 
 
 export function stringFieldAdapter<
@@ -18,7 +18,7 @@ export function stringFieldAdapter<
   parse?: TParse;
 }) {
   class CustomStringFieldAdapter extends StringFieldAdapter {
-    translate = args.translate as TTranslate;
+    translate = args.translate;
     toString = args.toString as TToString;
     formatError = args.formatError as TFormatError;
     parse = args.parse as TParse;

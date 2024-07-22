@@ -51,7 +51,7 @@ export function adapterSetQuery<TFunctionQueryData extends AdapterSetQuery['quer
   queryData: TFunctionQueryData;
 }) {
   class CustomAdapterSetQuery extends AdapterSetQuery {
-    queryData = args.queryData as TFunctionQueryData;
+    queryData = args.queryData;
   }
 
   return CustomAdapterSetQuery as typeof AdapterSetQuery & {
@@ -107,6 +107,7 @@ export default class AdapterSetQuery {
    *
    * @returns - Returns an array of tuples, the first argument is true if the data was created, false otherwise. The second argument is the data that was created or updated.
    */
+  // eslint-disable-next-line ts/require-await
   async queryData(
     _engine: DatabaseAdapter,
     _args: {

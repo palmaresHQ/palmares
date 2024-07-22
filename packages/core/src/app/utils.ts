@@ -1,7 +1,7 @@
-import { AppServer } from '.';
-import { DomainHandlerFunctionArgs } from '../commands/types';
-import { SettingsType2 } from '../conf/types';
-import { Domain } from '../domain';
+import type { AppServer } from '.';
+import type { DomainHandlerFunctionArgs } from '../commands/types';
+import type { SettingsType2 } from '../conf/types';
+import type { Domain } from '../domain';
 
 /**
  * This will initialize the app respecting it's lifecycle.

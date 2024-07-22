@@ -1,10 +1,10 @@
-import BooleanSchema from '../schema/boolean';
-import Schema from '../schema/schema';
-import { ValidationFallbackReturnType } from '../schema/types';
+import type Schema from '../schema/schema';
+import type { ValidationFallbackReturnType } from '../schema/types';
 
 export function booleanValidation(): ValidationFallbackReturnType {
   return {
     type: 'medium',
+    // eslint-disable-next-line ts/require-await
     callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isValid = typeof value === 'boolean';
 
@@ -16,6 +16,7 @@ export function booleanValidation(): ValidationFallbackReturnType {
               {
                 isValid: false,
                 code: 'boolean',
+                // eslint-disable-next-line ts/no-unnecessary-condition
                 path: path || [],
                 message: 'Value is not a boolean',
               },
@@ -29,6 +30,7 @@ export function booleanValidation(): ValidationFallbackReturnType {
 export function allowStringParser(): ValidationFallbackReturnType {
   return {
     type: 'high',
+    // eslint-disable-next-line ts/require-await
     callback: async (
       value: any,
       _path: (string | number)[],

@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import type DatabaseAdapter from '.';
-import { ModelOptionsType } from '..';
-import { Field } from '../models/fields';
-import { Model } from '../models/model';
 import { NotImplementedAdapterException } from './exceptions';
+
+import type DatabaseAdapter from '.';
+import type { ModelOptionsType } from '..';
+import type { Field } from '../models/fields';
+import type { Model } from '../models/model';
 
 /**
  * Functional approach to creating a model adapter instead of the default class/inheritance approach.
@@ -254,9 +254,9 @@ export function adapterModels<
   customOptions?: TCustomOptionsFunction;
 }) {
   class CustomAdapterModel extends AdapterModels {
-    translateOptions = args.translateOptions as TTranslateOptionsFunction;
+    translateOptions = args.translateOptions;
     translateFields = args.translateFields as TTranslateFieldsFunction;
-    translate = args.translate as TTranslateFunction;
+    translate = args.translate;
     afterModelsTranslation = args.afterModelsTranslation as TAfterModelsTranslationFunction;
 
     static customOptions = args.customOptions as TCustomOptionsFunction;
@@ -303,6 +303,7 @@ export default class AdapterModels {
    * @param modelName - The name of the model that is being translated.
    * @param modelOptions - The options of the model that is being translated.
    */
+  // eslint-disable-next-line ts/require-await
   async translateOptions(_engine: DatabaseAdapter, _modelName: string, _modelOptions: ModelOptionsType): Promise<any> {
     throw new NotImplementedAdapterException('translateOptions');
   }
@@ -403,6 +404,7 @@ export default class AdapterModels {
    *
    * @returns - An object where the keys are the field names and the values are the translated values.
    */
+  // eslint-disable-next-line ts/require-await
   async translateFields?(
     _engine: DatabaseAdapter,
     _modelName: string,
@@ -496,6 +498,7 @@ export default class AdapterModels {
    *
    * @returns - The instance of the translated model.
    */
+  // eslint-disable-next-line ts/require-await
   async translate(
     _engine: DatabaseAdapter,
     _modelName: string,
@@ -530,6 +533,7 @@ export default class AdapterModels {
    *
    * @returns - An array of tuples where the first value is the modelName and the second is the value returned from `translate` method, or undefined if you don't want to modify the models.
    */
+  // eslint-disable-next-line ts/require-await
   async afterModelsTranslation?(
     _engine: DatabaseAdapter,
     _models: [string, any][]
@@ -537,6 +541,7 @@ export default class AdapterModels {
     throw new NotImplementedAdapterException('afterModelsTranslation');
   }
 
+  // eslint-disable-next-line ts/require-await
   async getModelInstanceForCustomHooks?(
     _engine: DatabaseAdapter,
     _modelName: string,

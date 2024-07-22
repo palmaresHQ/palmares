@@ -1,6 +1,5 @@
-import type { Narrow } from '@palmares/core';
-import type { DefaultRouterType } from '../router/types';
 import type { ExtractRequestsFromMiddlewaresForServer, MiddlewareOptions } from './types';
+import type Request from '../request';
 import type {
   DefaultRequestType,
   RequestCache,
@@ -10,11 +9,10 @@ import type {
   RequestMode,
   RequestRedirect,
 } from '../request/types';
-import type { BaseRouter } from '../router/routers';
-import type Request from '../request';
 import type Response from '../response';
 import type { DefaultResponseType, ExtractResponsesFromMiddlewaresRequestAndRouterHandlers } from '../response/types';
-import { StatusCodes } from '../response/status';
+import type { BaseRouter } from '../router/routers';
+import type { DefaultRouterType } from '../router/types';
 
 /**
  * This class is used to create a new {@link Middleware} instance.

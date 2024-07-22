@@ -1,8 +1,8 @@
-import { DomainHandlerFunctionArgs } from '../commands/types';
-import { SettingsType2 } from '../conf/types';
-import { CoreSettingsType } from '../conf/types';
-import Domain from '../domain/domain';
 import { getLogger } from '../logging';
+
+import type { DomainHandlerFunctionArgs } from '../commands/types';
+import type { CoreSettingsType , SettingsType2 } from '../conf/types';
+import type Domain from '../domain/domain';
 
 let baseAppServerInstance: BaseAppServer | undefined = undefined;
 let appServerInstance: InstanceType<ReturnType<typeof appServer>> | AppServer | undefined = undefined;
@@ -16,9 +16,9 @@ export function appServer<
   TCloseFunction extends AppServer['close']
 >(args: { start: TStartFunction; load: TLoadFunction; close: TCloseFunction }) {
   return class extends AppServer {
-    start = args.start as TStartFunction;
-    load = args.load as TLoadFunction;
-    close = args.close as TCloseFunction;
+    start = args.start;
+    load = args.load;
+    close = args.close;
   };
 }
 
@@ -47,7 +47,7 @@ export class BaseAppServer {
    *
    * @params args - The arguments of the server, this way you can send anything you want to the `close` method of the app server.
    */
-  async configureCleanup(appServer: AppServer, args: any) {
+  configureCleanup(appServer: AppServer, args: any) {
     process.on('SIGINT', async () => {
       await this.#cleanup();
       await appServer.close(args);
@@ -135,6 +135,7 @@ export class AppServer {
    * const app = express();
    * ```
    */
+  // eslint-disable-next-line ts/require-await
   async load(_: {
     domains: Domain[];
     commandLineArgs: DomainHandlerFunctionArgs['commandLineArgs'];
@@ -166,6 +167,7 @@ export class AppServer {
    * })
    * ```
    */
+  // eslint-disable-next-line ts/require-await
   async start(_configureCleanup: (args?: any) => Promise<void>): Promise<void> {
     return undefined;
   }
@@ -174,6 +176,7 @@ export class AppServer {
    * Runs the clean up function of the server when the application stops, most frameworks might not need this
    * but if some framework relies on stopping gracefully it might be needed.
    */
+  // eslint-disable-next-line ts/require-await
   async close(args: any): Promise<void> {
     return undefined;
   }

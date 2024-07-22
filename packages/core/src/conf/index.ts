@@ -1,7 +1,7 @@
+import type { SettingsType2 } from './types';
 import type Domain from '../domain/domain';
 import type domain from '../domain/function';
 
-import type { SettingsType2 } from './types';
 
 export default function defineSettings<
   const TDomains extends readonly (

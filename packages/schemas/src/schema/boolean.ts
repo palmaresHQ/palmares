@@ -1,10 +1,11 @@
 import Schema from './schema';
 import { getDefaultAdapter } from '../conf';
-import { defaultTransform, defaultTransformToAdapter } from '../utils';
-import { DefinitionsOfSchemaType } from './types';
-import { optional, nullable, is } from '../validators/schema';
-import { booleanValidation } from '../validators/boolean';
 import convertFromStringBuilder from '../parsers/convert-from-string';
+import { defaultTransform, defaultTransformToAdapter } from '../utils';
+import { booleanValidation } from '../validators/boolean';
+import { is, nullable, optional } from '../validators/schema';
+
+import type { DefinitionsOfSchemaType } from './types';
 
 export default class BooleanSchema<
   TType extends {
@@ -44,7 +45,7 @@ export default class BooleanSchema<
             parsers: {
               allowString: this.__allowString,
               allowNumber: this.__allowNumber,
-              is: this.__is?.value,
+              is: this.__is.value,
               trueValues: this.__trueValues,
               falseValues: this.__falseValues,
               nullable: this.__nullable.allow,
@@ -63,6 +64,7 @@ export default class BooleanSchema<
           {
             validatorsIfFallbackOrNotSupported: booleanValidation(),
             shouldAddStringVersion: options.shouldAddStringVersion,
+            // eslint-disable-next-line ts/require-await
             fallbackIfNotSupported: async () => [],
           }
         );
@@ -352,7 +354,7 @@ export default class BooleanSchema<
     ) => Awaited<ReturnType<NonNullable<TDefinitions['schemaAdapter']['field']>['translate']>> | any,
     toStringCallback?: (schemaAsString: string) => string
   ) {
-    return super.extends(callback, toStringCallback) as this;
+    return super.extends(callback, toStringCallback);
   }
 
   /**
@@ -648,7 +650,7 @@ export default class BooleanSchema<
   is<TValue extends true | false>(value: TValue, options?: { message?: string }) {
     this.__is = {
       value,
-      message: typeof options?.message === 'string' ? options?.message : `The value should be equal to ${value}`,
+      message: typeof options?.message === 'string' ? options.message : `The value should be equal to ${value}`,
     };
 
     this.__parsers.high.set('is', (valueFromParser) => {

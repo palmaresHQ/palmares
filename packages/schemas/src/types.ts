@@ -1,5 +1,5 @@
-import Schema from './schema/schema';
-import { ValidatorTypes } from './validators/types';
+import type Schema from './schema/schema';
+import type { ValidatorTypes } from './validators/types';
 
 export type MaybePromise<T> = T | Promise<T>;
 

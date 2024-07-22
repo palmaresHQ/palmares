@@ -1,10 +1,11 @@
-import DatetimeSchema from '../schema/datetime';
-import Schema from '../schema/schema';
-import { ValidationFallbackReturnType } from '../schema/types';
+import type DatetimeSchema from '../schema/datetime';
+import type Schema from '../schema/schema';
+import type { ValidationFallbackReturnType } from '../schema/types';
 
 export function datetimeValidation(): ValidationFallbackReturnType {
   return {
     type: 'medium',
+    // eslint-disable-next-line ts/require-await
     callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isValid = value instanceof Date && !isNaN(value.getTime());
 
@@ -16,6 +17,7 @@ export function datetimeValidation(): ValidationFallbackReturnType {
               {
                 isValid: false,
                 code: 'datetime',
+                // eslint-disable-next-line ts/no-unnecessary-condition
                 path: path || [],
                 message: 'Value is not a date',
               },
@@ -29,6 +31,7 @@ export function datetimeValidation(): ValidationFallbackReturnType {
 export function allowStringParser(): ValidationFallbackReturnType {
   return {
     type: 'high',
+    // eslint-disable-next-line ts/require-await
     callback: async (
       value: any,
       _path: (string | number)[],
@@ -54,9 +57,10 @@ export function allowStringParser(): ValidationFallbackReturnType {
 export function below(args: DatetimeSchema['__below']): ValidationFallbackReturnType {
   return {
     type: 'low',
+    // eslint-disable-next-line ts/require-await
     callback: async (
       value: any,
-      _path: (string | number)[],
+      path: (string | number)[],
       _options: Parameters<Schema['__transformToAdapter']>[0]
     ) => {
       const isValid = args.inclusive ? value <= args.value : value < args.value;
@@ -69,7 +73,8 @@ export function below(args: DatetimeSchema['__below']): ValidationFallbackReturn
               {
                 isValid: false,
                 code: 'below',
-                path: _path || [],
+                // eslint-disable-next-line ts/no-unnecessary-condition
+                path: path || [],
                 message: args.message,
               },
             ],
@@ -81,9 +86,10 @@ export function below(args: DatetimeSchema['__below']): ValidationFallbackReturn
 export function above(args: DatetimeSchema['__above']): ValidationFallbackReturnType {
   return {
     type: 'low',
+    // eslint-disable-next-line ts/require-await
     callback: async (
       value: any,
-      _path: (string | number)[],
+      path: (string | number)[],
       _options: Parameters<Schema['__transformToAdapter']>[0]
     ) => {
       const isValid = args.inclusive ? value <= args.value : value < args.value;
@@ -96,7 +102,8 @@ export function above(args: DatetimeSchema['__above']): ValidationFallbackReturn
               {
                 isValid: false,
                 code: 'above',
-                path: _path || [],
+                // eslint-disable-next-line ts/no-unnecessary-condition
+                path: path || [],
                 message: args.message,
               },
             ],

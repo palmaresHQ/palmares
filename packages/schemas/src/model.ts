@@ -1,32 +1,34 @@
 import {
-  Model,
   AutoField,
-  Field,
-  DecimalField,
   BigAutoField,
-  IntegerField,
   BooleanField,
   CharField,
-  TextField,
   DateField,
-  UuidField,
+  DecimalField,
   EnumField,
+  type Field,
   ForeignKeyField,
-  TranslatableField,
+  IntegerField,
   type InternalModelClass_DoNotUse,
+  type Model,
   type ModelFields,
+  TextField,
+  TranslatableField,
+  UuidField,
 } from "@palmares/databases";
 
-import { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from "./schema/types";
+import { TranslatableFieldNotImplementedError } from "./exceptions";
+import { number } from "./schema";
+import ArraySchema from "./schema/array";
+import { boolean } from "./schema/boolean";
+import { datetime } from "./schema/datetime";
 import ObjectSchema from "./schema/object"
 import Schema from "./schema/schema";
 import { string } from "./schema/string";
-import { number } from "./schema";
-import { boolean } from "./schema/boolean";
-import { datetime } from "./schema/datetime";
 import { union } from "./schema/union";
-import { TranslatableFieldNotImplementedError } from "./exceptions";
-import ArraySchema from "./schema/array";
+
+import type { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from "./schema/types";
+
 
 async function getSchemaFromModelField(
   model: ReturnType<typeof Model>,
@@ -82,7 +84,7 @@ async function getSchemaFromModelField(
     else if (schemaForChoicesAsNumbers) schema = schemaForChoicesAsNumbers;
   } else if (field instanceof ForeignKeyField) {
     const doesADefinedFieldExistWithRelatedName = parent && field.relatedName && (parent as any).__data?.[field.relatedName];
-    const doesADefinedFieldExistWithRelationName = definedFields && field.relationName && definedFields?.[field.relationName];
+    const doesADefinedFieldExistWithRelationName = definedFields && field.relationName && definedFields[field.relationName];
     const fieldWithRelatedName = doesADefinedFieldExistWithRelatedName ? (parent as any).__data?.[field.relatedName] : undefined;
     const fieldWithRelationName = doesADefinedFieldExistWithRelationName ? definedFields[field.relationName] : undefined;
     const isFieldWithRelatedNameAModelField = fieldWithRelatedName instanceof Schema && (fieldWithRelatedName as any).__model !== undefined;
@@ -254,11 +256,13 @@ export function modelSchema<
       Omit<
       TFieldsOnModel,
         keyof ExtractTypeFromObjectOfSchemas<
+          // eslint-disable-next-line ts/ban-types
           TFields extends undefined ? {} : TFields,
           'input'
         >
       > &
       ExtractTypeFromObjectOfSchemas<
+        // eslint-disable-next-line ts/ban-types
         TFields extends undefined ? {} : TFields,
         'input'
       >
@@ -266,11 +270,13 @@ export function modelSchema<
       (Omit<
         TFieldsOnModel,
         keyof ExtractTypeFromObjectOfSchemas<
+          // eslint-disable-next-line ts/ban-types
           TFields extends undefined ? {} : TFields,
           'output'
         >
       > &
       ExtractTypeFromObjectOfSchemas<
+        // eslint-disable-next-line ts/ban-types
         TFields extends undefined ? {} : TFields,
         'output'
       >);
@@ -278,11 +284,13 @@ export function modelSchema<
       (Omit<
         TFieldsOnModel,
         keyof ExtractTypeFromObjectOfSchemas<
+          // eslint-disable-next-line ts/ban-types
           TFields extends undefined ? {} : TFields,
           'internal'
         >
       > &
       ExtractTypeFromObjectOfSchemas<
+        // eslint-disable-next-line ts/ban-types
         TFields extends undefined ? {} : TFields,
         'internal'
       >);
@@ -290,11 +298,13 @@ export function modelSchema<
       (Omit<
         TFieldsOnModel,
         keyof ExtractTypeFromObjectOfSchemas<
+          // eslint-disable-next-line ts/ban-types
           TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
           'representation'
         >
       > &
       ExtractTypeFromObjectOfSchemas<
+        // eslint-disable-next-line ts/ban-types
         TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
         'representation'
       >);
@@ -302,11 +312,13 @@ export function modelSchema<
       Omit<
       TFieldsOnModel,
         keyof ExtractTypeFromObjectOfSchemas<
+          // eslint-disable-next-line ts/ban-types
           TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
           'validate'
         >
       > &
       ExtractTypeFromObjectOfSchemas<
+        // eslint-disable-next-line ts/ban-types
         TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
         'validate'
       >;
@@ -328,15 +340,13 @@ export function modelSchema<
   representation: TReturnType['representation'][];
   validate: TReturnType['validate'][];
 }, TDefinitionsOfSchemaType, [
-  Array<
-    ObjectSchema<{
+  ObjectSchema<{
       input: TReturnType['input'];
       output: TReturnType['output'];
       internal: TReturnType['internal'];
       representation: TReturnType['representation'];
       validate: TReturnType['validate'];
-    }, TDefinitionsOfSchemaType, Record<any, any>>
-  >
+    }, TDefinitionsOfSchemaType, Record<any, any>>[]
   ]> : ObjectSchema<{
   input: TReturnType['input'];
   output: TReturnType['output'];
@@ -352,11 +362,11 @@ export function modelSchema<
   const omitAsSet = new Set(options?.omit || []);
   const showAsSet = new Set(options?.show || []);
   const fieldsAsObject = (options?.fields || {});
-  const customFieldValues = Object.values(fieldsAsObject) as Schema<any, any>[];
+  const customFieldValues = Object.values(fieldsAsObject);
 
   // We need to add it to the instance to be able to access it on the `toRepresentation` callback
   (lazyModelSchema as any).__omitRelation = omitRelationAsSet;
-  (parentSchema as any).__model = model;
+  (parentSchema).__model = model;
   (lazyModelSchema as any).__model = model;
 
   // Add this callback to transform the model fields
@@ -378,12 +388,12 @@ export function modelSchema<
       if (showAsSet.size > 0 && !showAsSet.has(key as any)) return accumulatorAsPromise;
 
       let schema = (fieldsAsObject as any)[key as any];
-      let optionsForForeignKeyRelation: any = {};
+      const optionsForForeignKeyRelation: any = {};
       if (!schema || value instanceof ForeignKeyField) {
         const newSchema = await getSchemaFromModelField(
           model,
           value,
-          (parentSchema as any)?.__getParent?.(),
+          (parentSchema)?.__getParent?.(),
           options?.fields,
           options?.engineInstance,
           optionsForForeignKeyRelation
@@ -448,7 +458,7 @@ export function modelSchema<
 
     (lazyModelSchema as any).__data = fields as any;
 
-    await Promise.all(customFieldValues.map(async (schema) => {
+    await Promise.all(customFieldValues.map(async (schema: any) => {
       schema['__getParent'] = () => lazyModelSchema;
       if (schema['__runBeforeParseAndData']) await schema['__runBeforeParseAndData'](schema);
     }));

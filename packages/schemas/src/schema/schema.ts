@@ -1,15 +1,15 @@
-import SchemaAdapter from '../adapter';
-import FieldAdapter from '../adapter/fields';
-import { ValidationDataBasedOnType } from '../adapter/types';
 import { getDefaultAdapter } from '../conf';
 import { formatErrorFromParseMethod } from '../utils';
-import Validator from '../validators/utils';
 
 import type {
   DefinitionsOfSchemaType,
   OnlyFieldAdaptersFromSchemaAdapter,
   ValidationFallbackCallbackReturnType,
 } from './types';
+import type SchemaAdapter from '../adapter';
+import type FieldAdapter from '../adapter/fields';
+import type { ValidationDataBasedOnType } from '../adapter/types';
+import type Validator from '../validators/utils';
 
 export default class Schema<
   TType extends {
@@ -53,7 +53,7 @@ export default class Schema<
     this.__cachedGetParent = value;
   }
   protected get __getParent(): (() => Schema<any, any>) | undefined {
-    return this?.__cachedGetParent
+    return this.__cachedGetParent
   }
 
   protected __alreadyAppliedModel = false;
@@ -138,6 +138,7 @@ export default class Schema<
     },
     options: Parameters<Schema['__transformToAdapter']>[0]
   ) {
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (this.__rootFallbacksValidator)
       return this.__rootFallbacksValidator.validate(options.errorsAsHashedSet || new Set(), path, parseResult, options);
 
@@ -172,6 +173,7 @@ export default class Schema<
     parseResult.errors = [];
     parseResult.parsed = value;
 
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (fieldAdapter === undefined || typeof fieldAdapter.parse !== 'function') return parseResult;
 
     const adapterParseResult = await fieldAdapter.parse(adapter, adapter.field, schema.transformed, value, options.args);
@@ -199,6 +201,7 @@ export default class Schema<
     return parseResult;
   }
 
+  // eslint-disable-next-line ts/require-await
   protected async __transformToAdapter(_options: {
     // force to transform
     args: Omit<ValidationDataBasedOnType<any>, 'withFallback'>
@@ -314,6 +317,7 @@ export default class Schema<
     );
 
     parseResult.parsed = parsedResultsAfterFallbacks.parsed;
+    // eslint-disable-next-line ts/no-unnecessary-condition
     parseResult.errors = (parseResult.errors || []).concat(parsedResultsAfterFallbacks.errors || []);
     // With this, the children takes control of validating by the adapter. For example on a union schema we want to validate all of the schemas and choose the one that has no errors.
     if (this.__beforeValidationCallbacks.size > 0) {
@@ -340,6 +344,7 @@ export default class Schema<
         options
       );
       parseResult.parsed = parsedValuesAfterValidatingByAdapter.parsed;
+      // eslint-disable-next-line ts/no-unnecessary-condition
       parseResult.errors = (parseResult.errors || []).concat(parsedValuesAfterValidatingByAdapter.errors);
     }
 
@@ -348,6 +353,7 @@ export default class Schema<
     const hasToInternalCallback = typeof this.__toInternal === 'function';
     const shouldCallToInternalDuringParse =
       doesNotHaveErrors && hasToInternalCallback && Array.isArray(options.toInternalToBubbleUp) === false;
+    // eslint-disable-next-line ts/no-unnecessary-condition
     const hasNoErrors = parseResult.errors === undefined || (parseResult.errors || []).length === 0;
 
     await Promise.all(this.__refinements.map(async (refinement) => {
@@ -584,6 +590,7 @@ export default class Schema<
           await toInternal(value);
           return undefined;
         };
+      // eslint-disable-next-line ts/require-await
       } else this.__toInternal = async () => undefined;
     } else if (toRepresentation) {
       if (this.__toRepresentation) {
@@ -592,6 +599,7 @@ export default class Schema<
           await toRepresentation(value);
           return undefined;
         };
+      // eslint-disable-next-line ts/require-await
       } else this.__toRepresentation = async () => undefined;
     }
 
@@ -715,7 +723,8 @@ export default class Schema<
     value: TType['input']
   ): Promise<{ isValid: false; errors: any[] } | { isValid: true; save: () => Promise<TType['representation']> }> {
     const { errors, parsed } = await this.__parse(value, [], {} as any);
-    if ((errors || []).length <= 0) return { isValid: false, errors: errors as any[] };
+    // eslint-disable-next-line ts/no-unnecessary-condition
+    if ((errors || []).length <= 0) return { isValid: false, errors: errors };
     return { isValid: true, save: async () => this._save.bind(this)(parsed) };
   }
 
@@ -735,7 +744,7 @@ export default class Schema<
       >;
     }
 
-    return this.data(value) as Promise<TType['representation']>;
+    return this.data(value);
   }
 
   /**
@@ -836,6 +845,7 @@ export default class Schema<
   ) {
     const isFunction = typeof defaultValueOrFunction === 'function';
     if (isFunction) this.__defaultFunction = defaultValueOrFunction;
+    // eslint-disable-next-line ts/require-await
     else this.__defaultFunction = async () => defaultValueOrFunction;
 
     return this as unknown as Schema<

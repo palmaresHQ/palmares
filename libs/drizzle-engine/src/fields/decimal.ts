@@ -1,6 +1,7 @@
-import { AdapterFieldParserTranslateArgs, adapterDecimalFieldParser, auto } from '@palmares/databases';
+import { adapterDecimalFieldParser, auto } from '@palmares/databases';
 
-import DrizzleEngineFieldParser from './field';
+import type DrizzleEngineFieldParser from './field';
+import type { AdapterFieldParserTranslateArgs} from '@palmares/databases';
 
 export default adapterDecimalFieldParser({
   translate: async (
@@ -19,6 +20,7 @@ export default adapterDecimalFieldParser({
       case 'sqlite':
         return `d.real('${field.databaseName}')${
           defaultOptions.primaryKey ? '.primaryKey()' : ''
+        // eslint-disable-next-line ts/no-unnecessary-condition
         }${defaultOptions.default ? `.default(${defaultOptions.default})` : ''}${
         defaultOptions.nullable !== true ? `.notNull()` : ''
         }${

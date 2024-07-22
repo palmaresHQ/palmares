@@ -1,4 +1,4 @@
-import { Domain } from '@palmares/core';
+import type { Domain } from '@palmares/core';
 
 export type EventHandlerType = (...args: any[]) => any;
 export type EventsDomainInterface = {

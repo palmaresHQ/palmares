@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Emitter } from '@palmares/events';
 import {
-  createClient,
-  RedisClientType,
-  RedisModules,
-  RedisFunctions,
-  RedisScripts,
-  RedisClientOptions,
+  createClient
 } from 'redis';
+
+import type {
+  RedisClientOptions,
+  RedisClientType,
+  RedisFunctions,
+  RedisModules,
+  RedisScripts} from 'redis';
 
 export default class RedisEmitter<
   M extends RedisModules,
@@ -31,6 +33,7 @@ export default class RedisEmitter<
     S extends RedisScripts
   >(options: RedisClientOptions<M, F, S>) {
     const doesInstanceExistsAndAreTheSameOptions =
+      // eslint-disable-next-line ts/no-unnecessary-condition
       this.__instance &&
       JSON.stringify(this.__instance.options) === JSON.stringify(options);
     if (doesInstanceExistsAndAreTheSameOptions) return this.__instance;

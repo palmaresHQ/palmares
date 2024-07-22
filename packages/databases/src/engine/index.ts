@@ -1,12 +1,13 @@
 import { NotImplementedAdapterException } from './exceptions';
-import { DatabaseConfigurationType } from '../types';
-import { EngineInitializedModels } from './types';
-import AdapterFields from './fields';
-import AdapterMigrations from './migrations';
-import AdapterQuery from './query';
-import AdapterModels from './model';
 
+import type AdapterFields from './fields';
+import type AdapterMigrations from './migrations';
+import type AdapterModels from './model';
+import type AdapterQuery from './query';
+import type { EngineInitializedModels } from './types';
 import type model from '../models/model';
+import type { DatabaseConfigurationType } from '../types';
+
 
 export function databaseAdapter<
   TFieldsAdapter extends AdapterFields,
@@ -37,16 +38,16 @@ export function databaseAdapter<
     TMigrationsAdapter
   > {
     declare instance: Awaited<ReturnType<TFunctionNew>>[1]['instance'];
-    fields = args.fields as TFieldsAdapter;
-    models = args.models as TModelsAdapter;
-    query = args.query as TQueryAdapter;
+    fields = args.fields;
+    models = args.models;
+    query = args.query;
     migrations = args.migrations as TMigrationsAdapter;
 
-    static new = args.new as TFunctionNew;
-    duplicate = args.duplicate as TFunctionDuplicate;
-    isConnected = args.isConnected as TFunctionIsConnected;
-    close = args.close as TFunctionClose;
-    transaction = args.transaction as TFunctionTransaction;
+    static new = args.new;
+    duplicate = args.duplicate;
+    isConnected = args.isConnected;
+    close = args.close;
+    transaction = args.transaction;
   }
 
   return CustomDatabaseAdapter
@@ -120,6 +121,7 @@ export default class DatabaseAdapter<
    *
    * @returns - A new engine instance after calling `.new` static method.
    */
+  // eslint-disable-next-line ts/require-await
   async duplicate(
     _getNewEngine: (...args: Parameters<(typeof DatabaseAdapter)['new']>) => Promise<DatabaseAdapter>
   ): Promise<DatabaseAdapter> {
@@ -133,6 +135,7 @@ export default class DatabaseAdapter<
    *
    * @return - Return true if the database is connected or false otherwise.
    */
+  // eslint-disable-next-line ts/require-await
   async isConnected(engine: DatabaseAdapter): Promise<boolean> {
     throw new NotImplementedAdapterException('isConnected');
   }
@@ -146,6 +149,7 @@ export default class DatabaseAdapter<
    *
    * ```
    */
+  // eslint-disable-next-line ts/require-await
   async close?(_engine: DatabaseAdapter): Promise<void> {
     throw new NotImplementedAdapterException('close');
   }
@@ -159,7 +163,7 @@ export default class DatabaseAdapter<
    *
    * @return - The return value of the callback.
    */
-  async transaction<TParameters extends Array<any>, TResult>(
+  async transaction<TParameters extends any[], TResult>(
     _databaseAdapter: DatabaseAdapter,
     callback: (transaction: any, ...args: TParameters) => TResult | Promise<TResult>,
     ...args: TParameters
@@ -192,7 +196,7 @@ export default class DatabaseAdapter<
    *
    * @return - The return value of the callback.
    */
-  async useTransaction<TParameters extends Array<any>, TResult>(
+  async useTransaction<TParameters extends any[], TResult>(
     callback: (transaction: any, ...args: TParameters) => TResult | Promise<TResult>,
     ...args: TParameters
   ): Promise<TResult> {

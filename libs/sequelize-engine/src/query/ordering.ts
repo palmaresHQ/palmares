@@ -1,7 +1,9 @@
 import { adapterOrderingQuery } from '@palmares/databases';
-import { Order } from 'sequelize';
+
+import type { Order } from 'sequelize';
 
 export default adapterOrderingQuery({
+  // eslint-disable-next-line ts/require-await
   parseOrdering: async (_, ordering): Promise<Order> => {
     return ordering.map((order) => {
       const isDescending = order.startsWith('-');

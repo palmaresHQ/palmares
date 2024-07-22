@@ -1,7 +1,9 @@
 import { adapterGetQuery } from '@palmares/databases';
-import { Includeable, Model, ModelCtor } from 'sequelize';
+
+import type { Model, ModelCtor } from 'sequelize';
 
 export default adapterGetQuery({
+  // eslint-disable-next-line ts/require-await
   queryData: async (_, args) => {
     const findAllOptions: Parameters<ModelCtor<Model>['findAll']>[0] = {
       attributes: args.fields as string[],

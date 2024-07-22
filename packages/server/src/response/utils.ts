@@ -16,6 +16,7 @@ export class FileLike {
 export const GeneratorFunction = function* () {
   yield undefined;
 }.constructor;
+// eslint-disable-next-line ts/require-await
 export const AsyncGeneratorFunction = async function* () {
   yield undefined;
 }.constructor;

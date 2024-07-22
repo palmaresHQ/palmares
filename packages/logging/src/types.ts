@@ -1,4 +1,4 @@
-import LoggerAdapter from './adapter';
+import type LoggerAdapter from './adapter';
 
 export type LoggingTypes = 'debug' | 'log' | 'info' | 'warn' | 'error';
 export type SavedLoggingMessagesType = Record<string, { category: LoggingTypes; handler: (args?: any) => string }>;

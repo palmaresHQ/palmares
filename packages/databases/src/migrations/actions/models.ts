@@ -1,17 +1,19 @@
-import DatabaseAdapter from '../../engine';
 import { Operation } from './operation';
-import { ModelFieldsType, ModelOptionsType } from '../../models/types';
-import {
-  CreateModelToGenerateData,
-  ChangeModelToGenerateData,
-  RenameModelToGenerateData,
+import { BaseModel } from '../../models';
+
+import type {
   ActionToGenerateType,
+  ChangeModelToGenerateData,
+  CreateModelToGenerateData,
+  RenameModelToGenerateData,
   ToStringFunctionReturnType,
 } from './types';
-import { OriginalOrStateModelsByNameType } from '../types';
-import Migration from '../migrate/migration';
-import State from '../state';
-import { BaseModel } from '../../models';
+import type DatabaseAdapter from '../../engine';
+import type { ModelFieldsType, ModelOptionsType } from '../../models/types';
+import type Migration from '../migrate/migration';
+import type State from '../state';
+import type { OriginalOrStateModelsByNameType } from '../types';
+
 
 /**
  * This operation is used when you create a model in the application.
@@ -76,6 +78,7 @@ export class CreateModel extends Operation {
     };
   }
 
+  // eslint-disable-next-line ts/require-await
   static async describe(data: ActionToGenerateType<CreateModelToGenerateData>): Promise<string> {
     return `Create the model '${data.modelName}'`;
   }
@@ -120,6 +123,7 @@ export class DeleteModel extends Operation {
     };
   }
 
+  // eslint-disable-next-line ts/require-await
   static async describe(data: ActionToGenerateType<null>): Promise<string> {
     return `Remove the model '${data.modelName}'`;
   }
@@ -184,6 +188,7 @@ export class ChangeModel extends Operation {
     };
   }
 
+  // eslint-disable-next-line ts/require-await
   static async describe(data: ActionToGenerateType<ChangeModelToGenerateData>): Promise<string> {
     return `Changed one or more options of the model '${data.modelName}' options`;
   }
@@ -231,6 +236,7 @@ export class RenameModel extends Operation {
     };
   }
 
+  // eslint-disable-next-line ts/require-await
   static async describe(data: ActionToGenerateType<RenameModelToGenerateData>): Promise<string> {
     return `Renamed the model '${data.data.modelNameBefore}' to '${data.data.modelNameAfter}'`;
   }

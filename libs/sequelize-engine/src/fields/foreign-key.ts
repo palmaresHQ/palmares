@@ -1,7 +1,8 @@
-import { AdapterFieldParserTranslateArgs, adapterForeignKeyFieldParser } from '@palmares/databases';
+import { adapterForeignKeyFieldParser } from '@palmares/databases';
 
-import SequelizeEngineFieldParser from './field';
-import { TranslatedFieldToEvaluateAfterType } from '../types';
+import type SequelizeEngineFieldParser from './field';
+import type { TranslatedFieldToEvaluateAfterType } from '../types';
+import type { AdapterFieldParserTranslateArgs} from '@palmares/databases';
 
 export default adapterForeignKeyFieldParser({
   translate: async (

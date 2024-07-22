@@ -1,10 +1,10 @@
-import model from '../../models/model';
 import { NotImplementedAdapterException } from '../exceptions';
-import DatabaseAdapter from '..';
 
-import type { Includes } from '../../models/types';
 import type AdapterQueryOrdering from './ordering';
 import type AdapterQuerySearch from './search';
+import type DatabaseAdapter from '..';
+import type model from '../../models/model';
+import type { Includes } from '../../models/types';
 
 /**
  * Functional approach to the get query adapter instead of class/inheritance approach.
@@ -64,7 +64,7 @@ export function adapterGetQuery<TFunctionQueryData extends AdapterGetQuery['quer
   queryData: TFunctionQueryData;
 }) {
   class CustomAdapterGetQuery extends AdapterGetQuery {
-    queryData = args.queryData as TFunctionQueryData;
+    queryData = args.queryData;
   }
 
   return CustomAdapterGetQuery as typeof AdapterGetQuery & {
@@ -123,6 +123,7 @@ export default class AdapterGetQuery {
    *
    * @returns - Returns an array, always should return an array, if the data doesn't exist, return an empty array instead of undefined or null.
    */
+  // eslint-disable-next-line ts/require-await
   async queryData(
     _engine: DatabaseAdapter,
     _args: {
@@ -137,6 +138,7 @@ export default class AdapterGetQuery {
     return [];
   }
 
+  // eslint-disable-next-line ts/require-await
   async queryDataNatively?(
     _engine: DatabaseAdapter,
     _modelConstructor: ReturnType<typeof model>,

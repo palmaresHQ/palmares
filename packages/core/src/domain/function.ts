@@ -1,5 +1,6 @@
-import type { DomainReadyFunctionArgs, ExtractModifierArguments } from './types';
 import Domain from './domain';
+
+import type { DomainReadyFunctionArgs, ExtractModifierArguments } from './types';
 import type { DefaultCommandType,} from '../commands/types';
 
 /**
@@ -25,8 +26,10 @@ import type { DefaultCommandType,} from '../commands/types';
  */
 export default function domain<
   const TModifierArguments = object,
+  // eslint-disable-next-line no-shadow
   const TModifiers extends (abstract new (...args: any) => {
     modifiers: any;
+  // eslint-disable-next-line no-shadow
   })[] = (abstract new (...args: any) => {
     modifiers: any;
   })[],

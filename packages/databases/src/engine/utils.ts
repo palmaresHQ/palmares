@@ -1,4 +1,4 @@
-import DatabaseAdapter from '../engine';
+import type DatabaseAdapter from '../engine';
 
 /**
  * This is the default function when we want to duplicate the engine.

@@ -1,7 +1,8 @@
 import { getLoggersAtLevel } from './config';
 import { FRAMEWORK_NAME } from './constants';
 import { getDefaultFormattedMessage } from './defaults';
-import { LoggerArgumentsToFilterAndFormatters, LoggingTypes, SavedLoggingMessagesType } from './types';
+
+import type { LoggerArgumentsToFilterAndFormatters, LoggingTypes, SavedLoggingMessagesType } from './types';
 
 /**
  * This is the main logger class. This is the class that you will use to log messages in the application. You can log to the console but you can also log to a file or a database.
@@ -17,8 +18,8 @@ import { LoggerArgumentsToFilterAndFormatters, LoggingTypes, SavedLoggingMessage
  * ```
  */
 export default class Logger<TLoggingMessages extends SavedLoggingMessagesType> {
-  name: string = '';
-  domainName: string = '';
+  name = '';
+  domainName = '';
   loggingMessages?: TLoggingMessages;
 
   constructor(

@@ -18,7 +18,7 @@ export function datetimeFieldAdapter<
   parse?: TParse;
 }) {
   class CustomDatetimeFieldAdapter extends DatetimeFieldAdapter {
-    translate = args.translate as TTranslate;
+    translate = args.translate;
     toString = args.toString as TToString;
     formatError = args.formatError as TFormatError;
     parse = args.parse as TParse;

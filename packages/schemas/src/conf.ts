@@ -1,5 +1,6 @@
-import SchemaAdapter from './adapter';
 import { NoAdapterFoundError } from './exceptions';
+
+import type SchemaAdapter from './adapter';
 
 let cachedAdapter: SchemaAdapter | null = null;
 

@@ -2,6 +2,7 @@ import { adapterSearchQuery } from '@palmares/databases';
 import { Op } from 'sequelize';
 
 export default adapterSearchQuery({
+  // eslint-disable-next-line ts/require-await
   parseSearchFieldValue: async (operationType, key, _model, value, result, options) => {
     switch (operationType) {
       case 'like':

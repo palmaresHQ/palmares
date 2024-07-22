@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NotImplementedServerException } from './exceptions';
 
 /**
@@ -7,10 +6,12 @@ import { NotImplementedServerException } from './exceptions';
  * It could be an implementation using node.js, or by using the default browser behaviour and so on.
  */
 export default class Emitter {
+  // eslint-disable-next-line ts/require-await
   static async new(...args: any[]): Promise<Emitter> {
     throw new NotImplementedServerException(this.name, 'new');
   }
 
+  // eslint-disable-next-line ts/require-await
   async addEventListener(
     groupId: string,
     eventName: string,
@@ -22,6 +23,7 @@ export default class Emitter {
     );
   }
 
+  // eslint-disable-next-line ts/require-await
   async removeEventListener(
     groupId: string,
     eventName: string,
@@ -33,6 +35,7 @@ export default class Emitter {
     );
   }
 
+  // eslint-disable-next-line ts/require-await
   async emit(groupId: string, eventName: string, ...data: any) {
     throw new NotImplementedServerException(this.constructor.name, 'emit');
   }

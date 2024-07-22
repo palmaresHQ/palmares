@@ -1,4 +1,4 @@
-import TestAdapter from './adapter';
+import type TestAdapter from './adapter';
 
 let testAdapter: TestAdapter | undefined = undefined;
 

@@ -1,9 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import DatabaseAdapter from '.';
-import Migration from '../migrations/migrate/migration';
-import { InitializedModelsType } from '../types';
-import { Field } from '../models/fields';
 import { NotImplementedAdapterException } from './exceptions';
+
+import type DatabaseAdapter from '.';
+import type Migration from '../migrations/migrate/migration';
+import type { Field } from '../models/fields';
+import type { InitializedModelsType } from '../types';
+
 
 /**
  * Functional approach for the migrations. This is used to run the migrations.
@@ -339,13 +340,13 @@ export function adapterMigrations<
   class CustomAdapterMigration extends AdapterMigration {
     batchAll = args.batchAll as TFunctionBatchAll;
     init = args.init as TFunctionInit;
-    addModel = args.addModel as TFunctionAddModel;
-    removeModel = args.removeModel as TFunctionRemoveModel;
-    changeModel = args.changeModel as TFunctionChangeModel;
-    addField = args.addField as TFunctionAddField;
-    changeField = args.changeField as TFunctionChangeField;
-    renameField = args.renameField as TFunctionRenameField;
-    removeField = args.removeField as TFunctionRemoveField;
+    addModel = args.addModel;
+    removeModel = args.removeModel;
+    changeModel = args.changeModel;
+    addField = args.addField;
+    changeField = args.changeField;
+    renameField = args.renameField;
+    removeField = args.removeField;
     finish = args.finish as TFunctionFinish;
   }
 
@@ -394,6 +395,7 @@ export default class AdapterMigration {
    * @param _toStateModels - All of the models on a key/value pair where the key is the name of the model and the value is the model itself.
    * @param _returnOfInit - The return of the init function, if you implemented it, otherwise it will be undefined.
    */
+  // eslint-disable-next-line ts/require-await
   async batchAll?(
     _engine: DatabaseAdapter,
     _toStateModels: { [modelName: string]: InitializedModelsType['initialized'] },
@@ -417,6 +419,7 @@ export default class AdapterMigration {
    *
    * @param _engine - The engine instance that is running the migrations.
    */
+  // eslint-disable-next-line ts/require-await
   async init?(_engine: DatabaseAdapter): Promise<any> {
     return;
   }
@@ -451,6 +454,7 @@ export default class AdapterMigration {
    * @param _migration - The migration instance that is running the migrations.
    * @param _returnOfInit - The return of the init function, if you implemented it, otherwise it will be undefined.
    */
+  // eslint-disable-next-line ts/require-await
   async addModel(
     _engine: DatabaseAdapter,
     _toModel: InitializedModelsType,
@@ -482,6 +486,7 @@ export default class AdapterMigration {
    * @param _migration - The migration instance that is running the migrations.
    * @param _returnOfInit - The return of the init function, if you implemented it, otherwise it will be undefined.
    */
+  // eslint-disable-next-line ts/require-await
   async removeModel(
     _engine: DatabaseAdapter,
     _fromModel: InitializedModelsType,
@@ -525,6 +530,7 @@ export default class AdapterMigration {
    * @param _migration - The migration instance that is running the migrations.
    * @param _returnOfInit - The return of the init function, if you implemented it, otherwise it will be undefined.
    */
+  // eslint-disable-next-line ts/require-await
   async changeModel(
     _engine: DatabaseAdapter,
     _toModel: InitializedModelsType,
@@ -575,6 +581,7 @@ export default class AdapterMigration {
    * @param _migration - The migration instance that is running the migrations.
    * @param _returnOfInit - The return of the init function, if you implemented it, otherwise it will be undefined.
    */
+  // eslint-disable-next-line ts/require-await
   async addField(
     _engine: DatabaseAdapter,
     _toModel: InitializedModelsType,
@@ -648,6 +655,7 @@ export default class AdapterMigration {
    * @param _migration - The migration instance that is running the migrations.
    * @param _returnOfInit - The return of the init function, if you implemented it, otherwise it will be undefined.
    */
+  // eslint-disable-next-line ts/require-await
   async changeField(
     _engine: DatabaseAdapter,
     _toModel: InitializedModelsType,
@@ -696,6 +704,7 @@ export default class AdapterMigration {
    * @param _migration - The migration instance that is running the migrations.
    * @param _returnOfInit - The return of the init function, if you implemented it, otherwise it will be undefined.
    */
+  // eslint-disable-next-line ts/require-await
   async renameField(
     _engine: DatabaseAdapter,
     _toModel: InitializedModelsType,
@@ -738,6 +747,7 @@ export default class AdapterMigration {
    * @param _migration - The migration instance that is running the migrations.
    * @param _returnOfInit - The return of the init function, if you implemented it, otherwise it will be undefined.
    */
+  // eslint-disable-next-line ts/require-await
   async removeField(
     _engine: DatabaseAdapter,
     _toModel: InitializedModelsType,
@@ -755,6 +765,7 @@ export default class AdapterMigration {
    * @param _engine - The engine instance that is running the migrations.
    * @param _returnOfInit - The return of the init function, if you implemented it, otherwise it will be undefined.
    */
+  // eslint-disable-next-line ts/require-await
   async finish?(_engine: DatabaseAdapter, _returnOfInit: any): Promise<void> {
     return;
   }

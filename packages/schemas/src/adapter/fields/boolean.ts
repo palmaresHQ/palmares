@@ -17,7 +17,7 @@ export function booleanFieldAdapter<
   parse?: TParse;
 }) {
   class CustomBooleanFieldAdapter extends BooleanFieldAdapter {
-    translate = args.translate as TTranslate;
+    translate = args.translate;
     toString = args.toString as TToString;
     formatError = args.formatError as TFormatError;
     parse = args.parse as TParse;

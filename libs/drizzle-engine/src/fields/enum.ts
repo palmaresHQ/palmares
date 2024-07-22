@@ -1,11 +1,8 @@
-import { AdapterFieldParserTranslateArgs, adapterEnumFieldParser } from '@palmares/databases';
+import { adapterEnumFieldParser } from '@palmares/databases';
 
-import DrizzleEngineFieldParser from './field';
-import { pgEnum, pgTable } from "drizzle-orm/pg-core";
-export const moodEnum = pgEnum('mood', ['sad', 'ok', 'happy']);
-export const table = pgTable('table', {
-  mood: moodEnum('mood'),
-});
+import type DrizzleEngineFieldParser from './field';
+import type { AdapterFieldParserTranslateArgs} from '@palmares/databases';
+
 export default adapterEnumFieldParser({
   translate: async (
     args: AdapterFieldParserTranslateArgs<
@@ -23,12 +20,15 @@ export default adapterEnumFieldParser({
       case 'sqlite':
         return `d.text('${field.databaseName}', { enum: [${optionsAsString}] })${
             defaultOptions.primaryKey ? '.primaryKey()' : ''
+          // eslint-disable-next-line ts/no-unnecessary-condition
           }${defaultOptions.default ? `.default(${defaultOptions.default})` : ''}${
           defaultOptions.nullable !== true ? `.notNull()` : ''
           }${
+          // eslint-disable-next-line ts/no-unnecessary-condition
           defaultOptions.unique ? `.unique()` : ''
           }`
       case 'postgres':
+        // eslint-disable-next-line no-case-declarations
         const enumVariableName = `${field.fieldName}Enum`;
         args.lazyEvaluate({
           type: 'enum',
@@ -37,19 +37,23 @@ export default adapterEnumFieldParser({
 
         return `${enumVariableName}('${field.databaseName}')${
             defaultOptions.primaryKey ? '.primaryKey()' : ''
+          // eslint-disable-next-line ts/no-unnecessary-condition
           }${defaultOptions.default ? `.default(${defaultOptions.default})` : ''}${
           defaultOptions.nullable !== true ? `.notNull()` : ''
           }${
+          // eslint-disable-next-line ts/no-unnecessary-condition
           defaultOptions.unique ? `.unique()` : ''
           }`
       default:
         return `d.mysqlEnum('${field.databaseName}', [${optionsAsString}])${
           defaultOptions.primaryKey ? '.primaryKey()' : ''
         }${
+          // eslint-disable-next-line ts/no-unnecessary-condition
           defaultOptions.default ? `.default(${defaultOptions.default})` : ''
         }${
           defaultOptions.nullable !== true ? `.notNull()` : ''
         }${
+          // eslint-disable-next-line ts/no-unnecessary-condition
           defaultOptions.unique ? `.unique()` : ''
         }`
     }

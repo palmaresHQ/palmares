@@ -1,7 +1,8 @@
-import { AdapterFieldParserTranslateArgs, adapterCharFieldParser } from '@palmares/databases';
+import { adapterCharFieldParser } from '@palmares/databases';
 
 //import { text } from 'drizzle-orm/sqlite-core';
-import DrizzleEngineFieldParser from './field';
+import type DrizzleEngineFieldParser from './field';
+import type { AdapterFieldParserTranslateArgs} from '@palmares/databases';
 
 export default adapterCharFieldParser({
   translate: async (

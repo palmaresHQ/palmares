@@ -1,14 +1,15 @@
 import Schema from './schema';
 import { getDefaultAdapter } from '../conf';
-import FieldAdapter from '../adapter/fields';
 import {
   defaultTransform,
   defaultTransformToAdapter,
   transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas,
 } from '../utils';
 import { objectValidation } from '../validators/object';
-import { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from './types';
 import Validator from '../validators/utils';
+
+import type { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from './types';
+import type FieldAdapter from '../adapter/fields';
 
 export default class ObjectSchema<
   TType extends {
@@ -38,7 +39,7 @@ export default class ObjectSchema<
   protected __retrieveDataAsEntriesAndCache(): [string, Schema][] {
     const dataAsEntries = Array.isArray(this.__cachedDataAsEntries)
       ? this.__cachedDataAsEntries
-      : (Object.entries(this.__data) as [string, Schema][]);
+      : (Object.entries(this.__data));
     this.__cachedDataAsEntries = dataAsEntries;
     return this.__cachedDataAsEntries;
   }
@@ -85,6 +86,7 @@ export default class ObjectSchema<
               ) {
                 const indexOnTransformedDataByKeys = (transformedDataByKeysIndex + 1) * transformedDataIndex;
 
+                // eslint-disable-next-line ts/no-unnecessary-condition
                 if (transformedDataByKeysArray[indexOnTransformedDataByKeys] === undefined)
                   transformedDataByKeysArray[indexOnTransformedDataByKeys] = {
                     transformed: { ...transformedDataByKeys.transformed },
@@ -103,6 +105,7 @@ export default class ObjectSchema<
 
         await Promise.all(promises);
 
+        // eslint-disable-next-line ts/no-unnecessary-condition
         if (shouldValidateWithFallback)
           Validator.createAndAppendFallback(this, objectValidation(fallbackByKeys), { at: 0, removeCurrent: true });
 
@@ -471,7 +474,7 @@ export default class ObjectSchema<
     ) => Awaited<ReturnType<NonNullable<TDefinitions['schemaAdapter']['field']>['translate']>> | any,
     toStringCallback?: (schemaAsString: string) => string
   ) {
-    return super.extends(callback, toStringCallback) as this;
+    return super.extends(callback, toStringCallback);
   }
 
   /**

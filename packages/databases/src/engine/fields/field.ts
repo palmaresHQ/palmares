@@ -1,7 +1,7 @@
 import { EngineDoesNotSupportFieldTypeException } from '../../models/exceptions';
 import { Field } from '../../models/fields';
-import { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateArgs } from '../..';
 
+import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateArgs } from '../..';
 import type AdapterModels from '../model';
 
 /**
@@ -166,7 +166,7 @@ export function adapterFieldParser<
   outputParser?: TOutputParserFunction;
 }) {
   class CustomAdapterFieldParser extends AdapterFieldParser {
-    translate = args.translate as TTranslateFunction;
+    translate = args.translate;
     inputParser = args.inputParser as TInputParserFunction;
     outputParser = args.outputParser as TOutputParserFunction;
   }
@@ -273,6 +273,7 @@ export default class AdapterFieldParser {
    *
    * @returns - The translated field.
    */
+  // eslint-disable-next-line ts/require-await
   async translate(
     args: AdapterFieldParserTranslateArgs<
       | 'field'
@@ -318,6 +319,7 @@ export default class AdapterFieldParser {
    *
    * @returns - The parsed value.
    */
+  // eslint-disable-next-line ts/require-await
   async inputParser?(
     args: AdapterFieldParserInputAndOutputArgs<
       | 'field'
@@ -362,6 +364,7 @@ export default class AdapterFieldParser {
    *
    * @returns - The parsed value for the user for that specific field.
    */
+  // eslint-disable-next-line ts/require-await
   async outputParser?(
     args: AdapterFieldParserInputAndOutputArgs<
       | 'field'

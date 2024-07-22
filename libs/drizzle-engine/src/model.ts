@@ -1,9 +1,12 @@
-import { adapterModels, ModelOptionsType } from '@palmares/databases';
 import { getDefaultStd } from '@palmares/core';
+import { adapterModels } from '@palmares/databases';
+
+import type { ModelOptionsType } from '@palmares/databases';
 
 
 export default adapterModels({
-  translateOptions: async (_engine, modelName, options): Promise<{}> => {
+  // eslint-disable-next-line ts/require-await
+  translateOptions: async (_engine, modelName, options): Promise<object> => {
     const optionsWithConjunctiveIndexes = options as typeof options & { conjunctiveIndexes: string[] };
     if (options.indexes)
       optionsWithConjunctiveIndexes.conjunctiveIndexes = options.indexes.map((index) => {
@@ -14,7 +17,7 @@ export default adapterModels({
           return firstLetterUpper + groupWithoutDash.slice(1);
         });
         const indexFieldsForOnClause = index.fields.map((field) => `table.${field}`).join(', ');
-        return `  ${modelName.slice(0, 1).toLowerCase() + modelName.slice(1)}${indexAsCamel}:  d.${index.unique ? 'uniqueIndex': 'index'}('${options?.tableName || modelName}_${indexFields}').on(${indexFieldsForOnClause})`;
+        return `  ${modelName.slice(0, 1).toLowerCase() + modelName.slice(1)}${indexAsCamel}:  d.${index.unique ? 'uniqueIndex': 'index'}('${options.tableName || modelName}_${indexFields}').on(${indexFieldsForOnClause})`;
       })
 
     return {
@@ -28,7 +31,7 @@ export default adapterModels({
     _model,
     _fieldEntriesOfModel,
     _modelOptions,
-    defaultTranslateCallback: () => Promise<{ options: {}, fields: {}}>,
+    defaultTranslateCallback: () => Promise<{ options: any, fields: any}>,
     _,
     __
   ): Promise<{
@@ -96,7 +99,8 @@ export default adapterModels({
     await std.files.makeDirectory(folderName);
     await std.files.writeFile(locationToRequire, `${Array.from(imports).join('\n')}\n\n${fileContent}`);
 
-    const modelsImported = await Promise.all(models.map(async ([modelName, model]) => [modelName, model(require)])) as [string, any][];
-    return modelsImported;
+    // eslint-disable-next-line ts/require-await
+    const modelsImported = await Promise.all(models.map(async ([modelName, model]) => [modelName, model(require)]));
+    return modelsImported as [string, any][];
   }
 });

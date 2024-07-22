@@ -1,5 +1,6 @@
 import { stringByMessageType } from './constants';
-import { LoggerArgumentsToFilterAndFormatters } from './types';
+
+import type { LoggerArgumentsToFilterAndFormatters } from './types';
 
 /**
  * This default message formatter will return a string colorized to the log.

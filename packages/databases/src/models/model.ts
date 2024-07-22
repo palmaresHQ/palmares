@@ -62,6 +62,7 @@ export class BaseModel {
 
   constructor() {
     const baseModelConstructor = this.constructor as typeof BaseModel & typeof Model;
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (baseModelConstructor.__instance) return baseModelConstructor.__instance;
 
     const newInstance = this as unknown as Model & BaseModel;
@@ -70,6 +71,7 @@ export class BaseModel {
     return newInstance;
   }
 
+  // eslint-disable-next-line ts/require-await
   async #initializeManagers(
     engineInstance: DatabaseAdapter,
     modelInstance: Model & BaseModel,
@@ -99,6 +101,7 @@ export class BaseModel {
    * @param engineInstance - The current engine instance we are initializing this model instance
    */
   async #initializeEvents(engineInstance: DatabaseAdapter) {
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (!engineInstance) return;
     if (!engineInstance.databaseSettings.events?.emitter) return;
 
@@ -172,7 +175,6 @@ export class BaseModel {
       lazyLoadFieldsCallback,
       options || {}
     );
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [initializedModelInstance, _] = await Promise.all([
       functionToCallToTranslateModel(),
       currentPalmaresModelInstance.#initializeEvents(engineInstance),
@@ -204,6 +206,7 @@ export class BaseModel {
    *
    * @returns - Returns true if the models are equal and false otherwise.
    */
+  // eslint-disable-next-line ts/require-await
   async _compareModels(model: Model & BaseModel): Promise<boolean> {
     const currentModel = this as unknown as Model & BaseModel;
     return (
@@ -227,6 +230,7 @@ export class BaseModel {
       const managers: ManagersOfInstanceType = {};
       let prototype = modelConstructor;
 
+      // eslint-disable-next-line ts/no-unnecessary-condition
       while (prototype) {
         if (!(prototype.prototype instanceof Model)) break;
         const propertyNamesOfModel = Object.getOwnPropertyNames(prototype);
@@ -271,6 +275,7 @@ export class BaseModel {
     );
 
     for (const [fieldName, field] of abstractFieldEntries) {
+      // eslint-disable-next-line ts/no-unnecessary-condition
       if (abstractInstance.fields[fieldName])
         throw new ModelInvalidAbstractFieldError(this.constructor.name, abstractInstanceName, fieldName);
       modelInstance.fields[fieldName] = field;
@@ -284,6 +289,7 @@ export class BaseModel {
     }
 
     for (const [managerName, managerInstance] of abstractManagers) {
+      // eslint-disable-next-line ts/no-unnecessary-condition
       if (modelConstructor[managerName])
         throw new ModelInvalidAbstractManagerError(this.constructor.name, abstractInstanceName, managerName);
       modelConstructor[managerName] = managerInstance;

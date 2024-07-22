@@ -1,17 +1,16 @@
+import ConsoleLogging from '@palmares/console-logging';
 import CoreDomain, { defineSettings } from '@palmares/core';
-import TestsDomain from '@palmares/tests';
+import DatabasesDomain from '@palmares/databases';
 import DrizzleEngine from '@palmares/drizzle-engine';
 import { drizzle as drizzleBetterSqlite3 } from '@palmares/drizzle-engine/better-sqlite3';
 import JestTestAdapter from '@palmares/jest-tests';
-
-import NodeStd from '@palmares/node-std';
 import LoggingDomain from '@palmares/logging';
-import ConsoleLogging from '@palmares/console-logging';
-import DatabasesDomain from '@palmares/databases';
+import NodeStd from '@palmares/node-std';
+import TestsDomain from '@palmares/tests';
+import Database from 'better-sqlite3';
+import { dirname, resolve } from 'path';
 
 import TestDomain from './test';
-import { dirname, resolve } from 'path';
-import Database from 'better-sqlite3';
 import * as schema from '../.drizzle/schema';
 
 const database = new Database('sqlite.db');

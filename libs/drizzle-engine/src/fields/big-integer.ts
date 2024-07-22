@@ -1,6 +1,7 @@
-import { AdapterFieldParserTranslateArgs, adapterBigIntegerFieldParser } from '@palmares/databases';
+import { adapterBigIntegerFieldParser } from '@palmares/databases';
 
-import DrizzleEngineFieldParser from './field';
+import type DrizzleEngineFieldParser from './field';
+import type { AdapterFieldParserTranslateArgs} from '@palmares/databases';
 
 export default adapterBigIntegerFieldParser({
   translate: async (

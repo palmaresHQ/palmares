@@ -8,7 +8,8 @@ import {
 } from '../constants';
 import { defaultTransform, defaultTransformToAdapter } from '../utils';
 import { max, min, numberValidation } from '../validators/number';
-import { DefinitionsOfSchemaType } from './types';
+
+import type { DefinitionsOfSchemaType } from './types';
 
 export default class NumberSchema<
   TType extends {
@@ -98,6 +99,7 @@ export default class NumberSchema<
           {
             validatorsIfFallbackOrNotSupported: numberValidation(),
             shouldAddStringVersion: options.shouldAddStringVersion,
+            // eslint-disable-next-line ts/require-await
             fallbackIfNotSupported: async () => {
               return [];
             },
@@ -389,7 +391,7 @@ export default class NumberSchema<
     ) => Awaited<ReturnType<NonNullable<TDefinitions['schemaAdapter']['field']>['translate']>> | any,
     toStringCallback?: (schemaAsString: string) => string
   ) {
-    return super.extends(callback, toStringCallback) as this;
+    return super.extends(callback, toStringCallback);
   }
 
   /**
@@ -598,9 +600,9 @@ export default class NumberSchema<
       message?: string;
     }
   ) {
-    const inclusive = typeof options?.inclusive === 'boolean' ? options?.inclusive : false;
+    const inclusive = typeof options?.inclusive === 'boolean' ? options.inclusive : false;
     const message =
-      typeof options?.message === 'string' ? options?.message : DEFAULT_NUMBER_MAX_EXCEPTION(value, inclusive);
+      typeof options?.message === 'string' ? options.message : DEFAULT_NUMBER_MAX_EXCEPTION(value, inclusive);
     this.__max = {
       value,
       inclusive,
@@ -641,9 +643,9 @@ export default class NumberSchema<
       message?: string;
     }
   ) {
-    const inclusive = typeof options?.inclusive === 'boolean' ? options?.inclusive : false;
+    const inclusive = typeof options?.inclusive === 'boolean' ? options.inclusive : false;
     const message =
-      typeof options?.message === 'string' ? options?.message : DEFAULT_NUMBER_MIN_EXCEPTION(value, inclusive);
+      typeof options?.message === 'string' ? options.message : DEFAULT_NUMBER_MIN_EXCEPTION(value, inclusive);
 
     this.__min = {
       value,
@@ -678,9 +680,9 @@ export default class NumberSchema<
    * @returns - The schema instance
    */
   negative(options?: { allowZero?: boolean; message?: string }) {
-    const allowZero = typeof options?.allowZero === 'boolean' ? options?.allowZero : true;
+    const allowZero = typeof options?.allowZero === 'boolean' ? options.allowZero : true;
     const message =
-      typeof options?.message === 'string' ? options?.message : DEFAULT_NUMBER_NEGATIVE_EXCEPTION(allowZero);
+      typeof options?.message === 'string' ? options.message : DEFAULT_NUMBER_NEGATIVE_EXCEPTION(allowZero);
 
     this.__allowNegative = {
       allowZero,
@@ -721,9 +723,9 @@ export default class NumberSchema<
    * @returns - The schema instance
    */
   positive(options?: { allowZero?: boolean; message?: string }) {
-    const allowZero = typeof options?.allowZero === 'boolean' ? options?.allowZero : true;
+    const allowZero = typeof options?.allowZero === 'boolean' ? options.allowZero : true;
     const message =
-      typeof options?.message === 'string' ? options?.message : DEFAULT_NUMBER_NEGATIVE_EXCEPTION(allowZero);
+      typeof options?.message === 'string' ? options.message : DEFAULT_NUMBER_NEGATIVE_EXCEPTION(allowZero);
 
     this.__allowPositive = {
       allowZero,
@@ -760,7 +762,7 @@ export default class NumberSchema<
    * @returns The schema so you can chain other methods.
    */
   decimalPlaces(value: number, options?: { message?: string }) {
-    const message = typeof options?.message === 'string' ? options?.message : `The number should have ${value} decimal places`;
+    const message = typeof options?.message === 'string' ? options.message : `The number should have ${value} decimal places`;
 
     this.__decimalPlaces = {
       value,
@@ -803,7 +805,7 @@ export default class NumberSchema<
    * @returns - The schema so you can chain other methods.
    */
   maxDigits(value: number, options?: { message?: string }) {
-    const message = typeof options?.message === 'string' ? options?.message : `The number should have at most ${value} digits`;
+    const message = typeof options?.message === 'string' ? options.message : `The number should have at most ${value} digits`;
 
     this.__maxDigits = {
       value,
@@ -840,7 +842,7 @@ export default class NumberSchema<
    * @returns - The schema instance
    */
   integer(options?: { message?: string }) {
-    const message = typeof options?.message === 'string' ? options?.message : DEFAULT_NUMBER_INTEGER_EXCEPTION();
+    const message = typeof options?.message === 'string' ? options.message : DEFAULT_NUMBER_INTEGER_EXCEPTION();
 
     this.__integer = {
       message,

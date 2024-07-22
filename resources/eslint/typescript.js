@@ -27,7 +27,7 @@ export const typescript = {
       leadingUnderscore: 'forbid',
       trailingUnderscore: 'forbid',
       custom: {
-        regex: '^(T|T[A-Z][A-Za-z]+)$',
+        regex: '^(T|T[A-Z][A-Za-z0-9]+)$',
         match: true,
       },
     },

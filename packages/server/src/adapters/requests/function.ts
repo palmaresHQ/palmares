@@ -1,10 +1,10 @@
 import ServerRequestAdapter from './class';
 
 import type ServerAdapter from '..';
-import type ServerlessAdapter from '../serverless';
-import type ServerRouterAdapter from '../routers';
 import type Request from '../../request';
 import type { FormDataLike } from '../../request/types';
+import type ServerRouterAdapter from '../routers';
+import type ServerlessAdapter from '../serverless';
 
 /**
  * Functional approach to creating a server adapter instead of the default class/inheritance approach.

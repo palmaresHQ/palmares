@@ -12,10 +12,10 @@ export function serverResponseAdapter<
   TSendFileFunction extends ServerResponseAdapter['sendFile']
 >(args: { send: TSendFunction; redirect: TRedirectFunction; stream: TStreamFunction; sendFile: TSendFileFunction }) {
   class CustomServerResponseAdapter extends ServerResponseAdapter {
-    stream = args.stream as TStreamFunction;
-    sendFile = args.sendFile as TSendFileFunction;
-    redirect = args.redirect as TRedirectFunction;
-    send = args.send as TSendFunction;
+    stream = args.stream;
+    sendFile = args.sendFile;
+    redirect = args.redirect;
+    send = args.send;
   }
 
   return CustomServerResponseAdapter as {
@@ -44,6 +44,7 @@ export default class ServerResponseAdapter {
    * @returns - A promise that resolves with the data needed for redirection. This data is the data that will be returned from the callback on
    * {@link ServerRouterAdapter.parseHandler} or {@link ServerRouterAdapter.parseHandlers}.
    */
+  // eslint-disable-next-line ts/require-await
   async redirect(
     _server: ServerAdapter | ServerlessAdapter,
     _serverRequestAndResponseData: any,
@@ -65,6 +66,7 @@ export default class ServerResponseAdapter {
    *
    * @returns A promise that resolves with the data needed for sending the response.
    */
+  // eslint-disable-next-line ts/require-await
   async send(
     _server: ServerAdapter | ServerlessAdapter,
     _serverRequestAndResponseData: any,
@@ -75,6 +77,7 @@ export default class ServerResponseAdapter {
     return undefined;
   }
 
+  // eslint-disable-next-line ts/require-await
   async stream(
     _server: ServerAdapter | ServerlessAdapter,
     _serverRequestAndResponseData: any,
@@ -86,6 +89,7 @@ export default class ServerResponseAdapter {
     return undefined;
   }
 
+  // eslint-disable-next-line ts/require-await
   async sendFile(
     _server: ServerAdapter | ServerlessAdapter,
     _serverRequestAndResponseData: any,

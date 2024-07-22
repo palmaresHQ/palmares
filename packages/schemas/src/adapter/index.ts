@@ -1,13 +1,14 @@
 import { SchemaAdapterNotImplementedError } from '../exceptions';
-import FieldAdapter from './fields';
-import ArrayFieldAdapter from './fields/array';
-import BooleanFieldAdapter from './fields/boolean';
-import DatetimeFieldAdapter from './fields/datetime';
-import NumberFieldAdapter from './fields/number';
-import ObjectFieldAdapter from './fields/object';
-import StringFieldAdapter from './fields/string';
-import UnionFieldAdapter from './fields/union';
-import { ErrorCodes } from './types';
+
+import type FieldAdapter from './fields';
+import type ArrayFieldAdapter from './fields/array';
+import type BooleanFieldAdapter from './fields/boolean';
+import type DatetimeFieldAdapter from './fields/datetime';
+import type NumberFieldAdapter from './fields/number';
+import type ObjectFieldAdapter from './fields/object';
+import type StringFieldAdapter from './fields/string';
+import type UnionFieldAdapter from './fields/union';
+import type { ErrorCodes } from './types';
 
 export default class SchemaAdapter {
   field!: FieldAdapter;
@@ -19,6 +20,7 @@ export default class SchemaAdapter {
   boolean?: BooleanFieldAdapter;
   datetime?: DatetimeFieldAdapter;
 
+  // eslint-disable-next-line ts/require-await
   async formatError(
     _error: any,
     _metadata?: any

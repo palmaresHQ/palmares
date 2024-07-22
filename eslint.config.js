@@ -32,7 +32,7 @@ const config = tseslint.config(
     ignores: TO_EXCLUDE,
     languageOptions: {
       sourceType: 'module',
-      ecmaVersion: 2020,
+      ecmaVersion: 'latest',
       // @ts-expect-error
       parser: tseslint.parser,
       parserOptions: {

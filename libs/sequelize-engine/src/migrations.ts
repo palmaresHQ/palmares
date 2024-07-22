@@ -1,14 +1,7 @@
 import {
-  Migration,
-  InitializedModelsType,
   ForeignKeyField,
-  Field,
-  DatabaseAdapter,
   adapterMigrations,
 } from '@palmares/databases';
-import { ModelCtor, Model, QueryInterface, QueryInterfaceIndexOptions, Sequelize, ModelAttributeColumnOptions } from 'sequelize';
-
-import type { SetRequired } from 'sequelize/types/utils/set-required';
 
 import type SequelizeEngine from './engine';
 import type {
@@ -17,8 +10,15 @@ import type {
   IndexesToAddOnNextIterationType,
   MigrationModelType,
 } from './types';
+import type {
+  DatabaseAdapter,
+  Field,
+  InitializedModelsType,
+  Migration} from '@palmares/databases';
+import type { Model, ModelAttributeColumnOptions, ModelCtor, QueryInterface, QueryInterfaceIndexOptions, Sequelize } from 'sequelize';
+import type { SetRequired } from 'sequelize/types/utils/set-required';
 
-let circularDependenciesInMigration: CircularDependenciesInMigrationType[] = [];
+const circularDependenciesInMigration: CircularDependenciesInMigrationType[] = [];
 let indexesToAddOnNextIteration: IndexesToAddOnNextIterationType[] = [];
 
 function formatForeignKeyFields(
@@ -29,7 +29,7 @@ function formatForeignKeyFields(
     const modelAssociation = Object.values(model.associations).find((association) =>
       association.foreignKey === ((field as any).name || (field as any).fieldName)
     );
-    const actualField = modelAssociation?.target?.getAttributes()?.[(field.references as any)?.key as string]
+    const actualField = modelAssociation?.target.getAttributes()[(field.references as any)?.key as string]
     if (actualField) field.type = actualField.type;
   }
   return field;
@@ -97,6 +97,7 @@ async function handleCircularDependencies(
   if (sequelizeInstance === undefined) return;
   for (const { fromModel, toModel, fieldName, relatedToName } of circularDependenciesInMigration) {
     const doesColumnDoNotExistInTheModel =
+      // eslint-disable-next-line ts/no-unnecessary-condition
       toModel.initialized.getAttributes()[fieldName] === undefined ||
       engine.initializedModels[relatedToName] !== undefined;
     if (doesColumnDoNotExistInTheModel) {
@@ -105,7 +106,8 @@ async function handleCircularDependencies(
     }
   }
 
-  const allFieldsOfModel = Object.values(toModel?.original?.fields || {});
+  // eslint-disable-next-line ts/no-unnecessary-condition
+  const allFieldsOfModel = Object.values(toModel.original.fields || {});
   for (const fieldDefinition of allFieldsOfModel) {
     const isAForeignKeyField = fieldDefinition instanceof ForeignKeyField;
     const relatedTo = (fieldDefinition as ForeignKeyField).relatedTo;
@@ -141,7 +143,7 @@ async function handleIndexes(
   indexesToAddOnNextIteration = [];
   const failedIndexesForNextIteration: IndexesToAddOnNextIterationType[] = [];
   const toModelIndexes = toModel.initialized.options.indexes || [];
-  const fromModelIndexes = fromModel?.initialized?.options?.indexes || [];
+  const fromModelIndexes = fromModel?.initialized.options.indexes || [];
   const toModelName = toModel.initialized.options.tableName as string;
   const toModelDatabaseColumnNames = Object.keys(toModel.initialized.rawAttributes).map(
     (attributeName) => toModel.initialized.getAttributes()[attributeName].field
@@ -218,9 +220,10 @@ async function addField(
   let sequelizeAttribute = toModel.initialized.getAttributes()[fieldName];
   sequelizeAttribute = formatForeignKeyFields(toModel.initialized, sequelizeAttribute);
 
+  // eslint-disable-next-line ts/no-unnecessary-condition
   const doesNotExistSequelizeAttribute = sequelizeAttribute === undefined;
   if (doesNotExistSequelizeAttribute) {
-    const originalFieldName = toModel.original.fields[fieldName]?.fieldName;
+    const originalFieldName = toModel.original.fields[fieldName].fieldName;
     sequelizeAttribute = toModel.initialized.rawAttributes[originalFieldName];
   }
 
@@ -239,6 +242,7 @@ export default adapterMigrations({
    * This is based on the lifecycle of migrations, first we initialize the migration creating a query interface and
    * a transaction.
    */
+  // eslint-disable-next-line ts/require-await
   init: async (engine: DatabaseAdapter<Sequelize>) => {
     return engine.instance?.getQueryInterface() as QueryInterface;
   },
@@ -390,7 +394,7 @@ export default adapterMigrations({
           })) as GetForeignKeyReferencesForTableReturnType[] | undefined;
 
         if (constraints) {
-          const constraintsToRemove = constraints?.filter(
+          const constraintsToRemove = constraints.filter(
             (constraint) => constraint.columnName === fieldBefore.databaseName
           );
 

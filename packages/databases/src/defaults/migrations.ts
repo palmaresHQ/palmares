@@ -1,6 +1,7 @@
-import { MigrationFileType } from '../migrations/types';
-import { BigAutoField, CharField } from '../models/fields';
 import { CreateModel } from '../migrations/actions';
+import { BigAutoField, CharField } from '../models/fields';
+
+import type { MigrationFileType } from '../migrations/types';
 
 /**
  * Here we just create the `palmares_migrations` table in the database.

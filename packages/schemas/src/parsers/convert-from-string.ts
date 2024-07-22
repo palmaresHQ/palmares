@@ -1,4 +1,4 @@
-import Schema from '../schema/schema';
+import type Schema from '../schema/schema';
 
 /**
  * This will convert a value from a string to any other type.

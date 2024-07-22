@@ -1,7 +1,9 @@
-import eventsAppServer from './app';
-import { EventHandlerType } from './interfaces';
-
 import { domain } from '@palmares/core';
+
+import eventsAppServer from './app';
+
+import type { EventHandlerType } from './interfaces';
+
 
 export const eventsDomainModifier = domain<{
   getEvents: () => Promise<{
@@ -15,7 +17,7 @@ export default domain('@palmares/events', __dirname, {
       description: 'Run the application in events server mode',
       positionalArgs: undefined,
       keywordArgs: undefined,
-      handler: async () => {
+      handler: () => {
         return eventsAppServer;
       },
     },

@@ -1,13 +1,13 @@
 import Domain from './domain';
 import { NotAValidDomainDefaultExportedError } from './exceptions';
-import { getSettings, setSettings } from '../conf/settings';
 import { getCommands } from '../commands';
-import { AppServer, appServer } from '../app';
+import { getSettings, setSettings } from '../conf/settings';
 
-import type { DefaultCommandType } from '../commands/types';
 import type { DomainReadyFunctionArgs } from './types';
+import type { AppServer, appServer } from '../app';
+import type { DefaultCommandType } from '../commands/types';
 import type { CoreSettingsType, SettingsType2 } from '../conf/types';
-import Std from '../std-adapter';
+import type Std from '../std-adapter';
 
 let cachedDomains: (typeof Domain)[] | null = null;
 let cachedInitializedDomains: Domain<any>[] | null = null;
@@ -23,7 +23,7 @@ let cachedInitializedDomains: Domain<any>[] | null = null;
 export async function retrieveDomains(settings: CoreSettingsType & SettingsType2, options?: {
   ignoreCache?: boolean;
 }): Promise<(typeof Domain)[]> {
-  const isNotDynamicDomains = settings?.isDynamicDomains !== true;
+  const isNotDynamicDomains = settings.isDynamicDomains !== true;
   if (cachedDomains && isNotDynamicDomains && options?.ignoreCache !== true) return cachedDomains;
 
   const mergedSettings: any = settings;

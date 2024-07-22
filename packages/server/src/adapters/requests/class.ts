@@ -1,10 +1,10 @@
 import { formDataLikeFactory } from '../../request/utils';
 
 import type ServerAdapter from '..';
-import type ServerRouterAdapter from '../routers';
 import type Request from '../../request';
 import type { FormDataLike } from '../../request/types';
-import ServerlessAdapter from '../serverless';
+import type ServerRouterAdapter from '../routers';
+import type ServerlessAdapter from '../serverless';
 
 export default class ServerRequestAdapter {
   /**

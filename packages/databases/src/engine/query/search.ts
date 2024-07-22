@@ -1,4 +1,4 @@
-import { OperatorsOfQuery } from '../../models/types';
+import type { OperatorsOfQuery } from '../../models/types';
 import type AdapterFieldParser from '../fields/field';
 
 /**
@@ -79,7 +79,7 @@ export function adapterSearchQuery<
   parseSearchFieldValue: TFunctionParseSearchFieldValue;
 }) {
   class CustomAdapterQuerySearch extends AdapterSearchQuery {
-    parseSearchFieldValue = args.parseSearchFieldValue as TFunctionParseSearchFieldValue;
+    parseSearchFieldValue = args.parseSearchFieldValue;
   }
 
   return CustomAdapterQuerySearch as typeof AdapterSearchQuery & {
@@ -159,8 +159,9 @@ export default class AdapterSearchQuery {
    *
    * @returns - Values are changed in-place, so you should not return anything.
    */
-  async parseSearchFieldValue<OperationType extends OperatorsOfQuery>(
-    _operationType: OperationType,
+  // eslint-disable-next-line ts/require-await
+  async parseSearchFieldValue<TOperationType extends OperatorsOfQuery>(
+    _operationType: TOperationType,
     /** The key of the query, this is the field name that we are querying. */
     _key: string,
     /** The model instance that we are querying. */
@@ -168,7 +169,7 @@ export default class AdapterSearchQuery {
     /**
      * This is the value of the query, if the operation is `or`, `and`, `in` or `between` this will be an array of values.
      */
-    _value?: OperationType extends 'or' | 'and' | 'in' | 'between' ? unknown[] : unknown,
+    _value?: TOperationType extends 'or' | 'and' | 'in' | 'between' ? unknown[] : unknown,
     /**
      * This is the result we will use on the query.
      */

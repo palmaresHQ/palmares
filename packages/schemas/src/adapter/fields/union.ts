@@ -2,8 +2,8 @@ import FieldAdapter from '.';
 import { SchemaAdapterNotImplementedError } from '../../exceptions';
 
 import type SchemaAdapter from '..';
-import type { UnionAdapterTranslateArgs } from '../types';
 import type WithFallback from '../../utils';
+import type { UnionAdapterTranslateArgs } from '../types';
 
 
 export function unionFieldAdapter<
@@ -18,7 +18,7 @@ export function unionFieldAdapter<
   parse?: TParse;
 }) {
   class CustomUnionFieldAdapter extends UnionFieldAdapter {
-    translate = args.translate as TTranslate;
+    translate = args.translate;
     toString = args.toString as TToString;
     formatError = args.formatError as TFormatError;
     parse = args.parse as TParse;

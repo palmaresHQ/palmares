@@ -1,9 +1,10 @@
-import { AdapterFieldParserTranslateArgs, adapterEnumFieldParser } from '@palmares/databases';
-import { DataTypes, ModelAttributeColumnOptions } from 'sequelize';
+import { adapterEnumFieldParser } from '@palmares/databases';
+import { DataTypes } from 'sequelize';
 
-import SequelizeEngineFieldParser from './field';
-import SequelizeEngine from '../engine';
-import { TranslatedFieldToEvaluateAfterType } from '../types';
+import type SequelizeEngineFieldParser from './field';
+import type { TranslatedFieldToEvaluateAfterType } from '../types';
+import type { AdapterFieldParserTranslateArgs} from '@palmares/databases';
+import type { ModelAttributeColumnOptions } from 'sequelize';
 
 export default adapterEnumFieldParser({
   translate: async (

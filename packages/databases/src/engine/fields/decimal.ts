@@ -1,6 +1,7 @@
-import { DecimalField, AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateArgs } from '../..';
+import { DecimalField } from '../..';
 import { EngineDoesNotSupportFieldTypeException } from '../../models/exceptions';
-import AdapterFieldParser from './field';
+
+import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateArgs } from '../..';
 
 /**
  * Functional approach to create a custom field parser.
@@ -156,7 +157,7 @@ export function adapterDecimalFieldParser<
   outputParser?: TOutputParserFunction;
 }) {
   class CustomAdapterDecimalFieldParser extends AdapterDecimalFieldParser {
-    translate = args.translate as TTranslateFunction;
+    translate = args.translate;
     inputParser = args.inputParser as TInputParserFunction;
     outputParser = args.outputParser as TOutputParserFunction;
   }
@@ -263,6 +264,7 @@ export default class AdapterDecimalFieldParser {
    *
    * @returns - The translated field.
    */
+  // eslint-disable-next-line ts/require-await
   async translate(args: AdapterFieldParserTranslateArgs<'decimal'>): Promise<any> {
     throw new EngineDoesNotSupportFieldTypeException(args.engine.constructor.name, DecimalField.name);
   }
@@ -292,6 +294,7 @@ export default class AdapterDecimalFieldParser {
    *
    * @returns - The parsed value.
    */
+  // eslint-disable-next-line ts/require-await
   async inputParser?(args: AdapterFieldParserInputAndOutputArgs<'decimal'>) {
     return args.value;
   }
@@ -320,6 +323,7 @@ export default class AdapterDecimalFieldParser {
    *
    * @returns - The parsed value for the user for that specific field.
    */
+  // eslint-disable-next-line ts/require-await
   async outputParser?(args: AdapterFieldParserInputAndOutputArgs<'decimal'>) {
     return args.value;
   }

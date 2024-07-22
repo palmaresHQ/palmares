@@ -1,6 +1,6 @@
-import ArraySchema from '../schema/array';
-import Schema from '../schema/schema';
-import { ValidationFallbackCallbackReturnType, ValidationFallbackReturnType } from '../schema/types';
+import type ArraySchema from '../schema/array';
+import type Schema from '../schema/schema';
+import type { ValidationFallbackCallbackReturnType, ValidationFallbackReturnType } from '../schema/types';
 
 export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): ValidationFallbackReturnType {
   return {
@@ -15,6 +15,7 @@ export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): 
             {
               isValid: false,
               code: 'array',
+              // eslint-disable-next-line ts/no-unnecessary-condition
               path: path || [],
               message: 'The value must be an array. Received: ' + typeof value,
             },
@@ -28,6 +29,7 @@ export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): 
             {
               isValid: false,
               code: 'tuple',
+              // eslint-disable-next-line ts/no-unnecessary-condition
               path: path || [],
               message: 'The tuple must have exactly ' + schemas.length + ' elements. Received: ' + value.length,
             },
@@ -62,8 +64,9 @@ export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): 
             const { parsed, errors } = await schemaWithProtected.__parse(element, [...path, index], options);
 
             if (schemaWithProtected.__toInternal && options.toInternalToBubbleUp)
-              options.toInternalToBubbleUp.push(async () => (parsedValues[indexOfSchema] = await schemaWithProtected?.__toInternal?.(parsed)));
+              options.toInternalToBubbleUp.push(async () => (parsedValues[indexOfSchema] = await schemaWithProtected.__toInternal?.(parsed)));
 
+            // eslint-disable-next-line ts/no-unnecessary-condition
             if ((errors || []).length <= 0) {
               errorsToAppendAfterLoopIfNoSchemaMatched = [];
               schemaIndexByTypeof.set(typeofElement, indexOfSchema);
@@ -88,6 +91,7 @@ export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): 
 export function minLength(args: ArraySchema['__minLength']): ValidationFallbackReturnType {
   return {
     type: 'low',
+    // eslint-disable-next-line ts/require-await
     callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isValid = args.inclusive ? value.length >= args.value : value.length > args.value;
 
@@ -99,6 +103,7 @@ export function minLength(args: ArraySchema['__minLength']): ValidationFallbackR
               {
                 isValid: false,
                 code: 'minLength',
+                // eslint-disable-next-line ts/no-unnecessary-condition
                 path: path || [],
                 message: args.message,
               },
@@ -111,6 +116,7 @@ export function minLength(args: ArraySchema['__minLength']): ValidationFallbackR
 export function maxLength(args: ArraySchema['__maxLength']): ValidationFallbackReturnType {
   return {
     type: 'low',
+    // eslint-disable-next-line ts/require-await
     callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isValid = args.inclusive ? value.length <= args.value : value.length < args.value;
 
@@ -122,6 +128,7 @@ export function maxLength(args: ArraySchema['__maxLength']): ValidationFallbackR
               {
                 isValid: false,
                 code: 'maxLength',
+                // eslint-disable-next-line ts/no-unnecessary-condition
                 path: path || [],
                 message: args.message,
               },
@@ -134,6 +141,7 @@ export function maxLength(args: ArraySchema['__maxLength']): ValidationFallbackR
 export function nonEmpty(args: ArraySchema['__nonEmpty']): ValidationFallbackReturnType {
   return {
     type: 'low',
+    // eslint-disable-next-line ts/require-await
     callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isValid = value.length > 0;
 
@@ -145,6 +153,7 @@ export function nonEmpty(args: ArraySchema['__nonEmpty']): ValidationFallbackRet
               {
                 isValid: false,
                 code: 'nonEmpty',
+                // eslint-disable-next-line ts/no-unnecessary-condition
                 path: path || [],
                 message: args.message,
               },

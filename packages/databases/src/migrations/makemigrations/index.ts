@@ -1,23 +1,26 @@
 /* eslint-disable no-case-declarations */
-import { FRAMEWORK_NAME, SettingsType2, retrieveDomains, getDefaultStd } from '@palmares/core';
+import { FRAMEWORK_NAME, getDefaultStd, retrieveDomains } from '@palmares/core';
 
-import { EmptyOptionsOnGenerateFilesType, FieldOrModelParamType } from './types';
-import { FoundMigrationsFileType, OriginalOrStateModelsByNameType } from '../types';
-import {
+import Asker from './asker';
+import { databaseLogger } from '../../logging';
+import { PACKAGE_NAME, getUniqueCustomImports } from '../../utils';
+import * as actions from '../actions';
+import State from '../state';
+
+
+import type { EmptyOptionsOnGenerateFilesType, FieldOrModelParamType } from './types';
+import type { Field } from '../../models/fields';
+import type { CustomImportsForFieldType } from '../../models/fields/types';
+import type { ModelFieldsType } from '../../models/types';
+import type {
   DatabaseSettingsType,
   InitializedEngineInstancesType,
   InitializedModelsType,
   OptionalMakemigrationsArgsType,
 } from '../../types';
-import State from '../state';
-import Asker from './asker';
-import { ModelFieldsType } from '../../models/types';
-import { Field } from '../../models/fields';
-import { ActionToGenerateType } from '../actions/types';
-import { getUniqueCustomImports, PACKAGE_NAME } from '../../utils';
-import * as actions from '../actions';
-import { CustomImportsForFieldType } from '../../models/fields/types';
-import { databaseLogger } from '../../logging';
+import type { ActionToGenerateType } from '../actions/types';
+import type { FoundMigrationsFileType, OriginalOrStateModelsByNameType } from '../types';
+import type { SettingsType2 } from '@palmares/core';
 
 /**
  * Class used for creating migrations, right now we keep everything in a single file. But we might separate it after.
@@ -114,14 +117,17 @@ export default class MakeMigrations {
 
     // Check if something is in state that is not on original. In other words, check if any field or model was removed
     for (const [stateFieldOrModelName, stateFieldOrModelObject] of stateModelOrFieldEntries) {
+      // eslint-disable-next-line ts/no-unnecessary-condition
       const didRenamedFieldNameOrModelName = originalModelsByNameOrFields[stateFieldOrModelName] === undefined;
 
       if (didRenamedFieldNameOrModelName) {
         if (originalModelOrFieldEntries.length === stateModelOrFieldEntries.length) {
           // ask if user renamed
           let renamedTo = '';
+          // eslint-disable-next-line ts/prefer-for-of
           for (let i = 0; i < originalModelOrFieldEntries.length; i++) {
             const originalModelOrFieldName = originalModelOrFieldEntries[i][0];
+            // eslint-disable-next-line ts/no-unnecessary-condition
             const hasTheUserRenamedTheModel = stateModelsByNameOrFields[originalModelOrFieldName] === undefined;
 
             if (hasTheUserRenamedTheModel) {
@@ -162,6 +168,7 @@ export default class MakeMigrations {
 
     for (const [originalFieldOrModelName, originalFieldOrModelObject] of originalModelOrFieldEntries) {
       const stateFieldOrModelObject = stateModelsByNameOrFields[originalFieldOrModelName];
+      // eslint-disable-next-line ts/no-unnecessary-condition
       const hasCreatedANewFieldOrModel = stateFieldOrModelObject === undefined;
       // created
       if (hasCreatedANewFieldOrModel) {
@@ -262,6 +269,7 @@ export default class MakeMigrations {
         const originalFieldOrModelObject = originalModelsByNameOrFields[fieldOrModelNameInOriginal];
         const stateFieldOrModelObject = stateModelsByNameOrFields[fieldOrModelNameInOriginal];
 
+        // eslint-disable-next-line ts/no-unnecessary-condition
         if (stateFieldOrModelObject === undefined) {
           // we already asked and changed the state so a new was definitely created
           appendOperation(
@@ -371,6 +379,7 @@ export default class MakeMigrations {
         const originalField = originalFieldOrModel as Field;
         const fieldName = fieldOrModelName;
         const isDefaultValueNotDefinedAndFieldDoesNotAllowNull =
+          // eslint-disable-next-line ts/no-unnecessary-condition
           originalField.defaultValue === undefined && originalField.allowNull === false;
         if (isDefaultValueNotDefinedAndFieldDoesNotAllowNull) {
           const answer = await Asker.theNewAttributeCantHaveNullDoYouWishToContinue(
@@ -472,6 +481,7 @@ export default class MakeMigrations {
    *
    * @returns - The operations but ordered, respecting the dependencies of the models.
    */
+  // eslint-disable-next-line ts/require-await
   async #reorderOperations(operations: ActionToGenerateType<any>[]): Promise<ActionToGenerateType<any>[]> {
     const reorderedOperations = [];
     let pendingOperations = operations;
@@ -482,6 +492,7 @@ export default class MakeMigrations {
       for (let i = 0; i < pendingOperations.length; i++) {
         const operationToProcess = pendingOperations[i];
         const modelOfOperationToProcess =
+          // eslint-disable-next-line ts/no-unnecessary-condition
           this.#originalModelsByName[operationToProcess.modelName] !== undefined
             ? this.#originalModelsByName[operationToProcess.modelName]
             : this.#stateModelsByName[operationToProcess.modelName];
@@ -657,6 +668,7 @@ export default class MakeMigrations {
    */
   async generateFiles(operations: ActionToGenerateType<any>[], emptyOptions?: EmptyOptionsOnGenerateFilesType) {
     const lastMigrationIndex = this.filteredMigrationsOfDatabase.length - 1;
+    // eslint-disable-next-line ts/no-unnecessary-condition
     const hasALastMigration = this.filteredMigrationsOfDatabase[lastMigrationIndex] !== undefined;
     let previousDomainPath = operations[0] ? operations[0].domainPath : '';
     let lastDomainPath = hasALastMigration ? this.filteredMigrationsOfDatabase[lastMigrationIndex].domainPath : '';
@@ -682,6 +694,7 @@ export default class MakeMigrations {
         );
 
         numberOfMigrationFilesCreated++;
+        // eslint-disable-next-line ts/no-unnecessary-condition
         previousDomainPath = operation ? operation.domainPath : '';
         lastDomainPath = domainPath;
         lastMigrationName = migrationName;
@@ -704,7 +717,7 @@ export default class MakeMigrations {
    * @param previousMigrationName - The last run migration so we can add the dependencies accordingly.
    */
   async #handleGenerateEmptyMigration(previousMigrationName?: string) {
-    const isArgsAString = typeof this.optionalArgs?.empty === 'string';
+    const isArgsAString = typeof this.optionalArgs.empty === 'string';
     const isToGenerateMigration = (domain: string) => {
       const separatedArg = (this.optionalArgs.empty as string).split(':');
       if (separatedArg.length > 1) {
@@ -749,14 +762,14 @@ export default class MakeMigrations {
     );
     const didNotChangeAnythingInTheModels = operations.length === 0;
     if (didNotChangeAnythingInTheModels) {
-      if (!this.optionalArgs?.empty) databaseLogger.logMessage('NO_CHANGES_MADE_FOR_MIGRATIONS', undefined);
+      if (!this.optionalArgs.empty) databaseLogger.logMessage('NO_CHANGES_MADE_FOR_MIGRATIONS', undefined);
     } else {
       const reorderedMigrations = await this.#reorderOperations(operations);
       previousMigrationName = await this.generateFiles(reorderedMigrations);
     }
 
     // Optional empty
-    if (this.optionalArgs?.empty) await this.#handleGenerateEmptyMigration(previousMigrationName);
+    if (this.optionalArgs.empty) await this.#handleGenerateEmptyMigration(previousMigrationName);
   }
 
   static async buildAndRun(

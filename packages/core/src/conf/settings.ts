@@ -1,8 +1,9 @@
-import { SettingsType2 } from './types';
-import Std from '../std-adapter';
-import { PALMARES_SETTINGS_MODULE_ENVIRONMENT_VARIABLE } from '../utils';
 import { SettingsNotFoundException } from './exceptions';
 import { setDefaultStd } from '../std/config';
+import { PALMARES_SETTINGS_MODULE_ENVIRONMENT_VARIABLE } from '../utils';
+
+import type { SettingsType2 } from './types';
+import type Std from '../std-adapter';
 
 let cachedSettings: SettingsType2 | null = null;
 

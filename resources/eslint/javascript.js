@@ -32,7 +32,7 @@ export const javascript = {
   'no-regex-spaces': 'error',
   'no-self-assign': 'error',
   /** Warn about variable with identical names in the outer scope */
-  'no-shadow': 'warn',
+  'no-shadow': 'off',
   'no-shadow-restricted-names': 'error',
   'no-sparse-arrays': 'error',
   'no-unsafe-finally': 'error',

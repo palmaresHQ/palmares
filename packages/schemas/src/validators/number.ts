@@ -1,10 +1,11 @@
-import NumberSchema from '../schema/number';
-import Schema from '../schema/schema';
-import { ValidationFallbackReturnType } from '../schema/types';
+import type NumberSchema from '../schema/number';
+import type Schema from '../schema/schema';
+import type { ValidationFallbackReturnType } from '../schema/types';
 
 export function numberValidation(): ValidationFallbackReturnType {
   return {
     type: 'medium',
+    // eslint-disable-next-line ts/require-await
     callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       return {
         parsed: value,
@@ -12,6 +13,7 @@ export function numberValidation(): ValidationFallbackReturnType {
           {
             isValid: typeof value === 'number',
             code: 'number',
+            // eslint-disable-next-line ts/no-unnecessary-condition
             path: path || [],
             message: 'The value must be a number. Received: ' + typeof value,
           },
@@ -24,6 +26,7 @@ export function numberValidation(): ValidationFallbackReturnType {
 export function max(args: NumberSchema['__max']): ValidationFallbackReturnType {
   return {
     type: 'low',
+    // eslint-disable-next-line ts/require-await
     callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
       if (args.inclusive)
         return {
@@ -32,6 +35,7 @@ export function max(args: NumberSchema['__max']): ValidationFallbackReturnType {
             {
               isValid: value <= args.value,
               code: 'max',
+              // eslint-disable-next-line ts/no-unnecessary-condition
               path: path || [],
               message: args.message,
             },
@@ -44,6 +48,7 @@ export function max(args: NumberSchema['__max']): ValidationFallbackReturnType {
           {
             isValid: value < args.value,
             code: 'max',
+            // eslint-disable-next-line ts/no-unnecessary-condition
             path: path || [],
             message: args.message,
           },
@@ -56,6 +61,7 @@ export function max(args: NumberSchema['__max']): ValidationFallbackReturnType {
 export function min(args: NumberSchema['__min']): ValidationFallbackReturnType {
   return {
     type: 'low',
+    // eslint-disable-next-line ts/require-await
     callback: async (value: any, path?: (string | number)[]) => {
       if (args.inclusive)
         return {
@@ -88,6 +94,7 @@ export function min(args: NumberSchema['__min']): ValidationFallbackReturnType {
 export function negative(args: NumberSchema['__allowNegative']): ValidationFallbackReturnType {
   return {
     type: 'low',
+    // eslint-disable-next-line ts/require-await
     callback: async (value: any, path?: (string | number)[]) => {
       const isValid = args.allowZero ? value < 0 : value <= 0;
 
@@ -111,6 +118,7 @@ export function negative(args: NumberSchema['__allowNegative']): ValidationFallb
 export function positive(args: NumberSchema['__allowPositive']): ValidationFallbackReturnType {
   return {
     type: 'low',
+    // eslint-disable-next-line ts/require-await
     callback: async (value: any, path?: (string | number)[]) => {
       const isValid = args.allowZero ? value > 0 : value >= 0;
 
@@ -134,6 +142,7 @@ export function positive(args: NumberSchema['__allowPositive']): ValidationFallb
 export function maxDigits(args: NumberSchema['__maxDigits']): ValidationFallbackReturnType {
   return {
     type: 'low',
+    // eslint-disable-next-line ts/require-await
     callback: async (value: any, path?: (string | number)[]) => {
       const isValid = value.toString().replace('.', '').length <= args.value;
 
@@ -157,6 +166,7 @@ export function maxDigits(args: NumberSchema['__maxDigits']): ValidationFallback
 export function decimalPlaces(args: NumberSchema['__decimalPlaces']): ValidationFallbackReturnType {
   return {
     type: 'low',
+    // eslint-disable-next-line ts/require-await
     callback: async (value: any, path?: (string | number)[]) => {
       const isValid = value.toString().split('.')[1]?.length <= args.value;
 

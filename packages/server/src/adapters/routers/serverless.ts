@@ -1,10 +1,10 @@
 import ServerAdapter from '.';
-import { BaseRouter } from '../../router/routers';
-import { MethodTypes, RouterOptionsType } from '../../router/types';
-import ServerResponseAdapter from '../response';
 
-import type ServerlessAdapter from '../serverless';
+import type { BaseRouter } from '../../router/routers';
+import type { MethodTypes, RouterOptionsType } from '../../router/types';
 import type ServerRequestAdapter from '../requests';
+import type ServerResponseAdapter from '../response';
+import type ServerlessAdapter from '../serverless';
 
 export type HandlerForServerless = {
   writeFile: (args: {
@@ -161,9 +161,9 @@ export function serverlessRouterAdapter<
   parseHandlers?: TParseHandlersFunction;
 }) {
   class CustomServerRouterAdapter extends ServerlessRouterAdapter {
-    parseRoute = args.parseRoute as TParseRouteFunction;
+    parseRoute = args.parseRoute;
     parseHandlers = args.parseHandlers as TParseHandlersFunction;
-    load404 = args.load404 as TLoad404Function;
+    load404 = args.load404;
   }
 
   return CustomServerRouterAdapter as {
@@ -204,6 +204,7 @@ export default class ServerlessRouterAdapter {
    * @param _handler - The handler is a simple callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of
    * {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods.
    */
+  // eslint-disable-next-line ts/require-await
   async load404(
     _server: ServerlessAdapter,
     _handler: (serverRequestAndResponseData: any) => ReturnType<ServerResponseAdapter['send']>
@@ -236,6 +237,7 @@ export default class ServerlessRouterAdapter {
    * @param _handler - The handler is a simple callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of
    * {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods.
    */
+  // eslint-disable-next-line ts/require-await
   async load500(
     _server: ServerlessAdapter,
     _handler: (serverRequestAndResponseData: any) => ReturnType<ServerResponseAdapter['send']>
@@ -286,6 +288,7 @@ export default class ServerlessRouterAdapter {
    * @param _queryParams - The query params so you can parse it and validate as you wish.
    * @param _404Handler - The 404 handler.
    */
+  // eslint-disable-next-line ts/require-await
   async parseHandlers(
     _server: ServerlessAdapter,
     _rootFileSystemPath: string,

@@ -1,7 +1,9 @@
 import { adapterGetQuery, adapterOrderingQuery, adapterQuery, adapterRemoveQuery, adapterSearchQuery, adapterSetQuery } from "@palmares/databases";
 import {
   and,
+  asc,
   between,
+  desc,
   eq,
   gt,
   gte,
@@ -17,12 +19,11 @@ import {
   notIlike,
   notInArray,
   notLike,
-  or,
-  desc,
-  asc
+  or
 } from "drizzle-orm";
 
 const getQuery = adapterGetQuery({
+  // eslint-disable-next-line ts/require-await
   queryData: async (engine, args) => {
     return engine.instance.instance.select()
     .from(args.modelOfEngineInstance)
@@ -71,15 +72,17 @@ const removeQuery = adapterRemoveQuery({
 });
 
 const order = adapterOrderingQuery({
+  // eslint-disable-next-line ts/require-await
   parseOrdering: async (model, ordering) => {
     return ordering.map((order) => {
       const isDescending = order.startsWith('-');
-      return isDescending ? desc(model[order.slice(1)] as any) : asc(model[order] as any);
+      return isDescending ? desc(model[order.slice(1)]) : asc(model[order]);
     });
   }
 });
 
 const search = adapterSearchQuery({
+  // eslint-disable-next-line ts/require-await
   parseSearchFieldValue: async (
     operationType,
     key,
@@ -90,53 +93,53 @@ const search = adapterSearchQuery({
   ) => {
     switch (operationType) {
       case 'like':
-        if (options?.ignoreCase) result[key] = ilike(model[key] as any, value as string);
-        else if (options?.isNot && options.ignoreCase) result[key] = notIlike(model[key] as any, value as string);
-        else if (options?.isNot) result[key] = notLike(model[key] as any, value as string);
-        else result[key] = like(model[key] as any, value as string);
+        if (options?.ignoreCase) result[key] = ilike(model[key], value as string);
+        else if (options?.isNot && options.ignoreCase) result[key] = notIlike(model[key], value as string);
+        else if (options?.isNot) result[key] = notLike(model[key], value as string);
+        else result[key] = like(model[key], value as string);
         return;
       case 'is':
         if (value === null && options?.isNot)
-          result[key] = isNotNull(model[key] as any);
+          result[key] = isNotNull(model[key]);
         else if (value === null)
-          result[key] = isNull(model[key] as any);
+          result[key] = isNull(model[key]);
         else if (options?.isNot)
-          result[key] = not(eq(model[key] as any, value));
+          result[key] = not(eq(model[key], value));
         else
-          result[key] = eq(model[key] as any, value);
+          result[key] = eq(model[key], value);
         return;
       case 'in':
         if (options?.isNot)
-          result[key] = notInArray(model[key] as any, value as any[]);
+          result[key] = notInArray(model[key], value as any[]);
         else
-          result[key] = inArray(model[key] as any, value as any[]);
+          result[key] = inArray(model[key], value as any[]);
         return;
       case 'between':
         if (options?.isNot)
-          result[key] = notBetween(model[key] as any, value as any[][0], value as any[][1])
+          result[key] = notBetween(model[key], value as any[][0], value as any[][1])
         else
-          result[key] = between(model[key] as any, value as any[][0], value as any[][1]);
+          result[key] = between(model[key], value as any[][0], value as any[][1]);
         return;
       case 'and':
-        result[key] = and(eq(model[key] as any, value), eq(model[key] as any, value));
+        result[key] = and(eq(model[key], value), eq(model[key], value));
         return;
       case 'or':
-        result[key] = or(eq(model[key] as any, value), eq(model[key] as any, value));
+        result[key] = or(eq(model[key], value), eq(model[key], value));
         return;
       case 'greaterThan':
-        result[key] = gt(model[key] as any, value);
+        result[key] = gt(model[key], value);
         return;
       case 'greaterThanOrEqual':
-        result[key] = gte(model[key] as any, value);
+        result[key] = gte(model[key], value);
         return;
       case 'lessThan':
-        result[key] = lt(model[key] as any, value);
+        result[key] = lt(model[key], value);
         return;
       case 'lessThanOrEqual':
-        result[key] = lte(model[key] as any, value);
+        result[key] = lte(model[key], value);
         return;
       default:
-        result[key] = eq(model[key] as any, value);
+        result[key] = eq(model[key], value);
     }
   }
 })

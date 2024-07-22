@@ -4,10 +4,10 @@
   "description": "Add support for working with databases with palmares framework",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
-  "types": "./src/index.ts",
+  "types": "./dist/cjs/types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
+      "types": "./dist/cjs/types/index.d.ts",
       "node": "./dist/cjs/src/index.js",
       "require": "./dist/cjs/src/index.js",
       "import": "./dist/esm/src/index.js",

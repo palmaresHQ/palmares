@@ -1,4 +1,5 @@
 import Field from './field';
+
 import type { FieldDefaultParamsType, MaybeNull } from './types';
 import type { This } from '../../types';
 
@@ -132,6 +133,7 @@ export default class AutoField<
     };
   }
 
+  // eslint-disable-next-line ts/require-await
   async toString(indentation = 0, customParams: string | undefined = undefined): Promise<string> {
     const ident = '  '.repeat(indentation);
     const fieldParamsIdent = '  '.repeat(indentation + 1);

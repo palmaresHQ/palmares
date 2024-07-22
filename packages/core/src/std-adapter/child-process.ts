@@ -1,6 +1,6 @@
 export default interface ChildProcess {
-  executeAndOutput(command: string): Promise<string>;
-  spawn(
+  executeAndOutput: (command: string) => Promise<string>;
+  spawn: (
     command: string,
     args: string[],
     options: {
@@ -9,9 +9,9 @@ export default interface ChildProcess {
       /** Code to run when an error happens */
       onError?: (error: Error) => void;
       /** Child's stdio configuration */
-      stdio?: Array<'overlapped' | 'pipe' | 'ignore' | 'inherit' | 'ipc' | number | null | undefined>;
+      stdio?: ('overlapped' | 'pipe' | 'ignore' | 'inherit' | 'ipc' | number | null | undefined)[];
       /** Prepare child to run independently of its parent process */
       detached?: boolean;
     }
-  ): Promise<void>;
+  ) => Promise<void>;
 }

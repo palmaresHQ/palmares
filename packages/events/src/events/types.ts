@@ -4,6 +4,7 @@ export type EventEmitterOptionsType = {
     delimiter?: string;
   };
   layer?: {
+    // eslint-disable-next-line ts/consistent-type-imports
     use: import('./index').default | Promise<import('./index').default>;
     channels: string[];
   };

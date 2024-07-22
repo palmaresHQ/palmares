@@ -2,10 +2,10 @@ import { domain } from '@palmares/core';
 
 import { makeMigrations, migrate } from './commands';
 import Databases from './databases';
-import type { DatabaseAdapter } from '.';
 import { defaultMigrations, defaultModels } from './defaults';
 import defaultSettings from './settings';
 
+import type { DatabaseAdapter } from '.';
 import type { DatabaseDomainInterface } from './interfaces';
 import type { model as BaseModel } from './models';
 import type { DatabaseSettingsType } from './types';
@@ -69,27 +69,32 @@ export default domain('@palmares/database', __dirname, {
         const [databases] = loadDatabases();
         const settingsWithDefault = defaultSettings(settingsAsDatabaseSettings);
         await databases.init(settingsWithDefault, options.domains as DatabaseDomainInterface[]);
+        // eslint-disable-next-line ts/no-unnecessary-condition
         if (databases) await Promise.all([databases.close()]);
       },
     },
   },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line ts/require-await
   load: async (_: DatabaseSettingsType) => {
     return async (options: DomainReadyFunctionArgs<DatabaseSettingsType, any>) => {
       const databaseDomains = options.domains as DatabaseDomainInterface[];
-      loadDatabases(databaseDomains);
+      await loadDatabases(databaseDomains);
     };
   },
   ready: async (options: DomainReadyFunctionArgs<DatabaseSettingsType, any>) => {
     const [databases, databaseDomains] = loadDatabases();
     const settingsWithDefault = defaultSettings(options.settings);
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (databases && databaseDomains) await databases.init(settingsWithDefault, databaseDomains);
   },
   close: async () => {
     const [databases] = loadDatabases();
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (databases) await Promise.all([databases.close()]);
   },
+  // eslint-disable-next-line ts/require-await
   getMigrations: async () => defaultMigrations,
+  // eslint-disable-next-line ts/require-await
   getModels: async (engineInstance: DatabaseAdapter) => {
     if (engineInstance.migrations) return defaultModels;
     else return [];
