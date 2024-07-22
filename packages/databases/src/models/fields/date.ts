@@ -1,6 +1,7 @@
 import Field from './field';
-import type { This } from '../../types';
+
 import type { DateFieldParamsType, MaybeNull } from './types';
+import type { This } from '../../types';
 
 /**
  * Functional approach for the creation of a DateField.
@@ -110,14 +111,23 @@ export default class DateField<
   }
 
   static new<
+    // eslint-disable-next-line no-shadow
     TField extends This<typeof DateField>,
+    // eslint-disable-next-line no-shadow
     TDefaultValue extends MaybeNull<InstanceType<TField>['_type']['input'] | undefined, TNull> = undefined,
+    // eslint-disable-next-line no-shadow
     TUnique extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TNull extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TAuto extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TDatabaseName extends string | null | undefined = undefined,
+    // eslint-disable-next-line no-shadow
     TCustomAttributes = any,
+    // eslint-disable-next-line no-shadow
     TAutoNow extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TAutoNowAdd extends boolean = false,
   >(
     this: TField,
@@ -185,13 +195,21 @@ export default class DateField<
   static overrideType<TNewType extends { input: any; output: any }>() {
     return this as unknown as {
       new: <
+        // eslint-disable-next-line no-shadow
         TDefaultValue extends MaybeNull<TNewType['input'] | undefined, TNull> = undefined,
+        // eslint-disable-next-line no-shadow
         TUnique extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TNull extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TAuto extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TDatabaseName extends string | null | undefined = undefined,
+        // eslint-disable-next-line no-shadow
         TCustomAttributes = any,
+        // eslint-disable-next-line no-shadow
         TAutoNow extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TAutoNowAdd extends boolean = false,
       >(
         params?: DateFieldParamsType<

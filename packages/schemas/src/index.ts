@@ -1,17 +1,19 @@
-import {
-  Model,
-  ModelFields,
-} from "@palmares/databases";
-
-import NumberSchema, { number } from './schema/number';
-import ObjectSchema, { object } from './schema/object';
-import UnionSchema, { union } from './schema/union';
-import StringSchema, { string } from './schema/string';
+import SchemaAdapter from './adapter';
+import { modelSchema } from './model';
 import ArraySchema, { array } from './schema/array';
 import BooleanSchema, { boolean } from './schema/boolean';
 import DatetimeSchema, { datetime } from './schema/datetime';
+import NumberSchema, { number } from './schema/number';
+import ObjectSchema, { object } from './schema/object';
 import Schema, { schema } from './schema/schema';
-import SchemaAdapter from './adapter';
+import StringSchema, { string } from './schema/string';
+import UnionSchema, { union } from './schema/union';
+
+import type { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from "./schema/types";
+import type { Narrow } from '@palmares/core';
+import type {
+  Model,
+  ModelFields} from "@palmares/databases";
 
 export { default as default } from './domain';
 export { default as FieldAdapter } from './adapter/fields';
@@ -40,17 +42,13 @@ export {
 export { schema, number, object, union, string, array, datetime, boolean };
 export { default as compile } from './compile';
 
-import type { Narrow } from '@palmares/core';
-import { modelSchema } from './model';
-import { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from "./schema/types";
-
 export { modelSchema };
 
 export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
   return {
     number: () => NumberSchema.new<{ schemaAdapter: TAdapter; schemaType: 'number'; hasSave: false }>(),
     string: () => StringSchema.new<{ schemaAdapter: TAdapter; schemaType: 'string'; hasSave: false }>(),
-    array: <TSchemas extends readonly [Schema, ...Schema[]] | [Array<Schema>]>(...schemas: TSchemas) =>
+    array: <TSchemas extends readonly [Schema, ...Schema[]] | [Schema[]]>(...schemas: TSchemas) =>
       array<TSchemas, { schemaAdapter: TAdapter; schemaType: 'array'; hasSave: false }>(...schemas),
     boolean: () => BooleanSchema.new<{ schemaAdapter: TAdapter; schemaType: 'boolean'; hasSave: false }>(),
     object: <TData extends Record<any, Schema<any, any>>>(data: TData) =>
@@ -172,11 +170,13 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
           Omit<
           TFieldsOnModel,
             keyof ExtractTypeFromObjectOfSchemas<
+              // eslint-disable-next-line ts/ban-types
               TFields extends undefined ? {} : TFields,
               'input'
             >
           > &
           ExtractTypeFromObjectOfSchemas<
+            // eslint-disable-next-line ts/ban-types
             TFields extends undefined ? {} : TFields,
             'input'
           >
@@ -184,11 +184,13 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
           (Omit<
             TFieldsOnModel,
             keyof ExtractTypeFromObjectOfSchemas<
+              // eslint-disable-next-line ts/ban-types
               TFields extends undefined ? {} : TFields,
               'output'
             >
           > &
           ExtractTypeFromObjectOfSchemas<
+            // eslint-disable-next-line ts/ban-types
             TFields extends undefined ? {} : TFields,
             'output'
           >);
@@ -196,11 +198,13 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
           (Omit<
             TFieldsOnModel,
             keyof ExtractTypeFromObjectOfSchemas<
+              // eslint-disable-next-line ts/ban-types
               TFields extends undefined ? {} : TFields,
               'internal'
             >
           > &
           ExtractTypeFromObjectOfSchemas<
+            // eslint-disable-next-line ts/ban-types
             TFields extends undefined ? {} : TFields,
             'internal'
           >);
@@ -208,11 +212,13 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
           (Omit<
             TFieldsOnModel,
             keyof ExtractTypeFromObjectOfSchemas<
+              // eslint-disable-next-line ts/ban-types
               TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
               'representation'
             >
           > &
           ExtractTypeFromObjectOfSchemas<
+            // eslint-disable-next-line ts/ban-types
             TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
             'representation'
           >);
@@ -220,11 +226,13 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
           Omit<
           TFieldsOnModel,
             keyof ExtractTypeFromObjectOfSchemas<
+              // eslint-disable-next-line ts/ban-types
               TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
               'validate'
             >
           > &
           ExtractTypeFromObjectOfSchemas<
+            // eslint-disable-next-line ts/ban-types
             TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
             'validate'
           >;
@@ -250,8 +258,7 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
       schemaType: 'object';
       hasSave: false
     }, [
-      Array<
-        ObjectSchema<{
+      ObjectSchema<{
           input: TReturnType['input'];
           output: TReturnType['output'];
           internal: TReturnType['internal'];
@@ -261,8 +268,7 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
           schemaAdapter: TAdapter;
           schemaType: 'object';
           hasSave: false
-        }, Record<any, any>>
-      >
+        }, Record<any, any>>[]
       ]> : ObjectSchema<{
       input: TReturnType['input'];
       output: TReturnType['output'];
@@ -290,3 +296,43 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
     >(model, options)
   };
 }
+/*
+export class User extends Model<User>() {
+  fields = {
+    id: AutoField.new(),
+    uuid: UuidField.new({
+      autoGenerate: true
+    }),
+    name: CharField.new({ maxLength: 255, dbIndex: true, allowNull: true }),
+    age: IntegerField.new({ dbIndex: true }),
+    userType: EnumField.new({ choices: ['admin', 'user'], defaultValue: 'admin' }),
+    price: DecimalField.new({ maxDigits: 5, decimalPlaces: 2, allowNull: true }),
+    isActive: BooleanField.new({ defaultValue: true }),
+    companyId: ForeignKeyField.new({
+      onDelete: ON_DELETE.CASCADE,
+      relatedName: 'usersOfCompany',
+      relationName: 'company',
+      toField: 'id',
+      relatedTo: Company
+    }),
+    updatedAt: DateField.new({ autoNow: true }),
+    createdAt: DateField.new({ autoNowAdd: true }),
+  }
+
+  options: ModelOptionsType<User> = {
+    tableName: 'users',
+  }
+}
+
+export class Company extends Model<Company>() {
+  fields = {
+    id: AutoField.new(),
+    name: CharField.new({ maxLength: 255 }),
+    address: CharField.new({ maxLength: 255, allowNull: true }),
+  }
+
+  options: ModelOptionsType<Company> = {
+    tableName: 'companies',
+  }
+}
+*/

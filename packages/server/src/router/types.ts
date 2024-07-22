@@ -1,11 +1,11 @@
-import { Narrow } from '@palmares/core';
 import type { BaseRouter } from './routers';
 import type { Middleware } from '../middleware';
 import type { ExtractRequestsFromMiddlewaresForServer, MiddlewareOptions } from '../middleware/types';
-import type Response from '../response';
 import type Request from '../request';
 import type { RequestMethodTypes } from '../request/types';
-import { StatusCodes } from '../response/status';
+import type Response from '../response';
+import type { StatusCodes } from '../response/status';
+import type { Narrow } from '@palmares/core';
 
 export type MethodTypes = 'get' | 'post' | 'put' | 'delete' | 'patch' | 'head' | 'options';
 

@@ -1,18 +1,20 @@
-import DatabaseAdapter from '../../engine';
 import { Operation } from './operation';
-import { Field } from '../../models/fields';
-import {
+
+import type {
   ActionToGenerateType,
-  CreateFieldToGenerateData,
   ChangeFieldToGenerateData,
-  RenameFieldToGenerateData,
+  CreateFieldToGenerateData,
   DeleteFieldToGenerateData,
+  RenameFieldToGenerateData,
   ToStringFunctionReturnType,
 } from './types';
-import { OriginalOrStateModelsByNameType } from '../types';
-import Migration from '../migrate/migration';
-import State from '../state';
-import { BaseModel } from '../../models';
+import type DatabaseAdapter from '../../engine';
+import type { BaseModel } from '../../models';
+import type { Field } from '../../models/fields';
+import type Migration from '../migrate/migration';
+import type State from '../state';
+import type { OriginalOrStateModelsByNameType } from '../types';
+
 
 /**
  * This operation is used when a new field is created on a specific model. If the hole model is created
@@ -48,7 +50,7 @@ export class CreateField extends Operation {
   ) {
     const toModel = toState[this.modelName];
     const fromModel = fromState[this.modelName];
-    await engineInstance?.migrations?.addField(
+    await engineInstance.migrations?.addField(
       engineInstance,
       toModel,
       fromModel,
@@ -78,6 +80,7 @@ export class CreateField extends Operation {
     };
   }
 
+  // eslint-disable-next-line ts/require-await
   static async describe(data: ActionToGenerateType<CreateFieldToGenerateData>): Promise<string> {
     return `Created the field '${data.data.fieldName}' on the '${data.modelName}' model`;
   }
@@ -154,6 +157,7 @@ export class ChangeField extends Operation {
     };
   }
 
+  // eslint-disable-next-line ts/require-await
   static async describe(data: ActionToGenerateType<ChangeFieldToGenerateData>): Promise<string> {
     return `Changed the ${`attribute${data.data.changedAttributes.length > 1 ? 's' : ''} ${data.data.changedAttributes.map((attribute) => `'${attribute}'`).join(', ').replace(/,(?!.*,)/, ' and')}`} of the '${data.data.fieldName}' field on the '${data.modelName}' model`;
   }
@@ -235,6 +239,7 @@ export class RenameField extends Operation {
     };
   }
 
+  // eslint-disable-next-line ts/require-await
   static async describe(data: ActionToGenerateType<RenameFieldToGenerateData>): Promise<string> {
     return `Renamed the field '${data.data.fieldNameBefore}' to '${data.data.fieldNameAfter}' on the '${data.modelName}' model`;
   }
@@ -296,6 +301,7 @@ export class DeleteField extends Operation {
     };
   }
 
+  // eslint-disable-next-line ts/require-await
   static async describe(data: ActionToGenerateType<DeleteFieldToGenerateData>): Promise<string> {
     return `Removed the field '${data.data.fieldName}' on the '${data.modelName}' model`;
   }

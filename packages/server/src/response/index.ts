@@ -1,4 +1,13 @@
 import {
+  HTTP_200_OK,
+  HTTP_302_FOUND,
+  HTTP_500_INTERNAL_SERVER_ERROR,
+  isRedirect,
+  isServerError,
+  isSuccess,
+} from './status';
+import { FileLike } from './utils';
+import {
   DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML,
   DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON,
   DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_STREAM,
@@ -8,21 +17,13 @@ import {
   DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY,
 } from '../defaults';
 import { formDataLikeFactory } from '../request/utils';
-import {
-  HTTP_200_OK,
-  HTTP_302_FOUND,
-  HTTP_500_INTERNAL_SERVER_ERROR,
-  RedirectionStatusCodes,
-  StatusCodes,
-  isRedirect,
-  isServerError,
-  isSuccess,
-} from './status';
-import { FileLike } from './utils';
 
+import type {
+  RedirectionStatusCodes,
+  StatusCodes} from './status';
 import type { ResponseTypeType } from './types';
-import type { FormDataLike } from '../request/types';
 import type Request from '../request';
+import type { FormDataLike } from '../request/types';
 
 export default class Response<
   TBody extends
@@ -94,7 +95,7 @@ export default class Response<
     this.headers = options?.headers as TResponse['headers'] extends object ? TResponse['headers'] : undefined;
     this.status = options?.status as TResponse['status'] extends StatusCodes ? TResponse['status'] : undefined;
     this.statusText = options?.statusText as string;
-    this.ok = options?.status ? isSuccess(options?.status) : false;
+    this.ok = options?.status ? isSuccess(options.status) : false;
     this.redirected = options?.status ? isRedirect(options.status) : false;
     this.type = options?.status ? (isServerError(options.status) ? 'error' : 'basic') : 'basic';
   }
@@ -652,9 +653,9 @@ export default class Response<
     (newResponse as any).url = this.url;
 
     if (args?.status) {
-      (newResponse as any).ok = isSuccess(args?.status);
-      (newResponse as any).redirected = isRedirect(args?.status);
-      (newResponse as any).type = isServerError(args?.status) ? 'error' : 'basic';
+      (newResponse as any).ok = isSuccess(args.status);
+      (newResponse as any).redirected = isRedirect(args.status);
+      (newResponse as any).type = isServerError(args.status) ? 'error' : 'basic';
     }
     return newResponse;
   }
@@ -742,6 +743,7 @@ export default class Response<
    *
    * @returns - The body of the response as a json object.
    */
+  // eslint-disable-next-line ts/require-await
   async json() {
     const isNotAJsonResponse =
       (this.headers as any)?.[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] !==
@@ -780,6 +782,7 @@ export default class Response<
     else return undefined;
   }
 
+  // eslint-disable-next-line ts/require-await
   async blob() {
     if (this.body instanceof Blob) return this.body;
     else if (this.body instanceof ArrayBuffer) return new Blob([this.body]);
@@ -805,6 +808,7 @@ export default class Response<
    *
    * @returns - The body of the response as a {@link FormDataLike} object.
    */
+  // eslint-disable-next-line ts/require-await
   async formData() {
     const formDataLike = formDataLikeFactory();
     if (this.body instanceof formDataLike) return this.body;

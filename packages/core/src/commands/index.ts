@@ -1,13 +1,15 @@
-import { SettingsType2 } from '../conf/types';
-import Std from '../std-adapter';
 import { CommandNotFoundException } from './exceptions';
-import { DefaultCommandType, DomainHandlerFunctionArgs } from './types';
-import { initializeDomains } from '../domain/utils';
-import { setSettings } from '../conf/settings';
-import { AppServer, appServer } from '../app';
+import { AppServer } from '../app';
 import { initializeApp } from '../app/utils';
+import { setSettings } from '../conf/settings';
+import { initializeDomains } from '../domain/utils';
 import { getLogger, setLogger } from '../logging';
 import { PACKAGE_NAME, structuredClone } from '../utils';
+
+import type { DefaultCommandType, DomainHandlerFunctionArgs } from './types';
+import type { appServer } from '../app';
+import type { SettingsType2 } from '../conf/types';
+import type Std from '../std-adapter';
 
 let cachedCommands = {} as DefaultCommandType;
 
@@ -66,17 +68,19 @@ function getValueFromType(type: 'boolean' | 'number' | 'string' | string[] | rea
  * @param command - The command object that will be used to format the arguments.
  * @param args - The arguments that will be formatted.
  */
-async function formatArgs(command: DefaultCommandType[string], args: string[]) {
+function formatArgs(command: DefaultCommandType[string], args: string[]) {
   const isArgAKeywordParameter = (arg: string) => arg.startsWith('--') || arg.startsWith('-');
   const positionalArguments = structuredClone(command.positionalArgs || ({} as object)) as NonNullable<
     DefaultCommandType[string]['positionalArgs']
   >;
   const allKeywordArgsFlagsByRealName =
+    // eslint-disable-next-line ts/no-unnecessary-condition
     Object.entries(command.keywordArgs || ({} as DefaultCommandType[string]))
       .map(([argName, arg]) => (arg.hasFlag ? { [argName[0]]: argName } : undefined))
       .filter((arg) => arg !== undefined)
       .reduce((accumulator, current) => {
         const [key, value] = Object.entries(current as object)[0];
+        // eslint-disable-next-line ts/no-unnecessary-condition
         if (accumulator) {
           accumulator[key] = value;
           return accumulator;
@@ -95,6 +99,7 @@ async function formatArgs(command: DefaultCommandType[string], args: string[]) {
       const [keywordArgument, possibleArgument] = argKey.split(/=(.*)/g);
 
       const formattedKeywordArgument = allKeywordArgsFlagsByRealName[keywordArgument] || keywordArgument;
+      // eslint-disable-next-line ts/no-unnecessary-condition
       if (command.keywordArgs && command.keywordArgs[formattedKeywordArgument]) {
         const isABooleanParameter =
           (typeof command.keywordArgs[formattedKeywordArgument].type === 'string' &&
@@ -122,7 +127,7 @@ async function formatArgs(command: DefaultCommandType[string], args: string[]) {
     } else if (Object.keys(positionalArguments).length > 0) {
       const [positionalArgument, positionalArgsData] = Object.entries(positionalArguments)[0];
       positionalArgs[positionalArgument] = getValueFromType(positionalArgsData.type || 'string', arg);
-      delete positionalArguments[positionalArgument as string];
+      delete positionalArguments[positionalArgument];
     }
   }
 
@@ -171,6 +176,7 @@ export async function handleCommands(
   cachedCommands = availableCommands;
 
   const isCommandDefined: boolean =
+    // eslint-disable-next-line ts/no-unnecessary-condition
     typeof availableCommands[commandType] === 'object' && availableCommands[commandType] !== undefined;
 
   let returnOfCommand: void | typeof AppServer | ReturnType<typeof appServer>;
@@ -180,9 +186,9 @@ export async function handleCommands(
   } as DomainHandlerFunctionArgs['commandLineArgs'];
 
   if (isCommandDefined) {
-    formattedCommandLineArgs = await formatArgs(availableCommands[commandType], args.slice(1, args.length));
+    formattedCommandLineArgs = formatArgs(availableCommands[commandType], args.slice(1, args.length));
 
-    logger?.info?.(`Domains loaded, running the command [${commandType}]`);
+    logger.info(`Domains loaded, running the command [${commandType}]`);
 
     returnOfCommand = await Promise.resolve(
       availableCommands[commandType].handler({
@@ -198,7 +204,7 @@ export async function handleCommands(
   // This will start the app server if your command returns an app server class. Please, don't try to run the app server manually, unless you REALLY know
   // what you are doing, since it has it's own lifecycle.
   if (returnOfCommand?.prototype instanceof AppServer) {
-    logger?.info?.(`Command wants to start the app server, starting it...`);
+    logger.info(`Command wants to start the app server, starting it...`);
 
     initializeApp(domains, settings, formattedCommandLineArgs, returnOfCommand);
   }

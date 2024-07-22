@@ -5,10 +5,11 @@ import {
   defaultTransformToAdapter,
   transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas,
 } from '../utils';
-import { DefinitionsOfSchemaType, ExtractTypeFromArrayOfSchemas } from './types';
-import { arrayValidation, minLength, maxLength, nonEmpty } from '../validators/array';
+import { arrayValidation, maxLength, minLength, nonEmpty } from '../validators/array';
+import { nullable, optional } from '../validators/schema';
 import Validator from '../validators/utils';
-import { optional, nullable } from '../validators/schema';
+
+import type { DefinitionsOfSchemaType, ExtractTypeFromArrayOfSchemas } from './types';
 
 export default class ArraySchema<
   TType extends {
@@ -25,9 +26,9 @@ export default class ArraySchema<
     validate: any[];
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
-  TSchemas extends readonly [Schema, ...Schema[]] | [Array<Schema>] = [Array<Schema>],
+  TSchemas extends readonly [Schema, ...Schema[]] | [Schema[]] = [Schema[]],
 > extends Schema<TType, TDefinitions> {
-  protected __schemas: readonly [Schema, ...Schema[]] | [Array<Schema>];
+  protected __schemas: readonly [Schema, ...Schema[]] | [Schema[]];
 
   protected __minLength!: {
     value: number;
@@ -72,6 +73,7 @@ export default class ArraySchema<
           })
         );
 
+        // eslint-disable-next-line ts/no-unnecessary-condition
         if (shouldBeHandledByFallback)
           Validator.createAndAppendFallback(
             this,
@@ -107,6 +109,7 @@ export default class ArraySchema<
           },
           {
             shouldAddStringVersion: options.shouldAddStringVersion,
+            // eslint-disable-next-line ts/require-await
             fallbackIfNotSupported: async () => [],
           }
         );
@@ -421,7 +424,7 @@ export default class ArraySchema<
     ) => Awaited<ReturnType<NonNullable<TDefinitions['schemaAdapter']['field']>['translate']>> | any,
     toStringCallback?: (schemaAsString: string) => string
   ) {
-    return super.extends(callback, toStringCallback) as this;
+    return super.extends(callback, toStringCallback);
   }
 
   /**
@@ -595,7 +598,7 @@ export default class ArraySchema<
   }
 
   static new<
-    TSchemas extends readonly [Schema, ...Schema[]] | [Array<Schema>],
+    TSchemas extends readonly [Schema, ...Schema[]] | [Schema[]],
     TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
   >(...schemas: TSchemas) {
     const returnValue = new ArraySchema<
@@ -623,7 +626,7 @@ export default class ArraySchema<
 }
 
 export const array = <
-  TSchemas extends readonly [Schema, ...Schema[]] | [Array<Schema>],
+  TSchemas extends readonly [Schema, ...Schema[]] | [Schema[]],
   TDefinitions extends DefinitionsOfSchemaType,
 >(
   ...schemas: TSchemas

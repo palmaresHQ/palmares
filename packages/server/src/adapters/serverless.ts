@@ -1,8 +1,10 @@
-import { Domain } from '@palmares/core';
-import { AllServerSettingsType, ServerSettingsType, ServersSettingsType } from '../types';
+
 import ServerRequestAdapter from './requests';
 import ServerResponseAdapter from './response';
 import ServerlessRouterAdapter from './routers/serverless';
+
+import type { AllServerSettingsType, ServerSettingsType} from '../types';
+import type { Domain } from '@palmares/core';
 
 /**
  * Functional approach to creating a server adapter instead of the default class/inheritance approach.
@@ -33,12 +35,12 @@ export function serverlessAdapter<
   generate: TStartFunction;
 }) {
   class CustomServerAdapter extends ServerlessAdapter {
-    request = args.request as TServerlessRequestAdapter;
-    response = args.response as TServerlessResponseAdapter;
-    routers = args.routers as TServerlessRouterAdapter;
-    load = args.load as TLoadFunction;
+    request = args.request;
+    response = args.response;
+    routers = args.routers;
+    load = args.load;
 
-    static customServerSettings = args.customServerSettings as TCustomServerSettings;
+    static customServerSettings = args.customServerSettings;
   }
 
   return CustomServerAdapter as {
@@ -68,6 +70,7 @@ export default class ServerlessAdapter {
     this.domains = domains;
   }
 
+  // eslint-disable-next-line ts/require-await
   async load(
     _serverName: string,
     _domains: Domain[],
@@ -76,7 +79,8 @@ export default class ServerlessAdapter {
     return undefined;
   }
 
-  async generate(...args: any[]): Promise<void> {
+  // eslint-disable-next-line ts/require-await
+  async generate(..._args: any[]): Promise<void> {
     return undefined;
   }
 

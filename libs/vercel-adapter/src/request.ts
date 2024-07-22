@@ -1,14 +1,15 @@
-import { VercelRequest } from "@vercel/node";
 import { serverRequestAdapter } from "@palmares/server";
+
+import type { VercelRequest } from "@vercel/node";
 
 export default serverRequestAdapter({
   url: (_server, serverRequestAndResponseData: { request: VercelRequest & Request, response: Response }) => {
     return serverRequestAndResponseData.request.url || '';
   },
   headers: (_server, serverRequestAndResponseData: { request: VercelRequest & Request, response: Response }, key) => {
-    const headerDataForKey = serverRequestAndResponseData?.request?.headers[key];
+    const headerDataForKey = serverRequestAndResponseData.request.headers[key];
     if (typeof headerDataForKey === 'string')
-      return headerDataForKey as string;
+      return headerDataForKey;
     return;
   },
   method: (_server, serverRequestAndResponseData: { request: VercelRequest & Request, response: Response }) => {
@@ -58,6 +59,6 @@ export default serverRequestAdapter({
   },
   toJson: async (_server, serverRequestAndResponseData: { request: Request, response: Response }) => {
     const json = await (serverRequestAndResponseData.request as any).json();
-    return json as any;
+    return json;
   }
 })

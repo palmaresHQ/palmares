@@ -1,17 +1,18 @@
-import type { drizzle as drizzlePostgresJs } from 'drizzle-orm/postgres-js';
-import type { drizzle as drizzleNodePostgres } from 'drizzle-orm/node-postgres';
-import type { drizzle as drizzleNeonHttp } from 'drizzle-orm/neon-http';
-import type { drizzle as drizzleXataHttp } from 'drizzle-orm/xata-http';
-import type { drizzle as drizzlePglite } from 'drizzle-orm/pglite';
-import type { drizzle as drizzleVercelPostgres } from 'drizzle-orm/vercel-postgres';
+/* eslint-disable ts/consistent-type-imports */
 import type { drizzle as drizzleAwsDataApiPg } from 'drizzle-orm/aws-data-api/pg';
-import type { drizzle as drizzlePgProxy } from 'drizzle-orm/pg-proxy';
-import type { drizzle as drizzleLibsql } from 'drizzle-orm/libsql';
-import type { drizzle as drizzleD1 } from 'drizzle-orm/d1';
-import type { drizzle as drizzleBunSqlite } from 'drizzle-orm/bun-sqlite';
-import type { drizzle as drizzleExpoSqlite } from 'drizzle-orm/expo-sqlite';
-import type { drizzle as drizzleOpSqlite } from 'drizzle-orm/op-sqlite';
 import type { drizzle as drizzleBetterSqlite3 } from 'drizzle-orm/better-sqlite3';
+import type { drizzle as drizzleBunSqlite } from 'drizzle-orm/bun-sqlite';
+import type { drizzle as drizzleD1 } from 'drizzle-orm/d1';
+import type { drizzle as drizzleExpoSqlite } from 'drizzle-orm/expo-sqlite';
+import type { drizzle as drizzleLibsql } from 'drizzle-orm/libsql';
+import type { drizzle as drizzleNeonHttp } from 'drizzle-orm/neon-http';
+import type { drizzle as drizzleNodePostgres } from 'drizzle-orm/node-postgres';
+import type { drizzle as drizzleOpSqlite } from 'drizzle-orm/op-sqlite';
+import type { drizzle as drizzlePgProxy } from 'drizzle-orm/pg-proxy';
+import type { drizzle as drizzlePglite } from 'drizzle-orm/pglite';
+import type { drizzle as drizzlePostgresJs } from 'drizzle-orm/postgres-js';
+import type { drizzle as drizzleVercelPostgres } from 'drizzle-orm/vercel-postgres';
+import type { drizzle as drizzleXataHttp } from 'drizzle-orm/xata-http';
 
 export type ParametersByType<TType> =
   TType extends 'postgres-js' ?

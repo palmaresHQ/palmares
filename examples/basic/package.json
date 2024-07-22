@@ -25,10 +25,10 @@
     "@palmares/express-adapter": "workspace:*",
     "@palmares/sequelize-engine": "workspace:*",
     "cors": "^2.8.5",
-    "pg": "^8.7.3"
+    "pg": "^8.12.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.12",
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.1.4"
   }
 }

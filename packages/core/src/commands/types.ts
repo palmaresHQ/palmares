@@ -1,7 +1,7 @@
-import { AppServer, appServer } from '../app';
+import type { AppServer, appServer } from '../app';
 import type { SettingsType2 } from '../conf/types';
-import type domain from '../domain/function';
 import type Domain from '../domain/domain';
+import type domain from '../domain/function';
 import type { Narrow } from '../utils';
 
 type ExtractTypeFromArg<

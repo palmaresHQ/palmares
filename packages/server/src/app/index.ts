@@ -2,15 +2,15 @@ import { appServer } from '@palmares/core';
 
 import { ServerAlreadyInitializedError } from './exceptions';
 import { initializeRouters } from './utils';
+import ServerAdapter from '../adapters';
 import { DEFAULT_SERVER_PORT } from '../defaults';
 import { serverLogger } from '../logging';
-import ServerAdapter from '../adapters';
 
-import type { ServerSettingsType, AllServerSettingsType } from '../types';
-import type { ServerDomain } from '../domain/types';
 import type ServerlessAdapter from '../adapters/serverless';
+import type { ServerDomain } from '../domain/types';
+import type { AllServerSettingsType, ServerSettingsType } from '../types';
 
-let serverInstances: Map<string, { server: ServerAdapter | ServerlessAdapter; settings: ServerSettingsType }> = new Map();
+const serverInstances: Map<string, { server: ServerAdapter | ServerlessAdapter; settings: ServerSettingsType }> = new Map();
 
 /**
  * This is the http app server, it is responsible for loading the server and starting it configuring all of the routes of the application.

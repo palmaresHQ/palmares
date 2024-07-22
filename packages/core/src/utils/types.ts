@@ -1,13 +1,13 @@
 type Narrowable = string | number | bigint | boolean;
 
-export type NarrowRaw<A> =
-  | (A extends [] ? [] : never)
-  | (A extends Narrowable ? A : never)
+export type NarrowRaw<T> =
+  | (T extends [] ? [] : never)
+  | (T extends Narrowable ? T : never)
   | {
-      // eslint-disable-next-line @typescript-eslint/ban-types
-      [K in keyof A]: A[K] extends Function ? A[K] : NarrowRaw<A[K]>;
+      // eslint-disable-next-line ts/ban-types
+      [K in keyof T]: T[K] extends Function ? T[K] : NarrowRaw<T[K]>;
     };
 
-type Try<A1, A2, Catch = never> = A1 extends A2 ? A1 : Catch;
+type Try<TDataOne, TDataTwo, TCatch = never> = TDataOne extends TDataTwo ? TDataOne : TCatch;
 
-export type Narrow<A> = Try<A, [], NarrowRaw<A>>;
+export type Narrow<T> = Try<T, [], NarrowRaw<T>>;

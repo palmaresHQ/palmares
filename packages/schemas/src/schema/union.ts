@@ -1,7 +1,6 @@
-import { Narrow } from '@palmares/core';
 
-import { getDefaultAdapter } from '../conf';
 import Schema from './schema';
+import { getDefaultAdapter } from '../conf';
 import {
   defaultTransform,
   defaultTransformToAdapter,
@@ -10,8 +9,9 @@ import {
 import { unionValidation } from '../validators/union';
 import Validator from '../validators/utils';
 
-import type FieldAdapter from '../adapter/fields';
 import type { DefinitionsOfSchemaType } from './types';
+import type FieldAdapter from '../adapter/fields';
+import type { Narrow } from '@palmares/core';
 
 export default class UnionSchema<
   TType extends {
@@ -122,9 +122,11 @@ export default class UnionSchema<
                         options
                       );
 
+                      // eslint-disable-next-line ts/no-unnecessary-condition
                       if ((errors || []).length <= 0) return { parsed, errors };
                       else {
                         parsedValues.parsed = parsed;
+                        // eslint-disable-next-line ts/no-unnecessary-condition
                         parsedValues.errors = (parsedValues.errors || []).concat(errors || []);
                       }
                     }
@@ -432,7 +434,7 @@ export default class UnionSchema<
     ) => Awaited<ReturnType<NonNullable<TDefinitions['schemaAdapter']['field']>['translate']>> | any,
     toStringCallback?: (schemaAsString: string) => string
   ) {
-    return super.extends(callback, toStringCallback) as this;
+    return super.extends(callback, toStringCallback);
   }
 
   /**

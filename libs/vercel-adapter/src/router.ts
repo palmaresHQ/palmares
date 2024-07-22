@@ -41,6 +41,7 @@ export default serverlessRouterAdapter({
     if (urlParamType) return `[${partOfPath}]`;
     else return partOfPath;
   },
+  // eslint-disable-next-line ts/require-await
   load404: async (server, handler) => {
     console.log('load404');
   },

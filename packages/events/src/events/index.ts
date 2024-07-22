@@ -1,7 +1,8 @@
-import Emitter from '../emitter';
-import { uuid } from '../utils';
 import { NoLayerError } from './exceptions';
+import { uuid } from '../utils';
+
 import type { EventEmitterOptionsType, ResultWrappedCallbackType } from './types';
+import type Emitter from '../emitter';
 
 /**
  * This class is responsible for appending listeners (functions) and sending events to them
@@ -148,8 +149,8 @@ import type { EventEmitterOptionsType, ResultWrappedCallbackType } from './types
  * a listener might be in other machine. So when working with them we do not have to rely too much on
  * internal data for the class.
  */
-export default class EventEmitter<E extends Emitter = Emitter> {
-  emitter: E;
+export default class EventEmitter<TEmitter extends Emitter = Emitter> {
+  emitter: TEmitter;
   protected layer?: EventEmitter;
   private resultsEventName!: string;
   #channels!: string[];
@@ -176,10 +177,10 @@ export default class EventEmitter<E extends Emitter = Emitter> {
    *
    * @returns - This is a factory method so we create a new EventEmitter instance.
    */
-  static async new<E extends typeof Emitter = typeof Emitter>(
-    emitter: Promise<{ default: E }> | E,
+  static async new<TEmitter extends typeof Emitter = typeof Emitter>(
+    emitter: Promise<{ default: TEmitter }> | TEmitter,
     options?: EventEmitterOptionsType & {
-      emitterParams?: Parameters<E['new']>;
+      emitterParams?: Parameters<TEmitter['new']>;
     }
   ) {
     const { emitterParams, ...optionsForConstructor } = options || {};
@@ -187,7 +188,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     const emitterCustomParams = emitterParams || [];
     const emitterInstance = await emitter.new(...emitterCustomParams);
 
-    const eventEmitterInstance = new this(emitterInstance, optionsForConstructor) as EventEmitter<InstanceType<E>>;
+    const eventEmitterInstance = new this(emitterInstance, optionsForConstructor);
 
     // Define the results data so we can retrieve results for all of the handlers
     eventEmitterInstance.resultsEventName = `resultsOfEmitter-${uuid()}`;
@@ -198,16 +199,17 @@ export default class EventEmitter<E extends Emitter = Emitter> {
 
     if (options?.layer?.use) {
       eventEmitterInstance.layer = await Promise.resolve(options.layer.use);
-      await eventEmitterInstance.addChannelListeners(options?.layer.channels || ['all']);
+      // eslint-disable-next-line ts/no-unnecessary-condition
+      await eventEmitterInstance.addChannelListeners(options.layer.channels || ['all']);
     }
 
     return eventEmitterInstance;
   }
 
-  constructor(emitterInstance: E, options?: EventEmitterOptionsType) {
+  constructor(emitterInstance: TEmitter, options?: EventEmitterOptionsType) {
     this.emitter = emitterInstance;
-    if (options?.wildcards?.delimiter) this.#delimiter = options?.wildcards?.delimiter;
-    if (options?.wildcards?.use) this.#wildcards = options?.wildcards?.use;
+    if (options?.wildcards?.delimiter) this.#delimiter = options.wildcards.delimiter;
+    if (options?.wildcards?.use) this.#wildcards = options.wildcards.use;
     if (typeof options?.results?.pingTimeout === 'number') this.#pingTimeout = options.results.pingTimeout;
     if (typeof options?.results?.timeout === 'number') this.#resultsTimeout = options.results.timeout;
     if (options?.layer?.channels) this.#channels = options.layer.channels;
@@ -228,6 +230,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
    */
   private resultsListener(handlerId: string, resultId: string, _: string | null, result: any) {
     const hasPendingResultsForId =
+      // eslint-disable-next-line ts/no-unnecessary-condition
       typeof this.#pendingResults[resultId] === 'object' && this.#pendingResults[resultId] !== undefined;
     if (hasPendingResultsForId) this.#pendingResults[resultId][handlerId] = result;
   }
@@ -252,6 +255,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
   ) {
     if (key in this.#groupByKeys === false) this.#groupByKeys[key] = new Set([handlerGroupId]);
 
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (this.#groups[handlerGroupId]) this.#groups[handlerGroupId].listeners[handlerId] = callback;
     else {
       this.#groups[handlerGroupId] = {
@@ -292,6 +296,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     const splittedKey = key.split(this.#delimiter);
     const allKeysOfKey = ['**'];
 
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (this.#groupByKeys['**']) this.#groupByKeys['**'].add(handlerGroupId);
     else this.#groupByKeys['**'] = new Set([handlerGroupId]);
 
@@ -303,16 +308,19 @@ export default class EventEmitter<E extends Emitter = Emitter> {
 
       if (isLastKey) {
         const wildCardLastKey = `${appendedKey}${i > 0 ? this.#delimiter : ''}*`;
+        // eslint-disable-next-line ts/no-unnecessary-condition
         if (this.#groupByKeys[wildCardLastKey]) this.#groupByKeys[wildCardLastKey].add(handlerGroupId);
         else this.#groupByKeys[wildCardLastKey] = new Set([handlerGroupId]);
 
         const completeKey = newAppendedKey;
+        // eslint-disable-next-line ts/no-unnecessary-condition
         if (this.#groupByKeys[completeKey]) this.#groupByKeys[completeKey].add(handlerGroupId);
         else this.#groupByKeys[completeKey] = new Set([handlerGroupId]);
 
         allKeysOfKey.push(wildCardLastKey, completeKey);
       } else {
         const deepNestedKey = `${newAppendedKey}${this.#delimiter}**`;
+        // eslint-disable-next-line ts/no-unnecessary-condition
         if (this.#groupByKeys[deepNestedKey]) this.#groupByKeys[deepNestedKey].add(handlerGroupId);
         else this.#groupByKeys[deepNestedKey] = new Set([handlerGroupId]);
 
@@ -321,6 +329,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
       appendedKey = newAppendedKey;
     }
 
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (this.#groups[handlerGroupId]) this.#groups[handlerGroupId].listeners[handlerId] = callback;
     else {
       this.#groups[handlerGroupId] = {
@@ -347,6 +356,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
    * @returns - Return the callback wrapped, so we can notify the class that we are working on a result for a particular
    * resultKey, this is nice so if the system receives multiple requests it won't do nothing.
    */
+  // eslint-disable-next-line ts/require-await
   async #wrapInPendingHandlerToPreventMultipleCalls(
     handlerId: string,
     callback: ResultWrappedCallbackType | ((...args: any) => any),
@@ -530,7 +540,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     // Adds the event listener to the emitter class so that we will be able to emit events.
     await this.emitter.addEventListener(handlerGroupId, key, callback);
 
-    return this.#unsubscribe(handlerGroupId, key, handlerId);
+    return this.#unsubscribe({ handlerGroupId, key, handlerId });
   }
 
   /**
@@ -553,6 +563,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
         promises.push(
           (async () => {
             const groupKeysAndListeners = this.#groups[groupId];
+            // eslint-disable-next-line ts/no-unnecessary-condition
             if (groupKeysAndListeners) {
               const listeners = Object.values(groupKeysAndListeners.listeners);
               const listenerRemovalPromises = listeners.map(async (listener) => {
@@ -632,7 +643,8 @@ export default class EventEmitter<E extends Emitter = Emitter> {
    * @param key - The original key that we used to add the listener.
    * @param handlerId - The id of the handler that we want to remove from the emitter.
    */
-  async #unsubscribe(handlerGroupId: string, key: string, handlerId: string) {
+  // eslint-disable-next-line ts/require-await
+  async #unsubscribe({ handlerGroupId, key, handlerId }: { handlerGroupId: string; key: string; handlerId: string; }) {
     const unsubscribeHandlerFunction = async () => {
       const doesGroupStillExists = handlerGroupId in this.#groups;
       const doesHandlerStillExists = doesGroupStillExists && handlerId in this.#groups[handlerGroupId].listeners;
@@ -672,6 +684,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
    * @param resultKey - This is the key of the result, when you all `.emit()` we will create a key
    * meaning that we will populate the contents of this key with the results.
    */
+  // eslint-disable-next-line ts/require-await
   protected async emitEventToEmitter(
     key: string,
     resultsEventName: string,
@@ -679,10 +692,12 @@ export default class EventEmitter<E extends Emitter = Emitter> {
     channelLayer: string | null,
     ...data: any[]
   ) {
+    // eslint-disable-next-line ts/no-unnecessary-condition
     const groupIdsToEmitEventTo = (this.#groupByKeys[key] || new Set()).values();
 
     for (const groupId of groupIdsToEmitEventTo) {
-      const groupListenersIds = Object.keys(this.#groups[groupId]?.listeners || {});
+      // eslint-disable-next-line ts/no-unnecessary-condition
+      const groupListenersIds = Object.keys(this.#groups[groupId].listeners || {});
       // This will prevent that we will emit the event multiple times to the same handler.
       const areAllListenersBeingHandled = groupListenersIds.every(
         (handlerId) => this.#pendingHandlerIdForResultKey.get(handlerId) === resultKey
@@ -715,6 +730,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
         try {
           const hasReachedTimeout = Date.now() - startTimer > this.#resultsTimeout;
           const hasResultForKey = Object.keys(this.#pendingResults[resultKey]).length > 0;
+          // eslint-disable-next-line ts/no-unnecessary-condition
           const resultsAsArray = Object.values(this.#pendingResults[resultKey] || {});
           const allResultsConcluded = hasResultForKey && resultsAsArray.every(({ status }) => status !== 'pending');
           const isPingTimeoutPassed = Date.now() - startTimer > this.#pingTimeout;
@@ -747,7 +763,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
    *
    * @return - A promise that will wait for a return of the emitters.
    */
-  async emitToChannel<R = unknown>(channels: string[] | string, key: string, ...data: any[]) {
+  async emitToChannel<TResult = unknown>(channels: string[] | string, key: string, ...data: any[]) {
     const resultKey = `emittedToChannelResultKey-${uuid()}`;
     this.#pendingResults[resultKey] = {};
 
@@ -757,7 +773,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
       for (const channel of filteredChannels) {
         this.layer.emitEventToEmitter(channel, this.resultsEventName, resultKey, channel, { key, data });
       }
-      return this.#fetchResultForEmit(resultKey) as Promise<R[]>;
+      return this.#fetchResultForEmit(resultKey) as Promise<TResult[]>;
     } else {
       throw new NoLayerError();
     }
@@ -773,13 +789,13 @@ export default class EventEmitter<E extends Emitter = Emitter> {
    *
    * @return - A promise that will wait for a return of the emitters.
    */
-  async emit<R = unknown>(key: string, ...data: any[]) {
+  async emit<TResult = unknown>(key: string, ...data: any[]) {
     const resultKey = `emittedResultKey-${uuid()}`;
     this.#pendingResults[resultKey] = {};
 
     this.emitEventToEmitter(key, this.resultsEventName, resultKey, null, ...data);
 
-    return this.#fetchResultForEmit(resultKey) as Promise<R[]>;
+    return this.#fetchResultForEmit(resultKey) as Promise<TResult[]>;
   }
 
   /**
@@ -825,6 +841,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
    *
    * @returns - Returns the callback that will be called when we fire the emitter.
    */
+  // eslint-disable-next-line ts/require-await
   async #getLayerListener(): Promise<
     (
       this: EventEmitter,
@@ -847,6 +864,7 @@ export default class EventEmitter<E extends Emitter = Emitter> {
         data: any[];
       }
     ) {
+      // eslint-disable-next-line ts/no-unnecessary-condition
       this.emitEventToEmitter(data.key, resultsEventName, resultKey, channel, ...(data.data || []));
     }
     return layerListener.bind(this);

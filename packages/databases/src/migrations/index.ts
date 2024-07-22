@@ -1,11 +1,12 @@
 import { ERR_MODULE_NOT_FOUND, getDefaultStd } from '@palmares/core';
 
-import { DatabaseDomainInterface } from '../interfaces';
-import { DatabaseSettingsType, InitializedEngineInstancesType, OptionalMakemigrationsArgsType } from '../types';
-import { FoundMigrationsFileType, MigrationFileType } from './types';
 import MakeMigrations from './makemigrations';
 import Migrate from './migrate';
 import { databaseLogger } from '../logging';
+
+import type { FoundMigrationsFileType, MigrationFileType } from './types';
+import type { DatabaseDomainInterface } from '../interfaces';
+import type { DatabaseSettingsType, InitializedEngineInstancesType, OptionalMakemigrationsArgsType } from '../types';
 
 /**
  * Used for working with anything related to migrations inside of the project, from the automatic creation of migrations
@@ -33,6 +34,7 @@ export default class Migrations {
     await Migrate.buildAndRun(this.settings, migrations, initializedEngineInstances);
   }
 
+  // eslint-disable-next-line ts/require-await
   async #reorderMigrations(migrations: FoundMigrationsFileType[]): Promise<FoundMigrationsFileType[]> {
     const reorderedMigrations = [];
     const reference: { [key: string]: number } = {};
@@ -57,6 +59,7 @@ export default class Migrations {
     const promises: Promise<void>[] = this.domains.map(async (domain) => {
       if (domain.getMigrations) {
         let domainMigrations = await Promise.resolve(domain.getMigrations());
+        // eslint-disable-next-line ts/no-unnecessary-condition
         if (typeof domainMigrations === 'object' && domainMigrations !== null)
           domainMigrations = Object.values(domainMigrations);
 
@@ -72,11 +75,12 @@ export default class Migrations {
         try {
           const directoryFiles = await defaultStd.files.readDirectory(fullPath);
           const promises = directoryFiles.map(async (element) => {
-            const file = element as string;
+            const file = element;
             const pathOfMigration = await defaultStd.files.join(fullPath, file);
             const migrationFile = (await import(pathOfMigration)).default as MigrationFileType;
             const isAValidMigrationFile =
               typeof migrationFile === 'object' &&
+              // eslint-disable-next-line ts/no-unnecessary-condition
               migrationFile !== undefined &&
               typeof migrationFile.database === 'string' &&
               Array.isArray(migrationFile.operations) &&

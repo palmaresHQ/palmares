@@ -16,7 +16,9 @@
     "palmares",
     "framework"
   ],
+  "type": "module",
   "scripts": {
+    "lint": "eslint . --ignore-pattern .gitignore",
     "define:change": "pnpm changeset",
     "release:apply": "pnpm changeset version",
     "release:publish": "pnpm changeset publish",
@@ -42,9 +44,9 @@
   "packageManager": "pnpm@9.2.0",
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "devDependencies": {
-    "@changesets/cli": "^2.27.5",
+    "@changesets/cli": "^2.27.7",
     "@swc/cli": "^0.4.0",
-    "@swc/core": "^1.5.25",
+    "@swc/core": "^1.7.0",
     "@types/node": "^20.14.11",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
@@ -53,13 +55,16 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-file-progress": "^1.4.0",
     "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-prettier": "^5.1.3",
+    "eslint-plugin-import-x": "^3.0.1",
+    "eslint-plugin-n": "^17.9.0",
+    "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-security": "^1.7.1",
+    "globals": "^15.8.0",
     "prettier": "3.0.3",
     "rimraf": "^5.0.7",
     "swc": "^1.0.11",
     "tsx": "^3.14.0",
-    "turbo": "^2.0.5",
+    "turbo": "^2.0.9",
     "typescript": "^5.5.3"
   }
 }

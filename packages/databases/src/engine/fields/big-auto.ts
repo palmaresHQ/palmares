@@ -1,6 +1,8 @@
-import { BigAutoField, AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateArgs } from '../..';
+import { BigAutoField } from '../..';
 import { EngineDoesNotSupportFieldTypeException } from '../../models/exceptions';
-import AdapterFieldParser from './field';
+
+import type AdapterFieldParser from './field';
+import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateArgs } from '../..';
 
 /**
  * Functional approach to create a custom field parser.
@@ -156,7 +158,7 @@ export function adapterBigAutoFieldParser<
   outputParser?: TOutputParserFunction;
 }) {
   class CustomAdapterBigAutoFieldParser extends AdapterBigAutoFieldParser {
-    translate = args.translate as TTranslateFunction;
+    translate = args.translate;
     inputParser = args.inputParser as TInputParserFunction;
     outputParser = args.outputParser as TOutputParserFunction;
   }
@@ -263,6 +265,7 @@ export default class AdapterBigAutoFieldParser {
    *
    * @returns - The translated field.
    */
+  // eslint-disable-next-line ts/require-await
   async translate(args: AdapterFieldParserTranslateArgs<'big-auto'>): Promise<any> {
     throw new EngineDoesNotSupportFieldTypeException(args.engine.constructor.name, BigAutoField.name);
   }
@@ -292,6 +295,7 @@ export default class AdapterBigAutoFieldParser {
    *
    * @returns - The parsed value.
    */
+  // eslint-disable-next-line ts/require-await
   async inputParser?(args: AdapterFieldParserInputAndOutputArgs<'big-auto'>) {
     return args.value;
   }
@@ -320,6 +324,7 @@ export default class AdapterBigAutoFieldParser {
    *
    * @returns - The parsed value for the user for that specific field.
    */
+  // eslint-disable-next-line ts/require-await
   async outputParser?(args: AdapterFieldParserInputAndOutputArgs<'big-auto'>) {
     return args.value;
   }

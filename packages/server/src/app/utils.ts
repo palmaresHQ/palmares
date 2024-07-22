@@ -1,9 +1,12 @@
 import { getDefaultStd } from '@palmares/core';
 
+import {
+  HandlerOrHandlersShouldBeDefinedOnRouterAdapterError,
+  RedirectionStatusCodesMustHaveALocationHeaderError,
+  ResponseNotReturnedFromResponseOnMiddlewareError,
+} from './exceptions';
 import ServerAdapter from '../adapters';
 import ServerlessAdapter from '../adapters/serverless';
-import ServerRequestAdapter from '../adapters/requests';
-import ServerResponseAdapter from '../adapters/response';
 import {
   DEFAULT_NOT_FOUND_STATUS_TEXT_MESSAGE,
   DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY,
@@ -11,25 +14,23 @@ import {
   DEFAULT_STATUS_CODE_BY_METHOD,
 } from '../defaults';
 import { errorCaptureHandler } from '../handlers';
-import { ServerDomain } from '../domain/types';
-import { Middleware } from '../middleware';
+import { serverLogger } from '../logging';
 import Request from '../request';
 import Response from '../response';
 import { HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR, isRedirect } from '../response/status';
-import { path } from '../router';
-import { BaseRouter, MethodsRouter } from '../router/routers';
-import { HandlerType, MethodTypes, RouterOptionsType } from '../router/types';
-import { AllServerSettingsType } from '../types';
-import {
-  HandlerOrHandlersShouldBeDefinedOnRouterAdapterError,
-  RedirectionStatusCodesMustHaveALocationHeaderError,
-  ResponseNotReturnedFromResponseOnMiddlewareError,
-} from './exceptions';
-import { serverLogger } from '../logging';
 import { AsyncGeneratorFunction, FileLike, GeneratorFunction } from '../response/utils';
+import { path } from '../router';
+
+
+import type ServerRequestAdapter from '../adapters/requests';
+import type ServerResponseAdapter from '../adapters/response';
 import type ServerRouterAdapter from '../adapters/routers';
-//import type ServerlessRouterAdapter from '../adapters/routers/serverless';
-import { HandlerForServerless } from '../adapters/routers/serverless';
+import type { HandlerForServerless } from '../adapters/routers/serverless';
+import type { ServerDomain } from '../domain/types';
+import type { Middleware } from '../middleware';
+import type { BaseRouter, MethodsRouter } from '../router/routers';
+import type { HandlerType, MethodTypes, RouterOptionsType } from '../router/types';
+import type { AllServerSettingsType } from '../types';
 
 /**
  * By default we don't know how to handle the routes by itself. Pretty much MethodsRouter does everything that we need here during runtime.
@@ -60,7 +61,7 @@ export async function getRootRouterCompletePaths(
     ? allRoutes.concat([errorCaptureHandler() as any])
     : allRoutes;
 
-  const rootRouter = path(settings?.prefix ? settings.prefix : '').nested(allRoutesWithOrWithoutErrorHandler);
+  const rootRouter = path(settings.prefix ? settings.prefix : '').nested(allRoutesWithOrWithoutErrorHandler);
   const rootRouterCompletePaths = (rootRouter as any).__completePaths as BaseRouter['__completePaths'];
   if (extractedRouterInterceptors.length > 0)
     await Promise.all(
@@ -92,6 +93,7 @@ async function* wrappedMiddlewareResponses(
 ) {
   for (let i = middlewareOnionIndex; i >= 0; i--) {
     const middleware = middlewares[i];
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (!middleware) continue;
     if (middleware.response) {
       response = await middleware.response(response);
@@ -161,7 +163,7 @@ function appendTranslatorToRequest(
   };
   if (options?.responses)
     requestWithoutPrivateMethods.__responses = Object.freeze({
-      value: options?.responses as any,
+      value: options.responses as any,
     });
   requestWithoutPrivateMethods.__validation = validation;
   requestWithoutPrivateMethods.__serverAdapter = serverAdapter;
@@ -190,7 +192,7 @@ function appendTranslatorToResponse(
   };
   if (options?.responses)
     responseWithoutPrivateMethods.responses = Object.freeze({
-      value: options?.responses as any,
+      value: options.responses as any,
     });
   responseWithoutPrivateMethods.__serverAdapter = serverAdapter;
   responseWithoutPrivateMethods.__serverRequestAndResponseData = serverRequestAndResponseData;
@@ -211,15 +213,19 @@ async function translateResponseToServerResponse(
   server: ServerAdapter | ServerlessAdapter,
   serverRequestAndResponseData: any
 ) {
+  // eslint-disable-next-line ts/no-unnecessary-condition
   const responseStatus = response.status || DEFAULT_STATUS_CODE_BY_METHOD(method);
   const isRedirectResponse = isRedirect(responseStatus);
   const isStreamResponse =
+    // eslint-disable-next-line ts/no-unnecessary-condition
     (response.body && (response.body as any) instanceof GeneratorFunction) ||
     (response.body as any) instanceof AsyncGeneratorFunction;
   const isFileResponse =
+    // eslint-disable-next-line ts/no-unnecessary-condition
     (response.body && (response.body as any) instanceof Blob) ||
     (response.body as any) instanceof FileLike ||
     (response.body as any) instanceof ArrayBuffer;
+  // eslint-disable-next-line ts/no-unnecessary-condition
   if (isRedirectResponse && !response.headers?.[DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY])
     throw new RedirectionStatusCodesMustHaveALocationHeaderError();
   if (isRedirectResponse)
@@ -236,9 +242,7 @@ async function translateResponseToServerResponse(
       serverRequestAndResponseData,
       responseStatus,
       response.headers as any,
-      (response.body as unknown as () => AsyncGenerator<any, any, any> | Generator<any, any, any>)() as
-        | AsyncGenerator<any, any, any>
-        | Generator<any, any, any>,
+      (response.body as unknown as () => AsyncGenerator<any, any, any> | Generator<any, any, any>)(),
       (response.body as any) instanceof AsyncGeneratorFunction
     );
   if (isFileResponse)
@@ -373,13 +377,14 @@ function wrapHandlerAndMiddlewares(
           serverRequestAndResponseData,
           options
         );
+        // eslint-disable-next-line ts/no-unnecessary-condition
         if (handlerResponse) response = handlerResponse;
       }
     } catch (error) {
       const isResponseError = error instanceof Response;
       const errorAsError = error as Error;
       let errorResponse: Response = isResponseError
-        ? (error as Response<any, any>)
+        ? (error)
         : server.settings.debug === true ?
           DEFAULT_SERVER_ERROR_RESPONSE(errorAsError, server.allSettings, server.domains) :
           new Response(undefined, { status: HTTP_500_INTERNAL_SERVER_ERROR });
@@ -409,7 +414,7 @@ function wrapHandlerAndMiddlewares(
       if (response) {
         for await (const modifiedResponse of wrappedMiddlewareResponses(
           middlewares,
-          response as Response,
+          response,
           middlewareOnionIndex
         )) {
           const isResponse = modifiedResponse instanceof Response;
@@ -430,7 +435,7 @@ function wrapHandlerAndMiddlewares(
       if (wasErrorAlreadyHandledInRequestLifecycle === false) {
         const isResponseError = error instanceof Response;
         let errorResponse: Response = isResponseError
-          ? (error as Response<any, any>)
+          ? (error)
           : server.settings.debug === true ?
           DEFAULT_SERVER_ERROR_RESPONSE(error as Error, server.allSettings, server.domains) :
           new Response(undefined, { status: HTTP_500_INTERNAL_SERVER_ERROR });
@@ -478,6 +483,7 @@ function generateServerlessHandler(
 
   return {
     appendBody: (args) => {
+      // eslint-disable-next-line ts/no-unnecessary-condition
       if(pathOfHandler === undefined) throw new Error('You should call writeFile before appendBody');
 
       serverLogger.logMessage('SERVERLESS_HANDLER_UPDATED', {
@@ -579,11 +585,12 @@ function doTheRoutingForServerlessOnly(
   urlParams: BaseRouter['__urlParamsAndPath']['params'],
   routeToFilter: string,
 ) {
-  const regex = new RegExp(`^(\/?)${partsOfPath.map((part) => {
+  // eslint-disable-next-line no-useless-escape
+  const regex = new RegExp(`^(\\/?)${partsOfPath.map((part) => {
     if (part.isUrlParam)
       return `(${urlParams.get(part.part)?.regex?.toString().replace(/(\/(\^)?(\()?|(\))?(\$)?\/)/g, '')})`;
     return part.part;
-  }).join('\\/')}(\/?)$`);
+  }).join('\\/')}(\\/?)$`);
   const groups = routeToFilter.match(regex);
   if (regex.test(routeToFilter) === false) return false;
 
@@ -615,8 +622,8 @@ export async function* getAllRouters(
     }
   }
 ) {
-  const methodToFilterWhenOnServerlessEnvironment = options?.serverless?.use?.method;
-  const routeToFilterWhenOnServerlessEnvironment = options?.serverless?.use?.route;
+  const methodToFilterWhenOnServerlessEnvironment = options?.serverless?.use.method;
+  const routeToFilterWhenOnServerlessEnvironment = options?.serverless?.use.route;
   const isUseServerless = serverAdapter instanceof ServerlessAdapter && typeof options?.serverless?.use === 'object';
   const isGeneratingServerless = serverAdapter instanceof ServerlessAdapter && options?.serverless?.generate === true;
 
@@ -625,9 +632,11 @@ export async function* getAllRouters(
   const rootRouterCompletePaths = await getRootRouterCompletePaths(domains, settings, settings.debug === true);
 
   for (const [path, router] of rootRouterCompletePaths) {
+    // eslint-disable-next-line ts/no-unnecessary-condition
     const handlerByMethod = Object.entries(router.handlers || {});
     if (handlerByMethod.length === 0) continue;
     const [, firstHandler] = handlerByMethod[0];
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (!firstHandler) continue;
 
     let translatedPath = '';
@@ -662,7 +671,7 @@ export async function* getAllRouters(
               path,
               pathOfHandler
             ),
-            options: handler?.options?.customRouterOptions,
+            options: handler.options?.customRouterOptions,
           })
           return accumulator;
         },
@@ -704,7 +713,7 @@ export async function* getAllRouters(
         );
         accumulator.set(method as MethodTypes | 'all', {
           handler: wrappedHandler,
-          options: handler?.options?.customRouterOptions,
+          options: handler.options?.customRouterOptions,
         });
         return accumulator;
       },
@@ -737,6 +746,7 @@ export async function* getAllHandlers(
   const rootRouterCompletePaths = await getRootRouterCompletePaths(domains, settings);
 
   for (const [path, router] of rootRouterCompletePaths) {
+    // eslint-disable-next-line ts/no-unnecessary-condition
     const handlerByMethod = Object.entries(router.handlers || {});
     if (handlerByMethod.length === 0) continue;
 
@@ -756,7 +766,7 @@ export async function* getAllHandlers(
       yield {
         path,
         method,
-        options: handler?.options?.customRouterOptions,
+        options: handler.options?.customRouterOptions,
         handler: wrappedHandler,
         partsOfPath: router.partsOfPath,
         queryParams: router.queryParams,
@@ -784,6 +794,7 @@ export function wrap404HandlerAndRootMiddlewares(
 
     try {
       response = await handler404(response);
+      // eslint-disable-next-line ts/no-unnecessary-condition
       if (response) {
         for await (const modifiedResponse of wrappedMiddlewareResponses(
           middlewares,
@@ -806,6 +817,7 @@ export function wrap404HandlerAndRootMiddlewares(
       }
     } catch (error) {
       if (handler500) response = await handler500(response);
+      // eslint-disable-next-line ts/no-unnecessary-condition
       if (response)
         return translateResponseToServerResponse(response, 'get', serverAdapter, serverRequestAndResponseData);
       else throw error;
@@ -843,6 +855,7 @@ export async function initializeRouters(
   const route = options?.serverless?.use?.getRoute();
   const serverRequestAndResponseData = options?.serverless?.use?.requestAndResponseData;
 
+  // eslint-disable-next-line ts/require-await
   let wrapped404Handler: Parameters<NonNullable<ServerAdapter['routers']['parseHandlers']>>['4'] = async () => undefined;
 
   if (useServerless) {
@@ -865,9 +878,9 @@ export async function initializeRouters(
       }
     });
     for await (const router of routers) {
-      if (useServerless && router.handlers?.has(method) || router.handlers?.get('all')) {
-        if (router.handlers?.has(method)) return (router.handlers?.get(method) as any)?.handler(serverRequestAndResponseData);
-        else return (router.handlers?.get('all') as any)?.handler(serverRequestAndResponseData);
+      if (useServerless && router.handlers.has(method) || router.handlers.get('all')) {
+        if (router.handlers.has(method)) return (router.handlers.get(method) as any)?.handler(serverRequestAndResponseData);
+        else return (router.handlers.get('all') as any)?.handler(serverRequestAndResponseData);
       } else if (useServerless === false && serverAdapter.routers.parseHandlers) {
         if (serverAdapter instanceof ServerAdapter) {
           serverAdapter.routers.parseHandlers(
@@ -889,6 +902,7 @@ export async function initializeRouters(
         }
       }
     }
+  // eslint-disable-next-line ts/no-unnecessary-condition
   } else if (serverAdapter instanceof ServerAdapter && serverAdapter.routers.parseHandler !== undefined) {
     const translatePath = translatePathFactory(serverAdapter);
     const handlers = getAllHandlers(domains, settings, serverAdapter);

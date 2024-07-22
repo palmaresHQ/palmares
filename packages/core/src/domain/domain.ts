@@ -1,6 +1,7 @@
 import { DomainObligatoryParamsUndefinedError } from './exceptions';
-import { DefaultCommandType } from '../commands/types';
-import { DomainReadyFunctionArgs } from './types';
+
+import type { DomainReadyFunctionArgs } from './types';
+import type { DefaultCommandType } from '../commands/types';
 
 /**
  * The domain defines one of the domains of your application. Think about domains as small self-contained applications. Your app is a collection of multiple domains.
@@ -17,12 +18,13 @@ export default class Domain<TModifiers = any> {
   static __instance: Domain<any>;
 
   constructor(name?: string, path?: string) {
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if ((this.constructor as typeof Domain).__instance) return (this.constructor as typeof Domain).__instance;
 
     const isAppNameAndAppPathDefined = typeof name === 'string' && typeof path === 'string';
     if (isAppNameAndAppPathDefined) {
-      this.name = name as string;
-      this.path = path as string;
+      this.name = name;
+      this.path = path;
       (this.constructor as typeof Domain).__instance = this;
     } else {
       throw new DomainObligatoryParamsUndefinedError();

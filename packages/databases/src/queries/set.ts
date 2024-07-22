@@ -1,10 +1,10 @@
-import model from '../models/model';
 import getResultsWithIncludes from '.';
-import Transaction from '../transaction';
 import getQuery from './get';
+import Transaction from '../transaction';
 
 import type DatabaseAdapter from '../engine';
-import type { Includes, ModelFieldsWithIncludes, FieldsOFModelType } from '../models/types';
+import type model from '../models/model';
+import type { FieldsOFModelType, Includes, ModelFieldsWithIncludes } from '../models/types';
 
 export default async function setQuery<
   TModel,

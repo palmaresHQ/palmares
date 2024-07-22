@@ -1,29 +1,29 @@
-import ServerRequestAdapter from '../adapters/requests';
-import { parseParamsValue, parseQueryParams, formDataLikeFactory } from './utils';
+import { AbortedRequestError } from './exceptions';
+import { formDataLikeFactory, parseParamsValue, parseQueryParams } from './utils';
 import {
   DEFAULT_REQUEST_CONTENT_HEADER_VALUE_URLENCODED,
   DEFAULT_REQUEST_HEADERS_CONTENT_HEADER_KEY,
   DEFAULT_SERVER_ERROR_INVALID_QUERY_OR_PARAMS,
 } from '../defaults';
-import { AbortedRequestError } from './exceptions';
-import Response from '../response';
 
 import type {
   ExtractQueryParamsFromPathType,
   ExtractUrlParamsFromPathType,
   FormDataLike,
-  RequestMethodTypes,
   RequestCache,
   RequestCredentials,
   RequestDestination,
+  RequestMethodTypes,
   RequestMode,
   RequestRedirect,
 } from './types'
 ;
+import type ServerAdapter from '../adapters';
+import type ServerRequestAdapter from '../adapters/requests';
+import type ServerlessAdapter from '../adapters/serverless';
+import type Response from '../response';
 import type { BaseRouter } from '../router/routers';
 import type { AllServerSettingsType } from '../types';
-import type ServerAdapter from '../adapters';
-import type ServerlessAdapter from '../adapters/serverless';
 
 export default class Request<
   TRoutePath extends string = string,
@@ -245,7 +245,7 @@ export default class Request<
   }
 
   get signal(): AbortSignal | undefined {
-    return this.__signal?.signal;
+    return this.__signal.signal;
   }
 
   get responses(): TRequest['responses'] {
@@ -315,13 +315,13 @@ export default class Request<
    * @returns - The method of the request. For reference, see: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
    */
   get method(): TRequest['method'] {
-    if (this.__cachedMethod?.value) return this.__cachedMethod.value;
+    if (this.__cachedMethod.value) return this.__cachedMethod.value;
     else if (this.__requestAdapter && this.__serverAdapter) {
       const method = this.__requestAdapter.method(
         this.__serverAdapter as NonNullable<Request['__serverAdapter']>,
         this.__serverRequestAndResponseData
       );
-      const upperCased = method?.toUpperCase() as TRequest['method'];
+      const upperCased = method.toUpperCase() as TRequest['method'];
       this.__cachedMethod = Object.freeze({ value: upperCased });
       return this.__cachedMethod.value;
     } else return undefined;
@@ -388,7 +388,7 @@ export default class Request<
       const parsedData = parseParamsValue(dataFromUrl, parserData);
 
       this.__validateParamsAndThrow(key, parsedData, parserData);
-      (target as any)[key] = parsedData;
+      (target)[key] = parsedData;
     }
   }
 
@@ -456,7 +456,7 @@ export default class Request<
     data: any,
     type: Parameters<BaseRouter['__queryParamsAndPath']['params']['set']>[1]
   ) {
-    const queryParamIsNotOptional = type?.isOptional !== true;
+    const queryParamIsNotOptional = type.isOptional !== true;
     const isDataFromQueryUndefinedOrNull = data === undefined || data === null;
     const isRequiredQueryParamUndefinedOrNull = isDataFromQueryUndefinedOrNull && queryParamIsNotOptional;
     const isArrayQueryParamEmpty = queryParamIsNotOptional && Array.isArray(data) && type.isArray && data.length === 0;
@@ -477,7 +477,7 @@ export default class Request<
       (this.__validationErrors as any) = Object.freeze({
         query: errorData,
       });
-      if (this.__validation?.handler) throw this.__validation.handler?.(this);
+      if (this.__validation?.handler) throw this.__validation.handler(this);
       else throw DEFAULT_SERVER_ERROR_INVALID_QUERY_OR_PARAMS();
     }
   }
@@ -502,7 +502,7 @@ export default class Request<
       (this.__validationErrors as any) = Object.freeze({
         url: errorData,
       });
-      if (this.__validation?.handler) throw this.__validation.handler?.(this);
+      if (this.__validation?.handler) throw this.__validation.handler(this);
       else throw DEFAULT_SERVER_ERROR_INVALID_QUERY_OR_PARAMS();
     }
   }
@@ -526,10 +526,10 @@ export default class Request<
       if (dataFromQuery === undefined && parserData.isOptional !== true)
         this.__validateQueryParamsAndThrow(key, dataFromQuery, parserData);
 
-      const parsedData = parseQueryParams(dataFromQuery, parserData as NonNullable<typeof parserData>);
+      const parsedData = parseQueryParams(dataFromQuery, parserData);
       this.__validateQueryParamsAndThrow(key, parsedData, parserData);
 
-      (target as any)[key] = parsedData;
+      (target)[key] = parsedData;
     }
   }
 

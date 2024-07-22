@@ -1,4 +1,5 @@
 import Field from './field';
+
 import type { FieldDefaultParamsType, MaybeNull } from './types';
 import type { This } from '../../types';
 
@@ -108,11 +109,17 @@ export default class BooleanField<
   static overrideType<TNewType extends { input: any; output: any }>() {
     return this as unknown as {
       new: <
+        // eslint-disable-next-line no-shadow
         TDefaultValue extends MaybeNull<TNewType['input'], TNull> = undefined,
+        // eslint-disable-next-line no-shadow
         TUnique extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TNull extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TAuto extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TDatabaseName extends string | null | undefined = undefined,
+        // eslint-disable-next-line no-shadow
         TCustomAttributes = any,
       >(
         params?: FieldDefaultParamsType<
@@ -130,11 +137,17 @@ export default class BooleanField<
 
   static new<
     TFieldInstance extends This<typeof BooleanField>,
+    // eslint-disable-next-line no-shadow
     TDefaultValue extends MaybeNull<InstanceType<TFieldInstance>['_type']['input'] | undefined, TNull> = undefined,
+    // eslint-disable-next-line no-shadow
     TUnique extends boolean = true,
+    // eslint-disable-next-line no-shadow
     TNull extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TAuto extends boolean = true,
+    // eslint-disable-next-line no-shadow
     TDatabaseName extends string | null | undefined = undefined,
+    // eslint-disable-next-line no-shadow
     TCustomAttributes = any,
   >(
     this: TFieldInstance,

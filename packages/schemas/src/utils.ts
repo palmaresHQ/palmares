@@ -1,11 +1,12 @@
-import SchemaAdapter from './adapter';
-import FieldAdapter from './adapter/fields';
-import { ValidationDataBasedOnType } from './adapter/types';
-import Schema from './schema/schema';
-import { ValidationFallbackCallbackReturnType, ValidationFallbackReturnType } from './schema/types';
-import { FallbackFunctionsType, SupportedSchemas } from './types';
 import { checkType, nullable, optional } from './validators/schema';
 import Validator from './validators/utils';
+
+import type SchemaAdapter from './adapter';
+import type FieldAdapter from './adapter/fields';
+import type { ValidationDataBasedOnType } from './adapter/types';
+import type Schema from './schema/schema';
+import type { ValidationFallbackCallbackReturnType, ValidationFallbackReturnType } from './schema/types';
+import type { FallbackFunctionsType, SupportedSchemas } from './types';
 
 /**
  * The usage of this is that imagine that the library doesn't support a specific feature that we support on our schema definition, it can return an instance
@@ -191,7 +192,7 @@ export async function defaultTransform<TType extends SupportedSchemas>(
       withFallback: withFallbackFactory<SupportedSchemas>(type),
       ...validationData,
     })
-  )) as any | WithFallback<SupportedSchemas>;
+  ));
 
   let stringVersion = '';
   if (options.shouldAddStringVersion)
@@ -240,8 +241,9 @@ export async function defaultTransformToAdapter(
   options: Parameters<Schema['__transformToAdapter']>[0],
   type: string
 ) {
-  const schemaAdapterNameToUse = options.schemaAdapter?.constructor?.name || Object.keys(transformedSchemas)[0];
+  const schemaAdapterNameToUse = options.schemaAdapter?.constructor.name || Object.keys(transformedSchemas)[0];
   const isACustomSchemaAdapterAndNotYetDefined =
+    // eslint-disable-next-line ts/no-unnecessary-condition
     transformedSchemas[schemaAdapterNameToUse] === undefined && options.schemaAdapter !== undefined;
 
   if (isACustomSchemaAdapterAndNotYetDefined)
@@ -299,6 +301,7 @@ export async function transformSchemaAndCheckIfShouldBeHandledByFallbackOnComple
 
   const transformedData = await schemaWithProtected.__transformToAdapter(options); // This should come first because we will get the fallbacks of the field here.
 
+  // eslint-disable-next-line ts/no-unnecessary-condition
   const doesKeyHaveFallback = schemaWithProtected.__rootFallbacksValidator !== undefined;
   const doesKeyHaveToInternal = typeof schemaWithProtected.__toInternal === 'function';
   const doesKeyHaveToValidate = typeof schemaWithProtected.__toValidate === 'function';
@@ -312,6 +315,7 @@ export async function transformSchemaAndCheckIfShouldBeHandledByFallbackOnComple
     doesKeyHaveToDefault ||
     doesKeyHaveParserFallback ||
     doesKeyHaveRunBeforeParseAndData ||
+    // eslint-disable-next-line ts/no-unnecessary-condition
     transformedData === undefined;
 
   return [transformedData, shouldAddFallbackValidation] as const;

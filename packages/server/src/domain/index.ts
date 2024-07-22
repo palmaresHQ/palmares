@@ -1,9 +1,10 @@
 import { domain } from '@palmares/core';
 
 import httpAppServer from '../app';
-import type { ServersSettingsType } from '../types';
-import { BaseRouter } from '../router/routers';
 import Serverless from '../serverless';
+
+import type { BaseRouter } from '../router/routers';
+import type { ServersSettingsType } from '../types';
 
 export const serverDomainModifier = domain<{
   getRoutes: () =>
@@ -31,7 +32,7 @@ export default domain('@palmares/server', __dirname, {
         },
       },
       positionalArgs: undefined,
-      handler: async () => {
+      handler: () => {
         return httpAppServer;
       },
     },
@@ -48,5 +49,6 @@ export default domain('@palmares/server', __dirname, {
       },
     }
   },
+  // eslint-disable-next-line ts/require-await
   load: async (_: ServersSettingsType) => undefined,
 });

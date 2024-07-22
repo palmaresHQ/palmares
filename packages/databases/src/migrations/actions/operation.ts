@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import State from '../state';
-import Migration from '../migrate/migration';
-import DatabaseAdapter from '../../engine';
-import { ActionToGenerateType, ToStringFunctionReturnType } from './types';
-import { OriginalOrStateModelsByNameType } from '../types';
+import type { ActionToGenerateType, ToStringFunctionReturnType } from './types';
+import type DatabaseAdapter from '../../engine';
+import type Migration from '../migrate/migration';
+import type State from '../state';
+import type { OriginalOrStateModelsByNameType } from '../types';
 
 /**
  * Actions are the operations that we do in each migration.
@@ -52,6 +50,7 @@ export class Operation {
     _returnOfInit: any
   ): Promise<void> {}
 
+  // eslint-disable-next-line ts/require-await
   static async defaultToGenerate<T>(
     domainName: string,
     domainPath: string,
@@ -69,12 +68,14 @@ export class Operation {
     };
   }
 
+  // eslint-disable-next-line ts/require-await
   static async toString(indentation = 0, data: ActionToGenerateType<any>): Promise<ToStringFunctionReturnType> {
     return {
       asString: '',
     };
   }
 
+  // eslint-disable-next-line ts/require-await
   static async defaultToString(indentation = 0, customAttributesOfAction = ''): Promise<string> {
     const ident = '  '.repeat(indentation);
     return (
@@ -84,6 +85,7 @@ export class Operation {
     );
   }
 
+  // eslint-disable-next-line ts/require-await
   static async describe(data: ActionToGenerateType<any>): Promise<string> {
     return '';
   }

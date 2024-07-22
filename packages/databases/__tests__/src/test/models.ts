@@ -1,5 +1,8 @@
-import { AutoField, BooleanField, CharField, DateField, DecimalField, EnumField, ForeignKeyField, IntegerField, Model, ModelOptionsType, ON_DELETE, UuidField } from '@palmares/databases';
-import { User as DUser, Company as DCompany } from '../../.drizzle/schema';
+import { AutoField, BooleanField, CharField, DateField, DecimalField, EnumField, ForeignKeyField, IntegerField, Model, ON_DELETE, UuidField } from '@palmares/databases';
+
+import { Company as DCompany, User as DUser } from '../../.drizzle/schema';
+
+import type { ModelOptionsType} from '@palmares/databases';
 
 export class User extends Model<User>() {
   fields = {

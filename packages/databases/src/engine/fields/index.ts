@@ -1,20 +1,22 @@
-import Adapter from '..';
-import { Field } from '../../models/fields';
-import AdapterFieldParser from './field';
 import AdapterAutoFieldParser from './auto';
 import AdapterBigAutoFieldParser from './big-auto';
 import AdapterBigIntegerFieldParser from './big-integer';
+import AdapterBooleanFieldParser from './boolean';
+import AdapterCharFieldParser from './char';
 import AdapterDateFieldParser from './date';
+import AdapterDecimalFieldParser from './decimal';
+import AdapterEnumFieldParser from './enum';
+import AdapterFieldParser from './field';
 import AdapterForeignKeyFieldParser from './foreign-key';
 import AdapterIntegerFieldParser from './integer';
-import AdapterUuidFieldParser from './uuid';
-import AdapterDecimalFieldParser from './decimal';
-import AdapterCharFieldParser from './char';
 import AdapterTextFieldParser from './text';
-import AdapterEnumFieldParser from './enum';
-import AdapterBooleanFieldParser from './boolean';
+import AdapterUuidFieldParser from './uuid';
 import { NotImplementedAdapterFieldsException } from '../exceptions';
-import { BaseModel, Model } from '../../models';
+
+import type Adapter from '..';
+import type { Model } from '../../models';
+import type { Field } from '../../models/fields';
+
 
 /**
  * Functional approach to create a custom {@link AdapterFields} class.
@@ -172,20 +174,20 @@ export function adapterFields<
   translateField?: TTranslateField;
 }) {
   class CustomAdapterFields extends AdapterFields {
-    fieldsParser = args.fieldsParser as TFieldsParser;
+    fieldsParser = args.fieldsParser;
     autoFieldParser = (typeof args.autoFieldParser === 'function' ? args.autoFieldParser : args.integerFieldParser) as unknown as TAutoFieldParser ;
     bigAutoFieldParser = (typeof args.bigAutoFieldParser === 'function' ? args.bigAutoFieldParser : args.bigIntegerFieldParser) as unknown as TBigAutoFieldParser;
-    bigIntegerFieldParser = args.bigIntegerFieldParser as TBigIntegerFieldParser;
-    charFieldParser = args.charFieldParser as TCharFieldParser;
-    dateFieldParser = args.dateFieldParser as TDateFieldParser;
-    decimalFieldParser = args.decimalFieldParser as TDecimalFieldParser;
-    foreignKeyFieldParser = args.foreignKeyFieldParser as TForeignKeyFieldParser;
-    integerFieldParser = args.integerFieldParser as TIntegerFieldParser;
-    textFieldParser = args.textFieldParser as TTextFieldParser;
-    uuidFieldParser = args.uuidFieldParser as TUuidFieldParser;
-    enumFieldParser = args.enumFieldParser as TEnumFieldParser;
-    booleanFieldParser = args.booleanFieldParser as TBooleanFieldParser;
-    lazyEvaluateField = args.lazyEvaluateField as TLazyEvaluateField;
+    bigIntegerFieldParser = args.bigIntegerFieldParser;
+    charFieldParser = args.charFieldParser;
+    dateFieldParser = args.dateFieldParser;
+    decimalFieldParser = args.decimalFieldParser;
+    foreignKeyFieldParser = args.foreignKeyFieldParser;
+    integerFieldParser = args.integerFieldParser;
+    textFieldParser = args.textFieldParser;
+    uuidFieldParser = args.uuidFieldParser;
+    enumFieldParser = args.enumFieldParser;
+    booleanFieldParser = args.booleanFieldParser;
+    lazyEvaluateField = args.lazyEvaluateField;
     translateField = args.translateField as TTranslateField;
   }
 
@@ -302,6 +304,7 @@ export default class AdapterFields {
    *
    * @returns - Should return the model translated and modified, even if you do not modify the model, you should return the translated model.
    */
+  // eslint-disable-next-line ts/require-await
   async lazyEvaluateField(
     _Adapter: Adapter,
     _modelName: string,
@@ -358,6 +361,7 @@ export default class AdapterFields {
    *
    * @returns The field translated to something that the ORM can understand.
    */
+  // eslint-disable-next-line ts/require-await
   async translateField?(
     _Adapter: Adapter,
     _field: Field,

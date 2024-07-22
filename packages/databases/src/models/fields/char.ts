@@ -1,7 +1,8 @@
-import { This } from '../../types';
-import Field from './field';
 import TextField from './text';
-import { CharFieldParamsType, MaybeNull } from './types';
+
+import type Field from './field';
+import type { CharFieldParamsType, MaybeNull } from './types';
+import type { This } from '../../types';
 
 /**
  * Functional approach for the creation of a CharField.
@@ -75,21 +76,29 @@ export default class CharField<
     super(params);
 
     const maxLength = typeof params.maxLength === 'number' ? params.maxLength : 255;
-    const defaultValueAsString = params?.defaultValue as string;
+    const defaultValueAsString = params.defaultValue as string;
+    const defaultValueAsNull = params.defaultValue as string | null;
     const isDefaultValueDefined: boolean =
-      (defaultValueAsString === 'string' && defaultValueAsString.length <= maxLength) || defaultValueAsString === null;
+      (defaultValueAsString === 'string' && defaultValueAsString.length <= maxLength) || defaultValueAsNull === null;
 
     this.defaultValue = isDefaultValueDefined ? params.defaultValue : undefined;
     this.maxLength = maxLength;
   }
 
   static new<
+    // eslint-disable-next-line no-shadow
     TField extends This<typeof TextField>,
+    // eslint-disable-next-line no-shadow
     TDefaultValue extends MaybeNull<InstanceType<TField>['_type']['input'] | undefined, TNull> = undefined,
+    // eslint-disable-next-line no-shadow
     TUnique extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TNull extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TAuto extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TDatabaseName extends string | null | undefined = undefined,
+    // eslint-disable-next-line no-shadow
     TCustomAttributes = any,
   >(
     this: TField,
@@ -154,11 +163,17 @@ export default class CharField<
     return this as unknown as {
       new: <
         TFieldInstance extends This<typeof CharField>,
+        // eslint-disable-next-line no-shadow
         TDefaultValue extends MaybeNull<TNewType['input'] | undefined, TNull> = undefined,
+        // eslint-disable-next-line no-shadow
         TUnique extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TNull extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TAuto extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TDatabaseName extends string | null | undefined = undefined,
+        // eslint-disable-next-line no-shadow
         TCustomAttributes = any,
       >(
         params?: CharFieldParamsType<CharField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>

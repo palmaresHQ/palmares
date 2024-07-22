@@ -1,4 +1,4 @@
-import { BaseRouter } from '../router/routers';
+import type { BaseRouter } from '../router/routers';
 
 export function parseParamsValue(
   value: any,
@@ -103,10 +103,14 @@ export function formDataLikeFactory() {
             get: (target, name) => {
               if (name in target) return target[name as string];
               else {
-                const values = proxyCallback.getValue?.(name as string);
+                const values = proxyCallback.getValue(name as string);
+                // eslint-disable-next-line ts/no-unnecessary-condition
                 if (!values) return undefined;
+                // eslint-disable-next-line ts/no-unnecessary-condition
                 for (const value of values || []) {
+                  // eslint-disable-next-line ts/no-unnecessary-condition
                   if (value) {
+                    // eslint-disable-next-line ts/no-unnecessary-condition
                     if (target[name as string]) target[name as string].push(value);
                     else target[name as string] = [value];
                   }
@@ -131,19 +135,21 @@ export function formDataLikeFactory() {
 
     append(name: string, value: string | Blob | File, fileName?: string) {
       const existingDataOfName = this.data[name];
+      // eslint-disable-next-line ts/no-unnecessary-condition
       if (existingDataOfName) existingDataOfName.push({ value, fileName: fileName });
       else this.data[name] = [{ value, fileName: fileName }];
     }
 
     get(name: string) {
       const existingDataOfName = this.data[name];
-
-      if (existingDataOfName) return existingDataOfName?.[0]?.value || null;
+      // eslint-disable-next-line ts/no-unnecessary-condition
+      if (existingDataOfName) return existingDataOfName[0]?.value || null;
       else return null;
     }
 
     getAll(name: string) {
       const existingDataOfName = this.data[name];
+      // eslint-disable-next-line ts/no-unnecessary-condition
       if (existingDataOfName) return existingDataOfName.map((item: any) => item.value);
       else return [];
     }
@@ -166,7 +172,7 @@ export function formDataLikeFactory() {
      * Important: Be aware that this function will only return the first value of each key, if you want to get all values of a key use getAll instead.
      */
     toJSON() {
-      const allKeys = this.proxyCallback?.getKeys?.() || Object.keys(this.data);
+      const allKeys = this.proxyCallback?.getKeys() || Object.keys(this.data);
       const result: Record<string, string | Blob | File> = {};
       for (const key of allKeys) {
         const values = this.getAll(key);

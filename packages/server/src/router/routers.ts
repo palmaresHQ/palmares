@@ -1,19 +1,19 @@
-import type { Domain, Narrow } from '@palmares/core';
-import type { Middleware } from '../middleware';
 import type {
   AlreadyDefinedMethodsType,
   DefaultRouterType,
   DefineAlreadyDefinedMethodsType,
+  ExtractIncludes,
   HandlerType,
   MergeParentAndChildPathsType,
   MergeParentMiddlewaresType,
   MethodTypes,
+  RouterOptionsType,
   ValidatedFullPathType,
   ValidatedMiddlewaresType,
-  ExtractIncludes,
-  RouterOptionsType,
 } from './types';
-import { RequestMethodTypes } from '../request/types';
+import type { Middleware } from '../middleware';
+import type { RequestMethodTypes } from '../request/types';
+import type { Domain, Narrow } from '@palmares/core';
 
 /**
  * This is the core of the types and for the application to work.
@@ -156,14 +156,20 @@ export class BaseRouter<
           router: ReturnType<IncludesRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, undefined>['child']>
         ) => Narrow<TIncludes>)
       | Narrow<TIncludes>
-  ) {
+  ): MethodsRouter<
+    TParentRouter,
+    ExtractIncludes<TIncludes, []>,
+    TMiddlewares,
+    TRootPath,
+    TAlreadyDefinedHandlers
+  > {
     const newRouter = new IncludesRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, undefined>(this.path);
 
     const isNested = typeof children === 'function';
     const childrenArray = isNested ? children(newRouter.child()) : children;
     const doesChildrenAlreadyExists = Array.isArray(this.__children);
 
-    const formattedChildren = childrenArray?.map((child) => {
+    const formattedChildren = childrenArray.map((child) => {
       (child as any).__wasCreatedFromNested = isNested;
       (child as any).__parentRouter = this;
       this.appendChildToParentRouter(this, child as DefaultRouterType);
@@ -197,6 +203,7 @@ export class BaseRouter<
     // Notice that we defined the `nestedRouter` as nested to `rootRouter` and `handlers` as nested to `nestedRouter` just after that.
     // If we don't use this loop here, there is NO WAY that `rootRouter` will be able to know that `handlers` exist. To fix that we use
     // this loop to traverse the hole linked list of routers and parent routers and add the children to the parent routers.
+    // eslint-disable-next-line ts/no-unnecessary-condition
     while (router) {
       const fullUrlPath = `${router.__urlParamsAndPath.path}${child.__urlParamsAndPath.path}`;
       const fullQueryPath = `${router.__queryParamsAndPath.path}&${child.__queryParamsAndPath.path}`;

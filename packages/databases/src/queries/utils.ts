@@ -1,5 +1,5 @@
-import { model } from '../models';
-import { onRemoveFunction, onSetFunction } from '../models/types';
+import type { model } from '../models';
+import type { onRemoveFunction, onSetFunction } from '../models/types';
 
 export function extractDefaultEventsHandlerFromModel<
   TModel extends InstanceType<ReturnType<typeof model>>,
@@ -14,7 +14,7 @@ export function extractDefaultEventsHandlerFromModel<
       : onRemoveFunction<TModel>;
   } else if (
     typeof modelInstance.options?.[functionType] === 'object' &&
-    (modelInstance.options?.[functionType] as any).handler === 'function'
+    (modelInstance.options[functionType] as any).handler === 'function'
   ) {
     return (modelInstance.options[functionType] as any).handler as TFunctionType extends 'onSet'
       ? onSetFunction<TModel>

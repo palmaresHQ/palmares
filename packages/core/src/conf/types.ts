@@ -1,9 +1,8 @@
-import Domain from '../domain/domain';
-import { DomainReadyFunctionArgs } from '../domain/types';
-import { Narrow } from '../utils';
-import domain from '../domain/function';
-import Std from '../std-adapter'
-
+import type Domain from '../domain/domain';
+import type domain from '../domain/function';
+import type { DomainReadyFunctionArgs } from '../domain/types';
+import type Std from '../std-adapter'
+import type { Narrow } from '../utils';
 
 export type ValidateDomains<
   TDomains extends

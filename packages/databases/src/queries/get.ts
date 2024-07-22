@@ -1,16 +1,15 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import model from '../models/model';
-import { NotImplementedAdapterException } from '../engine/exceptions';
 import getResultsWithIncludes from '.';
 import parseSearch from './search';
+import { NotImplementedAdapterException } from '../engine/exceptions';
 
 import type DatabaseAdapter from '../engine';
+import type model from '../models/model';
 import type {
+  FieldsOFModelType,
+  FieldsOfModelOptionsType,
   Includes,
   ModelFieldsWithIncludes,
-  FieldsOFModelType,
   OrderingOfModelsType,
-  FieldsOfModelOptionsType,
 } from '../models/types';
 
 export default async function getQuery<
@@ -55,11 +54,11 @@ export default async function getQuery<
     output: typeof args.useParsers === 'boolean' ? args.useParsers : true,
   };
   let hasRun = false;
-  if (internal.engine.query.get?.queryDataNatively) {
+  if (internal.engine.query.get.queryDataNatively) {
     const modelConstructor = modelInstanceAsModel.constructor as ReturnType<typeof model>;
     try {
       hasRun = true;
-      return await internal.engine.query.get?.queryDataNatively?.(
+      return await internal.engine.query.get.queryDataNatively(
         internal.engine,
         modelConstructor,
         args.search,
@@ -74,13 +73,14 @@ export default async function getQuery<
     }
   }
 
+  // eslint-disable-next-line ts/no-unnecessary-condition
   if (!hasRun) {
     await getResultsWithIncludes(
       internal.engine,
-      internal.model as TModel,
+      internal.model,
       useParsers,
-      selectedFields as TFieldsOfModel,
-      internal.includes as TIncludes,
+      selectedFields,
+      internal.includes,
       args.search as TSearch,
       result,
       internal.engine.query.get.queryData.bind(internal.engine.query.get),

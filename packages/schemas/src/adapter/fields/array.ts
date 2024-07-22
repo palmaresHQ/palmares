@@ -1,6 +1,7 @@
 import FieldAdapter from '.';
-import WithFallback from '../../utils';
-import { NumberAdapterTranslateArgs } from '../types';
+
+import type WithFallback from '../../utils';
+import type { NumberAdapterTranslateArgs } from '../types';
 
 export function arrayFieldAdapter<
   TTranslate extends ArrayFieldAdapter['translate'],
@@ -14,7 +15,7 @@ export function arrayFieldAdapter<
   parse?: TParse;
 }) {
   class CustomArrayFieldAdapter extends ArrayFieldAdapter {
-    translate = args.translate as TTranslate;
+    translate = args.translate;
     toString = args.toString as TToString;
     formatError = args.formatError as TFormatError;
     parse = args.parse as TParse;

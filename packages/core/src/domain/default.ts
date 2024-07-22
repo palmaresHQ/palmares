@@ -1,7 +1,8 @@
-import help from '../commands/help';
-import { CoreSettingsType } from '../conf/types';
-import { PACKAGE_NAME } from '../utils';
 import domain from './function';
+import help from '../commands/help';
+import { PACKAGE_NAME } from '../utils';
+
+import type { CoreSettingsType } from '../conf/types';
 
 const coreDomain = domain(PACKAGE_NAME, __dirname, {
   modifiers: [] as const,
@@ -30,7 +31,7 @@ const coreDomain = domain(PACKAGE_NAME, __dirname, {
       },
     },
   },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line ts/require-await
   load: async (_: CoreSettingsType) => undefined,
 });
 

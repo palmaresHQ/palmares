@@ -1,10 +1,12 @@
 import { appServer } from '@palmares/core';
 
-import { default as eventsServer, setEventsServer, getEventsServer } from '../server';
-import { EventsSettingsType } from '../types';
-import { eventsLogger } from '../logging';
 import { loadEvents } from './utils';
-import { EventsDomainInterface } from '../interfaces';
+import { eventsLogger } from '../logging';
+import { default as eventsServer, getEventsServer, setEventsServer } from '../server';
+
+import type { EventsDomainInterface } from '../interfaces';
+import type { EventsSettingsType } from '../types';
+
 
 let cachedSettings: EventsSettingsType | undefined = undefined;
 
@@ -25,8 +27,10 @@ export default appServer({
     await loadEvents(server, domains as EventsDomainInterface[]);
     setEventsServer(server);
   },
+  // eslint-disable-next-line ts/require-await
   close: async () => {
     const server = getEventsServer();
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (server) server.close();
   },
   start: async (configureCleanup) => {

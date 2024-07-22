@@ -1,11 +1,12 @@
-import { PalmaresMigrations } from '../../defaults/models';
-import DatabaseAdapter from '../../engine';
-import { DatabaseSettingsType, InitializedEngineInstancesType } from '../../types';
-import { FoundMigrationsFileType } from '../types';
 import Migration from './migration';
-import { MigrationsToAddAfterIterationType } from './type';
+import { PalmaresMigrations } from '../../defaults/models';
 import { databaseLogger } from '../../logging';
 import State from '../state';
+
+import type { MigrationsToAddAfterIterationType } from './type';
+import type DatabaseAdapter from '../../engine';
+import type { DatabaseSettingsType, InitializedEngineInstancesType } from '../../types';
+import type { FoundMigrationsFileType } from '../types';
 
 /**
  * This class holds the logic for evaluating migrations, usually evaluating migrations is simple because we just
@@ -42,6 +43,7 @@ export default class Migrate {
           migrationToAddAfterIteration.migrationName,
           migrationToAddAfterIteration.engineName
         );
+        // eslint-disable-next-line ts/no-unnecessary-condition
         if (!createdMigration) newMigrationsToAddAfterIteration.push(migrationToAddAfterIteration);
       } catch {
         newMigrationsToAddAfterIteration.push(migrationToAddAfterIteration);

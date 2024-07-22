@@ -1,4 +1,4 @@
-import { BaseAppServer } from '.';
+import type { BaseAppServer } from '.';
 
 export interface AppServerInterface {
   /**
@@ -9,7 +9,7 @@ export interface AppServerInterface {
    * const app = express();
    * ```
    */
-  load(): Promise<void>;
+  load: () => Promise<void>;
 
   /**
    * To start the server we must first load the routes, then load the 404 handler and just
@@ -34,11 +34,11 @@ export interface AppServerInterface {
    * })
    * ```
    */
-  start(_configureCleanup: BaseAppServer['configureCleanup']): Promise<void>;
+  start: (_configureCleanup: BaseAppServer['configureCleanup']) => Promise<void>;
 
   /**
    * Runs the clean up function of the server when the application stops, most frameworks might not need this
    * but if some framework relies on stopping gracefully it might be needed.
    */
-  close(): Promise<void>;
+  close: () => Promise<void>;
 }

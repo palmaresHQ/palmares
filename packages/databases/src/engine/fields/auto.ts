@@ -1,5 +1,7 @@
-import { AutoField, AdapterFieldParserTranslateArgs, AdapterFieldParserInputAndOutputArgs } from '../..';
+import { AutoField } from '../..';
 import { EngineDoesNotSupportFieldTypeException } from '../../models/exceptions';
+
+import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateArgs } from '../..';
 
 /**
  * Functional approach to create a custom field parser.
@@ -155,7 +157,7 @@ export function adapterAutoFieldParser<
   outputParser?: TOutputParserFunction;
 }) {
   class CustomAdapterAutoFieldParser extends AdapterAutoFieldParser {
-    translate = args.translate as TTranslateFunction;
+    translate = args.translate;
     inputParser = args.inputParser as TInputParserFunction;
     outputParser = args.outputParser as TOutputParserFunction;
   }
@@ -262,6 +264,7 @@ export default class AdapterAutoFieldParser {
    *
    * @returns - The translated field.
    */
+  // eslint-disable-next-line ts/require-await
   async translate(args: AdapterFieldParserTranslateArgs<'auto'>): Promise<any> {
     throw new EngineDoesNotSupportFieldTypeException(args.engine.constructor.name, AutoField.name);
   }
@@ -291,6 +294,7 @@ export default class AdapterAutoFieldParser {
    *
    * @returns - The parsed value.
    */
+  // eslint-disable-next-line ts/require-await
   async inputParser?(args: AdapterFieldParserInputAndOutputArgs<'auto'>): Promise<any> {
     return args.value;
   }
@@ -319,6 +323,7 @@ export default class AdapterAutoFieldParser {
    *
    * @returns - The parsed value for the user for that specific field.
    */
+  // eslint-disable-next-line ts/require-await
   async outputParser?(args: AdapterFieldParserInputAndOutputArgs<'auto'>) {
     return args.value;
   }

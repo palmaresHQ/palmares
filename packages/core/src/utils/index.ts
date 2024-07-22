@@ -1,5 +1,5 @@
 export * from './constants';
-export { default as imports } from './imports';
+export { default as imports } from '../std/imports';
 export * from './types';
 
 /**
@@ -39,6 +39,7 @@ export function camelCaseToHyphenOrSnakeCase(string: string, isSnake = true) {
  * @returns - The object copy.
  */
 export function structuredClone<TObjectOrArray extends Record<string | number, any> | any[]>(objectOrArray: TObjectOrArray): TObjectOrArray {
+  // eslint-disable-next-line ts/no-unnecessary-condition
   if (!objectOrArray) return objectOrArray;
   if (typeof objectOrArray !== 'object') return objectOrArray;
 

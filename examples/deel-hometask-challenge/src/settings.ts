@@ -1,14 +1,14 @@
+import ConsoleLogging from '@palmares/console-logging';
 import PalmaresCoreDomain, { defineSettings } from '@palmares/core';
 import { ExpressServerAdapter } from '@palmares/express-adapter';
 import NodeStd from '@palmares/node-std';
 import LoggingDomain from '@palmares/logging';
-import ConsoleLogging from '@palmares/console-logging';
 import DatabasesDomain from '@palmares/databases';
 import SequelizeEngine from '@palmares/sequelize-engine';
 import ServerDomain, { Response } from '@palmares/server';
 
-import CoreDomain from './core';
 import AuthDomain from './auth';
+import CoreDomain from './core';
 import ContractsDomain from './contracts';
 import JobsDomain from './jobs';
 import AdminDomain from './admin';

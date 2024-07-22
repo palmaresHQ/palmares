@@ -1,6 +1,8 @@
-import { DateField, AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateArgs } from '../..';
-import { EngineDoesNotSupportFieldTypeException } from '../../models/exceptions';
 import AdapterFieldParser from './field';
+import { DateField } from '../..';
+import { EngineDoesNotSupportFieldTypeException } from '../../models/exceptions';
+
+import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateArgs } from '../..';
 
 /**
  * Functional approach to create a custom field parser.
@@ -156,7 +158,7 @@ export function adapterDateFieldParser<
   outputParser?: TOutputParserFunction;
 }) {
   class CustomAdapterDateFieldParser extends AdapterDateFieldParser {
-    translate = args.translate as TTranslateFunction;
+    translate = args.translate;
     inputParser = args.inputParser as TInputParserFunction;
     outputParser = args.outputParser as TOutputParserFunction;
   }
@@ -263,6 +265,7 @@ export default class AdapterDateFieldParser {
    *
    * @returns - The translated field.
    */
+  // eslint-disable-next-line ts/require-await
   async translate(args: AdapterFieldParserTranslateArgs<'date'>): Promise<any> {
     throw new EngineDoesNotSupportFieldTypeException(args.engine.constructor.name, DateField.name);
   }
@@ -292,6 +295,7 @@ export default class AdapterDateFieldParser {
    *
    * @returns - The parsed value.
    */
+  // eslint-disable-next-line ts/require-await
   async inputParser?(args: AdapterFieldParserInputAndOutputArgs<'date'>) {
     return args.value;
   }
@@ -320,6 +324,7 @@ export default class AdapterDateFieldParser {
    *
    * @returns - The parsed value for the user for that specific field.
    */
+  // eslint-disable-next-line ts/require-await
   async outputParser?(args: AdapterFieldParserInputAndOutputArgs<'date'>) {
     return args.value;
   }

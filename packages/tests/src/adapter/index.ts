@@ -10,6 +10,7 @@ export default class TestAdapter {
     throw new Error('Not implemented');
   }
   /** Should return  */
+  // eslint-disable-next-line ts/require-await
   async run(
     filesToRun: string[],
     globalSetupFunctionBody: string,

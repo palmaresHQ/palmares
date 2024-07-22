@@ -1,9 +1,10 @@
 import Schema from './schema';
 import { getDefaultAdapter } from '../conf';
 import { defaultTransform, defaultTransformToAdapter } from '../utils';
-import { DefinitionsOfSchemaType } from './types';
-import { optional, nullable } from '../validators/schema';
-import { datetimeValidation, allowStringParser, above, below } from '../validators/datetime';
+import { above, allowStringParser, below, datetimeValidation } from '../validators/datetime';
+import { nullable, optional } from '../validators/schema';
+
+import type { DefinitionsOfSchemaType } from './types';
 
 export default class DatetimeSchema<
   TType extends {
@@ -63,6 +64,7 @@ export default class DatetimeSchema<
           {
             validatorsIfFallbackOrNotSupported: datetimeValidation(),
             shouldAddStringVersion: options.shouldAddStringVersion,
+            // eslint-disable-next-line ts/require-await
             fallbackIfNotSupported: async () => [],
           }
         );
@@ -352,7 +354,7 @@ export default class DatetimeSchema<
     ) => Awaited<ReturnType<NonNullable<TDefinitions['schemaAdapter']['field']>['translate']>> | any,
     toStringCallback?: (schemaAsString: string) => string
   ) {
-    return super.extends(callback, toStringCallback) as this;
+    return super.extends(callback, toStringCallback);
   }
 
   /**
@@ -540,7 +542,7 @@ export default class DatetimeSchema<
    * @returns - The schema instance
    */
   above(value: Date, options?: { inclusive?: boolean; message: string }) {
-    const inclusive = typeof options?.inclusive === 'boolean' ? options?.inclusive : false;
+    const inclusive = typeof options?.inclusive === 'boolean' ? options.inclusive : false;
     const message = options?.message || 'Value is not above the specified date';
 
     this.__above = {
@@ -573,7 +575,7 @@ export default class DatetimeSchema<
    * @returns - The schema instance
    */
   below(value: Date, options?: { inclusive?: boolean; message: string }) {
-    const inclusive = typeof options?.inclusive === 'boolean' ? options?.inclusive : false;
+    const inclusive = typeof options?.inclusive === 'boolean' ? options.inclusive : false;
     const message = options?.message || 'Value is not below the specified date';
 
     this.__below = {

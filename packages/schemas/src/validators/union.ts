@@ -7,12 +7,13 @@ export function unionValidation(
   return {
     type: 'high',
     callback: async (value, path, options) => {
-      let parsedValues: Awaited<ReturnType<Schema['__parse']>> = {
+      const parsedValues: Awaited<ReturnType<Schema['__parse']>> = {
         parsed: value,
         errors: [],
       };
       const startingToInternalBubbleUpLength = options.toInternalToBubbleUp?.length || 0;
 
+      // eslint-disable-next-line ts/prefer-for-of
       for (let i = 0; i < schemas.length; i++) {
         const schemaWithProtected = schemas[i] as Schema & {
           __parse: Schema['__parse'];
@@ -25,6 +26,7 @@ export function unionValidation(
           else parsedValues.errors = parsedData.errors;
 
         const hasNoErrorsSoItsAValidSchemaAndShouldResetOldErrors =
+          // eslint-disable-next-line ts/no-unnecessary-condition
           parsedData.errors === undefined || (parsedData.errors || []).length === 0;
         if (hasNoErrorsSoItsAValidSchemaAndShouldResetOldErrors) {
           return {
@@ -42,6 +44,7 @@ export function unionValidation(
 
       return {
         parsed: parsedValues.parsed,
+        // eslint-disable-next-line ts/no-unnecessary-condition
         errors: parsedValues.errors ? parsedValues.errors : [],
       };
     },

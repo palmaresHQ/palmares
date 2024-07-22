@@ -1,8 +1,8 @@
-import { Domain } from '@palmares/core';
 
-import { model } from './models';
+import type { DatabaseAdapter } from '.';
 import type { MigrationFileType } from './migrations/types';
-import { DatabaseAdapter } from '.';
+import type { model } from './models';
+import type { Domain } from '@palmares/core';
 
 export type DatabaseDomainInterface = {
   getModels: (engineInstance: DatabaseAdapter) => Promise<ReturnType<typeof model>[] | { [modelName: string]: ReturnType<typeof model> }>;

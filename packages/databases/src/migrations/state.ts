@@ -1,10 +1,13 @@
-import { FoundMigrationsFileType, StateModelsType, OriginalOrStateModelsByNameType } from './types';
-import model, { BaseModel } from '../models/model';
-import { InitializedModelsType } from '../types';
-import DatabaseAdapter from '../engine';
-import { defaultEngineDuplicate } from '../engine/utils';
 import { DefaultDuplicateFunctionNotCalledOnEngine } from './exceptions';
+import { defaultEngineDuplicate } from '../engine/utils';
+import model from '../models/model';
 import { initializeModels } from '../models/utils';
+
+
+import type { FoundMigrationsFileType, OriginalOrStateModelsByNameType, StateModelsType } from './types';
+import type DatabaseAdapter from '../engine';
+import type { BaseModel } from '../models/model';
+import type { InitializedModelsType } from '../types';
 
 /**
  * The state is used to keep track how the models were for every migration file. On the migration files
@@ -22,8 +25,7 @@ import { initializeModels } from '../models/utils';
 export default class State {
   modelsByName: StateModelsType = {};
   initializedModelsByName: OriginalOrStateModelsByNameType = {};
-  stateNumber: number = 0;
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  stateNumber = 0;
   private constructor() {}
 
   /**
@@ -36,6 +38,7 @@ export default class State {
    */
   async get(modelName: string): Promise<StateModelsType[string]> {
     const modelInstance = this.modelsByName[modelName];
+    // eslint-disable-next-line ts/no-unnecessary-condition
     const doesModelExist = modelInstance !== undefined;
     if (doesModelExist) return modelInstance;
     else return await this.newModel(modelName);
@@ -48,6 +51,7 @@ export default class State {
    * @param modelName - The name of the model to set.
    * @param modifiedModel - The modified model instance to set.
    */
+  // eslint-disable-next-line ts/require-await
   async set(modelName: string, modifiedModel: StateModelsType[string]) {
     this.modelsByName[modelName] = modifiedModel;
   }
@@ -84,6 +88,7 @@ export default class State {
    *
    * @param modelName - The name of the model to remove.
    */
+  // eslint-disable-next-line ts/require-await
   async remove(modelName: string) {
     delete this.modelsByName[modelName];
   }

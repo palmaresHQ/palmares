@@ -1,9 +1,9 @@
-import Response from '../response';
-import { AllServerSettingsType } from '../types';
 import { getErrorId } from '../handlers';
-
-import type { Domain } from '@palmares/core';
+import Response from '../response';
 import { HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR } from '../response/status';
+
+import type { AllServerSettingsType } from '../types';
+import type { Domain } from '@palmares/core';
 
 export const DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY = 'Content-Type';
 // Used for sending the file names, see: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition

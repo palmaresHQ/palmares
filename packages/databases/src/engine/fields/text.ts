@@ -1,6 +1,7 @@
-import { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateArgs, TextField } from '../..';
+import { TextField } from '../..';
 import { EngineDoesNotSupportFieldTypeException } from '../../models/exceptions';
-import AdapterFieldParser from './field';
+
+import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateArgs} from '../..';
 
 /**
  * Functional approach to create a custom field parser.
@@ -156,7 +157,7 @@ export function adapterTextFieldParser<
   outputParser?: TOutputParserFunction;
 }) {
   class CustomAdapterTextFieldParser extends AdapterTextFieldParser {
-    translate = args.translate as TTranslateFunction;
+    translate = args.translate;
     inputParser = args.inputParser as TInputParserFunction;
     outputParser = args.outputParser as TOutputParserFunction;
   }
@@ -263,6 +264,7 @@ export default class AdapterTextFieldParser {
    *
    * @returns - The translated field.
    */
+  // eslint-disable-next-line ts/require-await
   async translate(args: AdapterFieldParserTranslateArgs<'text'>): Promise<any> {
     throw new EngineDoesNotSupportFieldTypeException(args.engine.constructor.name, TextField.name);
   }
@@ -292,6 +294,7 @@ export default class AdapterTextFieldParser {
    *
    * @returns - The parsed value.
    */
+  // eslint-disable-next-line ts/require-await
   async inputParser?(args: AdapterFieldParserInputAndOutputArgs<'text'>) {
     return args.value;
   }
@@ -320,6 +323,7 @@ export default class AdapterTextFieldParser {
    *
    * @returns - The parsed value for the user for that specific field.
    */
+  // eslint-disable-next-line ts/require-await
   async outputParser?(args: AdapterFieldParserInputAndOutputArgs<'text'>) {
     return args.value;
   }

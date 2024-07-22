@@ -1,9 +1,12 @@
-import { AdapterFieldParserTranslateArgs, adapterDateFieldParser } from '@palmares/databases';
-import { DataTypes, ModelAttributeColumnOptions } from 'sequelize';
+import { adapterDateFieldParser } from '@palmares/databases';
+import { DataTypes } from 'sequelize';
 
-import SequelizeEngineFieldParser from './field';
 import SequelizeEngine from '../engine';
-import { TranslatedFieldToEvaluateAfterType } from '../types';
+
+import type SequelizeEngineFieldParser from './field';
+import type { TranslatedFieldToEvaluateAfterType } from '../types';
+import type { AdapterFieldParserTranslateArgs} from '@palmares/databases';
+import type { ModelAttributeColumnOptions } from 'sequelize';
 
 export default adapterDateFieldParser({
   translate: async (
@@ -14,8 +17,8 @@ export default adapterDateFieldParser({
       TranslatedFieldToEvaluateAfterType
     >
   ): Promise<ModelAttributeColumnOptions> => {
-    const isAutoNow = (args.field?.autoNow as boolean) === true;
-    const hasAutoNowOrAutoNowAdd = (args.field?.autoNowAdd as boolean) === true || isAutoNow;
+    const isAutoNow = (args.field.autoNow as boolean) === true;
+    const hasAutoNowOrAutoNowAdd = (args.field.autoNowAdd as boolean) === true || isAutoNow;
 
     const defaultOptions = await args.fieldParser.translate(args);
     defaultOptions.type = DataTypes.DATE;

@@ -1,8 +1,10 @@
-import { Domain } from '@palmares/core';
-import { AllServerSettingsType, ServersSettingsType } from '../types';
+
 import ServerRequestAdapter from './requests';
 import ServerResponseAdapter from './response';
 import ServerRouterAdapter from './routers';
+
+import type { AllServerSettingsType, ServersSettingsType } from '../types';
+import type { Domain } from '@palmares/core';
 
 /**
  * Functional approach to creating a server adapter instead of the default class/inheritance approach.
@@ -91,14 +93,14 @@ export function serverAdapter<
   close: TCloseFunction;
 }) {
   class CustomServerAdapter extends ServerAdapter {
-    request = args.request as TServerRequestAdapter;
-    response = args.response as TServerResponseAdapter;
+    request = args.request;
+    response = args.response;
     routers = args.routers as ServerRouterAdapter;
-    load = args.load as TLoadFunction;
-    start = args.start as TStartFunction;
-    close = args.close as TCloseFunction;
+    load = args.load;
+    start = args.start;
+    close = args.close;
 
-    static customServerSettings = args.customServerSettings as TCustomServerSettings;
+    static customServerSettings = args.customServerSettings;
   }
 
   return CustomServerAdapter as {
@@ -156,6 +158,7 @@ export default class ServerAdapter {
    * @param domains - All of the domains of the application, usually you will not need this, but can be useful.
    * @param settings - The settings for the server.
    */
+  // eslint-disable-next-line ts/require-await
   async load(
     _serverName: string,
     _domains: Domain[],
@@ -184,6 +187,7 @@ export default class ServerAdapter {
    * @param port - The port to start the server on.
    * @param logServerStart - A function that you can call to log to the user that the server has started.
    */
+  // eslint-disable-next-line ts/require-await
   async start(_serverName: string, _port: number, _logServerStart: () => void): Promise<void> {
     return undefined;
   }
@@ -198,6 +202,7 @@ export default class ServerAdapter {
    * },
    * ```
    */
+  // eslint-disable-next-line ts/require-await
   async close(): Promise<void> {
     return undefined;
   }

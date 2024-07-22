@@ -7,6 +7,7 @@ export default function uuid() {
   let date = new Date().getTime();
   const browserOrNodePerformance = (globalThis as any).performance as typeof performance | undefined;
   let performanceDate =
+    // eslint-disable-next-line ts/no-unnecessary-condition
     (browserOrNodePerformance && browserOrNodePerformance.now && browserOrNodePerformance.now() * 1000) || 0;
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
     let randomNumber = Math.random() * 16;

@@ -17,6 +17,7 @@ export default serverlessAdapter({
   load: async (_serverName: string, _domains: any[], _settings: any) => {
 
   },
+  // eslint-disable-next-line ts/require-await
   generate: async (...args: any[]) => {
     console.log('generate', args)
   }
