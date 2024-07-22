@@ -210,8 +210,8 @@ importers:
         version: 3.22.4
     devDependencies:
       '@types/qs':
-        specifier: ^6.9.8
-        version: 6.9.14
+        specifier: ^6.9.15
+        version: 6.9.15
       nodemon:
         specifier: ^3.1.4
         version: 3.1.4
@@ -268,8 +268,8 @@ importers:
         version: 3.22.4
     devDependencies:
       '@types/qs':
-        specifier: ^6.9.8
-        version: 6.9.14
+        specifier: ^6.9.15
+        version: 6.9.15
       nodemon:
         specifier: ^3.1.4
         version: 3.1.4
@@ -368,8 +368,8 @@ importers:
         version: 3.22.4
     devDependencies:
       '@types/qs':
-        specifier: ^6.9.8
-        version: 6.9.14
+        specifier: ^6.9.15
+        version: 6.9.15
       nodemon:
         specifier: ^3.1.4
         version: 3.1.4
@@ -417,8 +417,8 @@ importers:
         version: 3.22.4
     devDependencies:
       '@types/qs':
-        specifier: ^6.9.8
-        version: 6.9.14
+        specifier: ^6.9.15
+        version: 6.9.15
       nodemon:
         specifier: ^3.1.4
         version: 3.1.4
@@ -451,8 +451,8 @@ importers:
         version: 3.22.4
     devDependencies:
       '@types/qs':
-        specifier: ^6.9.8
-        version: 6.9.14
+        specifier: ^6.9.15
+        version: 6.9.15
       nodemon:
         specifier: ^3.1.4
         version: 3.1.4
@@ -491,8 +491,8 @@ importers:
         specifier: ^29.5.12
         version: 29.5.12
       '@types/qs':
-        specifier: ^6.9.8
-        version: 6.9.14
+        specifier: ^6.9.15
+        version: 6.9.15
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@20.14.11)(ts-node@10.9.1(@swc/core@1.7.0(@swc/helpers@0.5.5))(@types/node@20.14.11)(typescript@5.5.3))
@@ -566,8 +566,8 @@ importers:
         specifier: ^20.14.11
         version: 20.14.11
       '@types/qs':
-        specifier: ^6.9.8
-        version: 6.9.14
+        specifier: ^6.9.15
+        version: 6.9.15
 
   libs/jest-tests:
     dependencies:
@@ -2417,8 +2417,8 @@ packages:
   '@types/prop-types@15.7.12':
     resolution: {integrity: sha512-5zvhXYtRNRluoE/jAp4GVsSduVUzNWKkOZrCDBWYtE7biZywwdC2AcEzg+cSMLFRfVgeAFqpfNabiPjxFddV1Q==}
 
-  '@types/qs@6.9.14':
-    resolution: {integrity: sha512-5khscbd3SwWMhFqylJBLQ0zIu7c1K6Vz0uBIt915BI3zV0q1nfjRQD3RqSBcPaO6PHEF4ov/t9y89fSiyThlPA==}
+  '@types/qs@6.9.15':
+    resolution: {integrity: sha512-uXHQKES6DQKKCLh441Xv/dwxOq1TVS3JPUMlEqoEglvlhR6Mxnlew/Xq/LRVHpLyk7iK3zODe1qYHIMltO7XGg==}
 
   '@types/range-parser@1.2.7':
     resolution: {integrity: sha512-hKormJbkJqzQGhziax5PItDUTMAM9uE2XXQmM37dyd4hVM+5aVl7oVxMVUiVQn2oCQFN/LKCZdvSM0pFRqbSmQ==}
@@ -8955,7 +8955,7 @@ snapshots:
   '@types/express-serve-static-core@4.17.41':
     dependencies:
       '@types/node': 20.14.11
-      '@types/qs': 6.9.14
+      '@types/qs': 6.9.15
       '@types/range-parser': 1.2.7
       '@types/send': 0.17.4
 
@@ -8963,7 +8963,7 @@ snapshots:
     dependencies:
       '@types/body-parser': 1.19.5
       '@types/express-serve-static-core': 4.17.41
-      '@types/qs': 6.9.14
+      '@types/qs': 6.9.15
       '@types/serve-static': 1.15.5
 
   '@types/graceful-fs@4.1.9':
@@ -9037,7 +9037,7 @@ snapshots:
 
   '@types/prop-types@15.7.12': {}
 
-  '@types/qs@6.9.14': {}
+  '@types/qs@6.9.15': {}
 
   '@types/range-parser@1.2.7': {}
 
