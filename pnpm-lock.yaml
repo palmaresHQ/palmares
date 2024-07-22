@@ -88,7 +88,7 @@ importers:
         version: 3.0.1
       '@mdx-js/react':
         specifier: ^3.0.1
-        version: 3.0.1(@types/react@18.2.25)(react@18.3.1)
+        version: 3.0.1(@types/react@18.3.3)(react@18.3.1)
       autoprefixer:
         specifier: ^10.4.19
         version: 10.4.19(postcss@8.4.31)
@@ -118,8 +118,8 @@ importers:
         specifier: ^20.14.11
         version: 20.14.11
       '@types/react':
-        specifier: 18.2.25
-        version: 18.2.25
+        specifier: 18.3.3
+        version: 18.3.3
       '@types/react-dom':
         specifier: 18.3.0
         version: 18.3.0
@@ -516,7 +516,7 @@ importers:
         version: link:../../packages/databases
       drizzle-orm:
         specifier: ^0.31.2
-        version: 0.31.2(@types/better-sqlite3@7.6.11)(@types/react@18.2.25)(better-sqlite3@11.1.2)(pg@8.12.0)(postgres@3.4.4)(react@18.3.1)(sqlite3@5.1.7)
+        version: 0.31.2(@types/better-sqlite3@7.6.11)(@types/react@18.3.3)(better-sqlite3@11.1.2)(pg@8.12.0)(postgres@3.4.4)(react@18.3.1)(sqlite3@5.1.7)
     devDependencies:
       '@types/better-sqlite3':
         specifier: ^7.6.11
@@ -713,7 +713,7 @@ importers:
         version: 0.23.0
       drizzle-orm:
         specifier: ^0.31.2
-        version: 0.31.2(@types/better-sqlite3@7.6.11)(@types/react@18.2.25)(better-sqlite3@11.1.2)(pg@8.12.0)(postgres@3.4.4)(react@18.3.1)(sqlite3@5.1.7)
+        version: 0.31.2(@types/better-sqlite3@7.6.11)(@types/react@18.3.3)(better-sqlite3@11.1.2)(pg@8.12.0)(postgres@3.4.4)(react@18.3.1)(sqlite3@5.1.7)
       postgres:
         specifier: ^3.4.4
         version: 3.4.4
@@ -2431,6 +2431,9 @@ packages:
 
   '@types/react@18.2.25':
     resolution: {integrity: sha512-24xqse6+VByVLIr+xWaQ9muX1B4bXJKXBbjszbld/UEDslGLY53+ZucF44HCmLbMPejTzGG9XgR+3m2/Wqu1kw==}
+
+  '@types/react@18.3.3':
+    resolution: {integrity: sha512-hti/R0pS0q1/xx+TsI73XIqk26eBsISZ2R0wUijXIngRK9R/e7Xw/cXVxQK7R5JjW+SV4zGcn5hXjudkN/pLIw==}
 
   '@types/responselike@1.0.3':
     resolution: {integrity: sha512-H/+L+UkTV33uf49PH5pCAUBVPNj2nDBXTN+qS1dOwyyg24l3CcicicCA7ca+HMvJBZcFgl5r8e+RR6elsb4Lyw==}
@@ -8634,10 +8637,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@mdx-js/react@3.0.1(@types/react@18.2.25)(react@18.3.1)':
+  '@mdx-js/react@3.0.1(@types/react@18.3.3)(react@18.3.1)':
     dependencies:
       '@types/mdx': 2.0.13
-      '@types/react': 18.2.25
+      '@types/react': 18.3.3
       react: 18.3.1
 
   '@mole-inc/bin-wrapper@8.0.1':
@@ -9043,16 +9046,21 @@ snapshots:
 
   '@types/react-dom@18.2.14':
     dependencies:
-      '@types/react': 18.2.25
+      '@types/react': 18.3.3
 
   '@types/react-dom@18.3.0':
     dependencies:
-      '@types/react': 18.2.25
+      '@types/react': 18.3.3
 
   '@types/react@18.2.25':
     dependencies:
       '@types/prop-types': 15.7.12
       '@types/scheduler': 0.23.0
+      csstype: 3.1.3
+
+  '@types/react@18.3.3':
+    dependencies:
+      '@types/prop-types': 15.7.12
       csstype: 3.1.3
 
   '@types/responselike@1.0.3':
@@ -10263,10 +10271,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.31.2(@types/better-sqlite3@7.6.11)(@types/react@18.2.25)(better-sqlite3@11.1.2)(pg@8.12.0)(postgres@3.4.4)(react@18.3.1)(sqlite3@5.1.7):
+  drizzle-orm@0.31.2(@types/better-sqlite3@7.6.11)(@types/react@18.3.3)(better-sqlite3@11.1.2)(pg@8.12.0)(postgres@3.4.4)(react@18.3.1)(sqlite3@5.1.7):
     optionalDependencies:
       '@types/better-sqlite3': 7.6.11
-      '@types/react': 18.2.25
+      '@types/react': 18.3.3
       better-sqlite3: 11.1.2
       pg: 8.12.0
       postgres: 3.4.4
