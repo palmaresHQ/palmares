@@ -24,7 +24,7 @@
     "@palmares/tests": "workspace:*",
     "better-sqlite3": "^11.1.2",
     "drizzle-kit": "^0.23.0",
-    "drizzle-orm": "^0.31.2",
+    "drizzle-orm": "^0.32.0",
     "postgres": "^3.4.4"
   },
   "devDependencies": {
