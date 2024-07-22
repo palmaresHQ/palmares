@@ -37,10 +37,10 @@
     "express": "^4.18.2",
     "sequelize": "^6.21.0",
     "sqlite3": "^5.1.6",
-    "zod": "^3.22.4"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/qs": "^6.9.8",
+    "@types/qs": "^6.9.15",
     "nodemon": "^3.1.4"
   }
 }
