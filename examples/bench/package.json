@@ -32,7 +32,7 @@
     "zod": "^3.18.0"
   },
   "devDependencies": {
-    "@types/qs": "^6.9.8",
+    "@types/qs": "^6.9.15",
     "nodemon": "^3.1.4"
   }
 }
