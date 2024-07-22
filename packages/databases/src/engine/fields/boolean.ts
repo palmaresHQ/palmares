@@ -1,5 +1,7 @@
-import { BooleanField, AdapterFieldParserTranslateArgs, AdapterFieldParserInputAndOutputArgs } from '../..';
+import { BooleanField } from '../..';
 import { EngineDoesNotSupportFieldTypeException } from '../../models/exceptions';
+
+import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateArgs } from '../..';
 
 /**
  * Functional approach to create a custom field parser.
@@ -155,7 +157,7 @@ export function adapterBooleanFieldParser<
   outputParser?: TOutputParserFunction;
 }) {
   class CustomAdapterBooleanFieldParser extends AdapterBooleanFieldParser {
-    translate = args.translate as TTranslateFunction;
+    translate = args.translate;
     inputParser = args.inputParser as TInputParserFunction;
     outputParser = args.outputParser as TOutputParserFunction;
   }
@@ -262,6 +264,7 @@ export default class AdapterBooleanFieldParser {
    *
    * @returns - The translated field.
    */
+  // eslint-disable-next-line ts/require-await
   async translate(args: AdapterFieldParserTranslateArgs<'boolean'>): Promise<any> {
     throw new EngineDoesNotSupportFieldTypeException(args.engine.constructor.name, BooleanField.name);
   }
@@ -291,6 +294,7 @@ export default class AdapterBooleanFieldParser {
    *
    * @returns - The parsed value.
    */
+  // eslint-disable-next-line ts/require-await
   async inputParser?(args: AdapterFieldParserInputAndOutputArgs<'boolean'>) {
     return args.value;
   }
@@ -319,6 +323,7 @@ export default class AdapterBooleanFieldParser {
    *
    * @returns - The parsed value for the user for that specific field.
    */
+  // eslint-disable-next-line ts/require-await
   async outputParser?(args: AdapterFieldParserInputAndOutputArgs<'boolean'>) {
     return args.value;
   }

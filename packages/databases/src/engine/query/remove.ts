@@ -32,7 +32,7 @@ export function adapterRemoveQuery<TFunctionQueryData extends AdapterRemoveQuery
   queryData: TFunctionQueryData;
 }) {
   class CustomAdapterRemoveQuery extends AdapterRemoveQuery {
-    queryData = args.queryData as TFunctionQueryData;
+    queryData = args.queryData;
   }
 
   return CustomAdapterRemoveQuery as typeof AdapterRemoveQuery & {
@@ -69,6 +69,7 @@ export default class AdapterRemoveQuery {
    *   return [];
    * }
    */
+  // eslint-disable-next-line ts/require-await
   async queryData(
     _engine: DatabaseAdapter,
     _args: {

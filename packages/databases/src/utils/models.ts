@@ -1,5 +1,5 @@
-import { model } from '../models';
-import { onRemoveFunction, onSetFunction } from '../models/types';
+import type { model } from '../models';
+import type { onRemoveFunction, onSetFunction } from '../models/types';
 
 export function extractDefaultEventsHandlerFromModel<
   TModel extends InstanceType<ReturnType<typeof model>>,

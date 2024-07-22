@@ -1,6 +1,7 @@
-import { AdapterFieldParserTranslateArgs, adapterUuidFieldParser } from '@palmares/databases';
+import { adapterUuidFieldParser } from '@palmares/databases';
 
-import DrizzleEngineFieldParser from './field';
+import type DrizzleEngineFieldParser from './field';
+import type { AdapterFieldParserTranslateArgs} from '@palmares/databases';
 
 export default adapterUuidFieldParser({
   translate: async (
@@ -15,6 +16,7 @@ export default adapterUuidFieldParser({
     const field = args.field;
     const mainType = args.engine.instance.mainType
 
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (field.autoGenerate) {
       args.lazyEvaluate({
         type: 'uuid',

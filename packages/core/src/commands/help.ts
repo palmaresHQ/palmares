@@ -1,6 +1,5 @@
-import { Domain } from '../domain';
-import { DefaultCommandType, ExtractCommandsType } from './types';
-
+import type { DefaultCommandType, ExtractCommandsType } from './types';
+import type { Domain } from '../domain';
 import type coreDomain from '../domain/default';
 
 function textWithEmptySpaces(length: number, text: string) {
@@ -118,9 +117,9 @@ export default function help(
   for (let i = 0; i < domains.length; i++) {
     const domain = domains[i];
     const shouldNotShowAnythingFromDomain =
-      (keywordArgs?.domain && !keywordArgs.domain.includes(domain.name)) ||
-      (keywordArgs?.command &&
-        !Object.keys(domain.commands || {}).some((command) => keywordArgs?.command?.includes(command))) ||
+      (keywordArgs.domain && !keywordArgs.domain.includes(domain.name)) ||
+      (keywordArgs.command &&
+        !Object.keys(domain.commands || {}).some((command) => keywordArgs.command?.includes(command))) ||
       !domain.commands;
 
     if (shouldNotShowAnythingFromDomain) continue;
@@ -130,7 +129,7 @@ export default function help(
 
     for (let commandIndex = 0; commandIndex < commandEntries.length; commandIndex++) {
       const shouldNotShowCommand =
-        keywordArgs?.command && !keywordArgs.command.includes(commandEntries[commandIndex][0]);
+        keywordArgs.command && !keywordArgs.command.includes(commandEntries[commandIndex][0]);
       if (shouldNotShowCommand) continue;
 
       const [command, commandData] = commandEntries[commandIndex];

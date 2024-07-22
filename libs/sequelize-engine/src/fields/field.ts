@@ -2,16 +2,17 @@ import {
   CharField,
   TextField,
   UuidField,
-  Model,
-  adapterFieldParser,
-  AdapterFieldParserTranslateArgs,
+  adapterFieldParser
 } from '@palmares/databases';
-import { ModelAttributeColumnOptions } from 'sequelize';
 
-import SequelizeEngine from '../engine';
 import { appendIndexes } from '../utils';
-import { TranslatedFieldToEvaluateAfterType } from '../types';
 
+import type { TranslatedFieldToEvaluateAfterType } from '../types';
+import type {
+  AdapterFieldParserTranslateArgs} from '@palmares/databases';
+import type { ModelAttributeColumnOptions } from 'sequelize';
+
+// eslint-disable-next-line ts/require-await
 async function textFieldValidations(field: CharField | TextField) {
   return {
     validate: {

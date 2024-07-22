@@ -1,6 +1,7 @@
-import { AdapterFieldParserTranslateArgs, adapterDateFieldParser } from '@palmares/databases';
+import { adapterDateFieldParser } from '@palmares/databases';
 
-import DrizzleEngineFieldParser from './field';
+import type DrizzleEngineFieldParser from './field';
+import type { AdapterFieldParserTranslateArgs} from '@palmares/databases';
 
 export default adapterDateFieldParser({
   translate: async (
@@ -23,8 +24,10 @@ export default adapterDateFieldParser({
         }${
         defaultOptions.unique ? `.unique()` : ''
         }${
+        // eslint-disable-next-line ts/no-unnecessary-condition
         field.autoNowAdd ? ".$defaultFn(() => drzl.sql`CURRENT_TIMESTAMP`)" : ''
         }${
+        // eslint-disable-next-line ts/no-unnecessary-condition
         field.autoNow ? ".$onUpdate(() => drzl.sql`CURRENT_TIMESTAMP`)" : ''
         }`
       case 'postgres':
@@ -35,8 +38,10 @@ export default adapterDateFieldParser({
         }${
         defaultOptions.unique ? `.unique()` : ''
         }${
+        // eslint-disable-next-line ts/no-unnecessary-condition
         field.autoNow ? `.defaultNow()` : ''
         }${
+        // eslint-disable-next-line ts/no-unnecessary-condition
         field.autoNowAdd ? '.$onUpdate(() => drzl.sql`now()`)' : ''
         }`
       default:
@@ -49,8 +54,10 @@ export default adapterDateFieldParser({
         }${
         defaultOptions.unique ? `.unique()` : ''
         }${
+        // eslint-disable-next-line ts/no-unnecessary-condition
         field.autoNow ? `.defaultNow()` : ''
         }${
+        // eslint-disable-next-line ts/no-unnecessary-condition
         field.autoNowAdd ? '.$onUpdate(() => drzl.sql`NOW()`)' : ''
         }`
     }

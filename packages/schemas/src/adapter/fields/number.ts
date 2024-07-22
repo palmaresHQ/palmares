@@ -18,7 +18,7 @@ export function numberFieldAdapter<
   parse?: TParse;
 }) {
   class CustomNumberFieldAdapter extends NumberFieldAdapter {
-    translate = args.translate as TTranslate;
+    translate = args.translate;
     toString = args.toString as TToString;
     formatError = args.formatError as TFormatError;
     parse = args.parse as TParse;

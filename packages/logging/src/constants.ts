@@ -1,4 +1,4 @@
-import { LoggingTypes } from './types';
+import type { LoggingTypes } from './types';
 
 export const FRAMEWORK_NAME = 'palmares';
 

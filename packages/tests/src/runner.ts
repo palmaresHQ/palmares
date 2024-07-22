@@ -1,7 +1,8 @@
 import { initializeDomains } from '@palmares/core'
 
 import { setTestAdapter } from './utils'
-import { AllTestsSettingsType } from './types'
+
+import type { AllTestsSettingsType } from './types'
 
 export default async function run(settingsPath: string) {
   const settings = await import(settingsPath).catch((e) => {

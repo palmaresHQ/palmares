@@ -1,7 +1,8 @@
 import { Response, pathNested } from '@palmares/server';
 
-import type { depositRouter } from './routes';
 import { depositAmountFromContractorIdToClientId } from './services';
+
+import type { depositRouter } from './routes';
 
 export const depositAmountController = pathNested<typeof depositRouter>()().post(async (request) => {
   if (request.context.profile.type !== 'contractor')

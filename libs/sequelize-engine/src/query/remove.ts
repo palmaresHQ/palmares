@@ -2,6 +2,7 @@ import { adapterRemoveQuery } from '@palmares/databases';
 
 export default adapterRemoveQuery({
   queryData: async (_, args) => {
+    // eslint-disable-next-line ts/require-await
     async function remove() {
       return args.modelOfEngineInstance.destroy({
         where: args.search,

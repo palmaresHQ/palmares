@@ -1,6 +1,7 @@
-import { AdapterFieldParserTranslateArgs, adapterTextFieldParser } from '@palmares/databases';
+import { adapterTextFieldParser } from '@palmares/databases';
 
-import DrizzleEngineFieldParser from './field';
+import type DrizzleEngineFieldParser from './field';
+import type { AdapterFieldParserTranslateArgs} from '@palmares/databases';
 
 export default adapterTextFieldParser({
   translate: async (

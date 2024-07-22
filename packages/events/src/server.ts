@@ -1,6 +1,7 @@
-import Emitter from './emitter';
 import EventEmitter from './events';
-import { EventEmitterOptionsType } from './events/types';
+
+import type Emitter from './emitter';
+import type { EventEmitterOptionsType } from './events/types';
 
 let runningEventsServer: EventsServer<Emitter>;
 
@@ -14,7 +15,7 @@ let runningEventsServer: EventsServer<Emitter>;
  * IMPORTANT: This server is not tied to palmares, we create this here to wrap it around the actual EventsAppServer. The
  * idea is that this should not need to be tied to palmares and could work outside of it normally.
  */
-export class EventsServer<E extends Emitter> extends EventEmitter<E> {
+export class EventsServer<TEmitter extends Emitter> extends EventEmitter<TEmitter> {
   #interval!: NodeJS.Timeout;
   #addEventListenerPromises: Promise<any>[] = [];
 
@@ -48,6 +49,7 @@ export class EventsServer<E extends Emitter> extends EventEmitter<E> {
     await Promise.all(this.#addEventListenerPromises);
     this.#addEventListenerPromises = []; // remove the variable and let the Garbage Collector take care of it.
     callback();
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (setInterval) {
       this.#interval = setInterval(() => {
         return;
@@ -62,6 +64,7 @@ export class EventsServer<E extends Emitter> extends EventEmitter<E> {
    */
   async close() {
     const promises: Promise<void>[] = [];
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (this.#interval) clearInterval(this.#interval);
     if (this.layer) promises.push(this.layer.unsubscribeAll());
     promises.push(this.unsubscribeAll());
@@ -69,19 +72,19 @@ export class EventsServer<E extends Emitter> extends EventEmitter<E> {
   }
 }
 
-export default async function eventsServer<E extends typeof Emitter = typeof Emitter>(
-  emitter: Promise<{ default: E }> | E,
+export default async function eventsServer<TEmitter extends typeof Emitter = typeof Emitter>(
+  emitter: Promise<{ default: TEmitter }> | TEmitter,
   options?: EventEmitterOptionsType & {
-    emitterParams?: Parameters<E['new']>;
+    emitterParams?: Parameters<TEmitter['new']>;
   }
 ) {
-  return EventsServer.new<E>(emitter, options) as Promise<EventsServer<InstanceType<E>>>;
+  return EventsServer.new<TEmitter>(emitter, options) as Promise<EventsServer<InstanceType<TEmitter>>>;
 }
 
 export function setEventsServer(server: EventsServer<Emitter>) {
   runningEventsServer = server;
 }
 
-export function getEventsServer<E extends typeof Emitter = typeof Emitter>() {
-  return runningEventsServer as EventsServer<InstanceType<E>>;
+export function getEventsServer<TEmitter extends typeof Emitter = typeof Emitter>() {
+  return runningEventsServer as EventsServer<InstanceType<TEmitter>>;
 }

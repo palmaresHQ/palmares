@@ -1,9 +1,9 @@
-import model from '../models/model';
 import getResultsWithIncludes from '.';
 import Transaction from '../transaction';
 
 import type DatabaseAdapter from '../engine';
-import type { Includes, ModelFieldsWithIncludes, FieldsOFModelType } from '../models/types';
+import type model from '../models/model';
+import type { FieldsOFModelType, Includes, ModelFieldsWithIncludes } from '../models/types';
 
 export default async function removeQuery<
   TModel,
@@ -51,10 +51,10 @@ export default async function removeQuery<
 
     await getResultsWithIncludes(
       internal.engine,
-      internal.model as TModel,
+      internal.model,
       useParsers,
-      selectedFields as FieldsOFModelType<TModel>,
-      internal.includes as TIncludes,
+      selectedFields,
+      internal.includes,
       args.search as TSearch,
       results,
       internal.engine.query.remove.queryData.bind(internal.engine.query.remove),

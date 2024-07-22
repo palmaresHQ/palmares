@@ -1,12 +1,13 @@
 import type Domain from './domain';
-import { AppServer, appServer } from '../app';
-import { SettingsType } from '../conf/types';
+import type { AppServer, appServer } from '../app';
+import type { SettingsType } from '../conf/types';
 
-export type DomainReadyFunctionArgs<S = SettingsType, C extends object = object> = {
-  settings: S;
+
+export type DomainReadyFunctionArgs<TSettings = SettingsType, TCustom extends object = object> = {
+  settings: TSettings;
   domains: Domain[];
   app?: AppServer | InstanceType<ReturnType<typeof appServer>>;
-  customOptions: C;
+  customOptions: TCustom;
 };
 
 export type ExtractModifierArguments<

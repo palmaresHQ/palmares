@@ -1,10 +1,11 @@
-import { Narrow } from '@palmares/core';
 
 import Schema from './schema';
 import { getDefaultAdapter } from '../conf';
 import { defaultTransform, defaultTransformToAdapter } from '../utils';
-import { maxLength, includes, minLength, endsWith, regex, startsWith, stringValidation } from '../validators/string';
-import { DefinitionsOfSchemaType } from './types';
+import { endsWith, includes, maxLength, minLength, regex, startsWith, stringValidation } from '../validators/string';
+
+import type { DefinitionsOfSchemaType } from './types';
+import type { Narrow } from '@palmares/core';
 
 export default class StringSchema<
   TType extends {
@@ -100,6 +101,7 @@ export default class StringSchema<
           {
             validatorsIfFallbackOrNotSupported: stringValidation(),
             shouldAddStringVersion: options.shouldAddStringVersion,
+            // eslint-disable-next-line ts/require-await
             fallbackIfNotSupported: async () => {
               return [];
             },
@@ -389,7 +391,7 @@ export default class StringSchema<
     ) => Awaited<ReturnType<NonNullable<TDefinitions['schemaAdapter']['field']>['translate']>> | any,
     toStringCallback?: (schemaAsString: string) => string
   ) {
-    return super.extends(callback, toStringCallback) as this;
+    return super.extends(callback, toStringCallback);
   }
 
   /**
@@ -695,7 +697,7 @@ export default class StringSchema<
     this.__maxLength = {
       value,
       message: options?.message || `The value should have a maximum length of ${value}`,
-      inclusive: typeof options?.inclusive === 'boolean' ? options?.inclusive : false,
+      inclusive: typeof options?.inclusive === 'boolean' ? options.inclusive : false,
     };
     return this;
   }
@@ -724,7 +726,7 @@ export default class StringSchema<
     this.__minLength = {
       value,
       message: options?.message || `The value should have a minimum length of ${value}`,
-      inclusive: typeof options?.inclusive === 'boolean' ? options?.inclusive : false,
+      inclusive: typeof options?.inclusive === 'boolean' ? options.inclusive : false,
     };
     return this;
   }

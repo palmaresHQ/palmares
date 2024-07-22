@@ -1,10 +1,13 @@
-import { DatabaseAdapter, databaseAdapter } from '@palmares/databases';
-import { Options, Sequelize, Transaction } from 'sequelize';
+import { databaseAdapter } from '@palmares/databases';
+import { Sequelize } from 'sequelize';
 
 import SequelizeEngineFields from './fields';
 import SequelizeMigrations from './migrations';
 import SequelizeEngineModels from './model';
 import SequelizeEngineQuery from './query';
+
+import type { DatabaseAdapter} from '@palmares/databases';
+import type { Options, Transaction } from 'sequelize';
 
 const instancesByConnectionNames = new Map<
   string,
@@ -60,7 +63,7 @@ const sequelizeDatabaseAdapter = databaseAdapter({
 
     if (isSequelizeInstanceDefined) {
       try {
-        await instanceData.instance?.authenticate();
+        await instanceData.instance.authenticate();
         instanceData.isConnected = true;
       } catch (error) {
         instanceData.isConnected = false;
@@ -70,7 +73,7 @@ const sequelizeDatabaseAdapter = databaseAdapter({
     }
     return false;
   },
-  transaction: async <TParameters extends Array<any>, TResult>(
+  transaction: async <TParameters extends any[], TResult>(
     databaseAdapter: DatabaseAdapter,
     callback: (transaction: Transaction, ...args: TParameters) => TResult | Promise<TResult>,
     ...args: TParameters
@@ -79,7 +82,7 @@ const sequelizeDatabaseAdapter = databaseAdapter({
 
     return new Promise((resolve, reject) => {
       try {
-        instanceData.instance?.transaction(async (transaction) => {
+        instanceData.instance.transaction(async (transaction) => {
           try {
             resolve(await callback(transaction, ...args));
           } catch (e) {
@@ -97,7 +100,7 @@ const sequelizeDatabaseAdapter = databaseAdapter({
   close: async (databaseAdapter): Promise<void> => {
     const instanceData = checkIfInstanceSavedOrSave(databaseAdapter.connectionName, databaseAdapter.instance);
     try {
-      await Promise.resolve(instanceData.instance?.close());
+      await Promise.resolve(instanceData.instance.close());
     } catch (_) {}
   },
 });

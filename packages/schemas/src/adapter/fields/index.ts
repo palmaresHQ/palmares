@@ -1,8 +1,9 @@
-import SchemaAdapter from '../index';
 import { SchemaAdapterNotImplementedError } from '../../exceptions';
-import { AdapterToStringArgs, AdapterTranslateArgs, ErrorCodes } from '../types';
-import WithFallback from '../../utils';
-import { SupportedSchemas } from '../../types';
+
+import type { SupportedSchemas } from '../../types';
+import type WithFallback from '../../utils';
+import type SchemaAdapter from '../index';
+import type { AdapterToStringArgs, AdapterTranslateArgs, ErrorCodes } from '../types';
 
 export function fieldAdapter<
   TTranslate extends FieldAdapter['translate'],
@@ -16,7 +17,7 @@ export function fieldAdapter<
   parse?: TParse;
 }) {
   class CustomFieldAdapter extends FieldAdapter {
-    translate = args.translate as TTranslate;
+    translate = args.translate;
     toString = args.toString as TToString;
     formatError = args.formatError as TFormatError;
     parse = args.parse as TParse;
@@ -55,6 +56,7 @@ export default class FieldAdapter {
     throw new SchemaAdapterNotImplementedError({ className: this.constructor.name, functionName: 'toString' });
   }
 
+  // eslint-disable-next-line ts/require-await
   async formatError(
     _adapter: SchemaAdapter,
     _fieldAdapter: FieldAdapter,

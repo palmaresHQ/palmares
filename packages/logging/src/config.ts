@@ -1,7 +1,7 @@
-import LoggingAdapter from './adapter';
-import { LoggerArgumentsToFilterAndFormatters, LoggingTypes } from './types';
+import type LoggingAdapter from './adapter';
+import type { LoggerArgumentsToFilterAndFormatters, LoggingTypes } from './types';
 
-let cachedLogging: Partial<
+const cachedLogging: Partial<
   Record<
     LoggingTypes,
     {
@@ -31,7 +31,7 @@ export function setLoggerAtLevel(
     formatter?: (args: LoggerArgumentsToFilterAndFormatters) => string;
   }
 ) {
-  if (cachedLogging[level]) cachedLogging[level]?.push(logger);
+  if (cachedLogging[level]) cachedLogging[level].push(logger);
   else cachedLogging[level] = [logger];
 }
 

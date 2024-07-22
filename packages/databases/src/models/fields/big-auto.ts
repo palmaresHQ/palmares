@@ -1,4 +1,5 @@
 import Field from './field';
+
 import type { FieldDefaultParamsType, MaybeNull } from './types';
 import type { This } from '../../types';
 
@@ -87,6 +88,7 @@ export default class BigAutoField<
     });
   }
 
+  // eslint-disable-next-line ts/require-await
   async toString(indentation = 0, customParams: string | undefined = undefined): Promise<string> {
     const ident = '  '.repeat(indentation);
     const fieldParamsIdent = '  '.repeat(indentation + 1);
@@ -135,11 +137,17 @@ export default class BigAutoField<
   static overrideType<TNewType extends { input: any; output: any }>() {
     return this as unknown as {
       new: <
+        // eslint-disable-next-line no-shadow
         TDefaultValue extends MaybeNull<TNewType['input'] | undefined, TNull> = undefined,
+        // eslint-disable-next-line no-shadow
         TUnique extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TNull extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TAuto extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TDatabaseName extends string | null | undefined = undefined,
+        // eslint-disable-next-line no-shadow
         TCustomAttributes = any,
       >(
         params?: Omit<
@@ -152,11 +160,17 @@ export default class BigAutoField<
 
   static new<
     TFieldInstance extends This<typeof BigAutoField>,
+    // eslint-disable-next-line no-shadow
     TDefaultValue extends MaybeNull<InstanceType<TFieldInstance>['_type']['input'] | undefined, TNull> = undefined,
+    // eslint-disable-next-line no-shadow
     TUnique extends boolean = true,
+    // eslint-disable-next-line no-shadow
     TNull extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TAuto extends boolean = true,
+    // eslint-disable-next-line no-shadow
     TDatabaseName extends string | null | undefined = undefined,
+    // eslint-disable-next-line no-shadow
     TCustomAttributes = any,
   >(
     this: TFieldInstance,

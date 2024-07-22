@@ -188,6 +188,7 @@ async function guessEditor(
     if (isMacOs) {
       const output = await defaultStd.childProcess.executeAndOutput('ps x');
       const processNames = Object.keys(COMMON_EDITORS_MACOS);
+      // eslint-disable-next-line ts/prefer-for-of
       for (let i = 0; i < processNames.length; i++) {
         const processName = processNames[i];
         if (output.includes(processName)) return [(COMMON_EDITORS_MACOS as any)[processName]];
@@ -200,6 +201,7 @@ async function guessEditor(
       );
 
       const runningProcesses = output.split('\r\n');
+      // eslint-disable-next-line ts/prefer-for-of
       for (let i = 0; i < runningProcesses.length; i++) {
         const processPath = runningProcesses[i].trim();
         const processName = await defaultStd.files.basename(processPath);
@@ -211,6 +213,7 @@ async function guessEditor(
       // -o comm Need only names column
       const output = await defaultStd.childProcess.executeAndOutput('ps x --no-heading -o comm --sort=comm');
       const processNames = Object.keys(COMMON_EDITORS_LINUX);
+      // eslint-disable-next-line ts/prefer-for-of
       for (let i = 0; i < processNames.length; i++) {
         const processName = processNames[i];
         if (output.includes(processName)) {
@@ -232,6 +235,7 @@ async function guessEditor(
   return [];
 }
 
+// eslint-disable-next-line ts/require-await
 async function printInstructions(
   defaultStd: ReturnType<typeof getDefaultStd>,
   fileName: string,
@@ -257,6 +261,7 @@ async function printInstructions(
 
 async function launchEditor(fileName: string, lineNumber: number, colNumber: number) {
   const defaultStd = getDefaultStd();
+  // eslint-disable-next-line ts/no-unnecessary-condition
   if (!defaultStd) return;
 
   const doesNotExistFile = (await defaultStd.files.exists(fileName)) === false;
@@ -272,6 +277,7 @@ async function launchEditor(fileName: string, lineNumber: number, colNumber: num
   if (!(Number.isInteger(colNumber) && colNumber > 0)) colNumber = 1;
 
   const [osRelease, osPlatform] = await Promise.all([defaultStd.os.release(), defaultStd.os.platform()]);
+  // eslint-disable-next-line prefer-const
   let [editor, ...args] = await guessEditor(defaultStd, osPlatform);
 
   if (!editor) return printInstructions(defaultStd, fileName, null);

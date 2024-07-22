@@ -1,12 +1,9 @@
-import {
-  AdapterFieldParserInputAndOutputArgs,
-  AdapterFieldParserTranslateArgs,
-  DatabaseAdapter,
-  EnumField,
-} from '../..';
-import { model } from '../../models';
+import { EnumField } from '../..';
 import { EngineDoesNotSupportFieldTypeException } from '../../models/exceptions';
-import AdapterFieldParser from './field';
+
+import type {
+  AdapterFieldParserInputAndOutputArgs,
+  AdapterFieldParserTranslateArgs} from '../..';
 
 /**
  * Functional approach to create a custom field parser.
@@ -162,7 +159,7 @@ export function adapterEnumFieldParser<
   outputParser?: TOutputParserFunction;
 }) {
   class CustomAdapterEnumFieldParser extends AdapterEnumFieldParser {
-    translate = args.translate as TTranslateFunction;
+    translate = args.translate;
     inputParser = args.inputParser as TInputParserFunction;
     outputParser = args.outputParser as TOutputParserFunction;
   }
@@ -269,6 +266,7 @@ export default class AdapterEnumFieldParser {
    *
    * @returns - The translated field.
    */
+  // eslint-disable-next-line ts/require-await
   async translate(args: AdapterFieldParserTranslateArgs<'enum'>): Promise<any> {
     throw new EngineDoesNotSupportFieldTypeException(args.engine.constructor.name, EnumField.name);
   }
@@ -298,6 +296,7 @@ export default class AdapterEnumFieldParser {
    *
    * @returns - The parsed value.
    */
+  // eslint-disable-next-line ts/require-await
   async inputParser?(args: AdapterFieldParserInputAndOutputArgs<'enum'>) {
     return args.value;
   }
@@ -326,6 +325,7 @@ export default class AdapterEnumFieldParser {
    *
    * @returns - The parsed value for the user for that specific field.
    */
+  // eslint-disable-next-line ts/require-await
   async outputParser?(args: AdapterFieldParserInputAndOutputArgs<'enum'>) {
     return args.value;
   }

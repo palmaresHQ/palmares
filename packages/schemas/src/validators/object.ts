@@ -1,5 +1,4 @@
-import Schema from '../schema/schema';
-
+import type Schema from '../schema/schema';
 import type { ValidationFallbackCallbackReturnType, ValidationFallbackReturnType } from '../schema/types';
 
 export function objectValidation(keysToFallback: { [key: string]: Schema }): ValidationFallbackReturnType {
@@ -16,6 +15,7 @@ export function objectValidation(keysToFallback: { [key: string]: Schema }): Val
             {
               isValid: false,
               code: 'object',
+              // eslint-disable-next-line ts/no-unnecessary-condition
               path: path || [],
               message: 'The value must be an object. Received: ' + typeof value,
             },

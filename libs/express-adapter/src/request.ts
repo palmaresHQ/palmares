@@ -1,16 +1,18 @@
 import { serverRequestAdapter } from '@palmares/server';
-import express from 'express';
 import { File } from 'buffer';
+import express from 'express';
+import { type Request, type Response } from 'express';
 import multer from 'multer';
 
 import { servers } from './server';
+
 import type { ToFormDataOptions } from './types';
-import { type Request, type Response } from 'express';
 
 export default serverRequestAdapter({
   customToFormDataOptions<TType extends keyof ReturnType<typeof multer>>(args: ToFormDataOptions<TType>) {
     return args;
   },
+  // eslint-disable-next-line ts/require-await
   toRaw: async (_server, _serverRequestAndResponseData, _options) => {
     return undefined;
   },
@@ -20,7 +22,7 @@ export default serverRequestAdapter({
 
     return new Promise((resolve) => {
       let rawBodyParser = serverInstanceAndSettings?.bodyRawParser;
-      if (serverInstanceAndSettings && !serverInstanceAndSettings?.bodyRawParser) {
+      if (serverInstanceAndSettings && !serverInstanceAndSettings.bodyRawParser) {
         const rawBodyParserSettings = serverInstanceAndSettings.settings.customServerSettings?.bodyRawOptions;
 
         serverInstanceAndSettings.bodyRawParser = express.raw(rawBodyParserSettings);
@@ -39,7 +41,7 @@ export default serverRequestAdapter({
 
     return new Promise((resolve) => {
       let rawBodyParser = serverInstanceAndSettings?.bodyRawParser;
-      if (serverInstanceAndSettings && !serverInstanceAndSettings?.bodyRawParser) {
+      if (serverInstanceAndSettings && !serverInstanceAndSettings.bodyRawParser) {
         const rawBodyParserSettings = serverInstanceAndSettings.settings.customServerSettings?.bodyRawOptions;
 
         serverInstanceAndSettings.bodyRawParser = express.raw(rawBodyParserSettings);
@@ -57,7 +59,7 @@ export default serverRequestAdapter({
     const { req, res } = serverRequestAndResponseData as { req: Request; res: Response };
     return new Promise((resolve) => {
       let jsonParser = serverInstanceAndSettings?.jsonParser;
-      if (serverInstanceAndSettings && !serverInstanceAndSettings?.jsonParser) {
+      if (serverInstanceAndSettings && !serverInstanceAndSettings.jsonParser) {
         const jsonParserSettings = serverInstanceAndSettings.settings.customServerSettings?.jsonOptions;
 
         serverInstanceAndSettings.jsonParser = express.json(jsonParserSettings);
@@ -90,7 +92,7 @@ export default serverRequestAdapter({
         ? serverInstanceAndSettings?.urlEncodedParser
         : serverInstanceAndSettings?.formDataParser;
 
-      if (isUrlEncoded && serverInstanceAndSettings && !serverInstanceAndSettings?.urlEncodedParser) {
+      if (isUrlEncoded && serverInstanceAndSettings && !serverInstanceAndSettings.urlEncodedParser) {
         const urlEncodedParserSettings = serverInstanceAndSettings.settings.customServerSettings?.urlEncodedOptions;
 
         serverInstanceAndSettings.urlEncodedParser = express.urlencoded({
@@ -98,7 +100,7 @@ export default serverRequestAdapter({
           extended: true,
         });
         formDataOrUrlEncodedParser = serverInstanceAndSettings.urlEncodedParser;
-      } else if (serverInstanceAndSettings && !serverInstanceAndSettings?.formDataParser) {
+      } else if (serverInstanceAndSettings && !serverInstanceAndSettings.formDataParser) {
         const formDataParserSettings = serverInstanceAndSettings.settings.customServerSettings?.multerOptions;
 
         serverInstanceAndSettings.formDataParser = multer(formDataParserSettings);
@@ -113,9 +115,10 @@ export default serverRequestAdapter({
         formDataOrUrlEncodedParser = express.urlencoded({ extended: true });
       else if (!isUrlEncoded && !formDataOrUrlEncodedParser) formDataOrUrlEncodedParser = multer();
 
-      const optionsOfParser = (options?.options || []) as any[];
+      const optionsOfParser = (options.options || []) as any[];
       if (!isUrlEncoded) {
         const formDataParser = formDataOrUrlEncodedParser as ReturnType<typeof multer>;
+        // eslint-disable-next-line ts/no-unnecessary-condition
         if (options && !isUrlEncoded)
           middleware = (formDataParser[options.type as keyof ReturnType<typeof multer>] as any)(...optionsOfParser);
 
@@ -125,13 +128,14 @@ export default serverRequestAdapter({
       middleware(req, res, () => {
         const formData = new formDataConstructor({
           getKeys: () => {
+            // eslint-disable-next-line ts/no-unnecessary-condition
             const bodyKeys = Object.keys(req.body || {}) || [];
-            if (req?.files) {
+            if (req.files) {
               if (Array.isArray(req.files)) {
                 for (const file of req.files) bodyKeys.push(file.fieldname);
               } else bodyKeys.push(...Object.keys(req.files));
             }
-            if (req?.file) bodyKeys.push(req.file.fieldname);
+            if (req.file) bodyKeys.push(req.file.fieldname);
             return bodyKeys;
           },
           getValue: (name) => {
@@ -146,7 +150,7 @@ export default serverRequestAdapter({
                 ];
             }
 
-            if (req?.files) {
+            if (req.files) {
               if (Array.isArray(req.files)) {
                 const files = [];
                 for (const file of req.files) {
@@ -172,7 +176,7 @@ export default serverRequestAdapter({
               }
             }
 
-            if (req?.file)
+            if (req.file)
               if (req.file.fieldname === name)
                 return [
                   {
@@ -194,7 +198,7 @@ export default serverRequestAdapter({
 
     return new Promise((resolve) => {
       let textParser = serverInstanceAndSettings?.textParser;
-      if (serverInstanceAndSettings && !serverInstanceAndSettings?.textParser) {
+      if (serverInstanceAndSettings && !serverInstanceAndSettings.textParser) {
         const textParserSettings = serverInstanceAndSettings.settings.customServerSettings?.textOptions;
 
         serverInstanceAndSettings.textParser = express.text(textParserSettings);
@@ -211,6 +215,7 @@ export default serverRequestAdapter({
     const lowerCasedKey = key.toLowerCase();
     const { req } = serverRequestAndResponseData as { req: Request; headers?: Record<string, string> };
 
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (!req.headers) return undefined;
     if (serverRequestAndResponseData.headers && serverRequestAndResponseData.headers[lowerCasedKey])
       return serverRequestAndResponseData.headers[lowerCasedKey];
@@ -221,6 +226,7 @@ export default serverRequestAdapter({
   params: (_server, serverRequestAndResponseData, key) => {
     const { req } = serverRequestAndResponseData as { req: Request; params?: Record<string, any> };
 
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (!req.params) return undefined;
     if (serverRequestAndResponseData.params && serverRequestAndResponseData.params[key])
       return serverRequestAndResponseData.params[key];
@@ -231,6 +237,7 @@ export default serverRequestAdapter({
   query: (_server, serverRequestAndResponseData, key) => {
     const { req } = serverRequestAndResponseData as { req: Request; query?: Record<string, any> };
 
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (!req.query) return undefined;
     if (serverRequestAndResponseData.query && serverRequestAndResponseData.query[key])
       return serverRequestAndResponseData.query[key];

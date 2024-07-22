@@ -1,33 +1,37 @@
-import {
-  AutoField,
-  BigAutoField,
-  BigIntegerField,
-  CharField,
-  DateField,
-  Field,
-  DecimalField,
-  ForeignKeyField,
-  IntegerField,
-  TextField,
-  TranslatableField,
-  EnumField,
-  BooleanField,
-} from './fields';
+import { getDefaultStd } from '@palmares/core';
+
 import {
   EngineDoesNotSupportFieldTypeException,
   RelatedModelFromForeignKeyIsNotFromEngineException,
   ShouldAssignAllInstancesException,
 } from './exceptions';
-import model, { BaseModel, Model } from './model';
-import { InitializedModelsType } from '../types';
+import {
+  AutoField,
+  BigAutoField,
+  BigIntegerField,
+  BooleanField,
+  CharField,
+  DateField,
+  DecimalField,
+  EnumField,
+  ForeignKeyField,
+  IntegerField,
+  TextField,
+  TranslatableField,
+} from './fields';
 import UuidField from './fields/uuid';
-import AdapterFields from '../engine/fields';
-import { getDefaultStd } from '@palmares/core';
 
+import type {
+  Field} from './fields';
+import type { BaseModel, Model } from './model';
+import type model from './model';
+import type { ModelOptionsType , ModelType } from './types';
 import type DatabaseAdapter from '../engine';
-import type { ModelType } from './types';
+import type AdapterFields from '../engine/fields';
 import type EngineFieldParser from '../engine/fields/field';
-import type { ModelOptionsType } from './types';
+import type { InitializedModelsType } from '../types';
+
+
 
 /**
  * This is used to store the models that are related to each other. IT IS NOT direct relations. A direct relation would be when a model defines a ForeignKeyField to another model.
@@ -97,6 +101,7 @@ function callTranslateAndAppendInputAndOutputParsersToField(
   engineFieldParser: EngineFieldParser,
   args: Parameters<EngineFieldParser['translate']>[0]
 ) {
+  // eslint-disable-next-line ts/no-unnecessary-condition
   if (engineFieldParser) {
     if (engineFieldParser.inputParser) {
       field.inputParsers.set(connectionName, engineFieldParser.inputParser);
@@ -207,6 +212,7 @@ export async function parse(
         args
       );
     case ForeignKeyField.name: {
+      // eslint-disable-next-line ts/no-unnecessary-condition
       if (engineFields.foreignKeyFieldParser) {
         const fieldToParse = await foreignKeyFieldParser(engine, field as ForeignKeyField);
         if (fieldToParse instanceof ForeignKeyField) {
@@ -275,6 +281,7 @@ export async function initializeModels(
   }[] = [{}]
 
   // It is a loop so we can evaluate the models again if needed.
+  // eslint-disable-next-line ts/no-unnecessary-condition
   while (recursiveOptionsToEvaluateModels) {
     const options = recursiveOptionsToEvaluateModels.shift();
     const initializedModels: (InitializedModelsType & { modifyItself: (newModel: any) => void })[] = [];
@@ -293,9 +300,9 @@ export async function initializeModels(
     const initializeModelPromises = models.map(async (modelClass, index) => {
       const modelInstance = new modelClass() as InstanceType<ReturnType<typeof model>> & BaseModel;
       const doesModelIncludesTheConnection =
-        Array.isArray(modelInstance?.options?.databases) &&
+        Array.isArray(modelInstance.options?.databases) &&
         typeof engine.connectionName === 'string'
-          ? modelInstance.options?.databases.includes(engine.connectionName)
+          ? modelInstance.options.databases.includes(engine.connectionName)
           : true;
 
       const domainName = modelClass.domainName;

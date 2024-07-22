@@ -1,10 +1,9 @@
-import { SettingsType } from '@palmares/core';
+import type Emitter from './emitter';
+import type { EventEmitterOptionsType } from './events/types';
+import type { SettingsType } from '@palmares/core';
 
-import Emitter from './emitter';
-import { EventEmitterOptionsType } from './events/types';
-
-export type EventsSettingsType<E extends typeof Emitter = typeof Emitter> = {
-  EVENTS_EMITTER: Promise<{ default: E }> | E;
+export type EventsSettingsType<TEmitter extends typeof Emitter = typeof Emitter> = {
+  EVENTS_EMITTER: Promise<{ default: TEmitter }> | TEmitter;
   EVENTS_OPTIONS?: EventEmitterOptionsType & {
     emitterParams?: any[];
   };

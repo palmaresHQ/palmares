@@ -1,20 +1,20 @@
-import { BaseModel, model } from '../models';
-import DatabaseAdapter from '../engine';
-import { extractDefaultEventsHandlerFromModel } from './utils';
 import { UnmanagedModelsShouldImplementSpecialMethodsException } from './exceptions';
-import { Field, ForeignKeyField } from '../models/fields';
 import parseSearch from './search';
+import { extractDefaultEventsHandlerFromModel } from './utils';
 
 import type { QueryDataFnType } from './types';
-import type Transaction from '../transaction';
+import type DatabaseAdapter from '../engine';
+import type { BaseModel, model } from '../models';
+import type { Field, ForeignKeyField } from '../models/fields';
 import type {
-  Includes,
-  ModelFieldsWithIncludes,
   FieldsOFModelType,
-  OrderingOfModelsType,
   FieldsOfModelOptionsType,
   Include,
+  Includes,
+  ModelFieldsWithIncludes,
+  OrderingOfModelsType,
 } from '../models/types';
+import type Transaction from '../transaction';
 
 /**
  * Used for parsing the values of each field of the result of the query. With that the value that the user expects will be exactly what is returned from the query.
@@ -34,6 +34,7 @@ async function parseResults(
       fieldKeysToParse.map(async (key) => {
         const value = (data as any)[key];
         const field = fields[key];
+        // eslint-disable-next-line ts/no-unnecessary-condition
         if (field) {
           const fieldHasOutputParser = field.outputParsers.has(engine.connectionName);
           if (fieldHasOutputParser) {
@@ -82,10 +83,10 @@ async function parseData(
               // This will pretty much format the data so that it can be saved on a custom orm. Sometimes a ORM might define a custom field value. Like Prisma. Prisma uses
               // Decimal.js instead of normal numbers. Because of that we need to guarantee that the data is properly formatted before saving it to the database.
               formattedData[key] =
-                fieldsInModel?.[key]?.inputParsers?.has(connectionName) && useInputParser
-                  ? await fieldsInModel?.[key]?.inputParsers.get(connectionName)?.({
+                fieldsInModel[key].inputParsers.has(connectionName) && useInputParser
+                  ? await fieldsInModel[key].inputParsers.get(connectionName)?.({
                       value: eachDataToFormat[key],
-                      field: fieldsInModel?.[key] as Field,
+                      field: fieldsInModel[key] as Field,
                       engine,
                       fieldParser: engine.fields.fieldsParser,
                       model: modelInstance,
@@ -103,6 +104,7 @@ async function parseData(
   return undefined;
 }
 
+// eslint-disable-next-line ts/require-await
 async function getDataForOnSetOrOnRemoveOptionFunctions(
   onSetOrOnRemove: 'onSet' | 'onRemove',
   args: {
@@ -132,6 +134,7 @@ async function getDataForOnSetOrOnRemoveOptionFunctions(
  * The palmares transaction instance should be garbage collected after the query is done. If the user fo some reason change the value of the result
  * of the query the rolled back data will be lost.
  */
+// eslint-disable-next-line ts/require-await
 async function storePalmaresTransaction<
   TModelConstructor extends ReturnType<typeof model>,
   TSearch extends
@@ -216,13 +219,13 @@ async function fireEventsAfterQueryDataFn<
   const modelConstructor = modelInstanceAsModel.constructor as ReturnType<typeof model> & typeof BaseModel;
 
   const shouldCallEvents =
-    engine.databaseSettings?.events?.emitter &&
+    engine.databaseSettings.events?.emitter &&
     (args.isRemoveOperation || args.isSetOperation) &&
     args.isToPreventEvents !== true;
 
-  if (engine.databaseSettings?.events?.emitter && shouldCallEvents) {
+  if (engine.databaseSettings.events?.emitter && shouldCallEvents) {
     const operationName = args.isRemoveOperation ? 'onRemove' : 'onSet';
-    const eventEmitter = await Promise.resolve(engine.databaseSettings?.events?.emitter);
+    const eventEmitter = await Promise.resolve(engine.databaseSettings.events.emitter);
     const dataForFunction = await getDataForOnSetOrOnRemoveOptionFunctions(operationName, {
       data: args.parsedData,
       search: args.parsedSearch,
@@ -237,7 +240,7 @@ async function fireEventsAfterQueryDataFn<
     if (isDataTheSameReceivedThroughEvent === false) {
       if (eventEmitter.hasLayer) {
         eventEmitter.emitToChannel(
-          engine.databaseSettings?.events.channels ? engine.databaseSettings?.events.channels : eventEmitter.channels,
+          engine.databaseSettings.events.channels ? engine.databaseSettings.events.channels : eventEmitter.channels,
           `${modelConstructor.hashedName()}.${operationName}`,
           engine.connectionName,
           dataForFunction
@@ -327,7 +330,7 @@ async function callQueryDataFn<
       : Array.isArray(data)
       ? data
       : [data]
-  )?.filter((eachData) => eachData !== undefined) as
+  ).filter((eachData) => eachData !== undefined) as
     | ModelFieldsWithIncludes<
         TModel,
         Includes,
@@ -474,6 +477,7 @@ async function callQueryDataFn<
   }
 }
 
+// eslint-disable-next-line ts/require-await
 async function getDefaultValuesForResultsWithSearchAndWithoutSearch(args: {
   isToPreventEvents?: boolean;
   isDirectlyRelated?: boolean;
@@ -601,10 +605,10 @@ async function resultsFromRelatedModelWithSearch<
 
   await getResultsWithIncludes(
     engine,
-    args.includedModelInstance as TIncludedModel,
+    args.includedModelInstance,
     args.useParsers,
     fieldsOfIncludedModelWithFieldsFromRelation as TFieldsOfIncluded,
-    args.includesOfIncluded as TIncludesOfIncludes,
+    args.includesOfIncluded,
     args.searchForRelatedModel,
     resultOfIncludes,
     isARemoveOperationAndShouldGetResultsBeforeRemove ? engine.query.get.queryData : args.queryData,
@@ -625,6 +629,7 @@ async function resultsFromRelatedModelWithSearch<
 
     if (hasIncludedField) delete (result as any)[fieldNameOfRelationInIncludedModel];
 
+    // eslint-disable-next-line ts/no-unnecessary-condition
     const existsValueForUniqueFieldValueOnResults = resultByUniqueFieldValue[uniqueFieldValueOnRelation] !== undefined;
 
     if (existsValueForUniqueFieldValueOnResults) {
@@ -637,10 +642,10 @@ async function resultsFromRelatedModelWithSearch<
 
       await getResultsWithIncludes(
         engine,
-        args.modelInstance as TModel,
+        args.modelInstance,
         args.useParsers,
-        args.fieldsOfModel as TFields,
-        args.includesOfModel as TIncludes,
+        args.fieldsOfModel,
+        args.includesOfModel,
         nextSearch,
         args.results,
         args.queryData,
@@ -659,6 +664,7 @@ async function resultsFromRelatedModelWithSearch<
       resultByUniqueFieldValue[uniqueFieldValueOnRelation] = [result];
 
       (args.results as any)[args.results.length - 1][relationName] =
+        // eslint-disable-next-line ts/no-unnecessary-condition
         args.relatedField.unique || args.isDirectlyRelated
           ? resultByUniqueFieldValue[uniqueFieldValueOnRelation][0]
           : resultByUniqueFieldValue[uniqueFieldValueOnRelation];
@@ -787,11 +793,11 @@ async function resultsFromRelatedModelsWithoutSearch<
   if (isASetOperationAndShouldSetResultsAfterChildren === false) {
     await getResultsWithIncludes(
       engine,
-      args.modelInstance as TModel,
+      args.modelInstance,
       args.useParsers,
       fieldsOfModelWithFieldsFromRelations as TFields,
-      args.includesOfModel as TIncludes,
-      args.search as TSearch,
+      args.includesOfModel,
+      args.search,
       args.results,
       isARemoveOperationAndShouldGetResultsBeforeRemove ? engine.query.get.queryData : args.queryData,
       args.isSetOperation,
@@ -843,7 +849,9 @@ async function resultsFromRelatedModelsWithoutSearch<
     const resultToMergeWithDataToAdd = ((args.resultToMergeWithData || {}) as any)[relationName];
     const allDataToAdd = ((args.data || {}) as any)[relationName];
     const dataToAdd = await Promise.all(
+      // eslint-disable-next-line ts/require-await
       (Array.isArray(allDataToAdd) ? allDataToAdd : [allDataToAdd]).map(async (dataToMerge: any) =>
+        // eslint-disable-next-line ts/no-unnecessary-condition
         result && (result as any)[parentFieldName]
           ? {
               ...dataToMerge,
@@ -855,10 +863,10 @@ async function resultsFromRelatedModelsWithoutSearch<
 
     await getResultsWithIncludes(
       engine,
-      args.includedModelInstance as TIncludedModel,
+      args.includedModelInstance,
       args.useParsers,
-      args.fieldsOfIncludedModel as TFieldsOfIncluded,
-      args.includesOfIncluded as TIncludesOfIncludes,
+      args.fieldsOfIncludedModel,
+      args.includesOfIncluded,
       nextSearch,
       resultOfIncludes,
       args.queryData,
@@ -876,15 +884,12 @@ async function resultsFromRelatedModelsWithoutSearch<
     );
 
     if (isASetOperationAndShouldSetResultsAfterChildren) {
-      resultOfChildren = resultOfIncludes[0] as ModelFieldsWithIncludes<
-        TIncludedModel,
-        TIncludesOfIncludes,
-        TFieldsOfIncluded
-      >;
+      resultOfChildren = resultOfIncludes[0];
     } else {
       if (hasIncludedField) delete (result as any)[parentFieldName];
 
       (result as any)[relationName] =
+        // eslint-disable-next-line ts/no-unnecessary-condition
         args.relatedField.unique || args.isDirectlyRelated ? resultOfIncludes[0] : resultOfIncludes;
     }
   });
@@ -919,11 +924,11 @@ async function resultsFromRelatedModelsWithoutSearch<
   if (isASetOperationAndShouldSetResultsAfterChildren) {
     await getResultsWithIncludes(
       engine,
-      args.modelInstance as TModel,
+      args.modelInstance,
       args.useParsers,
       fieldsOfModelWithFieldsFromRelations as TFields,
-      args.includesOfModel as TIncludes,
-      args.search as TSearch,
+      args.includesOfModel,
+      args.search,
       args.results,
       args.queryData,
       args.isSetOperation,
@@ -936,6 +941,7 @@ async function resultsFromRelatedModelsWithoutSearch<
         | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>
         | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]
         | undefined,
+      // eslint-disable-next-line ts/no-unnecessary-condition
       (resultOfChildren && (resultOfChildren as any)[fieldNameOfRelationInIncludedModel]
         ? {
             ...args.data,
@@ -1033,6 +1039,7 @@ async function resultsFromRelatedModels<
 
   const fieldToUseToGetRelationName = isDirectlyRelated ? 'relationName' : 'relatedName';
   const relatedNamesDirectlyOrIndirectlyRelatedToModel =
+    // eslint-disable-next-line ts/no-unnecessary-condition
     (isDirectlyRelated
       ? modelConstructor.directlyRelatedTo[includedModelConstructor.originalName()]
       : modelConstructor.indirectlyRelatedTo[includedModelConstructor.originalName()]) || [];
@@ -1042,7 +1049,9 @@ async function resultsFromRelatedModels<
       )
     : relatedNamesDirectlyOrIndirectlyRelatedToModel;
   const associationsOfIncludedModel = isDirectlyRelated
+    // eslint-disable-next-line ts/no-unnecessary-condition
     ? modelConstructor.associations[includedModelConstructor.originalName()] || []
+    // eslint-disable-next-line ts/no-unnecessary-condition
     : includedModelConstructor.associations[modelConstructor.originalName()] || [];
 
   const promises = filteredRelatedNamesDirectlyOrIndirectlyRelatedToModel.map(async (relationNameOrRelatedName) => {
@@ -1058,13 +1067,13 @@ async function resultsFromRelatedModels<
 
     const parametersForResultsFromRelatedModelsWithAndWithoutSearch = {
       relatedField: foreignKeyFieldRelatedToModel as ForeignKeyField,
-      modelInstance: modelInstance as TModel,
+      modelInstance: modelInstance,
       useParsers: useParsers,
-      includedModelInstance: includedModelInstance as TIncludedModel,
-      includesOfModel: includesOfModel as TIncludes,
-      includesOfIncluded: includesOfIncluded as TIncludesOfIncluded,
-      fieldsOfModel: fieldsOfModel as TFields,
-      fieldsOfIncludedModel: fieldsOfIncludedModel as TFieldsOfIncluded,
+      includedModelInstance: includedModelInstance,
+      includesOfModel: includesOfModel,
+      includesOfIncluded: includesOfIncluded,
+      fieldsOfModel: fieldsOfModel,
+      fieldsOfIncludedModel: fieldsOfIncludedModel,
       searchForRelatedModel,
       search,
       results,
@@ -1159,7 +1168,7 @@ export default async function getResultsWithIncludes<
     resultToMergeWithData = undefined as
       | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>
       | undefined,
-    safeIncludes = includes as TIncludes
+    safeIncludes = includes
   ) {
     const modelInstanceAsModel = modelInstance as InstanceType<ReturnType<typeof model>> & BaseModel;
     const modelConstructor = modelInstanceAsModel.constructor as ReturnType<typeof model> & typeof BaseModel;
@@ -1177,8 +1186,10 @@ export default async function getResultsWithIncludes<
 
       const allFieldsOfIncludedModel = Object.keys(includedModelInstance['fields']);
       const isDirectlyRelatedModel =
+        // eslint-disable-next-line ts/no-unnecessary-condition
         modelConstructor.directlyRelatedTo[includedModelConstructor.originalName()] !== undefined;
       const relatedNamesDirectlyOrIndirectlyRelatedToModel =
+        // eslint-disable-next-line ts/no-unnecessary-condition
         (isDirectlyRelatedModel
           ? modelConstructor.directlyRelatedTo[includedModelConstructor.originalName()]
           : modelConstructor.indirectlyRelatedTo[includedModelConstructor.originalName()]) || [];
@@ -1210,7 +1221,7 @@ export default async function getResultsWithIncludes<
             allFieldsOfIncludedModel) as readonly (keyof (typeof includedModelInstance)['fields'])[],
           fields,
           safeSearch,
-          results as TResult,
+          results,
           isDirectlyRelatedModel,
           isSetOperation,
           isRemoveOperation,

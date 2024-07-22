@@ -1,4 +1,4 @@
-import DatabaseAdapter from '../engine';
+import type DatabaseAdapter from '../engine';
 
 export type QueryDataFnType =
   | ((

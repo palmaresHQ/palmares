@@ -1,8 +1,12 @@
-import { DatabaseAdapter, databaseAdapter, AdapterMigrations, AdapterQuery, AdapterModels, AdapterFields } from '@palmares/databases';
-import DrizzleModels from './model';
+/* eslint-disable ts/consistent-type-imports */
+import { databaseAdapter } from '@palmares/databases';
+
 import DrizzleFields from './fields';
+import DrizzleModels from './model';
 import DrizzleQuery from './query';
-import { ParametersByType, ReturnTypeByType } from './types';
+import { ReturnTypeByType } from './types';
+
+import type { DatabaseAdapter} from '@palmares/databases';
 
 type allDrizzleTypes =
   typeof import('drizzle-orm/postgres-js')['drizzle'] |
@@ -131,10 +135,11 @@ const drizzleDatabaseAdapter = databaseAdapter({
       }
     }];
   },
+  // eslint-disable-next-line ts/require-await
   isConnected: async (): Promise<boolean> => {
     return true;
   },
-  transaction: async <TParameters extends Array<any>, TResult>(
+  transaction: async <TParameters extends any[], TResult>(
     databaseAdapter: DatabaseAdapter,
     callback: (transaction: Parameters<ReturnType<allDrizzleTypes>['transaction']>[0], ...args: TParameters) => TResult | Promise<TResult>,
     ...args: TParameters
@@ -143,7 +148,7 @@ const drizzleDatabaseAdapter = databaseAdapter({
 
     return new Promise((resolve, reject) => {
       try {
-        instanceData.instance?.transaction(async (transaction) => {
+        instanceData.instance.transaction(async (transaction) => {
           try {
             resolve(await callback(transaction as any, ...args));
           } catch (e) {
@@ -161,7 +166,7 @@ const drizzleDatabaseAdapter = databaseAdapter({
   close: async (databaseAdapter): Promise<void> => {
     const instanceData = checkIfInstanceSavedOrSave(databaseAdapter.connectionName,  'node-postgres', 'postgres', databaseAdapter.instance);
     try {
-      await Promise.resolve(instanceData?.closeCallback?.());
+      await Promise.resolve(instanceData.closeCallback?.());
     } catch (_) {}
   },
 });

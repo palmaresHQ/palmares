@@ -1,6 +1,7 @@
-import model from './models/model';
 import removeQuery from './queries/remove';
 import setQuery from './queries/set';
+
+import type model from './models/model';
 
 /**
  * This class is responsible for controlling the transactions that happens inside of the framework, this is supposed to be handled for the framework
@@ -29,6 +30,7 @@ export default class Transaction {
     this.originalOperation = originalOperation;
   }
 
+  // eslint-disable-next-line ts/require-await
   async appendData(engineName: string, modelInstance: ReturnType<typeof model>, search: any, data: any[]) {
     const stringifiedSearch = JSON.stringify(search);
     const modelName = modelInstance.name;
@@ -47,11 +49,11 @@ export default class Transaction {
       this.insertionOrdering.orderingByEngines.set(engineName, new Map([[modelName, insertionOrder]]));
     else this.insertionOrdering.orderingByEngines.get(engineName)?.set(modelName, insertionOrder);
 
-    const existsSearchInData = this.dataThatWasInsertedOrRemoved?.get(insertionOrder)?.data.has(stringifiedSearch);
+    const existsSearchInData = this.dataThatWasInsertedOrRemoved.get(insertionOrder)?.data.has(stringifiedSearch);
 
     if (existsSearchInData)
       this.dataThatWasInsertedOrRemoved
-        ?.get(insertionOrder)
+        .get(insertionOrder)
         ?.data.get(stringifiedSearch)
         ?.push(...data);
     else
@@ -64,7 +66,7 @@ export default class Transaction {
 
   async rollback(currentIndexToProcess = this.insertionOrdering.currentOrderOfOperation) {
     const firstModelToProcess = this.dataThatWasInsertedOrRemoved.get(currentIndexToProcess);
-    const engineToUse = await firstModelToProcess?.model.default.getEngineInstance(firstModelToProcess?.engineName);
+    const engineToUse = await firstModelToProcess?.model.default.getEngineInstance(firstModelToProcess.engineName);
     if (!engineToUse || !firstModelToProcess) return;
     await engineToUse.useTransaction(async (transaction) => {
       let dataToProcess = this.dataThatWasInsertedOrRemoved.get(currentIndexToProcess);
@@ -114,12 +116,14 @@ export default class Transaction {
               );
             }
           }
+        // eslint-disable-next-line ts/no-unnecessary-condition
         } else if (this.originalOperation === 'remove') {
           for (const [search, data] of dataToProcess.data.entries()) {
             for (const dataThatWasRemoved of data) {
               promises.push(
                 (async () => {
                   const searchObject = typeof search === 'string' ? JSON.parse(search) : search;
+                  // eslint-disable-next-line ts/no-unnecessary-condition
                   if (search === undefined) return;
                   const model = dataToProcess.model.default.getModel(dataToProcess.engineName);
                   await setQuery(

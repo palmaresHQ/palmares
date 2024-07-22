@@ -1,6 +1,8 @@
-import TestAdapter from './adapter';
-import getExpect, { Expect } from './expect';
+import getExpect from './expect';
 import { getTestAdapter } from './utils';
+
+import type TestAdapter from './adapter';
+import type { Expect } from './expect';
 
 /**
  * Describe a test suite to run tests in

@@ -33,7 +33,7 @@ export function adapterOrderingQuery<TFunctionParseOrdering extends AdapterOrder
   parseOrdering: TFunctionParseOrdering;
 }) {
   class CustomAdapterOrderingQuery extends AdapterOrderingQuery {
-    parseOrdering = args.parseOrdering as TFunctionParseOrdering;
+    parseOrdering = args.parseOrdering;
   }
 
   return CustomAdapterOrderingQuery as typeof AdapterOrderingQuery & {
@@ -69,6 +69,7 @@ export default class AdapterOrderingQuery {
    *
    * @returns - Returns the parsed ordering to be used on your query.
    */
+  // eslint-disable-next-line ts/require-await
   async parseOrdering(_modelInstance: any, _ordering: (`${string}` | `-${string}`)[]): Promise<any> {
     throw new NotImplementedAdapterException('parseOrdering');
   }

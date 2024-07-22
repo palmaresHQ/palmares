@@ -1,4 +1,5 @@
 import Field from './field';
+
 import type { FieldDefaultParamsType, MaybeNull } from './types';
 import type { This } from '../../types';
 
@@ -119,11 +120,17 @@ export default class BigIntegerField<
   static overrideType<TNewType extends { input: number | bigint; output: number | bigint }>() {
     return this as unknown as {
       new: <
+        // eslint-disable-next-line no-shadow
         TDefaultValue extends MaybeNull<TNewType['input'] | undefined, TNull> = undefined,
+        // eslint-disable-next-line no-shadow
         TUnique extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TNull extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TAuto extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TDatabaseName extends string | null | undefined = undefined,
+        // eslint-disable-next-line no-shadow
         TCustomAttributes = any,
       >(
         params?: FieldDefaultParamsType<
@@ -164,11 +171,17 @@ export default class BigIntegerField<
    */
   static new<
     TFieldInstance extends This<typeof BigIntegerField>,
+    // eslint-disable-next-line no-shadow
     TDefaultValue extends MaybeNull<InstanceType<TFieldInstance>['_type']['input'] | undefined, TNull> = undefined,
+    // eslint-disable-next-line no-shadow
     TUnique extends boolean = true,
+    // eslint-disable-next-line no-shadow
     TNull extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TAuto extends boolean = true,
+    // eslint-disable-next-line no-shadow
     TDatabaseName extends string | null | undefined = undefined,
+    // eslint-disable-next-line no-shadow
     TCustomAttributes = any,
   >(
     this: TFieldInstance,

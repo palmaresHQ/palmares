@@ -1,9 +1,11 @@
-import { SettingsType2, initializeDomains } from "@palmares/core";
+import { initializeDomains } from "@palmares/core";
 
 import { initializeRouters } from "./app/utils";
-import ServerlessAdapter from "./adapters/serverless";
-import { ServerDomain } from "./domain/types";
-import { AllServerSettingsType } from "./types";
+
+import type ServerlessAdapter from "./adapters/serverless";
+import type { ServerDomain } from "./domain/types";
+import type { AllServerSettingsType } from "./types";
+import type { SettingsType2} from "@palmares/core";
 
 /**
  * This class is responsible for generating the serverless functions as well as executing them.

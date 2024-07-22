@@ -1,5 +1,6 @@
 import Field from './field';
-import DatabaseAdapter from '../../engine';
+
+import type DatabaseAdapter from '../../engine';
 
 /**
  * Enables developers to create custom fields while also being able to translate them dynamically for a specific engine.
@@ -28,6 +29,7 @@ import DatabaseAdapter from '../../engine';
 export default class TranslatableField extends Field {
   typeName: string = TranslatableField.name;
 
+  // eslint-disable-next-line ts/require-await
   async translate(_engine: DatabaseAdapter): Promise<any> {
     return undefined;
   }

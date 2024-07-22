@@ -1,7 +1,6 @@
-import EngineFields from './fields';
-import DatabaseAdapter from '.';
-import { model } from '../models';
-import {
+import type DatabaseAdapter from '.';
+import type EngineFields from './fields';
+import type {
   AdapterFieldParser,
   AutoField,
   BigAutoField,
@@ -18,9 +17,10 @@ import {
   UuidField,
   adapterFieldParser,
 } from '..';
+import type { model } from '../models';
 
-export type EngineInitializedModels<M = unknown> = {
-  [key: string]: M | undefined;
+export type EngineInitializedModels<TModel = unknown> = {
+  [key: string]: TModel | undefined;
 };
 
 export type EngineType = {

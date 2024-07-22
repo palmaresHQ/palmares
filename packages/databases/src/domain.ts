@@ -1,13 +1,15 @@
-import { DomainReadyFunctionArgs, DomainHandlerFunctionArgs, domain, SettingsType2 } from '@palmares/core';
+import { domain } from '@palmares/core';
 
-import { DatabaseSettingsType } from './types';
 import { makeMigrations, migrate } from './commands';
-import defaultSettings from './settings';
-import { defaultMigrations, defaultModels } from './defaults';
 import Databases from './databases';
-import { DatabaseDomainInterface } from './interfaces';
-import { model as BaseModel } from './models';
-import { DatabaseAdapter } from '.';
+import { defaultMigrations, defaultModels } from './defaults';
+import defaultSettings from './settings';
+
+import type { DatabaseAdapter } from '.';
+import type { DatabaseDomainInterface } from './interfaces';
+import type { model as BaseModel } from './models';
+import type { DatabaseSettingsType } from './types';
+import type { DomainHandlerFunctionArgs, DomainReadyFunctionArgs, SettingsType2 } from '@palmares/core';
 
 let databases: Databases | undefined = undefined;
 let cachedDatabaseDomains: DatabaseDomainInterface[] | undefined = undefined;
@@ -19,7 +21,12 @@ function loadDatabases(databaseDomains?: DatabaseDomainInterface[]) {
 }
 
 const databaseDomainModifier = domain<{
-  getModels: (engineInstance: DatabaseAdapter) => Promise<Record<string, ReturnType<typeof BaseModel>> | ReturnType<typeof BaseModel>[]> | Record<string, ReturnType<typeof BaseModel>> | ReturnType<typeof BaseModel>[];
+  getModels: (
+    engineInstance: DatabaseAdapter
+  ) =>
+    | Promise<Record<string, ReturnType<typeof BaseModel>> | ReturnType<typeof BaseModel>[]>
+    | Record<string, ReturnType<typeof BaseModel>>
+    | ReturnType<typeof BaseModel>[];
   getMigrations: () => Promise<any> | any;
 }>('@palmares/database', __dirname, {});
 
@@ -62,29 +69,34 @@ export default domain('@palmares/database', __dirname, {
         const [databases] = loadDatabases();
         const settingsWithDefault = defaultSettings(settingsAsDatabaseSettings);
         await databases.init(settingsWithDefault, options.domains as DatabaseDomainInterface[]);
+        // eslint-disable-next-line ts/no-unnecessary-condition
         if (databases) await Promise.all([databases.close()]);
       },
     },
   },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line ts/require-await
   load: async (_: DatabaseSettingsType) => {
     return async (options: DomainReadyFunctionArgs<DatabaseSettingsType, any>) => {
       const databaseDomains = options.domains as DatabaseDomainInterface[];
-      loadDatabases(databaseDomains);
+      await loadDatabases(databaseDomains);
     };
   },
   ready: async (options: DomainReadyFunctionArgs<DatabaseSettingsType, any>) => {
     const [databases, databaseDomains] = loadDatabases();
     const settingsWithDefault = defaultSettings(options.settings);
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (databases && databaseDomains) await databases.init(settingsWithDefault, databaseDomains);
   },
   close: async () => {
     const [databases] = loadDatabases();
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (databases) await Promise.all([databases.close()]);
   },
+  // eslint-disable-next-line ts/require-await
   getMigrations: async () => defaultMigrations,
+  // eslint-disable-next-line ts/require-await
   getModels: async (engineInstance: DatabaseAdapter) => {
     if (engineInstance.migrations) return defaultModels;
-    else return []
+    else return [];
   },
 });

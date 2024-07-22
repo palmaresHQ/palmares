@@ -1,24 +1,25 @@
-import { adapterFields, Field, ForeignKeyField } from '@palmares/databases';
+import { adapterFields } from '@palmares/databases';
 
-import { Model, ModelCtor } from 'sequelize';
 
-import { TranslatedFieldToEvaluateAfterType } from '../types';
-import SequelizeEngineFieldParser from './field';
 import SequelizeEngineAutoFieldParser from './auto';
 import SequelizeEngineBigAutoFieldParser from './big-auto';
 import SequelizeEngineBigIntegerFieldParser from './big-integer';
+import SequelizeEngineBooleanFieldParser from './boolean';
 import SequelizeEngineCharFieldParser from './char';
 import SequelizeEngineDateFieldParser from './date';
 import SequelizeEngineDecimalFieldParser from './decimal';
-import SequelizeEngineTextFieldParser from './text';
-import SequelizeEngineUuidFieldParser from './uuid';
+import SequelizeEngineEnumFieldParser from './enum';
+import SequelizeEngineFieldParser from './field';
 import SequelizeEngineForeignKeyFieldParser from './foreign-key';
 import SequelizeEngineIntegerFieldParser from './integer';
-import SequelizeEngineEnumFieldParser from './enum';
-import SequelizeEngineBooleanFieldParser from './boolean';
+import SequelizeEngineTextFieldParser from './text';
+import SequelizeEngineUuidFieldParser from './uuid';
 import { handleRelatedField } from '../utils';
 
 import type SequelizeEngine from '../engine';
+import type { TranslatedFieldToEvaluateAfterType } from '../types';
+import type { Field, ForeignKeyField } from '@palmares/databases';
+import type { Model, ModelCtor } from 'sequelize';
 
 /**
  * This class is used to translate the fields of a model to the attributes of a sequelize model.
@@ -41,6 +42,7 @@ export default adapterFields({
   enumFieldParser: new SequelizeEngineEnumFieldParser(),
   booleanFieldParser: new SequelizeEngineBooleanFieldParser(),
 
+  // eslint-disable-next-line ts/require-await
   lazyEvaluateField: async (
     engine,
     _modelName: string,
@@ -54,9 +56,7 @@ export default adapterFields({
         break;
       case 'date':
         translatedModel.addHook('beforeSave', `${field.fieldName}AutoNow`, (instance: Model) => {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          instance[updateDateHook] = new Date();
+          (instance as any)[field.fieldName] = new Date();
         });
         break;
     }

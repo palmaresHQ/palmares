@@ -1,10 +1,10 @@
-import DatabaseAdapter from '../../engine';
-import { Field } from '../../models/fields';
-import { CustomImportsForFieldType } from '../../models/fields/types';
-import { ModelFieldsType, ModelOptionsType } from '../../models/types';
-import Migration from '../migrate/migration';
-import { StateModelsConstructorType } from '../types';
-import { Operation } from './operation';
+import type { Operation } from './operation';
+import type DatabaseAdapter from '../../engine';
+import type { Field } from '../../models/fields';
+import type { CustomImportsForFieldType } from '../../models/fields/types';
+import type { ModelFieldsType, ModelOptionsType } from '../../models/types';
+import type Migration from '../migrate/migration';
+import type { StateModelsConstructorType } from '../types';
 
 export type ActionToGenerateType<T> = {
   operation: typeof Operation;

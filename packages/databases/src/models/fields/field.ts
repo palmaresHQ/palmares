@@ -1,9 +1,8 @@
 import { utils } from '@palmares/core';
 
-import { FieldDefaultParamsType, CustomImportsForFieldType, MaybeNull } from './types';
-
-import type { This } from '../../types';
+import type { CustomImportsForFieldType, FieldDefaultParamsType, MaybeNull } from './types';
 import type EngineFieldParser from '../../engine/fields/field';
+import type { This } from '../../types';
 import type { ModelType } from '../types';
 
 /**
@@ -53,13 +52,19 @@ export default class Field<
 
   static new<
     TFieldInstance extends This<typeof Field>,
+    // eslint-disable-next-line no-shadow
     TDefaultValue extends TNull extends true
       ? InstanceType<TFieldInstance>['_type']['input'] | undefined | null
       : InstanceType<TFieldInstance>['_type']['input'] | undefined = undefined,
+    // eslint-disable-next-line no-shadow
     TUnique extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TNull extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TAuto extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TDatabaseName extends string | null | undefined = undefined,
+    // eslint-disable-next-line no-shadow
     TCustomAttributes = any,
   >(
     params: FieldDefaultParamsType<
@@ -72,16 +77,7 @@ export default class Field<
       TCustomAttributes
     > = {}
   ) {
-    return new this(params) as Field<
-      { input: any; output: any },
-      InstanceType<TFieldInstance>,
-      TDefaultValue,
-      TUnique,
-      TNull,
-      TAuto,
-      TDatabaseName,
-      TCustomAttributes
-    >;
+    return new this(params);
   }
 
   /**
@@ -106,11 +102,17 @@ export default class Field<
   static overrideType<TNewType extends { input: any; output: any }>() {
     return this as unknown as {
       new: <
+        // eslint-disable-next-line no-shadow
         TDefaultValue extends MaybeNull<Field['_type']['input'] | undefined, TNull> = undefined,
+        // eslint-disable-next-line no-shadow
         TUnique extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TNull extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TAuto extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TDatabaseName extends string | null | undefined = undefined,
+        // eslint-disable-next-line no-shadow
         TCustomAttributes = any,
       >(
         params?: FieldDefaultParamsType<Field, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>
@@ -125,13 +127,13 @@ export default class Field<
    *
    * @return - Returns a list of packages that we want to import in the migration file.
    */
+  // eslint-disable-next-line ts/require-await
   async customImports(): Promise<CustomImportsForFieldType[]> {
     return [];
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   init(fieldName: string, model: ModelType) {
-    const isAlreadyInitialized = this.model !== undefined && typeof this.fieldName === 'string';
+    const isAlreadyInitialized = (this.model as any) !== undefined && typeof this.fieldName === 'string';
     if (isAlreadyInitialized) return;
 
     const isUnderscored: boolean = (this.underscored || (model as any).__cachedOptions?.underscored) === true;
@@ -143,6 +145,7 @@ export default class Field<
     else this.databaseName = this.fieldName as TDatabaseName;
   }
 
+  // eslint-disable-next-line ts/require-await
   async toString(indentation = 0, customParams: string | undefined = undefined): Promise<string> {
     const ident = '  '.repeat(indentation);
     const fieldParamsIdent = '  '.repeat(indentation + 1);
@@ -194,7 +197,7 @@ export default class Field<
       !isUnderscoredEqual && 'underscored',
     ].filter((attr) => typeof attr === 'string');
 
-    return [changedAttributes.length === 0, changedAttributes as string[]]
+    return [changedAttributes.length === 0, changedAttributes]
   }
 
   /**
@@ -204,6 +207,7 @@ export default class Field<
    *
    * @returns - Returns the options passed on the constructor of the field.
    */
+  // eslint-disable-next-line ts/require-await
   async constructorOptions(field?: Field) {
     if (!field) field = this as Field;
     return {
@@ -255,11 +259,17 @@ export class UnopinionatedField<
   static overrideType<TNewType extends { input: any; output: any }>() {
     return this as unknown as {
       new: <
+        // eslint-disable-next-line no-shadow
         TDefaultValue extends MaybeNull<Field['_type']['input'] | undefined, TNull> = undefined,
+        // eslint-disable-next-line no-shadow
         TUnique extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TNull extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TAuto extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TDatabaseName extends string | null | undefined = undefined,
+        // eslint-disable-next-line no-shadow
         TCustomAttributes = any,
       >(
         params?: any

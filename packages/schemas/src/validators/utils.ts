@@ -1,12 +1,11 @@
-import { ErrorCodes } from '../adapter/types';
-import Schema from '../schema/schema';
-import {
+import type { ValidatorTypes } from './types';
+import type { ErrorCodes } from '../adapter/types';
+import type Schema from '../schema/schema';
+import type {
   ValidationFallbackCallbackReturnType,
   ValidationFallbackCallbackType,
   ValidationFallbackReturnType,
 } from '../schema/types';
-
-import type { ValidatorTypes } from './types';
 
 const priorityByType = {
   low: 0,
@@ -98,7 +97,7 @@ export default class Validator {
         this[childOrParent] = validatorInstance;
         (this as any)[childOrParent][childOrParent === 'parent' ? 'child' : 'parent'] = this;
         (this as any)[childOrParent].addFallback(schemaWithProtected, type, fallback, options);
-        if (nextPriority > schemaWithProtected.__rootFallbacksValidator?.priority)
+        if (nextPriority > schemaWithProtected.__rootFallbacksValidator.priority)
           schemaWithProtected.__rootFallbacksValidator = validatorInstance;
       }
     }
@@ -159,7 +158,7 @@ export default class Validator {
         path,
         parseResult,
         options
-      ) as Promise<ValidationFallbackCallbackReturnType>;
+      );
 
     return parseResult as unknown as Promise<ValidationFallbackCallbackReturnType>;
   }
@@ -184,6 +183,7 @@ export default class Validator {
     const schemaWithProtected = schema as Schema & { __rootFallbacksValidator?: Schema['__rootFallbacksValidator'] };
 
     let validatorInstance = schemaWithProtected.__rootFallbacksValidator;
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (schemaWithProtected.__rootFallbacksValidator === undefined) {
       validatorInstance = new Validator(fallback.type);
       schemaWithProtected.__rootFallbacksValidator = validatorInstance;

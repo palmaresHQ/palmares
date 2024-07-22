@@ -44,7 +44,7 @@ export default domain('core', __dirname, {
           required: false,
         },
       },
-      handler: async ({ commandLineArgs }) => {
+      handler: ({ commandLineArgs }) => {
         console.log(`Hello ${commandLineArgs.positionalArgs['name'] || 'World'}`);
       },
     },

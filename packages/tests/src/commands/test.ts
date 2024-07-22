@@ -1,7 +1,8 @@
 import { getDefaultStd } from '@palmares/core';
 
-import { AllTestsSettingsType, TestDomain } from '../types';
 import { setTestAdapter } from '../utils';
+
+import type { AllTestsSettingsType, TestDomain } from '../types';
 
 const filesToTest: string[] = [];
 

@@ -1,9 +1,10 @@
 import {
   describe,
 } from '@palmares/tests'
-import JestTestAdapter from '@palmares/jest-tests';
 
 import { Company, User } from './models';
+
+import type JestTestAdapter from '@palmares/jest-tests';
 
 describe<JestTestAdapter>('models', ({ test }) => {
   test('its assigning a different date', async ({ expect }) => {

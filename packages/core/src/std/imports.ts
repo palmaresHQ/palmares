@@ -24,7 +24,7 @@
  *
  * @returns - Returns the imported module.
  */
-export default async function imports<R>(
+export default async function imports<TImportResult>(
   packageName: string,
   args?: {
     apiName?: string;
@@ -62,7 +62,7 @@ export default async function imports<R>(
     for (const key of splittedPackagePath) {
       result = result[key];
     }
-    return result as R;
+    return result as TImportResult;
   } catch (e) {
     const error = e as any;
     if (error.code === errorCodeToConsider) {

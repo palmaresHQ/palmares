@@ -1,8 +1,10 @@
-import { AdapterFieldParserTranslateArgs, adapterDecimalFieldParser } from '@palmares/databases';
-import { DataTypes, ModelAttributeColumnOptions } from 'sequelize';
+import { adapterDecimalFieldParser } from '@palmares/databases';
+import { DataTypes } from 'sequelize';
 
-import SequelizeEngineFieldParser from './field';
-import { TranslatedFieldToEvaluateAfterType } from '../types';
+import type SequelizeEngineFieldParser from './field';
+import type { TranslatedFieldToEvaluateAfterType } from '../types';
+import type { AdapterFieldParserTranslateArgs} from '@palmares/databases';
+import type { ModelAttributeColumnOptions } from 'sequelize';
 
 export default adapterDecimalFieldParser({
   translate: async (

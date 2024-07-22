@@ -1,6 +1,6 @@
-import WithFallback, { withFallbackFactory } from '../utils';
-import Schema from '../schema/schema';
-import { SupportedSchemas } from '../types';
+import type Schema from '../schema/schema';
+import type { SupportedSchemas } from '../types';
+import type { withFallbackFactory } from '../utils';
 
 export type NonToTranslateArgs<TType extends SupportedSchemas> = {
   withFallback: ReturnType<typeof withFallbackFactory<TType>>;

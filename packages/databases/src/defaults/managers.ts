@@ -1,5 +1,6 @@
 import * as models from '../models';
-import { PalmaresMigrations } from './models';
+
+import type { PalmaresMigrations } from './models';
 
 export default class PalmaresMigrationsManager extends models.Manager<PalmaresMigrations> {
   /**

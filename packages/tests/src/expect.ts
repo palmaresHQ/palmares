@@ -1,33 +1,33 @@
-import TestAdapter from "./adapter"
+import type TestAdapter from "./adapter"
 
 export type Expect<TValue, TIsNot extends boolean = false> = {
   not: Expect<TValue, true>
-  toBe<TToBeValue extends TValue>(expected: TToBeValue): void
-  toEqual<TToEqualValue extends TValue>(expected: TToEqualValue): void
-  toStrictEqual<TToEqualValue extends TValue>(expected: TToEqualValue): void
-  toBeInstanceOf(expected: {
+  toBe: <TToBeValue extends TValue>(expected: TToBeValue) => void
+  toEqual: <TToEqualValue extends TValue>(expected: TToEqualValue) => void
+  toStrictEqual: <TToEqualValue extends TValue>(expected: TToEqualValue) => void
+  toBeInstanceOf: (expected: {
     new(...args: any[]): any
-  }): void;
-  toBeTruthy(): void;
-  toBeFalsy(): void;
+  }) => void;
+  toBeTruthy: () => void;
+  toBeFalsy: () => void;
 }
 &
 (TValue extends undefined ? {
-  toBeDefined(): void,
-  toBeUndefined(): void
+  toBeDefined: () => void,
+  toBeUndefined: () => void
 } : unknown)
 &
 (TValue extends null ? {
-  toBeNull(): void
+  toBeNull: () => void
 } : unknown)
 &
 (TValue extends ((...args: any[]) => any) ? {
-  toThrow(): void;
-  toHaveBeenCalled(): void;
-  toHaveBeenCalledTimes(expected: number): void;
-  toHaveBeenCalledWith(...args: Parameters<TValue>): void;
-  toHaveReturned(): void;
-  toHaveReturnedTimes(expected: number): void;
+  toThrow: () => void;
+  toHaveBeenCalled: () => void;
+  toHaveBeenCalledTimes: (expected: number) => void;
+  toHaveBeenCalledWith: (...args: Parameters<TValue>) => void;
+  toHaveReturned: () => void;
+  toHaveReturnedTimes: (expected: number) => void;
 } : unknown)
 
 export default function getExpect<
@@ -66,7 +66,7 @@ export default function getExpect<
         return (
           expected: number
         ) => testAdapter.expect.toHaveReturnedTimes(value, expected, isNot);
-      if (prop === 'not') return getExpect<TValue, true>(value, testAdapter, true) as Expect<TValue, true>;
+      if (prop === 'not') return getExpect<TValue, true>(value, testAdapter, true);
 
       throw new Error(`Expect.${String(prop)} is not a function`)
     }

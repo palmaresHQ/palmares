@@ -1,7 +1,7 @@
 import AdapterGetQuery from './get';
+import AdapterOrderingQuery from './ordering';
 import AdapterRemoveQuery from './remove';
 import AdapterSearchQuery from './search';
-import AdapterOrderingQuery from './ordering';
 import AdapterSetQuery from './set';
 
 /**

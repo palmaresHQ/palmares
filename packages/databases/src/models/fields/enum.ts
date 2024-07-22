@@ -1,5 +1,6 @@
-import Field, { UnopinionatedField } from './field';
+import { UnopinionatedField } from './field';
 
+import type Field from './field';
 import type { EnumFieldParamsType, MaybeNull } from './types';
 import type { This } from '../../types';
 import type { Narrow } from '@palmares/core';
@@ -82,13 +83,21 @@ export default class EnumField<
   }
 
   static new<
+    // eslint-disable-next-line no-shadow
     TField extends This<typeof EnumField>,
+    // eslint-disable-next-line no-shadow
     TDefaultValue extends MaybeNull<TEnumChoices[number] | undefined, TNull> = undefined,
+    // eslint-disable-next-line no-shadow
     TUnique extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TNull extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TAuto extends boolean = false,
+    // eslint-disable-next-line no-shadow
     TDatabaseName extends string | null | undefined = undefined,
+    // eslint-disable-next-line no-shadow
     TCustomAttributes = any,
+    // eslint-disable-next-line no-shadow
     TEnumChoices extends string[] | Narrow<string[]> = string[],
   >(
     this: TField,
@@ -151,12 +160,19 @@ export default class EnumField<
   static overrideType<TNewType extends { input: any; output: any }>() {
     return this as unknown as {
       new: <
+        // eslint-disable-next-line no-shadow
         TDefaultValue extends MaybeNull<TNewType['input'] | undefined, TNull> = undefined,
+        // eslint-disable-next-line no-shadow
         TUnique extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TNull extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TAuto extends boolean = false,
+        // eslint-disable-next-line no-shadow
         TDatabaseName extends string | null | undefined = undefined,
+        // eslint-disable-next-line no-shadow
         TCustomAttributes = any,
+        // eslint-disable-next-line no-shadow
         TEnumChoices extends string[] = string[],
       >(
         params: EnumFieldParamsType<
@@ -209,7 +225,7 @@ export default class EnumField<
    */
   async toString(indentation = 0, _customParams: string | undefined = undefined) {
     const ident = '  '.repeat(indentation + 1);
-    return super.toString(indentation, `${ident}choices: [${this.choices.map((choice) => `'${choice}'`).join(', ')}],`);
+    return super.toString(indentation, `${ident}choices: [${this.choices.map((enumValue) => `'${enumValue}'`).join(', ')}],`);
   }
 
   /**

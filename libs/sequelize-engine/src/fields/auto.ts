@@ -1,9 +1,10 @@
-import { adapterAutoFieldParser, AdapterFieldParserTranslateArgs } from '@palmares/databases';
-import { DataTypes, ModelAttributeColumnOptions } from 'sequelize';
+import { adapterAutoFieldParser } from '@palmares/databases';
+import { DataTypes } from 'sequelize';
 
 import type SequelizeEngineFieldParser from './field';
 import type { TranslatedFieldToEvaluateAfterType } from '../types';
-import type SequelizeEngine from '../engine';
+import type { AdapterFieldParserTranslateArgs } from '@palmares/databases';
+import type { ModelAttributeColumnOptions } from 'sequelize';
 
 export default adapterAutoFieldParser({
   translate: async (

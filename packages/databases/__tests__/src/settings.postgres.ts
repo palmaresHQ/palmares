@@ -1,18 +1,18 @@
+import ConsoleLogging from '@palmares/console-logging';
 import CoreDomain, { defineSettings } from '@palmares/core';
-import TestsDomain from '@palmares/tests';
+import DatabasesDomain from '@palmares/databases';
 import DrizzleEngine from '@palmares/drizzle-engine';
 import JestTestAdapter from '@palmares/jest-tests';
-
-import NodeStd from '@palmares/node-std';
 import LoggingDomain from '@palmares/logging';
-import ConsoleLogging from '@palmares/console-logging';
-import DatabasesDomain from '@palmares/databases';
-
-import TestDomain from './test';
-import { dirname, resolve } from 'path';
+import NodeStd from '@palmares/node-std';
+import TestsDomain from '@palmares/tests';
 //import * as schema from '../.drizzle/schema';
 import { drizzle } from 'drizzle-orm/postgres-js';
+import { dirname, resolve } from 'path';
 import postgres from 'postgres';
+
+import TestDomain from './test';
+
 const queryClient = postgres("postgres://postgres:@localhost:5432/postgres");
 
 const args = DrizzleEngine.new({

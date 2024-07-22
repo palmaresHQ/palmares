@@ -1,9 +1,9 @@
-import { Field } from '../fields';
-import { Model, BaseModel } from '../model';
-import Manager from '../manager';
-import { DatabaseSettingsType } from '../../types';
-import DatabaseAdapter from '../../engine';
-import { FieldsOFModelType, ModelFieldsInQueries } from './queries';
+import type { FieldsOFModelType, ModelFieldsInQueries } from './queries';
+import type DatabaseAdapter from '../../engine';
+import type { DatabaseSettingsType } from '../../types';
+import type { Field } from '../fields';
+import type Manager from '../manager';
+import type { BaseModel, Model } from '../model';
 
 export type ModelType = typeof BaseModel & typeof Model;
 
@@ -93,17 +93,17 @@ type ExtractFieldTypes<
         : unknown)
   : unknown;
 
-export type onSetFunction<M = any> = (args: {
-  data: ExtractFieldTypes<M, [], false>;
-  search: ExtractFieldTypes<M, [], true>;
+export type onSetFunction<TModel = any> = (args: {
+  data: ExtractFieldTypes<TModel, [], false>;
+  search: ExtractFieldTypes<TModel, [], true>;
 }) => Promise<any[]>;
 
-export type onRemoveFunction<M = any> = (args: {
+export type onRemoveFunction<TModel = any> = (args: {
   /** Sometimes we just want to return the data but we don't want to remove it. Most of the time you should remove it. */
   shouldRemove?: boolean;
   /** Should you return the data that you are removing? By default yes, you should, in case this is false you should not. */
   shouldReturnData?: boolean;
-  search: ExtractFieldTypes<M, [], true>;
+  search: ExtractFieldTypes<TModel, [], true>;
 }) => Promise<any[]>;
 
 /**

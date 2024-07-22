@@ -1,10 +1,8 @@
-import { path, pathNested } from './router';
 import { middleware, nestedMiddleware } from './middleware';
-import { ExtractRequestsFromMiddlewaresForClient } from './middleware/types';
-import Request from './request';
 import Response from './response';
-import { request } from 'http';
-import { HTTP_200_OK } from './response/status';
+import { path, pathNested } from './router';
+
+import type { ExtractRequestsFromMiddlewaresForClient } from './middleware/types';
 
 const addHeadersAndAuthenticateUser = middleware({
   request: (request) => {
@@ -13,11 +11,12 @@ const addHeadersAndAuthenticateUser = middleware({
       context: { user: number };
     }>();
 
-    return customRequest as typeof customRequest;
+    return customRequest;
   },
 });
 
 const authenticateRequest = middleware({
+  // eslint-disable-next-line ts/require-await
   request: async (request) => {
     //if (request.headers.Authorization) return new Response<{ Status: 404 }>();
     const modifiedRequest = request.clone<{
@@ -57,6 +56,7 @@ const testRequestMiddleware1 = nestedMiddleware<typeof rootRouter>()({
 
 const testRequestMiddleware = nestedMiddleware<typeof rootRouter>()({
   request: (request) => {
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (request.query) return request;
     return request.responses['400']();
   },
@@ -110,6 +110,7 @@ const controllers = pathNested<typeof withMiddlewares>()('/users').get((req) => 
 
 export const router = withMiddlewares.nested((path) => [
   path('/<dateId: {\\d+}:number>?teste=(string | number)[]')
+    // eslint-disable-next-line ts/require-await
     .get(async (request) => {
       const response = new Response<
         unknown,
@@ -146,6 +147,8 @@ rootRouter.nested([withMiddlewares]); // this should not matter for the output, 
 const testResponseMiddleware = nestedMiddleware<typeof router>()({
   response: (response) => {
     if (response.status === 200) {
+      // eslint-disable-next-line ts/ban-ts-comment
+      // @ts-ignore
       const test = response.headers['x-header'];
     }
     return response;

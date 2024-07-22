@@ -1,10 +1,9 @@
-import ServerAdapter from '../index';
-import { BaseRouter } from '../../router/routers';
-import { MethodTypes, RouterOptionsType } from '../../router/types';
-import ServerResponseAdapter from '../response';
-
-import type ServerlessAdapter from '../serverless';
+import type { BaseRouter } from '../../router/routers';
+import type { MethodTypes, RouterOptionsType } from '../../router/types';
+import type ServerAdapter from '../index';
 import type ServerRequestAdapter from '../requests';
+import type ServerResponseAdapter from '../response';
+import type ServerlessAdapter from '../serverless';
 
 /**
  * Adapter used for translating Palmares router to the framework of choice router.
@@ -163,10 +162,10 @@ export function serverRouterAdapter<
   parseHandlers?: TParseHandlersFunction;
 }) {
   class CustomServerRouterAdapter extends ServerRouterAdapter {
-    parseRoute = args.parseRoute as TParseRouteFunction;
+    parseRoute = args.parseRoute;
     parseHandler = args.parseHandler as TParseHandlerFunction;
     parseHandlers = args.parseHandlers as TParseHandlersFunction;
-    load404 = args.load404 as TLoad404Function;
+    load404 = args.load404;
   }
 
   return CustomServerRouterAdapter as {
@@ -208,6 +207,7 @@ export default class ServerRouterAdapter {
    * @param _handler - The handler is a simple callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of
    * {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods.
    */
+  // eslint-disable-next-line ts/require-await
   async load404(
     _server: ServerAdapter,
     _handler: (serverRequestAndResponseData: any) => ReturnType<ServerResponseAdapter['send']>

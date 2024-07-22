@@ -1,5 +1,8 @@
-import { Field, ForeignKeyField, fields } from '@palmares/databases';
-import {
+import { ForeignKeyField, fields } from '@palmares/databases';
+
+import type SequelizeEngine from './engine';
+import type { Field} from '@palmares/databases';
+import type {
   BelongsToOptions,
   ForeignKeyOptions,
   HasManyOptions,
@@ -9,7 +12,6 @@ import {
   ModelAttributeColumnOptions,
   ModelCtor,
 } from 'sequelize';
-import SequelizeEngine from './engine';
 
 const indexesByEngineAndModelName = new Map<string, Map<string, IndexesOptions[]>>();
 const onDeleteOperationsTable = {
@@ -70,6 +72,7 @@ export function handleRelatedField(
 ) {
   const modelWithForeignKeyField: ModelCtor<Model> = engine.initializedModels[field.model.getName()] as ModelCtor<Model>;
   const relatedToModel: ModelCtor<Model> = engine.initializedModels[field.relatedTo] as ModelCtor<Model>;
+  // eslint-disable-next-line ts/no-unnecessary-condition
   const isRelatedModelAndModelOfForeignDefined = relatedToModel !== undefined && modelWithForeignKeyField !== undefined;
 
   if (isRelatedModelAndModelOfForeignDefined) {

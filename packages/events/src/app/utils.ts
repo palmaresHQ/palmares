@@ -1,5 +1,5 @@
-import { EventsDomainInterface } from '../interfaces';
-import { EventsServer } from '../server';
+import type { EventsDomainInterface } from '../interfaces';
+import type { EventsServer } from '../server';
 
 /**
  * This is used for loading the events on the server.

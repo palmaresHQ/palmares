@@ -3,11 +3,13 @@ import { FileLike, serverResponseAdapter } from '@palmares/server';
 import type { Response } from 'express';
 
 export default serverResponseAdapter({
+  // eslint-disable-next-line ts/require-await
   redirect: async (_server, serverRequestAndResponseData, status, headers, redirectTo) => {
     const { res } = serverRequestAndResponseData as { res: Response };
     if (headers) res.set(headers);
     res.redirect(status, redirectTo);
   },
+  // eslint-disable-next-line ts/require-await
   send: async (_server, serverRequestAndResponseData, status, headers, body) => {
     const { res } = serverRequestAndResponseData as { res: Response };
     if (headers) {

@@ -15,10 +15,11 @@ export default domain('@palmares/tests', __dirname, {
       description: 'Run the tests in your palmares application',
       keywordArgs: undefined,
       positionalArgs: undefined,
-      handler: async (args) => {
+      handler: (args) => {
         test(args.domains, args.settings as AllTestsSettingsType);
       },
     },
   },
+  // eslint-disable-next-line ts/require-await
   load: async (_: TestsSettingsType) => undefined,
 });

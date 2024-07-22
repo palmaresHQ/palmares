@@ -6,7 +6,9 @@
  */
 export function generateErrorId() {
   let date = new Date().getTime(); //Timestamp
+  // eslint-disable-next-line ts/consistent-type-imports
   const performance = (globalThis as any).performance as typeof import('perf_hooks')['performance'];
+  // eslint-disable-next-line ts/no-unnecessary-condition
   let performanceDate = (performance && performance.now && performance.now() * 1000) || 0; //Time in microseconds since page-load or 0 if unsupported
   return 'x-xx_x-xx_x-xx_x-xx_x-xx_y-xx_x-xx_x-xx_x-xx_x-xx_x'.replace(/[xy]/g, (character) => {
     let randomNumber = Math.random() * 16; //random number between 0 and 16

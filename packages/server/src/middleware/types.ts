@@ -8,8 +8,8 @@ import type {
   RequestMode,
   RequestRedirect,
 } from '../request/types';
-import Response from '../response';
-import { StatusCodes } from '../response/status';
+import type Response from '../response';
+import type { StatusCodes } from '../response/status';
 
 /**
  * Remove the optional properties from an object.
@@ -28,9 +28,9 @@ type RemoveOptionals<T> = {
   [K in keyof T as undefined extends T[K] ? never : K]: T[K];
 };
 
-type Exact<A, B> = (<T>() => T extends A ? 1 : 0) extends <T>() => T extends B ? 1 : 0
-  ? A extends B
-    ? B extends A
+type Exact<TOne, TTwo> = (<T>() => T extends TOne ? 1 : 0) extends <T>() => T extends TTwo ? 1 : 0
+  ? TOne extends TTwo
+    ? TTwo extends TOne
       ? true
       : false
     : false
