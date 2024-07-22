@@ -599,9 +599,7 @@ export default function model<TModel>() {
     }
   };
 
-  return DefaultModel as unknown as typeof DefaultModel & {
-    new (): DefaultModel
-  };
+  return DefaultModel as unknown as typeof DefaultModel
 }
 
 /**

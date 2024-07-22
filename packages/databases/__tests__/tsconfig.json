@@ -1,16 +1,9 @@
 {
   "extends": "../../../tsconfig.json",
   "compilerOptions": {
-    "declaration": false,
+    "declaration": true,
     "outDir": "./dist",
-    "types": ["node"],
-    "module": "NodeNext",
-    "lib": ["DOM", "ES2020", "DOM.Iterable"],
-    "paths": {
-      "*": ["node_modules/*"],
-      "@palmares/server": ["../../packages/server/dist"],
-      "@palmares/core": ["../../packages/server/node_modules/@palmares/core"],
-    }
+    "types": ["node"]
   },
   "include": ["src/**/*"]
 }

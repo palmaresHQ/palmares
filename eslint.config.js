@@ -7,7 +7,6 @@ import { javascript } from './resources/eslint/javascript.js';
 import { typescript } from './resources/eslint/typescript.js';
 import { imports } from './resources/eslint/imports.js';
 
-
 const TO_EXCLUDE = [
   '**/node_modules/**',
   '**/dist/**',
