@@ -43,7 +43,7 @@
   "dependencies": {
     "@palmares/core": "workspace:*",
     "@palmares/databases": "workspace:*",
-    "sequelize": "^6.21.0"
+    "sequelize": "^6.37.3"
   },
   "devDependencies": {
     "@types/sequelize": "^4.28.14"
