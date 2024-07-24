@@ -618,8 +618,8 @@ importers:
         specifier: '*'
         version: 0.0.1
       redis:
-        specifier: ^4.6.10
-        version: 4.6.13
+        specifier: ^4.6.15
+        version: 4.6.15
     devDependencies:
       typescript:
         specifier: ^5.5.4
@@ -2252,8 +2252,8 @@ packages:
     peerDependencies:
       '@redis/client': ^1.0.0
 
-  '@redis/client@1.5.14':
-    resolution: {integrity: sha512-YGn0GqsRBFUQxklhY7v562VMOP0DcmlrHHs3IV1mFE3cbxe31IITUkqhBcIhVSI/2JqtWAJXg5mjV4aU+zD0HA==}
+  '@redis/client@1.5.17':
+    resolution: {integrity: sha512-IPvU9A31qRCZ7lds/x+ksuK/UMndd0EASveAvCvEtFFKIZjZ+m/a4a0L7S28KEWoR5ka8526hlSghDo4Hrc2Hg==}
     engines: {node: '>=14'}
 
   '@redis/graph@1.1.1':
@@ -6159,8 +6159,8 @@ packages:
     resolution: {integrity: sha512-57frrGM/OCTLqLOAh0mhVA9VBMHd+9U7Zb2THMGdBUoZVOtGbJzjxsYGDJ3A9AYYCP4hn6y1TVbaOfzWtm5GFg==}
     engines: {node: '>= 12.13.0'}
 
-  redis@4.6.13:
-    resolution: {integrity: sha512-MHgkS4B+sPjCXpf+HfdetBwbRz6vCtsceTmw1pHNYJAsYxrfpOP6dz+piJWGos8wqG7qb3vj/Rrc5qOlmInUuA==}
+  redis@4.6.15:
+    resolution: {integrity: sha512-2NtuOpMW3tnYzBw6S8mbXSX7RPzvVFCA2wFJq9oErushO2UeBkxObk+uvo7gv7n0rhWeOj/IzrHO8TjcFlRSOg==}
 
   reflect.getprototypeof@1.0.6:
     resolution: {integrity: sha512-fmfw4XgoDke3kdI6h4xcUz1dG8uaiv5q9gcEwLS4Pnth2kxT+GZ7YehS1JTMGBQmtV7Y4GFGbs2re2NqhdozUg==}
@@ -8905,31 +8905,31 @@ snapshots:
 
   '@pkgr/core@0.1.1': {}
 
-  '@redis/bloom@1.2.0(@redis/client@1.5.14)':
+  '@redis/bloom@1.2.0(@redis/client@1.5.17)':
     dependencies:
-      '@redis/client': 1.5.14
+      '@redis/client': 1.5.17
 
-  '@redis/client@1.5.14':
+  '@redis/client@1.5.17':
     dependencies:
       cluster-key-slot: 1.1.2
       generic-pool: 3.9.0
       yallist: 4.0.0
 
-  '@redis/graph@1.1.1(@redis/client@1.5.14)':
+  '@redis/graph@1.1.1(@redis/client@1.5.17)':
     dependencies:
-      '@redis/client': 1.5.14
+      '@redis/client': 1.5.17
 
-  '@redis/json@1.0.6(@redis/client@1.5.14)':
+  '@redis/json@1.0.6(@redis/client@1.5.17)':
     dependencies:
-      '@redis/client': 1.5.14
+      '@redis/client': 1.5.17
 
-  '@redis/search@1.1.6(@redis/client@1.5.14)':
+  '@redis/search@1.1.6(@redis/client@1.5.17)':
     dependencies:
-      '@redis/client': 1.5.14
+      '@redis/client': 1.5.17
 
-  '@redis/time-series@1.0.5(@redis/client@1.5.14)':
+  '@redis/time-series@1.0.5(@redis/client@1.5.17)':
     dependencies:
-      '@redis/client': 1.5.14
+      '@redis/client': 1.5.17
 
   '@rollup/pluginutils@4.2.1':
     dependencies:
@@ -13719,14 +13719,14 @@ snapshots:
 
   real-require@0.2.0: {}
 
-  redis@4.6.13:
+  redis@4.6.15:
     dependencies:
-      '@redis/bloom': 1.2.0(@redis/client@1.5.14)
-      '@redis/client': 1.5.14
-      '@redis/graph': 1.1.1(@redis/client@1.5.14)
-      '@redis/json': 1.0.6(@redis/client@1.5.14)
-      '@redis/search': 1.1.6(@redis/client@1.5.14)
-      '@redis/time-series': 1.0.5(@redis/client@1.5.14)
+      '@redis/bloom': 1.2.0(@redis/client@1.5.17)
+      '@redis/client': 1.5.17
+      '@redis/graph': 1.1.1(@redis/client@1.5.17)
+      '@redis/json': 1.0.6(@redis/client@1.5.17)
+      '@redis/search': 1.1.6(@redis/client@1.5.17)
+      '@redis/time-series': 1.0.5(@redis/client@1.5.17)
 
   reflect.getprototypeof@1.0.6:
     dependencies:
