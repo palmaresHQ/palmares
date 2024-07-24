@@ -224,10 +224,10 @@ export default class CharField<
    * class CustomCharField extends CharField {
    *   aCustomValue: string;
    *
-   *   compare(field:Field) {
+   *   async compare(field:Field) {
    *      const fieldAsText = field as TextField;
    *      const isCustomValueEqual = fieldAsText.aCustomValue === this.aCustomValue;
-   *      const [isEqual, changedAttributes] = super.compare(field);
+   *      const [isEqual, changedAttributes] = await super.compare(field);
    *      if (!isCustomValueEqual) changedAttributes.push('aCustomValue');
    *      return [isCustomValueEqual && isEqual, changedAttributes]
    *   }
@@ -238,10 +238,10 @@ export default class CharField<
    *
    * @returns A promise that resolves to a tuple containing a boolean and the changed attributes.
    */
-  compare(field: Field): [boolean, string[]] {
+  async compare(field: Field): Promise<[boolean, string[]]> {
     const fieldAsText = field as CharField;
     const isMaxLengthEqual = fieldAsText.maxLength === this.maxLength;
-    const [isEqual, changedAttributes] = super.compare(field);
+    const [isEqual, changedAttributes] = await super.compare(field);
 
     if (!isMaxLengthEqual) changedAttributes.push('maxLength');
     return [isMaxLengthEqual && isEqual, changedAttributes];

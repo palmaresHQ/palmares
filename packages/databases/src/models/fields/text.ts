@@ -145,10 +145,10 @@ export default class TextField<
    * class CustomTextField extends TextField {
    *   aCustomValue: string;
    *
-   *   compare(field:Field) {
+   *   async compare(field:Field) {
    *      const fieldAsText = field as TextField;
    *      const isCustomValueEqual = fieldAsText.aCustomValue === this.aCustomValue;
-   *      const [isEqual, changedAttributes] = super.compare(field);
+   *      const [isEqual, changedAttributes] = await super.compare(field);
    *      if (!isCustomValueEqual) changedAttributes.push('aCustomValue');
    *      return [isCustomValueEqual && isEqual, changedAttributes]
    *   }
@@ -159,10 +159,10 @@ export default class TextField<
    *
    * @returns A promise that resolves to a tuple containing a boolean and the changed attributes.
    */
-  compare(field: Field): [boolean, string[]] {
+  async compare(field: Field): Promise<[boolean, string[]]> {
     const fieldAsText = field as TextField;
     const isAllowBlankEqual = fieldAsText.allowBlank === this.allowBlank;
-    const [isEqual, changedAttributes] = super.compare(field);
+    const [isEqual, changedAttributes] = await super.compare(field);
 
     if (!isAllowBlankEqual) changedAttributes.push('allowBlank');
     return [isAllowBlankEqual && isEqual, changedAttributes];

@@ -3,7 +3,6 @@ import { adapterModels } from '@palmares/databases';
 
 import type { ModelOptionsType } from '@palmares/databases';
 
-
 export default adapterModels({
   // eslint-disable-next-line ts/require-await
   translateOptions: async (_engine, modelName, options): Promise<object> => {
@@ -17,8 +16,10 @@ export default adapterModels({
           return firstLetterUpper + groupWithoutDash.slice(1);
         });
         const indexFieldsForOnClause = index.fields.map((field) => `table.${field}`).join(', ');
-        return `  ${modelName.slice(0, 1).toLowerCase() + modelName.slice(1)}${indexAsCamel}:  d.${index.unique ? 'uniqueIndex': 'index'}('${options.tableName || modelName}_${indexFields}').on(${indexFieldsForOnClause})`;
-      })
+        return `  ${modelName.slice(0, 1).toLowerCase() + modelName.slice(1)}${indexAsCamel}:  d.${
+          index.unique ? 'uniqueIndex' : 'index'
+        }('${options.tableName || modelName}_${indexFields}').on(${indexFieldsForOnClause})`;
+      });
 
     return {
       ...options
@@ -31,7 +32,7 @@ export default adapterModels({
     _model,
     _fieldEntriesOfModel,
     _modelOptions,
-    defaultTranslateCallback: () => Promise<{ options: any, fields: any}>,
+    defaultTranslateCallback: () => Promise<{ options: any; fields: any }>,
     _,
     __
   ): Promise<{
@@ -54,16 +55,26 @@ export default adapterModels({
       std.files.join(cwd, engine.instance.output)
     ]);
     const imports = new Set([
-      `import * as d from 'drizzle-orm/${engine.instance.mainType === 'postgres' ? 'pg' : engine.instance.mainType === 'sqlite' ? 'sqlite' : 'mysql'}-core';`
+      `import * as d from 'drizzle-orm/${
+        engine.instance.mainType === 'postgres' ? 'pg' : engine.instance.mainType === 'sqlite' ? 'sqlite' : 'mysql'
+      }-core';`
     ]);
 
     const relationships = new Map<string, Record<string, string>>();
-    const tableType = engine.instance.mainType === 'postgres' ? 'pgTable' : engine.instance.mainType === 'sqlite' ? 'sqliteTable' : 'mysqlTable'
-    for (let i=0; i<models.length; i++) {
+    const tableType =
+      engine.instance.mainType === 'postgres'
+        ? 'pgTable'
+        : engine.instance.mainType === 'sqlite'
+          ? 'sqliteTable'
+          : 'mysqlTable';
+    for (let i = 0; i < models.length; i++) {
       const [modelName, model] = models[i];
 
       for (const [relationModelName, relations] of Object.entries(model.options.relationships || {})) {
-        relationships.set(relationModelName, {...(relationships.get(relationModelName) || {}), ...relations as any});
+        relationships.set(relationModelName, {
+          ...(relationships.get(relationModelName) || {}),
+          ...(relations as any)
+        });
       }
 
       const indexesOfModel = model.options.drizzleIndexes || [];
@@ -73,19 +84,27 @@ export default adapterModels({
       if (model.options.imports)
         Array.from(model.options.imports || []).forEach((importString) => imports.add(importString as string));
 
-      const modelContentStarter = hasEnums ? model.options.enums.map((enumColumn: string) => enumColumn).join('\n') + '\n\n' : '';
-      const modelContent = `${modelContentStarter}export const ${modelName} = d.${tableType}('${model.options.tableName}', {\n${
-      entriesOfFields.map(([fieldName, fieldString]) => `  ${fieldName}: ${fieldString}`).join(',\n')
-      }\n}${indexesOfModel.length > 0 ? `, (table) => ({\n` +
-      `${
-      indexesOfModel.map((index: {
-        fieldName: string;
-        databaseName: string;
-        unique: boolean;
-      }) => `  ${index.fieldName}Idx: d.${index.unique ? 'uniqueIndex': 'index'}('${model.options.tableName}_${index.databaseName}_idx').on(table.${index.fieldName})`)
-      .concat(model.options.conjunctiveIndexes || [])
-      .join(',\n')
-      }\n})` : ''});\n\n`;
+      const modelContentStarter = hasEnums
+        ? model.options.enums.map((enumColumn: string) => enumColumn).join('\n') + '\n\n'
+        : '';
+      const modelContent = `${modelContentStarter}export const ${modelName} = d.${
+        tableType
+      }('${model.options.tableName}', {\n${entriesOfFields
+        .map(([fieldName, fieldString]) => `  ${fieldName}: ${fieldString}`)
+        .join(',\n')}\n}${
+        indexesOfModel.length > 0
+          ? `, (table) => ({\n` +
+            `${indexesOfModel
+              .map(
+                (index: { fieldName: string; databaseName: string; unique: boolean }) =>
+                  `  ${index.fieldName}Idx: d.${index.unique ? 'uniqueIndex' : 'index'}('${
+                    model.options.tableName
+                  }_${index.databaseName}_idx').on(table.${index.fieldName})`
+              )
+              .concat(model.options.conjunctiveIndexes || [])
+              .join(',\n')}\n})`
+          : ''
+      });\n\n`;
       fileContent += modelContent;
       models[i] = [modelName, Function('require', `return require('${locationToRequire}').${modelName}`)];
     }
@@ -93,7 +112,11 @@ export default adapterModels({
     if (relationships.size > 0) imports.add(`import * as drzl from 'drizzle-orm';`);
 
     for (const [modelName, relations] of relationships.entries()) {
-      fileContent += `export const ${modelName}Relations = drzl.relations(${modelName}, (args) => ({\n${Object.entries(relations).map(([relationName, relation]) => `  ${relationName}: ${relation}`).join(',\n')}\n}));\n\n`;
+      fileContent += `export const ${modelName}Relations = drzl.relations(${modelName}, (args) => ({\n${Object.entries(
+        relations
+      )
+        .map(([relationName, relation]) => `  ${relationName}: ${relation}`)
+        .join(',\n')}\n}));\n\n`;
     }
 
     await std.files.makeDirectory(folderName);

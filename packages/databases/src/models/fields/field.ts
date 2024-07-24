@@ -175,7 +175,7 @@ export default class Field<
    *
    * @return - Returns true if the fields are equal and false otherwise
    */
-  compare(field: Field): [boolean, string[]] {
+  async compare(field: Field): Promise<[boolean, string[]]> {
     const isTypeNameEqual = field.typeName === this.typeName;
     const isAllowNullEqual = field.allowNull === this.allowNull;
     const isCustomAttributesEqual = JSON.stringify(field.customAttributes) === JSON.stringify(this.customAttributes);

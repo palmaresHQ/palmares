@@ -8,12 +8,7 @@ export function arrayFieldAdapter<
   TToString extends ArrayFieldAdapter['toString'],
   TFormatError extends ArrayFieldAdapter['formatError'],
   TParse extends ArrayFieldAdapter['parse']
->(args: {
-  translate: TTranslate;
-  toString?: TToString;
-  formatError?: TFormatError;
-  parse?: TParse;
-}) {
+>(args: { translate: TTranslate; toString?: TToString; formatError?: TFormatError; parse?: TParse }) {
   class CustomArrayFieldAdapter extends ArrayFieldAdapter {
     translate = args.translate;
     toString = args.toString as TToString;
@@ -27,8 +22,8 @@ export function arrayFieldAdapter<
       toString: TToString;
       formatError: TFormatError;
       parse: TParse;
-    }
-  }
+    };
+  };
 }
 
 export default class ArrayFieldAdapter extends FieldAdapter {

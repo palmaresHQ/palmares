@@ -22,7 +22,7 @@ async function translateOrdering(modelOptions: ModelOptionsType, translatedModel
       'defaultScope',
       {
         // eslint-disable-next-line ts/no-unnecessary-condition
-        order: translatedOrdering || [],
+        order: translatedOrdering || []
       },
       { override: true }
     );
@@ -36,7 +36,7 @@ export default adapterModels({
       underscored: options.underscored || true,
       timestamps: false,
       tableName: options.tableName,
-      ...options.customOptions,
+      ...options.customOptions
     };
   },
   translate: async (
@@ -58,10 +58,10 @@ export default adapterModels({
     const sequelizeModel = new Function('sequelizeModel', `return class ${modelName} extends sequelizeModel {}`)(Model);
     const translatedModel = sequelizeModel.init(translatedAttributes, {
       sequelize: engine.instance,
-      ...translatedOptions,
+      ...translatedOptions
     });
 
     if (translatedModel !== undefined) await translateOrdering(modelOptions, translatedModel);
     return translatedModel;
-  },
+  }
 });

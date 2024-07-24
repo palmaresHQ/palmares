@@ -7,7 +7,6 @@ import { PACKAGE_NAME, getUniqueCustomImports } from '../../utils';
 import * as actions from '../actions';
 import State from '../state';
 
-
 import type { EmptyOptionsOnGenerateFilesType, FieldOrModelParamType } from './types';
 import type { Field } from '../../models/fields';
 import type { CustomImportsForFieldType } from '../../models/fields/types';
@@ -16,7 +15,7 @@ import type {
   DatabaseSettingsType,
   InitializedEngineInstancesType,
   InitializedModelsType,
-  OptionalMakemigrationsArgsType,
+  OptionalMakemigrationsArgsType
 } from '../../types';
 import type { ActionToGenerateType } from '../actions/types';
 import type { FoundMigrationsFileType, OriginalOrStateModelsByNameType } from '../types';
@@ -94,8 +93,8 @@ export default class MakeMigrations {
    * @param originalModelsByNameOrFields - This param are the models or fields defined by the user, this is how the user
    * wants the data to be. It is an object where the key is the name of the field or of the model and the value is the
    * initialized model or the field instance.
-   * @param stateModelsByNameOrFields - This param are the models or fields reconstructed by running each migration in order.
-   * So this is how those models were before any change.
+   * @param stateModelsByNameOrFields - This param are the models or fields reconstructed by running each migration
+   * in order. So this is how those models were before any change.
    * @param fieldOrModel - Are you running this on an object of fields or on an object of models?
    * @param operations - The array where we will hold all of the operations that we need to do in our migration.
    */
@@ -184,7 +183,8 @@ export default class MakeMigrations {
           // other was renamed, or both of them could be added and {createdAt}
           // would be removed, it's not clear for us, so we need to prompt the user in that use case
 
-          // For cases like originalFields = {parameterName, name} stateFields={}, it's clear that both was added. Or if {} {createdAt} it's clear that
+          // For cases like originalFields = {parameterName, name} stateFields={}, it's clear that
+          // both was added. Or if {} {createdAt} it's clear that
           // one was removed so we can make safe guesses
           modelsOrFieldsInOriginalButNotDefinedInState.push(originalFieldOrModelName);
         }
@@ -306,7 +306,7 @@ export default class MakeMigrations {
           {
             fieldDefinition: originalField,
             fieldNameAfter: renamedTo,
-            fieldNameBefore: fieldOrModelName,
+            fieldNameBefore: fieldOrModelName
           }
         );
       case 'model':
@@ -317,7 +317,7 @@ export default class MakeMigrations {
           renamedTo,
           {
             modelNameAfter: renamedTo,
-            modelNameBefore: fieldOrModelName,
+            modelNameBefore: fieldOrModelName
           }
         );
     }
@@ -336,7 +336,7 @@ export default class MakeMigrations {
           stateField.model.domainPath,
           stateField.model.originalName(),
           {
-            fieldName: fieldOrModelName,
+            fieldName: fieldOrModelName
           }
         );
       case 'model':
@@ -358,7 +358,7 @@ export default class MakeMigrations {
   ): Promise<ActionToGenerateType<any> | undefined> {
     switch (fieldOrModel) {
       case 'field':
-        return this.#fieldWasUpdated(fieldOrModelName, stateFieldOrModel as Field, originalFieldOrModel as Field);
+        return await this.#fieldWasUpdated(fieldOrModelName, stateFieldOrModel as Field, originalFieldOrModel as Field);
       case 'model':
         return await this.#modelWasUpdated(
           operations,
@@ -396,7 +396,7 @@ export default class MakeMigrations {
           originalField.model.originalName(),
           {
             fieldDefinition: originalField,
-            fieldName: fieldName,
+            fieldName: fieldName
           }
         );
       case 'model':
@@ -408,7 +408,7 @@ export default class MakeMigrations {
           fieldOrModelName,
           {
             fields: originalInitializedModel.original.fields,
-            options: originalInitializedModel.original.options || {},
+            options: originalInitializedModel.original.options || {}
           }
         );
     }
@@ -429,7 +429,7 @@ export default class MakeMigrations {
         modelName,
         {
           optionsAfter: originalInitializedModel.original.options || {},
-          optionsBefore: stateInitializedModel.original.options || {},
+          optionsBefore: stateInitializedModel.original.options || {}
         }
       );
     }
@@ -442,12 +442,12 @@ export default class MakeMigrations {
     return response;
   }
 
-  #fieldWasUpdated(
+  async #fieldWasUpdated(
     fieldName: string,
     stateField: Field<any, any, any, any, any, any, any, any>,
     originalField: Field<any, any, any, any, any, any, any, any>
   ) {
-    const [areFieldsEqual, changedAttributes] = originalField.compare(stateField);
+    const [areFieldsEqual, changedAttributes] = await originalField.compare(stateField);
 
     if (areFieldsEqual === false) {
       return actions.ChangeField.toGenerate(
@@ -458,7 +458,7 @@ export default class MakeMigrations {
           fieldDefinitionAfter: originalField,
           fieldDefinitionBefore: stateField,
           fieldName: fieldName,
-          changedAttributes,
+          changedAttributes
         }
       );
     }
@@ -473,8 +473,8 @@ export default class MakeMigrations {
    * This dependencies occur even if we are changing a model, for example, if User didn't exist before and we are
    * creating the `User` model at the same time we are adding `user_id` to the `Post` model this dependency will exist.
    *
-   * For that we need to reorder the operations. We do this in a while loop so we can guarantee all of the dependencies are
-   * satisfied before creating the model.
+   * For that we need to reorder the operations. We do this in a while loop so we can guarantee all of the dependencies
+   * are satisfied before creating the model.
    *
    * @param operations - The operations list unordered that you want to be ordered respecting all of the dependencies
    * between models.
@@ -502,7 +502,8 @@ export default class MakeMigrations {
 
         const dependenciesAlreadyAdded = Object.keys(modelOfOperationToProcess.class.directlyRelatedTo).every(
           (dependencyOfModel: string) =>
-            addedModels.has(dependencyOfModel) || dependencyOfModel === modelOfOperationToProcess.class.originalName() // For circular relations.
+            // For circular relations.
+            addedModels.has(dependencyOfModel) || dependencyOfModel === modelOfOperationToProcess.class.originalName()
         );
 
         // this means it is the last run so we must add any pending migrations.
@@ -525,27 +526,30 @@ export default class MakeMigrations {
 
   /**
    * Method used for generating the migration file from the operations. We will make a migration file for each database.
-   * So if you use multiple databases you will end up with multiple migration files, one for each database. This was better
-   * because we thought about that. The first idea was to add the migrations from multiple databases in a single file.
-   * This is not good because you can't have easy access from which database this migration is from. On the other hand,
-   * by splitting into multiple files we are able to see directly in the file name from which file this migration is from.
+   * So if you use multiple databases you will end up with multiple migration files, one for each database. This was
+   * better because we thought about that. The first idea was to add the migrations from multiple databases in a
+   * single file. This is not good because you can't have easy access from which database this migration is from.
+   * On the other hand, by splitting into multiple files we are able to see directly in the file name from which file
+   * this migration is from.
    *
    * Every migration has a description so the user can know what we are doing in this automatically generated migration.
    *
    * The automatic migrations are composed like so:
    * `{ordered number}_{database name}_auto_migration_{time when it was generated}`
    *
-   * Sometimes the user might define something outside of the default application scope. For that use cases we can import
-   * stuff dynamically. For example, if you create a customField supposed to work specifically for sequelize-engine, you
-   * can add a `customImports` function for that field so we are able to add that import on the top of the migration file.
+   * Sometimes the user might define something outside of the default application scope. For that use cases we can
+   * import stuff dynamically. For example, if you create a customField supposed to work specifically for sequelize-
+   * engine, you can add a `customImports` function for that field so we are able to add that import on the top of the
+   * migration file.
    *
    * @param operationsOfFile - All of the operations, in order, that we want to run inside of this migration.
    * @param domainPath - Where are we going to create this migration file.
    * @param numberOfMigrations - (optional) - The number of migrations that were created in this single makemigrations
    * run. This is useful so we can append the numbers accordingly.
-   * @param lastMigrationName - (optional) - The last migration name that this depends on, most of them will have dependencies
-   * on each one, except for the first one.
-   * @param lastDomainPath - (optional) - Where the dependent migration was generated so we can look at it if we want to.
+   * @param lastMigrationName - (optional) - The last migration name that this depends on, most of them will have
+   * dependencies on each one, except for the first one.
+   * @param lastDomainPath - (optional) - Where the dependent migration was generated so we can look at it
+   * if we want to.
    *
    * @returns - Returns the migration name automatically generated here in this function.
    */
@@ -564,17 +568,18 @@ export default class MakeMigrations {
     const migrationNumberToString =
       migrationNumber < 10 ? `00${migrationNumber}` : migrationNumber < 100 ? `0${migrationNumber}` : migrationNumber;
     const migrationName = `${migrationNumberToString}_${this.database}_auto_migration_${Date.now().toString()}`;
-
+    const settingsIsTs = ((this.settings as any)?.settingsLocation || '').endsWith('.ts');
+    console.log('settingsIsTs', settingsIsTs);
     databaseLogger.logMessage('MIGRATIONS_FILE_TITLE', { title: migrationName });
     databaseLogger.logMessage('MIGRATIONS_FILE_DESCRIPTION', {
       database: this.database,
       lastMigrationName,
-      lastDomainPath,
+      lastDomainPath
     });
 
     for (const operation of operationsOfFile) {
       databaseLogger.logMessage('MIGRATIONS_ACTION_DESCRIPTION', {
-        description: await operation.operation.describe(operation),
+        description: await operation.operation.describe(operation)
       });
       const { asString, customImports } = await operation.operation.toString(3, operation);
       operationsAsString.push(asString);
@@ -588,7 +593,7 @@ export default class MakeMigrations {
     const customImportsAsString =
       customImportsOfCustomData
         .map(({ value, packageName }) => {
-          if ((this.settings as any)?.useTs) return `import ${value} from "${packageName}";`;
+          if (settingsIsTs) return `import ${value} from "${packageName}";`;
 
           if (value.startsWith('* as ')) return `const ${value.replace('* as ', '')} = require('${packageName}');`;
           if (value.startsWith('{ default as ')) {
@@ -600,29 +605,25 @@ export default class MakeMigrations {
 
     const file =
       `/**\n * Automatically generated by ${FRAMEWORK_NAME} on ${currentDate.toISOString()}\n */\n\n` +
-      ((this.settings as any)?.useTs
+      (settingsIsTs
         ? `import { models, actions } from '${PACKAGE_NAME}';`
         : `const { models, actions } = require('${PACKAGE_NAME}');`) +
       `\n${customImportsAsString}\n` +
-      ((this.settings as any)?.useTs ? `export default {\n` : `module.exports = {\n`) +
+      (settingsIsTs ? `export default {\n` : `module.exports = {\n`) +
       `  name: '${migrationName}',\n  database: '${this.database}',\n` +
       `  dependsOn: '${lastMigrationName}',\n` +
       `  operations: [\n${operationsToString}\n  ]\n};\n`;
-    const indexFileOfMigrations = `index.${(this.settings as any)?.useTs ? 'ts' : 'js'}`;
+    const indexFileOfMigrations = `index.${settingsIsTs ? 'ts' : 'js'}`;
     const pathToWriteMigrations = await defaultStd.files.join(domainPath, 'migrations');
 
     const existsFile = await defaultStd.files.exists(pathToWriteMigrations);
     if (!existsFile) {
-
       await defaultStd.files.makeDirectory(pathToWriteMigrations);
       await defaultStd.files.writeFile([pathToWriteMigrations, indexFileOfMigrations], '');
     }
 
     // write file first so after we can read the directory and update the index file.
-    await defaultStd.files.writeFile(
-      [pathToWriteMigrations, `${migrationName}.${(this.settings as any)?.useTs ? 'ts' : 'js'}`],
-      file
-    );
+    await defaultStd.files.writeFile([pathToWriteMigrations, `${migrationName}.${settingsIsTs ? 'ts' : 'js'}`], file);
 
     // This will write the migrations to index.ts or index.js file.
     const files = await defaultStd.files.readDirectory(pathToWriteMigrations);
@@ -630,8 +631,8 @@ export default class MakeMigrations {
 
     const contentsOfIndex = filteredFilesWithoutIndex
       .map((fileName, index) => {
-        const fileNameWithoutExtension = fileName.replace((this.settings as any)?.useTs ? '.ts' : '.js', '');
-        return (this.settings as any)?.useTs
+        const fileNameWithoutExtension = fileName.replace(settingsIsTs ? '.ts' : '.js', '');
+        return settingsIsTs
           ? `export { default as M${fileNameWithoutExtension} } from "./${fileNameWithoutExtension}";`
           : `require('./${fileNameWithoutExtension}')${index === filteredFilesWithoutIndex.length - 1 ? '' : ','}`;
       })
@@ -659,8 +660,8 @@ export default class MakeMigrations {
    * THat's exactly what we do in this function we merge operations related to the same domain in a single file so we
    * don't need one file for each operation.
    *
-   * @param operations - All of the operations that we need to run for this database. We will separate them to their files
-   * inside of this method.
+   * @param operations - All of the operations that we need to run for this database. We will separate them to their
+   * files inside of this method.
    * @param emptyOptions - (optional) - Those are the custom options if the value is an empty migration. An empty
    * migration is a migration file without any operations. This is preferred instead of creating the file by hand.
    *
@@ -732,7 +733,7 @@ export default class MakeMigrations {
         if (isToGenerateMigration(domain.name)) {
           await this.generateFiles([], {
             onDomain: domain.path,
-            previousMigrationName,
+            previousMigrationName
           });
           break;
         }

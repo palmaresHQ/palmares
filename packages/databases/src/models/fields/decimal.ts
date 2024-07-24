@@ -58,7 +58,8 @@ export default class DecimalField<
   decimalPlaces: number;
 
   /**
-   * @deprecated Either use the `decimal` function or the `DecimalField.new` static method. Never create an instance of this class directly.
+   * @deprecated Either use the `decimal` function or the `DecimalField.new` static method.
+   * Never create an instance of this class directly.
    */
   constructor(
     params: DecimalFieldParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>
@@ -69,7 +70,8 @@ export default class DecimalField<
   }
 
   /**
-   * This method can be used to override the type of a field. This is useful for library maintainers that want to support the field type but the default type provided by palmares
+   * This method can be used to override the type of a field. This is useful for library
+   * maintainers that want to support the field type but the default type provided by palmares
    * is not the one that the database engine supports.
    *
    * @example
@@ -169,7 +171,8 @@ export default class DecimalField<
   }
 
   /**
-   * This is mostly used internally by the engine to stringify the contents of the field on migrations. But you can override this if you want to extend the DecimalField class.
+   * This is mostly used internally by the engine to stringify the contents of the field on
+   * migrations. But you can override this if you want to extend the DecimalField class.
    *
    * @example
    * ```
@@ -184,8 +187,9 @@ export default class DecimalField<
    * }
    * ```
    *
-   * On this example, your custom DecimalField instance defines a `aCustomValue` property that will be added on the migrations. It is useful if
-   * you have created a custom field and wants to implement a custom logic during migrations.
+   * On this example, your custom DecimalField instance defines a `aCustomValue` property that
+   * will be added on the migrations. It is useful if you have created a custom field and
+   * wants to implement a custom logic during migrations.
    *
    * @param indentation - The number of spaces to use for indentation. Use `'  '.repeat(indentation + 1);`
    * @param customParams - Custom parameters to append to the stringified field.
@@ -201,17 +205,18 @@ export default class DecimalField<
   }
 
   /**
-   * This is used internally by the engine to compare if the field is equal to another field. You can override this if you want to extend the DecimalField class.
+   * This is used internally by the engine to compare if the field is equal to another field.
+   * You can override this if you want to extend the DecimalField class.
    *
    * @example
    * ```
    * class CustomDecimalField extends DecimalField {
    *   aCustomValue: string;
    *
-   *   compare(field:Field) {
+   *   async compare(field:Field) {
    *      const fieldAsText = field as TextField;
    *      const isCustomValueEqual = fieldAsText.aCustomValue === this.aCustomValue;
-   *      const [isEqual, changedAttributes] = super.compare(field);
+   *      const [isEqual, changedAttributes] = await super.compare(field);
    *      if (!isCustomValueEqual) changedAttributes.push('aCustomValue');
    *      return [isCustomValueEqual && isEqual, changedAttributes]
    *   }
@@ -222,11 +227,11 @@ export default class DecimalField<
    *
    * @returns A promise that resolves to a boolean indicating if the field is equal to the other field.
    */
-  compare(field: Field): [boolean, string[]] {
+  async compare(field: Field): Promise<[boolean, string[]]> {
     const fieldAsDate = field as DecimalField;
     const isMaxDigitsEqual = fieldAsDate.maxDigits === this.maxDigits;
     const isDecimalPlacesEqual = fieldAsDate.decimalPlaces === this.decimalPlaces;
-    const [isEqual, changedAttributes] = super.compare(field);
+    const [isEqual, changedAttributes] = await super.compare(field);
 
     if (!isMaxDigitsEqual) changedAttributes.push('maxDigits');
     if (!isDecimalPlacesEqual) changedAttributes.push('decimalPlaces');
@@ -234,7 +239,8 @@ export default class DecimalField<
   }
 
   /**
-   * This is used internally by the engine for cloning the field to a new instance. By doing that you are able to get the constructor options of the field.
+   * This is used internally by the engine for cloning the field to a new instance.
+   * By doing that you are able to get the constructor options of the field.
    *
    * @example
    * ```
@@ -257,7 +263,7 @@ export default class DecimalField<
    */
   async constructorOptions(field?: DecimalField) {
     if (!field) field = this as DecimalField;
-    const defaultConstructorOptions = await super.constructorOptions(field);
+    const defaultConstructorOptions = await super.constructorOptions(field as any);
     return {
       ...defaultConstructorOptions,
       maxDigits: field.maxDigits,

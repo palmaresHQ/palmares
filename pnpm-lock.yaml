@@ -213,7 +213,7 @@ importers:
         version: 4.26.2
       sequelize:
         specifier: ^6.21.0
-        version: 6.37.2(sqlite3@5.1.7)
+        version: 6.37.2(pg@8.12.0)(sqlite3@5.1.7)
       sqlite3:
         specifier: ^5.1.6
         version: 5.1.7
@@ -271,7 +271,7 @@ importers:
         version: 4.19.2
       sequelize:
         specifier: ^6.21.0
-        version: 6.37.2(sqlite3@5.1.7)
+        version: 6.37.2(pg@8.12.0)(sqlite3@5.1.7)
       sqlite3:
         specifier: ^5.1.6
         version: 5.1.7
@@ -635,7 +635,7 @@ importers:
         version: link:../../packages/databases
       sequelize:
         specifier: ^6.21.0
-        version: 6.37.2(sqlite3@5.1.7)
+        version: 6.37.2(pg@8.12.0)(sqlite3@5.1.7)
     devDependencies:
       '@types/sequelize':
         specifier: ^4.28.14
@@ -711,6 +711,9 @@ importers:
       '@palmares/node-std':
         specifier: workspace:*
         version: link:../../../libs/node-std
+      '@palmares/sequelize-engine':
+        specifier: workspace:*
+        version: link:../../../libs/sequelize-engine
       '@palmares/tests':
         specifier: workspace:*
         version: link:../../tests
@@ -726,6 +729,9 @@ importers:
       postgres:
         specifier: ^3.4.4
         version: 3.4.4
+      sequelize:
+        specifier: ^6.21.0
+        version: 6.37.2(pg@8.12.0)(sqlite3@5.1.7)
     devDependencies:
       '@types/better-sqlite3':
         specifier: ^7.6.11
@@ -13986,7 +13992,7 @@ snapshots:
 
   sequelize-pool@7.1.0: {}
 
-  sequelize@6.37.2(sqlite3@5.1.7):
+  sequelize@6.37.2(pg@8.12.0)(sqlite3@5.1.7):
     dependencies:
       '@types/debug': 4.1.12
       '@types/validator': 13.11.9
@@ -14005,6 +14011,7 @@ snapshots:
       validator: 13.11.0
       wkx: 0.5.0
     optionalDependencies:
+      pg: 8.12.0
       sqlite3: 5.1.7
     transitivePeerDependencies:
       - supports-color

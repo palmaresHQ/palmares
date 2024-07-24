@@ -2,13 +2,16 @@
   "name": "@tests/databases",
   "version": "0.0.1",
   "description": "testing the tests",
-  "main": "manage.ts",
+  "main": "manage.drizzle.ts",
   "scripts": {
     "test": "tsx manage.ts test",
     "test:watch": "WATCH=true tsx manage.ts test",
-    "load": "tsx manage.ts load-models",
+    "load": "tsx manage.drizzle.ts load-models",
     "makemigrations": "drizzle-kit generate",
-    "migrate": "tsx manage.ts migrate"
+    "migrate": "tsx manage.drizzle.ts drizzleMigrate",
+    "sqlize:test": "tsx manage.sequelize.ts test",
+    "sqlize:makemigrations": "tsx manage.sequelize.ts makemigrations",
+    "sqlize:migrate": "tsx manage.sequelize.ts migrate"
   },
   "keywords": [],
   "author": "",
@@ -21,11 +24,13 @@
     "@palmares/jest-tests": "workspace:*",
     "@palmares/logging": "workspace:*",
     "@palmares/node-std": "workspace:*",
+    "@palmares/sequelize-engine": "workspace:*",
     "@palmares/tests": "workspace:*",
     "better-sqlite3": "^11.1.2",
     "drizzle-kit": "^0.23.0",
     "drizzle-orm": "^0.32.0",
-    "postgres": "^3.4.4"
+    "postgres": "^3.4.4",
+    "sequelize": "^6.21.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.11",

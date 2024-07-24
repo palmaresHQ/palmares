@@ -26,7 +26,7 @@ export function uuid<
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
   TCustomAttributes = any,
-  TAutoGenerate extends boolean = false,
+  TAutoGenerate extends boolean = false
 >(
   params: UUIDFieldParamsType<
     UuidField,
@@ -63,7 +63,7 @@ export default class UuidField<
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
   TCustomAttributes = any,
-  TAutoGenerate extends boolean = false,
+  TAutoGenerate extends boolean = false
 > extends TextField<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
   declare _type: TType;
   typeName: string = UuidField.name;
@@ -84,7 +84,7 @@ export default class UuidField<
     super({
       isAuto: (typeof params.autoGenerate === 'boolean' ? params.autoGenerate : false) as any,
       unique: (typeof params.autoGenerate === 'boolean' && params.autoGenerate ? true : params.unique) as any,
-      ...params,
+      ...params
     });
     this.autoGenerate = typeof params.autoGenerate === 'boolean' ? params.autoGenerate : (false as TAutoGenerate);
   }
@@ -105,7 +105,7 @@ export default class UuidField<
     // eslint-disable-next-line no-shadow
     TCustomAttributes = any,
     // eslint-disable-next-line no-shadow
-    TAutoGenerate extends boolean = false,
+    TAutoGenerate extends boolean = false
   >(
     this: TField,
     params: UUIDFieldParamsType<
@@ -133,7 +133,8 @@ export default class UuidField<
   }
 
   /**
-   * This is mostly used internally by the engine to stringify the contents of the field on migrations. But you can override this if you want to extend the UuidField class.
+   * This is mostly used internally by the engine to stringify the contents of the field on
+   * migrations. But you can override this if you want to extend the UuidField class.
    *
    * @example
    * ```
@@ -148,7 +149,8 @@ export default class UuidField<
    * }
    * ```
    *
-   * On this example, your custom UuidField instance defines a `aCustomValue` property that will be added on the migrations. It is useful if you have created a custom field and wants to
+   * On this example, your custom UuidField instance defines a `aCustomValue` property that will be
+   * added on the migrations. It is useful if you have created a custom field and wants to
    * implement a custom logic during migrations.
    *
    * @param indentation - The number of spaces to use for indentation. Use `'  '.repeat(indentation + 1);`
@@ -163,7 +165,8 @@ export default class UuidField<
   }
 
   /**
-   * This is used internally by the engine to compare if the field is equal to another field. You can override this if you want to extend the UuidField class.
+   * This is used internally by the engine to compare if the field is equal to another field.
+   * You can override this if you want to extend the UuidField class.
    *
    * @example
    * ```
@@ -173,7 +176,7 @@ export default class UuidField<
    *   compare(field:Field) {
    *      const fieldAsText = field as TextField;
    *      const isCustomValueEqual = fieldAsText.aCustomValue === this.aCustomValue;
-   *      const [isEqual, changedAttributes] = super.compare(field);
+   *      const [isEqual, changedAttributes] = await super.compare(field);
    *      if (!isCustomValueEqual) changedAttributes.push('aCustomValue');
    *      return [isCustomValueEqual && isEqual, changedAttributes]
    *   }
@@ -184,16 +187,17 @@ export default class UuidField<
    *
    * @returns A promise that resolves to a boolean indicating if the field is equal to the other field.
    */
-  compare(field: Field): [boolean, string[]] {
+  async compare(field: Field): Promise<[boolean, string[]]> {
     const fieldAsUuid = field as UuidField;
     const isAutoGenerateEqual = fieldAsUuid.autoGenerate === this.autoGenerate;
-    const [isEqual, changedAttributes] = super.compare(field);
+    const [isEqual, changedAttributes] = await super.compare(field);
     if (!isAutoGenerateEqual) changedAttributes.push('autoGenerate');
     return [isAutoGenerateEqual && isEqual, changedAttributes];
   }
 
   /**
-   * This is used internally by the engine for cloning the field to a new instance. By doing that you are able to get the constructor options of the field.
+   * This is used internally by the engine for cloning the field to a new instance.
+   * By doing that you are able to get the constructor options of the field.
    *
    * @example
    * ```
@@ -219,7 +223,7 @@ export default class UuidField<
     const defaultConstructorOptions = await super.constructorOptions(field);
     return {
       ...defaultConstructorOptions,
-      autoGenerate: field.autoGenerate,
+      autoGenerate: field.autoGenerate
     };
   }
 }

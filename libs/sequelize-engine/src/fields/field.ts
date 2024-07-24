@@ -1,23 +1,17 @@
-import {
-  CharField,
-  TextField,
-  UuidField,
-  adapterFieldParser
-} from '@palmares/databases';
+import { CharField, TextField, UuidField, adapterFieldParser } from '@palmares/databases';
 
 import { appendIndexes } from '../utils';
 
 import type { TranslatedFieldToEvaluateAfterType } from '../types';
-import type {
-  AdapterFieldParserTranslateArgs} from '@palmares/databases';
+import type { AdapterFieldParserTranslateArgs } from '@palmares/databases';
 import type { ModelAttributeColumnOptions } from 'sequelize';
 
 // eslint-disable-next-line ts/require-await
 async function textFieldValidations(field: CharField | TextField) {
   return {
     validate: {
-      notEmpty: typeof field.allowBlank === 'boolean' ? !field.allowBlank : false,
-    },
+      notEmpty: typeof field.allowBlank === 'boolean' ? !field.allowBlank : false
+    }
   } as ModelAttributeColumnOptions;
 }
 
@@ -25,7 +19,7 @@ export default adapterFieldParser({
   translate: async ({
     engine,
     field,
-    modelName,
+    modelName
   }: AdapterFieldParserTranslateArgs<
     any,
     any,
@@ -60,5 +54,5 @@ export default adapterFieldParser({
     if (isFieldOfTypeText) await textFieldValidations(field as TextField);
 
     return defaultOptions;
-  },
+  }
 });

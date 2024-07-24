@@ -337,8 +337,8 @@ async function callQueryDataFn<
         ? data // trust me, doing this async is faster than doing it sync
         : [data]
       : Array.isArray(data)
-      ? data
-      : [data]
+        ? data
+        : [data]
   ).filter((eachData) => eachData !== undefined) as
     | ModelFieldsWithIncludes<
         TModel,
@@ -1067,13 +1067,6 @@ async function resultsFromRelatedModels<
       modelConstructor.associations[includedModelConstructor.originalName()] || []
     : // eslint-disable-next-line ts/no-unnecessary-condition
       includedModelConstructor.associations[modelConstructor.originalName()] || [];
-  console.log(
-    filteredRelatedNamesDirectlyOrIndirectlyRelatedToModel,
-    relatedNamesDirectlyOrIndirectlyRelatedToModel,
-    modelConstructor.directlyRelatedTo,
-    modelConstructor.indirectlyRelatedTo,
-    includedModelConstructor.originalName()
-  );
   const promises = filteredRelatedNamesDirectlyOrIndirectlyRelatedToModel.map(async (relationNameOrRelatedName) => {
     const searchForRelatedModel:
       | ModelFieldsWithIncludes<TIncludedModel, TIncludesOfIncluded, TFieldsOfIncluded, false, false, true, true>
@@ -1116,7 +1109,6 @@ async function resultsFromRelatedModels<
       data
     };
 
-    console.log('isToGetResultsWithSearch', isToGetResultsWithSearch, isToGetResultsWithoutSearch);
     if (isToGetResultsWithSearch) {
       await resultsFromRelatedModelWithSearch(engine, parametersForResultsFromRelatedModelsWithAndWithoutSearch);
     } else if (isToGetResultsWithoutSearch) {
@@ -1215,9 +1207,8 @@ export default async function getResultsWithIncludes<
           ? modelConstructor.directlyRelatedTo[includedModelConstructor.originalName()]
           : modelConstructor.indirectlyRelatedTo[includedModelConstructor.originalName()]) || [];
       const isToFetchAnyRelatedNames = Array.isArray(include.relationNames)
-        ? relatedNamesDirectlyOrIndirectlyRelatedToModel.some(
-            (relatedNameDirectlyOrIndirectlyRelatedToModel: string) =>
-              include.relationNames?.includes(relatedNameDirectlyOrIndirectlyRelatedToModel)
+        ? relatedNamesDirectlyOrIndirectlyRelatedToModel.some((relatedNameDirectlyOrIndirectlyRelatedToModel: string) =>
+            include.relationNames?.includes(relatedNameDirectlyOrIndirectlyRelatedToModel)
           )
         : true;
       if (isToFetchAnyRelatedNames) {

@@ -6,9 +6,9 @@ import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import * as models from './models';
 import { db } from '../settings';
 
-export default domain('testingDatabases', __dirname, {
+export default domain('testingDrizzle', __dirname, {
   commands: {
-    migrate: {
+    drizzleMigrate: {
       description: 'Migrate the database using drizzle',
       keywordArgs: undefined,
       positionalArgs: undefined,
@@ -20,5 +20,5 @@ export default domain('testingDatabases', __dirname, {
   modifiers: [testDomainModifier, databaseDomainModifier] as const,
   getMigrations: () => [],
   getModels: () => models,
-  getTests: () => [__dirname + '/test.test.ts'],
+  getTests: () => [__dirname + '/drizzle.test.ts'],
 });

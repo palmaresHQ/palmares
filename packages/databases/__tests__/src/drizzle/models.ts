@@ -16,9 +16,8 @@ export class CompanyAbstract extends Model<CompanyAbstract>() {
   fields = {
     address: CharField.new({ maxLength: 255, allowNull: true }),
     translatable: TranslatableField.new({
-      translate: async (engine) => {
-        console.log('teeeeste')
-        return 'teste'
+      translate: async () => {
+        return `d.real('translatable')`
       }
     })
   }
