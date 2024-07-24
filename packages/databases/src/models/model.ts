@@ -1,14 +1,9 @@
-import {
-  ModelCircularAbstractError,
-  ModelInvalidAbstractFieldError,
-  ModelInvalidAbstractManagerError,
-  ModelNoUniqueFieldsError,
-} from './exceptions';
+import { ModelCircularAbstractError, ModelNoUniqueFieldsError } from './exceptions';
 import Manager, { DefaultManager } from './manager';
 import { factoryFunctionForModelTranslate, getDefaultModelOptions, indirectlyRelatedModels } from './utils';
 import { getUniqueCustomImports, hashString } from '../utils';
 
-import type {  Field, ForeignKeyField } from './fields';
+import type { Field, ForeignKeyField } from './fields';
 import type { CustomImportsForFieldType } from './fields/types';
 import type {
   ManagersOfInstanceType,
@@ -16,7 +11,7 @@ import type {
   ModelOptionsType,
   ModelType,
   onRemoveFunction,
-  onSetFunction,
+  onSetFunction
 } from './types';
 import type DatabaseAdapter from '../engine';
 import type { ExtractFieldsFromAbstracts, ExtractManagersFromAbstracts } from '../types';
@@ -28,7 +23,8 @@ export class BaseModel {
 
   static isState = false;
 
-  // It would be kinda bad on performance if we always looped through all of the fields of a model to parse them. So we store the fields that have parsers here and we will
+  // It would be kinda bad on performance if we always looped through all of the fields of a model to parse them.
+  // So we store the fields that have parsers here and we will
   // loop through it here.
   static fieldParsersByEngine = new Map<
     string,
@@ -52,9 +48,11 @@ export class BaseModel {
   static __lazyFields?: ModelFieldsType = {};
   protected static __cachedHashedName?: string;
   protected static __cachedName: string;
+
   protected static __cachedOriginalName: string;
   protected static __cachedFields: ModelFieldsType | undefined = undefined;
   protected static __cachedOptions: ModelOptionsType<any> | undefined = undefined;
+  protected static __hasLoadedManagers = false;
   protected static __cachedManagers: ManagersOfInstanceType | undefined = undefined;
   protected static __hasLoadedAbstracts = false;
   protected static __instance: Model & BaseModel;
@@ -76,12 +74,12 @@ export class BaseModel {
     engineInstance: DatabaseAdapter,
     modelInstance: Model & BaseModel,
     translatedModelInstance: {
-      instance: any,
+      instance: any;
       modifyItself: (newTranslation: any) => void;
     }
   ) {
     const modelConstructor = this.constructor as ModelType;
-    const managers: ManagersOfInstanceType = modelConstructor.__getManagers(modelConstructor);
+    const managers: ManagersOfInstanceType = modelConstructor.__getManagers();
     const managerValues = Object.values(managers);
 
     for (const manager of managerValues) {
@@ -95,8 +93,9 @@ export class BaseModel {
    * This will add event listeners to the model. So when an event like `.set` or `.remove` is triggered, we will call
    * the event handler that was defined in the model using the `onSet` or `onRemove` options.
    *
-   * By default we will take care to prevent the same data being triggered twice. So we stringify the data and compare it, so for example
-   * if a model is trying to save the same data it received through an event it will not trigger the event again by default.
+   * By default we will take care to prevent the same data being triggered twice.
+   * So we stringify the data and compare it, so for example if a model is trying to save the same data it
+   * received through an event it will not trigger the event again by default.
    *
    * @param engineInstance - The current engine instance we are initializing this model instance
    */
@@ -161,7 +160,6 @@ export class BaseModel {
       forceTranslate?: boolean;
     }
   ) {
-
     if (this._initialized[engineInstance.connectionName]) return this._initialized[engineInstance.connectionName];
 
     const currentPalmaresModelInstance = new this() as Model & BaseModel;
@@ -177,30 +175,28 @@ export class BaseModel {
     );
     const [initializedModelInstance, _] = await Promise.all([
       functionToCallToTranslateModel(),
-      currentPalmaresModelInstance.#initializeEvents(engineInstance),
+      currentPalmaresModelInstance.#initializeEvents(engineInstance)
     ]);
     const translated = {
       instance: initializedModelInstance,
       modifyItself: (newTranslatedInstance: any) => {
         translated.instance = newTranslatedInstance;
-      },
-    }
-
-    await currentPalmaresModelInstance.#initializeManagers(
-      engineInstance,
-      currentPalmaresModelInstance,
-      translated
-    );
-    (this.constructor as typeof BaseModel)._initialized = {
-      [engineInstance.connectionName]: translated,
+      }
     };
-    return translated
+
+    await currentPalmaresModelInstance.#initializeManagers(engineInstance, currentPalmaresModelInstance, translated);
+    (this.constructor as typeof BaseModel)._initialized = {
+      [engineInstance.connectionName]: translated
+    };
+    return translated;
   }
 
   /**
-   * Compare this and another model to see if they are equal so we can create the migrations automatically for them. You see
-   * that we do not compare the fields, for the fields we have a hole set of `CRUD` operations if something changes there.
-   * So it doesn't matter if two models don't have the same set of fields, if the options are equal, then they are equal.
+   * Compare this and another model to see if they are equal so we can create the migrations automatically for them.
+   * You see that we do not compare the fields, for the fields we have a hole set of `CRUD` operations
+   * if something changes there.
+   * So it doesn't matter if two models don't have the same set of fields, if the options are equal,
+   * then they are equal.
    *
    * @param model - The model to compare to the current model.
    *
@@ -225,10 +221,11 @@ export class BaseModel {
    *
    * This is useful for getting the managers from an abstract model class.
    */
-  static __getManagers(modelConstructor: typeof Model) {
-    if (this.__cachedManagers === undefined) {
+  static __getManagers() {
+    if (this.__hasLoadedManagers !== true) {
+      this.__hasLoadedManagers = true;
       const managers: ManagersOfInstanceType = {};
-      let prototype = modelConstructor;
+      let prototype = this;
 
       // eslint-disable-next-line ts/no-unnecessary-condition
       while (prototype) {
@@ -240,9 +237,13 @@ export class BaseModel {
         }
         prototype = Object.getPrototypeOf(prototype);
       }
-      this.__cachedManagers = managers;
+      this.__cachedManagers = {
+        ...managers,
+        // eslint-disable-next-line ts/no-unnecessary-condition
+        ...(this.__cachedManagers || {})
+      };
     }
-    return this.__cachedManagers;
+    return this.__cachedManagers || {};
   }
 
   /**
@@ -250,7 +251,8 @@ export class BaseModel {
    * data in the current model:
    * fields, options, managers and other abstracts
    *
-   * So for fields we will just accept the ones not already defined in the field, if there is any clash we will throw an error.
+   * So for fields we will just accept the ones not already defined in the field, if there
+   * is any clash we will throw an error.
    * For options, we will only add them if the options are not already defined for the model.
    * Managers are similar to fields, we will not accept clashing managers with the same manager name.
    *
@@ -265,33 +267,32 @@ export class BaseModel {
     const abstractInstanceName = abstractConstructor.name;
 
     if (composedAbstracts.includes(abstractInstanceName))
-      throw new ModelCircularAbstractError(this.constructor.name, abstractInstanceName);
+      throw new ModelCircularAbstractError(this.name, abstractInstanceName);
 
     // Handle the abstracts and the managers from the abstract
-    const abstractManagers: [string, Manager][] = Object.entries(this.__getManagers(abstractConstructor));
-    const abstractFieldEntries = Object.entries(abstractInstance.fields);
-    abstractInstance.abstracts.forEach((abstractKlsFromAbstract) =>
-      this.__loadAbstract(abstractKlsFromAbstract as typeof Model & typeof BaseModel, composedAbstracts)
-    );
+    const abstractManagers: [string, Manager][] = Object.entries(abstractConstructor.__getManagers());
+    const abstractFieldEntries = Object.entries(abstractConstructor._fields());
 
     for (const [fieldName, field] of abstractFieldEntries) {
+      // Already has the same field on the model, so we will ignore it.
       // eslint-disable-next-line ts/no-unnecessary-condition
-      if (abstractInstance.fields[fieldName])
-        throw new ModelInvalidAbstractFieldError(this.constructor.name, abstractInstanceName, fieldName);
-      modelInstance.fields[fieldName] = field;
+      if (modelInstance.fields[fieldName] || modelConstructor.__lazyFields?.[fieldName]) continue;
+      modelConstructor.__lazyFields ??= {};
+      modelConstructor.__lazyFields[fieldName] = field;
     }
 
     // Handle options of the abstract
     const areAbstractInstanceOptionsDefined = Object.keys(abstractInstance.options || {}).length > 1;
-    if (modelInstance.options === undefined && areAbstractInstanceOptionsDefined) {
-      modelInstance.options = abstractInstance.options;
-      if (modelInstance.options) modelInstance.options.abstract = false;
+    if (modelConstructor.__cachedOptions === undefined && areAbstractInstanceOptionsDefined) {
+      modelConstructor.__cachedOptions = abstractConstructor._options();
+      //if (modelInstance.options) modelInstance.options.abstract = false;
     }
 
     for (const [managerName, managerInstance] of abstractManagers) {
       // eslint-disable-next-line ts/no-unnecessary-condition
-      if (modelConstructor[managerName])
-        throw new ModelInvalidAbstractManagerError(this.constructor.name, abstractInstanceName, managerName);
+      if (modelConstructor[managerName]) continue;
+
+      //throw new ModelInvalidAbstractManagerError(this.name, abstractInstanceName, managerName);
       modelConstructor[managerName] = managerInstance;
     }
   }
@@ -304,7 +305,7 @@ export class BaseModel {
   protected static __initializeAbstracts() {
     if (this.__hasLoadedAbstracts) return;
     const modelInstance = new this() as Model & BaseModel;
-    const alreadyComposedAbstracts = [this.constructor.name];
+    const alreadyComposedAbstracts = [this.name];
 
     for (const abstractModelConstructor of modelInstance.abstracts)
       this.__loadAbstract(abstractModelConstructor as typeof Model & typeof BaseModel, alreadyComposedAbstracts);
@@ -313,29 +314,37 @@ export class BaseModel {
 
   /**
    * This setups the indirect relations to the model. What we are doing is that we are setting the relatedTo
-   * property of the model in the engineInstance._indirectlyRelatedModels. By doing this when we update the value on this
-   * array it will update the `relatedTo` array inside of this model as well. With this we are able to know which models
-   * relates to this model.
+   * property of the model in the engineInstance._indirectlyRelatedModels. By doing this when we update
+   * the value on this array it will update the `relatedTo` array inside of this model as well. With this we are
+   * able to know which models relates to this model.
    */
   protected static __initializeRelatedToModels() {
     const originalModelName = this.originalName();
-    if (originalModelName in this.indirectlyRelatedModels)
+    if (originalModelName in this.indirectlyRelatedModels) {
       this.indirectlyRelatedTo = this.indirectlyRelatedModels[originalModelName];
+    } else {
+      this.indirectlyRelatedModels.$set[originalModelName] = this.__initializeRelatedToModels.bind(this);
+    }
   }
 
   static _options(modelInstance?: any) {
     // this and typeof Model means pretty much the same thing here.
     if (!modelInstance) modelInstance = new this() as Model & BaseModel;
 
+    const defaultOptions = getDefaultModelOptions();
     this.__initializeAbstracts();
-    const defaultOptions = getDefaultModelOptions()
+
     if (this.__cachedOptions === undefined) {
       const keysOfDefaultOptions = Object.keys(defaultOptions);
       for (const defaultModelOptionKey of keysOfDefaultOptions) {
         if (defaultModelOptionKey in (modelInstance.options || {}) === false)
-          (modelInstance.options)[defaultModelOptionKey] = (defaultOptions as any)[defaultModelOptionKey];
+          modelInstance.options[defaultModelOptionKey] = (defaultOptions as any)[defaultModelOptionKey];
       }
-      this.__cachedOptions = modelInstance.options;
+      this.__cachedOptions = {
+        ...(modelInstance.options || {}),
+        // eslint-disable-next-line ts/no-unnecessary-condition
+        ...(this.__cachedOptions || {})
+      };
     }
     return this.__cachedOptions;
   }
@@ -353,11 +362,11 @@ export class BaseModel {
       const allFields = Object.entries(fieldsDefinedOnModel);
 
       for (const [fieldName, field] of allFields) {
-        if ((field).unique) modelHasNoUniqueFields = false;
-        (field).init(fieldName, this as ModelType);
+        if (field.unique) modelHasNoUniqueFields = false;
+        field.init(fieldName, this as ModelType);
       }
 
-      if (modelHasNoUniqueFields) {
+      if (modelHasNoUniqueFields && this._options()?.abstract !== true) {
         throw new ModelNoUniqueFieldsError(this.constructor.name);
       }
 
@@ -378,7 +387,8 @@ export class BaseModel {
   }
 
   /**
-   * We use this so the name of the models does not clash with the original ones during migration. During migration we will have 2 instances of the same model running at the
+   * We use this so the name of the models does not clash with the original ones during migration.
+   * During migration we will have 2 instances of the same model running at the
    * same time:
    *
    * 1. The state model, built from the migration files.
@@ -393,7 +403,8 @@ export class BaseModel {
   }
 
   /**
-   * We use the original model name to create a hash name of the model, a hash name of the model is used so we can send events back and forth for the model between
+   * We use the original model name to create a hash name of the model, a hash name of the model is used so
+   * we can send events back and forth for the model between
    * multiple palmares instances.
    *
    * @returns - The hashed name of the model.
@@ -431,7 +442,7 @@ export class BaseModel {
     }
     return {
       asString: `${ident}{\n` + `${stringifiedFields.join('')}` + `\n${ident}}`,
-      customImports: customImportsOfModel,
+      customImports: customImportsOfModel
     };
   }
 
@@ -442,7 +453,7 @@ export class BaseModel {
 
     const newOptions = {
       ...getDefaultModelOptions(),
-      ...options,
+      ...options
     };
     return (
       `${ident}{\n` +
@@ -452,9 +463,7 @@ export class BaseModel {
         typeof newOptions.tableName === 'string' ? `"${newOptions.tableName}"` : newOptions.tableName
       },\n` +
       `${optionsIndent}managed: ${newOptions.managed},\n` +
-      `${optionsIndent}ordering: [${
-        options.ordering ? newOptions.ordering.map((field) => `"${field}"`) : ''
-      }],\n` +
+      `${optionsIndent}ordering: [${options.ordering ? newOptions.ordering.map((field) => `"${field}"`) : ''}],\n` +
       `${optionsIndent}indexes: [${
         options.indexes
           ? newOptions.indexes.map(
@@ -573,6 +582,8 @@ export default function model<TModel>() {
   let defaultManagerInstance: any = null;
 
   class DefaultModel extends Model {
+    static __lazyFields?: ModelFieldsType = {};
+
     static get default() {
       if (defaultManagerInstance === null) {
         defaultManagerInstance = new DefaultManager<TModel extends DefaultModel ? TModel : any>();
@@ -582,89 +593,105 @@ export default function model<TModel>() {
     }
 
     /**
-     * This will append fields to the current model. It is useful for extending the models so you can lazy load the fields. It
+     * This will append fields to the current model. It is useful for extending the models so you can
+     * lazy load the fields. It
      */
     static appendFields<TOtherFields extends ModelFieldsType>(fields: TOtherFields) {
       const modelConstructor = this as unknown as typeof Model & typeof BaseModel;
       const allFieldEntries = Object.entries(fields);
       for (const [fieldName, field] of allFieldEntries) {
         if (modelConstructor.__lazyFields?.[fieldName]) {
-          modelConstructor.__lazyFields[fieldName] = field
-        };
+          modelConstructor.__lazyFields[fieldName] = field;
+        }
       }
 
       return this as unknown as ReturnType<typeof model<TModel & { fields: TOtherFields }>> & {
         new (): TModel & { fields: TOtherFields };
       };
     }
-  };
+  }
 
-  return DefaultModel as unknown as typeof DefaultModel
+  return DefaultModel as unknown as typeof DefaultModel;
 }
 
 /**
  * Used for creating a model from a function instead of needing to define a class.
  */
 export function initialize<
-TFields extends ModelFieldsType,
-const TAbstracts extends readonly ReturnType<typeof model>[],
-TManagers extends {
-  [managerName: string]: {
-      [functionName: string]: (this: Manager<ReturnType<
-        typeof model<{
-          fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
-          options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
-        }>
-      > & {
-        fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
-        options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
-      // eslint-disable-next-line no-shadow
-      }>,...args: any) => any;
+  TFields extends ModelFieldsType,
+  const TAbstracts extends readonly ReturnType<typeof model>[],
+  TOptions extends ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>,
+  TManagers extends {
+    [managerName: string]: {
+      [functionName: string]: (
+        this: Manager<
+          ReturnType<
+            typeof model<{
+              fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
+              options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
+            }>
+          > & {
+            fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
+            options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
+            // eslint-disable-next-line no-shadow
+          }
+        >,
+        ...args: any
+      ) => any;
     };
-}>(
+  }
+>(
   modelName: string,
   args: {
     fields: TFields;
-    options?: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
+    options?: TOptions;
     abstracts?: TAbstracts;
     managers?: TManagers;
   }
 ) {
-
   type ModelFields = TFields & ExtractFieldsFromAbstracts<TAbstracts>;
   type AllManager = ExtractManagersFromAbstracts<TAbstracts> & {
-    [TManagerName in keyof TManagers]: Manager<ReturnType<
+    [TManagerName in keyof TManagers]: Manager<
+      ReturnType<
         typeof model<{
           fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
-          options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
+          options: TOptions;
         }>
       > & {
         fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
-        options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
-      }> & {
-        [TFunctionName in keyof TManagers[TManagerName]]: TManagers[TManagerName][TFunctionName];
+        options: TOptions;
       }
+    > & {
+      [TFunctionName in keyof TManagers[TManagerName]]: TManagers[TManagerName][TFunctionName];
+    };
   };
-  class ModelConstructor extends model<ModelConstructor>() {
+  class ModelConstructor extends model<
+    ModelConstructor & {
+      fields: ModelFields;
+      options: TOptions;
+    }
+  >() {
+    static __lazyFields?: ModelFieldsType = {};
     static __cachedName = modelName;
     static __cachedOriginalName = modelName;
+    static __cachedManagers = {};
 
     fields = args.fields as ModelFields;
-    options = args.options as ModelOptionsType<any>;
+    options = args.options as TOptions;
+    abstracts = args.abstracts || [];
   }
 
-  for (const [managerName, managerInstance] of Object.entries(args.managers || {}))
-    (ModelConstructor as any)[managerName] = managerInstance;
-
-  return ModelConstructor as unknown as ReturnType<
-    typeof model<ModelConstructor & {
-      fields: ModelFields;
-      options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
-    }>
-  > & {
-    new (): {
-      fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
-      options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
+  for (const [managerName, managerFunctions] of Object.entries(args.managers || {})) {
+    class NewManagerInstance extends Manager<any> {
+      static __lazyFields?: ModelFieldsType = {};
     }
-  } & AllManager
+    const managerInstance = new NewManagerInstance();
+    for (const [managerFunctionName, managerFunction] of Object.entries(managerFunctions)) {
+      (managerInstance as any)[managerFunctionName] = managerFunction.bind(managerInstance);
+    }
+    (ModelConstructor as any)[managerName] = managerInstance;
+    (ModelConstructor as any).__cachedManagers[managerName] = managerInstance;
+  }
+
+  return ModelConstructor as typeof ModelConstructor & AllManager;
 }

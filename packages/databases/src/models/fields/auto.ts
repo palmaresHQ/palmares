@@ -4,9 +4,11 @@ import type { FieldDefaultParamsType, MaybeNull } from './types';
 import type { This } from '../../types';
 
 /**
- * Functional approach for the creation of an AutoField instance. An AutoField is a field that is used as the primary key of the database.
+ * Functional approach for the creation of an AutoField instance. An AutoField is a field that
+ * is used as the primary key of the database.
  *
- * We recommend just using one AutoField per model (or BigAutoField) because you might face some issues with certain ORM's. For ALL use cases, this
+ * We recommend just using one AutoField per model (or BigAutoField) because you might face some
+ * issues with certain ORM's. For ALL use cases, this
  * field should be an integer.
  *
  * @example
@@ -27,7 +29,7 @@ export function auto<
   TNull extends boolean = false,
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any,
+  TCustomAttributes = any
 >(
   params: Omit<
     FieldDefaultParamsType<AutoField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>,
@@ -38,7 +40,8 @@ export function auto<
 }
 
 /**
- * We recommend just using one AutoField per model (or BigAutoField) because you might face some issues with certain ORM's. For ALL use cases, this
+ * We recommend just using one AutoField per model (or BigAutoField) because you might face some
+ * issues with certain ORM's. For ALL use cases, this
  * field should be an integer.
  *
  * @example
@@ -59,13 +62,14 @@ export default class AutoField<
   TNull extends boolean = false,
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any,
+  TCustomAttributes = any
 > extends Field<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
   declare _type: TType;
   typeName: string = AutoField.name;
 
   /**
-   * @deprecated Either use the `auto` function or the `AutoField.new` static method. Never create an instance of this class directly.
+   * @deprecated Either use the `auto` function or the `AutoField.new` static method. Never
+   * create an instance of this class directly.
    */
   constructor(
     params: Omit<
@@ -79,12 +83,13 @@ export default class AutoField<
       allowNull: false as TNull,
       unique: true as TUnique,
       dbIndex: true,
-      isAuto: true as TAuto,
+      isAuto: true as TAuto
     });
   }
 
   /**
-   * This method can be used to override the type of a field. This is useful for library maintainers that want to support the field type but the default type provided by palmares
+   * This method can be used to override the type of a field. This is useful for library maintainers
+   * that want to support the field type but the default type provided by palmares
    * is not the one that the user want to use.
    *
    * @example
@@ -123,7 +128,7 @@ export default class AutoField<
         TNull extends boolean = false,
         TAuto extends boolean = false,
         TDatabaseName extends string | null | undefined = undefined,
-        TCustomAttributes = any,
+        TCustomAttributes = any
       >(
         params?: Omit<
           FieldDefaultParamsType<AutoField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>,
@@ -156,7 +161,7 @@ export default class AutoField<
     TNull extends boolean = false,
     TAuto extends boolean = true,
     TDatabaseName extends string | null | undefined = undefined,
-    TCustomAttributes = any,
+    TCustomAttributes = any
   >(
     this: TFieldInstance,
     params: Omit<

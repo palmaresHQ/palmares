@@ -34,6 +34,7 @@
     "logging",
     "adapter"
   ],
+  "type": "module",
   "author": "Nicolas Melo",
   "license": "MIT",
   "bugs": {

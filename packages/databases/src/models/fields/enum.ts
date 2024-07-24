@@ -6,9 +6,11 @@ import type { This } from '../../types';
 import type { Narrow } from '@palmares/core';
 
 /**
- * Functional approach for the creation of a EnumField. We are not able to call it `enum` because it is a reserved keyword so we chose choices.
+ * Functional approach for the creation of a EnumField. We are not able to call it `enum` because
+ * it is a reserved keyword so we chose choices.
  *
- * A EnumField is really a ChoiceField. It is used to store one or more choices of values a column can have. With this field you can limit the values a column can have.
+ * A EnumField is really a ChoiceField. It is used to store one or more choices of values a column
+ * can have. With this field you can limit the values a column can have.
  * A text field will store a string, any string. By using enum you can narrow down the options.
  *
  * @example
@@ -23,7 +25,7 @@ export function choice<
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
   TCustomAttributes = any,
-  TEnumChoices extends string[] | Narrow<string[]> = string[],
+  TEnumChoices extends string[] | Narrow<string[]> = string[]
 >(
   params: EnumFieldParamsType<
     EnumField,
@@ -40,7 +42,8 @@ export function choice<
 }
 
 /**
- * A EnumField is really a ChoiceField. It is used to store one or more choices of values a column can have. With this field you can limit the values a column can have.
+ * A EnumField is really a ChoiceField. It is used to store one or more choices of values a
+ * column can have. With this field you can limit the values a column can have.
  * A text field will store a string, any string. By using enum you can narrow down the options.
  *
  * @example
@@ -60,7 +63,7 @@ export default class EnumField<
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
   TCustomAttributes = any,
-  TEnumChoices extends string[] = string[],
+  TEnumChoices extends string[] = string[]
 > extends UnopinionatedField<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
   declare _type: TType;
   choices: TEnumChoices;
@@ -98,7 +101,7 @@ export default class EnumField<
     // eslint-disable-next-line no-shadow
     TCustomAttributes = any,
     // eslint-disable-next-line no-shadow
-    TEnumChoices extends string[] | Narrow<string[]> = string[],
+    TEnumChoices extends string[] | Narrow<string[]> = string[]
   >(
     this: TField,
     params: EnumFieldParamsType<
@@ -126,81 +129,8 @@ export default class EnumField<
   }
 
   /**
-   * This method can be used to override the type of a field. This is useful for library maintainers that want to support the field type but the default type provided by palmares
-   * is not the one that the database engine supports.
-   *
-   * @example
-   * ```ts
-   * const MyCustomDatabaseEnumField = EnumField.overrideType<string>();
-   *
-   * // then the user can use as normal:
-   *
-   * const enumField = MyCustomDatabaseEnumField.new();
-   *
-   * // now the type inferred for the field will be a BigInt instead of a number.
-   * ```
-   *
-   * @example
-   * ```ts
-   * class MyCustomDatabaseEngineEnumFieldParser extends EngineEnumFieldParser {
-   *    static getFieldClass() {
-   *       return EnumField.overrideType<BigInt>();
-   *    }
-   * }
-   *
-   * // then the user can use like:
-   *
-   * const enumField = MyCustomDatabaseEngineEnumFieldParser.getFieldClass().new();
-   * ```
-   *
-   * ### Note
-   *
-   * Your library should provide documentation of the fields that are supported.
-   */
-  static overrideType<TNewType extends { input: any; output: any }>() {
-    return this as unknown as {
-      new: <
-        // eslint-disable-next-line no-shadow
-        TDefaultValue extends MaybeNull<TNewType['input'] | undefined, TNull> = undefined,
-        // eslint-disable-next-line no-shadow
-        TUnique extends boolean = false,
-        // eslint-disable-next-line no-shadow
-        TNull extends boolean = false,
-        // eslint-disable-next-line no-shadow
-        TAuto extends boolean = false,
-        // eslint-disable-next-line no-shadow
-        TDatabaseName extends string | null | undefined = undefined,
-        // eslint-disable-next-line no-shadow
-        TCustomAttributes = any,
-        // eslint-disable-next-line no-shadow
-        TEnumChoices extends string[] = string[],
-      >(
-        params: EnumFieldParamsType<
-          EnumField,
-          TDefaultValue,
-          TUnique,
-          TNull,
-          TAuto,
-          TDatabaseName,
-          TCustomAttributes,
-          TEnumChoices
-        >
-      ) => EnumField<
-        TNewType,
-        EnumField,
-        TDefaultValue,
-        TUnique,
-        TNull,
-        TAuto,
-        TDatabaseName,
-        TCustomAttributes,
-        TEnumChoices
-      >;
-    };
-  }
-
-  /**
-   * Return the string representation of the contents of this field. This is used internally by the framework to generate the migrations.
+   * Return the string representation of the contents of this field. This is used internally by the
+   * framework to generate the migrations.
    *
    * @example
    * ```
@@ -215,7 +145,8 @@ export default class EnumField<
    * }
    * ```
    *
-   * On this example, your custom EnumField instance defines a `aCustomValue` property that will be added on the migrations. It is useful if you have created a custom field and wants to
+   * On this example, your custom EnumField instance defines a `aCustomValue` property that will be
+   * added on the migrations. It is useful if you have created a custom field and wants to
    * implement a custom logic during migrations.
    *
    * @param indentation - The number of spaces to use for indentation.
@@ -225,11 +156,15 @@ export default class EnumField<
    */
   async toString(indentation = 0, _customParams: string | undefined = undefined) {
     const ident = '  '.repeat(indentation + 1);
-    return super.toString(indentation, `${ident}choices: [${this.choices.map((enumValue) => `'${enumValue}'`).join(', ')}],`);
+    return super.toString(
+      indentation,
+      `${ident}choices: [${this.choices.map((enumValue) => `'${enumValue}'`).join(', ')}],`
+    );
   }
 
   /**
-   * This is used internally by the engine to compare if the field is equal to another field. You can override this if you want to extend the EnumField class.
+   * This is used internally by the engine to compare if the field is equal to another field.
+   * You can override this if you want to extend the EnumField class.
    *
    * @example
    * ```
@@ -256,11 +191,12 @@ export default class EnumField<
     const [isEqual, changedAttributes] = super.compare(field);
 
     if (!isChoicesEqual) changedAttributes.push('choices');
-    return [isChoicesEqual && isEqual, changedAttributes]
+    return [isChoicesEqual && isEqual, changedAttributes];
   }
 
   /**
-   * This is used internally by the engine for cloning the field to a new instance. By doing that you are able to get the constructor options of the field.
+   * This is used internally by the engine for cloning the field to a new instance. By doing that
+   * you are able to get the constructor options of the field.
    *
    * @example
    * ```
@@ -286,7 +222,67 @@ export default class EnumField<
     const defaultConstructorOptions = await super.constructorOptions(field);
     return {
       ...defaultConstructorOptions,
-      choices: (field as unknown as EnumField).choices,
+      choices: (field as unknown as EnumField).choices
+    };
+  }
+
+  /**
+   * This method can be used to override the type of a field. This is useful for library
+   * maintainers that want to support the field type but the default type provided by palmares
+   * is not the one that the user want to use.
+   *
+   * @example
+   * ```ts
+   * const MyCustomDatabaseAutoField = AutoField.overrideType<{ input: string; output: string }>();
+   *
+   * // then the user can use as normal:
+   *
+   * const autoField = MyCustomDatabaseAutoField.new();
+   *
+   * // now the type inferred for the field will be a string instead of a number.
+   * ```
+   *
+   * ### Note
+   *
+   * Your library should provide documentation of the fields that are supported.
+   */
+  static overrideType<TNewType extends { input: any; output: any }, TCustomAttributes = any>() {
+    return this as unknown as {
+      new: <
+        // eslint-disable-next-line no-shadow
+        TDefaultValue extends MaybeNull<TEnumChoices[number] | undefined, TNull> = undefined,
+        // eslint-disable-next-line no-shadow
+        TUnique extends boolean = false,
+        // eslint-disable-next-line no-shadow
+        TNull extends boolean = false,
+        // eslint-disable-next-line no-shadow
+        TAuto extends boolean = false,
+        // eslint-disable-next-line no-shadow
+        TDatabaseName extends string | null | undefined = undefined,
+        // eslint-disable-next-line no-shadow
+        TEnumChoices extends string[] | Narrow<string[]> = string[]
+      >(
+        params?: EnumFieldParamsType<
+          Field,
+          TDefaultValue,
+          TUnique,
+          TNull,
+          TAuto,
+          TDatabaseName,
+          TCustomAttributes,
+          TEnumChoices
+        >
+      ) => EnumField<
+        TNewType,
+        Field,
+        TDefaultValue,
+        TUnique,
+        TNull,
+        TAuto,
+        TDatabaseName,
+        TCustomAttributes,
+        TEnumChoices
+      >;
     };
   }
 }

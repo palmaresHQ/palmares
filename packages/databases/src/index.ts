@@ -2,6 +2,7 @@ import DatabasesDomain from './domain';
 import { model as Model, Model as ModelBaseClass } from './models';
 import * as fields from './models/fields';
 
+
 export * from './types';
 export { default as DatabaseAdapter, databaseAdapter } from './engine';
 export { default as AdapterQuery, adapterQuery } from './engine/query';

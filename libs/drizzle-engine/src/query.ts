@@ -1,4 +1,11 @@
-import { adapterGetQuery, adapterOrderingQuery, adapterQuery, adapterRemoveQuery, adapterSearchQuery, adapterSetQuery } from "@palmares/databases";
+import {
+  adapterGetQuery,
+  adapterOrderingQuery,
+  adapterQuery,
+  adapterRemoveQuery,
+  adapterSearchQuery,
+  adapterSetQuery
+} from '@palmares/databases';
 import {
   and,
   asc,
@@ -20,17 +27,18 @@ import {
   notInArray,
   notLike,
   or
-} from "drizzle-orm";
+} from 'drizzle-orm';
 
 const getQuery = adapterGetQuery({
   // eslint-disable-next-line ts/require-await
   queryData: async (engine, args) => {
-    return engine.instance.instance.select()
-    .from(args.modelOfEngineInstance)
-    .where(and(...Object.values(args.search) as any))
-    .orderBy(...(args.ordering || []));
+    return engine.instance.instance
+      .select()
+      .from(args.modelOfEngineInstance)
+      .where(and(...(Object.values(args.search) as any)))
+      .orderBy(...(args.ordering || []));
   }
-})
+});
 
 const setQuery = adapterSetQuery({
   queryData: async (engine, args) => {
@@ -38,15 +46,20 @@ const setQuery = adapterSetQuery({
     return Promise.all(
       args.data.map(async (eachData: any) => {
         if (engine.instance.mainType === 'sqlite' || engine.instance.mainType === 'postgres') {
-          if (Object.keys(args.search).length > 0) return [
-            false,
-            (await engineInstanceOrTransaction
-              .update(args.modelOfEngineInstance)
-              .set(eachData)
-              .where(
-                and(...Object.values(args.search) as any)
-              ).returning())];
-          else return [true, (await engineInstanceOrTransaction.insert(args.modelOfEngineInstance).values(eachData).returning())]
+          if (Object.keys(args.search).length > 0)
+            return [
+              false,
+              await engineInstanceOrTransaction
+                .update(args.modelOfEngineInstance)
+                .set(eachData)
+                .where(and(...(Object.values(args.search) as any)))
+                .returning()
+            ];
+          else
+            return [
+              true,
+              await engineInstanceOrTransaction.insert(args.modelOfEngineInstance).values(eachData).returning()
+            ];
         }
       })
     );
@@ -60,10 +73,13 @@ const removeQuery = adapterRemoveQuery({
     if (engine.instance.mainType === 'sqlite' || engine.instance.mainType === 'postgres')
       return engineInstanceOrTransaction.delete(args.modelOfEngineInstance).where(args.search).returning();
     else {
-      const dataToBeDeleted = args.shouldReturnData !== false ? await engine.instance.instance.select()
-        .from(args.modelOfEngineInstance)
-        .where(and(...Object.values(args.search) as any))
-        : [];
+      const dataToBeDeleted =
+        args.shouldReturnData !== false
+          ? await engine.instance.instance
+              .select()
+              .from(args.modelOfEngineInstance)
+              .where(and(...(Object.values(args.search) as any)))
+          : [];
 
       await engineInstanceOrTransaction.delete(args.modelOfEngineInstance).where(args.search);
       return dataToBeDeleted;
@@ -83,14 +99,7 @@ const order = adapterOrderingQuery({
 
 const search = adapterSearchQuery({
   // eslint-disable-next-line ts/require-await
-  parseSearchFieldValue: async (
-    operationType,
-    key,
-    model,
-    value,
-    result,
-    options
-  ) => {
+  parseSearchFieldValue: async (operationType, key, model, value, result, options) => {
     switch (operationType) {
       case 'like':
         if (options?.ignoreCase) result[key] = ilike(model[key], value as string);
@@ -99,26 +108,22 @@ const search = adapterSearchQuery({
         else result[key] = like(model[key], value as string);
         return;
       case 'is':
-        if (value === null && options?.isNot)
+        if (value === null && options?.isNot) {
           result[key] = isNotNull(model[key]);
-        else if (value === null)
+          return;
+        } else if (value === null) {
           result[key] = isNull(model[key]);
-        else if (options?.isNot)
-          result[key] = not(eq(model[key], value));
-        else
-          result[key] = eq(model[key], value);
+          return;
+        } else if (options?.isNot) result[key] = not(eq(model[key], value));
+        else result[key] = eq(model[key], value);
         return;
       case 'in':
-        if (options?.isNot)
-          result[key] = notInArray(model[key], value as any[]);
-        else
-          result[key] = inArray(model[key], value as any[]);
+        if (options?.isNot) result[key] = notInArray(model[key], value as any[]);
+        else result[key] = inArray(model[key], value as any[]);
         return;
       case 'between':
-        if (options?.isNot)
-          result[key] = notBetween(model[key], value as any[][0], value as any[][1])
-        else
-          result[key] = between(model[key], value as any[][0], value as any[][1]);
+        if (options?.isNot) result[key] = notBetween(model[key], value as any[][0], value as any[][1]);
+        else result[key] = between(model[key], value as any[][0], value as any[][1]);
         return;
       case 'and':
         result[key] = and(eq(model[key], value), eq(model[key], value));
@@ -142,7 +147,7 @@ const search = adapterSearchQuery({
         result[key] = eq(model[key], value);
     }
   }
-})
+});
 
 export default adapterQuery({
   search: new search(),
@@ -150,4 +155,4 @@ export default adapterQuery({
   get: new getQuery(),
   set: new setQuery(),
   remove: new removeQuery()
-})
+});

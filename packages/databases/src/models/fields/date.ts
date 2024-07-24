@@ -6,7 +6,8 @@ import type { This } from '../../types';
 /**
  * Functional approach for the creation of a DateField.
  *
- * A DateField is a field is used to store dates. It can be used to store dates and times or just dates. It depends on the database engine.
+ * A DateField is a field is used to store dates. It can be used to store dates and times or
+ * just dates. It depends on the database engine.
  * We support both `Date` and `string` as the input and output types.
  *
  * @example
@@ -28,7 +29,7 @@ export function date<
   TDatabaseName extends string | null | undefined = undefined,
   TCustomAttributes = any,
   TAutoNow extends boolean = false,
-  TAutoNowAdd extends boolean = false,
+  TAutoNowAdd extends boolean = false
 >(
   params: DateFieldParamsType<
     DateField,
@@ -46,7 +47,8 @@ export function date<
 }
 
 /**
- * A DateField is a field is used to store dates. It can be used to store dates and times or just dates. It depends on the database engine.
+ * A DateField is a field is used to store dates. It can be used to store dates and times or
+ * just dates. It depends on the database engine.
  * We support both `Date` and `string` as the input and output types.
  *
  * @example
@@ -73,7 +75,7 @@ export default class DateField<
   TDatabaseName extends string | null | undefined = undefined,
   TCustomAttributes = any,
   TAutoNow extends boolean = false,
-  TAutoNowAdd extends boolean = false,
+  TAutoNowAdd extends boolean = false
 > extends Field<
   TType,
   TField,
@@ -90,7 +92,8 @@ export default class DateField<
   autoNowAdd: TAutoNowAdd;
 
   /**
-   * @deprecated Either use the `date` function or the `DateField.new` static method. Never create an instance of this class directly.
+   * @deprecated Either use the `date` function or the `DateField.new` static method.
+   * Never create an instance of this class directly.
    */
   constructor(
     params: DateFieldParamsType<
@@ -128,7 +131,7 @@ export default class DateField<
     // eslint-disable-next-line no-shadow
     TAutoNow extends boolean = false,
     // eslint-disable-next-line no-shadow
-    TAutoNowAdd extends boolean = false,
+    TAutoNowAdd extends boolean = false
   >(
     this: TField,
     params?: DateFieldParamsType<
@@ -161,7 +164,8 @@ export default class DateField<
   }
 
   /**
-   * This method can be used to override the type of a field. This is useful for library maintainers that want to support the field type but the default type provided by palmares
+   * This method can be used to override the type of a field. This is useful for library
+   * maintainers that want to support the field type but the default type provided by palmares
    * is not the one that the database engine supports.
    *
    * @example
@@ -210,7 +214,7 @@ export default class DateField<
         // eslint-disable-next-line no-shadow
         TAutoNow extends boolean = false,
         // eslint-disable-next-line no-shadow
-        TAutoNowAdd extends boolean = false,
+        TAutoNowAdd extends boolean = false
       >(
         params?: DateFieldParamsType<
           DateField,
@@ -237,7 +241,8 @@ export default class DateField<
   }
 
   /**
-   * This is mostly used internally by the engine to stringify the contents of the field on migrations. But you can override this if you want to extend the DateField class.
+   * This is mostly used internally by the engine to stringify the contents of the field
+   * on migrations. But you can override this if you want to extend the DateField class.
    *
    * @example
    * ```
@@ -252,7 +257,8 @@ export default class DateField<
    * }
    * ```
    *
-   * On this example, your custom DateField instance defines a `aCustomValue` property that will be added on the migrations. It is useful if you have created a custom field and wants to
+   * On this example, your custom DateField instance defines a `aCustomValue` property that will
+   * be added on the migrations. It is useful if you have created a custom field and wants to
    * implement a custom logic during migrations.
    *
    * @param indentation - The number of spaces to use for indentation. Use `'  '.repeat(indentation + 1);`
@@ -266,7 +272,8 @@ export default class DateField<
   }
 
   /**
-   * This is used internally by the engine to compare if the field is equal to another field. You can override this if you want to extend the DateField class.
+   * This is used internally by the engine to compare if the field is equal to another field.
+   * You can override this if you want to extend the DateField class.
    *
    * @example
    * ```
@@ -299,7 +306,8 @@ export default class DateField<
   }
 
   /**
-   * This is used internally by the engine for cloning the field to a new instance. By doing that you are able to get the constructor options of the field.
+   * This is used internally by the engine for cloning the field to a new instance. By doing that
+   * you are able to get the constructor options of the field.
    *
    * @example
    * ```
@@ -326,7 +334,7 @@ export default class DateField<
     return {
       ...defaultConstructorOptions,
       autoNow: field.autoNow,
-      autoNowAdd: field.autoNowAdd,
+      autoNowAdd: field.autoNowAdd
     };
   }
 }

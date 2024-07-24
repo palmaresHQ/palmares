@@ -17,12 +17,12 @@ import type {
   ManagerInstancesType,
   ModelFieldsWithIncludes,
   ModelType,
-  OrderingOfModelsType,
+  OrderingOfModelsType
 } from './types';
 import type DatabaseAdapter from '../engine';
 import type { DatabaseDomainInterface } from '../interfaces';
 import type { DatabaseSettingsType } from '../types';
-import type { Narrow , SettingsType2} from '@palmares/core';
+import type { Narrow, SettingsType2 } from '@palmares/core';
 
 /**
  * Managers define how you make queries on the database. Instead of making queries everywhere in your application
@@ -138,7 +138,6 @@ export default class Manager<TModel = Model, TEI extends DatabaseAdapter | null 
   async getInstance<T extends DatabaseAdapter = DatabaseAdapter>(
     engineName?: string
   ): Promise<TEI extends DatabaseAdapter ? TEI['ModelType'] : T['ModelType']> {
-
     const engineInstanceName = engineName || this.defaultEngineInstanceName;
     const doesInstanceExists = (this.instances as any)[engineInstanceName] !== undefined;
     if (doesInstanceExists) return this.instances[engineInstanceName].instance;
@@ -185,39 +184,43 @@ export default class Manager<TModel = Model, TEI extends DatabaseAdapter | null 
         model: ReturnType<typeof model>;
         includes?: Includes;
       }[];
-      const promises: Promise<void>[] = includesAsArray.map(async ({ model: initializedModel, includes: includesOfModel }) => {
-        const modelName = initializedModel.name;
-        const isModelAlreadyGot = modelInstancesByModelName[modelName] !== undefined;
+      const promises: Promise<void>[] = includesAsArray.map(
+        async ({ model: initializedModel, includes: includesOfModel }) => {
+          const modelName = initializedModel.name;
+          const isModelAlreadyGot = modelInstancesByModelName[modelName] !== undefined;
 
-        const modelInstance = isModelAlreadyGot
-          ? modelInstancesByModelName[modelName]
-          : await initializedModel.default.getInstance(engineName);
+          const modelInstance = isModelAlreadyGot
+            ? modelInstancesByModelName[modelName]
+            : await initializedModel.default.getInstance(engineName);
 
-        if (isModelAlreadyGot === false) modelInstancesByModelName[modelName] = modelInstance;
+          if (isModelAlreadyGot === false) modelInstancesByModelName[modelName] = modelInstance;
 
-        const includeInstanceForModel: IncludesInstances = {
-          model: modelInstance,
-        };
-        includesInstances.push(includeInstanceForModel);
-        if (includesOfModel)
-          await this.#getIncludeInstancesRecursively(
-            engineName,
-            includesOfModel,
-            modelInstancesByModelName,
-            includeInstanceForModel.includes || []
-          );
-      });
+          const includeInstanceForModel: IncludesInstances = {
+            model: modelInstance
+          };
+          includesInstances.push(includeInstanceForModel);
+          if (includesOfModel)
+            await this.#getIncludeInstancesRecursively(
+              engineName,
+              includesOfModel,
+              modelInstancesByModelName,
+              includeInstanceForModel.includes || []
+            );
+        }
+      );
       await Promise.all(promises);
     }
     return includesInstances;
   }
 
   /**
-   * A simple get method for retrieving the data of a model. It will ALWAYS be an array, it's the programmers responsibility
+   * A simple get method for retrieving the data of a model. It will ALWAYS be an array, it's
+   * the programmers responsibility
    * to filter it accordingly if he want to retrieve an instance.
    *
    * @param search - All of the parameters of a model that can be optional for querying.
-   * @param engineName - The name of the engine to use defined in the DATABASES object. By default we use the `default` one.
+   * @param engineName - The name of the engine to use defined in the DATABASES object. By default we use the
+   * `default` one.
    *
    * @return - An array of instances retrieved by this query.
    */
@@ -227,12 +230,13 @@ export default class Manager<TModel = Model, TEI extends DatabaseAdapter | null 
       ordering?: readonly (string | `-${string}`)[];
       limit?: number;
       offset?: number | string;
-    }> = undefined,
-    TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>,
+    }>,
+    TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>
   >(
     args?: {
       /**
-       * Includes is used for making relations. Because everything is inferred and you define your relationName directly on the ForeignKeyField
+       * Includes is used for making relations. Because everything is inferred and you define your relationName
+       * directly on the ForeignKeyField
        */
       includes?: Narrow<IncludesValidated<TModel, TIncludes>>;
       fields?: Narrow<TFields>;
@@ -264,14 +268,14 @@ export default class Manager<TModel = Model, TEI extends DatabaseAdapter | null 
       {
         fields: (args?.fields || allFieldsOfModel) as unknown as TFields,
         search: (args?.search || {}) as ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true>,
-        ordering: args?.ordering || modelInstance.options?.ordering as any,
+        ordering: args?.ordering || (modelInstance.options?.ordering as any),
         limit: args?.limit,
-        offset: args?.offset,
+        offset: args?.offset
       },
       {
         model: this.models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName],
         engine: engineInstance,
-        includes: (args?.includes || []) as TIncludes,
+        includes: (args?.includes || []) as TIncludes
       }
     ) as Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]>;
   }
@@ -293,7 +297,8 @@ export default class Manager<TModel = Model, TEI extends DatabaseAdapter | null 
    * then all parameters will be optional, otherwise some of the parameters will be obligatory because you are
    * creating an instance.
    * @param search - All of the parameters of a model that can be optional for querying.
-   * @param engineName - The name of the engine to use defined in the DATABASES object. By default we use the `default` one.
+   * @param engineName - The name of the engine to use defined in the DATABASES object. By default we use the
+   * `default` one.
    *
    * @return - Return the created instance or undefined if something went wrong, or boolean if it's an update.
    */
@@ -301,7 +306,7 @@ export default class Manager<TModel = Model, TEI extends DatabaseAdapter | null 
     TIncludes extends Includes = undefined,
     TSearch extends
       | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
-      | undefined = undefined,
+      | undefined = undefined
   >(
     data:
       | ModelFieldsWithIncludes<
@@ -326,8 +331,8 @@ export default class Manager<TModel = Model, TEI extends DatabaseAdapter | null 
       isToPreventEvents?: boolean;
       transaction?: any;
       /**
-       * This is enabled by default if you are inserting more than one element or if you use includes, it can make you code slower, but
-       * it will guarantee that the data is consistent.
+       * This is enabled by default if you are inserting more than one element or if you use includes, it can make
+       * your code slower, but it will guarantee that the data is consistent.
        */
       useTransaction?: boolean;
       usePalmaresTransaction?: boolean;
@@ -359,13 +364,13 @@ export default class Manager<TModel = Model, TEI extends DatabaseAdapter | null 
       {
         isToPreventEvents,
         useTransaction: args?.useTransaction,
-        search: args?.search,
+        search: args?.search
       },
       {
         model: this.getModel(engineInstanceName) as unknown as TModel,
         engine: engineInstance,
         transaction: args?.transaction,
-        includes: (args?.includes || []) as TIncludes,
+        includes: (args?.includes || []) as TIncludes
       }
     );
   }
@@ -375,14 +380,15 @@ export default class Manager<TModel = Model, TEI extends DatabaseAdapter | null 
    * might mean removing all of the instances of your database.
    *
    * @param search - All of the parameters of a model that can be used for querying.
-   * @param engineName - The name of the engine to use defined in the DATABASES object. By default we use the `default` one.
+   * @param engineName - The name of the engine to use defined in the DATABASES object. By default we use the
+   * `default` one.
    *
    * @return - Returns true if everything went fine and false otherwise.
    */
   async remove<
     TIncludes extends Includes<{
       isToPreventRemove?: true;
-    }> = undefined,
+    }> = undefined
   >(
     args?: {
       usePalmaresTransaction?: boolean;
@@ -435,12 +441,12 @@ export default class Manager<TModel = Model, TEI extends DatabaseAdapter | null 
         isToPreventEvents,
         useTransaction: args?.useTransaction,
         usePalmaresTransaction: args?.usePalmaresTransaction,
-        shouldRemove: shouldRemove,
+        shouldRemove: shouldRemove
       },
       {
         model: this.models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName],
         engine: engineInstance,
-        includes: (args?.includes || []) as TIncludes,
+        includes: (args?.includes || []) as TIncludes
       }
     ) as Promise<ModelFieldsWithIncludes<TModel, TIncludes>[]>;
   }

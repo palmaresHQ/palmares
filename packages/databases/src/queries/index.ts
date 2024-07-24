@@ -12,12 +12,13 @@ import type {
   Include,
   Includes,
   ModelFieldsWithIncludes,
-  OrderingOfModelsType,
+  OrderingOfModelsType
 } from '../models/types';
 import type Transaction from '../transaction';
 
 /**
- * Used for parsing the values of each field of the result of the query. With that the value that the user expects will be exactly what is returned from the query.
+ * Used for parsing the values of each field of the result of the query.
+ * With that the value that the user expects will be exactly what is returned from the query.
  */
 async function parseResults(
   engine: DatabaseAdapter,
@@ -44,7 +45,7 @@ async function parseResults(
               engine,
               fieldParser: engine.fields.fieldsParser,
               model: modelInstance as InstanceType<ReturnType<typeof model>> & BaseModel,
-              modelName: modelName,
+              modelName: modelName
             });
             (data as any)[key] = parsedValue;
           }
@@ -80,8 +81,10 @@ async function parseData(
         await Promise.all(
           fieldsInData.map(async (key) => {
             if (fieldNamesInModel.includes(key)) {
-              // This will pretty much format the data so that it can be saved on a custom orm. Sometimes a ORM might define a custom field value. Like Prisma. Prisma uses
-              // Decimal.js instead of normal numbers. Because of that we need to guarantee that the data is properly formatted before saving it to the database.
+              // This will pretty much format the data so that it can be saved on a custom orm.
+              // Sometimes a ORM might define a custom field value. Like Prisma. Prisma uses
+              // Decimal.js instead of normal numbers. Because of that we need to
+              // guarantee that the data is properly formatted before saving it to the database.
               formattedData[key] =
                 fieldsInModel[key].inputParsers.has(connectionName) && useInputParser
                   ? await fieldsInModel[key].inputParsers.get(connectionName)?.({
@@ -90,7 +93,7 @@ async function parseData(
                       engine,
                       fieldParser: engine.fields.fieldsParser,
                       model: modelInstance,
-                      modelName: modelConstructor.getName(),
+                      modelName: modelConstructor.getName()
                     })
                   : eachDataToFormat[key];
             }
@@ -117,22 +120,23 @@ async function getDataForOnSetOrOnRemoveOptionFunctions(
   return onSetOrOnRemove === 'onSet'
     ? {
         data: args.data,
-        search: args.search,
+        search: args.search
       }
     : {
         search: args.search,
         shouldRemove: args.shouldRemove,
-        shouldReturnData: args.shouldReturnData,
+        shouldReturnData: args.shouldReturnData
       };
 }
 
 /**
- * This method will save every data that we retrieve from the database to the palmares transaction object. This object will hold each transaction
- * that was made so we are able to roll everything back if something goes wrong. For example, if creating a user fails, we remove, if updating fails
+ * This method will save every data that we retrieve from the database to the palmares transaction object.
+ * This object will hold each transaction that was made so we are able to roll everything back if something
+ * goes wrong. For example, if creating a user fails, we remove, if updating fails
  * we use the `.set` method again to update the values to the previous ones as it was before the update.
  *
- * The palmares transaction instance should be garbage collected after the query is done. If the user fo some reason change the value of the result
- * of the query the rolled back data will be lost.
+ * The palmares transaction instance should be garbage collected after the query is done. If the user fo
+  some reason change the value of the result of the query the rolled back data will be lost.
  */
 // eslint-disable-next-line ts/require-await
 async function storePalmaresTransaction<
@@ -158,7 +162,7 @@ async function storePalmaresTransaction<
     InstanceType<TModelConstructor>,
     Includes,
     FieldsOFModelType<InstanceType<TModelConstructor>>
-  >[],
+  >[]
 >(
   engine: DatabaseAdapter,
   palmaresTransaction: Transaction | undefined,
@@ -174,17 +178,22 @@ async function storePalmaresTransaction<
 /**
  * TODO: This will fail, should be fixed.
  *
- * This method will fire the events that are related to the query. In other words, if we are doing a `set` operation for example we can notify
- * every listener that we are doing a `set` operation on this model. The nice thing about this is that it will use a layer if it exists.
+ * This method will fire the events that are related to the query. In other words, if we are doing a `set`
+ * operation for example we can notify every listener that we are doing a `set` operation on this model.
+ * The nice thing about this is that it will use a layer if it exists.
  *
- * So for example, let's say that application A and B has the model users. But they are completely different applications with different databases.
- * This means that we can sync the users from application A to application B. So when we do a `set` operation on application A we can notify
- * application B that we are doing a `set` operation on the users model. This way we can sync the users from application A to application B.
+ * So for example, let's say that application A and B has the model users. But they are completely different
+ * applications with different databases.
+ * This means that we can sync the users from application A to application B. So when we do a `set` operation
+ * on application A we can notify application B that we are doing a `set` operation on the users model.
+ * This way we can sync the users from application A to application B.
  *
  * So in other words, both applications will have the same users.
  *
- * Before syncing systems, for events that does not use a layer, we can just send a simple signal to notify that a user was created for example.
- * With this you can have side effects on your application. But we do not recommend using too much side effects because it can be hard to debug.
+ * Before syncing systems, for events that does not use a layer, we can just send a simple signal to
+ * notify that a user was created for example.
+ * With this you can have side effects on your application. But we do not recommend using too much
+ * side effects because it can be hard to debug.
  */
 async function fireEventsAfterQueryDataFn<
   TModel,
@@ -201,7 +210,7 @@ async function fireEventsAfterQueryDataFn<
         TSearch extends undefined ? false : true,
         false
       >[]
-    | undefined = undefined,
+    | undefined = undefined
 >(
   engine: DatabaseAdapter,
   args: {
@@ -230,7 +239,7 @@ async function fireEventsAfterQueryDataFn<
       data: args.parsedData,
       search: args.parsedSearch,
       shouldRemove: args.shouldRemove,
-      shouldReturnData: args.shouldReturnData,
+      shouldReturnData: args.shouldReturnData
     });
 
     const isDataTheSameReceivedThroughEvent = modelInstanceAsModel.stringfiedArgumentsOfEvents.has(
@@ -253,7 +262,8 @@ async function fireEventsAfterQueryDataFn<
 }
 
 /**
- * Calls the query data function to retrieve the results of the query. Query data function can be for either `set`, `remove` or `get` operations
+ * Calls the query data function to retrieve the results of the query. Query data function can be for either `set`,
+ * `remove` or `get` operations
  */
 async function callQueryDataFn<
   TModel,
@@ -274,7 +284,7 @@ async function callQueryDataFn<
     TModel,
     Includes,
     TFields
-  >[],
+  >[]
 >(
   engine: DatabaseAdapter,
   args: {
@@ -313,14 +323,13 @@ async function callQueryDataFn<
     data,
     transaction,
     queryDataFn,
-    resultToMergeWithData,
+    resultToMergeWithData
   } = args;
 
   const modelInstanceAsModel = modelInstance as InstanceType<ReturnType<typeof model>> & BaseModel;
   const modelConstructor = modelInstanceAsModel.constructor as ReturnType<typeof model> & typeof BaseModel;
   const fields = (args.fields || Object.keys(modelInstanceAsModel.fields)) as TFields;
-  const mergedSearchForData =
-    resultToMergeWithData !== undefined ? Object.assign(search ? search : {}, resultToMergeWithData) : search;
+  const mergedSearchForData = resultToMergeWithData !== undefined ? search : search;
 
   const mergedData = (
     resultToMergeWithData !== undefined
@@ -355,8 +364,11 @@ async function callQueryDataFn<
       parseData(engine, args.useParsers.input, modelInstanceAsModel, mergedData),
       (async () => {
         if (Array.isArray(ordering))
-          return engine.query.ordering.parseOrdering(translatedModelInstance, ordering as (`${string}` | `${string}`)[]);
-      })(),
+          return engine.query.ordering.parseOrdering(
+            translatedModelInstance,
+            ordering as (`${string}` | `${string}`)[]
+          );
+      })()
     ]);
     return (queryDataFn as any)(engine, {
       modelOfEngineInstance: translatedModelInstance,
@@ -368,7 +380,7 @@ async function callQueryDataFn<
       offset,
       limit,
       shouldRemove,
-      shouldReturnData: typeof args.shouldReturnData === 'boolean' ? args.shouldReturnData : true,
+      shouldReturnData: typeof args.shouldReturnData === 'boolean' ? args.shouldReturnData : true
     });
   }
 
@@ -380,7 +392,7 @@ async function callQueryDataFn<
           data: mergedData,
           search: mergedSearchForData,
           shouldRemove: shouldRemove,
-          shouldReturnData: args.shouldReturnData,
+          shouldReturnData: args.shouldReturnData
         });
         return onSetHandler(dataForFunction as any);
       }
@@ -391,7 +403,7 @@ async function callQueryDataFn<
           data: mergedData,
           search: mergedSearchForData,
           shouldRemove: shouldRemove,
-          shouldReturnData: args.shouldReturnData,
+          shouldReturnData: args.shouldReturnData
         });
         return onRemoveHandler(dataForFunction);
       }
@@ -401,7 +413,7 @@ async function callQueryDataFn<
         fields: fields as any,
         ordering: ordering as any,
         offset,
-        limit,
+        limit
       });
     else
       throw new UnmanagedModelsShouldImplementSpecialMethodsException(
@@ -423,9 +435,9 @@ async function callQueryDataFn<
       parsedSearch: mergedSearchForData,
       parsedData: mergedData,
       shouldRemove: args.shouldRemove || false,
-      shouldReturnData: args.shouldReturnData || false,
+      shouldReturnData: args.shouldReturnData || false
     }),
-    storePalmaresTransaction(engine, args.palmaresTransaction, modelConstructor, mergedSearchForData, queryDataResults),
+    storePalmaresTransaction(engine, args.palmaresTransaction, modelConstructor, mergedSearchForData, queryDataResults)
   ]);
 
   const modelName = modelConstructor.getName();
@@ -437,25 +449,25 @@ async function callQueryDataFn<
         queryDataResults.map(async (eachResult: [boolean, ModelFieldsWithIncludes<TModel, undefined, TFields>]) => {
           const isEachResultAnArray = Array.isArray(eachResult[1]);
           const eachResultAsArray = isEachResultAnArray ? eachResult[1] : [eachResult[1]];
-          await Promise.all((eachResultAsArray as any).map(async (eachResultData: any) => {
-            if (args.useParsers.output && Array.isArray(fieldsToParseOutput) && fieldsToParseOutput.length > 0)
-              args.results?.push(
-                await parseResults(
-                  engine,
-                  modelName,
-                  modelInstanceAsModel,
-                  fieldsToParseOutput,
-                  modelFields,
-                  eachResultData
-                ) as any
-              );
-            else
-              args.results?.push(eachResultData);
-          }));
+          await Promise.all(
+            (eachResultAsArray as any).map(async (eachResultData: any) => {
+              if (args.useParsers.output && Array.isArray(fieldsToParseOutput) && fieldsToParseOutput.length > 0)
+                args.results?.push(
+                  (await parseResults(
+                    engine,
+                    modelName,
+                    modelInstanceAsModel,
+                    fieldsToParseOutput,
+                    modelFields,
+                    eachResultData
+                  )) as any
+                );
+              else args.results?.push(eachResultData);
+            })
+          );
         })
-      )
-    }
-    else {
+      );
+    } else {
       if (args.useParsers.output && Array.isArray(fieldsToParseOutput) && fieldsToParseOutput.length > 0) {
         await Promise.all(
           queryDataResults.map(async (eachResult: any) => {
@@ -513,7 +525,7 @@ function getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName<
   TToField extends string,
   TRelatedName extends string,
   TRelationName extends string,
-  TIsDirectlyRelated extends boolean | undefined = undefined,
+  TIsDirectlyRelated extends boolean | undefined = undefined
 >(
   relatedField: ForeignKeyField<any, any, any, any, any, any, any, any, any, TToField, TRelatedName, TRelationName>,
   isDirectlyRelated?: TIsDirectlyRelated
@@ -531,7 +543,7 @@ function getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName<
       : relatedField.toField) as TIsDirectlyRelated extends true ? string : TToField,
     fieldNameOfRelationInIncludedModel: (isDirectlyRelated
       ? relatedField.toField
-      : relatedField.fieldName) as TIsDirectlyRelated extends true ? TToField : string,
+      : relatedField.fieldName) as TIsDirectlyRelated extends true ? TToField : string
   };
 }
 
@@ -551,7 +563,7 @@ async function resultsFromRelatedModelWithSearch<
     TModel,
     TIncludes,
     TFields
-  >[],
+  >[]
 >(
   engine: DatabaseAdapter,
   args: {
@@ -637,7 +649,7 @@ async function resultsFromRelatedModelWithSearch<
     } else {
       const nextSearch = {
         [parentFieldName]: uniqueFieldValueOnRelation,
-        ...args.search,
+        ...args.search
       };
 
       await getResultsWithIncludes(
@@ -693,7 +705,7 @@ async function resultsFromRelatedModelWithSearch<
       limit: args.limit,
       transaction: args.transaction,
       palmaresTransaction: args.palmaresTransaction,
-      isToPreventEvents: args.isToPreventEvents,
+      isToPreventEvents: args.isToPreventEvents
     });
   }
 }
@@ -722,7 +734,7 @@ async function resultsFromRelatedModelsWithoutSearch<
     TModel,
     TIncludes,
     TFields
-  >[],
+  >[]
 >(
   engine: DatabaseAdapter,
   args: {
@@ -774,11 +786,13 @@ async function resultsFromRelatedModelsWithoutSearch<
   const isARemoveOperationAndShouldGetResultsBeforeRemove = args.isRemoveOperation && args.isDirectlyRelated === false;
 
   /**
-   * When it is a set operation and it is directly related, we should first update or create the children and just after that we should
-   * update or create the parent model, this is why we bypass this here.
+   * When it is a set operation and it is directly related, we should first update or create the
+   * children and just after that we should update or create the parent model, this is why we bypass this here.
    *
-   * We also use the `resultOfChildren` to get the results of the children and then we use it to update the parent model since we will just get
-   * the data of the parent BEFORE the children are updated or created.
+   * We also use the `resultOfChildren` to get the results of the children and then we use it
+   * to update the parent model since we will just get the data of the parent BEFORE the children
+   *
+   * are updated or created.
    *
    * IMPORTANT: the for loop WILL work because it will be an array of `[undefined]`
    * ```
@@ -834,12 +848,12 @@ async function resultsFromRelatedModelsWithoutSearch<
     const nextSearch = (() => {
       if (args.isSetOperation)
         return {
-          ...((args.resultToMergeWithData as any) || {})[relationName],
+          ...((args.resultToMergeWithData as any) || {})[relationName]
         };
       else {
         const uniqueFieldValueOnRelation = (result as any)[parentFieldName];
         return {
-          [fieldNameOfRelationInIncludedModel]: uniqueFieldValueOnRelation,
+          [fieldNameOfRelationInIncludedModel]: uniqueFieldValueOnRelation
         };
       }
     })() as
@@ -855,7 +869,7 @@ async function resultsFromRelatedModelsWithoutSearch<
         result && (result as any)[parentFieldName]
           ? {
               ...dataToMerge,
-              [fieldNameOfRelationInIncludedModel]: (result as any)[parentFieldName],
+              [fieldNameOfRelationInIncludedModel]: (result as any)[parentFieldName]
             }
           : dataToMerge
       )
@@ -916,7 +930,7 @@ async function resultsFromRelatedModelsWithoutSearch<
       ordering: args.ordering,
       limit: args.limit,
       offset: args.offset,
-      isToPreventEvents: args.isToPreventEvents,
+      isToPreventEvents: args.isToPreventEvents
     });
     return;
   }
@@ -945,7 +959,7 @@ async function resultsFromRelatedModelsWithoutSearch<
       (resultOfChildren && (resultOfChildren as any)[fieldNameOfRelationInIncludedModel]
         ? {
             ...args.data,
-            [parentFieldName]: (resultOfChildren as any)[fieldNameOfRelationInIncludedModel],
+            [parentFieldName]: (resultOfChildren as any)[fieldNameOfRelationInIncludedModel]
           }
         : args.data) as
         | ModelFieldsWithIncludes<
@@ -994,7 +1008,7 @@ async function resultsFromRelatedModels<
     TIncludes,
     TFields
   >[],
-  TIsDirectlyRelated extends boolean = false,
+  TIsDirectlyRelated extends boolean = false
 >(
   engine: DatabaseAdapter,
   modelInstance: TModel,
@@ -1049,11 +1063,17 @@ async function resultsFromRelatedModels<
       )
     : relatedNamesDirectlyOrIndirectlyRelatedToModel;
   const associationsOfIncludedModel = isDirectlyRelated
-    // eslint-disable-next-line ts/no-unnecessary-condition
-    ? modelConstructor.associations[includedModelConstructor.originalName()] || []
-    // eslint-disable-next-line ts/no-unnecessary-condition
-    : includedModelConstructor.associations[modelConstructor.originalName()] || [];
-
+    ? // eslint-disable-next-line ts/no-unnecessary-condition
+      modelConstructor.associations[includedModelConstructor.originalName()] || []
+    : // eslint-disable-next-line ts/no-unnecessary-condition
+      includedModelConstructor.associations[modelConstructor.originalName()] || [];
+  console.log(
+    filteredRelatedNamesDirectlyOrIndirectlyRelatedToModel,
+    relatedNamesDirectlyOrIndirectlyRelatedToModel,
+    modelConstructor.directlyRelatedTo,
+    modelConstructor.indirectlyRelatedTo,
+    includedModelConstructor.originalName()
+  );
   const promises = filteredRelatedNamesDirectlyOrIndirectlyRelatedToModel.map(async (relationNameOrRelatedName) => {
     const searchForRelatedModel:
       | ModelFieldsWithIncludes<TIncludedModel, TIncludesOfIncluded, TFieldsOfIncluded, false, false, true, true>
@@ -1093,9 +1113,10 @@ async function resultsFromRelatedModels<
       isToPreventEvents,
       palmaresTransaction,
       resultToMergeWithData,
-      data,
+      data
     };
 
+    console.log('isToGetResultsWithSearch', isToGetResultsWithSearch, isToGetResultsWithoutSearch);
     if (isToGetResultsWithSearch) {
       await resultsFromRelatedModelWithSearch(engine, parametersForResultsFromRelatedModelsWithAndWithoutSearch);
     } else if (isToGetResultsWithoutSearch) {
@@ -1136,7 +1157,7 @@ export default async function getResultsWithIncludes<
     TModel,
     TIncludes,
     TFields
-  >[],
+  >[]
 >(
   engine: DatabaseAdapter,
   modelInstance: TModel,
@@ -1275,7 +1296,7 @@ export default async function getResultsWithIncludes<
       transaction: transaction,
       palmaresTransaction: palmaresTransaction,
       resultToMergeWithData,
-      isToPreventEvents: isToPreventEvents,
+      isToPreventEvents: isToPreventEvents
     });
   }
 
