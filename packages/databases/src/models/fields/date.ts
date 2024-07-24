@@ -280,10 +280,10 @@ export default class DateField<
    * class CustomDateField extends DateField {
    *   aCustomValue: string;
    *
-   *   compare(field:Field) {
+   *   async compare(field:Field) {
    *      const fieldAsText = field as TextField;
    *      const isCustomValueEqual = fieldAsText.aCustomValue === this.aCustomValue;
-   *      const [isEqual, changedAttributes] = super.compare(field);
+   *      const [isEqual, changedAttributes] = await super.compare(field);
    *      if (!isCustomValueEqual) changedAttributes.push('aCustomValue');
    *      return [isCustomValueEqual && isEqual, changedAttributes]
    *   }
@@ -294,11 +294,11 @@ export default class DateField<
    *
    * @returns A promise that resolves to a tuple containing a boolean and the changed attributes.
    */
-  compare(field: Field): [boolean, string[]] {
+  async compare(field: Field): Promise<[boolean, string[]]> {
     const fieldAsDate = field as DateField;
     const isAutoNowEqual = fieldAsDate.autoNow === this.autoNow;
     const isAutoNowAddEqual = fieldAsDate.autoNowAdd === this.autoNowAdd;
-    const [isEqual, changedAttributes] = super.compare(field);
+    const [isEqual, changedAttributes] = await super.compare(field);
 
     if (!isAutoNowEqual) changedAttributes.push('autoNow');
     if (!isAutoNowAddEqual) changedAttributes.push('autoNowAdd');

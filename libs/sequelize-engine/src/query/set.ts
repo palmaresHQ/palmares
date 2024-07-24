@@ -4,21 +4,27 @@ export default adapterSetQuery({
   queryData: async (_, args) => {
     return Promise.all(
       args.data.map(async (eachData: any) => {
-        if (args.search === undefined)
+        const hasSearch = Object.keys(args.search).length > 0 && args.search !== undefined;
+        if (!hasSearch)
           return [
             true,
             (
               await args.modelOfEngineInstance.create(eachData, {
-                transaction: args.transaction,
+                transaction: args.transaction
               })
-            ).toJSON(),
+            ).toJSON()
           ];
-        const [instance, hasCreated] = await args.modelOfEngineInstance.upsert(eachData, {
+        await args.modelOfEngineInstance.update(eachData, {
+          where: args.search,
           transaction: args.transaction,
-          returning: true,
+          individualHooks: true
         });
-        return [hasCreated ? hasCreated : false, instance.toJSON()];
+        const search = await args.modelOfEngineInstance.findAll({
+          where: args.search,
+          transaction: args.transaction
+        });
+        return [false, await Promise.all(search.map((each: any) => each.toJSON()))];
       })
     );
-  },
+  }
 });

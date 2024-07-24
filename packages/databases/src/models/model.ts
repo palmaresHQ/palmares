@@ -102,7 +102,8 @@ export class BaseModel {
   async #initializeEvents(engineInstance: DatabaseAdapter) {
     // eslint-disable-next-line ts/no-unnecessary-condition
     if (!engineInstance) return;
-    if (!engineInstance.databaseSettings.events?.emitter) return;
+    // eslint-disable-next-line ts/no-unnecessary-condition
+    if (!engineInstance.databaseSettings?.events?.emitter) return;
 
     const existingEngineInstanceName = engineInstance.connectionName;
     const modelInstance = this as unknown as Model & BaseModel;
@@ -115,16 +116,16 @@ export class BaseModel {
         typeof modelInstance.options[operationType] === 'function'
           ? modelInstance.options[operationType]
           : typeof modelInstance.options[operationType] === 'object'
-          ? (modelInstance.options[operationType] as any).handler
-          : undefined;
+            ? (modelInstance.options[operationType] as any).handler
+            : undefined;
       if (!eventHandler) continue;
 
       const isToPreventCallerToBeTheHandled =
         typeof modelInstance.options[operationType] === 'function'
           ? true
           : typeof modelInstance.options[operationType] === 'object'
-          ? (modelInstance.options[operationType] as any).preventCallerToBeTheHandled
-          : undefined;
+            ? (modelInstance.options[operationType] as any).preventCallerToBeTheHandled
+            : undefined;
 
       const eventNameToUse = `${modelConstructor.hashedName()}.${operationType}`;
       const eventEmitter = await Promise.resolve(engineInstance.databaseSettings.events.emitter);
@@ -582,7 +583,30 @@ export default function model<TModel>() {
   let defaultManagerInstance: any = null;
 
   class DefaultModel extends Model {
+    static isState = false;
+    // It would be kinda bad on performance if we always looped through all of the fields of a model to parse them.
+    // So we store the fields that have parsers here and we will
+    // loop through it here.
+    static fieldParsersByEngine = new Map<
+      string,
+      {
+        input: string[];
+        output: string[];
+      }
+    >();
+    static associations: {
+      [modelName: string]: ForeignKeyField<any, any, any, any, any, any, any, any, any>[];
+    } = {};
+    // This model uses other models as ForeignKey
+    static directlyRelatedTo: { [modelName: string]: string[] } = {};
+    // Other models use this model as ForeignKey
+    static indirectlyRelatedTo: { [modelName: string]: string[] } = {};
+    static primaryKeys: string[] = [];
+
     static __lazyFields?: ModelFieldsType = {};
+    static __hasLoadedManagers = false;
+    static __hasLoadedAbstracts = false;
+    static _initialized: { [engineName: string]: any } = {};
 
     static get default() {
       if (defaultManagerInstance === null) {
@@ -671,7 +695,31 @@ export function initialize<
       options: TOptions;
     }
   >() {
+    static isState = false;
+    // It would be kinda bad on performance if we always looped through all of the fields of a model to parse them.
+    // So we store the fields that have parsers here and we will
+    // loop through it here.
+    static fieldParsersByEngine = new Map<
+      string,
+      {
+        input: string[];
+        output: string[];
+      }
+    >();
+    static associations: {
+      [modelName: string]: ForeignKeyField<any, any, any, any, any, any, any, any, any>[];
+    } = {};
+    // This model uses other models as ForeignKey
+    static directlyRelatedTo: { [modelName: string]: string[] } = {};
+    // Other models use this model as ForeignKey
+    static indirectlyRelatedTo: { [modelName: string]: string[] } = {};
+    static primaryKeys: string[] = [];
+
     static __lazyFields?: ModelFieldsType = {};
+    static __hasLoadedManagers = false;
+    static __hasLoadedAbstracts = false;
+    static _initialized: { [engineName: string]: any } = {};
+
     static __cachedName = modelName;
     static __cachedOriginalName = modelName;
     static __cachedManagers = {};

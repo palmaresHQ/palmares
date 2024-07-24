@@ -1,6 +1,5 @@
 import { adapterFields } from '@palmares/databases';
 
-
 import SequelizeEngineAutoFieldParser from './auto';
 import SequelizeEngineBigAutoFieldParser from './big-auto';
 import SequelizeEngineBigIntegerFieldParser from './big-integer';
@@ -61,5 +60,5 @@ export default adapterFields({
         break;
     }
     return translatedModel;
-  },
+  }
 });

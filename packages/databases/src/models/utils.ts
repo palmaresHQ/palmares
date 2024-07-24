@@ -269,7 +269,7 @@ export async function parse(
         args
       );
     case TranslatableField.name:
-      return await (field as TranslatableField).translate(engine);
+      return await (field as TranslatableField).translate();
     default:
       throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
   }

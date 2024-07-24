@@ -2,23 +2,23 @@ import {
   describe,
 } from '@palmares/tests'
 
-import { Company, User } from './models';
+import { Company, User } from '../sequelize/models';
 
 import type JestTestAdapter from '@palmares/jest-tests';
 
-describe<JestTestAdapter>('models', ({ test }) => {
+describe<JestTestAdapter>('drizzle models', ({ test }) => {
   test('its working with functions', async ({ expect }) => {
     await Company.default.set({ name: 'test', address: 'test' });
     const companies = await Company.test.test('test');
     const value = Company.auth.test();
 
     expect(companies.length > 0).toBe(true);
-    expect(value).toBe('test')
+    expect(value).toBe('test');
   });
 
 
   test('its assigning a different date', async ({ expect }) => {
-    const company = await Company.default.set({ name: 'test', address: 'test' });
+    const company = await Company.default.set({ name: 'test', address: 'test', translatable: 12 });
     const user = await User.default.set({ name: 'test', companyId: company[0].id as number, age: 10, price: 120 });
     const createdAtDate = user[0].createdAt;
     const previousUpdatedAt = user[0].updatedAt;
@@ -33,13 +33,13 @@ describe<JestTestAdapter>('models', ({ test }) => {
   });
 
   test('its creating a user with company using includes', async ({ expect }) => {
-    const company = await Company.default.set({ name: 'test2', address: 'hey', usersOfCompany: [{
+    const company = await Company.default.set({ name: 'test2', address: 'hey', translatable: 12, usersOfCompany: [{
       name: 'test', age: 10, price: 120
     }] }, { includes: [{
       model: User
     }]});
 
-    const user = await User.default.get({  search: { companyId: company[0].id as number }});
+    const user = await User.default.get({ search: { companyId: company[0].id as number }});
     expect(company[0].usersOfCompany.length > 0).toBe(true);
     expect(user[0].companyId).toBe(company[0].id as number);
   })
@@ -53,15 +53,7 @@ describe<JestTestAdapter>('models', ({ test }) => {
   });
 
   test('its allowing null to nullable fields', async ({ expect }) => {
-    const data = await Company.default.set({ name: 'test', address: null });
+    const data = await Company.default.set({ name: 'test', address: null, translatable: 12 });
     expect(data[0].address).toBe(null);
-  });
-
-  test('its not allowing null to non nullable fields', async ({ expect }) => {
-    try {
-      await User.default.set({ name: null } as any);
-    } catch (e) {
-      expect(true).toBe(true);
-    }
   });
 });

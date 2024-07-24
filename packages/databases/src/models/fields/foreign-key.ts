@@ -668,7 +668,7 @@ export default class ForeignKeyField<
    *   compare(field:Field) {
    *      const fieldAsText = field as TextField;
    *      const isCustomValueEqual = fieldAsText.aCustomValue === this.aCustomValue;
-   *      const [isEqual, changedAttributes] = super.compare(field);
+   *      const [isEqual, changedAttributes] = await super.compare(field);
    *      if (!isCustomValueEqual) changedAttributes.push('aCustomValue');
    *      return [isCustomValueEqual && isEqual, changedAttributes]
    *   }
@@ -679,7 +679,7 @@ export default class ForeignKeyField<
    *
    * @returns A promise that resolves to a boolean indicating if the field is equal to the other field.
    */
-  compare(field: Field): [boolean, string[]] {
+  async compare(field: Field): Promise<[boolean, string[]]> {
     const fieldAsForeignKey = field as ForeignKeyField;
     const fieldAsForeignKeyRelatedToAsString = fieldAsForeignKey.relatedTo as string;
     const isCustomNameEqual = fieldAsForeignKey.customName === this.customName;
@@ -688,7 +688,7 @@ export default class ForeignKeyField<
     const isOnDeleteEqual = fieldAsForeignKey.onDelete === this.onDelete;
     const isRelationNameEqual = fieldAsForeignKey.relationName === this.relationName;
 
-    const [isEqual, changedAttributes] = super.compare(field);
+    const [isEqual, changedAttributes] = await super.compare(field);
     if (!isCustomNameEqual) changedAttributes.push('customName');
     if (!isRelatedToEqual) changedAttributes.push('relatedTo');
     if (!isToFieldEqual) changedAttributes.push('toField');

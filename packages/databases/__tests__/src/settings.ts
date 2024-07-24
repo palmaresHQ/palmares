@@ -10,7 +10,7 @@ import TestsDomain from '@palmares/tests';
 import Database from 'better-sqlite3';
 import { dirname, resolve } from 'path';
 
-import TestDomain from './test';
+import DrizzleDomain from './drizzle';
 import * as schema from '../.drizzle/schema';
 
 const database = new Database('sqlite.db');
@@ -57,6 +57,6 @@ export default defineSettings({
       }
     ],
     // We have just created this custom domain, and it defines our routes.
-    TestDomain,
+    DrizzleDomain,
   ],
 });
