@@ -14,21 +14,20 @@ import {
   type ModelFields,
   TextField,
   TranslatableField,
-  UuidField,
-} from "@palmares/databases";
+  UuidField
+} from '@palmares/databases';
 
-import { TranslatableFieldNotImplementedError } from "./exceptions";
-import { number } from "./schema";
-import ArraySchema from "./schema/array";
-import { boolean } from "./schema/boolean";
-import { datetime } from "./schema/datetime";
-import ObjectSchema from "./schema/object"
-import Schema from "./schema/schema";
-import { string } from "./schema/string";
-import { union } from "./schema/union";
+import { TranslatableFieldNotImplementedError } from './exceptions';
+import { number } from './schema';
+import ArraySchema from './schema/array';
+import { boolean } from './schema/boolean';
+import { datetime } from './schema/datetime';
+import ObjectSchema from './schema/object';
+import Schema from './schema/schema';
+import { string } from './schema/string';
+import { union } from './schema/union';
 
-import type { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from "./schema/types";
-
+import type { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from './schema/types';
 
 async function getSchemaFromModelField(
   model: ReturnType<typeof Model>,
@@ -44,22 +43,17 @@ async function getSchemaFromModelField(
       fieldToSearchOnModel: string;
       fieldToGetFromData: string;
       relationOrRelatedName: string;
-    }
+    };
   }
 ) {
   let schema: Schema<any, any> | undefined = undefined;
-  if (field instanceof AutoField || field instanceof BigAutoField)
-    schema = number().integer().optional();
+  if (field instanceof AutoField || field instanceof BigAutoField) schema = number().integer().optional();
   else if (field instanceof DecimalField)
-    schema = number()
-      .decimalPlaces(field.decimalPlaces)
-      .maxDigits(field.maxDigits);
-  else if (field instanceof IntegerField)
-    schema = number().integer();
-  else if (field instanceof BooleanField)
-    schema = boolean()
+    schema = number().decimalPlaces(field.decimalPlaces).maxDigits(field.maxDigits);
+  else if (field instanceof IntegerField) schema = number().integer();
+  else if (field instanceof BooleanField) schema = boolean();
   else if (field instanceof TextField || field instanceof CharField || field instanceof UuidField) {
-    schema = string()
+    schema = string();
     if (field.allowBlank === false) schema = (schema as ReturnType<typeof string>).minLength(1);
     if (field instanceof CharField && typeof field.maxLength === 'number')
       schema = (schema as ReturnType<typeof string>).maxLength(field.maxLength);
@@ -74,7 +68,7 @@ async function getSchemaFromModelField(
     const allChoicesOfTypeStrings = field.choices.filter((choice: any) => typeof choice === 'string');
     const allChoicesOfTypeNumbers = field.choices.filter((choice: any) => typeof choice === 'number');
 
-    let schemaForChoicesAsStrings: Schema<any, any>  | undefined = undefined;
+    let schemaForChoicesAsStrings: Schema<any, any> | undefined = undefined;
     let schemaForChoicesAsNumbers: Schema<any, any> | undefined = undefined;
     if (allChoicesOfTypeStrings.length > 0) schemaForChoicesAsStrings = string().is([...allChoicesOfTypeStrings]);
     if (allChoicesOfTypeNumbers.length > 0) schemaForChoicesAsNumbers = number().is([...allChoicesOfTypeNumbers]);
@@ -83,12 +77,20 @@ async function getSchemaFromModelField(
     else if (schemaForChoicesAsStrings) schema = schemaForChoicesAsStrings;
     else if (schemaForChoicesAsNumbers) schema = schemaForChoicesAsNumbers;
   } else if (field instanceof ForeignKeyField) {
-    const doesADefinedFieldExistWithRelatedName = parent && field.relatedName && (parent as any).__data?.[field.relatedName];
-    const doesADefinedFieldExistWithRelationName = definedFields && field.relationName && definedFields[field.relationName];
-    const fieldWithRelatedName = doesADefinedFieldExistWithRelatedName ? (parent as any).__data?.[field.relatedName] : undefined;
-    const fieldWithRelationName = doesADefinedFieldExistWithRelationName ? definedFields[field.relationName] : undefined;
-    const isFieldWithRelatedNameAModelField = fieldWithRelatedName instanceof Schema && (fieldWithRelatedName as any).__model !== undefined;
-    const isFieldWithRelationNameAModelField = fieldWithRelationName instanceof Schema && (fieldWithRelationName as any).__model !== undefined;
+    const doesADefinedFieldExistWithRelatedName =
+      parent && field.relatedName && (parent as any).__data?.[field.relatedName];
+    const doesADefinedFieldExistWithRelationName =
+      definedFields && field.relationName && definedFields[field.relationName];
+    const fieldWithRelatedName = doesADefinedFieldExistWithRelatedName
+      ? (parent as any).__data?.[field.relatedName]
+      : undefined;
+    const fieldWithRelationName = doesADefinedFieldExistWithRelationName
+      ? definedFields[field.relationName]
+      : undefined;
+    const isFieldWithRelatedNameAModelField =
+      fieldWithRelatedName instanceof Schema && (fieldWithRelatedName as any).__model !== undefined;
+    const isFieldWithRelationNameAModelField =
+      fieldWithRelationName instanceof Schema && (fieldWithRelationName as any).__model !== undefined;
     const relatedToModel = field.relatedTo;
     const toField = field.toField;
     const engineInstance = await model.default.getEngineInstance(engineInstanceName);
@@ -103,8 +105,7 @@ async function getSchemaFromModelField(
         fieldToSearchOnModel: field.fieldName,
         fieldToGetFromData: field.toField,
         relationOrRelatedName: field.relatedName!
-      }
-
+      };
     } else if (isFieldWithRelationNameAModelField) {
       if (typeof options !== 'object') options = {};
       options.foreignKeyRelation = {
@@ -113,7 +114,7 @@ async function getSchemaFromModelField(
         fieldToSearchOnModel: field.toField,
         fieldToGetFromData: field.fieldName,
         relationOrRelatedName: field.relationName!
-      }
+      };
     }
 
     return getSchemaFromModelField(
@@ -124,10 +125,9 @@ async function getSchemaFromModelField(
       engineInstanceName,
       options
     );
-
   } else if (field instanceof TranslatableField && field.customAttributes.schema) {
-    if (field.customAttributes.schema instanceof Schema ===  false)
-      throw new TranslatableFieldNotImplementedError(field.fieldName)
+    if (field.customAttributes.schema instanceof Schema === false)
+      throw new TranslatableFieldNotImplementedError(field.fieldName);
     schema = field.customAttributes.schema;
   }
 
@@ -237,136 +237,150 @@ export function modelSchema<
   TFieldsOnModel = TOmit extends undefined[]
     ? TShow extends undefined[]
       ? TAllModelFields
-      : Pick<
-          TAllModelFields,
-          TShow[number] extends keyof TAllModelFields ? TShow[number] : never
-        >
-    : Omit<
-        TAllModelFields,
-        TOmit[number] extends keyof TAllModelFields ? TOmit[number] : never
-      >,
+      : Pick<TAllModelFields, TShow[number] extends keyof TAllModelFields ? TShow[number] : never>
+    : Omit<TAllModelFields, TOmit[number] extends keyof TAllModelFields ? TOmit[number] : never>,
   TReturnType extends {
     input: any;
     output: any;
-    validate: any,
+    validate: any;
     internal: any;
     representation: any;
   } = {
-    input: TFields extends undefined ? TFieldsOnModel :
-      Omit<
-      TFieldsOnModel,
-        keyof ExtractTypeFromObjectOfSchemas<
-          // eslint-disable-next-line ts/ban-types
-          TFields extends undefined ? {} : TFields,
-          'input'
-        >
-      > &
-      ExtractTypeFromObjectOfSchemas<
-        // eslint-disable-next-line ts/ban-types
-        TFields extends undefined ? {} : TFields,
-        'input'
-      >
-    output: TFields extends undefined ? TFieldsOnModel :
-      (Omit<
-        TFieldsOnModel,
-        keyof ExtractTypeFromObjectOfSchemas<
-          // eslint-disable-next-line ts/ban-types
-          TFields extends undefined ? {} : TFields,
-          'output'
-        >
-      > &
-      ExtractTypeFromObjectOfSchemas<
-        // eslint-disable-next-line ts/ban-types
-        TFields extends undefined ? {} : TFields,
-        'output'
-      >);
-    internal: TFields extends undefined ? TFieldsOnModel :
-      (Omit<
-        TFieldsOnModel,
-        keyof ExtractTypeFromObjectOfSchemas<
-          // eslint-disable-next-line ts/ban-types
-          TFields extends undefined ? {} : TFields,
-          'internal'
-        >
-      > &
-      ExtractTypeFromObjectOfSchemas<
-        // eslint-disable-next-line ts/ban-types
-        TFields extends undefined ? {} : TFields,
-        'internal'
-      >);
-    representation: TFields extends undefined ? TFieldsOnModel :
-      (Omit<
-        TFieldsOnModel,
-        keyof ExtractTypeFromObjectOfSchemas<
-          // eslint-disable-next-line ts/ban-types
-          TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
-          'representation'
-        >
-      > &
-      ExtractTypeFromObjectOfSchemas<
-        // eslint-disable-next-line ts/ban-types
-        TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
-        'representation'
-      >);
-    validate: TFields extends undefined ? TFieldsOnModel :
-      Omit<
-      TFieldsOnModel,
-        keyof ExtractTypeFromObjectOfSchemas<
-          // eslint-disable-next-line ts/ban-types
-          TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
-          'validate'
-        >
-      > &
-      ExtractTypeFromObjectOfSchemas<
-        // eslint-disable-next-line ts/ban-types
-        TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
-        'validate'
-      >;
+    input: TFields extends undefined
+      ? TFieldsOnModel
+      : Omit<
+          TFieldsOnModel,
+          keyof ExtractTypeFromObjectOfSchemas<
+            // eslint-disable-next-line ts/ban-types
+            TFields extends undefined ? {} : TFields,
+            'input'
+          >
+        > &
+          ExtractTypeFromObjectOfSchemas<
+            // eslint-disable-next-line ts/ban-types
+            TFields extends undefined ? {} : TFields,
+            'input'
+          >;
+    output: TFields extends undefined
+      ? TFieldsOnModel
+      : Omit<
+          TFieldsOnModel,
+          keyof ExtractTypeFromObjectOfSchemas<
+            // eslint-disable-next-line ts/ban-types
+            TFields extends undefined ? {} : TFields,
+            'output'
+          >
+        > &
+          ExtractTypeFromObjectOfSchemas<
+            // eslint-disable-next-line ts/ban-types
+            TFields extends undefined ? {} : TFields,
+            'output'
+          >;
+    internal: TFields extends undefined
+      ? TFieldsOnModel
+      : Omit<
+          TFieldsOnModel,
+          keyof ExtractTypeFromObjectOfSchemas<
+            // eslint-disable-next-line ts/ban-types
+            TFields extends undefined ? {} : TFields,
+            'internal'
+          >
+        > &
+          ExtractTypeFromObjectOfSchemas<
+            // eslint-disable-next-line ts/ban-types
+            TFields extends undefined ? {} : TFields,
+            'internal'
+          >;
+    representation: TFields extends undefined
+      ? TFieldsOnModel
+      : Omit<
+          TFieldsOnModel,
+          keyof ExtractTypeFromObjectOfSchemas<
+            // eslint-disable-next-line ts/ban-types
+            TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
+            'representation'
+          >
+        > &
+          ExtractTypeFromObjectOfSchemas<
+            // eslint-disable-next-line ts/ban-types
+            TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
+            'representation'
+          >;
+    validate: TFields extends undefined
+      ? TFieldsOnModel
+      : Omit<
+          TFieldsOnModel,
+          keyof ExtractTypeFromObjectOfSchemas<
+            // eslint-disable-next-line ts/ban-types
+            TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
+            'validate'
+          >
+        > &
+          ExtractTypeFromObjectOfSchemas<
+            // eslint-disable-next-line ts/ban-types
+            TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
+            'validate'
+          >;
   }
 >(
   model: TModel,
   options?: {
-  ignoreExtraneousFields?: boolean;
-  engineInstance?: string;
-  fields?: TFields;
-  omit?: TOmit;
-  show?: TShow;
-  omitRelation?: readonly (keyof TFields)[];
-  many?: TMany
-}): TMany extends true ? ArraySchema<{
-  input: TReturnType['input'][];
-  output: TReturnType['output'][];
-  internal: TReturnType['internal'][];
-  representation: TReturnType['representation'][];
-  validate: TReturnType['validate'][];
-}, TDefinitionsOfSchemaType, [
-  ObjectSchema<{
-      input: TReturnType['input'];
-      output: TReturnType['output'];
-      internal: TReturnType['internal'];
-      representation: TReturnType['representation'];
-      validate: TReturnType['validate'];
-    }, TDefinitionsOfSchemaType, Record<any, any>>[]
-  ]> : ObjectSchema<{
-  input: TReturnType['input'];
-  output: TReturnType['output'];
-  internal: TReturnType['internal'];
-  representation: TReturnType['representation'];
-  validate: TReturnType['validate'];
-}, TDefinitionsOfSchemaType, Record<any, any>>{
+    ignoreExtraneousFields?: boolean;
+    engineInstance?: string;
+    fields?: TFields;
+    omit?: TOmit;
+    show?: TShow;
+    omitRelation?: readonly (keyof TFields)[];
+    many?: TMany;
+  }
+): TMany extends true
+  ? ArraySchema<
+      {
+        input: TReturnType['input'][];
+        output: TReturnType['output'][];
+        internal: TReturnType['internal'][];
+        representation: TReturnType['representation'][];
+        validate: TReturnType['validate'][];
+      },
+      TDefinitionsOfSchemaType,
+      [
+        ObjectSchema<
+          {
+            input: TReturnType['input'];
+            output: TReturnType['output'];
+            internal: TReturnType['internal'];
+            representation: TReturnType['representation'];
+            validate: TReturnType['validate'];
+          },
+          TDefinitionsOfSchemaType,
+          Record<any, any>
+        >[]
+      ]
+    >
+  : ObjectSchema<
+      {
+        input: TReturnType['input'];
+        output: TReturnType['output'];
+        internal: TReturnType['internal'];
+        representation: TReturnType['representation'];
+        validate: TReturnType['validate'];
+      },
+      TDefinitionsOfSchemaType,
+      Record<any, any>
+    > {
   const lazyModelSchema = ObjectSchema.new({} as any) as ObjectSchema<any, any, any> & {
     __runBeforeParseAndData: Required<Schema<any, any>['__runBeforeParseAndData']>;
-  }
-  const parentSchema = options?.many === true ? ArraySchema.new([lazyModelSchema]) : lazyModelSchema as any;
+  };
+  const parentSchema = options?.many === true ? ArraySchema.new([lazyModelSchema]) : (lazyModelSchema as any);
   const omitRelationAsSet = new Set(options?.omitRelation || []);
   const omitAsSet = new Set(options?.omit || []);
   const showAsSet = new Set(options?.show || []);
-  const fieldsAsObject = (options?.fields || {});
+  const fieldsAsObject = options?.fields || {};
   const customFieldValues = Object.values(fieldsAsObject);
 
   // We need to add it to the instance to be able to access it on the `toRepresentation` callback
   (lazyModelSchema as any).__omitRelation = omitRelationAsSet;
-  (parentSchema).__model = model;
+  parentSchema.__model = model;
   (lazyModelSchema as any).__model = model;
 
   // Add this callback to transform the model fields
@@ -375,95 +389,113 @@ export function modelSchema<
     parentSchema.__alreadyAppliedModel = true;
     const fieldsOfModels = (model as unknown as typeof InternalModelClass_DoNotUse)._fields();
     const fieldsAsEntries = Object.entries(fieldsOfModels);
-    const fieldsWithAutomaticRelations = new Map<Schema<any, any>, {
-      relationOrRelatedName: string;
-      isArray: boolean;
-      model: ReturnType<typeof Model>;
-      fieldToSearchOnModel: string;
-      fieldToGetFromData: string;
-    }[]>();
+    const fieldsWithAutomaticRelations = new Map<
+      Schema<any, any>,
+      {
+        relationOrRelatedName: string;
+        isArray: boolean;
+        model: ReturnType<typeof Model>;
+        fieldToSearchOnModel: string;
+        fieldToGetFromData: string;
+      }[]
+    >();
 
-    const fields = await fieldsAsEntries.reduce(async (accumulatorAsPromise, [key, value]) => {
-      if (omitAsSet.has(key as any)) return accumulatorAsPromise;
-      if (showAsSet.size > 0 && !showAsSet.has(key as any)) return accumulatorAsPromise;
+    const fields = await fieldsAsEntries.reduce(
+      async (accumulatorAsPromise, [key, value]) => {
+        if (omitAsSet.has(key as any)) return accumulatorAsPromise;
+        if (showAsSet.size > 0 && !showAsSet.has(key as any)) return accumulatorAsPromise;
 
-      let schema = (fieldsAsObject as any)[key as any];
-      const optionsForForeignKeyRelation: any = {};
-      if (!schema || value instanceof ForeignKeyField) {
-        const newSchema = await getSchemaFromModelField(
-          model,
-          value,
-          (parentSchema)?.__getParent?.(),
-          options?.fields,
-          options?.engineInstance,
-          optionsForForeignKeyRelation
-        );
-        if (!schema) schema = newSchema;
-      }
+        let schema = (fieldsAsObject as any)[key as any];
+        const optionsForForeignKeyRelation: any = {};
+        if (!schema || value instanceof ForeignKeyField) {
+          const newSchema = await getSchemaFromModelField(
+            model,
+            value,
+            parentSchema?.__getParent?.(),
+            options?.fields,
+            options?.engineInstance,
+            optionsForForeignKeyRelation
+          );
+          if (!schema) schema = newSchema;
+        }
 
-      // Appends the foreign key relation to the schema automatically.
-      if (optionsForForeignKeyRelation.foreignKeyRelation) {
-        const rootSchema = optionsForForeignKeyRelation?.foreignKeyRelation?.schema || lazyModelSchema
-        const existingRelations = fieldsWithAutomaticRelations.get(rootSchema) || [] as {
-          relationOrRelatedName: string;
-          isArray: boolean;
-          model: ReturnType<typeof Model>;
-          fieldToSearchOnModel: string;
-          fieldToGetFromData: string;
-        }[];
-        existingRelations.push({
-          relationOrRelatedName: optionsForForeignKeyRelation.foreignKeyRelation.relationOrRelatedName,
-          isArray: optionsForForeignKeyRelation.foreignKeyRelation.isArray,
-          model: optionsForForeignKeyRelation.foreignKeyRelation.model,
-          fieldToSearchOnModel: optionsForForeignKeyRelation.foreignKeyRelation.fieldToSearchOnModel,
-          fieldToGetFromData: optionsForForeignKeyRelation.foreignKeyRelation.fieldToGetFromData,
-        })
-        fieldsWithAutomaticRelations.set(rootSchema, existingRelations)
-      }
+        // Appends the foreign key relation to the schema automatically.
+        if (optionsForForeignKeyRelation.foreignKeyRelation) {
+          const rootSchema = optionsForForeignKeyRelation?.foreignKeyRelation?.schema || lazyModelSchema;
+          const existingRelations =
+            fieldsWithAutomaticRelations.get(rootSchema) ||
+            ([] as {
+              relationOrRelatedName: string;
+              isArray: boolean;
+              model: ReturnType<typeof Model>;
+              fieldToSearchOnModel: string;
+              fieldToGetFromData: string;
+            }[]);
+          existingRelations.push({
+            relationOrRelatedName: optionsForForeignKeyRelation.foreignKeyRelation.relationOrRelatedName,
+            isArray: optionsForForeignKeyRelation.foreignKeyRelation.isArray,
+            model: optionsForForeignKeyRelation.foreignKeyRelation.model,
+            fieldToSearchOnModel: optionsForForeignKeyRelation.foreignKeyRelation.fieldToSearchOnModel,
+            fieldToGetFromData: optionsForForeignKeyRelation.foreignKeyRelation.fieldToGetFromData
+          });
+          fieldsWithAutomaticRelations.set(rootSchema, existingRelations);
+        }
 
-      const accumulator = await accumulatorAsPromise;
-      accumulator[key] = schema;
-      return accumulator;
-    }, Promise.resolve(fieldsAsObject as Record<any, Schema<any, any>>));
+        const accumulator = await accumulatorAsPromise;
+        accumulator[key] = schema;
+        return accumulator;
+      },
+      Promise.resolve(fieldsAsObject as Record<any, Schema<any, any>>)
+    );
 
     if (fieldsWithAutomaticRelations.size > 0) {
       // This way we can get all of the relations concurrently with Promise.all
       for (const [schema, relations] of fieldsWithAutomaticRelations.entries()) {
-        schema.toRepresentation(async (data: any | any[]) => {
-          const allData = Array.isArray(data) ? data : [data];
-          // since we are changing the data by reference, just return the data itself.
-          await Promise.all(allData.map(async (data) =>
-            Promise.all(relations.map(async (relation) => {
-              // Ignore if the data of the relation already exists
-              if (relation.relationOrRelatedName in data) return;
+        schema.toRepresentation(
+          async (data: any | any[]) => {
+            const allData = Array.isArray(data) ? data : [data];
+            // since we are changing the data by reference, just return the data itself.
+            await Promise.all(
+              allData.map(async (data) =>
+                Promise.all(
+                  relations.map(async (relation) => {
+                    // Ignore if the data of the relation already exists
+                    if (relation.relationOrRelatedName in data) return;
 
-              let relationData: any | any[] = await relation.model.default.get({
-                search: {
-                  [relation.fieldToSearchOnModel]: data[relation.fieldToGetFromData]
-                }
-              });
-              if (relation.isArray !== true) relationData = relationData[0];
-              data[relation.relationOrRelatedName] = relationData;
+                    let relationData: any | any[] = await relation.model.default.get({
+                      search: {
+                        [relation.fieldToSearchOnModel]: data[relation.fieldToGetFromData]
+                      }
+                    });
+                    if (relation.isArray !== true) relationData = relationData[0];
+                    data[relation.relationOrRelatedName] = relationData;
 
-              if ((schema as any).__omitRelation.has(relation.relationOrRelatedName as any)) delete data[relation.fieldToGetFromData]
-            }))
-          ));
+                    if ((schema as any).__omitRelation.has(relation.relationOrRelatedName as any))
+                      delete data[relation.fieldToGetFromData];
+                  })
+                )
+              )
+            );
 
-          return data;
-        }, {
-          after: true
-        });
+            return data;
+          },
+          {
+            after: true
+          }
+        );
       }
     }
 
     (lazyModelSchema as any).__data = fields as any;
 
-    await Promise.all(customFieldValues.map(async (schema: any) => {
-      schema['__getParent'] = () => lazyModelSchema;
-      if (schema['__runBeforeParseAndData']) await schema['__runBeforeParseAndData'](schema);
-    }));
-  }
+    await Promise.all(
+      customFieldValues.map(async (schema: any) => {
+        schema['__getParent'] = () => lazyModelSchema;
+        if (schema['__runBeforeParseAndData']) await schema['__runBeforeParseAndData'](schema);
+      })
+    );
+  };
 
-  if (options?.ignoreExtraneousFields !== true) lazyModelSchema.removeExtraneous()
-  return parentSchema
+  if (options?.ignoreExtraneousFields !== true) lazyModelSchema.removeExtraneous();
+  return parentSchema;
 }

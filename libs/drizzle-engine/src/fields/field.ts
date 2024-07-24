@@ -1,16 +1,10 @@
 import { adapterFieldParser } from '@palmares/databases';
 
-import type {
-  AdapterFieldParserTranslateArgs} from '@palmares/databases';
+import type { AdapterFieldParserTranslateArgs } from '@palmares/databases';
 
 export default adapterFieldParser({
   // eslint-disable-next-line ts/require-await
-  translate: async (args: AdapterFieldParserTranslateArgs<
-    any,
-    any,
-    any,
-    any
-  >) => {
+  translate: async (args: AdapterFieldParserTranslateArgs<any, any, any, any>) => {
     if (args.field.dbIndex) {
       args.lazyEvaluate({
         type: 'index',
@@ -18,9 +12,9 @@ export default adapterFieldParser({
           modelName: args.modelName,
           fieldName: args.field.fieldName,
           databaseName: args.field.databaseName,
-          unique: args.field.unique,
-        },
-      })
+          unique: args.field.unique
+        }
+      });
     }
 
     const fieldData = {
@@ -31,8 +25,8 @@ export default adapterFieldParser({
       dbIndex: args.field.dbIndex,
       default: args.field.defaultValue as any,
       autoincrement: args.field.isAuto as boolean,
-      databaseName: args.field.databaseName,
-    }
-    return fieldData
-  },
+      databaseName: args.field.databaseName
+    };
+    return fieldData;
+  }
 });

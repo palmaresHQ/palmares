@@ -125,7 +125,7 @@ export default class UuidField<
       TDefaultValue,
       TUnique,
       TNull,
-      TAuto,
+      TAutoGenerate extends true ? true : TAuto,
       TDatabaseName,
       TCustomAttributes,
       TAutoGenerate

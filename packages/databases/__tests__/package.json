@@ -12,7 +12,6 @@
   },
   "keywords": [],
   "author": "",
-  "type": "module",
   "license": "ISC",
   "dependencies": {
     "@palmares/console-logging": "workspace:*",

@@ -26,11 +26,11 @@ export function char<
   TNull extends boolean = false,
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any,
+  TCustomAttributes = any
 >(
   params: CharFieldParamsType<CharField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> = {
     maxLength: 255,
-    allowBlank: true,
+    allowBlank: true
   }
 ) {
   return CharField.new(params);
@@ -58,19 +58,20 @@ export default class CharField<
   TNull extends boolean = false,
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any,
+  TCustomAttributes = any
 > extends TextField<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
   declare _type: TType;
   typeName: string = CharField.name;
   maxLength: number;
 
   /**
-   * @deprecated Either use the `char` function or the `CharField.new` static method. Never create an instance of this class directly.
+   * @deprecated Either use the `char` function or the `CharField.new` static method.
+   * Never create an instance of this class directly.
    */
   constructor(
     params: CharFieldParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> = {
       maxLength: 255,
-      allowBlank: true,
+      allowBlank: true
     }
   ) {
     super(params);
@@ -99,7 +100,7 @@ export default class CharField<
     // eslint-disable-next-line no-shadow
     TDatabaseName extends string | null | undefined = undefined,
     // eslint-disable-next-line no-shadow
-    TCustomAttributes = any,
+    TCustomAttributes = any
   >(
     this: TField,
     params: CharFieldParamsType<
@@ -112,7 +113,7 @@ export default class CharField<
       TCustomAttributes
     > = {
       maxLength: 255,
-      allowBlank: true,
+      allowBlank: true
     }
   ) {
     return new this(params) as CharField<
@@ -128,7 +129,8 @@ export default class CharField<
   }
 
   /**
-   * This method can be used to override the type of a field. This is useful for library maintainers that want to support the field type but the default type provided by palmares
+   * This method can be used to override the type of a field. This is useful for library maintainers
+   * that want to support the field type but the default type provided by palmares
    * is not the one that the database engine supports.
    *
    * @example
@@ -174,7 +176,7 @@ export default class CharField<
         // eslint-disable-next-line no-shadow
         TDatabaseName extends string | null | undefined = undefined,
         // eslint-disable-next-line no-shadow
-        TCustomAttributes = any,
+        TCustomAttributes = any
       >(
         params?: CharFieldParamsType<CharField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>
       ) => CharField<TNewType, CharField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;
@@ -182,7 +184,8 @@ export default class CharField<
   }
 
   /**
-   * This is mostly used internally by the engine to stringify the contents of the field on migrations. But you can override this if you want to extend the CharField class.
+   * This is mostly used internally by the engine to stringify the contents of the field on
+   * migrations. But you can override this if you want to extend the CharField class.
    *
    * @example
    * ```
@@ -197,7 +200,8 @@ export default class CharField<
    * }
    * ```
    *
-   * On this example, your custom CharField instance defines a `aCustomValue` property that will be added on the migrations. It is useful if you have created a custom field and wants to
+   * On this example, your custom CharField instance defines a `aCustomValue` property that will
+   * be added on the migrations. It is useful if you have created a custom field and wants to
    * implement a custom logic during migrations.
    *
    * @param indentation - The number of spaces to use for indentation. Use `'  '.repeat(indentation + 1);`
@@ -212,7 +216,8 @@ export default class CharField<
   }
 
   /**
-   * This is used internally by the engine to compare if the field is equal to another field. You can override this if you want to extend the CharField class.
+   * This is used internally by the engine to compare if the field is equal to another field.
+   * You can override this if you want to extend the CharField class.
    *
    * @example
    * ```
@@ -243,7 +248,8 @@ export default class CharField<
   }
 
   /**
-   * This is used internally by the engine for cloning the field to a new instance. By doing that you are able to get the constructor options of the field.
+   * This is used internally by the engine for cloning the field to a new instance. By doing
+   * that you are able to get the constructor options of the field.
    *
    * @example
    * ```
@@ -269,7 +275,7 @@ export default class CharField<
     const defaultConstructorOptions = await super.constructorOptions(field);
     return {
       ...defaultConstructorOptions,
-      allowBlank: field.allowBlank,
+      allowBlank: field.allowBlank
     };
   }
 }

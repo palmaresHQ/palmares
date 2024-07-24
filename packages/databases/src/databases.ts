@@ -16,7 +16,7 @@ import type {
   FoundModelType,
   InitializedEngineInstanceWithModelsType,
   InitializedEngineInstancesType,
-  OptionalMakemigrationsArgsType,
+  OptionalMakemigrationsArgsType
 } from './types';
 
 export default class Databases {
@@ -36,16 +36,18 @@ export default class Databases {
   }
 
   /**
-   * This will lazy initialize the hole engine instance with all of the models before using it. Generally this is not needed but for example
-   * on cases like serverless. We need to guarantee that the database will work without the need of the default domain lifecycle. That's because
-   * on certain environments we can't guarantee that the hole domain lifecycle will be called and executed, this is why we need to lazy initialize
-   * it.
+   * This will lazy initialize the hole engine instance with all of the models before using it.
+   * Generally this is not needed but for example on cases like serverless. We need to guarantee that
+   * the database will work without the need of the default domain lifecycle. That's because
+   * on certain environments we can't guarantee that the hole domain lifecycle will be called and executed,
+   * this is why we need to lazy initialize it.
    *
-   * We initialize the hole engine AND NOT JUST THE MODELS because there is no way to know before hand about relations. Yeah we can guarantee direct
-   * relations, for example `Post` that are related to a `User`. But we cannot guarantee indirect relations, for example, that `User` is related to
-   * `Post`. This is because of the architecture that we choose to keep all relations in the models themselves. If we change this architecture we are
-   * able to lazy load just certain models as well as their relations so it can be even more efficient. Right now we thinks that this is efficient
-   * enough.
+   * We initialize the hole engine AND NOT JUST THE MODELS because there is no way to know before hand about relations.
+   * Yeah we can guarantee direct  relations, for example `Post` that are related to a `User`. But we cannot
+   * guarantee indirect relations, for example, that `User` is related to `Post`. This is because of the architecture
+   * that we choose to keep all relations in the models themselves. If we change this architecture we are able to lazy
+   * load just certain models as well as their relations so it can be even more efficient. Right now we thinks
+   * that this is efficient enough.
    *
    * @param engineName - The name of the engine that we want to lazy initialize.
    * @param settings - The settings that we want to use.
@@ -93,7 +95,7 @@ export default class Databases {
 
           if (existsEventEmitterForSpecificEngine === false && existsEventEmitterForAllEngines) {
             databaseSettings.events = {
-              emitter: settings.eventEmitter as EventEmitter | Promise<EventEmitter>,
+              emitter: settings.eventEmitter as EventEmitter | Promise<EventEmitter>
             };
           }
           await this.initializeDatabase(databaseName, databaseSettings, domains);
@@ -118,7 +120,10 @@ export default class Databases {
   ) {
     await this.init(settings, domains);
     const migrations = new Migrations(settings, domains);
-    await migrations.makeMigrations(this.initializedEngineInstances as unknown as InitializedEngineInstancesType, optionalArgs);
+    await migrations.makeMigrations(
+      this.initializedEngineInstances as unknown as InitializedEngineInstancesType,
+      optionalArgs
+    );
   }
 
   /**
@@ -138,16 +143,15 @@ export default class Databases {
    */
   async close(): Promise<void> {
     const initializedEngineEntries = Object.values(this.initializedEngineInstances);
-    const promises = initializedEngineEntries
-      .map(async (initializedEngine) => {
-        if (!initializedEngine?.engineInstance) return;
+    const promises = initializedEngineEntries.map(async (initializedEngine) => {
+      if (!initializedEngine?.engineInstance) return;
 
-        databaseLogger.logMessage('DATABASE_CLOSING', {
-          databaseName: initializedEngine.engineInstance.connectionName,
-        });
-        if (initializedEngine.engineInstance.close)
-          await initializedEngine.engineInstance.close(initializedEngine.engineInstance);
+      databaseLogger.logMessage('DATABASE_CLOSING', {
+        databaseName: initializedEngine.engineInstance.connectionName
       });
+      if (initializedEngine.engineInstance.close)
+        await initializedEngine.engineInstance.close(initializedEngine.engineInstance);
+    });
 
     await Promise.all(promises);
   }
@@ -171,7 +175,8 @@ export default class Databases {
     // eslint-disable-next-line ts/no-unnecessary-condition
     const isProbablyAnEngineInstanceDefinedForDatabase = databaseSettings.engine !== undefined;
 
-    if (doesAnEngineInstanceAlreadyExist && this.initializedEngineInstances[engineName]?.engineInstance) engineInstance = this.initializedEngineInstances[engineName].engineInstance;
+    if (doesAnEngineInstanceAlreadyExist && this.initializedEngineInstances[engineName]?.engineInstance)
+      engineInstance = this.initializedEngineInstances[engineName].engineInstance;
     else {
       const engineArgs = databaseSettings.engine;
       argumentsToPassOnNew = engineArgs[0];
@@ -199,6 +204,7 @@ export default class Databases {
     models.forEach((foundModel) => {
       const modelInstance = new foundModel.model();
       const isModelManagedByEngine =
+        modelInstance.options?.abstract !== true &&
         modelInstance.options?.managed !== false &&
         (Array.isArray(modelInstance.options?.databases) === false ||
           modelInstance.options.databases.includes(engineName) === true);
@@ -215,7 +221,7 @@ export default class Databases {
         if (isDatabaseConnected) resolve(true);
         else {
           databaseLogger.logMessage('DATABASE_IS_NOT_CONNECTED', {
-            databaseName: engineInstance.connectionName,
+            databaseName: engineInstance.connectionName
           });
           setTimeout(() => {}, 10);
         }
@@ -235,11 +241,11 @@ export default class Databases {
 
       this.initializedEngineInstances[engineName] = {
         engineInstance,
-        projectModels: mergedProjectModels,
+        projectModels: mergedProjectModels
       };
     } else {
       databaseLogger.logMessage('DATABASE_IS_NOT_CONNECTED', {
-        databaseName: engineInstance.connectionName,
+        databaseName: engineInstance.connectionName
       });
       throw new Error(`The database engine ${engineName} was not able to connect to the database.`);
     }
@@ -272,7 +278,7 @@ export default class Databases {
 
     return {
       engineInstance,
-      projectModels: initializedProjectModels,
+      projectModels: initializedProjectModels
     };
   }
 
@@ -304,7 +310,7 @@ export default class Databases {
               this.#cachedModelsByModelName[modelOfModels.name] = {
                 domainPath: domain.path,
                 domainName: domain.name,
-                model: modelOfModels as unknown as typeof BaseModel & ReturnType<typeof model>,
+                model: modelOfModels as unknown as typeof BaseModel & ReturnType<typeof model>
               };
             }
           } else {
@@ -313,7 +319,7 @@ export default class Databases {
               this.#cachedModelsByModelName[modelName] = {
                 domainName: domain.path,
                 domainPath: domain.path,
-                model: modelKls as typeof BaseModel & typeof modelKls,
+                model: modelKls as typeof BaseModel & typeof modelKls
               };
             }
           }

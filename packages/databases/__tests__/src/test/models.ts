@@ -1,8 +1,53 @@
-import { AutoField, BooleanField, CharField, DateField, DecimalField, EnumField, ForeignKeyField, IntegerField, Model, ON_DELETE, UuidField } from '@palmares/databases';
+import {
+  AutoField, BooleanField, CharField, DateField, DecimalField, EnumField,
+  ForeignKeyField, IntegerField, Manager, Model, ON_DELETE, TranslatableField, UuidField, define
+} from '@palmares/databases';
 
-import { Company as DCompany, User as DUser } from '../../.drizzle/schema';
+//import { Company as DCompany, User as DUser } from '../../.drizzle/schema';
 
 import type { ModelOptionsType} from '@palmares/databases';
+
+class Authentication extends Manager<CompanyAbstract> {
+  test() {
+    return 'test'
+  }
+}
+export class CompanyAbstract extends Model<CompanyAbstract>() {
+  fields = {
+    address: CharField.new({ maxLength: 255, allowNull: true }),
+    translatable: TranslatableField.new({
+      translate: async (engine) => {
+        console.log('teeeeste')
+        return 'teste'
+      }
+    })
+  }
+  options = {
+    tableName: 'companies',
+    abstract: true
+  }
+
+  static auth = new Authentication()
+}
+
+export const Company = define('Company', {
+  fields:  {
+    id: AutoField.new(),
+    name: CharField.new({ maxLength: 255 }),
+  },
+  options: {
+    tableName: 'companies',
+    //instance: DCompany
+  },
+  abstracts: [CompanyAbstract],
+  managers: {
+    test: {
+      async test(name: string) {
+        return this.get({ search: { name }})
+      }
+    }
+  }
+});
 
 export class User extends Model<User>() {
   fields = {
@@ -28,19 +73,7 @@ export class User extends Model<User>() {
 
   options: ModelOptionsType<User> = {
     tableName: 'users',
-    instance: DUser
+    //instance: DUser
   }
 }
 
-export class Company extends Model<Company>() {
-  fields = {
-    id: AutoField.new(),
-    name: CharField.new({ maxLength: 255 }),
-    address: CharField.new({ maxLength: 255, allowNull: true }),
-  }
-
-  options: ModelOptionsType<Company> = {
-    tableName: 'companies',
-    instance: DCompany
-  }
-}

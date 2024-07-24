@@ -1,6 +1,5 @@
 import { domain } from '@palmares/core';
 
-import LoggingAdapter from './adapter';
 import { setLoggerAtLevel } from './config';
 import Logger from './logger';
 

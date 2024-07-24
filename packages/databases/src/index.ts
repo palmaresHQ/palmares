@@ -2,6 +2,7 @@ import DatabasesDomain from './domain';
 import { model as Model, Model as ModelBaseClass } from './models';
 import * as fields from './models/fields';
 
+
 export * from './types';
 export { default as DatabaseAdapter, databaseAdapter } from './engine';
 export { default as AdapterQuery, adapterQuery } from './engine/query';
@@ -27,6 +28,7 @@ export { default as AdapterEnumFieldParser, adapterEnumFieldParser } from './eng
 export { default as AdapterFieldParser, adapterFieldParser } from './engine/fields/field';
 export { default as AdapterBooleanFieldParser, adapterBooleanFieldParser } from './engine/fields/boolean';
 export * from './engine/types';
+export { default as Manager } from './models/manager';
 export { model as Model, Model as ModelBaseClass, initialize as define, BaseModel as InternalModelClass_DoNotUse } from './models';
 export * as fields from './models/fields';
 export const models = {

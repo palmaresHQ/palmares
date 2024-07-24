@@ -24,7 +24,7 @@ export function bool<
   TNull extends boolean = false,
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any,
+  TCustomAttributes = any
 >(
   params: FieldDefaultParamsType<
     BooleanField,
@@ -60,13 +60,14 @@ export default class BooleanField<
   TNull extends boolean = false,
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any,
+  TCustomAttributes = any
 > extends Field<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
   declare _type: TType;
   typeName: string = BooleanField.name;
 
   /**
-   * @deprecated Either use the `bool` function or the `BooleanField.new` static method. Never create an instance of this class directly.
+   * @deprecated Either use the `bool` function or the `BooleanField.new` static method.
+   * Never create an instance of this class directly.
    */
   constructor(
     params: FieldDefaultParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> = {}
@@ -75,7 +76,8 @@ export default class BooleanField<
   }
 
   /**
-   * This method can be used to override the type of a field. This is useful for library maintainers that want to support the field type but the default type provided by palmares
+   * This method can be used to override the type of a field. This is useful for library maintainers
+   * that want to support the field type but the default type provided by palmares
    * is not the one that the database engine supports.
    *
    * @example
@@ -120,7 +122,7 @@ export default class BooleanField<
         // eslint-disable-next-line no-shadow
         TDatabaseName extends string | null | undefined = undefined,
         // eslint-disable-next-line no-shadow
-        TCustomAttributes = any,
+        TCustomAttributes = any
       >(
         params?: FieldDefaultParamsType<
           BooleanField,
@@ -148,7 +150,7 @@ export default class BooleanField<
     // eslint-disable-next-line no-shadow
     TDatabaseName extends string | null | undefined = undefined,
     // eslint-disable-next-line no-shadow
-    TCustomAttributes = any,
+    TCustomAttributes = any
   >(
     this: TFieldInstance,
     params: FieldDefaultParamsType<

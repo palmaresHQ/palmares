@@ -24,7 +24,7 @@ export function bigInt<
   TNull extends boolean = false,
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any,
+  TCustomAttributes = any
 >(
   params: FieldDefaultParamsType<
     BigIntegerField,
@@ -63,13 +63,14 @@ export default class BigIntegerField<
   TNull extends boolean = false,
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any,
+  TCustomAttributes = any
 > extends Field<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
   declare _type: TType;
   typeName: string = BigIntegerField.name;
 
   /**
-   * @deprecated Either use the `bigInt` function or the `BigInteger.new` static method. Never create an instance of this class directly.
+   * @deprecated Either use the `bigInt` function or the `BigInteger.new` static method.
+   * Never create an instance of this class directly.
    */
   constructor(
     params: FieldDefaultParamsType<
@@ -86,7 +87,8 @@ export default class BigIntegerField<
   }
 
   /**
-   * This method can be used to override the type of a field. This is useful for library maintainers that want to support the field type but the default type provided by palmares
+   * This method can be used to override the type of a field. This is useful for library maintainers
+   * that want to support the field type but the default type provided by palmares
    * is not the one that the database engine supports.
    *
    * @example
@@ -131,7 +133,7 @@ export default class BigIntegerField<
         // eslint-disable-next-line no-shadow
         TDatabaseName extends string | null | undefined = undefined,
         // eslint-disable-next-line no-shadow
-        TCustomAttributes = any,
+        TCustomAttributes = any
       >(
         params?: FieldDefaultParamsType<
           BigIntegerField,
@@ -157,16 +159,20 @@ export default class BigIntegerField<
 
   /**
    * @param params - The parameters that will be used to create the BigIntegerField instance.
-   * @param params.primaryKey - Specifies if this field should be considered the primary key of the model. (default: false)
+   * @param params.primaryKey - Specifies if this field should be considered the primary key of
+   * the model. (default: false)
    * @param params.defaultValue - The default value for this field. (default: undefined)
    * @param params.allowNull - If this field can be null or not. (default: false)
    * @param params.unique - If this field should be unique or not. (default: false)
    * @param params.isAuto - An auto field is automatically incremented by the database engine. (default: false)
-   * @param params.dbIndex - On relational database we can create an index. This specifies if we should create an index for this field on the database (default: false).
+   * @param params.dbIndex - On relational database we can create an index. This specifies if we
+   * should create an index for this field on the database (default: false).
    * Be aware, this is mostly for relational databases.
-   * @param params.underscored - If the field name should be underscored on the database or not. Like `firstName` will be converted to `first_name` on the database.
+   * @param params.underscored - If the field name should be underscored on the database or not.
+   * Like `firstName` will be converted to `first_name` on the database.
    * This is ignored if `databaseName` is set. (default: true)
-   * @param params.databaseName - The name of the field on the database. If this is not set, we will use either the field name or the underscored version of the field name.
+   * @param params.databaseName - The name of the field on the database. If this is not set, we
+   * will use either the field name or the underscored version of the field name.
    * @param params.customAttributes - Custom attributes that will be passed to the field for the engine to use.
    */
   static new<
@@ -182,7 +188,7 @@ export default class BigIntegerField<
     // eslint-disable-next-line no-shadow
     TDatabaseName extends string | null | undefined = undefined,
     // eslint-disable-next-line no-shadow
-    TCustomAttributes = any,
+    TCustomAttributes = any
   >(
     this: TFieldInstance,
     params: FieldDefaultParamsType<

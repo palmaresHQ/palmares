@@ -217,7 +217,7 @@ export type IncludesValidated<
     : readonly []
   : TIncludes;
 
-export type ValidateModelsOfIncludes<TParentModel, TChildModel extends abstract new (...args: any) => any> = ValueOf<
+export type ValidateModelsOfIncludes<TParentModel, TChildModel extends new (...args: any) => any> = ValueOf<
   {
     [TFieldName in keyof AllFieldsOfModel<InstanceType<TChildModel>> as AllFieldsOfModel<
       InstanceType<TChildModel>

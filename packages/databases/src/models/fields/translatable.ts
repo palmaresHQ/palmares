@@ -28,9 +28,17 @@ import type DatabaseAdapter from '../../engine';
  */
 export default class TranslatableField extends Field {
   typeName: string = TranslatableField.name;
+  translate!: (engine: DatabaseAdapter) => Promise<any>;
 
-  // eslint-disable-next-line ts/require-await
-  async translate(_engine: DatabaseAdapter): Promise<any> {
-    return undefined;
+  constructor(params: { translate: (engine: DatabaseAdapter) => Promise<any>; customAttributes?: any }) {
+    super({ customAttributes: params.customAttributes } as any);
+    this.translate = params.translate.bind(this);
+  }
+
+  static new(params: {
+    translate: (engine: DatabaseAdapter) => Promise<any>;
+    customAttributes?: any;
+  }): Field<any, any, any, any, any, any, any, any> {
+    return new this({ customAttributes: params.customAttributes } as any);
   }
 }

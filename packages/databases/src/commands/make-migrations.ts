@@ -1,4 +1,3 @@
-
 import defaultSettings from '../settings';
 
 import type Databases from '../databases';

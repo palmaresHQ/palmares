@@ -12,7 +12,7 @@ export default domain('testingDatabases', __dirname, {
       description: 'Migrate the database using drizzle',
       keywordArgs: undefined,
       positionalArgs: undefined,
-      handler: async () => {
+      handler: () => {
         migrate(db, { migrationsFolder: './.drizzle/migrations' });
       },
     }

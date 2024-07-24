@@ -3,9 +3,11 @@ import type { BaseModel, model } from '../models';
 import type { FieldWithOperationType } from '../models/types';
 
 /**
- * What this will do is parse the search FIELD, for every field we see if it is of type object, if it is we parse it for the query.
+ * What this will do is parse the search FIELD, for every field we see if it is
+ * of type object, if it is we parse it for the query.
  *
- * Parse means we send the value, the type of operation, if it's a negative and an object to append the result of the parse.
+ * Parse means we send the value, the type of operation, if it's a negative and
+ * an object to append the result of the parse.
  *
  * We return either the value of the field or the object with the parsed data.
  */
@@ -17,7 +19,8 @@ async function parseSearchField(
   translatedModelInstance: InstanceType<ReturnType<typeof model>>,
   result: any
 ) {
-  if (typeof fieldData === 'object') {
+  // eslint-disable-next-line ts/no-unnecessary-condition
+  if (typeof fieldData === 'object' && fieldData !== null) {
     if (typeof fieldData.like === 'object') {
       if ((fieldData.like as any)?.ignoreCase) {
         await engine.query.search.parseSearchFieldValue(
@@ -27,7 +30,7 @@ async function parseSearchField(
           await inputFieldParser((fieldData.like as any)?.ignoreCase),
           result,
           {
-            ignoreCase: true,
+            ignoreCase: true
           }
         );
       }
@@ -41,7 +44,7 @@ async function parseSearchField(
             result,
             {
               isNot: true,
-              ignoreCase: true,
+              ignoreCase: true
             }
           );
         } else {
@@ -52,7 +55,7 @@ async function parseSearchField(
             await inputFieldParser(fieldData.like.not),
             result,
             {
-              isNot: true,
+              isNot: true
             }
           );
         }
@@ -102,7 +105,7 @@ async function parseSearchField(
         await Promise.all((fieldData.in.not || []).map((inValue) => inputFieldParser(inValue))),
         result,
         {
-          isNot: true,
+          isNot: true
         }
       );
     }
@@ -124,7 +127,7 @@ async function parseSearchField(
         await Promise.all((fieldData.between.not || []).map((betweenValue) => inputFieldParser(betweenValue))),
         result,
         {
-          isNot: true,
+          isNot: true
         }
       );
     }
@@ -144,7 +147,7 @@ async function parseSearchField(
         await inputFieldParser((fieldData.is as any).not),
         result,
         {
-          isNot: true,
+          isNot: true
         }
       );
     if (fieldData.greaterThan !== undefined)
@@ -191,7 +194,8 @@ async function parseSearchField(
 }
 
 /**
- * The search parser is used to parse the search that we will use to query the database, with this we are able to remove the fields
+ * The search parser is used to parse the search that we will use to query the database,
+ * with this we are able to remove the fields
  * that are not in the model, and also translate queries like `in`, `not in` and so on
  *
  * @param modelInstance - The model instance to use to parse the search.
@@ -222,12 +226,19 @@ export default async function parseSearch(
                 fieldParser: engine.fields.fieldsParser,
                 model: modelInstance,
                 modelName: modelConstructor.getName(),
-                value,
+                value
               })
-          // eslint-disable-next-line ts/require-await
-          : async (value: any) => value;
+          : // eslint-disable-next-line ts/require-await
+            async (value: any) => value;
       if (fieldsInModelInstance.includes(key))
-        await parseSearchField(engine, key, search[key], fieldInputParserFunction, translatedModelInstance, formattedSearch);
+        await parseSearchField(
+          engine,
+          key,
+          search[key],
+          fieldInputParserFunction,
+          translatedModelInstance,
+          formattedSearch
+        );
     });
     await Promise.all(promises);
     return formattedSearch;

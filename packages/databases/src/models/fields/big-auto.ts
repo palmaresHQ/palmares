@@ -4,11 +4,13 @@ import type { FieldDefaultParamsType, MaybeNull } from './types';
 import type { This } from '../../types';
 
 /**
- * Functional approach for the creation of an BigAutoField instance. An BigAutoField is a field that is used as the primary key of the database.
+ * Functional approach for the creation of an BigAutoField instance. An BigAutoField is a
+ * field that is used as the primary key of the database.
  *
  * A bigAuto field is similar to an AutoField, except that it should support bigger numbers.
  *
- * We recommend just using one BigAutoField per model (or BigAutoField) because you might face some issues with certain ORM's. For ALL use cases, this
+ * We recommend just using one BigAutoField per model (or BigAutoField) because you might face
+ * some issues with certain ORM's. For ALL use cases, this
  * field should be an integer.
  *
  * @example
@@ -27,7 +29,7 @@ export function bigAuto<
   TNull extends boolean = false,
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any,
+  TCustomAttributes = any
 >(
   params: Omit<
     FieldDefaultParamsType<BigAutoField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>,
@@ -38,7 +40,8 @@ export function bigAuto<
 }
 
 /**
- * We recommend just using one BigAutoField per model (or AutoField) because you might face some issues with certain ORM's. For ALL use cases, this
+ * We recommend just using one BigAutoField per model (or AutoField) because you might face some
+ * issues with certain ORM's. For ALL use cases, this
  * field should be an integer.
  *
  * A BigAutoField is similar to an AutoField, except that it should support bigger numbers.
@@ -64,13 +67,14 @@ export default class BigAutoField<
   TNull extends boolean = false,
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any,
+  TCustomAttributes = any
 > extends Field<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
   declare _type: TType;
   typeName: string = BigAutoField.name;
 
   /**
-   * @deprecated Either use the `bigAuto` function or the `BigAutoField.new` static method. Never create an instance of this class directly.
+   * @deprecated Either use the `bigAuto` function or the `BigAutoField.new` static method.
+   * Never create an instance of this class directly.
    */
   constructor(
     params: Omit<
@@ -84,7 +88,7 @@ export default class BigAutoField<
       allowNull: false as TNull,
       unique: true as TUnique,
       dbIndex: true,
-      isAuto: true as TAuto,
+      isAuto: true as TAuto
     });
   }
 
@@ -103,7 +107,8 @@ export default class BigAutoField<
   }
 
   /**
-   * This method can be used to override the type of a field. This is useful for library maintainers that want to support the field type but the default type provided by palmares
+   * This method can be used to override the type of a field. This is useful for library
+   * maintainers that want to support the field type but the default type provided by palmares
    * is not the one that the database engine supports.
    *
    * @example
@@ -148,7 +153,7 @@ export default class BigAutoField<
         // eslint-disable-next-line no-shadow
         TDatabaseName extends string | null | undefined = undefined,
         // eslint-disable-next-line no-shadow
-        TCustomAttributes = any,
+        TCustomAttributes = any
       >(
         params?: Omit<
           FieldDefaultParamsType<BigAutoField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>,
@@ -171,7 +176,7 @@ export default class BigAutoField<
     // eslint-disable-next-line no-shadow
     TDatabaseName extends string | null | undefined = undefined,
     // eslint-disable-next-line no-shadow
-    TCustomAttributes = any,
+    TCustomAttributes = any
   >(
     this: TFieldInstance,
     params:

@@ -7,7 +7,8 @@ import type { This } from '../../types';
 /**
  * Functional approach for the creation of a DecimalField.
  *
- * A DecimalField is a field is used to store decimal values. WHY DON'T WE JUST USE NUMBERS? Because of floating point precision. We need to guarantee floating point precision
+ * A DecimalField is a field is used to store decimal values. WHY DON'T WE JUST USE NUMBERS?
+ * Because of floating point precision. We need to guarantee floating point precision
  * when a user uses this field.
  *
  * @example
@@ -21,7 +22,7 @@ export function decimal<
   TNull extends boolean = false,
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any,
+  TCustomAttributes = any
 >(
   params: DecimalFieldParamsType<DecimalField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>
 ) {
@@ -29,7 +30,8 @@ export function decimal<
 }
 
 /**
- * A DecimalField is a field is used to store decimal values. WHY DON'T WE JUST USE NUMBERS? Because of floating point precision. We need to guarantee floating point precision
+ * A DecimalField is a field is used to store decimal values. WHY DON'T WE JUST USE NUMBERS?
+ * Because of floating point precision. We need to guarantee floating point precision
  * when a user uses this field.
  *
  * @example
@@ -48,7 +50,7 @@ export default class DecimalField<
   TNull extends boolean = false,
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any,
+  TCustomAttributes = any
 > extends UnopinionatedField<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
   declare _type: TType;
   typeName: string = DecimalField.name;
@@ -112,7 +114,7 @@ export default class DecimalField<
         // eslint-disable-next-line no-shadow
         TDatabaseName extends string | null | undefined = undefined,
         // eslint-disable-next-line no-shadow
-        TCustomAttributes = any,
+        TCustomAttributes = any
       >(
         params: DecimalFieldParamsType<
           DecimalField,
@@ -141,7 +143,7 @@ export default class DecimalField<
     // eslint-disable-next-line no-shadow
     TDatabaseName extends string | null | undefined = undefined,
     // eslint-disable-next-line no-shadow
-    TCustomAttributes = any,
+    TCustomAttributes = any
   >(
     this: TField,
     params: DecimalFieldParamsType<
@@ -259,7 +261,7 @@ export default class DecimalField<
     return {
       ...defaultConstructorOptions,
       maxDigits: field.maxDigits,
-      decimalPlaces: field.decimalPlaces,
+      decimalPlaces: field.decimalPlaces
     };
   }
 }

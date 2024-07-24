@@ -10,7 +10,9 @@ import type { This } from '../../types';
 import type { Model } from '../model';
 
 /**
- * This allows us to create a foreign key field on the database. A foreign key field represents a relation between two models. So pretty much a model will be related
+ * This allows us to create a foreign key field on the database.
+ * A foreign key field represents a relation between two models.
+ * So pretty much a model will be related
  * to another model.
  *
  * @example
@@ -53,7 +55,7 @@ export function foreignKey<
   TRelatedModel = any,
   TRelatedField extends string = any,
   TRelatedName extends string = any,
-  TRelationName extends string = any,
+  TRelationName extends string = any
 >(
   params: ForeignKeyFieldParamsType<
     ForeignKeyField,
@@ -74,7 +76,8 @@ export function foreignKey<
 }
 
 /**
- * The lazy version of the foreign key field. This is useful when you want to create a foreign key field to a model that is not defined yet.
+ * The lazy version of the foreign key field. This is useful when you want to create a
+ * foreign key field to a model that is not defined yet.
  * With that you will be only working with types directly and you will be able to define the `relatedTo` as string.
  *
  * @example
@@ -117,7 +120,7 @@ export function foreignKeyLazy<TRelatedModel>() {
     TCustomType = undefined,
     TRelatedField extends string = any,
     TRelatedName extends string = any,
-    TRelationName extends string = any,
+    TRelationName extends string = any
   >(
     params: Omit<
       ForeignKeyFieldParamsType<
@@ -213,7 +216,7 @@ export default class ForeignKeyField<
   TRelatedModel = any,
   TRelatedField extends string = any,
   TRelatedName extends string = any,
-  TRelationName extends string = any,
+  TRelationName extends string = any
 > extends UnopinionatedField<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
   declare _type: TType;
   modelRelatedTo!: TRelatedModel;
@@ -246,7 +249,7 @@ export default class ForeignKeyField<
 
     let relatedToAsString: string = params.relatedTo as string;
     const isRelatedToNotAString: boolean = typeof params.relatedTo !== 'string';
-    if (isRelatedToNotAString) relatedToAsString = (params.relatedTo as ClassConstructor<Model>).name;
+    if (isRelatedToNotAString) relatedToAsString = (params.relatedTo as any).getName();
 
     const isRelationNameDefined = typeof params.relationName === 'string';
 
@@ -280,7 +283,8 @@ export default class ForeignKeyField<
    * }
    * ```
    *
-   * That's great, but can be a bit annoying if the Profile model is defined another time or lazily. So we offer the option to do something like:
+   * That's great, but can be a bit annoying if the Profile model is defined another
+   * time or lazily. So we offer the option to do something like:
    *
    * @example
    * ```ts
@@ -342,7 +346,7 @@ export default class ForeignKeyField<
       // eslint-disable-next-line no-shadow
       TRelatedName extends string = any,
       // eslint-disable-next-line no-shadow
-      TRelationName extends string = any,
+      TRelationName extends string = any
     >(
       params: Omit<
         ForeignKeyFieldParamsType<
@@ -363,8 +367,7 @@ export default class ForeignKeyField<
       > & {
         relatedTo: string;
       }
-    ) =>
-      new this(params as any);
+    ) => new this(params as any);
   }
 
   static new<
@@ -401,7 +404,7 @@ export default class ForeignKeyField<
     // eslint-disable-next-line no-shadow
     TRelatedName extends string = any,
     // eslint-disable-next-line no-shadow
-    TRelationName extends string = any,
+    TRelationName extends string = any
   >(
     this: TField,
     params: ForeignKeyFieldParamsType<
@@ -472,8 +475,9 @@ export default class ForeignKeyField<
 
     const modelAssociations = model.associations as any;
     const hasNotIncludesAssociation =
-      (modelAssociations[relatedToAsString] || []).some((association: Field<any, any, any, any, any, any, any>) => association.fieldName === fieldName) ===
-      false;
+      (modelAssociations[relatedToAsString] || []).some(
+        (association: Field<any, any, any, any, any, any, any>) => association.fieldName === fieldName
+      ) === false;
     if (hasNotIncludesAssociation) {
       model.associations[relatedToAsString] = modelAssociations[relatedToAsString] || [];
       model.associations[relatedToAsString].push(this);
@@ -490,11 +494,13 @@ export default class ForeignKeyField<
     // Because of this we update this value on the engine instance. Updating the array on the engine instance
     // will also reflect on the `relatedTo` array in the model instance.
     if (this._originalRelatedName) {
-      model.indirectlyRelatedModels[relatedToAsString] = modelDirectlyRelatedTo[relatedToAsString] || {};
+      // eslint-disable-next-line ts/no-unnecessary-condition
+      model.indirectlyRelatedModels[relatedToAsString] = model.indirectlyRelatedModels?.[relatedToAsString] || {};
       model.indirectlyRelatedModels[relatedToAsString][originalNameOfModel] =
-        (model.indirectlyRelatedModels as any)[relatedToAsString][originalNameOfModel] || [];
+        (model.indirectlyRelatedModels as any)?.[relatedToAsString]?.[originalNameOfModel] || [];
       model.indirectlyRelatedModels[relatedToAsString][originalNameOfModel].push(this._originalRelatedName);
     }
+
     super.init(fieldName, model);
 
     const wasRelatedNameDefined: boolean = typeof this.relatedName === 'string';
@@ -506,13 +512,19 @@ export default class ForeignKeyField<
         originalNameOfModel.charAt(0).toUpperCase() + originalNameOfModel.slice(1);
       this._originalRelatedName = `${relatedToWithFirstStringLower}${originalModelNameWithFirstStringUpper}s`;
     }
+
+    // eslint-disable-next-line ts/no-unnecessary-condition
+    model.indirectlyRelatedModels.$set?.[relatedToAsString]?.();
   }
 
   /**
-   * Check if the related model is from the engine instance so we can override the field creation and change the type of the field to some other field.
+   * Check if the related model is from the engine instance so we can override the
+   * field creation and change the type of the field to some other field.
    *
-   * This is useful to manage unmanaged relations. For example, we have a model in this database and another one in the other database. We can relate both
-   * of them without any issues. What this will do is convert the value of this field that does not exist on this database to the field it relates to.
+   * This is useful to manage unmanaged relations. For example, we have a
+   * model in this database and another one in the other database. We can relate both
+   * of them without any issues. What this will do is convert the value of this
+   * field that does not exist on this database to the field it relates to.
    *
    * @example
    * ```
@@ -541,13 +553,14 @@ export default class ForeignKeyField<
    * })
    * ```
    *
-   * Since the `facebookId` field is matching a field in an unmanaged model, the facebookId field will be translated to `IntegerField` AND NOT
+   * Since the `facebookId` field is matching a field in an unmanaged model, the facebookId
+   * field will be translated to `IntegerField` AND NOT
    * the `ForeignKeyField`
    *
    * @param engineInstance - Needs the engine instance to check if the model exists in the engine instance or not.
    *
-   * @returns - Returns an array where the first item is if the relatedmodel is from the engine instance (false if not) and the field it should
-   * change to.
+   * @returns - Returns an array where the first item is if the relatedmodel is
+   * from the engine instance (false if not) and the field it should change to.
    */
   async isRelatedModelFromEngineInstance(engineInstance: DatabaseAdapter): Promise<[boolean, Field?]> {
     const relatedToAsString = this.relatedTo as string;
@@ -555,8 +568,7 @@ export default class ForeignKeyField<
     if (relatedModel !== undefined) {
       (this.modelRelatedTo as any) = relatedModel;
       return [true, undefined];
-    }
-    else {
+    } else {
       const modelRelatedTo = engineInstance.__modelsFilteredOutOfEngine[relatedToAsString] as any;
       if (modelRelatedTo === undefined) return [true, undefined];
       else {
@@ -567,12 +579,12 @@ export default class ForeignKeyField<
         clonedField.model = this.model;
         clonedField.fieldName = this.fieldName;
         clonedField.databaseName = this.databaseName as undefined;
-        (clonedField).defaultValue = this.defaultValue;
-        (clonedField).allowNull = this.allowNull;
+        clonedField.defaultValue = this.defaultValue;
+        clonedField.allowNull = this.allowNull;
         clonedField.dbIndex = this.dbIndex;
-        (clonedField).hasDefaultValue = this.hasDefaultValue;
+        clonedField.hasDefaultValue = this.hasDefaultValue;
         clonedField.underscored = this.underscored;
-        (clonedField).unique = this.unique;
+        clonedField.unique = this.unique;
         clonedField.isAuto = false;
         clonedField.primaryKey = false;
         modelInstance.fields[this.fieldName] = clonedField;
@@ -582,11 +594,14 @@ export default class ForeignKeyField<
   }
 
   /**
-   * This is needed for the state. Some ORMs cannot have the same relatedName twice. What happens is that when recreating the state
-   * we repeat the models from the database. By doing it this way we able to create a random relatedName so we guarantee that the same related name will not be
+   * This is needed for the state. Some ORMs cannot have the same relatedName twice.
+   * What happens is that when recreating the state
+   * we repeat the models from the database. By doing it this way we able to create
+   * a random relatedName so we guarantee that the same related name will not be
    * used twice inside inside of the engine to two different models.
    *
-   * This is a logic that should live here and not on the engine itself because the engine should not be aware of such errors that might occur. We just want
+   * This is a logic that should live here and not on the engine itself because the
+   * engine should not be aware of such errors that might occur. We just want
    * to keep it simple to develop engines.
    *
    * @return - Returns a random relatedName if it is a state model, otherwise returns the normal related name.
@@ -600,7 +615,8 @@ export default class ForeignKeyField<
   }
 
   /**
-   * This is mostly used internally by the engine to stringify the contents of the field on migrations. But you can override this if you want to
+   * This is mostly used internally by the engine to stringify the contents of the
+   * field on migrations. But you can override this if you want to
    * extend the ForeignKeyField class.
    *
    * @example
@@ -616,7 +632,8 @@ export default class ForeignKeyField<
    * }
    * ```
    *
-   * On this example, your custom ForeignKeyField instance defines a `aCustomValue` property that will be added on the migrations. It is useful if
+   * On this example, your custom ForeignKeyField instance defines a `aCustomValue`
+   * property that will be added on the migrations. It is useful if
    * you have created a custom field and wants to implement a custom logic during migrations.
    *
    * @param indentation - The number of spaces to use for indentation. Use `'  '.repeat(indentation + 1);`
@@ -624,10 +641,7 @@ export default class ForeignKeyField<
    *
    * @returns The stringified field.
    */
-  async toString(
-    indentation = 0,
-    _customParams: string | undefined = undefined
-  ) {
+  async toString(indentation = 0, _customParams: string | undefined = undefined) {
     const ident = '  '.repeat(indentation + 1);
     return super.toString(
       indentation,
@@ -643,7 +657,8 @@ export default class ForeignKeyField<
   }
 
   /**
-   * This is used internally by the engine to compare if the field is equal to another field. You can override this if you want to extend the ForeignKeyField class.
+   * This is used internally by the engine to compare if the field is equal to another field.
+   * You can override this if you want to extend the ForeignKeyField class.
    *
    * @example
    * ```
@@ -680,11 +695,15 @@ export default class ForeignKeyField<
     if (!isOnDeleteEqual) changedAttributes.push('onDelete');
     if (!isRelationNameEqual) changedAttributes.push('relationName');
 
-    return [isCustomNameEqual && isRelatedToEqual && isToFieldEqual && isOnDeleteEqual && isRelationNameEqual && isEqual, changedAttributes];
+    return [
+      isCustomNameEqual && isRelatedToEqual && isToFieldEqual && isOnDeleteEqual && isRelationNameEqual && isEqual,
+      changedAttributes
+    ];
   }
 
   /**
-   * This is used internally by the engine for cloning the field to a new instance. By doing that you are able to get the constructor options of the field.
+   * This is used internally by the engine for cloning the field to a new instance.
+   * By doing that you are able to get the constructor options of the field.
    *
    * @example
    * ```
@@ -715,7 +734,7 @@ export default class ForeignKeyField<
       onDelete: field.onDelete,
       customName: field.customName,
       relationName: field.relationName,
-      relatedName: field.relatedName as string,
+      relatedName: field.relatedName as string
     };
   }
 }

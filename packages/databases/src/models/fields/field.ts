@@ -6,7 +6,8 @@ import type { This } from '../../types';
 import type { ModelType } from '../types';
 
 /**
- * This is the default field of the model, every other field type should override this one but this one SHOULDN't be called directly.
+ * This is the default field of the model, every other field type should override this
+ * one but this one SHOULDN't be called directly.
  * Generally we do not offer any translation to this type of field.
  */
 export default class Field<
@@ -17,7 +18,7 @@ export default class Field<
   TNull extends boolean = false,
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any,
+  TCustomAttributes = any
 > {
   inputParsers = new Map<string, Required<EngineFieldParser>['inputParser']>();
   outputParsers = new Map<string, Required<EngineFieldParser>['outputParser']>();
@@ -65,7 +66,7 @@ export default class Field<
     // eslint-disable-next-line no-shadow
     TDatabaseName extends string | null | undefined = undefined,
     // eslint-disable-next-line no-shadow
-    TCustomAttributes = any,
+    TCustomAttributes = any
   >(
     params: FieldDefaultParamsType<
       InstanceType<TFieldInstance>,
@@ -81,7 +82,8 @@ export default class Field<
   }
 
   /**
-   * This method can be used to override the type of a field. This is useful for library maintainers that want to support the field type but the default type provided by palmares
+   * This method can be used to override the type of a field. This is useful for library
+   * maintainers that want to support the field type but the default type provided by palmares
    * is not the one that the user want to use.
    *
    * @example
@@ -99,7 +101,7 @@ export default class Field<
    *
    * Your library should provide documentation of the fields that are supported.
    */
-  static overrideType<TNewType extends { input: any; output: any }>() {
+  static overrideType<TNewType extends { input: any; output: any }, TCustomAttributes>() {
     return this as unknown as {
       new: <
         // eslint-disable-next-line no-shadow
@@ -111,9 +113,7 @@ export default class Field<
         // eslint-disable-next-line no-shadow
         TAuto extends boolean = false,
         // eslint-disable-next-line no-shadow
-        TDatabaseName extends string | null | undefined = undefined,
-        // eslint-disable-next-line no-shadow
-        TCustomAttributes = any,
+        TDatabaseName extends string | null | undefined = undefined
       >(
         params?: FieldDefaultParamsType<Field, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>
       ) => Field<TNewType, Field, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;
@@ -194,10 +194,10 @@ export default class Field<
       !isUniqueEqual && 'unique',
       !isDbIndexEqual && 'dbIndex',
       !isDatabaseNameEqual && 'databaseName',
-      !isUnderscoredEqual && 'underscored',
+      !isUnderscoredEqual && 'underscored'
     ].filter((attr) => typeof attr === 'string');
 
-    return [changedAttributes.length === 0, changedAttributes]
+    return [changedAttributes.length === 0, changedAttributes];
   }
 
   /**
@@ -219,7 +219,7 @@ export default class Field<
       isAuto: field.isAuto,
       primaryKey: field.primaryKey,
       underscored: field.underscored,
-      unique: field.unique,
+      unique: field.unique
     };
   }
 
@@ -250,13 +250,13 @@ export class UnopinionatedField<
   TNull extends boolean = false,
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any,
+  TCustomAttributes = any
 > extends Field<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
   constructor(params: any) {
     super(params);
   }
 
-  static overrideType<TNewType extends { input: any; output: any }>() {
+  static overrideType<TNewType extends { input: any; output: any }, TCustomAttributes = any>() {
     return this as unknown as {
       new: <
         // eslint-disable-next-line no-shadow
@@ -268,9 +268,7 @@ export class UnopinionatedField<
         // eslint-disable-next-line no-shadow
         TAuto extends boolean = false,
         // eslint-disable-next-line no-shadow
-        TDatabaseName extends string | null | undefined = undefined,
-        // eslint-disable-next-line no-shadow
-        TCustomAttributes = any,
+        TDatabaseName extends string | null | undefined = undefined
       >(
         params?: any
       ) => UnopinionatedField<TNewType, Field, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;

@@ -21,7 +21,7 @@ export default adapterEnumFieldParser({
         return `d.text('${field.databaseName}', { enum: [${optionsAsString}] })${
             defaultOptions.primaryKey ? '.primaryKey()' : ''
           // eslint-disable-next-line ts/no-unnecessary-condition
-          }${defaultOptions.default ? `.default(${defaultOptions.default})` : ''}${
+          }${defaultOptions.default ? `.default(${typeof defaultOptions.default === 'string' ? `'${defaultOptions.default}'` : defaultOptions.default})` : ''}${
           defaultOptions.nullable !== true ? `.notNull()` : ''
           }${
           // eslint-disable-next-line ts/no-unnecessary-condition
@@ -38,7 +38,7 @@ export default adapterEnumFieldParser({
         return `${enumVariableName}('${field.databaseName}')${
             defaultOptions.primaryKey ? '.primaryKey()' : ''
           // eslint-disable-next-line ts/no-unnecessary-condition
-          }${defaultOptions.default ? `.default(${defaultOptions.default})` : ''}${
+          }${defaultOptions.default ? `.default(${typeof defaultOptions.default === 'string' ? `'${defaultOptions.default}'` : defaultOptions.default})` : ''}${
           defaultOptions.nullable !== true ? `.notNull()` : ''
           }${
           // eslint-disable-next-line ts/no-unnecessary-condition
@@ -49,7 +49,7 @@ export default adapterEnumFieldParser({
           defaultOptions.primaryKey ? '.primaryKey()' : ''
         }${
           // eslint-disable-next-line ts/no-unnecessary-condition
-          defaultOptions.default ? `.default(${defaultOptions.default})` : ''
+          defaultOptions.default ? `.default(${typeof defaultOptions.default === 'string' ? `'${defaultOptions.default}'` : defaultOptions.default})` : ''
         }${
           defaultOptions.nullable !== true ? `.notNull()` : ''
         }${

@@ -29,6 +29,7 @@ export const javascript = {
   'no-misleading-character-class': 'error',
   'no-nonoctal-decimal-escape': 'error',
   'no-octal': 'error',
+  'max-len': ['error', { code: 120 }],
   'no-regex-spaces': 'error',
   'no-self-assign': 'error',
   /** Warn about variable with identical names in the outer scope */

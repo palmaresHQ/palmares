@@ -7,10 +7,15 @@
   "types": "./dist/cjs/types/index.d.ts",
   "exports": {
     ".": {
+      "import": {
+        "types": "./dist/cjs/types/index.d.ts",
+        "default": "./dist/esm/src/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/types/index.d.ts",
+        "default": "./dist/cjs/src/index.js"
+      },
       "types": "./dist/cjs/types/index.d.ts",
-      "node": "./dist/cjs/src/index.js",
-      "require": "./dist/cjs/src/index.js",
-      "import": "./dist/esm/src/index.js",
       "default": "./dist/esm/src/index.js"
     }
   },
@@ -35,7 +40,6 @@
     "palmares",
     "databases"
   ],
-  "type": "module",
   "author": "Nicolas Melo",
   "license": "MIT",
   "bugs": {

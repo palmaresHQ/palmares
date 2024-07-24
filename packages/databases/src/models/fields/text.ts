@@ -6,7 +6,8 @@ import type { This } from '../../types';
 /**
  * Functional approach for the creation of a TextField.
  *
- * A TextField is a field that is used to hold string. On Relational Databases that would be a `TEXT` field. Different from CharField it does not have a maximum length.
+ * A TextField is a field that is used to hold string. On Relational Databases that would be
+ * a `TEXT` field. Different from CharField it does not have a maximum length.
  *
  * @example
  * ```ts
@@ -24,13 +25,14 @@ export function text<
   TNull extends boolean = false,
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any,
+  TCustomAttributes = any
 >(params: TextFieldParamsType<TextField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> = {}) {
   return TextField.new(params);
 }
 
 /**
- * A TextField is a field that is used to hold string. On Relational Databases that would be a `TEXT` field. Different from CharField it does not have a maximum length.
+ * A TextField is a field that is used to hold string. On Relational Databases that would be
+ * a `TEXT` field. Different from CharField it does not have a maximum length.
  *
  * @example
  * ```ts
@@ -50,7 +52,7 @@ export default class TextField<
   TNull extends boolean = false,
   TAuto extends boolean = false,
   TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any,
+  TCustomAttributes = any
 > extends Field<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
   declare _type: TType;
   typeName: string = TextField.name;
@@ -77,7 +79,7 @@ export default class TextField<
     // eslint-disable-next-line no-shadow
     TDatabaseName extends string | null | undefined = undefined,
     // eslint-disable-next-line no-shadow
-    TCustomAttributes = any,
+    TCustomAttributes = any
   >(
     this: TField,
     params: TextFieldParamsType<
@@ -103,7 +105,8 @@ export default class TextField<
   }
 
   /**
-   * This is mostly used internally by the engine to stringify the contents of the field on migrations. But you can override this if you want to extend the TextField class.
+   * This is mostly used internally by the engine to stringify the contents of the field
+   * on migrations. But you can override this if you want to extend the TextField class.
    *
    * @example
    * ```
@@ -118,7 +121,8 @@ export default class TextField<
    * }
    * ```
    *
-   * On this example, your custom TextField instance defines a `aCustomValue` property that will be added on the migrations. It is useful if you have created a custom field and wants to
+   * On this example, your custom TextField instance defines a `aCustomValue` property that
+   * will be added on the migrations. It is useful if you have created a custom field and wants to
    * implement a custom logic during migrations.
    *
    * @param indentation - The number of spaces to use for indentation. Use `'  '.repeat(indentation + 1);`
@@ -133,7 +137,8 @@ export default class TextField<
   }
 
   /**
-   * This is used internally by the engine to compare if the field is equal to another field. You can override this if you want to extend the TextField class.
+   * This is used internally by the engine to compare if the field is equal to another field.
+   * You can override this if you want to extend the TextField class.
    *
    * @example
    * ```
@@ -160,11 +165,12 @@ export default class TextField<
     const [isEqual, changedAttributes] = super.compare(field);
 
     if (!isAllowBlankEqual) changedAttributes.push('allowBlank');
-    return [isAllowBlankEqual && isEqual, changedAttributes]
+    return [isAllowBlankEqual && isEqual, changedAttributes];
   }
 
   /**
-   * This is used internally by the engine for cloning the field to a new instance. By doing that you are able to get the constructor options of the field.
+   * This is used internally by the engine for cloning the field to a new instance. By doing that
+   * you are able to get the constructor options of the field.
    *
    * @example
    * ```
@@ -190,7 +196,46 @@ export default class TextField<
     const defaultConstructorOptions = await super.constructorOptions(field);
     return {
       ...defaultConstructorOptions,
-      allowBlank: field.allowBlank,
+      allowBlank: field.allowBlank
+    };
+  }
+
+  /**
+   * This method can be used to override the type of a field. This is useful for library
+   * maintainers that want to support the field type but the default type provided by palmares
+   * is not the one that the user want to use.
+   *
+   * @example
+   * ```ts
+   * const MyCustomDatabaseAutoField = AutoField.overrideType<{ input: string; output: string }>();
+   *
+   * // then the user can use as normal:
+   *
+   * const autoField = MyCustomDatabaseAutoField.new();
+   *
+   * // now the type inferred for the field will be a string instead of a number.
+   * ```
+   *
+   * ### Note
+   *
+   * Your library should provide documentation of the fields that are supported.
+   */
+  static overrideType<TNewType extends { input: any; output: any }, TCustomAttributes>() {
+    return this as unknown as {
+      new: <
+        // eslint-disable-next-line no-shadow
+        TDefaultValue extends MaybeNull<TextField['_type']['input'] | undefined, TNull> = undefined,
+        // eslint-disable-next-line no-shadow
+        TUnique extends boolean = false,
+        // eslint-disable-next-line no-shadow
+        TNull extends boolean = false,
+        // eslint-disable-next-line no-shadow
+        TAuto extends boolean = false,
+        // eslint-disable-next-line no-shadow
+        TDatabaseName extends string | null | undefined = undefined
+      >(
+        params?: TextFieldParamsType<Field, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>
+      ) => TextField<TNewType, Field, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;
     };
   }
 }
