@@ -1,19 +1,19 @@
-import { describe } from "@palmares/tests";
-
-import JestTestAdapter from "@palmares/jest-tests";
 import * as p from '@palmares/schemas';
+import { describe } from '@palmares/tests';
 
-describe<JestTestAdapter>("Basic Schemas", ({ test }) => {
-  test("basic representation", async ({ expect }) => {
+import type JestTestAdapter from '@palmares/jest-tests';
+
+describe<JestTestAdapter>('Basic Schemas', ({ test }) => {
+  test('basic representation', async ({ expect }) => {
     const basicSchema = p.number();
 
     const data = await basicSchema.data(2);
 
     expect(data).toBe(2);
-  })
+  });
 
-  test("basic to representation", async ({ expect }) => {
-    const defaultMessage = 'This used to be a number'
+  test('basic to representation', async ({ expect }) => {
+    const defaultMessage = 'This used to be a number';
     const numberSchema = p.number().toRepresentation(async () => {
       return defaultMessage;
     });
@@ -33,7 +33,7 @@ describe<JestTestAdapter>("Basic Schemas", ({ test }) => {
     expect(objectMessage.number).toBe(2);
   });
 
-  test("basic internal", async ({ expect }) => {
+  test('basic internal', async ({ expect }) => {
     const internalSchema = p.number().toInternal(async (data) => {
       return data * 2;
     });
@@ -43,7 +43,7 @@ describe<JestTestAdapter>("Basic Schemas", ({ test }) => {
     expect(parsed).toBe(4);
   });
 
-  test("basic validation", async ({ expect }) => {
+  test('basic validation', async ({ expect }) => {
     const internalSchema = p.number().toValidate(async () => {
       return 'Should fail';
     });
@@ -52,4 +52,4 @@ describe<JestTestAdapter>("Basic Schemas", ({ test }) => {
 
     expect((errors?.length || 0) > 0).toBe(true);
   });
-})
+});

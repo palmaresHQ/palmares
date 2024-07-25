@@ -7,5 +7,5 @@
     "outDir": "./dist",
     "types": ["node"]
   },
-  "include": ["src/**/*", "manage.drizzle.ts", "manage.sequelize.ts"]
+  "include": ["./src/**/*", "manage.drizzle.ts", "manage.sequelize.ts", "./src/core/types.test.ts"]
 }

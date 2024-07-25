@@ -20,6 +20,7 @@ const TO_EXCLUDE = [
 
 const TO_INCLUDE = [
   '**/*.ts',
+  '**/*.test.ts',
 ];
 
 /** @type {import('eslint').Linter.RulesRecord} */
