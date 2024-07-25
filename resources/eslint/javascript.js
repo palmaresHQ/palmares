@@ -16,6 +16,7 @@ export const javascript = {
   'no-delete-var': 'error',
   'no-dupe-else-if': 'error',
   'no-duplicate-case': 'error',
+  'max-len': ['error', { code: 120 }],
   'no-empty-character-class': 'error',
   'no-empty-pattern': 'error',
   'no-empty-static-block': 'error',
@@ -29,7 +30,6 @@ export const javascript = {
   'no-misleading-character-class': 'error',
   'no-nonoctal-decimal-escape': 'error',
   'no-octal': 'error',
-  'max-len': ['error', { code: 120 }],
   'no-regex-spaces': 'error',
   'no-self-assign': 'error',
   /** Warn about variable with identical names in the outer scope */

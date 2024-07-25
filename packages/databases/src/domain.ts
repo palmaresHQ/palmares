@@ -43,13 +43,13 @@ export default domain('@palmares/database', __dirname, {
           description: 'Creates an empty migration',
           hasFlag: true,
           type: 'string',
-          canBeMultiple: true,
-        },
+          canBeMultiple: true
+        }
       },
       handler: async (options: DomainHandlerFunctionArgs) => {
         const [databases] = loadDatabases();
         await makeMigrations(databases, options);
-      },
+      }
     },
     migrate: {
       description: 'Run the pending migrations on your database',
@@ -58,7 +58,7 @@ export default domain('@palmares/database', __dirname, {
       handler: async (options: DomainHandlerFunctionArgs) => {
         const [databases] = loadDatabases();
         await migrate(databases, options);
-      },
+      }
     },
     ['load-models']: {
       description: 'Load the databases. For some engines, it will just create the models locally',
@@ -71,8 +71,8 @@ export default domain('@palmares/database', __dirname, {
         await databases.init(settingsWithDefault, options.domains as DatabaseDomainInterface[]);
         // eslint-disable-next-line ts/no-unnecessary-condition
         if (databases) await Promise.all([databases.close()]);
-      },
-    },
+      }
+    }
   },
   // eslint-disable-next-line ts/require-await
   load: async (_: DatabaseSettingsType) => {
@@ -98,5 +98,5 @@ export default domain('@palmares/database', __dirname, {
   getModels: async (engineInstance: DatabaseAdapter) => {
     if (engineInstance.migrations) return defaultModels;
     else return [];
-  },
+  }
 });

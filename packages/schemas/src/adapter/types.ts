@@ -15,7 +15,8 @@ export type AdapterToStringArgs = {
   nullable: Schema['__nullable'];
 };
 
-export type AdapterTranslateArgs<TType extends SupportedSchemas = SupportedSchemas> = AdapterToStringArgs & NonToTranslateArgs<TType>;
+export type AdapterTranslateArgs<TType extends SupportedSchemas = SupportedSchemas> = AdapterToStringArgs &
+  NonToTranslateArgs<TType>;
 
 export type DatetimeAdapterTranslateArgs = {
   allowString: boolean | undefined;
@@ -219,16 +220,16 @@ export type DatetimeAdapterTranslateArgsWithoutNonTranslateArgs = Omit<
 export type ValidationDataBasedOnType<TType> = TType extends 'number'
   ? NumberAdapterTranslateArgsWithoutNonTranslateArgs
   : TType extends 'union'
-  ? UnionAdapterTranslateArgsWithoutNonTranslateArgs
-  : TType extends 'string'
-  ? StringAdapterTranslateArgsWithoutNonTranslateArgs
-  : TType extends 'array'
-  ? ArrayAdapterTranslateArgsWithoutNonTranslateArgs
-  : TType extends 'boolean'
-  ? BooleanAdapterTranslateArgsWithoutNonTranslateArgs
-  : TType extends 'datetime'
-  ? DatetimeAdapterTranslateArgsWithoutNonTranslateArgs
-  : ObjectAdapterTranslateArgsWithoutNonTranslateArgs;
+    ? UnionAdapterTranslateArgsWithoutNonTranslateArgs
+    : TType extends 'string'
+      ? StringAdapterTranslateArgsWithoutNonTranslateArgs
+      : TType extends 'array'
+        ? ArrayAdapterTranslateArgsWithoutNonTranslateArgs
+        : TType extends 'boolean'
+          ? BooleanAdapterTranslateArgsWithoutNonTranslateArgs
+          : TType extends 'datetime'
+            ? DatetimeAdapterTranslateArgsWithoutNonTranslateArgs
+            : ObjectAdapterTranslateArgsWithoutNonTranslateArgs;
 
 export type ErrorCodes =
   | 'max'

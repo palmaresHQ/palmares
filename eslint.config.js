@@ -21,6 +21,7 @@ const TO_EXCLUDE = [
 const TO_INCLUDE = [
   '**/*.ts',
 ];
+
 /** @type {import('eslint').Linter.RulesRecord} */
 const config = tseslint.config(
   {

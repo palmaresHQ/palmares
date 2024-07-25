@@ -5,7 +5,11 @@ export function booleanValidation(): ValidationFallbackReturnType {
   return {
     type: 'medium',
     // eslint-disable-next-line ts/require-await
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
+    callback: async (
+      value: any,
+      path: (string | number)[],
+      _options: Parameters<Schema['__transformToAdapter']>[0]
+    ) => {
       const isValid = typeof value === 'boolean';
 
       return {
@@ -18,12 +22,12 @@ export function booleanValidation(): ValidationFallbackReturnType {
                 code: 'boolean',
                 // eslint-disable-next-line ts/no-unnecessary-condition
                 path: path || [],
-                message: 'Value is not a boolean',
-              },
+                message: 'Value is not a boolean'
+              }
             ],
-        preventChildValidation: true,
+        preventChildValidation: true
       };
-    },
+    }
   };
 }
 
@@ -39,8 +43,8 @@ export function allowStringParser(): ValidationFallbackReturnType {
       const parsed = Boolean(value);
       return {
         parsed: parsed,
-        errors: [],
+        errors: []
       };
-    },
+    }
   };
 }

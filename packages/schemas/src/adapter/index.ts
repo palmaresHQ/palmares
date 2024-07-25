@@ -19,6 +19,7 @@ export default class SchemaAdapter {
   array?: ArrayFieldAdapter;
   boolean?: BooleanFieldAdapter;
   datetime?: DatetimeFieldAdapter;
+  adapterInstance: any;
 
   // eslint-disable-next-line ts/require-await
   async formatError(

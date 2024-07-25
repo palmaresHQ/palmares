@@ -10,12 +10,7 @@ export function booleanFieldAdapter<
   TToString extends BooleanFieldAdapter['toString'],
   TFormatError extends BooleanFieldAdapter['formatError'],
   TParse extends BooleanFieldAdapter['parse']
->(args: {
-  translate: TTranslate;
-  toString?: TToString;
-  formatError?: TFormatError;
-  parse?: TParse;
-}) {
+>(args: { translate: TTranslate; toString?: TToString; formatError?: TFormatError; parse?: TParse }) {
   class CustomBooleanFieldAdapter extends BooleanFieldAdapter {
     translate = args.translate;
     toString = args.toString as TToString;
@@ -29,8 +24,8 @@ export function booleanFieldAdapter<
       toString: TToString;
       formatError: TFormatError;
       parse: TParse;
-    }
-  }
+    };
+  };
 }
 
 export default class BooleanFieldAdapter extends FieldAdapter {

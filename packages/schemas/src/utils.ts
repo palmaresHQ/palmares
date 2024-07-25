@@ -124,22 +124,29 @@ export async function defaultTransform<TType extends SupportedSchemas>(
     __extends: Schema['__extends'];
   };
 
-  const checkIfShouldUseParserAndAppend = (parser: Parameters<WithFallback<SupportedSchemas>['fallbackFor']['add']>[0]) => {
+  const checkIfShouldUseParserAndAppend = (
+    parser: Parameters<WithFallback<SupportedSchemas>['fallbackFor']['add']>[0]
+  ) => {
     const isValidationDataAParser = (validationData as any).parsers?.[parser] !== undefined;
-    if (isValidationDataAParser) (schema as unknown as {
-      __parsers: Schema['__parsers'];
-    }).__parsers._fallbacks.add(parser);
-  }
+    if (isValidationDataAParser)
+      (
+        schema as unknown as {
+          __parsers: Schema['__parsers'];
+        }
+      ).__parsers._fallbacks.add(parser);
+  };
 
   const getExtendedOrNotSchemaAndString = (schema: any, toStringVersion: string) => {
-    const extendedOrNotSchema = typeof schemaWithPrivateFields.__extends?.callback === 'function' ?
-    schemaWithPrivateFields.__extends.callback(schema) :
-    schema;
-  const extendedOrNotSchemaString = typeof schemaWithPrivateFields.__extends?.toStringCallback === 'function' ?
-    schemaWithPrivateFields.__extends.toStringCallback(toStringVersion) :
-    toStringVersion;
+    const extendedOrNotSchema =
+      typeof schemaWithPrivateFields.__extends?.callback === 'function'
+        ? schemaWithPrivateFields.__extends.callback(schema)
+        : schema;
+    const extendedOrNotSchemaString =
+      typeof schemaWithPrivateFields.__extends?.toStringCallback === 'function'
+        ? schemaWithPrivateFields.__extends.toStringCallback(toStringVersion)
+        : toStringVersion;
     return [extendedOrNotSchema, extendedOrNotSchemaString];
-  }
+  };
 
   const checkIfShouldAppendFallbackAndAppend = (
     fallback: Parameters<WithFallback<SupportedSchemas>['fallbackFor']['add']>[0]
@@ -177,7 +184,9 @@ export async function defaultTransform<TType extends SupportedSchemas>(
     const existingFallbacks = Object.keys(fallbackFunctions) as Parameters<
       WithFallback<SupportedSchemas>['fallbackFor']['add']
     >[0][];
-    const allParsers = Object.keys(validationData['parsers']) as Parameters<WithFallback<SupportedSchemas>['fallbackFor']['add']>[0][];
+    const allParsers = Object.keys(validationData['parsers']) as Parameters<
+      WithFallback<SupportedSchemas>['fallbackFor']['add']
+    >[0][];
 
     appendRootFallback();
 
@@ -187,12 +196,12 @@ export async function defaultTransform<TType extends SupportedSchemas>(
   }
   if (!fieldAdapter) throw new Error('The field adapter is not supported and no fallback was provided.');
 
-  const translatedSchemaOrWithFallback = (await Promise.resolve(
+  const translatedSchemaOrWithFallback = await Promise.resolve(
     fieldAdapter.translate(adapter.field, {
       withFallback: withFallbackFactory<SupportedSchemas>(type),
-      ...validationData,
+      ...validationData
     })
-  ));
+  );
 
   let stringVersion = '';
   if (options.shouldAddStringVersion)
@@ -213,8 +222,8 @@ export async function defaultTransform<TType extends SupportedSchemas>(
     return [
       {
         transformed: extendedOrNotSchema,
-        asString: extendedOrNotSchemaString,
-      },
+        asString: extendedOrNotSchemaString
+      }
     ];
   }
 
@@ -226,14 +235,14 @@ export async function defaultTransform<TType extends SupportedSchemas>(
   return [
     {
       transformed: extendedOrNotSchema,
-      asString: extendedOrNotSchemaString,
-    },
+      asString: extendedOrNotSchemaString
+    }
   ];
 }
 
 /**
- * This function is used to transform the schema to the adapter. By default it caches the transformed schemas on the schema instance. So on subsequent validations we don't need
- * to transform to the schema again.
+ * This function is used to transform the schema to the adapter. By default it caches the transformed schemas on
+ * the schema instance. So on subsequent validations we don't need to transform to the schema again.
  */
 export async function defaultTransformToAdapter(
   callback: (adapter: SchemaAdapter) => ReturnType<FieldAdapter['translate']>,
@@ -250,7 +259,7 @@ export async function defaultTransformToAdapter(
     transformedSchemas[schemaAdapterNameToUse] = {
       transformed: false,
       adapter: options.schemaAdapter as SchemaAdapter,
-      schemas: [],
+      schemas: []
     };
 
   const shouldTranslate = transformedSchemas[schemaAdapterNameToUse].transformed === false || options.force === true;
@@ -282,14 +291,15 @@ export async function formatErrorFromParseMethod(
 }
 
 /**
- * Transform the schema and check if we should add a fallback validation for that schema. This is used for complex schemas like Objects, arrays, unions, etc.
+ * Transform the schema and check if we should add a fallback validation for that schema. This is used for complex
+ * schemas like Objects, arrays, unions, etc.
  */
 export async function transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas(
   schema: Schema,
   options: Parameters<Schema['__transformToAdapter']>[0]
 ) {
   const schemaWithProtected = schema as Schema & {
-    __runBeforeParseAndData: Schema['__runBeforeParseAndData']
+    __runBeforeParseAndData: Schema['__runBeforeParseAndData'];
     __toInternal: Schema['__toInternal'];
     __toValidate: Schema['__toValidate'];
     __toRepresentation: Schema['__toRepresentation'];
@@ -299,7 +309,8 @@ export async function transformSchemaAndCheckIfShouldBeHandledByFallbackOnComple
     __parsers: Schema['__parsers'];
   };
 
-  const transformedData = await schemaWithProtected.__transformToAdapter(options); // This should come first because we will get the fallbacks of the field here.
+  // This should come first because we will get the fallbacks of the field here.
+  const transformedData = await schemaWithProtected.__transformToAdapter(options);
 
   // eslint-disable-next-line ts/no-unnecessary-condition
   const doesKeyHaveFallback = schemaWithProtected.__rootFallbacksValidator !== undefined;

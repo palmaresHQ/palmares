@@ -17,9 +17,9 @@ export function objectValidation(keysToFallback: { [key: string]: Schema }): Val
               code: 'object',
               // eslint-disable-next-line ts/no-unnecessary-condition
               path: path || [],
-              message: 'The value must be an object. Received: ' + typeof value,
-            },
-          ],
+              message: 'The value must be an object. Received: ' + typeof value
+            }
+          ]
         };
 
       const errors: { [key: string]: ValidationFallbackCallbackReturnType['errors'] } = {};
@@ -48,8 +48,8 @@ export function objectValidation(keysToFallback: { [key: string]: Schema }): Val
 
       return {
         parsed: value,
-        errors: Object.values(errors).flat(),
+        errors: Object.values(errors).flat()
       };
-    },
+    }
   };
 }
