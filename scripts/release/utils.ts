@@ -4,6 +4,7 @@ import { join } from 'path';
 
 /** Runs a given command under spawn from node's `child_process` */
 export function runCommand(command: string, args: string[]): Promise<Buffer> {
+  // eslint-disable-next-line ts/no-unnecessary-condition
   const { stdout, stderr } = spawn(command, args || []);
 
   return new Promise((resolve, reject) => {
