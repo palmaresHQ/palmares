@@ -117,8 +117,8 @@ importers:
         specifier: 18.3.1
         version: 18.3.1(react@18.3.1)
       tailwindcss:
-        specifier: 3.4.6
-        version: 3.4.6(ts-node@10.9.1(@swc/core@1.7.1(@swc/helpers@0.5.5))(@types/node@20.14.12)(typescript@5.5.4))
+        specifier: 3.4.7
+        version: 3.4.7(ts-node@10.9.1(@swc/core@1.7.1(@swc/helpers@0.5.5))(@types/node@20.14.12)(typescript@5.5.4))
       typescript:
         specifier: ^5.5.4
         version: 5.5.4
@@ -343,8 +343,8 @@ importers:
         specifier: ^8
         version: 8.4.31
       tailwindcss:
-        specifier: ^3.4.6
-        version: 3.4.6(ts-node@10.9.1(@swc/core@1.7.1(@swc/helpers@0.5.5))(@types/node@20.14.2)(typescript@5.5.4))
+        specifier: ^3.4.7
+        version: 3.4.7(ts-node@10.9.1(@swc/core@1.7.1(@swc/helpers@0.5.5))(@types/node@20.14.2)(typescript@5.5.4))
       typescript:
         specifier: ^5.5.4
         version: 5.5.4
@@ -6669,8 +6669,8 @@ packages:
     resolution: {integrity: sha512-7gr8p9TQP6RAHusBOSLs46F4564ZrjV8xFmw5zCmgmhGUcw2hxsShhJ6CEiHQMgPDwAQ1fWHPM0ypc4RMAig4A==}
     engines: {node: ^14.18.0 || >=16.0.0}
 
-  tailwindcss@3.4.6:
-    resolution: {integrity: sha512-1uRHzPB+Vzu57ocybfZ4jh5Q3SdlH7XW23J5sQoM9LhE9eIOlzxer/3XPSsycvih3rboRsvt0QCmzSrqyOYUIA==}
+  tailwindcss@3.4.7:
+    resolution: {integrity: sha512-rxWZbe87YJb4OcSopb7up2Ba4U82BoiSGUdoDr3Ydrg9ckxFS/YWsvhN323GMcddgU65QRy7JndC7ahhInhvlQ==}
     engines: {node: '>=14.0.0'}
     hasBin: true
 
@@ -14274,7 +14274,7 @@ snapshots:
       '@pkgr/core': 0.1.1
       tslib: 2.6.3
 
-  tailwindcss@3.4.6(ts-node@10.9.1(@swc/core@1.7.1(@swc/helpers@0.5.5))(@types/node@20.14.12)(typescript@5.5.4)):
+  tailwindcss@3.4.7(ts-node@10.9.1(@swc/core@1.7.1(@swc/helpers@0.5.5))(@types/node@20.14.12)(typescript@5.5.4)):
     dependencies:
       '@alloc/quick-lru': 5.2.0
       arg: 5.0.2
@@ -14301,7 +14301,7 @@ snapshots:
     transitivePeerDependencies:
       - ts-node
 
-  tailwindcss@3.4.6(ts-node@10.9.1(@swc/core@1.7.1(@swc/helpers@0.5.5))(@types/node@20.14.2)(typescript@5.5.4)):
+  tailwindcss@3.4.7(ts-node@10.9.1(@swc/core@1.7.1(@swc/helpers@0.5.5))(@types/node@20.14.2)(typescript@5.5.4)):
     dependencies:
       '@alloc/quick-lru': 5.2.0
       arg: 5.0.2
