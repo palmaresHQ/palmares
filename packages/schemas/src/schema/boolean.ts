@@ -46,7 +46,8 @@ export default class BooleanSchema<
             parsers: {
               allowString: this.__allowString,
               allowNumber: this.__allowNumber,
-              is: this.__is.value,
+              // eslint-disable-next-line ts/no-unnecessary-condition
+              is: this.__is?.value,
               trueValues: this.__trueValues,
               falseValues: this.__falseValues,
               nullable: this.__nullable.allow,

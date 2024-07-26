@@ -19,5 +19,5 @@ export default domain('testingDrizzle', __dirname, {
   modifiers: [testDomainModifier] as const,
   //getMigrations: () => [],
   //getModels: () => models,
-  getTests: () => [__dirname + '/test.test.ts']
+  getTests: () => [__dirname + '/test.test.ts', __dirname + '/numbers.test.ts', __dirname + '/types.test.ts']
 });

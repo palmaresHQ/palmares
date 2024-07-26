@@ -14,10 +14,12 @@ describe<JestTestAdapter>('Basic Schemas', ({ test }) => {
 
   test('basic to representation', async ({ expect }) => {
     const defaultMessage = 'This used to be a number';
+    // eslint-disable-next-line ts/require-await
     const numberSchema = p.number().toRepresentation(async () => {
       return defaultMessage;
     });
 
+    // eslint-disable-next-line ts/require-await
     const schemaTransformingData = p.number().toRepresentation(async (data) => {
       return {
         number: data,
@@ -34,6 +36,7 @@ describe<JestTestAdapter>('Basic Schemas', ({ test }) => {
   });
 
   test('basic internal', async ({ expect }) => {
+    // eslint-disable-next-line ts/require-await
     const internalSchema = p.number().toInternal(async (data) => {
       return data * 2;
     });
@@ -44,6 +47,7 @@ describe<JestTestAdapter>('Basic Schemas', ({ test }) => {
   });
 
   test('basic validation', async ({ expect }) => {
+    // eslint-disable-next-line ts/require-await
     const internalSchema = p.number().toValidate(async () => {
       return 'Should fail';
     });

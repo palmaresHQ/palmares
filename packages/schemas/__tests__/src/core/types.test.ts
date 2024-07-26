@@ -20,11 +20,20 @@ describe<JestTestAdapter>('Schema Types', ({ test }) => {
     expect((errors?.length || 0) > 0).toBe(true);
   });
 
+  test('date schema', async ({ expect }) => {
+    const dateSchema = p.datetime();
+
+    const { errors } = await dateSchema.parse('value' as any);
+
+    expect((errors?.length || 0) > 0).toBe(true);
+  });
+
   test('string schema', async ({ expect }) => {
     const stringSchema = p.string();
 
     const { errors } = await stringSchema.parse(2 as any);
 
+    console.log(errors);
     expect((errors?.length || 0) > 0).toBe(true);
   });
 
@@ -43,6 +52,14 @@ describe<JestTestAdapter>('Schema Types', ({ test }) => {
     });
 
     const { errors } = await objectSchema.parse('value' as any);
+
+    expect((errors?.length || 0) > 0).toBe(true);
+  });
+
+  test('union schema', async ({ expect }) => {
+    const unionSchema = p.union([p.string(), p.number()]);
+
+    const { errors } = await unionSchema.parse(true as any);
 
     expect((errors?.length || 0) > 0).toBe(true);
   });
