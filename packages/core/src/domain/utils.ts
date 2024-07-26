@@ -13,16 +13,20 @@ let cachedDomains: (typeof Domain)[] | null = null;
 let cachedInitializedDomains: Domain<any>[] | null = null;
 
 /**
- * This is used to retrieve all of the domains from the settings. We will loop through all of the installed domains in the application and cache it in memory.
+ * This is used to retrieve all of the domains from the settings. We will loop through all of the installed domains in
+ * the application and cache it in memory.
  * If the domains were already initialized by other means we will return the cached domains.
  *
  * @param settings - The settings of the application used by `defineSettings` function.
  *
  * @returns - Returns all of the domains from the settings.
  */
-export async function retrieveDomains(settings: CoreSettingsType & SettingsType2, options?: {
-  ignoreCache?: boolean;
-}): Promise<(typeof Domain)[]> {
+export async function retrieveDomains(
+  settings: CoreSettingsType & SettingsType2,
+  options?: {
+    ignoreCache?: boolean;
+  }
+): Promise<(typeof Domain)[]> {
   const isNotDynamicDomains = settings.isDynamicDomains !== true;
   if (cachedDomains && isNotDynamicDomains && options?.ignoreCache !== true) return cachedDomains;
 
@@ -57,8 +61,9 @@ export async function retrieveDomains(settings: CoreSettingsType & SettingsType2
 }
 
 /**
- * This will initialize all of the domains as well as all of the commands from all of them. Initializing all of the commands means
- * calling the `load` function of the domain if it exists. The `load` function is usually where you will initialize everything needed for your domain.
+ * This will initialize all of the domains as well as all of the commands from all of them. Initializing all of the
+ * commands means calling the `load` function of the domain if it exists. The `load` function is usually where you
+ * will initialize everything needed for your domain.
  *
  * @example```ts
  * import { domain } from '@palmares/core';
@@ -70,9 +75,10 @@ export async function retrieveDomains(settings: CoreSettingsType & SettingsType2
  * })
  * ```
  *
- * Understand that when you call the `laod` function you can access all of the settings of the application from all of the domains but you
- * CAN'T access all of the domains initialized. One example of this is on the `@palmares/databases` package. When we are running a `@palmares/databases`
- * command like `makemigrations` or `migrate` the command already receives all of the domains initialized.
+ * Understand that when you call the `laod` function you can access all of the settings of the application from all of
+ * the domains but you CAN'T access all of the domains initialized. One example of this is on the `@palmares/databases`
+ * package. When we are running a `@palmares/databases` command like `makemigrations` or `migrate` the command already
+ * receives all of the domains initialized.
  *
  *
  * We will append all of the commands to an object so at runtime we can access it
@@ -80,34 +86,33 @@ export async function retrieveDomains(settings: CoreSettingsType & SettingsType2
  */
 export async function initializeDomains(
   settingsOrSettingsPath:
-  | Promise<{ default: SettingsType2 }>
-  | SettingsType2
-  | Std
-  | Promise<{ default: Std }>
-  | {
-      settingsPathLocation: string;
-      std: Std;
-    },
-  options?: { ignoreCache?: boolean; ignoreCommands?: boolean}
+    | Promise<{ default: SettingsType2 }>
+    | SettingsType2
+    | Std
+    | Promise<{ default: Std }>
+    | {
+        settingsPathLocation: string;
+        std: Std;
+      },
+  options?: { ignoreCache?: boolean; ignoreCommands?: boolean }
 ): Promise<{
   settings: SettingsType2;
   domains: Domain<any>[];
   commands: DefaultCommandType;
 }> {
-
   const ignoreCache = options?.ignoreCache === true;
   if (cachedInitializedDomains && ignoreCache !== true)
     return {
       settings: getSettings() as SettingsType2,
       domains: cachedInitializedDomains,
-      commands: getCommands(),
+      commands: getCommands()
     };
 
   const settings = await setSettings(settingsOrSettingsPath);
   let commands = {} as DefaultCommandType;
   const initializedDomains: Domain<any>[] = [];
   const domainClasses = await retrieveDomains(settings, {
-    ignoreCache: options?.ignoreCache,
+    ignoreCache: options?.ignoreCache
   });
   const readyFunctionsToCallAfterAllDomainsAreLoaded = [] as ((
     args: DomainReadyFunctionArgs<any, any>
@@ -116,7 +121,8 @@ export async function initializeDomains(
   for (const domainClass of domainClasses) {
     const initializedDomain = new domainClass();
     const domainIsNotLoadedAndHasLoadFunction =
-      typeof initializedDomain.load === 'function' && (!initializedDomain.isLoaded && options?.ignoreCache !== true);
+      typeof initializedDomain.load === 'function' && !initializedDomain.isLoaded && ignoreCache !== false;
+
     if (domainIsNotLoadedAndHasLoadFunction) {
       if (initializedDomain.load) {
         const readyFunctionToCallOrNot = await initializedDomain.load(settings);
@@ -128,7 +134,7 @@ export async function initializeDomains(
     if (options?.ignoreCommands !== true)
       commands = {
         ...commands,
-        ...initializedDomain.commands,
+        ...initializedDomain.commands
       };
     initializedDomains.push(initializedDomain);
   }
@@ -140,7 +146,7 @@ export async function initializeDomains(
           settings,
           customOptions: {},
           app: {} as AppServer | InstanceType<ReturnType<typeof appServer>>,
-          domains: initializedDomains,
+          domains: initializedDomains
         })
       );
   }
@@ -151,14 +157,13 @@ export async function initializeDomains(
     return {
       commands: commands,
       settings: settings,
-      domains: cachedInitializedDomains,
+      domains: cachedInitializedDomains
     };
   } else {
     return {
       settings: settings,
       commands: {},
-      domains: initializedDomains,
-    }
+      domains: initializedDomains
+    };
   }
 }
-

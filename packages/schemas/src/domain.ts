@@ -1,3 +1,17 @@
 import { domain } from '@palmares/core';
 
-export default domain('@palmares/schemas', __dirname, {});
+import { getDefaultAdapter, setDefaultAdapter } from './conf';
+
+import type { SchemasSettingsType } from './types';
+
+const schemasDomain = domain('@palmares/schemas', __dirname, {
+  commands: {},
+  // eslint-disable-next-line ts/require-await
+  load: async (settings: SchemasSettingsType) => {
+    setDefaultAdapter(new settings.schemaAdapter());
+    const schemaAdapter = getDefaultAdapter();
+    return undefined;
+  }
+});
+
+export default schemasDomain;

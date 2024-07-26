@@ -17,9 +17,9 @@ export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): 
               code: 'array',
               // eslint-disable-next-line ts/no-unnecessary-condition
               path: path || [],
-              message: 'The value must be an array. Received: ' + typeof value,
-            },
-          ],
+              message: 'The value must be an array. Received: ' + typeof value
+            }
+          ]
         };
       if (isTuple && value.length !== schemas.length)
         return {
@@ -31,14 +31,15 @@ export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): 
               code: 'tuple',
               // eslint-disable-next-line ts/no-unnecessary-condition
               path: path || [],
-              message: 'The tuple must have exactly ' + schemas.length + ' elements. Received: ' + value.length,
-            },
-          ],
+              message: 'The tuple must have exactly ' + schemas.length + ' elements. Received: ' + value.length
+            }
+          ]
         };
 
       const errorsOfArray: ValidationFallbackCallbackReturnType['errors'] = [];
 
-      // To speed things up, we can do a simple type check, if the value is of type number and number is on index 1, and on index 0 is a string,
+      // To speed things up, we can do a simple type check, if the value is of type number and
+      // number is on index 1, and on index 0 is a string,
       // if the value is a number we can skip checking at index 0.
       const schemaIndexByTypeof = new Map<string, number>();
       let parsedValues: any[] = [];
@@ -52,8 +53,8 @@ export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): 
           const schemasToValidateAgainst = isTuple
             ? [schemas[index]]
             : existsASchemaIndex
-            ? [schemas[schemaIndex]]
-            : schemas;
+              ? [schemas[schemaIndex]]
+              : schemas;
 
           for (let indexOfSchema = 0; indexOfSchema < schemasToValidateAgainst.length; indexOfSchema++) {
             const schemaToValidate = schemasToValidateAgainst[indexOfSchema];
@@ -64,7 +65,9 @@ export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): 
             const { parsed, errors } = await schemaWithProtected.__parse(element, [...path, index], options);
 
             if (schemaWithProtected.__toInternal && options.toInternalToBubbleUp)
-              options.toInternalToBubbleUp.push(async () => (parsedValues[indexOfSchema] = await schemaWithProtected.__toInternal?.(parsed)));
+              options.toInternalToBubbleUp.push(
+                async () => (parsedValues[indexOfSchema] = await schemaWithProtected.__toInternal?.(parsed))
+              );
 
             // eslint-disable-next-line ts/no-unnecessary-condition
             if ((errors || []).length <= 0) {
@@ -82,9 +85,9 @@ export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): 
 
       return {
         parsed: parsedValues,
-        errors: errorsOfArray,
+        errors: errorsOfArray
       };
-    },
+    }
   };
 }
 
@@ -92,7 +95,11 @@ export function minLength(args: ArraySchema['__minLength']): ValidationFallbackR
   return {
     type: 'low',
     // eslint-disable-next-line ts/require-await
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
+    callback: async (
+      value: any,
+      path: (string | number)[],
+      _options: Parameters<Schema['__transformToAdapter']>[0]
+    ) => {
       const isValid = args.inclusive ? value.length >= args.value : value.length > args.value;
 
       return {
@@ -105,11 +112,11 @@ export function minLength(args: ArraySchema['__minLength']): ValidationFallbackR
                 code: 'minLength',
                 // eslint-disable-next-line ts/no-unnecessary-condition
                 path: path || [],
-                message: args.message,
-              },
-            ],
+                message: args.message
+              }
+            ]
       };
-    },
+    }
   };
 }
 
@@ -117,7 +124,11 @@ export function maxLength(args: ArraySchema['__maxLength']): ValidationFallbackR
   return {
     type: 'low',
     // eslint-disable-next-line ts/require-await
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
+    callback: async (
+      value: any,
+      path: (string | number)[],
+      _options: Parameters<Schema['__transformToAdapter']>[0]
+    ) => {
       const isValid = args.inclusive ? value.length <= args.value : value.length < args.value;
 
       return {
@@ -130,11 +141,11 @@ export function maxLength(args: ArraySchema['__maxLength']): ValidationFallbackR
                 code: 'maxLength',
                 // eslint-disable-next-line ts/no-unnecessary-condition
                 path: path || [],
-                message: args.message,
-              },
-            ],
+                message: args.message
+              }
+            ]
       };
-    },
+    }
   };
 }
 
@@ -142,7 +153,11 @@ export function nonEmpty(args: ArraySchema['__nonEmpty']): ValidationFallbackRet
   return {
     type: 'low',
     // eslint-disable-next-line ts/require-await
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
+    callback: async (
+      value: any,
+      path: (string | number)[],
+      _options: Parameters<Schema['__transformToAdapter']>[0]
+    ) => {
       const isValid = value.length > 0;
 
       return {
@@ -155,10 +170,10 @@ export function nonEmpty(args: ArraySchema['__nonEmpty']): ValidationFallbackRet
                 code: 'nonEmpty',
                 // eslint-disable-next-line ts/no-unnecessary-condition
                 path: path || [],
-                message: args.message,
-              },
-            ],
+                message: args.message
+              }
+            ]
       };
-    },
+    }
   };
 }

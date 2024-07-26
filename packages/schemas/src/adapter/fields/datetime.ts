@@ -5,18 +5,12 @@ import type SchemaAdapter from '..';
 import type WithFallback from '../../utils';
 import type { DatetimeAdapterTranslateArgs } from '../types';
 
-
 export function datetimeFieldAdapter<
   TTranslate extends DatetimeFieldAdapter['translate'],
   TToString extends DatetimeFieldAdapter['toString'],
   TFormatError extends DatetimeFieldAdapter['formatError'],
   TParse extends DatetimeFieldAdapter['parse']
->(args: {
-  translate: TTranslate;
-  toString?: TToString;
-  formatError?: TFormatError;
-  parse?: TParse;
-}) {
+>(args: { translate: TTranslate; toString?: TToString; formatError?: TFormatError; parse?: TParse }) {
   class CustomDatetimeFieldAdapter extends DatetimeFieldAdapter {
     translate = args.translate;
     toString = args.toString as TToString;
@@ -30,8 +24,8 @@ export function datetimeFieldAdapter<
       toString: TToString;
       formatError: TFormatError;
       parse: TParse;
-    }
-  }
+    };
+  };
 }
 
 export default class DatetimeFieldAdapter extends FieldAdapter {

@@ -1,5 +1,13 @@
 # @palmares/zod-schema
 
+## 0.0.2
+
+### Patch Changes
+
+- Unstable release, but already on npm
+- Updated dependencies
+  - @palmares/schemas@0.0.1
+
 ## 0.0.1
 
 ### Patch Changes

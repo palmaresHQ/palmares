@@ -11,7 +11,7 @@ import type { Expect } from './expect';
  * ```typescript
  * describe('Test suite', ({ test }) => {
  *   test('Test', async ({ expect }) => {
- *    expect(1).toBe(1);
+ *     expect(1).toBe(1);
  *   });
  * });
  * ```
@@ -25,6 +25,8 @@ export function describe<TTestAdapter extends TestAdapter = TestAdapter>(
   callback: (
     args: {
       test: typeof test<TTestAdapter>;
+      beforeEach: typeof beforeEach<TTestAdapter>;
+      afterEach: typeof afterEach<TTestAdapter>;
     } & {
       custom: ReturnType<TTestAdapter['getCustomProps']>;
     }
@@ -32,7 +34,12 @@ export function describe<TTestAdapter extends TestAdapter = TestAdapter>(
 ) {
   const defaultTestAdapter = getTestAdapter();
   defaultTestAdapter.functions.getDescribe(descriptionName, () => {
-    callback({ test: test, custom: defaultTestAdapter.getCustomProps() as any });
+    return callback({
+      test,
+      beforeEach,
+      afterEach,
+      custom: defaultTestAdapter.getCustomProps() as any
+    });
   });
 }
 
@@ -58,15 +65,121 @@ export function test<TTestAdapter extends TestAdapter = TestAdapter>(
     } & {
       custom: ReturnType<TTestAdapter['getCustomProps']>;
     }
-  ) => Promise<void>
+  ) => Promise<void> | void
 ) {
   const defaultTestAdapter = getTestAdapter();
 
-  defaultTestAdapter.functions.getTest(testName, () =>
-    callback({
-      expect: expect,
-      custom: defaultTestAdapter.getCustomProps() as any
-    })
+  defaultTestAdapter.functions.getTest(testName, async () =>
+    Promise.resolve(
+      callback({
+        expect: expect,
+        custom: defaultTestAdapter.getCustomProps() as any
+      })
+    )
+  );
+}
+
+/**
+ * Run a function before each test.
+ *
+ * @example
+ * ```typescript
+ * beforeEach(({ custom }) => {
+ *   db.init();
+ * });
+ * ```
+ *
+ * @param callback The callback to run before each test, the callback will for convenience receive the
+ * `custom` object that was passed to the test adapter
+ */
+export function beforeEach<TTestAdapter extends TestAdapter = TestAdapter>(
+  callback: (args: { custom: ReturnType<TTestAdapter['getCustomProps']> }) => Promise<void> | void
+) {
+  const defaultTestAdapter = getTestAdapter();
+  defaultTestAdapter.functions.getBeforeEach(async () =>
+    Promise.resolve(
+      callback({
+        custom: defaultTestAdapter.getCustomProps() as any
+      })
+    )
+  );
+}
+
+/**
+ * Run a function after each test.
+ *
+ * @example
+ *  ```typescript
+ * afterEach(({ custom }) => {
+ *   db.flush();
+ * });
+ * ```
+ *
+ * @param callback - The callback to run after each test, the callback will for convenience receive the
+ * `custom` object that was passed to the test adapter
+ */
+export function afterEach<TTestAdapter extends TestAdapter = TestAdapter>(
+  callback: (args: { custom: ReturnType<TTestAdapter['getCustomProps']> }) => Promise<void> | void
+) {
+  const defaultTestAdapter = getTestAdapter();
+  defaultTestAdapter.functions.getAfterEach(async () =>
+    Promise.resolve(
+      callback({
+        custom: defaultTestAdapter.getCustomProps() as any
+      })
+    )
+  );
+}
+
+/**
+ * Run a function before all tests.
+ *
+ * @example
+ * ```typescript
+ * beforeAll(({ custom }) => {
+ *   db.seed();
+ * });
+ * ```
+ *
+ * @param callback - The callback to run before all tests, the callback will for convenience receive the
+ * `custom` object that was passed to the test adapter
+ */
+export function beforeAll<TTestAdapter extends TestAdapter = TestAdapter>(
+  callback: (args: { custom: ReturnType<TTestAdapter['getCustomProps']> }) => Promise<void> | void
+) {
+  const defaultTestAdapter = getTestAdapter();
+  defaultTestAdapter.functions.getBeforeAll(async () =>
+    Promise.resolve(
+      callback({
+        custom: defaultTestAdapter.getCustomProps() as any
+      })
+    )
+  );
+}
+
+/**
+ * Run a function after all tests.
+ *
+ * @example
+ * ```typescript
+ * afterAll(({ custom }) => {
+ *   db.flush();
+ * });
+ * ```
+ *
+ * @param callback - The callback to run after all tests, the callback will for convenience receive the
+ * `custom` object that was passed to the test adapter
+ */
+export function afterAll<TTestAdapter extends TestAdapter = TestAdapter>(
+  callback: (args: { custom: ReturnType<TTestAdapter['getCustomProps']> }) => Promise<void> | void
+) {
+  const defaultTestAdapter = getTestAdapter();
+  defaultTestAdapter.functions.getAfterAll(async () =>
+    Promise.resolve(
+      callback({
+        custom: defaultTestAdapter.getCustomProps() as any
+      })
+    )
   );
 }
 

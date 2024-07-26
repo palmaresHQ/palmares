@@ -19,8 +19,8 @@ export function getSettings() {
  */
 async function extractSettingsFromPath(stdToUse: Std, path?: string) {
   setDefaultStd(stdToUse);
-  const pathToUse: string = typeof path === 'string' ? path :
-   (await stdToUse.files.readFromEnv(PALMARES_SETTINGS_MODULE_ENVIRONMENT_VARIABLE));
+  const pathToUse: string =
+    typeof path === 'string' ? path : await stdToUse.files.readFromEnv(PALMARES_SETTINGS_MODULE_ENVIRONMENT_VARIABLE);
 
   if (!pathToUse) throw new SettingsNotFoundException();
   try {
@@ -54,6 +54,6 @@ export async function setSettings(
   } else cachedSettings = settingsOrStd;
 
   if (!cachedSettings) throw new SettingsNotFoundException();
-  setDefaultStd(new cachedSettings.std())
+  setDefaultStd(new cachedSettings.std());
   return cachedSettings;
 }

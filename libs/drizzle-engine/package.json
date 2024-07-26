@@ -1,103 +1,103 @@
 {
   "name": "@palmares/drizzle-engine",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "This is the engine that wraps the hole drizzle interface in a way palmares can understand and have full control of",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
   "types": "./dist/cjs/types/index.d.ts",
   "exports": {
-    "./better-sqlite3":{
+    "./better-sqlite3": {
       "types": "./dist/cjs/types/drizzles/better-sqlite3.d.ts",
       "node": "./dist/cjs/src/drizzles/better-sqlite3.js",
       "require": "./dist/cjs/src/drizzles/better-sqlite3.js",
       "import": "./dist/esm/src/drizzles/better-sqlite3.js",
       "default": "./dist/cjs/src/drizzles/better-sqlite3.js"
     },
-    "./aws-data-api/pg":{
+    "./aws-data-api/pg": {
       "types": "./dist/cjs/types/drizzles/aws-data-api/pg.d.ts",
       "node": "./dist/cjs/src/drizzles/aws-data-api/pg.js",
       "require": "./dist/cjs/src/drizzles/aws-data-api/pg.js",
       "import": "./dist/esm/src/drizzles/aws-data-api/pg.js",
       "default": "./dist/cjs/src/drizzles/aws-data-api/pg.js"
     },
-    "./bun-sqlite":{
+    "./bun-sqlite": {
       "types": "./dist/cjs/types/drizzles/bun-sqlite.d.ts",
       "node": "./dist/cjs/src/drizzles/bun-sqlite.js",
       "require": "./dist/cjs/src/drizzles/bun-sqlite.js",
       "import": "./dist/esm/src/drizzles/bun-sqlite.js",
       "default": "./dist/cjs/src/drizzles/bun-sqlite.js"
     },
-    "./d1":{
+    "./d1": {
       "types": "./dist/cjs/types/drizzles/d1.d.ts",
       "node": "./dist/cjs/src/drizzles/d1.js",
       "require": "./dist/cjs/src/drizzles/d1.js",
       "import": "./dist/esm/src/drizzles/d1.js",
       "default": "./dist/cjs/src/drizzles/d1.js"
     },
-    "./expo-sqlite":{
+    "./expo-sqlite": {
       "types": "./dist/cjs/types/drizzles/expo-sqlite.d.ts",
       "node": "./dist/cjs/src/drizzles/expo-sqlite.js",
       "require": "./dist/cjs/src/drizzles/expo-sqlite.js",
       "import": "./dist/esm/src/drizzles/expo-sqlite.js",
       "default": "./dist/cjs/src/drizzles/expo-sqlite.js"
     },
-    "./libsql":{
+    "./libsql": {
       "types": "./dist/cjs/types/drizzles/libsql.d.ts",
       "node": "./dist/cjs/src/drizzles/libsql.js",
       "require": "./dist/cjs/src/drizzles/libsql.js",
       "import": "./dist/esm/src/drizzles/libsql.js",
       "default": "./dist/cjs/src/drizzles/libsql.js"
     },
-    "./neon-http":{
+    "./neon-http": {
       "types": "./dist/cjs/types/drizzles/d1.d.ts",
       "node": "./dist/cjs/src/drizzles/d1.js",
       "require": "./dist/cjs/src/drizzles/d1.js",
       "import": "./dist/esm/src/drizzles/d1.js",
       "default": "./dist/cjs/src/drizzles/d1.js"
     },
-    "./node-postgres":{
+    "./node-postgres": {
       "types": "./dist/cjs/types/drizzles/node-postgres.d.ts",
       "node": "./dist/cjs/src/drizzles/node-postgres.js",
       "require": "./dist/cjs/src/drizzles/node-postgres.js",
       "import": "./dist/esm/src/drizzles/node-postgres.js",
       "default": "./dist/cjs/src/drizzles/node-postgres.js"
     },
-    "./op-sqlite":{
+    "./op-sqlite": {
       "types": "./dist/cjs/types/drizzles/op-sqlite.d.ts",
       "node": "./dist/cjs/src/drizzles/op-sqlite.js",
       "require": "./dist/cjs/src/drizzles/op-sqlite.js",
       "import": "./dist/esm/src/drizzles/op-sqlite.js",
       "default": "./dist/cjs/src/drizzles/op-sqlite.js"
     },
-    "./pg-proxy":{
+    "./pg-proxy": {
       "types": "./dist/cjs/types/drizzles/pg-proxy.d.ts",
       "node": "./dist/cjs/src/drizzles/pg-proxy.js",
       "require": "./dist/cjs/src/drizzles/pg-proxy.js",
       "import": "./dist/esm/src/drizzles/pg-proxy.js",
       "default": "./dist/cjs/src/drizzles/d1pg-proxy.js"
     },
-    "./pglite":{
+    "./pglite": {
       "types": "./dist/cjs/types/drizzles/pglite.d.ts",
       "node": "./dist/cjs/src/drizzles/pglite.js",
       "require": "./dist/cjs/src/drizzles/pglite.js",
       "import": "./dist/esm/src/drizzles/pglite.js",
       "default": "./dist/cjs/src/drizzles/pglite.js"
     },
-    "./postgres-js":{
+    "./postgres-js": {
       "types": "./dist/cjs/types/drizzles/postgres-js.d.ts",
       "node": "./dist/cjs/src/drizzles/postgres-js.js",
       "require": "./dist/cjs/src/drizzles/postgres-js.js",
       "import": "./dist/esm/src/drizzles/postgres-js.js",
       "default": "./dist/cjs/src/drizzles/postgres-js.js"
     },
-    "./vercel-postgres":{
+    "./vercel-postgres": {
       "types": "./dist/cjs/types/drizzles/vercel-postgres.d.ts",
       "node": "./dist/cjs/src/drizzles/vercel-postgres.js",
       "require": "./dist/cjs/src/drizzles/vercel-postgres.js",
       "import": "./dist/esm/src/drizzles/vercel-postgres.js",
       "default": "./dist/cjs/src/drizzles/vercel-postgres.js"
     },
-    "./xata-http":{
+    "./xata-http": {
       "types": "./dist/cjs/types/drizzles/xata-http.d.ts",
       "node": "./dist/cjs/src/drizzles/xata-http.js",
       "require": "./dist/cjs/src/drizzles/xata-http.js",

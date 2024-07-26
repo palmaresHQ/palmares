@@ -8,11 +8,7 @@ import SequelizeEngine from '@palmares/sequelize-engine';
 import ServerDomain, { Response } from '@palmares/server';
 import { dirname, resolve } from 'path';
 
-import AdminDomain from './admin';
-import AuthDomain from './auth';
-import ContractsDomain from './contracts';
 import CoreDomain from './core';
-import JobsDomain from './jobs';
 
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
@@ -29,8 +25,7 @@ export default defineSettings({
     [
       PalmaresCoreDomain,
       {
-        appName: 'hometask-be-challenge',
-        useTs: true
+        appName: 'My App'
       }
     ],
     // Server Domain, required for the server
@@ -75,10 +70,6 @@ export default defineSettings({
       }
     ],
     // We have just created this custom domain, and it defines our routes.
-    CoreDomain,
-    AuthDomain,
-    ContractsDomain,
-    JobsDomain,
-    AdminDomain
+    CoreDomain
   ]
 });

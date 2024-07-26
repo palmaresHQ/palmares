@@ -9,7 +9,7 @@ export function unionValidation(
     callback: async (value, path, options) => {
       const parsedValues: Awaited<ReturnType<Schema['__parse']>> = {
         parsed: value,
-        errors: [],
+        errors: []
       };
       const startingToInternalBubbleUpLength = options.toInternalToBubbleUp?.length || 0;
 
@@ -31,11 +31,11 @@ export function unionValidation(
         if (hasNoErrorsSoItsAValidSchemaAndShouldResetOldErrors) {
           return {
             parsed: parsedValues.parsed,
-            errors: [],
+            errors: []
           };
         } else if (startingToInternalBubbleUpLength < (options.toInternalToBubbleUp?.length || 0)) {
-          // If there is a new toInternalToBubbleUp we should remove the ones that we added since this is not a valid schema,
-          // we shouldn't be calling the `toInternal` on that schemas.
+          // If there is a new toInternalToBubbleUp we should remove the ones that we added since this is not a
+          // valid schema, we shouldn't be calling the `toInternal` on that schemas.
           const numberOfElementsToRemove =
             (options.toInternalToBubbleUp?.length || 0) - startingToInternalBubbleUpLength;
           options.toInternalToBubbleUp?.splice(startingToInternalBubbleUpLength, numberOfElementsToRemove);
@@ -45,8 +45,8 @@ export function unionValidation(
       return {
         parsed: parsedValues.parsed,
         // eslint-disable-next-line ts/no-unnecessary-condition
-        errors: parsedValues.errors ? parsedValues.errors : [],
+        errors: parsedValues.errors ? parsedValues.errors : []
       };
-    },
+    }
   };
 }

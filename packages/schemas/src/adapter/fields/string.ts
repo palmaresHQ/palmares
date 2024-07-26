@@ -5,18 +5,12 @@ import type SchemaAdapter from '..';
 import type WithFallback from '../../utils';
 import type { StringAdapterTranslateArgs } from '../types';
 
-
 export function stringFieldAdapter<
   TTranslate extends StringFieldAdapter['translate'],
   TToString extends StringFieldAdapter['toString'],
   TFormatError extends StringFieldAdapter['formatError'],
   TParse extends StringFieldAdapter['parse']
->(args: {
-  translate: TTranslate;
-  toString?: TToString;
-  formatError?: TFormatError;
-  parse?: TParse;
-}) {
+>(args: { translate: TTranslate; toString?: TToString; formatError?: TFormatError; parse?: TParse }) {
   class CustomStringFieldAdapter extends StringFieldAdapter {
     translate = args.translate;
     toString = args.toString as TToString;
@@ -30,8 +24,8 @@ export function stringFieldAdapter<
       toString: TToString;
       formatError: TFormatError;
       parse: TParse;
-    }
-  }
+    };
+  };
 }
 
 export default class StringFieldAdapter extends FieldAdapter {

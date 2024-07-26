@@ -1,6 +1,6 @@
 {
   "name": "@palmares/console-logging",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "This is the default implementation of the logger adapter, you can create others if you want to",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",

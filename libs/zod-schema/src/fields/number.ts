@@ -1,11 +1,12 @@
 import {
-  FieldAdapter,
-  NumberAdapter,
-  NumberAdapterTranslateArgs,
-  NumberAdapterToStringArgs,
-  SchemaAdapter,
+  NumberAdapter
 } from '@palmares/schemas';
 import * as z from 'zod';
+import type {
+  FieldAdapter,
+  NumberAdapterTranslateArgs,
+  NumberAdapterToStringArgs,
+  SchemaAdapter} from '@palmares/schemas';
 
 export default class ZodNumberFieldSchemaAdapter extends NumberAdapter {
   translate(fieldAdapter: FieldAdapter, args: NumberAdapterTranslateArgs) {
@@ -28,7 +29,7 @@ export default class ZodNumberFieldSchemaAdapter extends NumberAdapter {
   async parse(_adapter: SchemaAdapter, _fieldAdapter: FieldAdapter, result: z.ZodNumber, value: any) {
     try {
       const parsed = result.safeParse(value);
-      return { errors: undefined, parsed };
+      return { errors: undefined, parsed: parsed.success ? parsed.data : undefined };
     } catch (error) {
       if (error instanceof z.ZodError) return { errors: error.errors, parsed: undefined };
       else throw error;

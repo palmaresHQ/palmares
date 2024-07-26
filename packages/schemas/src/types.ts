@@ -1,7 +1,12 @@
+import type SchemaAdapter from './adapter';
 import type Schema from './schema/schema';
 import type { ValidatorTypes } from './validators/types';
 
 export type MaybePromise<T> = T | Promise<T>;
+
+export type SchemasSettingsType = {
+  schemaAdapter: typeof SchemaAdapter;
+};
 
 export type FallbackFunctionsType<TArguments> = {
   [TKey in keyof TArguments]?: (args: NonNullable<TArguments[TKey]>) => {

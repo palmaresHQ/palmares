@@ -5,18 +5,12 @@ import type SchemaAdapter from '..';
 import type WithFallback from '../../utils';
 import type { UnionAdapterTranslateArgs } from '../types';
 
-
 export function unionFieldAdapter<
   TTranslate extends UnionFieldAdapter['translate'],
   TToString extends UnionFieldAdapter['toString'],
   TFormatError extends UnionFieldAdapter['formatError'],
   TParse extends UnionFieldAdapter['parse']
->(args: {
-  translate: TTranslate;
-  toString?: TToString;
-  formatError?: TFormatError;
-  parse?: TParse;
-}) {
+>(args: { translate: TTranslate; toString?: TToString; formatError?: TFormatError; parse?: TParse }) {
   class CustomUnionFieldAdapter extends UnionFieldAdapter {
     translate = args.translate;
     toString = args.toString as TToString;
@@ -30,8 +24,8 @@ export function unionFieldAdapter<
       toString: TToString;
       formatError: TFormatError;
       parse: TParse;
-    }
-  }
+    };
+  };
 }
 
 export default class UnionFieldAdapter extends FieldAdapter {

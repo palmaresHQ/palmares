@@ -27,7 +27,7 @@
     "docs:dev": "cd docs && pnpm run docs:dev",
     "publish": "turbo run publish",
     "build": "turbo run build",
-    "build:watch": "turbo run build:watch --concurrency 16",
+    "build:watch": "turbo run build:watch --concurrency 20",
     "build:watch:tests": "turbo run build:watch --filter=@palmares/core --filter=@palmares/tests --filter=@palmares/jest-tests",
     "build:watch:databases": "turbo run build:watch --filter=@palmares/core --filter=@palmares/databases --filter=@palmares/drizzle-engine",
     "dev": "turbo run dev --parallel",

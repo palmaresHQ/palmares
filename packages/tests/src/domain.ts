@@ -1,6 +1,7 @@
 import { domain } from '@palmares/core';
 
 import { test } from './commands';
+import { setTestAdapter } from './utils';
 
 import type { AllTestsSettingsType, TestsSettingsType } from './types';
 
@@ -17,9 +18,14 @@ export default domain('@palmares/tests', __dirname, {
       positionalArgs: undefined,
       handler: (args) => {
         test(args.domains, args.settings as AllTestsSettingsType);
-      },
-    },
+      }
+    }
   },
   // eslint-disable-next-line ts/require-await
-  load: async (_: TestsSettingsType) => undefined,
+  load: async (settings: TestsSettingsType) => {
+    if ((settings as any).$$test) {
+      const adapterInstance = new settings.testAdapter();
+      setTestAdapter(adapterInstance);
+    }
+  }
 });

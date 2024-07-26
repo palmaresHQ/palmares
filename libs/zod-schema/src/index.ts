@@ -1,12 +1,14 @@
-import { ErrorCodes, SchemaAdapter } from '@palmares/schemas';
-import * as z from 'zod';
+import { SchemaAdapter } from '@palmares/schemas';
 
 import ZodFieldSchemaAdapter from './fields';
+import ZodBooleanFieldSchemaAdapter from './fields/boolean';
 import ZodNumberFieldSchemaAdapter from './fields/number';
 import ZodObjectFieldSchemaAdapter from './fields/object';
-import ZodUnionFieldSchemaAdapter from './fields/union';
-import ZodBooleanFieldSchemaAdapter from './fields/boolean';
 import ZodStringFieldSchemaAdapter from './fields/string';
+import ZodUnionFieldSchemaAdapter from './fields/union';
+
+import type { ErrorCodes } from '@palmares/schemas';
+import type * as z from 'zod';
 
 export class ZodSchemaAdapter extends SchemaAdapter {
   field = new ZodFieldSchemaAdapter();
@@ -20,7 +22,7 @@ export class ZodSchemaAdapter extends SchemaAdapter {
     return {
       message: error.message,
       path: error.path.map((path) => `${path}`),
-      code: error.code as ErrorCodes,
+      code: error.code as ErrorCodes
     };
   }
 }

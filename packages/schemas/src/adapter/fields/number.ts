@@ -5,18 +5,12 @@ import type SchemaAdapter from '..';
 import type WithFallback from '../../utils';
 import type { NumberAdapterTranslateArgs } from '../types';
 
-
 export function numberFieldAdapter<
   TTranslate extends NumberFieldAdapter['translate'],
   TToString extends NumberFieldAdapter['toString'],
   TFormatError extends NumberFieldAdapter['formatError'],
   TParse extends NumberFieldAdapter['parse']
->(args: {
-  translate: TTranslate;
-  toString?: TToString;
-  formatError?: TFormatError;
-  parse?: TParse;
-}) {
+>(args: { translate: TTranslate; toString?: TToString; formatError?: TFormatError; parse?: TParse }) {
   class CustomNumberFieldAdapter extends NumberFieldAdapter {
     translate = args.translate;
     toString = args.toString as TToString;
@@ -30,8 +24,8 @@ export function numberFieldAdapter<
       toString: TToString;
       formatError: TFormatError;
       parse: TParse;
-    }
-  }
+    };
+  };
 }
 
 export default class NumberFieldAdapter extends FieldAdapter {

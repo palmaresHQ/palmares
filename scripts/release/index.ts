@@ -3,7 +3,8 @@
 import { getChangelogFile, runCommand } from './utils';
 
 /**
- * This will get the changelog contents for a given package and version. It will extract the changelog information from the version selected and changelog files.
+ * This will get the changelog contents for a given package and version. It will extract the
+ * changelog information from the version selected and changelog files.
  * It will return the changelog text for the given version.
  *
  * @param changelog The hole changelog file contents as a string.
@@ -65,7 +66,8 @@ function parseGitTags(gitTags: string) {
 }
 
 /**
- * This uses pnpm to get all of the packages and their paths. Without this we would need to use some other tool or library and do it manually.
+ * This uses pnpm to get all of the packages and their paths. Without this we would need to
+ * use some other tool or library and do it manually.
  * Since we are already using pnpm, why don't let it do the work for us?
  *
  * @returns An object with all of the packages by name and their path.
@@ -84,7 +86,7 @@ async function getPackagesAndPathsByName() {
     for (const packageAsArray of packagesAsArray) {
       packagesAsObject[packageAsArray.name] = {
         path: packageAsArray.path,
-        version: packageAsArray.version,
+        version: packageAsArray.version
       };
     }
     return packagesAsObject;
@@ -95,7 +97,8 @@ async function getPackagesAndPathsByName() {
 }
 
 /**
- * This will release all of the packages to github releases. It will get the changelog for each package and release it to github properly formatted.
+ * This will release all of the packages to github releases. It will get the changelog for
+ * each package and release it to github properly formatted.
  */
 async function releaseToGithub(parsedTags: ReturnType<typeof parseGitTags>) {
   const packagesByName = await getPackagesAndPathsByName();
@@ -106,6 +109,7 @@ async function releaseToGithub(parsedTags: ReturnType<typeof parseGitTags>) {
 
   const promises = parsedTags.map(async (parsedTag) => {
     const packageToPublish = packagesByName[parsedTag.name];
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (!packageToPublish) {
       console.log(`Could not find package ${parsedTag.name}`);
       return;
@@ -117,18 +121,30 @@ async function releaseToGithub(parsedTags: ReturnType<typeof parseGitTags>) {
     }
 
     const changelogText = parseChangelog(changelogContents, parsedTag.version);
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (changelogText === '' || changelogText === undefined) {
       console.log(`Could not find changelog text for ${parsedTag.name}`);
       return;
     }
     console.log(`Publishing ${parsedTag.raw} to github releases...`);
-    await runCommand('gh', ['release', 'create', parsedTag.raw, '--title', parsedTag.raw, '--notes', changelogText]);
+    await runCommand('gh', [
+      'release',
+      'create',
+      parsedTag.raw,
+      '--title',
+      parsedTag.raw,
+      '--notes',
+      changelogText,
+      '--target',
+      'main'
+    ]);
   });
   await Promise.all(promises);
 }
 
 async function getCurrentGitTagsParsed() {
   const data = await runCommand('git', ['tag', '--points-at', 'HEAD', '--column']);
+  // eslint-disable-next-line ts/no-unnecessary-condition
   if (!data) {
     console.log('No data found');
     return;
