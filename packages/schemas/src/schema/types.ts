@@ -22,6 +22,7 @@ export type ValidationFallbackCallbackType = Validator['fallbacks'][number];
 export type ValidationFallbackCallbackReturnType = {
   parsed: any;
   errors: {
+    received: any;
     isValid: boolean;
     code: ErrorCodes;
     message: string;
@@ -31,6 +32,7 @@ export type ValidationFallbackCallbackReturnType = {
 };
 export type ValidationFallbackReturnType = {
   type: ValidatorTypes;
+  name: string;
   callback: ValidationFallbackCallbackType;
 };
 

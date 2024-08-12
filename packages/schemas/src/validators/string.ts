@@ -5,6 +5,7 @@ import type StringSchema from '../schema/string';
 
 export function stringValidation(): ValidationFallbackReturnType {
   return {
+    name: 'string',
     type: 'medium',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -33,6 +34,7 @@ export function stringValidation(): ValidationFallbackReturnType {
 
 export function maxLength(args: StringSchema['__maxLength']): ValidationFallbackReturnType {
   return {
+    name: 'maxLength',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -40,7 +42,7 @@ export function maxLength(args: StringSchema['__maxLength']): ValidationFallback
       path: (string | number)[],
       _options: Parameters<Schema['__transformToAdapter']>[0]
     ) => {
-      const isValid = args.inclusive ? value.length <= args.value : value.length < args.value;
+      const isValid = value.length <= args.value;
 
       return {
         parsed: value,
@@ -62,6 +64,7 @@ export function maxLength(args: StringSchema['__maxLength']): ValidationFallback
 
 export function minLength(args: StringSchema['__maxLength']): ValidationFallbackReturnType {
   return {
+    name: 'minLength',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -69,7 +72,7 @@ export function minLength(args: StringSchema['__maxLength']): ValidationFallback
       path: (string | number)[],
       _options: Parameters<Schema['__transformToAdapter']>[0]
     ) => {
-      const isValid = args.inclusive ? value.length >= args.value : value.length > args.value;
+      const isValid = value.length >= args.value;
 
       return {
         parsed: value,
@@ -91,6 +94,7 @@ export function minLength(args: StringSchema['__maxLength']): ValidationFallback
 
 export function endsWith(args: StringSchema['__endsWith']): ValidationFallbackReturnType {
   return {
+    name: 'endsWith',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -120,6 +124,7 @@ export function endsWith(args: StringSchema['__endsWith']): ValidationFallbackRe
 
 export function startsWith(args: StringSchema['__startsWith']): ValidationFallbackReturnType {
   return {
+    name: 'startsWith',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -149,6 +154,7 @@ export function startsWith(args: StringSchema['__startsWith']): ValidationFallba
 
 export function includes(args: StringSchema['__includes']): ValidationFallbackReturnType {
   return {
+    name: 'includes',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -178,6 +184,7 @@ export function includes(args: StringSchema['__includes']): ValidationFallbackRe
 
 export function regex(args: StringSchema['__regex']): ValidationFallbackReturnType {
   return {
+    name: 'regex',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -210,6 +217,7 @@ export function uuid(args: StringSchema['__uuid']): ValidationFallbackReturnType
   //   /^([a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[a-f0-9]{4}-[a-f0-9]{12}|00000000-0000-0000-0000-000000000000)$/i;
   const uuidRegex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/i;
   return {
+    name: 'uuid',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -239,7 +247,9 @@ export function uuid(args: StringSchema['__uuid']): ValidationFallbackReturnType
 
 export function email(args: StringSchema['__email']): ValidationFallbackReturnType {
   const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+  console.log('aquiiiiii');
   return {
+    name: 'email',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (

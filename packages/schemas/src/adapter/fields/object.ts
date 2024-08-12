@@ -3,7 +3,7 @@ import { SchemaAdapterNotImplementedError } from '../../exceptions';
 
 import type SchemaAdapter from '..';
 import type WithFallback from '../../utils';
-import type { ObjectAdapterTranslateArgs } from '../types';
+import type { ObjectAdapterToStringArgs, ObjectAdapterTranslateArgs } from '../types';
 
 export function objectFieldAdapter<
   TTranslate extends ObjectFieldAdapter['translate'],
@@ -39,5 +39,14 @@ export default class ObjectFieldAdapter extends FieldAdapter {
     _args: ObjectAdapterTranslateArgs
   ): Promise<{ errors: any; parsed: any }> {
     throw new SchemaAdapterNotImplementedError({ className: this.constructor.name, functionName: 'parse' });
+  }
+
+  toString(
+    _adapter: SchemaAdapter,
+    _fieldAdapter: FieldAdapter,
+    _args: ObjectAdapterToStringArgs,
+    _base?: any
+  ): Promise<string> {
+    throw new SchemaAdapterNotImplementedError({ className: this.constructor.name, functionName: 'toString' });
   }
 }

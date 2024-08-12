@@ -115,6 +115,7 @@ export default class ArraySchema<
           }
         );
       },
+      this,
       this.__transformedSchemas,
       options,
       'array'
@@ -637,25 +638,6 @@ export default class ArraySchema<
       TDefinitions,
       TSchemas
     >(...schemas);
-
-    const adapterInstance = new Proxy(
-      { current: undefined as undefined | SchemaAdapter },
-      {
-        get: (target, prop) => {
-          if (target.current) return (target.current as any)[prop];
-
-          const adapter = getDefaultAdapter();
-          target.current = adapter;
-          return (target.current as any)[prop];
-        }
-      }
-    ) as unknown as SchemaAdapter;
-
-    returnValue.__transformedSchemas[adapterInstance.constructor.name] = {
-      transformed: false,
-      adapter: adapterInstance,
-      schemas: []
-    };
 
     return returnValue;
   }

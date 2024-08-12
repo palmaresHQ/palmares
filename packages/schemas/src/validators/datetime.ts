@@ -4,6 +4,7 @@ import type { ValidationFallbackReturnType } from '../schema/types';
 
 export function datetimeValidation(): ValidationFallbackReturnType {
   return {
+    name: 'datetime',
     type: 'medium',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -34,6 +35,7 @@ export function datetimeValidation(): ValidationFallbackReturnType {
 
 export function allowStringParser(): ValidationFallbackReturnType {
   return {
+    name: 'allowString',
     type: 'high',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -60,6 +62,7 @@ export function allowStringParser(): ValidationFallbackReturnType {
 
 export function below(args: DatetimeSchema['__below']): ValidationFallbackReturnType {
   return {
+    name: 'below',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -89,6 +92,7 @@ export function below(args: DatetimeSchema['__below']): ValidationFallbackReturn
 
 export function above(args: DatetimeSchema['__above']): ValidationFallbackReturnType {
   return {
+    name: 'above',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (

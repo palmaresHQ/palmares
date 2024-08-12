@@ -41,10 +41,10 @@ export default class UnionSchema<
     this.__schemas = new Set(schemas);
   }
 
-  protected async _transformToAdapter(
+  protected async __transformToAdapter(
     options: Parameters<Schema['__transformToAdapter']>[0]
   ): Promise<ReturnType<FieldAdapter['translate']>> {
-    return await defaultTransformToAdapter(
+    return defaultTransformToAdapter(
       async (adapter) => {
         const promises: Promise<any>[] = [];
         const shouldBeHighPriorityFallback = adapter.union === undefined;
@@ -144,6 +144,7 @@ export default class UnionSchema<
           }
         );
       },
+      this,
       this.__transformedSchemas,
       options,
       'union'
@@ -601,24 +602,6 @@ export default class UnionSchema<
       TSchemas
     >(schemas as TSchemas);
 
-    const adapterInstance = new Proxy(
-      { current: undefined as undefined | SchemaAdapter },
-      {
-        get: (target, prop) => {
-          if (target.current) return (target.current as any)[prop];
-
-          const adapter = getDefaultAdapter();
-          target.current = adapter;
-          return (target.current as any)[prop];
-        }
-      }
-    ) as unknown as SchemaAdapter;
-
-    returnValue.__transformedSchemas[adapterInstance.constructor.name] = {
-      transformed: false,
-      adapter: adapterInstance,
-      schemas: []
-    };
     return returnValue as any;
   }
 }

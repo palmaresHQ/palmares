@@ -29,6 +29,7 @@
     "build": "turbo run build",
     "build:watch": "turbo run build:watch --concurrency 20",
     "build:watch:tests": "turbo run build:watch --filter=@palmares/core --filter=@palmares/tests --filter=@palmares/jest-tests",
+    "build:watch:schemas": "turbo run build:watch --filter=@palmares/core --filter=@palmares/schemas --filter=@palmares/zod-schema",
     "build:watch:databases": "turbo run build:watch --filter=@palmares/core --filter=@palmares/databases --filter=@palmares/drizzle-engine",
     "dev": "turbo run dev --parallel",
     "examples:server-express-only": "turbo run dev --parallel --filter=@examples/server-express-only --filter=@palmares/*",

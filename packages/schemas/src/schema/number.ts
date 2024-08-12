@@ -1,16 +1,14 @@
 import Schema from './schema';
-import { getDefaultAdapter } from '../conf';
 import {
   DEFAULT_NUMBER_INTEGER_EXCEPTION,
   DEFAULT_NUMBER_MAX_EXCEPTION,
-  DEFAULT_NUMBER_MIN_EXCEPTION,
-  DEFAULT_NUMBER_NEGATIVE_EXCEPTION
+  DEFAULT_NUMBER_MIN_EXCEPTION
 } from '../constants';
 import { defaultTransform, defaultTransformToAdapter } from '../utils';
-import { max, min, numberValidation } from '../validators/number';
+import { decimalPlaces, integer, max, maxDigits, min, numberValidation } from '../validators/number';
+import { is, nullable, optional } from '../validators/schema';
 
 import type { DefinitionsOfSchemaType } from './types';
-import type SchemaAdapter from '../adapter';
 
 export default class NumberSchema<
   TType extends {
@@ -59,16 +57,6 @@ export default class NumberSchema<
     message: string;
   };
 
-  protected __allowNegative!: {
-    allowZero: boolean;
-    message: string;
-  };
-
-  protected __allowPositive!: {
-    allowZero: boolean;
-    message: string;
-  };
-
   protected async __transformToAdapter(options: Parameters<Schema['__transformToAdapter']>[0]): Promise<any> {
     return defaultTransformToAdapter(
       async (adapter) => {
@@ -80,8 +68,6 @@ export default class NumberSchema<
           () => ({
             is: this.__is,
             min: this.__min,
-            allowNegative: this.__allowNegative,
-            allowPositive: this.__allowPositive,
             max: this.__max,
             integer: this.__integer,
             optional: this.__optional,
@@ -95,7 +81,13 @@ export default class NumberSchema<
           }),
           {
             max,
-            min
+            min,
+            maxDigits: maxDigits,
+            is: is,
+            optional: optional,
+            nullable: nullable,
+            decimalPlaces: decimalPlaces,
+            integer: integer
           },
           {
             validatorsIfFallbackOrNotSupported: numberValidation(),
@@ -107,6 +99,7 @@ export default class NumberSchema<
           }
         );
       },
+      this,
       this.__transformedSchemas,
       options,
       'number'
@@ -196,6 +189,34 @@ export default class NumberSchema<
   }
 
   /**
+   * Just adds a message when the value is undefined. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.string().optional({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonOptional function
+   * @param options.message - A custom message if the value is undefined.
+   *
+   * @returns - The schema.
+   */
+  nonOptional(options?: { message: string }) {
+    return super.optional({
+      message: options?.message,
+      allow: false
+    }) as unknown as NumberSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
    * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value
    * is NULL by setting the { message: 'Your custom message', allow: false } on the options.
    *
@@ -228,6 +249,34 @@ export default class NumberSchema<
         internal: TType['internal'] | null;
         output: TType['output'] | null;
         representation: TType['representation'] | null;
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
+   * Just adds a message when the value is null. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.string().nullable({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonNullable function
+   * @param options.message - A custom message if the value is null.
+   *
+   * @returns - The schema.
+   */
+  nonNullable(options?: { message: string }) {
+    return super.nullable({
+      message: options?.message || '',
+      allow: false
+    }) as unknown as NumberSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
       },
       TDefinitions
     >;
@@ -569,10 +618,11 @@ export default class NumberSchema<
    *
    * @returns - The schema instance
    */
-  is<const TValue extends TType['input'][]>(value: TValue) {
+  is<const TValue extends TType['input'][]>(value: TValue, options?: Partial<Omit<NumberSchema['__is'], 'value'>>) {
     this.__is = {
       value,
-      message: `The value should be equal to ${value.join(',')}`
+      message:
+        typeof options?.message === 'string' ? options.message : `The value should be equal to ${value.join(',')}`
     };
 
     return this as any as Schema<
@@ -675,97 +725,6 @@ export default class NumberSchema<
     };
 
     return this;
-  }
-
-  /**
-   * Allows only negative numbers. If you want to allow zero, you can pass the option `allowZero` as `true`.
-   * Otherwise, it will only allow negative numbers.
-   *
-   * @example
-   * ```typescript
-   * import * as p from '@palmares/schema';
-   *
-   * const schema = p.number().negative();
-   *
-   * schema.parse(-10); // { errors: [], parsed: -10 }
-   * schema.parse(0); // { errors: [{ code: 'negative', message: 'The number should be negative' }], parsed: 0 }
-   *
-   * const schema = p.number().negative({ allowZero: true });
-   *
-   * schema.parse(0); // { errors: [], parsed: 0 }
-   * ```
-   *
-   * @param options - The options to be passed to the validation
-   * @param options.allowZero - If you want to allow zero, you can pass this option as `true`.
-   * Otherwise, it will only allow negative numbers.
-   * @param options.message - The message to be returned if the validation fails
-   *
-   * @returns - The schema instance
-   */
-  negative(options?: { allowZero?: boolean; message?: string }) {
-    const allowZero = typeof options?.allowZero === 'boolean' ? options.allowZero : true;
-    const message =
-      typeof options?.message === 'string' ? options.message : DEFAULT_NUMBER_NEGATIVE_EXCEPTION(allowZero);
-
-    this.__allowNegative = {
-      allowZero,
-      message
-    };
-    return this as unknown as NumberSchema<
-      {
-        input: TType['input'];
-        output: TType['output'];
-        representation: TType['representation'];
-        internal: TType['internal'];
-        validate: TType['validate'];
-      },
-      TDefinitions
-    >;
-  }
-
-  /**
-   * Allows only positive numbers. If you want to allow zero, you can pass the option `allowZero` as `true`.
-   * Otherwise, it will only allow positive numbers greater than zero.
-   *
-   * @example
-   * ```typescript
-   * import * as p from '@palmares/schema';
-   *
-   * const schema = p.number().positive();
-   *
-   * schema.parse(10); // { errors: [], parsed: 10 }
-   * schema.parse(0); // { errors: [{ code: 'positive', message: 'The number should be positive' }], parsed: 0 }
-   *
-   * const schema = p.number().positive({ allowZero: true });
-   * schema.parse(0); // { errors: [], parsed: 0 }
-   * ```
-   *
-   * @param options - The options to be passed to the validation
-   * @param options.allowZero - If you want to allow zero, you can pass this option as `true`. Otherwise, it will only
-   * allow positive numbers greater than zero.
-   * @param options.message - The message to be returned if the validation fails
-   *
-   * @returns - The schema instance
-   */
-  positive(options?: { allowZero?: boolean; message?: string }) {
-    const allowZero = typeof options?.allowZero === 'boolean' ? options.allowZero : true;
-    const message =
-      typeof options?.message === 'string' ? options.message : DEFAULT_NUMBER_NEGATIVE_EXCEPTION(allowZero);
-
-    this.__allowPositive = {
-      allowZero,
-      message
-    };
-    return this as unknown as NumberSchema<
-      {
-        input: TType['input'];
-        output: TType['output'];
-        representation: TType['representation'];
-        internal: TType['internal'];
-        validate: TType['validate'];
-      },
-      TDefinitions
-    >;
   }
 
   /**

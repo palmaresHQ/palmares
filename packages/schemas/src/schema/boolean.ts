@@ -1,12 +1,10 @@
 import Schema from './schema';
-import { getDefaultAdapter } from '../conf';
 import convertFromStringBuilder from '../parsers/convert-from-string';
 import { defaultTransform, defaultTransformToAdapter } from '../utils';
 import { booleanValidation } from '../validators/boolean';
 import { is, nullable, optional } from '../validators/schema';
 
 import type { DefinitionsOfSchemaType } from './types';
-import type SchemaAdapter from '../adapter';
 
 export default class BooleanSchema<
   TType extends {
@@ -70,6 +68,7 @@ export default class BooleanSchema<
           }
         );
       },
+      this,
       this.__transformedSchemas,
       options,
       'boolean'
@@ -159,6 +158,34 @@ export default class BooleanSchema<
   }
 
   /**
+   * Just adds a message when the value is undefined. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.string().optional({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonOptional function
+   * @param options.message - A custom message if the value is undefined.
+   *
+   * @returns - The schema.
+   */
+  nonOptional(options?: { message: string }) {
+    return super.optional({
+      message: options?.message,
+      allow: false
+    }) as unknown as BooleanSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
    * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value is
    * NULL by setting the { message: 'Your custom message', allow: false } on the options.
    *
@@ -191,6 +218,34 @@ export default class BooleanSchema<
         internal: TType['internal'] | null;
         output: TType['output'] | null;
         representation: TType['representation'] | null;
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
+   * Just adds a message when the value is null. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.string().nullable({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonNullable function
+   * @param options.message - A custom message if the value is null.
+   *
+   * @returns - The schema.
+   */
+  nonNullable(options?: { message: string }) {
+    return super.nullable({
+      message: options?.message || '',
+      allow: false
+    }) as unknown as BooleanSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
       },
       TDefinitions
     >;
@@ -564,9 +619,11 @@ export default class BooleanSchema<
 
     this.__parsers.medium.set('trueValues', (value) => {
       const valueExistsInList = values.includes(value);
+      console.log('trueValues', valueExistsInList);
+
       return {
         preventNextParsers: valueExistsInList,
-        value: valueExistsInList
+        value: valueExistsInList ? true : value
       };
     });
     return this as any as BooleanSchema<
@@ -600,9 +657,10 @@ export default class BooleanSchema<
 
     this.__parsers.medium.set('falseValues', (value) => {
       const valueExistsInList = values.includes(value);
+      console.log('falseValues', valueExistsInList);
       return {
         preventNextParsers: valueExistsInList,
-        value: !valueExistsInList
+        value: valueExistsInList ? false : value
       };
     });
 

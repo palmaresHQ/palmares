@@ -1,5 +1,4 @@
 import Schema from './schema';
-import { getDefaultAdapter } from '../conf';
 import {
   defaultTransform,
   defaultTransformToAdapter,
@@ -9,7 +8,6 @@ import { objectValidation } from '../validators/object';
 import Validator from '../validators/utils';
 
 import type { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from './types';
-import type SchemaAdapter from '../adapter';
 import type FieldAdapter from '../adapter/fields';
 
 export default class ObjectSchema<
@@ -136,6 +134,7 @@ export default class ObjectSchema<
           )
         ).flat();
       },
+      this,
       this.__transformedSchemas,
       options,
       'object'

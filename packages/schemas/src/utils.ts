@@ -1,7 +1,8 @@
+import SchemaAdapter from './adapter';
+import { getDefaultAdapter } from './conf';
 import { checkType, nullable, optional } from './validators/schema';
 import Validator from './validators/utils';
 
-import type SchemaAdapter from './adapter';
 import type FieldAdapter from './adapter/fields';
 import type { ValidationDataBasedOnType } from './adapter/types';
 import type Schema from './schema/schema';
@@ -9,8 +10,9 @@ import type { ValidationFallbackCallbackReturnType, ValidationFallbackReturnType
 import type { FallbackFunctionsType, SupportedSchemas } from './types';
 
 /**
- * The usage of this is that imagine that the library doesn't support a specific feature that we support on our schema definition, it can return an instance
- * of this class and with this instance we are able to fallback to our default implementation of the schema validation.
+ * The usage of this is that imagine that the library doesn't support a specific feature that we support on
+ * our schema definition, it can return an instance of this class and with this instance we are able to
+ * fallback to our default implementation of the schema validation.
  */
 export default class WithFallback<TType extends SupportedSchemas> {
   fallbackFor: Set<
@@ -38,8 +40,9 @@ export default class WithFallback<TType extends SupportedSchemas> {
 }
 
 /**
- * Factory function for creating a new instance of WithFallback. We call that function when parsing the schema adapter, and then, inside of the adapter the user will can the inner function
- * to create a new instance of WithFallback.
+ * Factory function for creating a new instance of WithFallback. We call that function when parsing the
+ * schema adapter, and then, inside of the adapter the user will can the inner function to create a new
+ * instance of WithFallback.
  *
  * @param adapterType - The type of the adapter that we are using.
  *
@@ -68,18 +71,22 @@ export function parseErrorsFactory(schemaAdapter: SchemaAdapter) {
 }
 
 /**
- * The default transform function that we use for the schema adapters. This function tries to abstract away the complexity of translating the schema to the adapter.
+ * The default transform function that we use for the schema adapters. This function tries to abstract away
+ * the complexity of translating the schema to the adapter.
  *
- * So first things first, WHAT IS a fallback? A fallback is a function that we call when the user defines a validation that is not supported by the adapter. For example, imagine that
- * for some reason the adapter doesn't support the `max` validation, we can define a fallback for that validation and then, when the user defines that validation, we call the fallback
- * function. So, even if the adapter doesn't support that validation our schema will still be able to validate that.
+ * So first things first, WHAT IS a fallback? A fallback is a function that we call when the user defines a
+ * validation that is not supported by the adapter. For example, imagine that for some reason the adapter
+ * doesn't support the `max` validation, we can define a fallback for that validation and then, when the
+ * user defines that validation, we call the fallback function. So, even if the adapter doesn't support that
+ * validation our schema will still be able to validate that.
  *
- * @param type - The type of the adapter that we are using, can be a number, an object, all of the possible schema adapters.
+ * @param type - The type of the adapter that we are using, can be a number, an object, all of the possible
+ * schema adapters.
  * @param schema - The schema that we are translating.
- * @param validationData - The data that we are using to validate the schema. This means for example, the `max` validation, the `min` validation, etc. The message of the validation when
- * it is not valid, etc.
- * @param fallbackFunctions - The fallback functions that we are using to validate the schema. Those are the functions we fallback to when the user defines a validation that is not
- * supported by the adapter.
+ * @param validationData - The data that we are using to validate the schema. This means for example, the
+ * `max` validation, the `min` validation, etc. The message of the validation when it is not valid, etc.
+ * @param fallbackFunctions - The fallback functions that we are using to validate the schema. Those are
+ * the functions we fallback to when the user defines a validation that is not supported by the adapter.
  *
  * @returns - The translated schema for something that the adapter is able to understand.
  */
@@ -93,18 +100,23 @@ export async function defaultTransform<TType extends SupportedSchemas>(
   options: {
     validatorsIfFallbackOrNotSupported?: ValidationFallbackReturnType | ValidationFallbackReturnType[];
     /**
-     * If the schema is not supported by the adapter, this means, that the adapter hasn't defined an adapter for that field type, we can fallback to a custom implementation.
+     * If the schema is not supported by the adapter, this means, that the adapter hasn't defined an adapter
+     * for that field type, we can fallback to a custom implementation.
      * The problem is that, for example: Unions,
      *
-     * Let's say we have a schema like this: ObjectSchema.new({ age: UnionSchema.new([NumberSchema.new(), StringSchema.new()] )});
+     * Let's say we have a schema like this:
+     * ObjectSchema.new({ age: UnionSchema.new([NumberSchema.new(), StringSchema.new()] )});
      *
-     * The root object will be validated by the adapter so what we need to do is create two schemas on the root object, one where the
-     * value of `age` key is a number and another where the value of `age` key is a string. Now the root object has two schemas memoized on __transformedSchemas, nice,
-     * what's the logic on that case? The ObjectSchema shouldn't take care of that logic. So the Union schema takes control of validating through the adapter. Is adapter 1 without errors?
-     * If yes, return the result, if not, try the second adapter. If the second adapter is without errors, return the result, if not, return the errors.
+     * The root object will be validated by the adapter so what we need to do is create two schemas on the
+     * root object, one where the value of `age` key is a number and another where the value of `age` key is
+     * a string. Now the root object has two schemas memoized on __transformedSchemas, nice, what's the logic
+     * on that case? The ObjectSchema shouldn't take care of that logic. So the Union schema takes control of
+     * validating through the adapter. Is adapter 1 without errors? If yes, return the result, if not, try
+     * the second adapter. If the second adapter is without errors, return the result, if not, return the
+     * errors.
      *
-     * In other words, the `fallbackIfNotSupported` function on Unions should return the two schemas saved on it on that case, that way the root ObjectSchema will
-     * create those two schemas on the array.
+     * In other words, the `fallbackIfNotSupported` function on Unions should return the two schemas saved on
+     * it on that case, that way the root ObjectSchema will create those two schemas on the array.
      */
     fallbackIfNotSupported?: () => ReturnType<Schema['__transformToAdapter']>;
   } & Pick<Parameters<Schema['__transformToAdapter']>[0], 'shouldAddStringVersion'>
@@ -158,6 +170,7 @@ export async function defaultTransform<TType extends SupportedSchemas>(
       const fallbackReturnType = (fallbackFunctions as any)[fallback](
         (validationData as any)[fallback]
       ) as ValidationFallbackReturnType;
+      console.log('checkIfShouldAppendFallbackAndAppend');
       Validator.createAndAppendFallback(schema, fallbackReturnType);
     }
   };
@@ -167,18 +180,21 @@ export async function defaultTransform<TType extends SupportedSchemas>(
       const validatorsIfFallbackOrNotSupported = Array.isArray(options.validatorsIfFallbackOrNotSupported)
         ? options.validatorsIfFallbackOrNotSupported
         : [options.validatorsIfFallbackOrNotSupported];
+
       for (const fallback of validatorsIfFallbackOrNotSupported) Validator.createAndAppendFallback(schema, fallback);
     }
   };
 
-  const hasFallbacks = schemaWithPrivateFields.__rootFallbacksValidator instanceof Validator;
-  const isFieldAdapterNotSupportedForThatFieldType = fieldAdapter === undefined;
+  const appendRequiredFallbacks = () => {
+    const hasFallbacks = schemaWithPrivateFields.__rootFallbacksValidator instanceof Validator;
+    if (hasFallbacks) {
+      Validator.createAndAppendFallback(schema, optional(schemaWithPrivateFields.__optional));
+      Validator.createAndAppendFallback(schema, nullable(schemaWithPrivateFields.__nullable));
+      Validator.createAndAppendFallback(schema, checkType(schemaWithPrivateFields.__type));
+    }
+  };
 
-  if (hasFallbacks) {
-    Validator.createAndAppendFallback(schema, optional(schemaWithPrivateFields.__optional));
-    Validator.createAndAppendFallback(schema, nullable(schemaWithPrivateFields.__nullable));
-    Validator.createAndAppendFallback(schema, checkType(schemaWithPrivateFields.__type));
-  }
+  const isFieldAdapterNotSupportedForThatFieldType = fieldAdapter === undefined;
 
   if (options.fallbackIfNotSupported !== undefined && isFieldAdapterNotSupportedForThatFieldType) {
     const existingFallbacks = Object.keys(fallbackFunctions) as Parameters<
@@ -192,6 +208,8 @@ export async function defaultTransform<TType extends SupportedSchemas>(
 
     for (const fallback of existingFallbacks) checkIfShouldAppendFallbackAndAppend(fallback);
     for (const parser of allParsers) checkIfShouldUseParserAndAppend(parser);
+    appendRequiredFallbacks();
+
     return options.fallbackIfNotSupported();
   }
   if (!fieldAdapter) throw new Error('The field adapter is not supported and no fallback was provided.');
@@ -218,6 +236,7 @@ export async function defaultTransform<TType extends SupportedSchemas>(
       translatedSchemaOrWithFallback.transformedSchema,
       stringVersion
     );
+    appendRequiredFallbacks();
 
     return [
       {
@@ -246,10 +265,22 @@ export async function defaultTransform<TType extends SupportedSchemas>(
  */
 export async function defaultTransformToAdapter(
   callback: (adapter: SchemaAdapter) => ReturnType<FieldAdapter['translate']>,
+  schema: Schema<any, any>,
   transformedSchemas: Schema['__transformedSchemas'],
   options: Parameters<Schema['__transformToAdapter']>[0],
   type: string
 ) {
+  const isTransformedSchemasEmpty = Object.keys(transformedSchemas).length <= 0;
+  if (isTransformedSchemasEmpty) {
+    const adapterInstanceToUse =
+      options.schemaAdapter instanceof SchemaAdapter ? options.schemaAdapter : getDefaultAdapter();
+    schema['__transformedSchemas'][adapterInstanceToUse.constructor.name] = {
+      transformed: false,
+      adapter: adapterInstanceToUse,
+      schemas: []
+    };
+  }
+
   const schemaAdapterNameToUse = options.schemaAdapter?.constructor.name || Object.keys(transformedSchemas)[0];
   const isACustomSchemaAdapterAndNotYetDefined =
     // eslint-disable-next-line ts/no-unnecessary-condition
@@ -278,15 +309,24 @@ export async function formatErrorFromParseMethod(
   adapter: SchemaAdapter,
   fieldAdapter: FieldAdapter,
   error: any,
+  received: any,
+  schema: any,
   path: ValidationFallbackCallbackReturnType['errors'][number]['path'],
   errorsAsHashedSet: Set<string>
 ) {
-  const formattedError = await fieldAdapter.formatError(adapter, fieldAdapter, error);
+  const formattedError = await fieldAdapter.formatError(adapter, adapter.field, schema, error);
   formattedError.path = Array.isArray(formattedError.path) ? [...path, ...formattedError.path] : path;
+
   const formattedErrorAsParseResultError =
     formattedError as unknown as ValidationFallbackCallbackReturnType['errors'][number];
   formattedErrorAsParseResultError.isValid = false;
-  errorsAsHashedSet.add(JSON.stringify(formattedErrorAsParseResultError));
+  const sortedError = Object.fromEntries(
+    Object.entries(formattedErrorAsParseResultError).sort(([a], [b]) => a.localeCompare(b))
+  );
+  const hashedError = JSON.stringify(sortedError);
+  if (errorsAsHashedSet.has(hashedError)) return;
+  errorsAsHashedSet.add(JSON.stringify(sortedError));
+  formattedErrorAsParseResultError.received = received;
   return formattedErrorAsParseResultError;
 }
 

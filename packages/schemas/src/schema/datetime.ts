@@ -1,11 +1,9 @@
 import Schema from './schema';
-import { getDefaultAdapter } from '../conf';
 import { defaultTransform, defaultTransformToAdapter } from '../utils';
 import { above, allowStringParser, below, datetimeValidation } from '../validators/datetime';
 import { nullable, optional } from '../validators/schema';
 
 import type { DefinitionsOfSchemaType } from './types';
-import type SchemaAdapter from '../adapter';
 
 export default class DatetimeSchema<
   TType extends {
@@ -70,6 +68,7 @@ export default class DatetimeSchema<
           }
         );
       },
+      this,
       this.__transformedSchemas,
       options,
       'datetime'
@@ -618,25 +617,6 @@ export default class DatetimeSchema<
       },
       TDefinitions
     >();
-
-    const adapterInstance = new Proxy(
-      { current: undefined as undefined | SchemaAdapter },
-      {
-        get: (target, prop) => {
-          if (target.current) return (target.current as any)[prop];
-
-          const adapter = getDefaultAdapter();
-          target.current = adapter;
-          return (target.current as any)[prop];
-        }
-      }
-    ) as unknown as SchemaAdapter;
-
-    returnValue.__transformedSchemas[adapterInstance.constructor.name] = {
-      transformed: false,
-      adapter: adapterInstance,
-      schemas: []
-    };
 
     return returnValue;
   }

@@ -3,6 +3,7 @@ import type { ValidationFallbackReturnType } from '../schema/types';
 
 export function booleanValidation(): ValidationFallbackReturnType {
   return {
+    name: 'boolean',
     type: 'medium',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -33,6 +34,7 @@ export function booleanValidation(): ValidationFallbackReturnType {
 
 export function allowStringParser(): ValidationFallbackReturnType {
   return {
+    name: 'allowString',
     type: 'high',
     // eslint-disable-next-line ts/require-await
     callback: async (

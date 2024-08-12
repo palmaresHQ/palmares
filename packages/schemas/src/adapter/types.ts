@@ -103,18 +103,6 @@ export type NumberAdapterTranslateArgs = {
         message: string;
       }
     | undefined;
-  allowNegative:
-    | {
-        allowZero: boolean;
-        message: string;
-      }
-    | undefined;
-  allowPositive:
-    | {
-        allowZero: boolean;
-        message: string;
-      }
-    | undefined;
   integer:
     | {
         message: string;
@@ -130,17 +118,27 @@ export type StringAdapterTranslateArgsWithoutNonTranslateArgs = Omit<
 >;
 
 export type StringAdapterTranslateArgs = {
+  is:
+    | {
+        value: string[] | string;
+        message: string;
+      }
+    | undefined;
+  uuid:
+    | {
+        message: string;
+      }
+    | undefined;
+  email: { message: string } | undefined;
   minLength:
     | {
         value: number;
-        inclusive: boolean;
         message: string;
       }
     | undefined;
   maxLength:
     | {
         value: number;
-        inclusive: boolean;
         message: string;
       }
     | undefined;
@@ -233,13 +231,12 @@ export type ValidationDataBasedOnType<TType> = TType extends 'number'
 
 export type ErrorCodes =
   | 'max'
-  | 'negative'
-  | 'positive'
   | 'maxDigits'
   | 'decimalPlaces'
   | 'min'
   | 'integer'
   | 'required'
+  | 'null'
   | 'object'
   | 'number'
   | 'string'

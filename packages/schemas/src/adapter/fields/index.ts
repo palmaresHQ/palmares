@@ -39,7 +39,7 @@ export default class FieldAdapter {
   parse(
     _adapter: SchemaAdapter,
     _fieldAdapter: FieldAdapter,
-    _result: any,
+    _schema: any,
     _value: any,
     _args: Omit<AdapterTranslateArgs<SupportedSchemas>, 'withFallback'>
   ): Promise<{ errors: any; parsed: any }> {
@@ -59,6 +59,7 @@ export default class FieldAdapter {
   async formatError(
     _adapter: SchemaAdapter,
     _fieldAdapter: FieldAdapter,
+    _schema: any,
     _error: any,
     _metadata?: any
   ): Promise<{

@@ -4,6 +4,7 @@ import type { ValidationFallbackReturnType } from '../schema/types';
 
 export function numberValidation(): ValidationFallbackReturnType {
   return {
+    name: 'number',
     type: 'medium',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -29,6 +30,7 @@ export function numberValidation(): ValidationFallbackReturnType {
 
 export function max(args: NumberSchema['__max']): ValidationFallbackReturnType {
   return {
+    name: 'max',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -68,6 +70,7 @@ export function max(args: NumberSchema['__max']): ValidationFallbackReturnType {
 
 export function min(args: NumberSchema['__min']): ValidationFallbackReturnType {
   return {
+    name: 'min',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (value: any, path?: (string | number)[]) => {
@@ -99,12 +102,13 @@ export function min(args: NumberSchema['__min']): ValidationFallbackReturnType {
   };
 }
 
-export function negative(args: NumberSchema['__allowNegative']): ValidationFallbackReturnType {
+export function integer(args: NumberSchema['__integer']): ValidationFallbackReturnType {
   return {
+    name: 'integer',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (value: any, path?: (string | number)[]) => {
-      const isValid = args.allowZero ? value < 0 : value <= 0;
+      const isValid = Number.isInteger(value);
 
       return {
         parsed: value,
@@ -114,31 +118,7 @@ export function negative(args: NumberSchema['__allowNegative']): ValidationFallb
               {
                 isValid: isValid,
                 message: args.message,
-                code: 'negative',
-                path: path || []
-              }
-            ]
-      };
-    }
-  };
-}
-
-export function positive(args: NumberSchema['__allowPositive']): ValidationFallbackReturnType {
-  return {
-    type: 'low',
-    // eslint-disable-next-line ts/require-await
-    callback: async (value: any, path?: (string | number)[]) => {
-      const isValid = args.allowZero ? value > 0 : value >= 0;
-
-      return {
-        parsed: value,
-        errors: isValid
-          ? []
-          : [
-              {
-                isValid: isValid,
-                message: args.message,
-                code: 'positive',
+                code: 'integer',
                 path: path || []
               }
             ]
@@ -149,6 +129,7 @@ export function positive(args: NumberSchema['__allowPositive']): ValidationFallb
 
 export function maxDigits(args: NumberSchema['__maxDigits']): ValidationFallbackReturnType {
   return {
+    name: 'maxDigits',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (value: any, path?: (string | number)[]) => {
@@ -173,6 +154,7 @@ export function maxDigits(args: NumberSchema['__maxDigits']): ValidationFallback
 
 export function decimalPlaces(args: NumberSchema['__decimalPlaces']): ValidationFallbackReturnType {
   return {
+    name: 'decimalPlaces',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (value: any, path?: (string | number)[]) => {

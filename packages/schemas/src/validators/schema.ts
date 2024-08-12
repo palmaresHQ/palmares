@@ -7,6 +7,7 @@ import type { ValidationFallbackReturnType } from '../schema/types';
 
 export function optional(args: Schema['__optional']): ValidationFallbackReturnType {
   return {
+    name: 'optional',
     type: 'high',
     // eslint-disable-next-line ts/require-await
     callback: async (value: any, path: (string | number)[]) => {
@@ -43,6 +44,7 @@ export function optional(args: Schema['__optional']): ValidationFallbackReturnTy
 
 export function nullable(args: Schema['__nullable']): ValidationFallbackReturnType {
   return {
+    name: 'nullable',
     type: 'high',
     // eslint-disable-next-line ts/require-await
     callback: async (value: any, path: (string | number)[]) => {
@@ -59,7 +61,7 @@ export function nullable(args: Schema['__nullable']): ValidationFallbackReturnTy
             {
               isValid: false,
               message: args.message,
-              code: 'cannot_be_null' as ErrorCodes,
+              code: 'null',
               // eslint-disable-next-line ts/no-unnecessary-condition
               path: path || []
             }
@@ -79,6 +81,7 @@ export function nullable(args: Schema['__nullable']): ValidationFallbackReturnTy
 
 export function checkType(args: Schema['__type']): ValidationFallbackReturnType {
   return {
+    name: 'checkType',
     type: 'medium',
     // eslint-disable-next-line ts/require-await
     callback: async (value: any, path: (string | number)[]) => {
@@ -110,6 +113,7 @@ export function is(
   args: BooleanSchema['__is'] | NumberSchema['__is'] | StringSchema['__is']
 ): ValidationFallbackReturnType {
   return {
+    name: 'is',
     type: 'medium',
     // eslint-disable-next-line ts/require-await
     callback: async (

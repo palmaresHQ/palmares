@@ -5,6 +5,7 @@ export function unionValidation(
   schemas: readonly [Schema<any, any>, Schema<any, any>, ...Schema<any, any>[]]
 ): ValidationFallbackReturnType {
   return {
+    name: 'union',
     type: 'high',
     callback: async (value, path, options) => {
       const parsedValues: Awaited<ReturnType<Schema['__parse']>> = {

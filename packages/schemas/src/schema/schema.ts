@@ -215,7 +215,15 @@ export default class Schema<
       if (Array.isArray(adapterParseResult.errors))
         parseResult.errors = await Promise.all(
           adapterParseResult.errors.map(async (error) =>
-            formatErrorFromParseMethod(adapter, fieldAdapter, error, path, options.errorsAsHashedSet || new Set())
+            formatErrorFromParseMethod(
+              adapter,
+              fieldAdapter,
+              error,
+              value,
+              schema.transformed,
+              path,
+              options.errorsAsHashedSet || new Set()
+            )
           )
         );
       else
@@ -224,11 +232,14 @@ export default class Schema<
             adapter,
             fieldAdapter,
             parseResult.errors,
+            value,
+            schema.transformed,
             path,
             options.errorsAsHashedSet || new Set()
           )
         ];
     }
+    parseResult.errors = parseResult.errors.filter((error) => typeof error !== 'undefined');
     return parseResult;
   }
 
@@ -267,6 +278,7 @@ export default class Schema<
   /** */
   protected async __parsersToTransformValue(value: any, parsersToUse?: Set<string>) {
     let shouldStop = false;
+
     for (const [parserName, parser] of this.__parsers.high.entries()) {
       if (parsersToUse instanceof Set === false || parsersToUse.has(parserName)) {
         const result = await Promise.resolve(parser(value));
@@ -327,6 +339,7 @@ export default class Schema<
       errors: ValidationFallbackCallbackReturnType['errors'];
       parsed: TType['input'];
     } = { errors: [], parsed: value };
+    value = await this.__parsersToTransformValue(value, this.__parsers._fallbacks);
 
     if (options.appendFallbacksBeforeAdapterValidation === undefined)
       options.appendFallbacksBeforeAdapterValidation = (name, callback) => {
@@ -338,8 +351,6 @@ export default class Schema<
         .transformed === false
     )
       await this.__transformToAdapter(options);
-
-    value = await this.__parsersToTransformValue(value, this.__parsers._fallbacks);
 
     const adapterToUse = options.schemaAdapter
       ? options.schemaAdapter
@@ -387,7 +398,6 @@ export default class Schema<
       parseResult.errors = (parseResult.errors || []).concat(parsedValuesAfterValidatingByAdapter.errors);
     }
 
-    const doesNotHaveErrors = !Array.isArray(parseResult.errors) || parseResult.errors.length === 0;
     const hasToInternalCallback = typeof this.__toInternal === 'function';
     const shouldCallToInternalDuringParse =
       hasToInternalCallback &&
@@ -404,6 +414,7 @@ export default class Schema<
           isValid: false,
           code: errorOrNothing.code as any,
           message: errorOrNothing.message,
+          received: parseResult.parsed,
           path
         });
       })
@@ -1003,7 +1014,7 @@ export default class Schema<
    * @returns The schema with a new return type
    */
   toRepresentation<TRepresentation>(
-    toRepresentationCallback: (value: TType['representation']) => Promise<TRepresentation>,
+    toRepresentationCallback: (value: TType['representation']) => Promise<TRepresentation> | TRepresentation,
     options?: {
       after?: boolean;
       before?: boolean;
@@ -1017,7 +1028,7 @@ export default class Schema<
             ? !options.after
             : true;
       const existingToRepresentation = this.__toRepresentation;
-      console.log('existing to representation', existingToRepresentation, before, options?.after);
+
       this.__toRepresentation = async (value) => {
         if (before) return toRepresentationCallback(await existingToRepresentation(value));
         else return existingToRepresentation(await toRepresentationCallback(value));

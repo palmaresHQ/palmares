@@ -4,6 +4,7 @@ import type { ValidationFallbackCallbackReturnType, ValidationFallbackReturnType
 
 export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): ValidationFallbackReturnType {
   return {
+    name: 'array',
     type: 'medium',
     callback: async (value: any, path: (string | number)[], options: Parameters<Schema['__transformToAdapter']>[0]) => {
       const isNotAnArray = Array.isArray(value) === false;
@@ -93,6 +94,7 @@ export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): 
 
 export function minLength(args: ArraySchema['__minLength']): ValidationFallbackReturnType {
   return {
+    name: 'minLength',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -122,6 +124,7 @@ export function minLength(args: ArraySchema['__minLength']): ValidationFallbackR
 
 export function maxLength(args: ArraySchema['__maxLength']): ValidationFallbackReturnType {
   return {
+    name: 'maxLength',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -151,6 +154,7 @@ export function maxLength(args: ArraySchema['__maxLength']): ValidationFallbackR
 
 export function nonEmpty(args: ArraySchema['__nonEmpty']): ValidationFallbackReturnType {
   return {
+    name: 'nonEmpty',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (

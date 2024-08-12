@@ -1,11 +1,19 @@
 import Schema from './schema';
-import { getDefaultAdapter } from '../conf';
 import { defaultTransform, defaultTransformToAdapter } from '../utils';
-import { endsWith, includes, maxLength, minLength, regex, startsWith, stringValidation } from '../validators/string';
+import { is, nullable, optional } from '../validators/schema';
+import {
+  email,
+  endsWith,
+  includes,
+  maxLength,
+  minLength,
+  regex,
+  startsWith,
+  stringValidation,
+  uuid
+} from '../validators/string';
 
 import type { DefinitionsOfSchemaType } from './types';
-import type SchemaAdapter from '../adapter';
-import type { Narrow } from '@palmares/core';
 
 export default class StringSchema<
   TType extends {
@@ -24,7 +32,7 @@ export default class StringSchema<
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
 > extends Schema<TType, TDefinitions> {
   protected __is!: {
-    value: Narrow<TType['input'] | TType['input'][]>;
+    value: TType['input'] | TType['input'][];
     message: string;
   };
 
@@ -38,13 +46,11 @@ export default class StringSchema<
 
   protected __minLength!: {
     value: number;
-    inclusive: boolean;
     message: string;
   };
 
   protected __maxLength!: {
     value: number;
-    inclusive: boolean;
     message: string;
   };
 
@@ -76,6 +82,9 @@ export default class StringSchema<
           adapter,
           adapter.string,
           () => ({
+            is: this.__is,
+            email: this.__email,
+            uuid: this.__uuid,
             minLength: this.__minLength,
             maxLength: this.__maxLength,
             regex: this.__regex,
@@ -94,8 +103,13 @@ export default class StringSchema<
             minLength,
             endsWith,
             startsWith,
+            email,
+            uuid,
+            is,
             regex,
-            includes
+            includes,
+            nullable,
+            optional
           },
           {
             validatorsIfFallbackOrNotSupported: stringValidation(),
@@ -107,6 +121,7 @@ export default class StringSchema<
           }
         );
       },
+      this,
       this.__transformedSchemas,
       options,
       'number'
@@ -180,14 +195,42 @@ export default class StringSchema<
    *
    * @returns - The schema we are working with.
    */
-  optional(options?: { message: string; allow: false }) {
-    return super.optional(options) as unknown as StringSchema<
+  optional() {
+    return super.optional() as unknown as StringSchema<
       {
         input: TType['input'] | undefined | null;
         validate: TType['validate'] | undefined | null;
         internal: TType['internal'] | undefined | null;
         output: TType['output'] | undefined | null;
         representation: TType['representation'] | undefined | null;
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
+   * Just adds a message when the value is undefined. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.string().optional({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonOptional function
+   * @param options.message - A custom message if the value is undefined.
+   *
+   * @returns - The schema.
+   */
+  nonOptional(options?: { message: string }) {
+    return super.optional({
+      message: options?.message,
+      allow: false
+    }) as unknown as StringSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
       },
       TDefinitions
     >;
@@ -226,6 +269,34 @@ export default class StringSchema<
         internal: TType['internal'] | null;
         output: TType['output'] | null;
         representation: TType['representation'] | null;
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
+   * Just adds a message when the value is null. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.string().nullable({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonNullable function
+   * @param options.message - A custom message if the value is null.
+   *
+   * @returns - The schema.
+   */
+  nonNullable(options?: { message: string }) {
+    return super.nullable({
+      message: options?.message || '',
+      allow: false
+    }) as unknown as StringSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
       },
       TDefinitions
     >;
@@ -566,10 +637,11 @@ export default class StringSchema<
    *
    * @returns - The schema instance
    */
-  is<const TValue extends TType['input'][]>(value: TValue) {
+  is<const TValue extends TType['input'][]>(value: TValue, options?: Partial<Omit<StringSchema['__is'], 'value'>>) {
     this.__is = {
       value,
-      message: `The value should be equal to ${value.join(', ')}`
+      message:
+        typeof options?.message === 'string' ? options.message : `The value should be equal to ${value.join(', ')}`
     };
 
     return this as any as Schema<
@@ -740,8 +812,7 @@ export default class StringSchema<
   maxLength(value: number, options?: Partial<Omit<StringSchema['__maxLength'], 'value'>>) {
     this.__maxLength = {
       value,
-      message: options?.message || `The value should have a maximum length of ${value}`,
-      inclusive: typeof options?.inclusive === 'boolean' ? options.inclusive : false
+      message: options?.message || `The value should have a maximum length of ${value}`
     };
     return this;
   }
@@ -774,8 +845,7 @@ export default class StringSchema<
   minLength(value: number, options?: Partial<Omit<StringSchema['__minLength'], 'value'>>) {
     this.__minLength = {
       value,
-      message: options?.message || `The value should have a minimum length of ${value}`,
-      inclusive: typeof options?.inclusive === 'boolean' ? options.inclusive : false
+      message: options?.message || `The value should have a minimum length of ${value}`
     };
     return this;
   }
@@ -843,25 +913,6 @@ export default class StringSchema<
       },
       TDefinitions
     >();
-
-    const adapterInstance = new Proxy(
-      { current: undefined as undefined | SchemaAdapter },
-      {
-        get: (target, prop) => {
-          if (target.current) return (target.current as any)[prop];
-
-          const adapter = getDefaultAdapter();
-          target.current = adapter;
-          return (target.current as any)[prop];
-        }
-      }
-    ) as unknown as SchemaAdapter;
-
-    returnValue.__transformedSchemas[adapterInstance.constructor.name] = {
-      transformed: false,
-      adapter: adapterInstance,
-      schemas: []
-    };
 
     return returnValue;
   }
