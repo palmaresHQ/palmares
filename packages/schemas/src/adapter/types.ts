@@ -20,30 +20,35 @@ export type AdapterTranslateArgs<TType extends SupportedSchemas = SupportedSchem
 
 export type DatetimeAdapterTranslateArgs = {
   allowString: boolean | undefined;
-  above: {
-    value: Date;
-    inclusive: boolean;
-    message: string;
-  };
-  below: {
-    value: Date;
-    inclusive: boolean;
-    message: string;
-  };
+  above:
+    | {
+        value: Date;
+        inclusive: boolean;
+        message: string;
+      }
+    | undefined;
+  below:
+    | {
+        value: Date;
+        inclusive: boolean;
+        message: string;
+      }
+    | undefined;
 } & AdapterTranslateArgs<'datetime'>;
 
 export type BooleanAdapterTranslateArgs = {
   parsers: {
     allowString: boolean | undefined;
     allowNumber: boolean | undefined;
-    trueValues: any[];
-    falseValues: any[];
-    is: boolean;
+    trueValues: any[] | undefined;
+    falseValues: any[] | undefined;
   } & AdapterTranslateArgs<'boolean'>['parsers'];
-  is: {
-    value: boolean;
-    message: string;
-  };
+  is:
+    | {
+        value: boolean;
+        message: string;
+      }
+    | undefined;
 } & AdapterTranslateArgs<'boolean'>;
 
 export type ArrayAdapterTranslateArgs = {
@@ -71,6 +76,9 @@ export type ArrayAdapterTranslateArgs = {
 } & AdapterTranslateArgs<'array'>;
 
 export type NumberAdapterTranslateArgs = {
+  parsers: {
+    allowString: boolean | undefined;
+  } & AdapterTranslateArgs<'number'>['parsers'];
   is:
     | {
         value: number[];

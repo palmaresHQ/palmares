@@ -21,9 +21,11 @@ export default domain('testingDrizzle', __dirname, {
   //getModels: () => models,
   getTests: () => [
     //__dirname + '/test.test.ts',
-    //__dirname + '/numbers.test.ts',
-    __dirname + '/boolean.test.ts'
+    __dirname + '/numbers.test.ts',
+    __dirname + '/boolean.test.ts',
+    __dirname + '/datetime.test.ts',
+    __dirname + '/object.test.ts',
     //__dirname + '/types.test.ts',
-    //__dirname + '/string.test.ts'
+    __dirname + '/string.test.ts'
   ]
 });

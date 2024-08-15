@@ -46,10 +46,21 @@ describe<JestTestAdapter>('Boolean Tests', ({ test }) => {
     const [{ errors: errorsTrue, parsed: parsedTrue }, { errors: errorsFalse, parsed: parsedFalse }] =
       await Promise.all([booleanSchema.parse('Y'), booleanSchema.parse('N')]);
 
-    console.log(errorsTrue, errorsFalse);
     expect((errorsTrue || []).length).toBe(0);
     expect((errorsFalse || []).length).toBe(0);
     expect(parsedTrue).toBe(true);
     expect(parsedFalse).toBe(false);
+  });
+
+  test('number and string values', async ({ expect }) => {
+    const booleanSchema = p.boolean().allowNumber().allowString();
+
+    const [{ errors: errorsNumber, parsed: parsedNumber }, { errors: errorsString, parsed: parsedString }] =
+      await Promise.all([booleanSchema.parse(1), booleanSchema.parse('true')]);
+
+    expect((errorsNumber || []).length).toBe(0);
+    expect((errorsString || []).length).toBe(0);
+    expect(parsedNumber).toBe(true);
+    expect(parsedString).toBe(true);
   });
 });

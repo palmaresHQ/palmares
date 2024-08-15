@@ -2,6 +2,7 @@ import { SchemaAdapter } from '@palmares/schemas';
 
 import ZodFieldSchemaAdapter from './fields';
 import ZodBooleanFieldSchemaAdapter from './fields/boolean';
+import ZodDatetimeFieldSchemaAdapter from './fields/datetime';
 import ZodNumberFieldSchemaAdapter from './fields/number';
 import ZodObjectFieldSchemaAdapter from './fields/object';
 import ZodStringFieldSchemaAdapter from './fields/string';
@@ -17,6 +18,7 @@ export class ZodSchemaAdapter extends SchemaAdapter {
   union = new ZodUnionFieldSchemaAdapter();
   boolean = new ZodBooleanFieldSchemaAdapter();
   string = new ZodStringFieldSchemaAdapter();
+  datetime = new ZodDatetimeFieldSchemaAdapter();
 
   async formatError(error: z.ZodIssue) {
     return {

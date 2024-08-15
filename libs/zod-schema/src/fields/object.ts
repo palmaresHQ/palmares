@@ -3,7 +3,16 @@ import * as z from 'zod';
 
 export default objectFieldAdapter({
   translate: (fieldAdapter, args) => {
-    let result = z.object(args.data);
+    let result = z.object(args.data, {
+      errorMap: (issue) => {
+        const isOptional =
+          issue.code === 'invalid_type' && issue.expected === 'object' && issue.received === 'undefined';
+        const isNullable = issue.code === 'invalid_type' && issue.received === 'null';
+        if (isOptional) return { message: args.optional.message };
+        else if (isNullable) return { message: args.nullable.message };
+        return { message: issue.message || '' };
+      }
+    });
     result = fieldAdapter.translate(fieldAdapter, args, result);
     return result;
   },
@@ -20,16 +29,16 @@ export default objectFieldAdapter({
       else throw error;
     }
   },
-  formatError: async (adapter, _fieldAdapter, schema: z.ZodObject<any>, error, _metadata) => {
-    const stringFormattedErrors = await adapter.string?.formatError(adapter, _fieldAdapter, schema, error, _metadata);
+  formatError: async (adapter, fieldAdapter, schema: z.ZodObject<any>, error, _metadata) => {
+    const stringFormattedErrors = await adapter.string?.formatError(adapter, fieldAdapter, schema, error, _metadata);
     const numberFormattedErrors = await adapter.number?.formatError(
       adapter,
-      _fieldAdapter,
+      fieldAdapter,
       schema,
       stringFormattedErrors,
       _metadata
     );
-    return numberFormattedErrors || ({} as any);
+    return fieldAdapter.formatError(adapter, fieldAdapter, schema, numberFormattedErrors, _metadata);
   },
   // eslint-disable-next-line ts/require-await
   toString: async (_adapter, _fieldAdapter, args) => {

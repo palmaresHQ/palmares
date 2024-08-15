@@ -165,4 +165,13 @@ describe<JestTestAdapter>('Number Tests', ({ test }) => {
     expect((errorsOnValid || []).length).toBe(0);
     expect(parsed).toBe(100);
   });
+
+  test('allowString', async ({ expect }) => {
+    const numberSchema = p.number().allowString();
+
+    const { errors, parsed } = await numberSchema.parse('100');
+
+    expect((errors || []).length).toBe(0);
+    expect(parsed).toBe(100);
+  });
 });

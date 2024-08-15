@@ -4,6 +4,7 @@ import {
   DEFAULT_NUMBER_MAX_EXCEPTION,
   DEFAULT_NUMBER_MIN_EXCEPTION
 } from '../constants';
+import { convertFromStringBuilder } from '../parsers';
 import { defaultTransform, defaultTransformToAdapter } from '../utils';
 import { decimalPlaces, integer, max, maxDigits, min, numberValidation } from '../validators/number';
 import { is, nullable, optional } from '../validators/schema';
@@ -26,6 +27,8 @@ export default class NumberSchema<
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
 > extends Schema<TType, TDefinitions> {
+  protected __allowString!: boolean;
+
   protected __is!: {
     value: TType['input'][];
     message: string;
@@ -75,6 +78,7 @@ export default class NumberSchema<
             maxDigits: this.__maxDigits,
             decimalPlaces: this.__decimalPlaces,
             parsers: {
+              allowString: this.__allowString,
               nullable: this.__nullable.allow,
               optional: this.__optional.allow
             }
@@ -333,6 +337,42 @@ export default class NumberSchema<
         internal: TToInternal extends true ? undefined : TType['internal'];
         output: TToRepresentation extends true ? TType['output'] | undefined : TType['output'];
         representation: TToRepresentation extends true ? undefined : TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
+   * This will allow the value to be a string, it does not validate, it just parses inputs as strings and allows the
+   * result to be a string as well.
+   *
+   * @example
+   * ```ts
+   * number().allowString().parse('true') // true
+   * ```
+   *
+   * @returns - The schema instance
+   */
+  allowString() {
+    this.__allowString = true;
+
+    this.__parsers.low.set(
+      'allowString',
+      convertFromStringBuilder((value) => {
+        return {
+          value: Number(value),
+          preventNextParsers: false
+        };
+      })
+    );
+
+    return this as any as NumberSchema<
+      {
+        input: string | TType['input'];
+        output: string | TType['output'];
+        internal: string | TType['internal'];
+        representation: string | TType['representation'];
+        validate: string | TType['validate'];
       },
       TDefinitions
     >;

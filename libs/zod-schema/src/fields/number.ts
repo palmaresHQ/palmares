@@ -56,6 +56,14 @@ export default numberFieldAdapter({
           });
       }) as z.ZodEffects<z.ZodNumber, number, number>;
     }
+
+    if (args.parsers.allowString) {
+      result = z.preprocess((value) => {
+        if (typeof value === 'string') return Number(value);
+        return value;
+      }, result) as z.ZodEffects<z.ZodNumber, number, number>;
+    }
+
     result = fieldAdapter.translate(fieldAdapter, args, result);
     return result;
   },

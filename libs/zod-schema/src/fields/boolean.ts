@@ -16,27 +16,28 @@ export default booleanFieldAdapter({
       }
     });
 
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (args.is)
       result = result.superRefine((value, ctx) => {
-        const isValid = value === args.is.value;
+        const isValid = value === (args.is as any).value;
         if (!isValid)
           ctx.addIssue({
             code: 'is' as any,
-            expected: args.is?.value,
-            message: args.is?.message
+            expected: (args.is as any).value,
+            message: (args.is as any).message
           });
       });
 
     if (args.parsers.trueValues) {
       result = z.preprocess((value) => {
-        const isValueATrueValue = args.parsers.trueValues.includes(value);
+        const isValueATrueValue = args.parsers.trueValues?.includes(value);
         if (isValueATrueValue) return true;
         return value;
       }, result) as z.ZodEffects<z.ZodBoolean, boolean, boolean>;
     }
     if (args.parsers.falseValues) {
       result = z.preprocess((value) => {
-        const isValueAFalseValue = args.parsers.falseValues.includes(value);
+        const isValueAFalseValue = args.parsers.falseValues?.includes(value);
         if (isValueAFalseValue) return false;
         return value;
       }, result) as z.ZodEffects<z.ZodBoolean, boolean, boolean>;

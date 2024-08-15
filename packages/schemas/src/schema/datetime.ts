@@ -158,6 +158,34 @@ export default class DatetimeSchema<
   }
 
   /**
+   * Just adds a message when the value is undefined. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.datetime().optional({ message: 'This value should be defined', allow: false })
+   * ```
+   *
+   * @param options - The options of nonOptional function
+   * @param options.message - A custom message if the value is undefined.
+   *
+   * @returns - The schema.
+   */
+  nonOptional(options?: { message: string }) {
+    return super.optional({
+      message: options?.message,
+      allow: false
+    }) as unknown as DatetimeSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
    * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value
    * is NULL by setting the { message: 'Your custom message', allow: false } on the options.
    *
@@ -190,6 +218,34 @@ export default class DatetimeSchema<
         internal: TType['internal'] | null;
         output: TType['output'] | null;
         representation: TType['representation'] | null;
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
+   * Just adds a message when the value is null. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.datetime().nullable({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonNullable function
+   * @param options.message - A custom message if the value is null.
+   *
+   * @returns - The schema.
+   */
+  nonNullable(options?: { message: string }) {
+    return super.nullable({
+      message: options?.message || '',
+      allow: false
+    }) as unknown as DatetimeSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
       },
       TDefinitions
     >;

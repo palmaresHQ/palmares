@@ -3,7 +3,7 @@ import { formDataLikeFactory, parseParamsValue, parseQueryParams } from './utils
 import {
   DEFAULT_REQUEST_CONTENT_HEADER_VALUE_URLENCODED,
   DEFAULT_REQUEST_HEADERS_CONTENT_HEADER_KEY,
-  DEFAULT_SERVER_ERROR_INVALID_QUERY_OR_PARAMS,
+  DEFAULT_SERVER_ERROR_INVALID_QUERY_OR_PARAMS
 } from '../defaults';
 
 import type {
@@ -15,9 +15,8 @@ import type {
   RequestDestination,
   RequestMethodTypes,
   RequestMode,
-  RequestRedirect,
-} from './types'
-;
+  RequestRedirect
+} from './types';
 import type ServerAdapter from '../adapters';
 import type ServerRequestAdapter from '../adapters/requests';
 import type ServerlessAdapter from '../adapters/serverless';
@@ -55,10 +54,11 @@ export default class Request<
     referrer: string;
     redirect: RequestRedirect;
     referrerPolicy: ReferrerPolicy;
-  },
+  }
 > {
   /**
-   * All of those private methods are not really private, we use them internally so we do a typescript mangling to use them.
+   * All of those private methods are not really private, we use them internally so we do a typescript
+   * mangling to use them.
    *
    * But the intellisense on VSCODE or other editors will not show them.
    */
@@ -67,7 +67,8 @@ export default class Request<
   private __serverAdapter: ServerAdapter | ServerlessAdapter | undefined = undefined;
   private __requestAdapter: ServerRequestAdapter | undefined = undefined;
   /**
-   * This is data sent by the server, you can use it to translate your request and response during the lifecycle of Request/Response.
+   * This is data sent by the server, you can use it to translate your request and response during the
+   * lifecycle of Request/Response.
    *
    * Think like that, on express:
    *
@@ -123,13 +124,14 @@ export default class Request<
   context: TRequest['context'];
 
   /**
-   * @deprecated - DO NOT create an instance of Request directly, unless you know what you are doing. If you want to change the request use {@link clone()} instead.
+   * @deprecated - DO NOT create an instance of Request directly, unless you know what you are doing.
+   * If you want to change the request use {@link clone()} instead.
    */
   constructor(options?: TRequest) {
     const abortController = new AbortController();
     this.__signal = {
       controller: abortController,
-      signal: abortController.signal,
+      signal: abortController.signal
     };
 
     this.context = options?.context;
@@ -166,13 +168,13 @@ export default class Request<
         }
 
         return undefined;
-      },
+      }
     });
   }
 
   /**
-   * This is the method that will be used to get the url of the request, it will be lazy loaded and cached and cannot be changed.
-   * This is because we don't want to parse the url if the user doesn't need it.
+   * This is the method that will be used to get the url of the request, it will be lazy loaded and cached
+   * and cannot be changed. This is because we don't want to parse the url if the user doesn't need it.
    *
    * @example
    * ```ts
@@ -253,9 +255,11 @@ export default class Request<
   }
 
   /**
-   * This will show the errors that happened on the request. This way you can validate them during the request response lifecycle.
+   * This will show the errors that happened on the request. This way you can validate them during the
+   * request response lifecycle.
    *
-   * By default we give you the data parsed, we just parse the data when you use it. So in other words. If the request is made and you don't use the data we just don't validate.
+   * By default we give you the data parsed, we just parse the data when you use it. So in other words.
+   * If the request is made and you don't use the data we just don't validate.
    *
    * This is nice to keep your application fast and don't get in your way.
    */
@@ -300,7 +304,8 @@ export default class Request<
   }
 
   /**
-   * This is the method that will be used to get the method of the request, it will be lazy loaded and cached and cannot be changed.
+   * This is the method that will be used to get the method of the request, it will be lazy loaded and
+   * cached and cannot be changed.
    *
    * @example
    * ```ts
@@ -328,9 +333,11 @@ export default class Request<
   }
 
   /**
-   * By default this will return nothing, you need to use one of the following methods {@link formData()}, {@link json()}, {@link text()}, {@link blob()} or {@link arrayBuffer()} to get the body.
-   * This is because we don't want to parse the body if the user doesn't need it. This will JUST have a value if you use either use {@link clone()} passing
-   * a new body or if you create a new instance of Request passing a body. Otherwise it will always be undefined.
+   * By default this will return nothing, you need to use one of the following methods {@link formData()},
+   * {@link json()}, {@link text()}, {@link blob()} or {@link arrayBuffer()} to get the body.
+   * This is because we don't want to parse the body if the user doesn't need it. This will JUST have a
+   * value if you use either use {@link clone()} passing a new body or if you create a new instance of
+   * Request passing a body. Otherwise it will always be undefined.
    *
    * @example
    * ```ts
@@ -349,7 +356,8 @@ export default class Request<
   }
 
   /**
-   * This will lazy load the headers of the request. Instead of returning the headers directly it is a proxy, so it's only parsed and translated when needed.
+   * This will lazy load the headers of the request. Instead of returning the headers directly it is a
+   * proxy, so it's only parsed and translated when needed.
    *
    * @example
    * ```ts
@@ -388,13 +396,14 @@ export default class Request<
       const parsedData = parseParamsValue(dataFromUrl, parserData);
 
       this.__validateParamsAndThrow(key, parsedData, parserData);
-      (target)[key] = parsedData;
+      target[key] = parsedData;
     }
   }
 
   /**
    * This is really similar to {@link headers} but it's used for url params instead.
-   * This will lazy load and parse the url parameters of the request. Instead of returning the params directly it is a proxy, so it's only parsed and translated when needed.
+   * This will lazy load and parse the url parameters of the request. Instead of returning the params
+   * directly it is a proxy, so it's only parsed and translated when needed.
    *
    * @example
    * ```ts
@@ -442,7 +451,7 @@ export default class Request<
               }
 
               return undefined;
-            },
+            }
           }
         );
         this.__params = paramsProxy;
@@ -471,11 +480,11 @@ export default class Request<
         [name]: {
           data,
           errorsOn,
-          type,
-        },
+          type
+        }
       };
       (this.__validationErrors as any) = Object.freeze({
-        query: errorData,
+        query: errorData
       });
       if (this.__validation?.handler) throw this.__validation.handler(this);
       else throw DEFAULT_SERVER_ERROR_INVALID_QUERY_OR_PARAMS();
@@ -495,12 +504,12 @@ export default class Request<
         [name]: {
           data,
           errorsOn: type.regex ? ['type', 'regex'] : ['type'],
-          type,
-        },
+          type
+        }
       };
 
       (this.__validationErrors as any) = Object.freeze({
-        url: errorData,
+        url: errorData
       });
       if (this.__validation?.handler) throw this.__validation.handler(this);
       else throw DEFAULT_SERVER_ERROR_INVALID_QUERY_OR_PARAMS();
@@ -529,13 +538,14 @@ export default class Request<
       const parsedData = parseQueryParams(dataFromQuery, parserData);
       this.__validateQueryParamsAndThrow(key, parsedData, parserData);
 
-      (target)[key] = parsedData;
+      target[key] = parsedData;
     }
   }
 
   /**
    * This is really similar to {@link headers} but it's used for query params instead.
-   * This will lazy load and parse query parameters of the request. Instead of returning the query params directly it is a proxy, so it's only parsed and translated when needed.
+   * This will lazy load and parse query parameters of the request. Instead of returning the query params
+   * directly it is a proxy, so it's only parsed and translated when needed.
    *
    * @example
    * ```ts
@@ -585,7 +595,7 @@ export default class Request<
               }
 
               return undefined;
-            },
+            }
           }
         );
         this.__query = queryProxy;
@@ -595,9 +605,11 @@ export default class Request<
   }
 
   /**
-   * This function is used to clone the object, it is the only and the prefered way to make changes to your request (besides making changes to the `context`)
-   * You can use it to change the headers, body, context, mode, cache, credentials, integrity, destination, referrer and redirect. To improve performance this
-   * will change the values in-place. This means it will change itself and return it again, but you can do a copy of the object using `{ options: inPlace: false }`
+   * This function is used to clone the object, it is the only and the prefered way to make changes to your
+   * request (besides making changes to the `context`). You can use it to change the headers, body, context,
+   * mode, cache, credentials, integrity, destination, referrer and redirect. To improve performance this
+   * will change the values in-place. This means it will change itself and return it again, but you can do
+   * a copy of the object using `{ options: inPlace: false }`
    *
    * @example
    * ```ts
@@ -607,15 +619,19 @@ export default class Request<
    * newRequest.headers; // { 'Content-Type': 'application/x-www-form-urlencoded' }
    *
    * const request = new Request({ headers: { 'Content-Type': 'application/json' } });
-   * const newRequest = request.clone({ headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }, { inPlace: false });
+   * const newRequest = request.clone(
+   *    { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
+   *    { inPlace: false }
+   * );
    * request.headers; // { 'Content-Type': 'application/json' }
    * newRequest.headers; // { 'Content-Type': 'application/x-www-form-urlencoded' }
    * ```
    *
    * @param args - The new values you want to set on the request, the values you don't pass will not be overridden.
    * @param options - The options you want to use when cloning the request.
-   * @param options.inPlace - If you want to clone the request or change it in-place. By default it will change it in-place. IMPORTANT: The header will NOT
-   * be overridden you can just change an existing value or add a new one.
+   * @param options.inPlace - If you want to clone the request or change it in-place. By default it will
+   * change it in-place. IMPORTANT: The header will NOT be overridden you can just change an existing value
+   * or add a new one.
    *
    * @returns - Either a new Request instance or the same instance with new values.
    */
@@ -644,7 +660,7 @@ export default class Request<
       referrer: string;
       referrerPolicy: ReferrerPolicy;
       redirect: RequestRedirect;
-    },
+    }
   >(args?: TNewRequest, options?: { inPlace: boolean }) {
     const isInPlace = options?.inPlace !== false;
     const newRequest = isInPlace
@@ -659,43 +675,43 @@ export default class Request<
             mode: TNewRequest['mode'] extends RequestMode
               ? TNewRequest['mode']
               : TRequest['mode'] extends RequestMode
-              ? TRequest['mode']
-              : RequestMode;
+                ? TRequest['mode']
+                : RequestMode;
             cache: TNewRequest['cache'] extends RequestCache
               ? TNewRequest['cache']
               : TRequest['cache'] extends RequestCache
-              ? TRequest['cache']
-              : RequestCache;
+                ? TRequest['cache']
+                : RequestCache;
             credentials: TNewRequest['credentials'] extends RequestCredentials
               ? TNewRequest['credentials']
               : TRequest['credentials'] extends RequestCredentials
-              ? TRequest['credentials']
-              : RequestCredentials;
+                ? TRequest['credentials']
+                : RequestCredentials;
             integrity: TNewRequest['integrity'] extends string
               ? TNewRequest['integrity']
               : TRequest['integrity'] extends string
-              ? TRequest['integrity']
-              : string;
+                ? TRequest['integrity']
+                : string;
             destination: TNewRequest['destination'] extends RequestDestination
               ? TNewRequest['destination']
               : TRequest['destination'] extends RequestDestination
-              ? TRequest['destination']
-              : RequestDestination;
+                ? TRequest['destination']
+                : RequestDestination;
             referrer: TNewRequest['referrer'] extends string
               ? TNewRequest['referrer']
               : TRequest['referrer'] extends string
-              ? TRequest['referrer']
-              : string;
+                ? TRequest['referrer']
+                : string;
             redirect: TNewRequest['redirect'] extends RequestRedirect
               ? TNewRequest['redirect']
               : TRequest['redirect'] extends RequestRedirect
-              ? TRequest['redirect']
-              : RequestRedirect;
+                ? TRequest['redirect']
+                : RequestRedirect;
             referrerPolicy: TNewRequest['referrerPolicy'] extends ReferrerPolicy
               ? TNewRequest['referrerPolicy']
               : TRequest['referrerPolicy'] extends ReferrerPolicy
-              ? TRequest['referrerPolicy']
-              : ReferrerPolicy;
+                ? TRequest['referrerPolicy']
+                : ReferrerPolicy;
             responses: TRequest['responses'];
           }
         >();
@@ -754,55 +770,59 @@ export default class Request<
         mode: TNewRequest['mode'] extends RequestMode
           ? TNewRequest['mode']
           : TRequest['mode'] extends RequestMode
-          ? TRequest['mode']
-          : RequestMode;
+            ? TRequest['mode']
+            : RequestMode;
         cache: TNewRequest['cache'] extends RequestCache
           ? TNewRequest['cache']
           : TRequest['cache'] extends RequestCache
-          ? TRequest['cache']
-          : RequestCache;
+            ? TRequest['cache']
+            : RequestCache;
         credentials: TNewRequest['credentials'] extends RequestCredentials
           ? TNewRequest['credentials']
           : TRequest['credentials'] extends RequestCredentials
-          ? TRequest['credentials']
-          : RequestCredentials;
+            ? TRequest['credentials']
+            : RequestCredentials;
         integrity: TNewRequest['integrity'] extends string
           ? TNewRequest['integrity']
           : TRequest['integrity'] extends string
-          ? TRequest['integrity']
-          : string;
+            ? TRequest['integrity']
+            : string;
         destination: TNewRequest['destination'] extends RequestDestination
           ? TNewRequest['destination']
           : TRequest['destination'] extends RequestDestination
-          ? TRequest['destination']
-          : RequestDestination;
+            ? TRequest['destination']
+            : RequestDestination;
         referrer: TNewRequest['referrer'] extends string
           ? TNewRequest['referrer']
           : TRequest['referrer'] extends string
-          ? TRequest['referrer']
-          : string;
+            ? TRequest['referrer']
+            : string;
         redirect: TNewRequest['redirect'] extends RequestRedirect
           ? TNewRequest['redirect']
           : TRequest['redirect'] extends RequestRedirect
-          ? TRequest['redirect']
-          : RequestRedirect;
+            ? TRequest['redirect']
+            : RequestRedirect;
         referrerPolicy: TNewRequest['referrerPolicy'] extends ReferrerPolicy
           ? TNewRequest['referrerPolicy']
           : TRequest['referrerPolicy'] extends ReferrerPolicy
-          ? TRequest['referrerPolicy']
-          : ReferrerPolicy;
+            ? TRequest['referrerPolicy']
+            : ReferrerPolicy;
         responses: TRequest['responses'];
       }
     >;
   }
 
   /**
-   * This is the underlying serverData. The documentation of this should be provided by the framework you are using underlined with Palmares.
-   * So, the idea is simple, when a request is made, the underlying framework will call a callback we provide passing the data it needs to handle both
-   * the request and the response. For Express.js for example this will be an object containing both the `req` and `res` objects. If for some reason you need
-   * some data or some functionality we do not support by default you can, at any time, call this function and get this data.
+   * This is the underlying serverData. The documentation of this should be provided by the framework you
+   * are using underlined with Palmares.
+   * So, the idea is simple, when a request is made, the underlying framework will call a callback we
+   * provide passing the data it needs to handle both the request and the response. For Express.js for
+   * example this will be an object containing both the `req` and `res` objects. If for some reason you need
+   * some data or some functionality we do not support by default you can, at any time, call this function
+   * and get this data.
    *
-   * IMPORTANT: It's not up for us to document this, ask the library author of the adapter to provide a documentation and properly type this.
+   * IMPORTANT: It's not up for us to document this, ask the library author of the adapter to provide a
+   * documentation and properly type this.
    *
    * @example
    * ```ts
@@ -845,8 +865,9 @@ export default class Request<
   }
 
   /**
-   * This should return the body as an ArrayBuffer instance. If the body is not an ArrayBuffer it should return undefined. You should search for documentation of the underlying adapter
-   * to understand WHEN it will return an ArrayBuffer (usually might depend of 'Content-Type' header)
+   * This should return the body as an ArrayBuffer instance. If the body is not an ArrayBuffer it should
+   * return undefined. You should search for documentation of the underlying adapter to understand WHEN
+   * it will return an ArrayBuffer (usually might depend of 'Content-Type' header)
    *
    * @example
    * ```ts
@@ -866,8 +887,9 @@ export default class Request<
    * });
    * ```
    *
-   * @param options - Those options are custom options you want to pass to the underlying adapter instance when retrieving the array buffer, see the documentation of the underlying
-   * adapter. You can retrieve those options by: 'MyCustomFrameworkRequestAdapter.customToArrayBufferOptions?.()' if it is implemented.
+   * @param options - Those options are custom options you want to pass to the underlying adapter instance
+   * when retrieving the array buffer, see the documentation of the underlying adapter. You can retrieve
+   * those options by: 'MyCustomFrameworkRequestAdapter.customToArrayBufferOptions?.()' if it is implemented.
    */
   async arrayBuffer(options?: any) {
     if (this.body instanceof ArrayBuffer) return this.body;
@@ -897,8 +919,9 @@ export default class Request<
    * });
    * ```
    *
-   * @param options - Those options are custom options you want to pass to the underlying adapter instance when retrieving the json, see the documentation of the underlying
-   * adapter. You can retrieve those options by: 'MyCustomFrameworkRequestAdapter.customToJsonOptions?.()' if it is implemented.
+   * @param options - Those options are custom options you want to pass to the underlying adapter instance
+   * when retrieving the json, see the documentation of the underlying adapter. You can retrieve those
+   * options by: 'MyCustomFrameworkRequestAdapter.customToJsonOptions?.()' if it is implemented.
    */
   async json(options?: any): Promise<TRequest['body'] | undefined> {
     if (typeof this.body === 'object' && this.body !== null) return this.body;
@@ -908,8 +931,9 @@ export default class Request<
   }
 
   /**
-   * This should return the body as a Blob instance. If the body is not a Blob it should return undefined. You should search for documentation of the underlying adapter
-   * to understand WHEN it will return a Blob (usually might depend of 'Content-Type' header)
+   * This should return the body as a Blob instance. If the body is not a Blob it should return undefined.
+   * You should search for documentation of the underlying adapter to understand WHEN it will return a
+   * Blob (usually might depend of 'Content-Type' header)
    *
    * @example
    * ```ts
@@ -929,8 +953,9 @@ export default class Request<
    * });
    * ```
    *
-   * @param options - Those options are custom options you want to pass to the underlying adapter instance when retrieving the blob, see the documentation of the underlying
-   * adapter. You can retrieve those options by: 'MyCustomFrameworkRequestAdapter.customToBlobOptions?.()' if it is implemented.
+   * @param options - Those options are custom options you want to pass to the underlying adapter instance
+   * when retrieving the blob, see the documentation of the underlying adapter. You can retrieve those
+   * options by: 'MyCustomFrameworkRequestAdapter.customToBlobOptions?.()' if it is implemented.
    */
   async blob(options?: any) {
     if (this.body instanceof Blob || this.body instanceof File) return this.body;
@@ -944,11 +969,13 @@ export default class Request<
   }
 
   /**
-   * This should contain data when the 'Content-Type' on the request is a `multipart/form-data` or `application/x-www-form-urlencoded`.
-   * Otherwise it should be undefined.
+   * This should contain data when the 'Content-Type' on the request is a `multipart/form-data` or
+   * `application/x-www-form-urlencoded`. Otherwise it should be undefined.
    *
-   * This should be used for retrieving a FormData-like instance. FormData is not available on Node.js and might not be supported on other runtimes,
-   * so in order to support it we have created a FormData-like class that has the same API as the original FormData with some extensions.
+   * This should be used for retrieving a FormData-like instance. FormData is not available on Node.js and
+   * might not be supported on other runtimes,
+   * so in order to support it we have created a FormData-like class that has the same API as the original
+   * FormData with some extensions.
    *
    * See: https://developer.mozilla.org/en-US/docs/Web/API/FormData
    *
@@ -970,7 +997,8 @@ export default class Request<
    * });
    * ```
    *
-   * @param options - Those options are custom options you want to pass to the underlying framework instance when retrieving the form data.
+   * @param options - Those options are custom options you want to pass to the underlying framework instance
+   * when retrieving the form data.
    * You can retrieve those options by: 'MyCustomFrameworkRequestAdapter.customToBlobOptions?.()' if it is implemented.
    */
   async formData(options?: any): Promise<InstanceType<FormDataLike<TRequest['body']>> | undefined> {
@@ -987,8 +1015,9 @@ export default class Request<
   }
 
   /**
-   * This should return the body as a string. If the body is not a string it should return undefined. You should search for documentation of the underlying adapter
-   * to understand WHEN it will return a string (usually might depend of 'Content-Type' header)
+   * This should return the body as a string. If the body is not a string it should return undefined.
+   * You should search for documentation of the underlying adapter to understand WHEN it will return a
+   * string (usually might depend of 'Content-Type' header)
    *
    * @example
    * ```ts
@@ -1008,8 +1037,9 @@ export default class Request<
    * });
    * ```
    *
-   * @param options - Those options are custom options you want to pass to the underlying adapter instance when retrieving the text, see the documentation of the underlying
-   * adapter. You can retrieve those options by: 'MyCustomFrameworkRequestAdapter.customToTextOptions?.()' if it is implemented.
+   * @param options - Those options are custom options you want to pass to the underlying adapter instance
+   * when retrieving the text, see the documentation of the underlying adapter. You can retrieve those options by:
+   * 'MyCustomFrameworkRequestAdapter.customToTextOptions?.()' if it is implemented.
    */
   async text(options?: any) {
     if (typeof this.body === 'string') return this.body;
@@ -1031,8 +1061,9 @@ export default class Request<
    * });
    * ```
    *
-   * @param options - Those options are custom options you want to pass to the underlying adapter instance when retrieving the raw data, see the documentation of the underlying
-   * adapter. You can retrieve those options by: 'MyCustomFrameworkRequestAdapter.customToRawOptions?.()' if it is implemented.
+   * @param options - Those options are custom options you want to pass to the underlying adapter instance
+   * when retrieving the raw data, see the documentation of the underlying adapter. You can retrieve those
+   * options by: 'MyCustomFrameworkRequestAdapter.customToRawOptions?.()' if it is implemented.
    */
   async raw(options?: any) {
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
