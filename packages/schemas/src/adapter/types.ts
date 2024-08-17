@@ -11,6 +11,7 @@ export type AdapterToStringArgs = {
     optional: Schema['__optional']['allow'];
     nullable: Schema['__nullable']['allow'];
   };
+  type: Schema['__type'];
   optional: Schema['__optional'];
   nullable: Schema['__nullable'];
 };

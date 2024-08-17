@@ -48,6 +48,7 @@ export default class DatetimeSchema<
             above: this.__above,
             nullable: this.__nullable,
             optional: this.__optional,
+            type: this.__type,
             parsers: {
               nullable: this.__nullable.allow,
               optional: this.__optional.allow

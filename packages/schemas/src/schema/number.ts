@@ -77,6 +77,7 @@ export default class NumberSchema<
             nullable: this.__nullable,
             maxDigits: this.__maxDigits,
             decimalPlaces: this.__decimalPlaces,
+            type: this.__type,
             parsers: {
               allowString: this.__allowString,
               nullable: this.__nullable.allow,

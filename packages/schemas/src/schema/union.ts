@@ -93,6 +93,7 @@ export default class UnionSchema<
           adapter.union,
           (isStringVersion) => ({
             nullable: this.__nullable,
+            type: this.__type,
             optional: this.__optional,
             schemas: isStringVersion ? transformedSchemasAsString : transformedSchemas,
             parsers: {

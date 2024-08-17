@@ -45,8 +45,14 @@ export default fieldAdapter({
             message: error.message
           };
         }
+        if (error.received === 'undefined')
+          return {
+            code: 'required',
+            path: error.path,
+            message: error.message
+          };
         return {
-          code: 'required',
+          code: error.expected,
           path: error.path,
           message: error.message
         };

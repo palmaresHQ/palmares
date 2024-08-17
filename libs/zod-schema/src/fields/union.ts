@@ -13,6 +13,7 @@ export default unionFieldAdapter({
               if (issue.code === 'invalid_type' && issue.received === 'undefined')
                 issue.message = args.optional.message;
               if (issue.code === 'invalid_type' && issue.received === 'null') issue.message = args.nullable.message;
+              else if (issue.code === 'invalid_type') return { message: args.type.message };
             }
           }
         }

@@ -91,7 +91,7 @@ describe<JestTestAdapter>('Union Tests', ({ test }) => {
     const existingUnion = adapter.union;
     adapter.union = undefined;
     const unionSchema = p.object({ test: p.union([p.number().min(25), p.number().max(20)]) });
-    const { parsed, errors } = await unionSchema.parse({ test: 23 });
+    const { errors } = await unionSchema.parse({ test: 23 });
     expect((errors || []).length > 0).toBe(true);
 
     adapter.union = existingUnion;

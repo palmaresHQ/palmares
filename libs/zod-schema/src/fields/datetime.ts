@@ -11,6 +11,7 @@ export default datetimeFieldAdapter({
         const isNullable = issue.code === 'invalid_type' && issue.received === 'null';
         if (isOptional) return { message: args.optional.message };
         else if (isNullable) return { message: args.nullable.message };
+        else if (issue.code === 'invalid_type') return { message: args.type.message };
         return { message: issue.message || '' };
       }
     });

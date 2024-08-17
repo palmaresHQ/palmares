@@ -82,6 +82,7 @@ export default class StringSchema<
           adapter,
           adapter.string,
           () => ({
+            type: this.__type,
             is: this.__is,
             email: this.__email,
             uuid: this.__uuid,

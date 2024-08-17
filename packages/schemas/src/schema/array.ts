@@ -1,5 +1,4 @@
 import Schema from './schema';
-import { getDefaultAdapter } from '../conf';
 import {
   defaultTransform,
   defaultTransformToAdapter,
@@ -10,7 +9,6 @@ import { nullable, optional } from '../validators/schema';
 import Validator from '../validators/utils';
 
 import type { DefinitionsOfSchemaType, ExtractTypeFromArrayOfSchemas } from './types';
-import type SchemaAdapter from '../adapter';
 
 export default class ArraySchema<
   TType extends {
@@ -96,6 +94,8 @@ export default class ArraySchema<
             maxLength: this.__maxLength,
             minLength: this.__minLength,
             nonEmpty: this.__nonEmpty,
+            schemas: transformedSchemas,
+            type: this.__type,
             parsers: {
               nullable: this.__nullable.allow,
               optional: this.__optional.allow
@@ -232,6 +232,34 @@ export default class ArraySchema<
   }
 
   /**
+   * Just adds a message when the value is undefined. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.datetime().optional({ message: 'This value should be defined', allow: false })
+   * ```
+   *
+   * @param options - The options of nonOptional function
+   * @param options.message - A custom message if the value is undefined.
+   *
+   * @returns - The schema.
+   */
+  nonOptional(options?: { message: string }) {
+    return super.optional({
+      message: options?.message,
+      allow: false
+    }) as unknown as ArraySchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
    * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value
    * is NULL by setting the { message: 'Your custom message', allow: false } on the options.
    *
@@ -267,6 +295,34 @@ export default class ArraySchema<
       },
       TDefinitions,
       TSchemas
+    >;
+  }
+
+  /**
+   * Just adds a message when the value is null. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.datetime().nullable({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonNullable function
+   * @param options.message - A custom message if the value is null.
+   *
+   * @returns - The schema.
+   */
+  nonNullable(options?: { message: string }) {
+    return super.nullable({
+      message: options?.message || '',
+      allow: false
+    }) as unknown as ArraySchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
     >;
   }
 
@@ -592,30 +648,30 @@ export default class ArraySchema<
     >;
   }
 
-  minLength(value: number, inclusive = true, message?: string) {
-    message = message || `The array must have a minimum length of ${value}`;
+  minLength(value: number, options?: Omit<ArraySchema['__minLength'], 'value'>) {
+    const message = options?.message || `The array must have a minimum length of ${value}`;
     this.__minLength = {
       value: value,
-      inclusive: inclusive,
+      inclusive: typeof options?.inclusive === 'boolean' ? options.inclusive : true,
       message: message
     };
 
     return this;
   }
 
-  maxLength(value: number, inclusive = true, message?: string) {
-    message = message || `The array must have a maximum length of ${value}`;
+  maxLength(value: number, options?: Omit<ArraySchema['__maxLength'], 'value'>) {
+    const message = options?.message || `The array must have a maximum length of ${value}`;
     this.__maxLength = {
       value: value,
-      inclusive: inclusive,
+      inclusive: typeof options?.inclusive === 'boolean' ? options.inclusive : true,
       message: message
     };
 
     return this;
   }
 
-  nonEmpty(message?: string) {
-    message = message || 'The array must not be empty';
+  nonEmpty(options?: ArraySchema['__nonEmpty']) {
+    const message = options?.message || 'The array must not be empty';
     this.__nonEmpty = {
       message: message
     };
@@ -626,7 +682,35 @@ export default class ArraySchema<
   static new<
     TSchemas extends readonly [Schema, ...Schema[]] | [Schema[]],
     TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
-  >(...schemas: TSchemas) {
+  >(
+    ...schemas: TSchemas
+  ): TSchemas extends [Schema[]]
+    ? ArraySchema<
+        {
+          input: ExtractTypeFromArrayOfSchemas<TSchemas, 'input'>;
+          validate: ExtractTypeFromArrayOfSchemas<TSchemas, 'validate'>;
+          internal: ExtractTypeFromArrayOfSchemas<TSchemas, 'internal'>;
+          output: ExtractTypeFromArrayOfSchemas<TSchemas, 'output'>;
+          representation: ExtractTypeFromArrayOfSchemas<TSchemas, 'representation'>;
+        },
+        TDefinitions,
+        TSchemas
+      >
+    : ArraySchema<
+        {
+          input: ExtractTypeFromArrayOfSchemas<TSchemas, 'input'>;
+          validate: ExtractTypeFromArrayOfSchemas<TSchemas, 'validate'>;
+          internal: ExtractTypeFromArrayOfSchemas<TSchemas, 'internal'>;
+          output: ExtractTypeFromArrayOfSchemas<TSchemas, 'output'>;
+          representation: ExtractTypeFromArrayOfSchemas<TSchemas, 'representation'>;
+        },
+        TDefinitions,
+        TSchemas
+      > & {
+        maxLength: never;
+        minLength: never;
+        nonEmpty: never;
+      } {
     const returnValue = new ArraySchema<
       {
         input: ExtractTypeFromArrayOfSchemas<TSchemas, 'input'>;
@@ -639,7 +723,33 @@ export default class ArraySchema<
       TSchemas
     >(...schemas);
 
-    return returnValue;
+    return returnValue as TSchemas extends [Schema[]]
+      ? ArraySchema<
+          {
+            input: ExtractTypeFromArrayOfSchemas<TSchemas, 'input'>;
+            validate: ExtractTypeFromArrayOfSchemas<TSchemas, 'validate'>;
+            internal: ExtractTypeFromArrayOfSchemas<TSchemas, 'internal'>;
+            output: ExtractTypeFromArrayOfSchemas<TSchemas, 'output'>;
+            representation: ExtractTypeFromArrayOfSchemas<TSchemas, 'representation'>;
+          },
+          TDefinitions,
+          TSchemas
+        >
+      : ArraySchema<
+          {
+            input: ExtractTypeFromArrayOfSchemas<TSchemas, 'input'>;
+            validate: ExtractTypeFromArrayOfSchemas<TSchemas, 'validate'>;
+            internal: ExtractTypeFromArrayOfSchemas<TSchemas, 'internal'>;
+            output: ExtractTypeFromArrayOfSchemas<TSchemas, 'output'>;
+            representation: ExtractTypeFromArrayOfSchemas<TSchemas, 'representation'>;
+          },
+          TDefinitions,
+          TSchemas
+        > & {
+          maxLength: never;
+          minLength: never;
+          nonEmpty: never;
+        };
   }
 }
 

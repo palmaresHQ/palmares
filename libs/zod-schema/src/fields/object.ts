@@ -10,8 +10,10 @@ export default objectFieldAdapter({
         const isOptional =
           issue.code === 'invalid_type' && issue.expected === 'object' && issue.received === 'undefined';
         const isNullable = issue.code === 'invalid_type' && issue.received === 'null';
+
         if (isOptional) return { message: args.optional.message };
         else if (isNullable) return { message: args.nullable.message };
+        else if (issue.code === 'invalid_type') return { message: args.type.message };
         return { message: issue.message || '' };
       }
     });
@@ -26,6 +28,7 @@ export default objectFieldAdapter({
     if (metadata === undefined) metadata = {};
     if (metadata.$type instanceof Set === false) metadata.$type = new Set();
     if (metadata.$type instanceof Set) metadata.$type.add('object');
+
     return transformErrorsOnComplexTypes(adapter, fieldAdapter, schema, error, metadata);
   },
   // eslint-disable-next-line ts/require-await

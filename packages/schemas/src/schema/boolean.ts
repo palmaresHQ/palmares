@@ -51,6 +51,7 @@ export default class BooleanSchema<
               nullable: this.__nullable.allow,
               optional: this.__optional.allow
             },
+            type: this.__type,
             is: this.__is,
             nullable: this.__nullable,
             optional: this.__optional
