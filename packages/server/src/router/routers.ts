@@ -20,16 +20,21 @@ import type { Domain, Narrow } from '@palmares/core';
  *
  * For types:
  * - this class is used to keep track of all of the children as well as the parent.
- * - By keeping track of children and parent we can pretty much merge everything together and work nicely with middleware,
- * the handlers, and the path.
- * - Let's say for example that we defined a middleware on the parent that changes the Request, this change should also be applied
- * to the children routes. The same applies for the path, let's say that we defined a custom parameter for the path on the parent, like an id.
+ * - By keeping track of children and parent we can pretty much merge everything together and work nicely
+ * with middleware, the handlers, and the path.
+ * - Let's say for example that we defined a middleware on the parent that changes the Request, this change
+ * should also be applied to the children routes. The same applies for the path, let's say that we defined a
+ * custom parameter for the path on the parent, like an id.
+ *
  * This should be applied to the children as well.
- * - Yu might ask, "but why a parent router keeping track of it's children is important?". Because of the typing when using the router.
- * We want to know which routes we can "call", and what are the headers, data and basically everything else we should send to them.
+ * - Yu might ask, "but why a parent router keeping track of it's children is important?". Because of the
+ * typing when using the router.
+ * We want to know which routes we can "call", and what are the headers, data and basically everything else
+ * we should send to them.
  *
  * For the application to work:
- * - Pretty much a router is a tree. One router is connected to another router, that is connected to another router and so on. But basically
+ * - Pretty much a router is a tree. One router is connected to another router, that is connected to another
+ * router and so on. But basically
  * ALL applications will have just one route as entrypoint.
  * - Understand that the root router will know all the handlers, so you don't need to traverse everything everytime.
  */
@@ -194,9 +199,10 @@ export class BaseRouter<
     //   .get(() => return new Response())
     // nestedRouter.nested([handlers])
     //
-    // Notice that we defined the `nestedRouter` as nested to `rootRouter` and `handlers` as nested to `nestedRouter` just after that.
-    // If we don't use this loop here, there is NO WAY that `rootRouter` will be able to know that `handlers` exist. To fix that we use
-    // this loop to traverse the hole linked list of routers and parent routers and add the children to the parent routers.
+    // Notice that we defined the `nestedRouter` as nested to `rootRouter` and `handlers` as nested to
+    // `nestedRouter` just after that. If we don't use this loop here, there is NO WAY that `rootRouter`
+    // will be able to know that `handlers` exist. To fix that we use this loop to traverse the hole linked
+    // list of routers and parent routers and add the children to the parent routers.
     // eslint-disable-next-line ts/no-unnecessary-condition
     while (router) {
       const fullUrlPath = `${router.__urlParamsAndPath.path}${child.__urlParamsAndPath.path}`;
@@ -239,19 +245,21 @@ export class BaseRouter<
     }
   }
 
-  middlewares<const TRouterMiddlewares extends readonly Middleware[]>(definedMiddlewares: Narrow<TRouterMiddlewares>) {
+  middlewares<const TRouterMiddlewares extends readonly Middleware[]>(
+    definedMiddlewares: Narrow<TRouterMiddlewares>
+  ): MethodsRouter<
+    TParentRouter,
+    TChildren,
+    readonly [...(TMiddlewares['length'] extends 0 ? [] : TMiddlewares), ...TRouterMiddlewares],
+    TRootPath,
+    TAlreadyDefinedHandlers
+  > {
     const middlewaresAsMutable = this.__middlewares as unknown as Middleware[];
     (this.__middlewares as unknown as Middleware[]) = middlewaresAsMutable.concat(definedMiddlewares as Middleware[]);
     for (const handler of this.__completePaths.values())
       handler.middlewares = (definedMiddlewares as Middleware[]).concat(handler.middlewares);
 
-    return this as unknown as MethodsRouter<
-      TParentRouter,
-      TChildren,
-      readonly [...(TMiddlewares['length'] extends 0 ? [] : TMiddlewares), ...TRouterMiddlewares],
-      TRootPath,
-      TAlreadyDefinedHandlers
-    >;
+    return this as any;
   }
 
   private extractQueryParamsFromPath(

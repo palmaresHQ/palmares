@@ -112,17 +112,21 @@ export default stringFieldAdapter({
         return error;
       }
       case 'too_big':
-        return {
-          code: 'maxLength',
-          path: error.path,
-          message: error.message
-        };
+        if ((error as any).type === 'string')
+          return {
+            code: 'maxLength',
+            path: error.path,
+            message: error.message
+          };
+        break;
       case 'too_small':
-        return {
-          code: 'minLength',
-          path: error.path,
-          message: error.message
-        };
+        if ((error as any).type === 'string')
+          return {
+            code: 'minLength',
+            path: error.path,
+            message: error.message
+          };
+        break;
     }
 
     return fieldAdapter.formatError(_adapter, fieldAdapter, _schema, error, _metadata) as Promise<any>;

@@ -138,22 +138,22 @@ async function getSchemaFromModelField(
 }
 
 /**
- * Different from other schemas, this function is a factory function that returns either an ObjectSchema or an ArraySchema.
- * The idea is to build the schema of a model dynamically based on its fields.
+ * Different from other schemas, this function is a factory function that returns either an ObjectSchema or an
+ * ArraySchema. The idea is to build the schema of a model dynamically based on its fields.
  *
- * Another feature is that it can automatically add the foreign key relation to the schema, but for that you need to define
- * the fields of the related model in the fields object.
+ * Another feature is that it can automatically add the foreign key relation to the schema, but for that you need to
+ * define the fields of the related model in the fields object.
  *
  * For example: A User model have a field `companyId` that is a ForeignKeyField to the Company model. The `relationName`
- * is the direct relation from the User model to the Company model, and the `relatedName` is the reverse relation from the
- * Company model to the User model. If you define the fieldName as either the relatedName or the relationName it will fetch
- * the data automatically.
+ * is the direct relation from the User model to the Company model, and the `relatedName` is the reverse relation from
+ * the Company model to the User model. If you define the fieldName as either the relatedName or the relationName it
+ * will fetch the data automatically.
  *
- * **Important**: We build the schema dynamically but also lazily, if you don't try to parse or validate the schema, it won't be built.
- * After the first time it's built, it's cached and never built again.
+ * **Important**: We build the schema dynamically but also lazily, if you don't try to parse or validate the schema, it
+ * won't be built. After the first time it's built, it's cached and never built again.
  *
- * **Important 2**: If you want to use the automatic relation feature, you need to define guarantee that the foreignKey field fieldName
- * exists on `show` array, or that it doesn't exist on `omit` array.
+ * **Important 2**: If you want to use the automatic relation feature, you need to define guarantee that the foreignKey
+ * field fieldName exists on `show` array, or that it doesn't exist on `omit` array.
  *
  * Like: `{ options: { show: ['id', 'name', 'companyId'] }}` or `{ options: { omit: ['id'] }}` it **will work**.
  *
@@ -206,16 +206,16 @@ async function getSchemaFromModelField(
  *   fields: {
  *      usersOfCompany: p.modelSchema(User, { many: true }).optional({ outputOnly: true });
  *   },
- *   show: ['id', 'type'] // The `companyId` field on the 'User' model is tied to the `id` field on the 'Company' model so 'id' is required.
- * });
+ *   // The `companyId` field on the 'User' model is tied to the `id` field on the 'Company' model so 'id' is required.
+ *   show: ['id', 'type'] * });
  *```
  * @param model - The model that you want to build the schema from.
  * @param options - The options to build the schema.
  * @param options.ignoreExtraneousFields - If you want to ignore extraneous fields set this to true.
  * @param options.engineInstance - What engine instance you want to use to fetch the data. Defaults to the first one.
- * @param options.omitRelation - Fields that you want to omit from the relation. For example, on the example above, on the
- * `userSchema` you can omit the `companyId` field from the relation by just passing `['company']`, on the `companySchema`
- * you can omit the `id` field from company by passing `['usersOfCompany']`.
+ * @param options.omitRelation - Fields that you want to omit from the relation. For example, on the example above, on
+ * the `userSchema` you can omit the `companyId` field from the relation by just passing `['company']`, on the
+ * `companySchema`  you can omit the `id` field from company by passing `['usersOfCompany']`.
  *
  * @param options.fields - Extra fields that you want to add to the schema. If it has the same name as the model field,
  * We will not create a schema for that field and use the one you have defined here.

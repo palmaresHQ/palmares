@@ -1,4 +1,6 @@
+import { number } from '.';
 import Schema from './schema';
+import { string } from './string';
 import { getDefaultAdapter } from '../conf';
 import {
   defaultTransform,
@@ -8,24 +10,24 @@ import {
 import { unionValidation } from '../validators/union';
 import Validator from '../validators/utils';
 
-import type { DefinitionsOfSchemaType } from './types';
+import type { DefinitionsOfSchemaType, ExtractTypeFromUnionOfSchemas } from './types';
 import type SchemaAdapter from '../adapter';
 import type FieldAdapter from '../adapter/fields';
 import type { Narrow } from '@palmares/core';
 
 export default class UnionSchema<
   TType extends {
-    input: any;
-    validate: any;
-    internal: any;
-    representation: any;
-    output: any;
+    input: unknown;
+    validate: unknown;
+    internal: unknown;
+    representation: unknown;
+    output: unknown;
   } = {
-    input: Record<any, any>;
-    output: Record<any, any>;
-    validate: Record<any, any>;
-    internal: Record<any, any>;
-    representation: Record<any, any>;
+    input: unknown;
+    output: unknown;
+    validate: unknown;
+    internal: unknown;
+    representation: unknown;
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
   TSchemas extends readonly [Schema<any, any>, Schema<any, any>, ...Schema<any, any>[]] = [
@@ -104,6 +106,7 @@ export default class UnionSchema<
             fallbackIfNotSupported: async () => {
               if (options.appendFallbacksBeforeAdapterValidation)
                 options.appendFallbacksBeforeAdapterValidation(
+                  this,
                   'union',
                   async (adapter, fieldAdapter, schema, translatedSchemas, value, path, options) => {
                     const parsedValues = {
@@ -121,7 +124,6 @@ export default class UnionSchema<
                         path,
                         options
                       );
-
                       // eslint-disable-next-line ts/no-unnecessary-condition
                       if ((errors || []).length <= 0) return { parsed, errors };
                       else {
@@ -138,7 +140,6 @@ export default class UnionSchema<
               for (const schema of this.__schemas)
                 transformedSchemasAsPromises.push((schema as any).__transformToAdapter(options));
 
-              console.log((await Promise.all(transformedSchemasAsPromises)).flat());
               return (await Promise.all(transformedSchemasAsPromises)).flat();
             }
           }
@@ -234,6 +235,34 @@ export default class UnionSchema<
   }
 
   /**
+   * Just adds a message when the value is undefined. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.string().optional({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonOptional function
+   * @param options.message - A custom message if the value is undefined.
+   *
+   * @returns - The schema.
+   */
+  nonOptional(options?: { message: string }) {
+    return super.optional({
+      message: options?.message,
+      allow: false
+    }) as unknown as UnionSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
    * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value
    * is NULL by setting the { message: 'Your custom message', allow: false } on the options.
    *
@@ -272,6 +301,33 @@ export default class UnionSchema<
     >;
   }
 
+  /**
+   * Just adds a message when the value is null. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.string().nullable({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonNullable function
+   * @param options.message - A custom message if the value is null.
+   *
+   * @returns - The schema.
+   */
+  nonNullable(options?: { message: string }) {
+    return super.nullable({
+      message: options?.message || '',
+      allow: false
+    }) as unknown as UnionSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
   /**
    * This method will remove the value from the representation of the schema. If the value is undefined it will keep
    * that way
@@ -595,7 +651,15 @@ export default class UnionSchema<
   static new<
     TSchemas extends readonly [Schema<any, any>, Schema<any, any>, ...Schema<any, any>[]],
     TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
-  >(schemas: Narrow<TSchemas>): UnionSchema<TSchemas[number] extends Schema<infer TType, any> ? TType : never> {
+  >(
+    schemas: Narrow<TSchemas>
+  ): UnionSchema<{
+    input: ExtractTypeFromUnionOfSchemas<TSchemas, 'input'>;
+    internal: ExtractTypeFromUnionOfSchemas<TSchemas, 'internal'>;
+    output: ExtractTypeFromUnionOfSchemas<TSchemas, 'output'>;
+    representation: ExtractTypeFromUnionOfSchemas<TSchemas, 'representation'>;
+    validate: ExtractTypeFromUnionOfSchemas<TSchemas, 'validate'>;
+  }> {
     const returnValue = new UnionSchema<
       TSchemas[number] extends Schema<infer TType, any> ? TType : never,
       TDefinitions,
@@ -605,5 +669,4 @@ export default class UnionSchema<
     return returnValue as any;
   }
 }
-
 export const union = UnionSchema.new;

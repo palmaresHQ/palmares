@@ -105,6 +105,31 @@ export type ExtractTypeFromObjectOfSchemas<
     : never]?: ExtractTypeFromSchemaByTypeOfSchema<TData[key], TTypeToExtract>;
 };
 
+export type ExtractTypeFromUnionOfSchemas<
+  TSchemas extends readonly Schema[] = [],
+  TType extends 'input' | 'output' | 'representation' | 'internal' | 'validate' = 'input'
+> = TSchemas extends readonly [infer TFirstSchema, ...infer TRestOfSchemas]
+  ? TFirstSchema extends Schema<{
+      input: infer TInput;
+      internal: infer TInternal;
+      output: infer TOutput;
+      representation: infer TRepresentation;
+      validate: infer TValidate;
+    }>
+    ?
+        | (TType extends 'output'
+            ? TOutput
+            : TType extends 'representation'
+              ? TRepresentation
+              : TType extends 'internal'
+                ? TInternal
+                : TType extends 'validate'
+                  ? TValidate
+                  : TInput)
+        | ExtractTypeFromUnionOfSchemas<TRestOfSchemas extends readonly Schema[] ? TRestOfSchemas : [], TType>
+    : unknown
+  : never;
+
 export type ExtractTypeFromArrayOfSchemas<
   TSchemas extends readonly [Schema, ...Schema[]] | [Schema[]],
   TTypeToExtract extends keyof TypesOfSchema = 'input',

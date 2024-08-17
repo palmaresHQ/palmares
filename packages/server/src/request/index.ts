@@ -661,7 +661,59 @@ export default class Request<
       referrerPolicy: ReferrerPolicy;
       redirect: RequestRedirect;
     }
-  >(args?: TNewRequest, options?: { inPlace: boolean }) {
+  >(
+    args?: TNewRequest,
+    options?: { inPlace: boolean }
+  ): Request<
+    TRoutePath,
+    {
+      body: TNewRequest['body'] extends object | string ? TNewRequest['body'] : TRequest['body'];
+      headers: TNewRequest['headers'] extends object ? TNewRequest['headers'] : TRequest['headers'];
+      context: TNewRequest['context'] extends object ? TNewRequest['context'] : TRequest['context'];
+      method: TRequest['method'];
+      mode: TNewRequest['mode'] extends RequestMode
+        ? TNewRequest['mode']
+        : TRequest['mode'] extends RequestMode
+          ? TRequest['mode']
+          : RequestMode;
+      cache: TNewRequest['cache'] extends RequestCache
+        ? TNewRequest['cache']
+        : TRequest['cache'] extends RequestCache
+          ? TRequest['cache']
+          : RequestCache;
+      credentials: TNewRequest['credentials'] extends RequestCredentials
+        ? TNewRequest['credentials']
+        : TRequest['credentials'] extends RequestCredentials
+          ? TRequest['credentials']
+          : RequestCredentials;
+      integrity: TNewRequest['integrity'] extends string
+        ? TNewRequest['integrity']
+        : TRequest['integrity'] extends string
+          ? TRequest['integrity']
+          : string;
+      destination: TNewRequest['destination'] extends RequestDestination
+        ? TNewRequest['destination']
+        : TRequest['destination'] extends RequestDestination
+          ? TRequest['destination']
+          : RequestDestination;
+      referrer: TNewRequest['referrer'] extends string
+        ? TNewRequest['referrer']
+        : TRequest['referrer'] extends string
+          ? TRequest['referrer']
+          : string;
+      redirect: TNewRequest['redirect'] extends RequestRedirect
+        ? TNewRequest['redirect']
+        : TRequest['redirect'] extends RequestRedirect
+          ? TRequest['redirect']
+          : RequestRedirect;
+      referrerPolicy: TNewRequest['referrerPolicy'] extends ReferrerPolicy
+        ? TNewRequest['referrerPolicy']
+        : TRequest['referrerPolicy'] extends ReferrerPolicy
+          ? TRequest['referrerPolicy']
+          : ReferrerPolicy;
+      responses: TRequest['responses'];
+    }
+  > {
     const isInPlace = options?.inPlace !== false;
     const newRequest = isInPlace
       ? this
@@ -760,56 +812,7 @@ export default class Request<
     newRequest.__requestAdapter = this.__requestAdapter;
     newRequest.__serverRequestAndResponseData = this.__serverRequestAndResponseData;
 
-    return newRequest as Request<
-      TRoutePath,
-      {
-        body: TNewRequest['body'] extends object | string ? TNewRequest['body'] : TRequest['body'];
-        headers: TNewRequest['headers'] extends object ? TNewRequest['headers'] : TRequest['headers'];
-        context: TNewRequest['context'] extends object ? TNewRequest['context'] : TRequest['context'];
-        method: TRequest['method'];
-        mode: TNewRequest['mode'] extends RequestMode
-          ? TNewRequest['mode']
-          : TRequest['mode'] extends RequestMode
-            ? TRequest['mode']
-            : RequestMode;
-        cache: TNewRequest['cache'] extends RequestCache
-          ? TNewRequest['cache']
-          : TRequest['cache'] extends RequestCache
-            ? TRequest['cache']
-            : RequestCache;
-        credentials: TNewRequest['credentials'] extends RequestCredentials
-          ? TNewRequest['credentials']
-          : TRequest['credentials'] extends RequestCredentials
-            ? TRequest['credentials']
-            : RequestCredentials;
-        integrity: TNewRequest['integrity'] extends string
-          ? TNewRequest['integrity']
-          : TRequest['integrity'] extends string
-            ? TRequest['integrity']
-            : string;
-        destination: TNewRequest['destination'] extends RequestDestination
-          ? TNewRequest['destination']
-          : TRequest['destination'] extends RequestDestination
-            ? TRequest['destination']
-            : RequestDestination;
-        referrer: TNewRequest['referrer'] extends string
-          ? TNewRequest['referrer']
-          : TRequest['referrer'] extends string
-            ? TRequest['referrer']
-            : string;
-        redirect: TNewRequest['redirect'] extends RequestRedirect
-          ? TNewRequest['redirect']
-          : TRequest['redirect'] extends RequestRedirect
-            ? TRequest['redirect']
-            : RequestRedirect;
-        referrerPolicy: TNewRequest['referrerPolicy'] extends ReferrerPolicy
-          ? TNewRequest['referrerPolicy']
-          : TRequest['referrerPolicy'] extends ReferrerPolicy
-            ? TRequest['referrerPolicy']
-            : ReferrerPolicy;
-        responses: TRequest['responses'];
-      }
-    >;
+    return newRequest as any;
   }
 
   /**

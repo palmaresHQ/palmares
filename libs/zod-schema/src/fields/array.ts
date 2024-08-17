@@ -1,24 +1,20 @@
-import { unionFieldAdapter } from '@palmares/schemas';
+import { arrayFieldAdapter } from '@palmares/schemas';
 import * as z from 'zod';
 
 import { transformErrorsOnComplexTypes } from '../utils';
 
-export default unionFieldAdapter({
+export default arrayFieldAdapter({
   translate: (fieldAdapter, args) => {
-    let result = z.union(args.schemas, {
-      errorMap: (issue) => {
-        if (issue.code === 'invalid_union') {
-          for (const unionError of issue.unionErrors) {
-            for (const issue of unionError.issues) {
-              if (issue.code === 'invalid_type' && issue.received === 'undefined')
-                issue.message = args.optional.message;
-              if (issue.code === 'invalid_type' && issue.received === 'null') issue.message = args.nullable.message;
-            }
-          }
-        }
+    let result = (z[args.isTuple ? 'tuple' : 'array'] as any)(args.schemas, {
+      errorMap: (issue: z.ZodIssue) => {
+        const isOptional =
+          issue.code === 'invalid_type' && issue.expected === 'array' && issue.received === 'undefined';
+        const isNullable = issue.code === 'invalid_type' && issue.received === 'null';
+        if (isOptional) return { message: args.optional.message };
+        else if (isNullable) return { message: args.nullable.message };
         return { message: issue.message || '' };
       }
-    });
+    }) as z.ZodTuple | z.ZodArray<any>;
     result = fieldAdapter.translate(fieldAdapter, args, result);
     return result;
   },
@@ -29,7 +25,7 @@ export default unionFieldAdapter({
   formatError: (adapter, fieldAdapter, schema: z.ZodUnion<any>, error: z.ZodIssue, metadata) => {
     if (metadata === undefined) metadata = {};
     if (metadata.$type instanceof Set === false) metadata.$type = new Set();
-    if (metadata.$type instanceof Set) metadata.$type.add('union');
+    if (metadata.$type instanceof Set) metadata.$type.add('array');
     return transformErrorsOnComplexTypes(adapter, fieldAdapter, schema, error, metadata);
   },
   // eslint-disable-next-line ts/require-await

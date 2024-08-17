@@ -17,14 +17,14 @@ import type { Model, ModelFields } from '@palmares/databases';
 export { default as FieldAdapter, fieldAdapter } from './adapter/fields';
 export { default as NumberFieldAdapter, numberFieldAdapter } from './adapter/fields/number';
 export { default as ObjectFieldAdapter, objectFieldAdapter } from './adapter/fields/object';
-export { default as UnionFieldAdapter } from './adapter/fields/union';
+export { default as UnionFieldAdapter, unionFieldAdapter } from './adapter/fields/union';
 export { default as StringFieldAdapter, stringFieldAdapter } from './adapter/fields/string';
-export { default as ArrayFieldAdapter } from './adapter/fields/array';
+export { default as ArrayFieldAdapter, arrayFieldAdapter } from './adapter/fields/array';
 export { default as BooleanFieldAdapter, booleanFieldAdapter } from './adapter/fields/boolean';
 export { default as DatetimeFieldAdapter, datetimeFieldAdapter } from './adapter/fields/datetime';
 
 export { Infer as infer } from './types';
-export { setDefaultAdapter } from './conf';
+export { setDefaultAdapter, getDefaultAdapter } from './conf';
 export * from './adapter/types';
 export * from './schema';
 export {

@@ -25,6 +25,7 @@ export default domain('testingDrizzle', __dirname, {
     __dirname + '/boolean.test.ts',
     __dirname + '/datetime.test.ts',
     __dirname + '/object.test.ts',
+    __dirname + '/union.test.ts',
     //__dirname + '/types.test.ts',
     __dirname + '/string.test.ts'
   ]

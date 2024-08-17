@@ -6,7 +6,7 @@ export function unionValidation(
 ): ValidationFallbackReturnType {
   return {
     name: 'union',
-    type: 'high',
+    type: 'medium',
     callback: async (value, path, options) => {
       const parsedValues: Awaited<ReturnType<Schema['__parse']>> = {
         parsed: value,
@@ -42,11 +42,10 @@ export function unionValidation(
           options.toInternalToBubbleUp?.splice(startingToInternalBubbleUpLength, numberOfElementsToRemove);
         }
       }
-
       return {
         parsed: parsedValues.parsed,
         // eslint-disable-next-line ts/no-unnecessary-condition
-        errors: parsedValues.errors ? parsedValues.errors : []
+        errors: Array.isArray(parsedValues.errors) ? parsedValues.errors : []
       };
     }
   };

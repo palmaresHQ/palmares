@@ -133,9 +133,7 @@ export const router = withMiddlewares.nested((path) => [
     }),
   path('/').get((request) => {
     request.params.userId;
-    Response.json({ message: 'hello' }, { headers: {
-      ''
-    }});
+
     return new Response<{
       id: number;
       firstName: string;
@@ -145,7 +143,9 @@ export const router = withMiddlewares.nested((path) => [
   }),
   controllers
 ]);
-rootRouter.nested([withMiddlewares]); // this should not matter for the output, need to fix this so when you define the handlers for the nested router the parent WILL be updated.
+// this should not matter for the output, need to fix this so when you define the handlers
+// for the nested router the parent WILL be updated.
+rootRouter.nested([withMiddlewares]);
 
 const testResponseMiddleware = nestedMiddleware<typeof router>()({
   response: (response) => {
@@ -158,7 +158,8 @@ const testResponseMiddleware = nestedMiddleware<typeof router>()({
   }
 });
 
-// Esse exemplo é como o Request do Client deve ser definido, pensa em algo tipo um TRPC, aqui eu garanto que você ta passando
+// Esse exemplo é como o Request do Client deve ser definido, pensa em algo tipo um
+// TRPC, aqui eu garanto que você ta passando
 // os dados corretos para o request na hora de fazer o fetch.
 type ClientRequest = ExtractRequestsFromMiddlewaresForClient<
   string,

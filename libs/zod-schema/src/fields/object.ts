@@ -1,6 +1,8 @@
 import { objectFieldAdapter } from '@palmares/schemas';
 import * as z from 'zod';
 
+import { transformErrorsOnComplexTypes } from '../utils';
+
 export default objectFieldAdapter({
   translate: (fieldAdapter, args) => {
     let result = z.object(args.data, {
@@ -17,28 +19,14 @@ export default objectFieldAdapter({
     return result;
   },
   // eslint-disable-next-line ts/require-await
-  parse: async (_adapter, _fieldAdapter, result: z.ZodObject<any>, value, _args) => {
-    try {
-      const parsed = result.safeParse(value);
-      return {
-        errors: parsed.success ? undefined : parsed.error.issues,
-        parsed: parsed.success ? parsed.data : undefined
-      };
-    } catch (error) {
-      if (error instanceof z.ZodError) return { errors: error.errors, parsed: undefined };
-      else throw error;
-    }
+  parse: async (_adapter, fieldAdapter, result: z.ZodObject<any>, value, _args) => {
+    return fieldAdapter.parse(_adapter, fieldAdapter, result, value, _args);
   },
-  formatError: async (adapter, fieldAdapter, schema: z.ZodObject<any>, error, _metadata) => {
-    const stringFormattedErrors = await adapter.string?.formatError(adapter, fieldAdapter, schema, error, _metadata);
-    const numberFormattedErrors = await adapter.number?.formatError(
-      adapter,
-      fieldAdapter,
-      schema,
-      stringFormattedErrors,
-      _metadata
-    );
-    return fieldAdapter.formatError(adapter, fieldAdapter, schema, numberFormattedErrors, _metadata);
+  formatError: async (adapter, fieldAdapter, schema: z.ZodObject<any>, error: z.ZodIssue, metadata) => {
+    if (metadata === undefined) metadata = {};
+    if (metadata.$type instanceof Set === false) metadata.$type = new Set();
+    if (metadata.$type instanceof Set) metadata.$type.add('object');
+    return transformErrorsOnComplexTypes(adapter, fieldAdapter, schema, error, metadata);
   },
   // eslint-disable-next-line ts/require-await
   toString: async (_adapter, _fieldAdapter, args) => {

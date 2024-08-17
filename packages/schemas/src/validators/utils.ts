@@ -180,7 +180,7 @@ export default class Validator {
     }
 
     if (this.child && doesItShouldPreventChildValidation === false)
-      return this.child.validate(errorsAsHashedSet, path, parseResult, options);
+      return await this.child.validate(errorsAsHashedSet, path, parseResult, options);
 
     return parseResult as unknown as Promise<ValidationFallbackCallbackReturnType>;
   }

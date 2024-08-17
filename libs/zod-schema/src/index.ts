@@ -1,6 +1,7 @@
 import { SchemaAdapter } from '@palmares/schemas';
 
 import ZodFieldSchemaAdapter from './fields';
+import ZodArrayFieldSchemaAdapter from './fields/array';
 import ZodBooleanFieldSchemaAdapter from './fields/boolean';
 import ZodDatetimeFieldSchemaAdapter from './fields/datetime';
 import ZodNumberFieldSchemaAdapter from './fields/number';
@@ -19,7 +20,8 @@ export class ZodSchemaAdapter extends SchemaAdapter {
   boolean = new ZodBooleanFieldSchemaAdapter();
   string = new ZodStringFieldSchemaAdapter();
   datetime = new ZodDatetimeFieldSchemaAdapter();
-
+  array = new ZodArrayFieldSchemaAdapter();
+  // eslint-disable-next-line ts/require-await
   async formatError(error: z.ZodIssue) {
     return {
       message: error.message,

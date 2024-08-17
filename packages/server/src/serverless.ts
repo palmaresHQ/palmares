@@ -1,11 +1,11 @@
-import { initializeDomains } from "@palmares/core";
+import { initializeDomains } from '@palmares/core';
 
-import { initializeRouters } from "./app/utils";
+import { initializeRouters } from './app/utils';
 
-import type ServerlessAdapter from "./adapters/serverless";
-import type { ServerDomain } from "./domain/types";
-import type { AllServerSettingsType } from "./types";
-import type { SettingsType2} from "@palmares/core";
+import type ServerlessAdapter from './adapters/serverless';
+import type { ServerDomain } from './domain/types';
+import type { AllServerSettingsType } from './types';
+import type { SettingsType2 } from '@palmares/core';
 
 /**
  * This class is responsible for generating the serverless functions as well as executing them.
@@ -20,17 +20,19 @@ export default class Serverless {
    *
    * @param args The arguments to generate the serverless functions.
    */
-  async load(args: {
-    settings: AllServerSettingsType;
-    domains: ServerDomain[];
-  }) {
+  async load(args: { settings: AllServerSettingsType; domains: ServerDomain[] }) {
     const serverEntries = Object.entries(args.settings.servers);
     const [serverName, serverSettings] = serverEntries[serverEntries.length - 1];
-    const newServerInstance = new serverSettings.server(serverName, args.settings, args.settings.servers[serverName], args.domains);
+    const newServerInstance = new serverSettings.server(
+      serverName,
+      args.settings,
+      args.settings.servers[serverName],
+      args.domains
+    );
     await newServerInstance.load(serverName, args.domains, serverSettings);
     await initializeRouters(args.domains, serverSettings, args.settings, newServerInstance, {
       serverless: {
-        generate: true,
+        generate: true
       }
     });
     await newServerInstance.load(serverName, args.domains, serverSettings);
@@ -57,22 +59,31 @@ export default class Serverless {
    *
    * @returns Returns the response data from the serverless function
    */
-  static async handleServerless(settings: SettingsType2, args: {
-    requestAndResponseData: any,
-    domainRoutes?: string[],
-    serverName: string,
-    getRoute: () => string,
-    route?: string,
-    method?: string,
-    adapter: typeof ServerlessAdapter,
-    getMethod: () => string
-  }) {
+  static async handleServerless(
+    settings: SettingsType2,
+    args: {
+      requestAndResponseData: any;
+      domainRoutes?: string[];
+      serverName: string;
+      getRoute: () => string;
+      route?: string;
+      method?: string;
+      adapter: typeof ServerlessAdapter;
+      getMethod: () => string;
+    }
+  ) {
     const { domains, settings: formattedSettings } = await initializeDomains(settings);
-    const settingsServers = (formattedSettings as any) as AllServerSettingsType;
-    const initializedAdapter = new args.adapter(args.serverName, settingsServers, settingsServers.servers[args.serverName], domains);
-    const domainRoutes = Array.isArray(args.domainRoutes) && args.domainRoutes.length > 0 ?
-      domains.filter((domain) => args.domainRoutes!.includes(domain.name)):
-      domains;
+    const settingsServers = formattedSettings as any as AllServerSettingsType;
+    const initializedAdapter = new args.adapter(
+      args.serverName,
+      settingsServers,
+      settingsServers.servers[args.serverName],
+      domains
+    );
+    const domainRoutes =
+      Array.isArray(args.domainRoutes) && args.domainRoutes.length > 0
+        ? domains.filter((domain) => args.domainRoutes!.includes(domain.name))
+        : domains;
 
     return await initializeRouters(
       domainRoutes,
@@ -85,7 +96,7 @@ export default class Serverless {
             getMethod: args.getMethod,
             getRoute: args.getRoute,
             requestAndResponseData: args.requestAndResponseData
-          },
+          }
         }
       }
     );

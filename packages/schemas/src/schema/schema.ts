@@ -163,7 +163,7 @@ export default class Schema<
   ) {
     // eslint-disable-next-line ts/no-unnecessary-condition
     if (this.__rootFallbacksValidator)
-      return this.__rootFallbacksValidator.validate(options.errorsAsHashedSet || new Set(), path, parseResult, options);
+      return this.__rootFallbacksValidator.validate(options.errorsAsHashedSet as Set<any>, path, parseResult, options);
 
     return parseResult;
   }
@@ -253,6 +253,7 @@ export default class Schema<
     errorsAsHashedSet?: Set<string>;
     shouldAddStringVersion?: boolean;
     appendFallbacksBeforeAdapterValidation?: (
+      schema: Schema<any, any>,
       uniqueNameOfFallback: string,
       fallbackValidationBeforeAdapter: (
         adapterToUse: SchemaAdapter,
@@ -342,8 +343,10 @@ export default class Schema<
     value = await this.__parsersToTransformValue(value, this.__parsers._fallbacks);
 
     if (options.appendFallbacksBeforeAdapterValidation === undefined)
-      options.appendFallbacksBeforeAdapterValidation = (name, callback) => {
-        this.__beforeValidationCallbacks.set(name, callback);
+      options.appendFallbacksBeforeAdapterValidation = (schema, name, callback) => {
+        // We just need this if the union adapter is net defined but the parent is not of the same type.
+        // For example, it's a union child of o object schema
+        if (this !== schema) this.__beforeValidationCallbacks.set(name, callback);
       };
 
     if (
@@ -359,7 +362,7 @@ export default class Schema<
     const parsedResultsAfterFallbacks = await this.__validateByFallbacks(
       path,
       {
-        errors: [],
+        errors: parseResult.errors,
         parsed: value
       },
       options
@@ -382,7 +385,13 @@ export default class Schema<
           options
         );
         parseResult.parsed = parsedValuesAfterValidationCallbacks.parsed;
-        parseResult.errors = parsedValuesAfterValidationCallbacks.errors;
+
+        parseResult.errors =
+          Array.isArray(parseResult.errors) && Array.isArray(parsedValuesAfterValidationCallbacks.errors)
+            ? [...parseResult.errors, ...parsedValuesAfterValidationCallbacks.errors]
+            : Array.isArray(parseResult.errors)
+              ? parseResult.errors
+              : parsedValuesAfterValidationCallbacks.errors;
       }
     } else {
       const parsedValuesAfterValidatingByAdapter = await this.__validateByAdapter(

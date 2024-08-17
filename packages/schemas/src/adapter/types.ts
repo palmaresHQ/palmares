@@ -52,6 +52,7 @@ export type BooleanAdapterTranslateArgs = {
 } & AdapterTranslateArgs<'boolean'>;
 
 export type ArrayAdapterTranslateArgs = {
+  schemas: any[];
   minLength:
     | {
         value: number;

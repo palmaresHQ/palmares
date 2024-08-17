@@ -170,7 +170,6 @@ export async function defaultTransform<TType extends SupportedSchemas>(
       const fallbackReturnType = (fallbackFunctions as any)[fallback](
         (validationData as any)[fallback]
       ) as ValidationFallbackReturnType;
-      console.log('checkIfShouldAppendFallbackAndAppend');
       Validator.createAndAppendFallback(schema, fallbackReturnType);
     }
   };
@@ -324,7 +323,6 @@ export async function formatErrorFromParseMethod(
     Object.entries(formattedErrorAsParseResultError).sort(([a], [b]) => a.localeCompare(b))
   );
   const hashedError = JSON.stringify(sortedError);
-  if (errorsAsHashedSet.has(hashedError)) return;
   errorsAsHashedSet.add(JSON.stringify(sortedError));
   formattedErrorAsParseResultError.received = received;
   return formattedErrorAsParseResultError;

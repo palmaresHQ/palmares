@@ -11,11 +11,12 @@ export function getErrorId() {
 }
 
 /**
- * When the user clicks on the error on the error handling page we can open the file where the bug occurred on the editor. So we just call this endpoint and
- * it will automatically open the file on the editor.
+ * When the user clicks on the error on the error handling page we can open the file where the bug occurred
+ * on the editor. So we just call this endpoint and it will automatically open the file on the editor.
  *
  * There are some gotchas e need to be aware of:
- * 1 - The path should not clash with the user's routes, so we generate it automatically and randomized so we don't have the problem of clashing route names.
+ * 1 - The path should not clash with the user's routes, so we generate it automatically and randomized so we
+ * don't have the problem of clashing route names.
  * 2 - We need to use a POST request because we need to send the file, line and column where the error occurred.
  */
 export default function errorCaptureHandler() {

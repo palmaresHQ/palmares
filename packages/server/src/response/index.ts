@@ -127,10 +127,6 @@ export default class Response<
       status?: StatusCodes;
       headers?: HeadersType;
       context?: object;
-    } = {
-      status: undefined;
-      headers: undefined;
-      context: undefined;
     }
   >(body: TBody, options?: TResponse) {
     const isStatusNotDefined = typeof options?.status !== 'number';
@@ -638,7 +634,19 @@ export default class Response<
       headers: undefined;
       context: undefined;
     }
-  >(args?: TNewResponse, options?: { inPlace: boolean }) {
+  >(
+    args?: TNewResponse,
+    options?: { inPlace: boolean }
+  ): Response<
+    TNewResponse['body'] extends never ? TBody : TNewResponse['body'],
+    {
+      status: TNewResponse['status'] extends StatusCodes ? TNewResponse['status'] : TResponse['status'];
+      headers: TNewResponse['headers'] extends object ? TNewResponse['headers'] : TResponse['headers'];
+      context: TNewResponse['context'] extends object
+        ? TNewResponse['context'] & TResponse['context']
+        : TResponse['context'];
+    }
+  > {
     const isInPlace = options?.inPlace !== false;
     const newResponse = isInPlace
       ? this
@@ -665,16 +673,7 @@ export default class Response<
       (newResponse as any).redirected = isRedirect(args.status);
       (newResponse as any).type = isServerError(args.status) ? 'error' : 'basic';
     }
-    return newResponse as Response<
-      TNewResponse['body'] extends never ? TBody : TNewResponse['body'],
-      {
-        status: TNewResponse['status'] extends StatusCodes ? TNewResponse['status'] : TResponse['status'];
-        headers: TNewResponse['headers'] extends object ? TNewResponse['headers'] : TResponse['headers'];
-        context: TNewResponse['context'] extends object
-          ? TNewResponse['context'] & TResponse['context']
-          : TResponse['context'];
-      }
-    >;
+    return newResponse as any;
   }
 
   /**

@@ -13,7 +13,8 @@ export class ResponseNotReturnedFromResponseOnMiddlewareError extends Error {
 export class RedirectionStatusCodesMustHaveALocationHeaderError extends Error {
   constructor() {
     super(
-      `Redirection status codes must have a 'Location' header. You can set it by using the 'headers' option when creating a new 'Response' instance. Or just use 'Response.redirect()' method.`
+      `Redirection status codes must have a 'Location' header. You can set it by using the 'headers' ` +
+        `option when creating a new 'Response' instance. Or just use 'Response.redirect()' method.`
     );
   }
 }
@@ -21,7 +22,8 @@ export class RedirectionStatusCodesMustHaveALocationHeaderError extends Error {
 export class HandlerOrHandlersShouldBeDefinedOnRouterAdapterError extends Error {
   constructor() {
     super(
-      `Either 'parseHandler' or 'parseHandlers' methods/functions should be defined on router adapter. If none of them are defined, the router will not work.`
+      `Either 'parseHandler' or 'parseHandlers' methods/functions should be defined on router adapter.` +
+        ` If none of them are defined, the router will not work.`
     );
     this.name = HandlerOrHandlersShouldBeDefinedOnRouterAdapterError.name;
   }

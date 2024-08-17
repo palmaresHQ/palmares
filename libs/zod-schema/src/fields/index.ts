@@ -11,13 +11,27 @@ export default fieldAdapter({
   parse: async (_adapter, _fieldAdapter, result: z.ZodObject<any>, value, _args) => {
     try {
       const parsed = result.safeParse(value);
+      let errors: z.ZodIssue[] | undefined = undefined;
+
+      if (parsed.success !== true) {
+        const issues: z.ZodIssue[] = [];
+        for (const issue of parsed.error.issues) {
+          if (issue.code === 'invalid_union') {
+            for (const errorOfSchemas of issue.unionErrors) {
+              issues.push(...errorOfSchemas.issues);
+            }
+          } else issues.push(issue);
+        }
+        errors = issues;
+      }
       return {
-        errors: parsed.success ? undefined : parsed.error.issues,
+        errors: errors,
         parsed: parsed.success ? parsed.data : undefined
       };
     } catch (error) {
-      if (error instanceof z.ZodError) return { errors: error.errors, parsed: undefined };
-      else throw error;
+      if (error instanceof z.ZodError) {
+        return { errors: error.errors, parsed: undefined };
+      } else throw error;
     }
   },
   // eslint-disable-next-line ts/require-await

@@ -118,18 +118,21 @@ export default numberFieldAdapter({
         };
 
       case 'too_big':
-        return {
-          code: 'max',
-          path: error.path,
-          message: error.message
-        };
-
+        if ((error as any).type === 'number')
+          return {
+            code: 'max',
+            path: error.path,
+            message: error.message
+          };
+        break;
       case 'too_small':
-        return {
-          code: 'min',
-          path: error.path,
-          message: error.message
-        };
+        if ((error as any).type === 'number')
+          return {
+            code: 'min',
+            path: error.path,
+            message: error.message
+          };
+        break;
     }
 
     return fieldAdapter.formatError(_adapter, fieldAdapter, _schema, error, _metadata) as Promise<any>;
