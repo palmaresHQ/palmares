@@ -76,28 +76,46 @@ describe<JestTestAdapter>('Array Tests', ({ test }) => {
     expect(parsedTuple[1]).toBe('test');
   });
 
-  test('nonEmpty', async ({ expect }) => {
-    const arraySchema = p.array([p.number()]).nonEmpty();
-    const arraySchemaWithCustomMessage = p.array([p.number()]).nonEmpty({ message: 'hello' });
+  test('min length', async ({ expect }) => {
+    const arraySchema = p.array([p.number()]).minLength(1);
+    const arraySchemaWithCustomMessage = p.array([p.number()]).minLength(1, { inclusive: true, message: 'hello' });
 
     const [
       { errors: errorsArrayOnFail },
       { errors: errorsArrayOnFailWithCustomMessage },
       { errors: errorsOnValidArray, parsed: parsedArray }
     ] = await Promise.all([
-      arraySchema.parse([]),
-      arraySchemaWithCustomMessage.parse([]),
+      arraySchema.parse([] as any),
+      arraySchemaWithCustomMessage.parse([] as any),
       arraySchema.parse([1, 2, 3])
     ]);
 
     expect(errorsArrayOnFailWithCustomMessage?.[0]?.message).toBe('hello');
-    expect(errorsArrayOnFail?.[0]?.code).toBe('null');
-    expect(errorsArrayOnFail?.[0]?.message).toBe('Cannot be null');
+    expect(errorsArrayOnFail?.[0]?.code).toBe('minLength');
+    expect(errorsArrayOnFail?.[0]?.message).toBe('The array must have a minimum length of 1');
     expect((errorsOnValidArray || []).length).toBe(0);
     expect(parsedArray[0]).toBe(1);
     expect(parsedArray[2]).toBe(3);
-    expect((errorsOnValidTuple || []).length).toBe(0);
-    expect(parsedTuple[0]).toBe(1);
-    expect(parsedTuple[1]).toBe('test');
+  });
+
+  test('max length', async ({ expect }) => {
+    const arraySchema = p.array([p.number()]).maxLength(1);
+    const arraySchemaWithCustomMessage = p.array([p.number()]).maxLength(1, { inclusive: true, message: 'hello' });
+
+    const [
+      { errors: errorsArrayOnFail },
+      { errors: errorsArrayOnFailWithCustomMessage },
+      { errors: errorsOnValidArray, parsed: parsedArray }
+    ] = await Promise.all([
+      arraySchema.parse([1, 2, 3] as any),
+      arraySchemaWithCustomMessage.parse([1, 2, 3] as any),
+      arraySchema.parse([1])
+    ]);
+
+    expect(errorsArrayOnFailWithCustomMessage?.[0]?.message).toBe('hello');
+    expect(errorsArrayOnFail?.[0]?.code).toBe('maxLength');
+    expect(errorsArrayOnFail?.[0]?.message).toBe('The array must have a maximum length of 1');
+    expect((errorsOnValidArray || []).length).toBe(0);
+    expect(parsedArray[0]).toBe(1);
   });
 });

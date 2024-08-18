@@ -3,6 +3,8 @@ import * as z from 'zod';
 
 import { transformErrorsOnComplexTypes } from '../utils';
 
+import type { ErrorCodes } from '@palmares/schemas';
+
 export default arrayFieldAdapter({
   translate: (fieldAdapter, args) => {
     let result = (z[args.isTuple ? 'tuple' : 'array'] as any)(
@@ -19,7 +21,16 @@ export default arrayFieldAdapter({
           return { message: issue.message || '' };
         }
       }
-    ) as z.ZodTuple | z.ZodArray<any>;
+    ) as z.ZodTuple | z.ZodArray<any, 'atleastone' | 'many'>;
+    if (args.maxLength && args.maxLength.inclusive)
+      result = (result as z.ZodArray<any>).max(args.maxLength.value, args.maxLength.message);
+    if (args.maxLength && args.maxLength.inclusive === false)
+      result = (result as z.ZodArray<any>).max(args.maxLength.value - 1, args.maxLength.message);
+    if (args.minLength && args.minLength.inclusive)
+      result = (result as z.ZodArray<any>).min(args.minLength.value, args.minLength.message);
+    if (args.minLength && args.minLength.inclusive === false)
+      result = (result as z.ZodArray<any>).min(args.minLength.value + 1, args.minLength.message);
+
     result = fieldAdapter.translate(fieldAdapter, args, result);
     return result;
   },
@@ -32,6 +43,24 @@ export default arrayFieldAdapter({
     if (metadata.$type instanceof Set === false) metadata.$type = new Set();
     if (metadata.$type instanceof Set) metadata.$type.add('array');
 
+    switch (error.code) {
+      case 'too_big':
+        if ((error as any).type === 'array')
+          return {
+            code: 'maxLength' as ErrorCodes,
+            path: error.path,
+            message: error.message
+          } as any;
+        break;
+      case 'too_small':
+        if ((error as any).type === 'array')
+          return {
+            code: 'minLength',
+            path: error.path,
+            message: error.message
+          } as any;
+        break;
+    }
     return transformErrorsOnComplexTypes(adapter, fieldAdapter, schema, error, metadata);
   },
   // eslint-disable-next-line ts/require-await

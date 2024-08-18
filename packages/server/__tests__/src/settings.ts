@@ -13,8 +13,6 @@ import Database from 'better-sqlite3';
 import { dirname, resolve } from 'path';
 
 import CustomCoreDomain from './core';
-import { User } from '../.drizzle/schema';
-import { eq } from 'drizzle-orm';
 //import * as schema from '../.drizzle/schema';
 
 const database = new Database('sqlite.db');
@@ -25,6 +23,7 @@ const args = DrizzleEngine.new({
   drizzle: drizzleBetterSqlite3(database)
 });
 export const db = args[1].instance.instance;
+
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
   settingsLocation: __filename,

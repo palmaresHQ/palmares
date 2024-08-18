@@ -656,7 +656,17 @@ export default class ArraySchema<
       message: message
     };
 
-    return this;
+    return this as unknown as ArraySchema<
+      {
+        input: [TType['input'][number], ...TType['input'][number][]];
+        validate: [TType['validate'][number], ...TType['validate'][number][]];
+        internal: [TType['internal'][number], ...TType['internal'][number][]];
+        output: [TType['output'][number], ...TType['output'][number][]];
+        representation: [TType['representation'][number], ...TType['representation'][number][]];
+      },
+      TDefinitions,
+      TSchemas
+    >;
   }
 
   maxLength(value: number, options?: Omit<ArraySchema['__maxLength'], 'value'>) {
@@ -664,15 +674,6 @@ export default class ArraySchema<
     this.__maxLength = {
       value: value,
       inclusive: typeof options?.inclusive === 'boolean' ? options.inclusive : true,
-      message: message
-    };
-
-    return this;
-  }
-
-  nonEmpty(options?: ArraySchema['__nonEmpty']) {
-    const message = options?.message || 'The array must not be empty';
-    this.__nonEmpty = {
       message: message
     };
 
@@ -709,7 +710,6 @@ export default class ArraySchema<
       > & {
         maxLength: never;
         minLength: never;
-        nonEmpty: never;
       } {
     const returnValue = new ArraySchema<
       {
@@ -748,7 +748,6 @@ export default class ArraySchema<
         > & {
           maxLength: never;
           minLength: never;
-          nonEmpty: never;
         };
   }
 }

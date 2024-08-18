@@ -8,7 +8,9 @@ import SequelizeEngine from '@palmares/sequelize-engine';
 import ServerDomain, { Response } from '@palmares/server';
 import { dirname, resolve } from 'path';
 
+import ContractsDomain from './contracts';
 import CoreDomain from './core';
+import JobsDomain from './jobs';
 
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),

@@ -830,6 +830,58 @@ importers:
         specifier: workspace:*
         version: link:../logging
 
+  packages/server/__tests__:
+    dependencies:
+      '@palmares/console-logging':
+        specifier: workspace:*
+        version: link:../../../libs/console-logging
+      '@palmares/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@palmares/databases':
+        specifier: workspace:*
+        version: link:../../databases
+      '@palmares/drizzle-engine':
+        specifier: workspace:*
+        version: link:../../../libs/drizzle-engine
+      '@palmares/jest-tests':
+        specifier: workspace:*
+        version: link:../../../libs/jest-tests
+      '@palmares/logging':
+        specifier: workspace:*
+        version: link:../../logging
+      '@palmares/node-std':
+        specifier: workspace:*
+        version: link:../../../libs/node-std
+      '@palmares/schemas':
+        specifier: workspace:*
+        version: link:../../schemas
+      '@palmares/tests':
+        specifier: workspace:*
+        version: link:../../tests
+      '@palmares/zod-schema':
+        specifier: workspace:*
+        version: link:../../../libs/zod-schema
+      better-sqlite3:
+        specifier: ^11.1.2
+        version: 11.1.2
+      drizzle-kit:
+        specifier: ^0.23.0
+        version: 0.23.0
+      drizzle-orm:
+        specifier: ^0.32.0
+        version: 0.32.0(@types/better-sqlite3@7.6.11)(@types/react@18.3.3)(better-sqlite3@11.1.2)(pg@8.12.0)(postgres@3.4.4)(react@18.3.1)(sqlite3@5.1.7)
+    devDependencies:
+      '@types/better-sqlite3':
+        specifier: ^7.6.11
+        version: 7.6.11
+      tsx:
+        specifier: ^4.16.2
+        version: 4.16.2
+      typescript:
+        specifier: ^5.5.4
+        version: 5.5.4
+
   packages/tests:
     dependencies:
       '@palmares/core':

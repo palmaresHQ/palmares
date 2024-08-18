@@ -94,11 +94,11 @@ export default class Manager<TModel = Model, TEI extends DatabaseAdapter | null 
 
   /**
    * This function is used to initialize the models outside of the default Domain lifecycle. Sometimes we might define
-   * the model outside of the domain, because of that we need to initialize the models manually. Usually it's a lot better
-   * to just use the models after they've been initialized but sometimes it might happen that you need to initialize them
-   * before the app is ready. For that we will use this. This will create a new Database instance if it doesn't exist,
-   * load the settings from where we can find them and initialize the domains. After that we are able to retrieve the
-   * data from the model
+   * the model outside of the domain, because of that we need to initialize the models manually. Usually it's a lot
+   * better to just use the models after they've been initialized but sometimes it might happen that you need to
+   * initialize them before the app is ready. For that we will use this. This will create a new Database instance if it
+   * doesn't exist, load the settings from where we can find them and initialize the domains. After that we are able to
+   * retrieve the data from the model
    */
   async verifyIfNotInitializedAndInitializeModels(engineName: string) {
     const database = new Databases();

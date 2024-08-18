@@ -1,14 +1,14 @@
 {
-  "name": "@tests/schemas",
+  "name": "@tests/server",
   "version": "0.0.1",
-  "description": "testing the schemas",
+  "description": "testing the server",
   "main": "manage.ts",
   "scripts": {
     "test": "tsx manage.ts test",
     "test:watch": "WATCH=true tsx manage.ts test",
-    "load": "tsx manage.ts load-models",
+    "load": "tsx manage.drizzle.ts load-models",
     "makemigrations": "drizzle-kit generate",
-    "migrate": "tsx manage.ts drizzleMigrate"
+    "migrate": "tsx manage.drizzle.ts drizzleMigrate"
   },
   "keywords": [],
   "author": "",

@@ -60,7 +60,7 @@ export default class Schema<
     return this.__cachedGetParent;
   }
 
-  protected __alreadyAppliedModel = false;
+  protected __alreadyAppliedModel?: Promise<any>;
   protected __runBeforeParseAndData?: (self: any) => Promise<void>;
   protected __rootFallbacksValidator!: Validator;
   protected __saveCallback?: (value: any) => Promise<any | void> | any | void;
@@ -316,6 +316,7 @@ export default class Schema<
   ): Promise<{ errors: any[]; parsed: TType['internal'] }> {
     this.__getDefaultTransformedSchemas();
     if (typeof this.__runBeforeParseAndData === 'function') await this.__runBeforeParseAndData(this);
+
     // This is used to run the toInternal command. If we didn't do this, we would need to parse through all of
     // the schemas to run the toInternal command, from the leafs (ObjectSchemas) to the root schema. This is not
     // a good idea, so what we do is that during validation the leafs attach a function to the
@@ -402,6 +403,7 @@ export default class Schema<
         path,
         options
       );
+
       parseResult.parsed = parsedValuesAfterValidatingByAdapter.parsed;
       // eslint-disable-next-line ts/no-unnecessary-condition
       parseResult.errors = (parseResult.errors || []).concat(parsedValuesAfterValidatingByAdapter.errors);
