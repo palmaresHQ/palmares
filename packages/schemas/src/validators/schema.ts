@@ -79,7 +79,7 @@ export function nullable(args: Schema['__nullable']): ValidationFallbackReturnTy
   };
 }
 
-export function checkType(args: Schema['__type']): ValidationFallbackReturnType {
+export function checkType(args: NonNullable<Schema['__type']>): ValidationFallbackReturnType {
   return {
     name: 'checkType',
     type: 'medium',
@@ -110,7 +110,7 @@ export function checkType(args: Schema['__type']): ValidationFallbackReturnType 
 }
 
 export function is(
-  args: BooleanSchema['__is'] | NumberSchema['__is'] | StringSchema['__is']
+  args: NonNullable<BooleanSchema['__is']> | NonNullable<NumberSchema['__is']> | NonNullable<StringSchema['__is']>
 ): ValidationFallbackReturnType {
   return {
     name: 'is',

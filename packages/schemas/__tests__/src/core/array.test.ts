@@ -76,6 +76,15 @@ describe<JestTestAdapter>('Array Tests', ({ test }) => {
     expect(parsedTuple[1]).toBe('test');
   });
 
+  test('nested', async ({ expect }) => {
+    const arraySchema = p.array([p.union([p.number(), p.string().toRepresentation(async () => 'hey')])]);
+
+    const data = await arraySchema.data(['test', 1]);
+
+    expect(data[0]).toBe('hey');
+    expect(data[1]).toBe(1)
+  });
+
   test('min length', async ({ expect }) => {
     const arraySchema = p.array([p.number()]).minLength(1);
     const arraySchemaWithCustomMessage = p.array([p.number()]).minLength(1, { inclusive: true, message: 'hello' });

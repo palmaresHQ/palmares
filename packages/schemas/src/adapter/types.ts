@@ -75,7 +75,14 @@ export type ArrayAdapterTranslateArgs = {
     | undefined;
 
   isTuple: boolean;
-} & AdapterTranslateArgs<'array'>;
+} & (
+  | {
+      isTuple: true;
+      schemas: [any, ...any[]];
+    }
+  | { isTuple: false; schemas: [any] }
+) &
+  AdapterTranslateArgs<'array'>;
 
 export type NumberAdapterTranslateArgs = {
   parsers: {

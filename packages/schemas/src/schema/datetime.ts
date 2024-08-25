@@ -34,6 +34,21 @@ export default class DatetimeSchema<
     message: string;
   };
 
+  protected __type: {
+    message: string;
+    check: (value: TType['input']) => boolean;
+  } = {
+    message: 'Invalid type',
+    check: (value: any) => {
+      if (typeof value === 'string') {
+        const valueAsDate = new Date(value);
+        if (isNaN(valueAsDate.getTime())) return false;
+        return true;
+      }
+      return value instanceof Date;
+    }
+  };
+
   protected async __transformToAdapter(options: Parameters<Schema['__transformToAdapter']>[0]): Promise<any> {
     return defaultTransformToAdapter(
       async (adapter) => {

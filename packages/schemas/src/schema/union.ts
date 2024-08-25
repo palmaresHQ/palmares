@@ -36,6 +36,14 @@ export default class UnionSchema<
     ...Schema<any, any>[]
   ]
 > extends Schema<TType, TDefinitions> {
+  protected __type: {
+    message: string;
+    check: (value: TType['input']) => boolean;
+  } = {
+    message: 'Invalid type',
+    check: (value) => Array.from(this.__schemas).some((schema) => schema['__type'].check(value))
+  };
+
   protected __schemas = new Set<Schema<any>>();
 
   constructor(schemas: TSchemas) {
@@ -472,6 +480,46 @@ export default class UnionSchema<
       TDefinitions,
       TSchemas
     >;
+  }
+
+  /**
+   * This function is used to transform the value to the representation without validating it.
+   * This is useful when you want to return a data from a query directly to the user. But for example
+   * you are returning the data of a user, you can clean the password or any other sensitive data.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schemas';
+   *
+   * const userSchema = p.object({
+   *   id: p.number().optional(),
+   *   name: p.string(),
+   *   email: p.string().email(),
+   *   password: p.string().optional()
+   * }).toRepresentation(async (value) => {
+   *   return {
+   *    id: value.id,
+   *    name: value.name,
+   *   email: value.email
+   *  }
+   * });
+   *
+   * const user = await userSchema.data({
+   *   id: 1,
+   *   name: 'John Doe',
+   *   email: 'john@gmail.com',
+   *   password: '123456'
+   * });
+   * ```
+   */
+  async data(value: TType['output']): Promise<TType['representation']> {
+    const parsedValue = await super.data(value);
+    for (const schema of Array.from(this.__schemas)) {
+      if (schema['__optional'].allow && value === undefined) return schema.data(parsedValue);
+      if (schema['__nullable'].allow && value === null) return schema.data(parsedValue);
+      if (schema['__type'].check(parsedValue)) return schema.data(parsedValue);
+    }
+    return parsedValue;
   }
 
   /**

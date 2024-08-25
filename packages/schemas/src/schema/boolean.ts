@@ -32,6 +32,20 @@ export default class BooleanSchema<
     message: string;
   };
 
+  protected __type: {
+    message: string;
+    check: (value: TType['input']) => boolean;
+  } = {
+    message: 'Invalid type',
+    check: (value: any) => {
+      if (typeof value === 'string' && this.__allowString) return true;
+      if (typeof value === 'number' && this.__allowNumber) return true;
+      if (Array.isArray(this.__trueValues) && this.__trueValues.includes(value)) return true;
+      if (Array.isArray(this.__falseValues) && this.__falseValues.includes(value)) return true;
+      return typeof value === 'boolean';
+    }
+  };
+
   protected async __transformToAdapter(options: Parameters<Schema['__transformToAdapter']>[0]): Promise<any> {
     return defaultTransformToAdapter(
       async (adapter) => {

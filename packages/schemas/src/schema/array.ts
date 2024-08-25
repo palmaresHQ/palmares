@@ -2,6 +2,7 @@ import Schema from './schema';
 import {
   defaultTransform,
   defaultTransformToAdapter,
+  shouldRunDataOnComplexSchemas,
   transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas
 } from '../utils';
 import { arrayValidation, maxLength, minLength, nonEmpty } from '../validators/array';
@@ -25,9 +26,17 @@ export default class ArraySchema<
     validate: any[];
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
-  TSchemas extends readonly [Schema, ...Schema[]] | [Schema[]] = [Schema[]]
+  TSchemas extends readonly [Schema, ...Schema[]] | [[Schema]] = [[Schema]]
 > extends Schema<TType, TDefinitions> {
-  protected __schemas: readonly [Schema, ...Schema[]] | [Schema[]];
+  protected __schemas: readonly [Schema, ...Schema[]] | [[Schema]];
+
+  protected __type: {
+    message: string;
+    check: (value: TType['input']) => boolean;
+  } = {
+    message: 'Invalid type',
+    check: (value) => Array.isArray(value)
+  };
 
   protected __minLength!: {
     value: number;
@@ -55,11 +64,11 @@ export default class ArraySchema<
       async (adapter) => {
         const schemas = Array.isArray(this.__schemas[0]) ? this.__schemas[0] : this.__schemas;
         const transformedSchemasAsString: string[] = [];
-        const transformedSchemas: any[] = [];
+        const transformedSchemas = [] as unknown as [any, ...any[]] | [any];
         let shouldBeHandledByFallback = false;
 
         await Promise.all(
-          (schemas as Schema[]).map(async (schema) => {
+          (schemas as unknown as Schema[]).map(async (schema) => {
             const [transformedData, shouldAddFallbackValidationForThisSchema] =
               await transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas(schema, options);
 
@@ -78,7 +87,7 @@ export default class ArraySchema<
             this,
             arrayValidation(
               Array.isArray(this.__schemas[0]) === false,
-              (Array.isArray(this.__schemas[0]) ? this.__schemas[0] : this.__schemas) as Schema<any, any>[]
+              (Array.isArray(this.__schemas[0]) ? this.__schemas[0] : this.__schemas) as unknown as Schema<any, any>[]
             )
           );
 
@@ -473,6 +482,54 @@ export default class ArraySchema<
   }
 
   /**
+   * This function is used to transform the value to the representation without validating it.
+   * This is useful when you want to return a data from a query directly to the user. But for example
+   * you are returning the data of a user, you can clean the password or any other sensitive data.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schemas';
+   *
+   * const userSchema = p.object({
+   *   id: p.number().optional(),
+   *   name: p.string(),
+   *   email: p.string().email(),
+   *   password: p.string().optional()
+   * }).toRepresentation(async (value) => {
+   *   return {
+   *    id: value.id,
+   *    name: value.name,
+   *   email: value.email
+   *  }
+   * });
+   *
+   * const user = await userSchema.data({
+   *   id: 1,
+   *   name: 'John Doe',
+   *   email: 'john@gmail.com',
+   *   password: '123456'
+   * });
+   * ```
+   */
+  async data(value: TType['output']): Promise<TType['representation']> {
+    let parsedValue = await super.data(value);
+    if (Array.isArray(parsedValue)) {
+      parsedValue = (await Promise.all(
+        Array.isArray(this.__schemas[0])
+          ? parsedValue.map((value: any) => {
+              const schema = (this.__schemas as unknown as [[Schema]])[0][0];
+
+              return shouldRunDataOnComplexSchemas(schema) ? schema.data(value) : value;
+            })
+          : (this.__schemas as [Schema, ...Schema[]]).map(async (schema) => {
+              return shouldRunDataOnComplexSchemas(schema) ? schema.data(value) : value;
+            })
+      )) as unknown as TType['representation'];
+    }
+    return parsedValue;
+  }
+
+  /**
    * This function let's you customize the schema your own way. After we translate the schema on the adapter we call
    * this function to let you customize the custom schema your own way. Our API does not support passthrough?
    * No problem, you can use this function to customize the zod schema.
@@ -681,11 +738,11 @@ export default class ArraySchema<
   }
 
   static new<
-    TSchemas extends readonly [Schema, ...Schema[]] | [Schema[]],
+    TSchemas extends readonly [Schema, ...Schema[]] | [[Schema]],
     TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
   >(
     ...schemas: TSchemas
-  ): TSchemas extends [Schema[]]
+  ): TSchemas extends [[Schema]]
     ? ArraySchema<
         {
           input: ExtractTypeFromArrayOfSchemas<TSchemas, 'input'>;
@@ -723,7 +780,7 @@ export default class ArraySchema<
       TSchemas
     >(...schemas);
 
-    return returnValue as TSchemas extends [Schema[]]
+    return returnValue as TSchemas extends [[Schema]]
       ? ArraySchema<
           {
             input: ExtractTypeFromArrayOfSchemas<TSchemas, 'input'>;
@@ -753,7 +810,7 @@ export default class ArraySchema<
 }
 
 export const array = <
-  TSchemas extends readonly [Schema, ...Schema[]] | [Schema[]],
+  TSchemas extends readonly [Schema, ...Schema[]] | [[Schema]],
   TDefinitions extends DefinitionsOfSchemaType
 >(
   ...schemas: TSchemas

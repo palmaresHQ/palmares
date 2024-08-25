@@ -369,3 +369,12 @@ export async function transformSchemaAndCheckIfShouldBeHandledByFallbackOnComple
 
   return [transformedData, shouldAddFallbackValidation] as const;
 }
+
+export function shouldRunDataOnComplexSchemas(schema: Schema<any, any>) {
+  return (
+    typeof schema['__parsersToTransformValue'] === 'function' ||
+    typeof schema['__runBeforeParseAndData'] === 'function' ||
+    typeof schema['__toRepresentation'] === 'function' ||
+    typeof schema['__defaultFunction'] === 'function'
+  );
+}

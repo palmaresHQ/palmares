@@ -32,7 +32,7 @@ export function stringValidation(): ValidationFallbackReturnType {
   };
 }
 
-export function maxLength(args: StringSchema['__maxLength']): ValidationFallbackReturnType {
+export function maxLength(args: NonNullable<StringSchema['__maxLength']>): ValidationFallbackReturnType {
   return {
     name: 'maxLength',
     type: 'low',
@@ -62,7 +62,7 @@ export function maxLength(args: StringSchema['__maxLength']): ValidationFallback
   };
 }
 
-export function minLength(args: StringSchema['__maxLength']): ValidationFallbackReturnType {
+export function minLength(args: NonNullable<StringSchema['__maxLength']>): ValidationFallbackReturnType {
   return {
     name: 'minLength',
     type: 'low',
@@ -92,7 +92,7 @@ export function minLength(args: StringSchema['__maxLength']): ValidationFallback
   };
 }
 
-export function endsWith(args: StringSchema['__endsWith']): ValidationFallbackReturnType {
+export function endsWith(args: NonNullable<StringSchema['__endsWith']>): ValidationFallbackReturnType {
   return {
     name: 'endsWith',
     type: 'low',
@@ -122,7 +122,7 @@ export function endsWith(args: StringSchema['__endsWith']): ValidationFallbackRe
   };
 }
 
-export function startsWith(args: StringSchema['__startsWith']): ValidationFallbackReturnType {
+export function startsWith(args: NonNullable<StringSchema['__startsWith']>): ValidationFallbackReturnType {
   return {
     name: 'startsWith',
     type: 'low',
@@ -152,7 +152,7 @@ export function startsWith(args: StringSchema['__startsWith']): ValidationFallba
   };
 }
 
-export function includes(args: StringSchema['__includes']): ValidationFallbackReturnType {
+export function includes(args: NonNullable<StringSchema['__includes']>): ValidationFallbackReturnType {
   return {
     name: 'includes',
     type: 'low',
@@ -182,7 +182,7 @@ export function includes(args: StringSchema['__includes']): ValidationFallbackRe
   };
 }
 
-export function regex(args: StringSchema['__regex']): ValidationFallbackReturnType {
+export function regex(args: NonNullable<StringSchema['__regex']>): ValidationFallbackReturnType {
   return {
     name: 'regex',
     type: 'low',
@@ -212,7 +212,7 @@ export function regex(args: StringSchema['__regex']): ValidationFallbackReturnTy
   };
 }
 
-export function uuid(args: StringSchema['__uuid']): ValidationFallbackReturnType {
+export function uuid(args: NonNullable<StringSchema['__uuid']>): ValidationFallbackReturnType {
   // const uuidRegex =
   //   /^([a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[a-f0-9]{4}-[a-f0-9]{12}|00000000-0000-0000-0000-000000000000)$/i;
   const uuidRegex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/i;
@@ -245,7 +245,7 @@ export function uuid(args: StringSchema['__uuid']): ValidationFallbackReturnType
   };
 }
 
-export function email(args: StringSchema['__email']): ValidationFallbackReturnType {
+export function email(args: NonNullable<StringSchema['__email']>): ValidationFallbackReturnType {
   const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
   console.log('aquiiiiii');
   return {

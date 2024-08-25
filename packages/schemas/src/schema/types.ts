@@ -131,7 +131,7 @@ export type ExtractTypeFromUnionOfSchemas<
   : never;
 
 export type ExtractTypeFromArrayOfSchemas<
-  TSchemas extends readonly [Schema, ...Schema[]] | [Schema[]],
+  TSchemas extends readonly [Schema, ...Schema[]] | [[Schema]],
   TTypeToExtract extends keyof TypesOfSchema = 'input',
   TResult extends any[] = []
 > = TSchemas extends readonly [infer TSchema, ...infer TRestSchemas]
@@ -143,9 +143,9 @@ export type ExtractTypeFromArrayOfSchemas<
           [...TResult, ExtractTypeFromSchemaByTypeOfSchema<TSchema, TTypeToExtract>]
         >
       : [...TResult, ExtractTypeFromSchemaByTypeOfSchema<TSchema, TTypeToExtract>]
-    : TSchemas extends [infer TArraySchema]
-      ? TArraySchema extends Schema[]
-        ? ExtractTypeFromSchemaByTypeOfSchema<TArraySchema[number], TTypeToExtract>[]
+    : TSchemas extends [[infer TSchema]]
+      ? TSchema extends Schema
+        ? ExtractTypeFromSchemaByTypeOfSchema<TSchema, TTypeToExtract>[]
         : never
       : never
   : never;

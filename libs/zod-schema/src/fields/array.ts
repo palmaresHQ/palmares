@@ -9,7 +9,7 @@ export default arrayFieldAdapter({
   translate: (fieldAdapter, args) => {
     let result = (z[args.isTuple ? 'tuple' : 'array'] as any)(
       // eslint-disable-next-line ts/no-unnecessary-type-assertion
-      args.isTuple ? args.schemas : z.union(args.schemas as any),
+      args.isTuple ? args.schemas : args.schemas[0],
       {
         errorMap: (issue: z.ZodIssue) => {
           const isOptional =

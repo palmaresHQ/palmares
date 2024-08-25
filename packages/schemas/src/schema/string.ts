@@ -31,48 +31,57 @@ export default class StringSchema<
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
 > extends Schema<TType, TDefinitions> {
-  protected __is!: {
+  protected __is?: {
     value: TType['input'] | TType['input'][];
     message: string;
   };
 
-  protected __email!: {
+  protected __email?: {
     message: string;
   };
 
-  protected __uuid!: {
+  protected __uuid?: {
     message: string;
   };
 
-  protected __minLength!: {
+  protected __minLength?: {
     value: number;
     message: string;
   };
 
-  protected __maxLength!: {
+  protected __maxLength?: {
     value: number;
     message: string;
   };
 
-  protected __regex!: {
+  protected __regex?: {
     value: RegExp;
     message: string;
   };
-  protected __endsWith!: {
+  protected __endsWith?: {
     value: string;
     message: string;
   };
 
-  protected __startsWith!: {
+  protected __startsWith?: {
     value: string;
     message: string;
   };
 
-  protected __includes!: {
+  protected __includes?: {
     value: string;
     message: string;
   };
 
+  protected __type: {
+    message: string;
+    check: (value: TType['input']) => boolean;
+  } = {
+    message: 'Invalid type',
+    check: (value: any) => {
+      return typeof value === 'string';
+    }
+  };
   protected async __transformToAdapter(options: Parameters<Schema['__transformToAdapter']>[0]): Promise<any> {
     return defaultTransformToAdapter(
       async (adapter) => {
@@ -638,7 +647,10 @@ export default class StringSchema<
    *
    * @returns - The schema instance
    */
-  is<const TValue extends TType['input'][]>(value: TValue, options?: Partial<Omit<StringSchema['__is'], 'value'>>) {
+  is<const TValue extends TType['input'][]>(
+    value: TValue,
+    options?: Partial<Omit<NonNullable<StringSchema['__is']>, 'value'>>
+  ) {
     this.__is = {
       value,
       message:
@@ -678,7 +690,7 @@ export default class StringSchema<
    *
    * @returns - The schema instance.
    */
-  endsWith(value: string, options?: Partial<Omit<StringSchema['__endsWith'], 'value'>>) {
+  endsWith(value: string, options?: Partial<Omit<NonNullable<StringSchema['__endsWith']>, 'value'>>) {
     this.__endsWith = {
       value,
       message: options?.message || `The value should end with ${value}`
@@ -709,7 +721,7 @@ export default class StringSchema<
    *
    * @returns - The schema instance.
    */
-  startsWith(value: string, options?: Partial<Omit<StringSchema['__startsWith'], 'value'>>) {
+  startsWith(value: string, options?: Partial<Omit<NonNullable<StringSchema['__startsWith']>, 'value'>>) {
     this.__startsWith = {
       value,
       message: options?.message || `The value should start with ${value}`
@@ -742,7 +754,7 @@ export default class StringSchema<
    *
    * @returns - The schema instance.
    */
-  includes(value: string, options?: Partial<Omit<StringSchema['__includes'], 'value'>>) {
+  includes(value: string, options?: Partial<Omit<NonNullable<StringSchema['__includes']>, 'value'>>) {
     this.__includes = {
       value,
       message: options?.message || `The string value should include the following substring '${value}'`
@@ -777,7 +789,7 @@ export default class StringSchema<
    *
    * @returns - The schema instance.
    */
-  regex(value: RegExp, options?: Partial<Omit<StringSchema['__regex'], 'value'>>) {
+  regex(value: RegExp, options?: Partial<Omit<NonNullable<StringSchema['__regex']>, 'value'>>) {
     this.__regex = {
       value,
       message: options?.message || `The value should match the following regex '${value.toString()}'`
@@ -810,7 +822,7 @@ export default class StringSchema<
    *
    * @returns - The schema instance.
    */
-  maxLength(value: number, options?: Partial<Omit<StringSchema['__maxLength'], 'value'>>) {
+  maxLength(value: number, options?: Partial<Omit<NonNullable<StringSchema['__maxLength']>, 'value'>>) {
     this.__maxLength = {
       value,
       message: options?.message || `The value should have a maximum length of ${value}`
@@ -843,7 +855,7 @@ export default class StringSchema<
    *
    * @returns - The schema instance.
    */
-  minLength(value: number, options?: Partial<Omit<StringSchema['__minLength'], 'value'>>) {
+  minLength(value: number, options?: Partial<Omit<NonNullable<StringSchema['__minLength']>, 'value'>>) {
     this.__minLength = {
       value,
       message: options?.message || `The value should have a minimum length of ${value}`

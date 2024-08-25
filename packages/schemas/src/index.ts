@@ -49,7 +49,7 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
   return {
     number: () => NumberSchema.new<{ schemaAdapter: TAdapter; schemaType: 'number'; hasSave: false }>(),
     string: () => StringSchema.new<{ schemaAdapter: TAdapter; schemaType: 'string'; hasSave: false }>(),
-    array: <TSchemas extends readonly [Schema, ...Schema[]] | [Schema[]]>(...schemas: TSchemas) =>
+    array: <TSchemas extends readonly [Schema, ...Schema[]] | [[Schema]]>(...schemas: TSchemas) =>
       array<TSchemas, { schemaAdapter: TAdapter; schemaType: 'array'; hasSave: false }>(...schemas),
     boolean: () => BooleanSchema.new<{ schemaAdapter: TAdapter; schemaType: 'boolean'; hasSave: false }>(),
     object: <TData extends Record<any, Schema<any, any>>>(data: TData) =>
@@ -279,7 +279,7 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
                 hasSave: false;
               },
               Record<any, any>
-            >[]
+            >
           ]
         >
       : ObjectSchema<

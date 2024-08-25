@@ -29,35 +29,47 @@ export default class NumberSchema<
 > extends Schema<TType, TDefinitions> {
   protected __allowString!: boolean;
 
-  protected __is!: {
+  protected __is?: {
     value: TType['input'][];
     message: string;
   };
 
-  protected __integer!: {
+  protected __integer?: {
     message: string;
   };
 
-  protected __maxDigits!: {
+  protected __maxDigits?: {
     value: number;
     message: string;
   };
 
-  protected __decimalPlaces!: {
+  protected __decimalPlaces?: {
     value: number;
     message: string;
   };
 
-  protected __max!: {
+  protected __max?: {
+    value: number;
+    inclusive: boolean;
+    message: string;
+  };
+
+  protected __min?: {
     value: number;
     inclusive: boolean;
     message: string;
   };
 
-  protected __min!: {
-    value: number;
-    inclusive: boolean;
+  protected __type: {
     message: string;
+    check: (value: TType['input']) => boolean;
+  } = {
+    message: 'Invalid type',
+    check: (value: any) => {
+      const isNumber = new RegExp('^-?\\d*(\\.\\d+)?$').test(value);
+      if (typeof value === 'string' && this.__allowString && isNumber) return true;
+      return typeof value === 'number';
+    }
   };
 
   protected async __transformToAdapter(options: Parameters<Schema['__transformToAdapter']>[0]): Promise<any> {
@@ -659,7 +671,10 @@ export default class NumberSchema<
    *
    * @returns - The schema instance
    */
-  is<const TValue extends TType['input'][]>(value: TValue, options?: Partial<Omit<NumberSchema['__is'], 'value'>>) {
+  is<const TValue extends TType['input'][]>(
+    value: TValue,
+    options?: Partial<Omit<NonNullable<NumberSchema['__is']>, 'value'>>
+  ) {
     this.__is = {
       value,
       message:

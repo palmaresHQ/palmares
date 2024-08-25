@@ -354,7 +354,7 @@ export function modelSchema<
           },
           TDefinitionsOfSchemaType,
           Record<any, any>
-        >[]
+        >
       ]
     >
   : ObjectSchema<

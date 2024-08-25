@@ -28,7 +28,7 @@ export function numberValidation(): ValidationFallbackReturnType {
   };
 }
 
-export function max(args: NumberSchema['__max']): ValidationFallbackReturnType {
+export function max(args: NonNullable<NumberSchema['__max']>): ValidationFallbackReturnType {
   return {
     name: 'max',
     type: 'low',
@@ -68,7 +68,7 @@ export function max(args: NumberSchema['__max']): ValidationFallbackReturnType {
   };
 }
 
-export function min(args: NumberSchema['__min']): ValidationFallbackReturnType {
+export function min(args: NonNullable<NumberSchema['__min']>): ValidationFallbackReturnType {
   return {
     name: 'min',
     type: 'low',
@@ -102,7 +102,7 @@ export function min(args: NumberSchema['__min']): ValidationFallbackReturnType {
   };
 }
 
-export function integer(args: NumberSchema['__integer']): ValidationFallbackReturnType {
+export function integer(args: NonNullable<NumberSchema['__integer']>): ValidationFallbackReturnType {
   return {
     name: 'integer',
     type: 'low',
@@ -127,7 +127,7 @@ export function integer(args: NumberSchema['__integer']): ValidationFallbackRetu
   };
 }
 
-export function maxDigits(args: NumberSchema['__maxDigits']): ValidationFallbackReturnType {
+export function maxDigits(args: NonNullable<NumberSchema['__maxDigits']>): ValidationFallbackReturnType {
   return {
     name: 'maxDigits',
     type: 'low',
@@ -152,7 +152,7 @@ export function maxDigits(args: NumberSchema['__maxDigits']): ValidationFallback
   };
 }
 
-export function decimalPlaces(args: NumberSchema['__decimalPlaces']): ValidationFallbackReturnType {
+export function decimalPlaces(args: NonNullable<NumberSchema['__decimalPlaces']>): ValidationFallbackReturnType {
   return {
     name: 'decimalPlaces',
     type: 'low',

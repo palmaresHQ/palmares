@@ -30,6 +30,14 @@ export default class ObjectSchema<
   protected __data: Record<any, Schema>;
   protected __cachedDataAsEntries!: [string, Schema][];
 
+  protected __type: {
+    message: string;
+    check: (value: TType['input']) => boolean;
+  } = {
+    message: 'Invalid type',
+    check: (value) => typeof value === 'object' && value !== null
+  };
+
   constructor(data: TData) {
     super();
     this.__data = data;

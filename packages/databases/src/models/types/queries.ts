@@ -48,6 +48,7 @@ export type AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<TModelA, TModelB> =
 
 export type ExtractRelationsNames<TParentModel, TChildModel> = readonly ValueOf<
   {
+    // eslint-disable-next-line max-len
     [TFieldName in keyof AllFieldsOfModel<TParentModel> as AllFieldsOfModel<TParentModel>[TFieldName] extends ForeignKeyField<
       any,
       any,
@@ -87,6 +88,7 @@ export type ExtractRelationsNames<TParentModel, TChildModel> = readonly ValueOf<
       ? TRelationName
       : unknown;
   } & {
+    // eslint-disable-next-line max-len
     [TFieldName in keyof AllFieldsOfModel<TChildModel> as AllFieldsOfModel<TChildModel>[TFieldName] extends ForeignKeyField<
       any,
       any,
@@ -229,6 +231,7 @@ export type ValidateModelsOfIncludes<TParentModel, TChildModel extends new (...a
         : never
       : never]: TChildModel;
   } & {
+    // eslint-disable-next-line max-len
     [TFieldName in keyof AllFieldsOfModel<TParentModel> as AllFieldsOfModel<TParentModel>[TFieldName] extends ForeignKeyField<
       any,
       any,
@@ -277,11 +280,13 @@ type HasDefaultValueFieldsOrIsAuto<TModel> = {
     any,
     any
   >
-    ? AllFieldsOfModel<TModel>[TFieldName]['hasDefaultValue'] extends true
+    ? AllFieldsOfModel<TModel>[TFieldName]['allowNull'] extends true
       ? TFieldName
-      : AllFieldsOfModel<TModel>[TFieldName]['isAuto'] extends true
+      : AllFieldsOfModel<TModel>[TFieldName]['hasDefaultValue'] extends true
         ? TFieldName
-        : never
+        : AllFieldsOfModel<TModel>[TFieldName]['isAuto'] extends true
+          ? TFieldName
+          : never
     : never]: AllFieldsOfModel<TModel>[TFieldName];
 };
 
@@ -296,9 +301,11 @@ type DoNotHaveDefaultValueFieldsOrIsNotAuto<TModel> = {
     any,
     any
   >
-    ? AllFieldsOfModel<TModel>[TFieldName]['hasDefaultValue'] extends false
-      ? AllFieldsOfModel<TModel>[TFieldName]['isAuto'] extends false
-        ? TFieldName
+    ? AllFieldsOfModel<TModel>[TFieldName]['allowNull'] extends false
+      ? AllFieldsOfModel<TModel>[TFieldName]['hasDefaultValue'] extends false
+        ? AllFieldsOfModel<TModel>[TFieldName]['isAuto'] extends false
+          ? TFieldName
+          : never
         : never
       : never
     : never]: AllFieldsOfModel<TModel>[TFieldName];
@@ -346,7 +353,7 @@ type OptionalFields<
   TIsForSearch extends boolean = false
 > = {
   [TFieldName in TIsCreateOrUpdate extends true
-    ? keyof HasDefaultValueFieldsOrIsAuto<TModel>
+    ? keyof HasDefaultValueFieldsOrIsAuto<TModel> | keyof HasNullFields<TModel>
     : keyof HasNullFields<TModel> as TFieldName extends TFieldsToConsider[number] | undefined
     ? TRelationsToIgnore extends readonly any[]
       ? AllFieldsOfModel<TModel>[TFieldName] extends ForeignKeyField<
@@ -385,7 +392,7 @@ type RequiredFields<
   TIsForSearch extends boolean = false
 > = {
   [TFieldName in TIsCreateOrUpdate extends true
-    ? keyof DoNotHaveDefaultValueFieldsOrIsNotAuto<TModel>
+    ? keyof DoNotHaveDefaultValueFieldsOrIsNotAuto<TModel> | keyof DoesNotHaveNullFields<TModel>
     : keyof DoesNotHaveNullFields<TModel> as TFieldName extends TFieldsToConsider[number] | undefined
     ? TRelationsToIgnore extends readonly any[]
       ? AllFieldsOfModel<TModel>[TFieldName] extends ForeignKeyField<
@@ -482,8 +489,10 @@ type AddNull<
   TIsSearch extends boolean = true,
   TIsCreateOrUpdate extends boolean = false
 > = AddOperation<
-  TField['allowNull'] extends true
-    ? GetFieldType<TField, TIsCreateOrUpdate> | null
+  TField extends Field<any, any, any, any, infer TNull, any, any, any>
+    ? TNull extends true
+      ? GetFieldType<TField, TIsCreateOrUpdate> | null
+      : GetFieldType<TField, TIsCreateOrUpdate>
     : GetFieldType<TField, TIsCreateOrUpdate>,
   TIsSearch
 >;
@@ -657,6 +666,33 @@ type RelatedFieldOfModelRequired<
           TRelatedModel
         > extends true
         ? TRelationName extends TRelationNamesOfModel[number]
+          ? TFieldName
+          : never
+        : never
+      : never
+    : never]: never;
+} & {
+  [TFieldName in keyof AllFieldsOfModel<TModel> as AllFieldsOfModel<TModel>[TFieldName] extends ForeignKeyField<
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    any,
+    infer TRelationName
+  >
+    ? AllFieldsOfModel<TModel>[TFieldName]['hasDefaultValue'] extends false
+      ? AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<
+          InstanceType<AllFieldsOfModel<TModel>[TFieldName]['modelRelatedTo']>,
+          TRelatedModel
+        > extends true
+        ? TRelationName extends TRelationNamesOfModel[number]
           ? TRelationName
           : never
         : never
@@ -697,7 +733,8 @@ type RelatedFieldOfModelRequired<
     : never;
 };
 
-// Those are related to indirect relations. For example, the relation Post -> User: So Post will contain a userId field and it'll be related to User.
+// Those are related to indirect relations. For example, the relation Post -> User: So Post will contain a userId field
+// and it'll be related to User.
 // ON this relation, the User model will contain a userPosts field which will be all of the posts related to the user.
 type BaseRelatedFieldToModel<
   TModel,
@@ -727,7 +764,8 @@ type BaseRelatedFieldToModel<
   TIsForSearch
 >;
 
-// Those are related to indirect relations. For example, the relation Post -> User: So Post will contain a userId field and it'll be related to User.
+// Those are related to indirect relations. For example, the relation Post -> User: So Post will contain a userId field
+// and it'll be related to User.
 // ON this relation, the User model will contain a userPosts field which will be all of the posts related to the user.
 export type RelatedFieldToModel<
   TModel,
@@ -740,6 +778,7 @@ export type RelatedFieldToModel<
   TIsAllOptional extends boolean,
   TIsForSearch extends boolean
 > = {
+  // eslint-disable-next-line max-len
   [TFieldName in keyof AllFieldsOfModel<TRelatedModel> as AllFieldsOfModel<TRelatedModel>[TFieldName] extends ForeignKeyField<
     any,
     any,
@@ -802,7 +841,8 @@ export type RelatedFieldToModel<
 type BaseFieldsWithRelationsFromIncludesType<
   TType,
   TModel, // The model that is being queried
-  TIncludedModel extends abstract new (...args: any) => any, // This is a single included model on the query. It is the model class, not it's instance.
+  // This is a single included model on the query. It is the model class, not it's instance.
+  TIncludedModel extends abstract new (...args: any) => any,
   TToInclude extends Includes,
   TFieldsOfModel extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>,
   TRelationNamesOfModel extends readonly string[] = readonly string[],
@@ -810,7 +850,7 @@ type BaseFieldsWithRelationsFromIncludesType<
   TIsAllRequired extends boolean = false,
   TIsAllOptional extends boolean = false,
   TIsForSearch extends boolean = false
-> = TType &
+> = TType /*&
   RelatedFieldOfModelOptional<
     TModel,
     InstanceType<TIncludedModel>,
@@ -843,7 +883,7 @@ type BaseFieldsWithRelationsFromIncludesType<
     TIsAllRequired,
     TIsAllOptional,
     TIsForSearch
-  >;
+  >*/;
 
 export type FieldsWithRelationsFromIncludesType<
   TType,
@@ -899,6 +939,9 @@ export type FieldsWithRelationsFromIncludesType<
         TIsForSearch
       >;
 
+type CleanNever<TObject> = {
+  [TKey in keyof TObject as Required<TObject>[TKey] extends never ? never : TKey]: TObject[TKey];
+};
 export type IncludesRelatedModels<
   TType,
   TModel,
@@ -931,9 +974,9 @@ export type IncludesRelatedModels<
   ? TFirstIncludes extends abstract new (...args: any) => any
     ? TRestIncludes extends Includes
       ? TFirstModelIncludes extends Includes
-        ? TType &
+        ? CleanNever<TType> & // aqui
             FieldsWithRelationsFromIncludesType<
-              TType,
+              CleanNever<TType>,
               TModel,
               TFirstIncludes,
               TFirstModelIncludes,
@@ -945,7 +988,7 @@ export type IncludesRelatedModels<
               TIsForSearch
             > &
             IncludesRelatedModels<
-              TType,
+              CleanNever<TType>,
               TModel,
               TRestIncludes,
               TFieldsOfModel,
@@ -954,9 +997,9 @@ export type IncludesRelatedModels<
               TIsAllOptional,
               TIsForSearch
             >
-        : TType &
+        : CleanNever<TType> &
             FieldsWithRelationsFromIncludesType<
-              TType,
+              CleanNever<TType>,
               TModel,
               TFirstIncludes,
               [],
@@ -968,7 +1011,7 @@ export type IncludesRelatedModels<
               TIsForSearch
             > &
             IncludesRelatedModels<
-              TType,
+              CleanNever<TType>,
               TModel,
               TRestIncludes,
               TFieldsOfModel,
@@ -979,9 +1022,10 @@ export type IncludesRelatedModels<
             >
       : never
     : never
-  : TType;
+  : CleanNever<TType>;
 
-// This is the type that will be used in the queries. We add the includes to the model fields and with that we can infer the type of the query. It's result as well as the
+// This is the type that will be used in the queries. We add the includes to the model fields and with that we can
+// infer the type of the query. It's result as well as the
 // data that needs to be passed to the query on the creation or update and etc.
 export type ModelFieldsWithIncludes<
   TModel,
@@ -991,21 +1035,23 @@ export type ModelFieldsWithIncludes<
   TIsAllRequired extends boolean = false,
   TIsAllOptional extends boolean = false,
   TIsForSearch extends boolean = false
-> = IncludesRelatedModels<
-  ModelFieldsInQueries<
+> = CleanNever<
+  IncludesRelatedModels<
+    ModelFieldsInQueries<
+      TModel,
+      TFieldsOfModel,
+      undefined,
+      TIsCreateOrUpdate,
+      TIsAllRequired,
+      TIsAllOptional,
+      TIsForSearch
+    >,
     TModel,
+    TIncludes,
     TFieldsOfModel,
-    undefined,
     TIsCreateOrUpdate,
     TIsAllRequired,
     TIsAllOptional,
     TIsForSearch
-  >,
-  TModel,
-  TIncludes,
-  TFieldsOfModel,
-  TIsCreateOrUpdate,
-  TIsAllRequired,
-  TIsAllOptional,
-  TIsForSearch
+  >
 >;
