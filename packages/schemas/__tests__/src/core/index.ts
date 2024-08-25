@@ -21,7 +21,6 @@ export default domain('testingDrizzle', __dirname, {
   getMigrations: () => [],
   getModels: () => models,
   getTests: () => [
-    /*
     __dirname + '/test.test.ts',
     __dirname + '/numbers.test.ts',
     __dirname + '/boolean.test.ts',
@@ -30,7 +29,7 @@ export default domain('testingDrizzle', __dirname, {
     __dirname + '/union.test.ts',
     __dirname + '/array.test.ts',
     __dirname + '/types.test.ts',
-    __dirname + '/string.test.ts',*/
+    __dirname + '/string.test.ts',
     __dirname + '/model.test.ts'
   ]
 });
