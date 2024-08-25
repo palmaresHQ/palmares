@@ -138,22 +138,22 @@ async function getSchemaFromModelField(
 }
 
 /**
- * Different from other schemas, this function is a factory function that returns either an ObjectSchema or an ArraySchema.
- * The idea is to build the schema of a model dynamically based on its fields.
+ * Different from other schemas, this function is a factory function that returns either an ObjectSchema or an
+ * ArraySchema. The idea is to build the schema of a model dynamically based on its fields.
  *
- * Another feature is that it can automatically add the foreign key relation to the schema, but for that you need to define
- * the fields of the related model in the fields object.
+ * Another feature is that it can automatically add the foreign key relation to the schema, but for that you need to
+ * define the fields of the related model in the fields object.
  *
  * For example: A User model have a field `companyId` that is a ForeignKeyField to the Company model. The `relationName`
- * is the direct relation from the User model to the Company model, and the `relatedName` is the reverse relation from the
- * Company model to the User model. If you define the fieldName as either the relatedName or the relationName it will fetch
- * the data automatically.
+ * is the direct relation from the User model to the Company model, and the `relatedName` is the reverse relation from
+ * the Company model to the User model. If you define the fieldName as either the relatedName or the relationName it
+ * will fetch the data automatically.
  *
- * **Important**: We build the schema dynamically but also lazily, if you don't try to parse or validate the schema, it won't be built.
- * After the first time it's built, it's cached and never built again.
+ * **Important**: We build the schema dynamically but also lazily, if you don't try to parse or validate the schema, it
+ * won't be built. After the first time it's built, it's cached and never built again.
  *
- * **Important 2**: If you want to use the automatic relation feature, you need to define guarantee that the foreignKey field fieldName
- * exists on `show` array, or that it doesn't exist on `omit` array.
+ * **Important 2**: If you want to use the automatic relation feature, you need to define guarantee that the foreignKey
+ * field fieldName exists on `show` array, or that it doesn't exist on `omit` array.
  *
  * Like: `{ options: { show: ['id', 'name', 'companyId'] }}` or `{ options: { omit: ['id'] }}` it **will work**.
  *
@@ -206,16 +206,16 @@ async function getSchemaFromModelField(
  *   fields: {
  *      usersOfCompany: p.modelSchema(User, { many: true }).optional({ outputOnly: true });
  *   },
- *   show: ['id', 'type'] // The `companyId` field on the 'User' model is tied to the `id` field on the 'Company' model so 'id' is required.
- * });
+ *   // The `companyId` field on the 'User' model is tied to the `id` field on the 'Company' model so 'id' is required.
+ *   show: ['id', 'type'] * });
  *```
  * @param model - The model that you want to build the schema from.
  * @param options - The options to build the schema.
  * @param options.ignoreExtraneousFields - If you want to ignore extraneous fields set this to true.
  * @param options.engineInstance - What engine instance you want to use to fetch the data. Defaults to the first one.
- * @param options.omitRelation - Fields that you want to omit from the relation. For example, on the example above, on the
- * `userSchema` you can omit the `companyId` field from the relation by just passing `['company']`, on the `companySchema`
- * you can omit the `id` field from company by passing `['usersOfCompany']`.
+ * @param options.omitRelation - Fields that you want to omit from the relation. For example, on the example above, on
+ * the `userSchema` you can omit the `companyId` field from the relation by just passing `['company']`, on the
+ * `companySchema`  you can omit the `id` field from company by passing `['usersOfCompany']`.
  *
  * @param options.fields - Extra fields that you want to add to the schema. If it has the same name as the model field,
  * We will not create a schema for that field and use the one you have defined here.
@@ -354,7 +354,7 @@ export function modelSchema<
           },
           TDefinitionsOfSchemaType,
           Record<any, any>
-        >[]
+        >
       ]
     >
   : ObjectSchema<
@@ -385,117 +385,121 @@ export function modelSchema<
 
   // Add this callback to transform the model fields
   parentSchema.__runBeforeParseAndData = async () => {
-    if (parentSchema.__alreadyAppliedModel) return;
-    parentSchema.__alreadyAppliedModel = true;
-    const fieldsOfModels = (model as unknown as typeof InternalModelClass_DoNotUse)._fields();
-    const fieldsAsEntries = Object.entries(fieldsOfModels);
-    const fieldsWithAutomaticRelations = new Map<
-      Schema<any, any>,
-      {
-        relationOrRelatedName: string;
-        isArray: boolean;
-        model: ReturnType<typeof Model>;
-        fieldToSearchOnModel: string;
-        fieldToGetFromData: string;
-      }[]
-    >();
+    const promise = new Promise((resolve) => {
+      const fieldsOfModels = (model as unknown as typeof InternalModelClass_DoNotUse)._fields();
+      const fieldsAsEntries = Object.entries(fieldsOfModels);
+      const fieldsWithAutomaticRelations = new Map<
+        Schema<any, any>,
+        {
+          relationOrRelatedName: string;
+          isArray: boolean;
+          model: ReturnType<typeof Model>;
+          fieldToSearchOnModel: string;
+          fieldToGetFromData: string;
+        }[]
+      >();
 
-    const fields = await fieldsAsEntries.reduce(
-      async (accumulatorAsPromise, [key, value]) => {
-        if (omitAsSet.has(key as any)) return accumulatorAsPromise;
-        if (showAsSet.size > 0 && !showAsSet.has(key as any)) return accumulatorAsPromise;
+      const fields = fieldsAsObject as Record<any, Schema<any, any>>;
+      Promise.all(
+        fieldsAsEntries.map(async ([key, value]) => {
+          if (omitAsSet.has(key as any)) return;
+          if (showAsSet.size > 0 && !showAsSet.has(key as any)) return;
 
-        let schema = (fieldsAsObject as any)[key as any];
-        const optionsForForeignKeyRelation: any = {};
-        if (!schema || value instanceof ForeignKeyField) {
-          const newSchema = await getSchemaFromModelField(
-            model,
-            value,
-            parentSchema?.__getParent?.(),
-            options?.fields,
-            options?.engineInstance,
-            optionsForForeignKeyRelation
-          );
-          if (!schema) schema = newSchema;
-        }
-
-        // Appends the foreign key relation to the schema automatically.
-        if (optionsForForeignKeyRelation.foreignKeyRelation) {
-          const rootSchema = optionsForForeignKeyRelation?.foreignKeyRelation?.schema || lazyModelSchema;
-          const existingRelations =
-            fieldsWithAutomaticRelations.get(rootSchema) ||
-            ([] as {
-              relationOrRelatedName: string;
-              isArray: boolean;
-              model: ReturnType<typeof Model>;
-              fieldToSearchOnModel: string;
-              fieldToGetFromData: string;
-            }[]);
-          existingRelations.push({
-            relationOrRelatedName: optionsForForeignKeyRelation.foreignKeyRelation.relationOrRelatedName,
-            isArray: optionsForForeignKeyRelation.foreignKeyRelation.isArray,
-            model: optionsForForeignKeyRelation.foreignKeyRelation.model,
-            fieldToSearchOnModel: optionsForForeignKeyRelation.foreignKeyRelation.fieldToSearchOnModel,
-            fieldToGetFromData: optionsForForeignKeyRelation.foreignKeyRelation.fieldToGetFromData
-          });
-          fieldsWithAutomaticRelations.set(rootSchema, existingRelations);
-        }
-
-        const accumulator = await accumulatorAsPromise;
-        accumulator[key] = schema;
-        return accumulator;
-      },
-      Promise.resolve(fieldsAsObject as Record<any, Schema<any, any>>)
-    );
-
-    if (fieldsWithAutomaticRelations.size > 0) {
-      // This way we can get all of the relations concurrently with Promise.all
-      for (const [schema, relations] of fieldsWithAutomaticRelations.entries()) {
-        schema.toRepresentation(
-          async (data: any | any[]) => {
-            const allData = Array.isArray(data) ? data : [data];
-            // since we are changing the data by reference, just return the data itself.
-            await Promise.all(
-              allData.map(async (data) =>
-                Promise.all(
-                  relations.map(async (relation) => {
-                    // Ignore if the data of the relation already exists
-                    if (relation.relationOrRelatedName in data) return;
-
-                    let relationData: any | any[] = await relation.model.default.get({
-                      search: {
-                        [relation.fieldToSearchOnModel]: data[relation.fieldToGetFromData]
-                      }
-                    });
-                    if (relation.isArray !== true) relationData = relationData[0];
-                    data[relation.relationOrRelatedName] = relationData;
-
-                    if ((schema as any).__omitRelation.has(relation.relationOrRelatedName as any))
-                      delete data[relation.fieldToGetFromData];
-                  })
-                )
-              )
+          let schema = (fieldsAsObject as any)[key as any];
+          const optionsForForeignKeyRelation: any = {};
+          if (!schema || value instanceof ForeignKeyField) {
+            const newSchema = await getSchemaFromModelField(
+              model,
+              value,
+              parentSchema?.__getParent?.(),
+              options?.fields,
+              options?.engineInstance,
+              optionsForForeignKeyRelation
             );
-
-            return data;
-          },
-          {
-            after: true
+            if (!schema) schema = newSchema;
           }
+
+          // Appends the foreign key relation to the schema automatically.
+          if (optionsForForeignKeyRelation.foreignKeyRelation) {
+            const rootSchema = optionsForForeignKeyRelation?.foreignKeyRelation?.schema || lazyModelSchema;
+            const existingRelations =
+              fieldsWithAutomaticRelations.get(rootSchema) ||
+              ([] as {
+                relationOrRelatedName: string;
+                isArray: boolean;
+                model: ReturnType<typeof Model>;
+                fieldToSearchOnModel: string;
+                fieldToGetFromData: string;
+              }[]);
+            existingRelations.push({
+              relationOrRelatedName: optionsForForeignKeyRelation.foreignKeyRelation.relationOrRelatedName,
+              isArray: optionsForForeignKeyRelation.foreignKeyRelation.isArray,
+              model: optionsForForeignKeyRelation.foreignKeyRelation.model,
+              fieldToSearchOnModel: optionsForForeignKeyRelation.foreignKeyRelation.fieldToSearchOnModel,
+              fieldToGetFromData: optionsForForeignKeyRelation.foreignKeyRelation.fieldToGetFromData
+            });
+            fieldsWithAutomaticRelations.set(rootSchema, existingRelations);
+          }
+
+          (fieldsAsObject as any)[key] = schema;
+          return fieldsAsObject;
+        })
+      ).then(async () => {
+        if (fieldsWithAutomaticRelations.size > 0) {
+          // This way we can get all of the relations concurrently with Promise.all
+          for (const [schema, relations] of fieldsWithAutomaticRelations.entries()) {
+            schema.toRepresentation(
+              async (data: any | any[]) => {
+                const allData = Array.isArray(data) ? data : [data];
+                // since we are changing the data by reference, just return the data itself.
+                await Promise.all(
+                  allData.map(async (data) =>
+                    Promise.all(
+                      relations.map(async (relation) => {
+                        // Ignore if the data of the relation already exists
+                        if (relation.relationOrRelatedName in data) return;
+
+                        let relationData: any | any[] = await relation.model.default.get({
+                          search: {
+                            [relation.fieldToSearchOnModel]: data[relation.fieldToGetFromData]
+                          }
+                        });
+                        if (relation.isArray !== true) relationData = relationData[0];
+                        data[relation.relationOrRelatedName] = relationData;
+
+                        if ((schema as any).__omitRelation.has(relation.relationOrRelatedName as any))
+                          delete data[relation.fieldToGetFromData];
+                      })
+                    )
+                  )
+                );
+
+                return data;
+              },
+              {
+                after: true
+              }
+            );
+          }
+        }
+
+        (lazyModelSchema as any).__data = fields as any;
+
+        await Promise.all(
+          customFieldValues.map(async (schema: any) => {
+            schema['__getParent'] = () => lazyModelSchema;
+            if (schema['__runBeforeParseAndData']) await schema['__runBeforeParseAndData'](schema);
+          })
         );
-      }
-    }
-
-    (lazyModelSchema as any).__data = fields as any;
-
-    await Promise.all(
-      customFieldValues.map(async (schema: any) => {
-        schema['__getParent'] = () => lazyModelSchema;
-        if (schema['__runBeforeParseAndData']) await schema['__runBeforeParseAndData'](schema);
-      })
-    );
+        resolve(undefined);
+      });
+    });
+    if (parentSchema.__alreadyAppliedModel) return parentSchema.__alreadyAppliedModel;
+    parentSchema.__alreadyAppliedModel = promise;
+    return promise;
   };
 
   if (options?.ignoreExtraneousFields !== true) lazyModelSchema.removeExtraneous();
+
   return parentSchema;
 }

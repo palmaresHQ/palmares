@@ -10,12 +10,7 @@ export function fieldAdapter<
   TToString extends FieldAdapter['toString'],
   TFormatError extends FieldAdapter['formatError'],
   TParse extends FieldAdapter['parse']
->(args: {
-  translate: TTranslate;
-  toString?: TToString;
-  formatError?: TFormatError;
-  parse?: TParse;
-}) {
+>(args: { translate: TTranslate; toString?: TToString; formatError?: TFormatError; parse?: TParse }) {
   class CustomFieldAdapter extends FieldAdapter {
     translate = args.translate;
     toString = args.toString as TToString;
@@ -29,20 +24,24 @@ export function fieldAdapter<
       toString: TToString;
       formatError: TFormatError;
       parse: TParse;
-    }
-  }
+    };
+  };
 }
 export default class FieldAdapter {
-  translate(_fieldAdapter: FieldAdapter, _args: AdapterTranslateArgs<SupportedSchemas>, _base?: any): any | WithFallback<SupportedSchemas> {
+  translate(
+    _fieldAdapter: FieldAdapter,
+    _args: AdapterTranslateArgs<SupportedSchemas>,
+    _base?: any
+  ): any | WithFallback<SupportedSchemas> {
     throw new SchemaAdapterNotImplementedError({ className: this.constructor.name, functionName: 'translate' });
   }
 
   parse(
     _adapter: SchemaAdapter,
     _fieldAdapter: FieldAdapter,
-    _result: any,
+    _schema: any,
     _value: any,
-    _args: Omit<AdapterTranslateArgs<SupportedSchemas>, 'withFallback'>,
+    _args: Omit<AdapterTranslateArgs<SupportedSchemas>, 'withFallback'>
   ): Promise<{ errors: any; parsed: any }> {
     throw new SchemaAdapterNotImplementedError({ className: this.constructor.name, functionName: 'parse' });
   }
@@ -60,6 +59,7 @@ export default class FieldAdapter {
   async formatError(
     _adapter: SchemaAdapter,
     _fieldAdapter: FieldAdapter,
+    _schema: any,
     _error: any,
     _metadata?: any
   ): Promise<{

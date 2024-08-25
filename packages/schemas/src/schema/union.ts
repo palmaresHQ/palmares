@@ -1,39 +1,49 @@
-
+import { number } from '.';
 import Schema from './schema';
+import { string } from './string';
 import { getDefaultAdapter } from '../conf';
 import {
   defaultTransform,
   defaultTransformToAdapter,
-  transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas,
+  transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas
 } from '../utils';
 import { unionValidation } from '../validators/union';
 import Validator from '../validators/utils';
 
-import type { DefinitionsOfSchemaType } from './types';
+import type { DefinitionsOfSchemaType, ExtractTypeFromUnionOfSchemas } from './types';
+import type SchemaAdapter from '../adapter';
 import type FieldAdapter from '../adapter/fields';
 import type { Narrow } from '@palmares/core';
 
 export default class UnionSchema<
   TType extends {
-    input: any;
-    validate: any;
-    internal: any;
-    representation: any;
-    output: any;
+    input: unknown;
+    validate: unknown;
+    internal: unknown;
+    representation: unknown;
+    output: unknown;
   } = {
-    input: Record<any, any>;
-    output: Record<any, any>;
-    validate: Record<any, any>;
-    internal: Record<any, any>;
-    representation: Record<any, any>;
+    input: unknown;
+    output: unknown;
+    validate: unknown;
+    internal: unknown;
+    representation: unknown;
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
   TSchemas extends readonly [Schema<any, any>, Schema<any, any>, ...Schema<any, any>[]] = [
     Schema<any, any>,
     Schema<any, any>,
-    ...Schema<any, any>[],
-  ],
+    ...Schema<any, any>[]
+  ]
 > extends Schema<TType, TDefinitions> {
+  protected __type: {
+    message: string;
+    check: (value: TType['input']) => boolean;
+  } = {
+    message: 'Invalid type',
+    check: (value) => Array.from(this.__schemas).some((schema) => schema['__type'].check(value))
+  };
+
   protected __schemas = new Set<Schema<any>>();
 
   constructor(schemas: TSchemas) {
@@ -41,10 +51,10 @@ export default class UnionSchema<
     this.__schemas = new Set(schemas);
   }
 
-  protected async _transformToAdapter(
+  protected async __transformToAdapter(
     options: Parameters<Schema['__transformToAdapter']>[0]
   ): Promise<ReturnType<FieldAdapter['translate']>> {
-    return await defaultTransformToAdapter(
+    return defaultTransformToAdapter(
       async (adapter) => {
         const promises: Promise<any>[] = [];
         const shouldBeHighPriorityFallback = adapter.union === undefined;
@@ -73,12 +83,12 @@ export default class UnionSchema<
               Array.from(this.__schemas) as unknown as readonly [
                 Schema<any, any>,
                 Schema<any, any>,
-                ...Schema<any, any>[],
+                ...Schema<any, any>[]
               ]
             ),
             {
               at: 0,
-              removeCurrent: true,
+              removeCurrent: true
             }
           );
         }
@@ -91,12 +101,13 @@ export default class UnionSchema<
           adapter.union,
           (isStringVersion) => ({
             nullable: this.__nullable,
+            type: this.__type,
             optional: this.__optional,
             schemas: isStringVersion ? transformedSchemasAsString : transformedSchemas,
             parsers: {
               nullable: this.__nullable.allow,
-              optional: this.__optional.allow,
-            },
+              optional: this.__optional.allow
+            }
           }),
           {},
           {
@@ -104,13 +115,14 @@ export default class UnionSchema<
             fallbackIfNotSupported: async () => {
               if (options.appendFallbacksBeforeAdapterValidation)
                 options.appendFallbacksBeforeAdapterValidation(
+                  this,
                   'union',
                   async (adapter, fieldAdapter, schema, translatedSchemas, value, path, options) => {
                     const parsedValues = {
                       parsed: value,
-                      errors: [],
+                      errors: []
                     } as { parsed: any; errors: any[] };
-                    //                    const initialErrorsAsHashedSet = new Set(Array.from(options.errorsAsHashedSet || []));
+                    // const initialErrorsAsHashedSet = new Set(Array.from(options.errorsAsHashedSet || []));
                     for (const translatedSchema of translatedSchemas) {
                       //options.errorsAsHashedSet = initialErrorsAsHashedSet;
                       const { parsed, errors } = await schema.__validateByAdapter(
@@ -121,7 +133,6 @@ export default class UnionSchema<
                         path,
                         options
                       );
-
                       // eslint-disable-next-line ts/no-unnecessary-condition
                       if ((errors || []).length <= 0) return { parsed, errors };
                       else {
@@ -138,12 +149,12 @@ export default class UnionSchema<
               for (const schema of this.__schemas)
                 transformedSchemasAsPromises.push((schema as any).__transformToAdapter(options));
 
-              console.log((await Promise.all(transformedSchemasAsPromises)).flat());
               return (await Promise.all(transformedSchemasAsPromises)).flat();
-            },
+            }
           }
         );
       },
+      this,
       this.__transformedSchemas,
       options,
       'union'
@@ -151,7 +162,8 @@ export default class UnionSchema<
   }
 
   /**
-   * This let's you refine the schema with custom validations. This is useful when you want to validate something that is not supported by default by the schema adapter.
+   * This let's you refine the schema with custom validations. This is useful when you want to validate something that
+   * is not supported by default by the schema adapter.
    *
    * @example
    * ```typescript
@@ -163,15 +175,22 @@ export default class UnionSchema<
    *
    * const { errors, parsed } = await numberSchema.parse(-1);
    *
-   * console.log(errors); // [{ isValid: false, code: 'invalid_number', message: 'The number should be greater than 0', path: [] }]
+   * // [{ isValid: false, code: 'invalid_number', message: 'The number should be greater than 0', path: [] }]
+   * console.log(errors);
    * ```
    *
    * @param refinementCallback - The callback that will be called to validate the value.
    * @param options - Options for the refinement.
    * @param options.isAsync - Whether the callback is async or not. Defaults to true.
    */
-   refine(
-    refinementCallback: (value: TType['input']) => Promise<void | undefined | { code: string; message: string }> | void | undefined | { code: string; message: string }
+  refine(
+    refinementCallback: (
+      value: TType['input']
+    ) =>
+      | Promise<void | undefined | { code: string; message: string }>
+      | void
+      | undefined
+      | { code: string; message: string }
   ) {
     return super.refine(refinementCallback) as unknown as UnionSchema<
       {
@@ -225,8 +244,36 @@ export default class UnionSchema<
   }
 
   /**
-   * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value is NULL by setting
-   * the { message: 'Your custom message', allow: false } on the options.
+   * Just adds a message when the value is undefined. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.string().optional({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonOptional function
+   * @param options.message - A custom message if the value is undefined.
+   *
+   * @returns - The schema.
+   */
+  nonOptional(options?: { message: string }) {
+    return super.optional({
+      message: options?.message,
+      allow: false
+    }) as unknown as UnionSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
+   * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value
+   * is NULL by setting the { message: 'Your custom message', allow: false } on the options.
    *
    * @example
    * ```typescript
@@ -264,14 +311,43 @@ export default class UnionSchema<
   }
 
   /**
-   * This method will remove the value from the representation of the schema. If the value is undefined it will keep that way
+   * Just adds a message when the value is null. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.string().nullable({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonNullable function
+   * @param options.message - A custom message if the value is null.
+   *
+   * @returns - The schema.
+   */
+  nonNullable(options?: { message: string }) {
+    return super.nullable({
+      message: options?.message || '',
+      allow: false
+    }) as unknown as UnionSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+  /**
+   * This method will remove the value from the representation of the schema. If the value is undefined it will keep
+   * that way
    * otherwise it will set the value to undefined after it's validated.
    * This is used in conjunction with the {@link data} function, the {@link parse} function or {@link validate}
    * function. This will remove the value from the representation of the schema.
    *
-   * By default, the value will be removed just from the representation, in other words, when you call the {@link data} function.
-   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal` as true.
-   * Then if you still want to remove the value from the representation, you will need to pass the argument `toRepresentation` as true as well.
+   * By default, the value will be removed just from the representation, in other words, when you call the {@link data}
+   * function. But if you want to remove the value from the internal representation, you can pass the argument
+   * `toInternal` as true. Then if you still want to remove the value from the representation, you will need to pass
+   * the argument `toRepresentation` as true as well.
    *
    * @example
    * ```typescript
@@ -293,16 +369,17 @@ export default class UnionSchema<
    * ```
    *
    *
-   * @param args - By default, the value will be removed just from the representation, in other words, when you call the {@link data} function.
-   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal` as true.
-   * Then if you still want to remove the value from the representation, you will need to pass the argument `toRepresentation` as true as well.
+   * @param args - By default, the value will be removed just from the representation, in other words, when you call
+   * the {@link data} function. But if you want to remove the value from the internal representation, you can pass
+   * the argument `toInternal` as true. Then if you still want to remove the value from the representation, you
+   * will need to pass the argument `toRepresentation` as true as well.
    *
    * @returns The schema.
    */
   omit<
     TToInternal extends boolean,
     TToRepresentation extends boolean = boolean extends TToInternal ? true : false
-  >(args?: { toInternal?: TToInternal, toRepresentation?: TToRepresentation }) {
+  >(args?: { toInternal?: TToInternal; toRepresentation?: TToRepresentation }) {
     return super.omit(args) as unknown as UnionSchema<
       {
         input: TToInternal extends true ? TType['input'] | undefined : TType['input'];
@@ -317,9 +394,9 @@ export default class UnionSchema<
   }
 
   /**
-   * This function is used in conjunction with the {@link validate} function. It's used to save a value to an external source
-   * like a database. You should always return the schema after you save the value, that way we will always have the correct type
-   * of the schema after the save operation.
+   * This function is used in conjunction with the {@link validate} function. It's used to save a value to an external
+   * source like a database. You should always return the schema after you save the value, that way we will always
+   * have the correct type of the schema after the save operation.
    *
    * You can use the {@link toRepresentation} function to transform and clean the value it returns after the save.
    *
@@ -374,9 +451,9 @@ export default class UnionSchema<
     >;
   }
 
-
   /**
-   * This function is used to add a default value to the schema. If the value is either undefined or null, the default value will be used.
+   * This function is used to add a default value to the schema. If the value is either undefined or null, the default
+   * value will be used.
    *
    * @example
    * ```typescript
@@ -406,8 +483,49 @@ export default class UnionSchema<
   }
 
   /**
-   * This function let's you customize the schema your own way. After we translate the schema on the adapter we call this function to let you customize
-   * the custom schema your own way. Our API does not support passthrough? No problem, you can use this function to customize the zod schema.
+   * This function is used to transform the value to the representation without validating it.
+   * This is useful when you want to return a data from a query directly to the user. But for example
+   * you are returning the data of a user, you can clean the password or any other sensitive data.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schemas';
+   *
+   * const userSchema = p.object({
+   *   id: p.number().optional(),
+   *   name: p.string(),
+   *   email: p.string().email(),
+   *   password: p.string().optional()
+   * }).toRepresentation(async (value) => {
+   *   return {
+   *    id: value.id,
+   *    name: value.name,
+   *   email: value.email
+   *  }
+   * });
+   *
+   * const user = await userSchema.data({
+   *   id: 1,
+   *   name: 'John Doe',
+   *   email: 'john@gmail.com',
+   *   password: '123456'
+   * });
+   * ```
+   */
+  async data(value: TType['output']): Promise<TType['representation']> {
+    const parsedValue = await super.data(value);
+    for (const schema of Array.from(this.__schemas)) {
+      if (schema['__optional'].allow && value === undefined) return schema.data(parsedValue);
+      if (schema['__nullable'].allow && value === null) return schema.data(parsedValue);
+      if (schema['__type'].check(parsedValue)) return schema.data(parsedValue);
+    }
+    return parsedValue;
+  }
+
+  /**
+   * This function let's you customize the schema your own way. After we translate the schema on the adapter we call
+   * this function to let you customize the custom schema your own way. Our API does not support passthrough?
+   * No problem, you can use this function to customize the zod schema.
    *
    * @example
    * ```typescript
@@ -419,12 +537,13 @@ export default class UnionSchema<
    *
    * const { errors, parsed } = await numberSchema.parse(-1);
    *
-   * console.log(errors); // [{ isValid: false, code: 'nonnegative', message: 'The number should be nonnegative', path: [] }]
+   * // [{ isValid: false, code: 'nonnegative', message: 'The number should be nonnegative', path: [] }]
+   * console.log(errors);
    * ```
    *
    * @param callback - The callback that will be called to customize the schema.
-   * @param toStringCallback - The callback that will be called to transform the schema to a string when you want to compile the underlying schema
-   * to a string so you can save it for future runs.
+   * @param toStringCallback - The callback that will be called to transform the schema to a string when you want
+   * to compile the underlying schema to a string so you can save it for future runs.
    *
    * @returns The schema.
    */
@@ -438,9 +557,9 @@ export default class UnionSchema<
   }
 
   /**
-   * This function is used to transform the value to the representation of the schema. When using the {@link data} function. With this function you have full
-   * control to add data cleaning for example, transforming the data and whatever. Another use case is when you want to return deeply nested recursive data.
-   * The schema maps to itself.
+   * This function is used to transform the value to the representation of the schema. When using the {@link data}
+   * function. With this function you have full control to add data cleaning for example, transforming the data and
+   * whatever. Another use case is when you want to return deeply nested recursive data. The schema maps to itself.
    *
    * @example
    * ```typescript
@@ -497,8 +616,9 @@ export default class UnionSchema<
   }
 
   /**
-   * This function is used to transform the value to the internal representation of the schema. This is useful when you want to transform the value
-   * to a type that the schema adapter can understand. For example, you might want to transform a string to a date. This is the function you use.
+   * This function is used to transform the value to the internal representation of the schema. This is useful when you
+   * want to transform the value to a type that the schema adapter can understand. For example, you might want to
+   * transform a string to a date. This is the function you use.
    *
    * @example
    * ```typescript
@@ -543,8 +663,9 @@ export default class UnionSchema<
   }
 
   /**
-   * Called before the validation of the schema. Let's say that you want to validate a date that might receive a string, you can convert that string to a date
-   * here BEFORE the validation. This pretty much transforms the value to a type that the schema adapter can understand.
+   * Called before the validation of the schema. Let's say that you want to validate a date that might receive a string,
+   * you can convert that string to a date here BEFORE the validation. This pretty much transforms the value to a type
+   * that the schema adapter can understand.
    *
    * @example
    * ```
@@ -578,19 +699,23 @@ export default class UnionSchema<
 
   static new<
     TSchemas extends readonly [Schema<any, any>, Schema<any, any>, ...Schema<any, any>[]],
-    TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
-  >(schemas: Narrow<TSchemas>): UnionSchema<TSchemas[number] extends Schema<infer TType, any> ? TType : never> {
-    const returnValue = new UnionSchema<TSchemas[number] extends Schema<infer TType, any> ? TType : never, TDefinitions, TSchemas>(schemas as TSchemas);
+    TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
+  >(
+    schemas: Narrow<TSchemas>
+  ): UnionSchema<{
+    input: ExtractTypeFromUnionOfSchemas<TSchemas, 'input'>;
+    internal: ExtractTypeFromUnionOfSchemas<TSchemas, 'internal'>;
+    output: ExtractTypeFromUnionOfSchemas<TSchemas, 'output'>;
+    representation: ExtractTypeFromUnionOfSchemas<TSchemas, 'representation'>;
+    validate: ExtractTypeFromUnionOfSchemas<TSchemas, 'validate'>;
+  }> {
+    const returnValue = new UnionSchema<
+      TSchemas[number] extends Schema<infer TType, any> ? TType : never,
+      TDefinitions,
+      TSchemas
+    >(schemas as TSchemas);
 
-    const adapterInstance = getDefaultAdapter();
-
-    returnValue.__transformedSchemas[adapterInstance.constructor.name] = {
-      transformed: false,
-      adapter: adapterInstance,
-      schemas: [],
-    };
     return returnValue as any;
   }
 }
-
 export const union = UnionSchema.new;

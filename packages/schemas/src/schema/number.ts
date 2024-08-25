@@ -1,13 +1,13 @@
 import Schema from './schema';
-import { getDefaultAdapter } from '../conf';
 import {
   DEFAULT_NUMBER_INTEGER_EXCEPTION,
   DEFAULT_NUMBER_MAX_EXCEPTION,
-  DEFAULT_NUMBER_MIN_EXCEPTION,
-  DEFAULT_NUMBER_NEGATIVE_EXCEPTION,
+  DEFAULT_NUMBER_MIN_EXCEPTION
 } from '../constants';
+import { convertFromStringBuilder } from '../parsers';
 import { defaultTransform, defaultTransformToAdapter } from '../utils';
-import { max, min, numberValidation } from '../validators/number';
+import { decimalPlaces, integer, max, maxDigits, min, numberValidation } from '../validators/number';
+import { is, nullable, optional } from '../validators/schema';
 
 import type { DefinitionsOfSchemaType } from './types';
 
@@ -19,53 +19,57 @@ export default class NumberSchema<
     output: any;
     representation: any;
   } = {
-    input: number | bigint;
-    output: number | bigint;
-    validate: number | bigint;
-    internal: number | bigint;
-    representation: number | bigint;
+    input: number;
+    output: number;
+    validate: number;
+    internal: number;
+    representation: number;
   },
-  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
+  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
 > extends Schema<TType, TDefinitions> {
-  protected __is!: {
+  protected __allowString!: boolean;
+
+  protected __is?: {
     value: TType['input'][];
     message: string;
   };
 
-  protected __integer!: {
+  protected __integer?: {
     message: string;
   };
 
-  protected __maxDigits!: {
+  protected __maxDigits?: {
     value: number;
-    message: string
-  };
-
-  protected __decimalPlaces!: {
-    value: number;
-    message: string
-  };
-
-  protected __max!: {
-    value: number;
-    inclusive: boolean;
     message: string;
   };
 
-  protected __min!: {
+  protected __decimalPlaces?: {
+    value: number;
+    message: string;
+  };
+
+  protected __max?: {
     value: number;
     inclusive: boolean;
     message: string;
   };
 
-  protected __allowNegative!: {
-    allowZero: boolean;
+  protected __min?: {
+    value: number;
+    inclusive: boolean;
     message: string;
   };
 
-  protected __allowPositive!: {
-    allowZero: boolean;
+  protected __type: {
     message: string;
+    check: (value: TType['input']) => boolean;
+  } = {
+    message: 'Invalid type',
+    check: (value: any) => {
+      const isNumber = new RegExp('^-?\\d*(\\.\\d+)?$').test(value);
+      if (typeof value === 'string' && this.__allowString && isNumber) return true;
+      return typeof value === 'number';
+    }
   };
 
   protected async __transformToAdapter(options: Parameters<Schema['__transformToAdapter']>[0]): Promise<any> {
@@ -79,22 +83,28 @@ export default class NumberSchema<
           () => ({
             is: this.__is,
             min: this.__min,
-            allowNegative: this.__allowNegative,
-            allowPositive: this.__allowPositive,
             max: this.__max,
             integer: this.__integer,
             optional: this.__optional,
             nullable: this.__nullable,
             maxDigits: this.__maxDigits,
             decimalPlaces: this.__decimalPlaces,
+            type: this.__type,
             parsers: {
+              allowString: this.__allowString,
               nullable: this.__nullable.allow,
-              optional: this.__optional.allow,
+              optional: this.__optional.allow
             }
           }),
           {
             max,
             min,
+            maxDigits: maxDigits,
+            is: is,
+            optional: optional,
+            nullable: nullable,
+            decimalPlaces: decimalPlaces,
+            integer: integer
           },
           {
             validatorsIfFallbackOrNotSupported: numberValidation(),
@@ -102,10 +112,11 @@ export default class NumberSchema<
             // eslint-disable-next-line ts/require-await
             fallbackIfNotSupported: async () => {
               return [];
-            },
+            }
           }
         );
       },
+      this,
       this.__transformedSchemas,
       options,
       'number'
@@ -113,7 +124,8 @@ export default class NumberSchema<
   }
 
   /**
-   * This let's you refine the schema with custom validations. This is useful when you want to validate something that is not supported by default by the schema adapter.
+   * This let's you refine the schema with custom validations. This is useful when you want to validate something
+   * that is not supported by default by the schema adapter.
    *
    * @example
    * ```typescript
@@ -125,7 +137,8 @@ export default class NumberSchema<
    *
    * const { errors, parsed } = await numberSchema.parse(-1);
    *
-   * console.log(errors); // [{ isValid: false, code: 'invalid_number', message: 'The number should be greater than 0', path: [] }]
+   * console.log(errors);
+   * // [{ isValid: false, code: 'invalid_number', message: 'The number should be greater than 0', path: [] }]
    * ```
    *
    * @param refinementCallback - The callback that will be called to validate the value.
@@ -135,7 +148,13 @@ export default class NumberSchema<
    * @returns The schema.
    */
   refine(
-    refinementCallback: (value: TType['input']) => Promise<void | undefined | { code: string; message: string }> | void | undefined | { code: string; message: string }
+    refinementCallback: (
+      value: TType['input']
+    ) =>
+      | Promise<void | undefined | { code: string; message: string }>
+      | void
+      | undefined
+      | { code: string; message: string }
   ) {
     return super.refine(refinementCallback) as unknown as NumberSchema<
       {
@@ -144,7 +163,8 @@ export default class NumberSchema<
         internal: TType['internal'];
         output: TType['output'];
         representation: TType['representation'];
-      }, TDefinitions
+      },
+      TDefinitions
     >;
   }
 
@@ -186,8 +206,36 @@ export default class NumberSchema<
   }
 
   /**
-   * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value is NULL by setting
-   * the { message: 'Your custom message', allow: false } on the options.
+   * Just adds a message when the value is undefined. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.string().optional({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonOptional function
+   * @param options.message - A custom message if the value is undefined.
+   *
+   * @returns - The schema.
+   */
+  nonOptional(options?: { message: string }) {
+    return super.optional({
+      message: options?.message,
+      allow: false
+    }) as unknown as NumberSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
+   * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value
+   * is NULL by setting the { message: 'Your custom message', allow: false } on the options.
    *
    * @example
    * ```typescript
@@ -224,14 +272,44 @@ export default class NumberSchema<
   }
 
   /**
-   * This method will remove the value from the representation of the schema. If the value is undefined it will keep that way
-   * otherwise it will set the value to undefined after it's validated.
+   * Just adds a message when the value is null. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.string().nullable({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonNullable function
+   * @param options.message - A custom message if the value is null.
+   *
+   * @returns - The schema.
+   */
+  nonNullable(options?: { message: string }) {
+    return super.nullable({
+      message: options?.message || '',
+      allow: false
+    }) as unknown as NumberSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
+   * This method will remove the value from the representation of the schema. If the value is undefined it will keep
+   * that way otherwise it will set the value to undefined after it's validated.
    * This is used in conjunction with the {@link data} function, the {@link parse} function or {@link validate}
    * function. This will remove the value from the representation of the schema.
    *
-   * By default, the value will be removed just from the representation, in other words, when you call the {@link data} function.
-   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal` as true.
-   * Then if you still want to remove the value from the representation, you will need to pass the argument `toRepresentation` as true as well.
+   * By default, the value will be removed just from the representation, in other words, when you call the {@link data}
+   * function.
+   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal`
+   * as true. Then if you still want to remove the value from the representation, you will need to pass the argument
+   * `toRepresentation` as true as well.
    *
    * @example
    * ```typescript
@@ -253,16 +331,18 @@ export default class NumberSchema<
    * ```
    *
    *
-   * @param args - By default, the value will be removed just from the representation, in other words, when you call the {@link data} function.
-   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal` as true.
-   * Then if you still want to remove the value from the representation, you will need to pass the argument `toRepresentation` as true as well.
+   * @param args - By default, the value will be removed just from the representation, in other words, when you call
+   * the {@link data} function.
+   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal`
+   * as true. Then if you still want to remove the value from the representation, you will need to pass the argument
+   * `toRepresentation` as true as well.
    *
    * @returns The schema.
    */
   omit<
     TToInternal extends boolean,
     TToRepresentation extends boolean = boolean extends TToInternal ? true : false
-  >(args?: { toInternal?: TToInternal, toRepresentation?: TToRepresentation, parent?: boolean }) {
+  >(args?: { toInternal?: TToInternal; toRepresentation?: TToRepresentation; parent?: boolean }) {
     return super.omit(args) as unknown as NumberSchema<
       {
         input: TToInternal extends true ? TType['input'] | undefined : TType['input'];
@@ -276,9 +356,45 @@ export default class NumberSchema<
   }
 
   /**
-   * This function is used in conjunction with the {@link validate} function. It's used to save a value to an external source
-   * like a database. You should always return the schema after you save the value, that way we will always have the correct type
-   * of the schema after the save operation.
+   * This will allow the value to be a string, it does not validate, it just parses inputs as strings and allows the
+   * result to be a string as well.
+   *
+   * @example
+   * ```ts
+   * number().allowString().parse('true') // true
+   * ```
+   *
+   * @returns - The schema instance
+   */
+  allowString() {
+    this.__allowString = true;
+
+    this.__parsers.low.set(
+      'allowString',
+      convertFromStringBuilder((value) => {
+        return {
+          value: Number(value),
+          preventNextParsers: false
+        };
+      })
+    );
+
+    return this as any as NumberSchema<
+      {
+        input: string | TType['input'];
+        output: string | TType['output'];
+        internal: string | TType['internal'];
+        representation: string | TType['representation'];
+        validate: string | TType['validate'];
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
+   * This function is used in conjunction with the {@link validate} function. It's used to save a value to an external
+   * source like a database. You should always return the schema after you save the value, that way we will always
+   * have the correct type of the schema after the save operation.
    *
    * You can use the {@link toRepresentation} function to transform and clean the value it returns after the save.
    *
@@ -332,9 +448,9 @@ export default class NumberSchema<
     >;
   }
 
-
   /**
-   * This function is used to add a default value to the schema. If the value is either undefined or null, the default value will be used.
+   * This function is used to add a default value to the schema. If the value is either undefined or null, the default
+   * value will be used.
    *
    * @example
    * ```typescript
@@ -363,8 +479,9 @@ export default class NumberSchema<
   }
 
   /**
-   * This function let's you customize the schema your own way. After we translate the schema on the adapter we call this function to let you customize
-   * the custom schema your own way. Our API does not support passthrough? No problem, you can use this function to customize the zod schema.
+   * This function let's you customize the schema your own way. After we translate the schema on the adapter we call
+   * this function to let you customize the custom schema your own way. Our API does not support passthrough?
+   * No problem, you can use this function to customize the zod schema.
    *
    * @example
    * ```typescript
@@ -376,12 +493,13 @@ export default class NumberSchema<
    *
    * const { errors, parsed } = await numberSchema.parse(-1);
    *
-   * console.log(errors); // [{ isValid: false, code: 'nonnegative', message: 'The number should be nonnegative', path: [] }]
+   * console.log(errors);
+   * // [{ isValid: false, code: 'nonnegative', message: 'The number should be nonnegative', path: [] }]
    * ```
    *
    * @param callback - The callback that will be called to customize the schema.
-   * @param toStringCallback - The callback that will be called to transform the schema to a string when you want to compile the underlying schema
-   * to a string so you can save it for future runs.
+   * @param toStringCallback - The callback that will be called to transform the schema to a string when you
+   * want to compile the underlying schema to a string so you can save it for future runs.
    *
    * @returns The schema.
    */
@@ -395,8 +513,9 @@ export default class NumberSchema<
   }
 
   /**
-   * This function is used to transform the value to the representation of the schema. When using the {@link data} function. With this function you have full
-   * control to add data cleaning for example, transforming the data and whatever. Another use case is when you want to return deeply nested recursive data.
+   * This function is used to transform the value to the representation of the schema. When using the {@link data}
+   * function. With this function you have full control to add data cleaning for example, transforming the data and
+   * whatever. Another use case is when you want to return deeply nested recursive data.
    * The schema maps to itself.
    *
    * @example
@@ -453,8 +572,9 @@ export default class NumberSchema<
   }
 
   /**
-   * This function is used to transform the value to the internal representation of the schema. This is useful when you want to transform the value
-   * to a type that the schema adapter can understand. For example, you might want to transform a string to a date. This is the function you use.
+   * This function is used to transform the value to the internal representation of the schema. This is useful when
+   * you want to transform the value to a type that the schema adapter can understand. For example, you might want
+   * to transform a string to a date. This is the function you use.
    *
    * @example
    * ```typescript
@@ -498,7 +618,8 @@ export default class NumberSchema<
   }
 
   /**
-   * Called before the validation of the schema. Let's say that you want to validate a date that might receive a string, you can convert that string to a date
+   * Called before the validation of the schema. Let's say that you want to validate a date that might receive a string,
+   * you can convert that string to a date
    * here BEFORE the validation. This pretty much transforms the value to a type that the schema adapter can understand.
    *
    * @example
@@ -550,10 +671,14 @@ export default class NumberSchema<
    *
    * @returns - The schema instance
    */
-  is<const TValue extends TType['input'][]>(value: TValue) {
+  is<const TValue extends TType['input'][]>(
+    value: TValue,
+    options?: Partial<Omit<NonNullable<NumberSchema['__is']>, 'value'>>
+  ) {
     this.__is = {
       value,
-      message: `The value should be equal to ${value.join(',')}`,
+      message:
+        typeof options?.message === 'string' ? options.message : `The value should be equal to ${value.join(',')}`
     };
 
     return this as any as Schema<
@@ -569,7 +694,8 @@ export default class NumberSchema<
   }
 
   /**
-   * Allows only numbers that are less than the value passed. If you want to allow the number to be equal to the value, you can pass the option `inclusive` as `true`.
+   * Allows only numbers that are less than the value passed. If you want to allow the number to be equal to the value,
+   * you can pass the option `inclusive` as `true`.
    * Otherwise, it will only allow numbers less than the value.
    *
    * @example
@@ -606,13 +732,14 @@ export default class NumberSchema<
     this.__max = {
       value,
       inclusive,
-      message,
+      message
     };
     return this as unknown as NumberSchema<TType, TDefinitions> & { is: never };
   }
 
   /**
-   * This method will validate if the number is greater than the value passed. If you want to allow the number to be equal to the value, you can pass the option `inclusive` as `true`.
+   * This method will validate if the number is greater than the value passed. If you want to allow the number to be
+   * equal to the value, you can pass the option `inclusive` as `true`.
    * Otherwise, it will only allow numbers greater than the value.
    *
    * @example
@@ -650,101 +777,15 @@ export default class NumberSchema<
     this.__min = {
       value,
       inclusive,
-      message,
+      message
     };
 
     return this;
   }
 
   /**
-   * Allows only negative numbers. If you want to allow zero, you can pass the option `allowZero` as `true`. Otherwise, it will only allow negative numbers.
-   *
-   * @example
-   * ```typescript
-   * import * as p from '@palmares/schema';
-   *
-   * const schema = p.number().negative();
-   *
-   * schema.parse(-10); // { errors: [], parsed: -10 }
-   * schema.parse(0); // { errors: [{ code: 'negative', message: 'The number should be negative' }], parsed: 0 }
-   *
-   * const schema = p.number().negative({ allowZero: true });
-   *
-   * schema.parse(0); // { errors: [], parsed: 0 }
-   * ```
-   *
-   * @param options - The options to be passed to the validation
-   * @param options.allowZero - If you want to allow zero, you can pass this option as `true`. Otherwise, it will only allow negative numbers.
-   * @param options.message - The message to be returned if the validation fails
-   *
-   * @returns - The schema instance
-   */
-  negative(options?: { allowZero?: boolean; message?: string }) {
-    const allowZero = typeof options?.allowZero === 'boolean' ? options.allowZero : true;
-    const message =
-      typeof options?.message === 'string' ? options.message : DEFAULT_NUMBER_NEGATIVE_EXCEPTION(allowZero);
-
-    this.__allowNegative = {
-      allowZero,
-      message,
-    };
-    return this as unknown as NumberSchema<
-      {
-        input: TType['input'];
-        output: TType['output'];
-        representation: TType['representation'];
-        internal: TType['internal'];
-        validate: TType['validate'];
-      },
-      TDefinitions
-    >;
-  }
-
-  /**
-   * Allows only positive numbers. If you want to allow zero, you can pass the option `allowZero` as `true`. Otherwise, it will only allow positive numbers greater than zero.
-   *
-   * @example
-   * ```typescript
-   * import * as p from '@palmares/schema';
-   *
-   * const schema = p.number().positive();
-   *
-   * schema.parse(10); // { errors: [], parsed: 10 }
-   * schema.parse(0); // { errors: [{ code: 'positive', message: 'The number should be positive' }], parsed: 0 }
-   *
-   * const schema = p.number().positive({ allowZero: true });
-   * schema.parse(0); // { errors: [], parsed: 0 }
-   * ```
-   *
-   * @param options - The options to be passed to the validation
-   * @param options.allowZero - If you want to allow zero, you can pass this option as `true`. Otherwise, it will only allow positive numbers greater than zero.
-   * @param options.message - The message to be returned if the validation fails
-   *
-   * @returns - The schema instance
-   */
-  positive(options?: { allowZero?: boolean; message?: string }) {
-    const allowZero = typeof options?.allowZero === 'boolean' ? options.allowZero : true;
-    const message =
-      typeof options?.message === 'string' ? options.message : DEFAULT_NUMBER_NEGATIVE_EXCEPTION(allowZero);
-
-    this.__allowPositive = {
-      allowZero,
-      message,
-    };
-    return this as unknown as NumberSchema<
-      {
-        input: TType['input'];
-        output: TType['output'];
-        representation: TType['representation'];
-        internal: TType['internal'];
-        validate: TType['validate'];
-      },
-      TDefinitions
-    >;
-  }
-
-  /**
-   * This method will validate the number to have the exact number of decimal places. It's usually useful for decimal numbers like currencies.
+   * This method will validate the number to have the exact number of decimal places. It's usually useful for decimal
+   * numbers like currencies.
    *
    * @example
    * ```
@@ -752,7 +793,8 @@ export default class NumberSchema<
    *
    * schema.parse(10.00); // { errors: [], parsed: 10.00}
    *
-   * schema.parse(10.000); // { errors: [{ code: 'decimal_places', message: 'The number should have 2 decimal places' }], parsed: 10.000}
+   * schema.parse(10.000);
+   * // { errors: [{ code: 'decimal_places', message: 'The number should have 2 decimal places' }], parsed: 10.000}
    * ```
    *
    * @param value - The number of decimal places.
@@ -762,11 +804,12 @@ export default class NumberSchema<
    * @returns The schema so you can chain other methods.
    */
   decimalPlaces(value: number, options?: { message?: string }) {
-    const message = typeof options?.message === 'string' ? options.message : `The number should have ${value} decimal places`;
+    const message =
+      typeof options?.message === 'string' ? options.message : `The number should have ${value} decimal places`;
 
     this.__decimalPlaces = {
       value,
-      message,
+      message
     };
     return this as unknown as NumberSchema<
       {
@@ -781,8 +824,8 @@ export default class NumberSchema<
   }
 
   /**
-   * This method will validate the number to have at most the number of digits specified. If used in conjunction with {@link decimalPlaces}, this number should be bigger than the
-   * value of the decimal places.
+   * This method will validate the number to have at most the number of digits specified. If used in conjunction with
+   * {@link decimalPlaces}, this number should be bigger than the value of the decimal places.
    *
    * Think about that
    *
@@ -805,11 +848,12 @@ export default class NumberSchema<
    * @returns - The schema so you can chain other methods.
    */
   maxDigits(value: number, options?: { message?: string }) {
-    const message = typeof options?.message === 'string' ? options.message : `The number should have at most ${value} digits`;
+    const message =
+      typeof options?.message === 'string' ? options.message : `The number should have at most ${value} digits`;
 
     this.__maxDigits = {
       value,
-      message,
+      message
     };
     return this as unknown as NumberSchema<
       {
@@ -845,7 +889,7 @@ export default class NumberSchema<
     const message = typeof options?.message === 'string' ? options.message : DEFAULT_NUMBER_INTEGER_EXCEPTION();
 
     this.__integer = {
-      message,
+      message
     };
     return this as unknown as NumberSchema<
       {
@@ -862,21 +906,14 @@ export default class NumberSchema<
   static new<TDefinitions extends DefinitionsOfSchemaType>() {
     const returnValue = new NumberSchema<
       {
-        input: number | bigint;
-        output: number | bigint;
-        internal: number | bigint;
-        representation: number | bigint;
-        validate: number | bigint;
+        input: number;
+        output: number;
+        internal: number;
+        representation: number;
+        validate: number;
       },
       TDefinitions
     >();
-    const adapterInstance = getDefaultAdapter();
-
-    returnValue.__transformedSchemas[adapterInstance.constructor.name] = {
-      transformed: false,
-      adapter: adapterInstance,
-      schemas: [],
-    };
 
     return returnValue;
   }

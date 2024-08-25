@@ -3,20 +3,14 @@ import { SchemaAdapterNotImplementedError } from '../../exceptions';
 
 import type SchemaAdapter from '..';
 import type WithFallback from '../../utils';
-import type { ObjectAdapterTranslateArgs } from '../types';
-
+import type { ObjectAdapterToStringArgs, ObjectAdapterTranslateArgs } from '../types';
 
 export function objectFieldAdapter<
   TTranslate extends ObjectFieldAdapter['translate'],
   TToString extends ObjectFieldAdapter['toString'],
   TFormatError extends ObjectFieldAdapter['formatError'],
   TParse extends ObjectFieldAdapter['parse']
->(args: {
-  translate: TTranslate;
-  toString?: TToString;
-  formatError?: TFormatError;
-  parse?: TParse;
-}) {
+>(args: { translate: TTranslate; toString?: TToString; formatError?: TFormatError; parse?: TParse }) {
   class CustomObjectFieldAdapter extends ObjectFieldAdapter {
     translate = args.translate;
     toString = args.toString as TToString;
@@ -30,8 +24,8 @@ export function objectFieldAdapter<
       toString: TToString;
       formatError: TFormatError;
       parse: TParse;
-    }
-  }
+    };
+  };
 }
 
 export default class ObjectFieldAdapter extends FieldAdapter {
@@ -45,5 +39,14 @@ export default class ObjectFieldAdapter extends FieldAdapter {
     _args: ObjectAdapterTranslateArgs
   ): Promise<{ errors: any; parsed: any }> {
     throw new SchemaAdapterNotImplementedError({ className: this.constructor.name, functionName: 'parse' });
+  }
+
+  toString(
+    _adapter: SchemaAdapter,
+    _fieldAdapter: FieldAdapter,
+    _args: ObjectAdapterToStringArgs,
+    _base?: any
+  ): Promise<string> {
+    throw new SchemaAdapterNotImplementedError({ className: this.constructor.name, functionName: 'toString' });
   }
 }

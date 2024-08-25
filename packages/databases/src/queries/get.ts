@@ -9,7 +9,7 @@ import type {
   FieldsOfModelOptionsType,
   Includes,
   ModelFieldsWithIncludes,
-  OrderingOfModelsType,
+  OrderingOfModelsType
 } from '../models/types';
 
 export default async function getQuery<
@@ -18,7 +18,7 @@ export default async function getQuery<
   TFieldsOfModel extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>,
   TSearch extends
     | ModelFieldsWithIncludes<TModel, TIncludes, TFieldsOfModel, false, false, true, true>
-    | undefined = undefined,
+    | undefined = undefined
 >(
   args: {
     ordering?: OrderingOfModelsType<
@@ -28,10 +28,11 @@ export default async function getQuery<
      * This object is used to specify if we should try to parse the data on input or output. Or both.
      * By default we always parse the data.
      *
-     * What is parsing the data? It's guaranteeing that the data is in the right format that you expect. Like on Prisma, a decimal might be Decimal.js, but on palmares, we try
-     * to guarantee it's always a number.
-     * By default we loop through the data retrieved and we parse it to the right format. Some fields can implement their parser, others might not.
-     * The problem is that we will always loop through the fields so it can bring some performance issues.
+     * What is parsing the data? It's guaranteeing that the data is in the right format that you expect. Like on Prisma,
+     * a decimal might be Decimal.js, but on palmares, we try to guarantee it's always a number.
+     * By default we loop through the data retrieved and we parse it to the right format. Some fields can implement
+     * their parser, others might not. The problem is that we will always loop through the fields so it can bring some
+     * performance issues.
      */
     useParsers?: boolean;
     limit?: number;
@@ -51,7 +52,7 @@ export default async function getQuery<
   const selectedFields = (args.fields || Object.keys(modelInstanceAsModel.fields)) as TFieldsOfModel;
   const useParsers = {
     input: true,
-    output: typeof args.useParsers === 'boolean' ? args.useParsers : true,
+    output: typeof args.useParsers === 'boolean' ? args.useParsers : true
   };
   let hasRun = false;
   if (internal.engine.query.get.queryDataNatively) {
@@ -65,7 +66,12 @@ export default async function getQuery<
         selectedFields as unknown as string[],
         internal.includes,
         async (modelInstance: InstanceType<ReturnType<typeof model>>, search: any) =>
-          parseSearch(internal.engine, modelInstance, await modelConstructor.default.getInstance(internal.engine.connectionName), search)
+          parseSearch(
+            internal.engine,
+            modelInstance,
+            await modelConstructor.default.getInstance(internal.engine.connectionName),
+            search
+          )
       );
     } catch (e) {
       if ((e as Error).name === NotImplementedAdapterException.name) hasRun = false;

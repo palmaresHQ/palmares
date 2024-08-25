@@ -4,8 +4,10 @@ import type { DomainReadyFunctionArgs } from './types';
 import type { DefaultCommandType } from '../commands/types';
 
 /**
- * The domain defines one of the domains of your application. Think about domains as small self-contained applications. Your app is a collection of multiple domains.
- * EVERYTHING is a domain, the server is a domain, the database is a domain. Domains are the building blocks of your application. Everything inside Palmares starts with domains.
+ * The domain defines one of the domains of your application. Think about domains as
+ * small self-contained applications. Your app is a collection of multiple domains.
+ * EVERYTHING is a domain, the server is a domain, the database is a domain. Domains are
+ * the building blocks of your application. Everything inside Palmares starts with domains.
  */
 export default class Domain<TModifiers = any> {
   commands = {} as DefaultCommandType | undefined;
@@ -34,7 +36,8 @@ export default class Domain<TModifiers = any> {
   /**
    * Runs when the domain is loaded. The domain is loaded whenever you run the app. This is obligatory to run.
    *
-   * By default if you define to return a callback function this callback function will be called after all of the domains are loaded.
+   * By default if you define to return a callback function this callback function
+   * will be called after all of the domains are loaded.
    */
   load?(
     settings: any

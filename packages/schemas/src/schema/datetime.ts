@@ -1,5 +1,4 @@
 import Schema from './schema';
-import { getDefaultAdapter } from '../conf';
 import { defaultTransform, defaultTransformToAdapter } from '../utils';
 import { above, allowStringParser, below, datetimeValidation } from '../validators/datetime';
 import { nullable, optional } from '../validators/schema';
@@ -20,7 +19,7 @@ export default class DatetimeSchema<
     representation: string;
     validate: Date;
   },
-  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
+  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
 > extends Schema<TType, TDefinitions> {
   protected __allowString!: boolean;
 
@@ -33,6 +32,21 @@ export default class DatetimeSchema<
     value: Date;
     inclusive: boolean;
     message: string;
+  };
+
+  protected __type: {
+    message: string;
+    check: (value: TType['input']) => boolean;
+  } = {
+    message: 'Invalid type',
+    check: (value: any) => {
+      if (typeof value === 'string') {
+        const valueAsDate = new Date(value);
+        if (isNaN(valueAsDate.getTime())) return false;
+        return true;
+      }
+      return value instanceof Date;
+    }
   };
 
   protected async __transformToAdapter(options: Parameters<Schema['__transformToAdapter']>[0]): Promise<any> {
@@ -49,9 +63,10 @@ export default class DatetimeSchema<
             above: this.__above,
             nullable: this.__nullable,
             optional: this.__optional,
+            type: this.__type,
             parsers: {
               nullable: this.__nullable.allow,
-              optional: this.__optional.allow,
+              optional: this.__optional.allow
             }
           }),
           {
@@ -59,16 +74,17 @@ export default class DatetimeSchema<
             nullable,
             allowString: allowStringParser,
             above,
-            below,
+            below
           },
           {
             validatorsIfFallbackOrNotSupported: datetimeValidation(),
             shouldAddStringVersion: options.shouldAddStringVersion,
             // eslint-disable-next-line ts/require-await
-            fallbackIfNotSupported: async () => [],
+            fallbackIfNotSupported: async () => []
           }
         );
       },
+      this,
       this.__transformedSchemas,
       options,
       'datetime'
@@ -76,7 +92,8 @@ export default class DatetimeSchema<
   }
 
   /**
-   * This let's you refine the schema with custom validations. This is useful when you want to validate something that is not supported by default by the schema adapter.
+   * This let's you refine the schema with custom validations. This is useful when you want to validate something
+   * that is not supported by default by the schema adapter.
    *
    * @example
    * ```typescript
@@ -88,7 +105,8 @@ export default class DatetimeSchema<
    *
    * const { errors, parsed } = await numberSchema.parse(-1);
    *
-   * console.log(errors); // [{ isValid: false, code: 'invalid_number', message: 'The number should be greater than 0', path: [] }]
+   * // [{ isValid: false, code: 'invalid_number', message: 'The number should be greater than 0', path: [] }]
+   * console.log(errors);
    * ```
    *
    * @param refinementCallback - The callback that will be called to validate the value.
@@ -98,7 +116,13 @@ export default class DatetimeSchema<
    * @returns The schema.
    */
   refine(
-    refinementCallback: (value: TType['input']) => Promise<void | undefined | { code: string; message: string }> | void | undefined | { code: string; message: string }
+    refinementCallback: (
+      value: TType['input']
+    ) =>
+      | Promise<void | undefined | { code: string; message: string }>
+      | void
+      | undefined
+      | { code: string; message: string }
   ) {
     return super.refine(refinementCallback) as unknown as DatetimeSchema<
       {
@@ -107,7 +131,8 @@ export default class DatetimeSchema<
         internal: TType['internal'];
         output: TType['output'];
         representation: TType['representation'];
-      }, TDefinitions
+      },
+      TDefinitions
     >;
   }
 
@@ -149,8 +174,36 @@ export default class DatetimeSchema<
   }
 
   /**
-   * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value is NULL by setting
-   * the { message: 'Your custom message', allow: false } on the options.
+   * Just adds a message when the value is undefined. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.datetime().optional({ message: 'This value should be defined', allow: false })
+   * ```
+   *
+   * @param options - The options of nonOptional function
+   * @param options.message - A custom message if the value is undefined.
+   *
+   * @returns - The schema.
+   */
+  nonOptional(options?: { message: string }) {
+    return super.optional({
+      message: options?.message,
+      allow: false
+    }) as unknown as DatetimeSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
+   * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value
+   * is NULL by setting the { message: 'Your custom message', allow: false } on the options.
    *
    * @example
    * ```typescript
@@ -187,14 +240,43 @@ export default class DatetimeSchema<
   }
 
   /**
-   * This method will remove the value from the representation of the schema. If the value is undefined it will keep that way
-   * otherwise it will set the value to undefined after it's validated.
+   * Just adds a message when the value is null. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.datetime().nullable({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonNullable function
+   * @param options.message - A custom message if the value is null.
+   *
+   * @returns - The schema.
+   */
+  nonNullable(options?: { message: string }) {
+    return super.nullable({
+      message: options?.message || '',
+      allow: false
+    }) as unknown as DatetimeSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
+   * This method will remove the value from the representation of the schema. If the value is undefined it will keep
+   * that way otherwise it will set the value to undefined after it's validated.
    * This is used in conjunction with the {@link data} function, the {@link parse} function or {@link validate}
    * function. This will remove the value from the representation of the schema.
    *
-   * By default, the value will be removed just from the representation, in other words, when you call the {@link data} function.
-   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal` as true.
-   * Then if you still want to remove the value from the representation, you will need to pass the argument `toRepresentation` as true as well.
+   * By default, the value will be removed just from the representation, in other words, when you call the {@link data}
+   * function.But if you want to remove the value from the internal representation, you can pass the argument
+   * `toInternal` as true. Then if you still want to remove the value from the representation, you will need to pass
+   * the argument `toRepresentation` as true as well.
    *
    * @example
    * ```typescript
@@ -216,16 +298,18 @@ export default class DatetimeSchema<
    * ```
    *
    *
-   * @param args - By default, the value will be removed just from the representation, in other words, when you call the {@link data} function.
-   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal` as true.
-   * Then if you still want to remove the value from the representation, you will need to pass the argument `toRepresentation` as true as well.
+   * @param args - By default, the value will be removed just from the representation, in other words, when you call
+   * the {@link data} function.
+   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal` as
+   * true. Then if you still want to remove the value from the representation, you will need to pass the argument
+   * `toRepresentation` as true as well.
    *
    * @returns The schema.
    */
   omit<
     TToInternal extends boolean,
     TToRepresentation extends boolean = boolean extends TToInternal ? true : false
-  >(args?: { toInternal?: TToInternal, toRepresentation?: TToRepresentation }) {
+  >(args?: { toInternal?: TToInternal; toRepresentation?: TToRepresentation }) {
     return super.omit(args) as unknown as DatetimeSchema<
       {
         input: TToInternal extends true ? TType['input'] | undefined : TType['input'];
@@ -239,9 +323,9 @@ export default class DatetimeSchema<
   }
 
   /**
-   * This function is used in conjunction with the {@link validate} function. It's used to save a value to an external source
-   * like a database. You should always return the schema after you save the value, that way we will always have the correct type
-   * of the schema after the save operation.
+   * This function is used in conjunction with the {@link validate} function. It's used to save a value to an external
+   * source like a database. You should always return the schema after you save the value, that way we will always have
+   * the correct type of the schema after the save operation.
    *
    * You can use the {@link toRepresentation} function to transform and clean the value it returns after the save.
    *
@@ -295,9 +379,9 @@ export default class DatetimeSchema<
     >;
   }
 
-
   /**
-   * This function is used to add a default value to the schema. If the value is either undefined or null, the default value will be used.
+   * This function is used to add a default value to the schema. If the value is either undefined or null, the default
+   * value will be used.
    *
    * @example
    * ```typescript
@@ -326,8 +410,9 @@ export default class DatetimeSchema<
   }
 
   /**
-   * This function let's you customize the schema your own way. After we translate the schema on the adapter we call this function to let you customize
-   * the custom schema your own way. Our API does not support passthrough? No problem, you can use this function to customize the zod schema.
+   * This function let's you customize the schema your own way. After we translate the schema on the adapter we call
+   * this function to let you customize the custom schema your own way. Our API does not support passthrough?
+   * No problem, you can use this function to customize the zod schema.
    *
    * @example
    * ```typescript
@@ -339,12 +424,13 @@ export default class DatetimeSchema<
    *
    * const { errors, parsed } = await numberSchema.parse(-1);
    *
-   * console.log(errors); // [{ isValid: false, code: 'nonnegative', message: 'The number should be nonnegative', path: [] }]
+   * // [{ isValid: false, code: 'nonnegative', message: 'The number should be nonnegative', path: [] }]
+   * console.log(errors);
    * ```
    *
    * @param callback - The callback that will be called to customize the schema.
-   * @param toStringCallback - The callback that will be called to transform the schema to a string when you want to compile the underlying schema
-   * to a string so you can save it for future runs.
+   * @param toStringCallback - The callback that will be called to transform the schema to a string when you want to
+   * compile the underlying schema to a string so you can save it for future runs.
    *
    * @returns The schema.
    */
@@ -358,8 +444,9 @@ export default class DatetimeSchema<
   }
 
   /**
-   * This function is used to transform the value to the representation of the schema. When using the {@link data} function. With this function you have full
-   * control to add data cleaning for example, transforming the data and whatever. Another use case is when you want to return deeply nested recursive data.
+   * This function is used to transform the value to the representation of the schema. When using the {@link data}
+   * function. With this function you have full control to add data cleaning for example, transforming the data and
+   * whatever. Another use case is when you want to return deeply nested recursive data.
    * The schema maps to itself.
    *
    * @example
@@ -416,8 +503,9 @@ export default class DatetimeSchema<
   }
 
   /**
-   * This function is used to transform the value to the internal representation of the schema. This is useful when you want to transform the value
-   * to a type that the schema adapter can understand. For example, you might want to transform a string to a date. This is the function you use.
+   * This function is used to transform the value to the internal representation of the schema. This is useful when you
+   * want to transform the value to a type that the schema adapter can understand. For example, you might want to
+   * transform a string to a date. This is the function you use.
    *
    * @example
    * ```typescript
@@ -461,8 +549,9 @@ export default class DatetimeSchema<
   }
 
   /**
-   * Called before the validation of the schema. Let's say that you want to validate a date that might receive a string, you can convert that string to a date
-   * here BEFORE the validation. This pretty much transforms the value to a type that the schema adapter can understand.
+   * Called before the validation of the schema. Let's say that you want to validate a date that might receive a string,
+   * you can convert that string to a date here BEFORE the validation. This pretty much transforms the value to a type
+   * that the schema adapter can understand.
    *
    * @example
    * ```
@@ -494,7 +583,8 @@ export default class DatetimeSchema<
   }
 
   /**
-   * This will allow the value to be a string, it does not validate, it just parses inputs as strings and allows the result to be a string as well.
+   * This will allow the value to be a string, it does not validate, it just parses inputs as strings and allows the
+   * result to be a string as well.
    *
    * @example
    * ```typescript
@@ -536,7 +626,8 @@ export default class DatetimeSchema<
    *
    * @param value - The value that we are comparing against.
    * @param options - The options that we are passing to the validator.
-   * @param options.inclusive - If the value is inclusive or not. In other words, if the value can be equal to the specified date.
+   * @param options.inclusive - If the value is inclusive or not. In other words, if the value can be equal to
+   * the specified date.
    * @param options.message - The message that we are returning if the value is not above the specified date.
    *
    * @returns - The schema instance
@@ -548,7 +639,7 @@ export default class DatetimeSchema<
     this.__above = {
       value,
       inclusive,
-      message,
+      message
     };
     return this;
   }
@@ -569,7 +660,8 @@ export default class DatetimeSchema<
    *
    * @param value - The value that we are comparing against.
    * @param options - The options that we are passing to the validator.
-   * @param options.inclusive - If the value is inclusive or not. In other words, if the value can be equal to the specified date.
+   * @param options.inclusive - If the value is inclusive or not. In other words, if the value can be equal to the
+   * specified date.
    * @param options.message - The message that we are returning if the value is not above the specified date.
    *
    * @returns - The schema instance
@@ -581,7 +673,7 @@ export default class DatetimeSchema<
     this.__below = {
       value,
       inclusive,
-      message,
+      message
     };
     return this;
   }
@@ -597,14 +689,6 @@ export default class DatetimeSchema<
       },
       TDefinitions
     >();
-
-    const adapterInstance = getDefaultAdapter();
-
-    returnValue.__transformedSchemas[adapterInstance.constructor.name] = {
-      transformed: false,
-      adapter: adapterInstance,
-      schemas: [],
-    };
 
     return returnValue;
   }

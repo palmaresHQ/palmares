@@ -4,7 +4,7 @@ import { formatErrorFromParseMethod } from '../utils';
 import type {
   DefinitionsOfSchemaType,
   OnlyFieldAdaptersFromSchemaAdapter,
-  ValidationFallbackCallbackReturnType,
+  ValidationFallbackCallbackReturnType
 } from './types';
 import type SchemaAdapter from '../adapter';
 import type FieldAdapter from '../adapter/fields';
@@ -25,13 +25,17 @@ export default class Schema<
     output: any;
     representation: any;
   },
-  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
+  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
 > {
-  // Those functions will assume control of the validation process on adapters, instead of the schema. Why this is used? The idea is that the Schema has NO idea
-  // that one of it's children might be an UnionSchema for example. The adapter might not support unions, so then we give control to the union. The parent schema
-  // Will already have an array of translated adapter schemas. This means for a union with Number and String it'll generate two schemas, one for number and one for the value as String.
-  // Of course this gets multiplied. So if we have a union with Number and String. We should take those two schemas from the array and validate them individually. This logic is
-  // handled by the union schema. If we have an intersection type for example, instead of validating One schema OR the other, we validate one schema AND the other. This will be handled
+  // Those functions will assume control of the validation process on adapters, instead of the schema.
+  // Why this is used? The idea is that the Schema has NO idea
+  // that one of it's children might be an UnionSchema for example. The adapter might not support unions,
+  // so then we give control to the union. The parent schema will already have an array of translated
+  // adapter schemas. This means for a union with Number and String it'll generate two schemas, one for number
+  // and one for the value as String. Of course this gets multiplied. So if we have a union with Number and String.
+  // We should take those two schemas from the array and validate them individually. This logic is
+  // handled by the union schema. If we have an intersection type for example, instead of validating
+  // One schema OR the other, we validate one schema AND the other. This will be handled
   // by the schema that contains that intersection logic.
   protected __beforeValidationCallbacks: Map<
     string,
@@ -48,16 +52,16 @@ export default class Schema<
     ) => ReturnType<Schema['__validateByAdapter']>
   > = new Map();
 
-  protected __cachedGetParent?: (() => Schema<any, any>);
-  protected set __getParent(value: (() => Schema<any, any>)) {
+  protected __cachedGetParent?: () => Schema<any, any>;
+  protected set __getParent(value: () => Schema<any, any>) {
     this.__cachedGetParent = value;
   }
   protected get __getParent(): (() => Schema<any, any>) | undefined {
-    return this.__cachedGetParent
+    return this.__cachedGetParent;
   }
 
-  protected __alreadyAppliedModel = false;
-  protected __runBeforeParseAndData?: (self: any) => Promise<void>
+  protected __alreadyAppliedModel?: Promise<any>;
+  protected __runBeforeParseAndData?: (self: any) => Promise<void>;
   protected __rootFallbacksValidator!: Validator;
   protected __saveCallback?: (value: any) => Promise<any | void> | any | void;
   protected __modelOmitCallback?: () => void;
@@ -79,29 +83,35 @@ export default class Schema<
     high: new Map(),
     medium: new Map(),
     low: new Map(),
-    _fallbacks: new Set(),
+    _fallbacks: new Set()
   };
-  protected __refinements: ((value: any) => Promise<void | undefined | { code: string; message: string }> | void | undefined | { code: string; message: string })[] = [];
+  protected __refinements: ((
+    value: any
+  ) =>
+    | Promise<void | undefined | { code: string; message: string }>
+    | void
+    | undefined
+    | { code: string; message: string })[] = [];
   protected __nullable: {
     message: string;
     allow: boolean;
   } = {
     message: 'Cannot be null',
-    allow: false,
+    allow: false
   };
   protected __optional: {
     message: string;
     allow: boolean;
   } = {
     message: 'Required',
-    allow: false,
+    allow: false
   };
-  protected __extends: {
-    callback: (
-      schema: any
-    ) => any,
-    toStringCallback?: (schemaAsString: string) => string
-  } | undefined = undefined;
+  protected __extends:
+    | {
+        callback: (schema: any) => any;
+        toStringCallback?: (schemaAsString: string) => string;
+      }
+    | undefined = undefined;
 
   protected __transformedSchemas: Record<
     string,
@@ -120,11 +130,24 @@ export default class Schema<
     check: (value: TType['input']) => boolean;
   } = {
     message: 'Invalid type',
-    check: () => true,
+    check: () => true
   };
 
+  protected __getDefaultTransformedSchemas() {
+    const adapterInstance = getDefaultAdapter();
+
+    // eslint-disable-next-line ts/no-unnecessary-condition
+    if (this.__transformedSchemas[adapterInstance.constructor.name] === undefined)
+      this.__transformedSchemas[adapterInstance.constructor.name] = {
+        transformed: false,
+        adapter: adapterInstance,
+        schemas: []
+      };
+  }
+
   /**
-   * This will validate the data with the fallbacks, so internally, without relaying on the schema adapter. This is nice because we can support things that the schema adapter is not able to support by default.
+   * This will validate the data with the fallbacks, so internally, without relaying on the schema adapter.
+   * This is nice because we can support things that the schema adapter is not able to support by default.
    *
    * @param errorsAsHashedSet - The errors as a hashed set. This is used to prevent duplicate errors.
    * @param path - The path of the error.
@@ -140,15 +163,17 @@ export default class Schema<
   ) {
     // eslint-disable-next-line ts/no-unnecessary-condition
     if (this.__rootFallbacksValidator)
-      return this.__rootFallbacksValidator.validate(options.errorsAsHashedSet || new Set(), path, parseResult, options);
+      return this.__rootFallbacksValidator.validate(options.errorsAsHashedSet as Set<any>, path, parseResult, options);
 
     return parseResult;
   }
 
   /**
-   * This will validate by the adapter. In other words, we send the data to the schema adapter and then we validate that data.
-   * So understand that, first we send the data to the adapter, the adapter validates it, then, after we validate from the adapter
-   * we validate with the fallbacks so we can do all of the extra validations not handled by the adapter.
+   * This will validate by the adapter. In other words, we send the data to the schema adapter and then we validate
+   * that data.
+   * So understand that, first we send the data to the adapter, the adapter validates it, then, after we validate
+   * from the adapter we validate with the fallbacks so we can do all of the extra validations not handled by
+   * the adapter.
    *
    * @param value - The value to be validated.
    * @param errorsAsHashedSet - The errors as a hashed set. This is used to prevent duplicate errors on the validator.
@@ -167,7 +192,7 @@ export default class Schema<
   ) {
     const parseResult: Awaited<ReturnType<Schema['__parse']>> = {
       errors: [],
-      parsed: value,
+      parsed: value
     };
     // On the next iteration we will reset the errors and the parsed value
     parseResult.errors = [];
@@ -176,7 +201,13 @@ export default class Schema<
     // eslint-disable-next-line ts/no-unnecessary-condition
     if (fieldAdapter === undefined || typeof fieldAdapter.parse !== 'function') return parseResult;
 
-    const adapterParseResult = await fieldAdapter.parse(adapter, adapter.field, schema.transformed, value, options.args);
+    const adapterParseResult = await fieldAdapter.parse(
+      adapter,
+      adapter.field,
+      schema.transformed,
+      value,
+      options.args
+    );
 
     parseResult.parsed = adapterParseResult.parsed;
 
@@ -184,7 +215,15 @@ export default class Schema<
       if (Array.isArray(adapterParseResult.errors))
         parseResult.errors = await Promise.all(
           adapterParseResult.errors.map(async (error) =>
-            formatErrorFromParseMethod(adapter, fieldAdapter, error, path, options.errorsAsHashedSet || new Set())
+            formatErrorFromParseMethod(
+              adapter,
+              fieldAdapter,
+              error,
+              value,
+              schema.transformed,
+              path,
+              options.errorsAsHashedSet || new Set()
+            )
           )
         );
       else
@@ -193,24 +232,28 @@ export default class Schema<
             adapter,
             fieldAdapter,
             parseResult.errors,
+            value,
+            schema.transformed,
             path,
             options.errorsAsHashedSet || new Set()
-          ),
+          )
         ];
     }
+    parseResult.errors = parseResult.errors.filter((error) => typeof error !== 'undefined');
     return parseResult;
   }
 
   // eslint-disable-next-line ts/require-await
   protected async __transformToAdapter(_options: {
     // force to transform
-    args: Omit<ValidationDataBasedOnType<any>, 'withFallback'>
+    args: Omit<ValidationDataBasedOnType<any>, 'withFallback'>;
     force?: boolean;
     toInternalToBubbleUp?: (() => Promise<void>)[];
     schemaAdapter?: SchemaAdapter;
     errorsAsHashedSet?: Set<string>;
     shouldAddStringVersion?: boolean;
     appendFallbacksBeforeAdapterValidation?: (
+      schema: Schema<any, any>,
       uniqueNameOfFallback: string,
       fallbackValidationBeforeAdapter: (
         adapterToUse: SchemaAdapter,
@@ -236,6 +279,7 @@ export default class Schema<
   /** */
   protected async __parsersToTransformValue(value: any, parsersToUse?: Set<string>) {
     let shouldStop = false;
+
     for (const [parserName, parser] of this.__parsers.high.entries()) {
       if (parsersToUse instanceof Set === false || parsersToUse.has(parserName)) {
         const result = await Promise.resolve(parser(value));
@@ -270,11 +314,16 @@ export default class Schema<
     path: ValidationFallbackCallbackReturnType['errors'][number]['path'] = [],
     options: Parameters<Schema['__transformToAdapter']>[0]
   ): Promise<{ errors: any[]; parsed: TType['internal'] }> {
+    this.__getDefaultTransformedSchemas();
     if (typeof this.__runBeforeParseAndData === 'function') await this.__runBeforeParseAndData(this);
-    // This is used to run the toInternal command. If we didn't do this, we would need to parse through all of the schemas to run the toInternal command,
-    // from the leafs (ObjectSchemas) to the root schema. This is not a good idea, so what we do is that during validation the leafs attach a function to
-    // the options.toInternalToBubbleUp like `options.toInternalToBubbleUp.push(async () => (value[key] = await (schema as any).__toInternal(parsed)));``
-    // This way, when the root schema finishes the validation, it will run all of the functions in the toInternalToBubbleUp array, modifying the parsed value.
+
+    // This is used to run the toInternal command. If we didn't do this, we would need to parse through all of
+    // the schemas to run the toInternal command, from the leafs (ObjectSchemas) to the root schema. This is not
+    // a good idea, so what we do is that during validation the leafs attach a function to the
+    // options.toInternalToBubbleUp like
+    // `options.toInternalToBubbleUp.push(async () => (value[key] = await (schema as any).__toInternal(parsed)));``
+    // This way, when the root schema finishes the validation, it will run all of the functions in the
+    // toInternalToBubbleUp array, modifying the parsed value.
     const shouldRunToInternalToBubbleUp = options.toInternalToBubbleUp === undefined;
     if (shouldRunToInternalToBubbleUp) options.toInternalToBubbleUp = [];
     if (options.errorsAsHashedSet instanceof Set === false) options.errorsAsHashedSet = new Set();
@@ -292,16 +341,20 @@ export default class Schema<
       errors: ValidationFallbackCallbackReturnType['errors'];
       parsed: TType['input'];
     } = { errors: [], parsed: value };
+    value = await this.__parsersToTransformValue(value, this.__parsers._fallbacks);
 
     if (options.appendFallbacksBeforeAdapterValidation === undefined)
-      options.appendFallbacksBeforeAdapterValidation = (name, callback) => {
-        this.__beforeValidationCallbacks.set(name, callback);
+      options.appendFallbacksBeforeAdapterValidation = (schema, name, callback) => {
+        // We just need this if the union adapter is net defined but the parent is not of the same type.
+        // For example, it's a union child of o object schema
+        if (this !== schema) this.__beforeValidationCallbacks.set(name, callback);
       };
 
-    if (this.__transformedSchemas[options.schemaAdapter?.constructor.name || getDefaultAdapter().constructor.name].transformed === false)
+    if (
+      this.__transformedSchemas[options.schemaAdapter?.constructor.name || getDefaultAdapter().constructor.name]
+        .transformed === false
+    )
       await this.__transformToAdapter(options);
-
-    value = await this.__parsersToTransformValue(value, this.__parsers._fallbacks);
 
     const adapterToUse = options.schemaAdapter
       ? options.schemaAdapter
@@ -310,8 +363,8 @@ export default class Schema<
     const parsedResultsAfterFallbacks = await this.__validateByFallbacks(
       path,
       {
-        errors: [],
-        parsed: value,
+        errors: parseResult.errors,
+        parsed: value
       },
       options
     );
@@ -319,7 +372,8 @@ export default class Schema<
     parseResult.parsed = parsedResultsAfterFallbacks.parsed;
     // eslint-disable-next-line ts/no-unnecessary-condition
     parseResult.errors = (parseResult.errors || []).concat(parsedResultsAfterFallbacks.errors || []);
-    // With this, the children takes control of validating by the adapter. For example on a union schema we want to validate all of the schemas and choose the one that has no errors.
+    // With this, the children takes control of validating by the adapter. For example on a union schema we
+    // want to validate all of the schemas and choose the one that has no errors.
     if (this.__beforeValidationCallbacks.size > 0) {
       for (const callback of this.__beforeValidationCallbacks.values()) {
         const parsedValuesAfterValidationCallbacks = await callback(
@@ -332,7 +386,13 @@ export default class Schema<
           options
         );
         parseResult.parsed = parsedValuesAfterValidationCallbacks.parsed;
-        parseResult.errors = parsedValuesAfterValidationCallbacks.errors;
+
+        parseResult.errors =
+          Array.isArray(parseResult.errors) && Array.isArray(parsedValuesAfterValidationCallbacks.errors)
+            ? [...parseResult.errors, ...parsedValuesAfterValidationCallbacks.errors]
+            : Array.isArray(parseResult.errors)
+              ? parseResult.errors
+              : parsedValuesAfterValidationCallbacks.errors;
       }
     } else {
       const parsedValuesAfterValidatingByAdapter = await this.__validateByAdapter(
@@ -343,30 +403,33 @@ export default class Schema<
         path,
         options
       );
+
       parseResult.parsed = parsedValuesAfterValidatingByAdapter.parsed;
       // eslint-disable-next-line ts/no-unnecessary-condition
       parseResult.errors = (parseResult.errors || []).concat(parsedValuesAfterValidatingByAdapter.errors);
     }
 
-
-    const doesNotHaveErrors = !Array.isArray(parseResult.errors) || parseResult.errors.length === 0;
     const hasToInternalCallback = typeof this.__toInternal === 'function';
     const shouldCallToInternalDuringParse =
-      doesNotHaveErrors && hasToInternalCallback && Array.isArray(options.toInternalToBubbleUp) === false;
+      hasToInternalCallback &&
+      (options.toInternalToBubbleUp?.length === 0 || Array.isArray(options.toInternalToBubbleUp) === false);
     // eslint-disable-next-line ts/no-unnecessary-condition
     const hasNoErrors = parseResult.errors === undefined || (parseResult.errors || []).length === 0;
 
-    await Promise.all(this.__refinements.map(async (refinement) => {
-      const errorOrNothing = await Promise.resolve(refinement(parseResult.parsed));
+    await Promise.all(
+      this.__refinements.map(async (refinement) => {
+        const errorOrNothing = await Promise.resolve(refinement(parseResult.parsed));
 
-      if (typeof errorOrNothing === 'undefined') return;
-      parseResult.errors.push({
-        isValid: false,
-        code: errorOrNothing.code as any,
-        message: errorOrNothing.message,
-        path,
-      });
-    }));
+        if (typeof errorOrNothing === 'undefined') return;
+        parseResult.errors.push({
+          isValid: false,
+          code: errorOrNothing.code as any,
+          message: errorOrNothing.message,
+          received: parseResult.parsed,
+          path
+        });
+      })
+    );
 
     if (shouldCallToInternalDuringParse && hasNoErrors) parseResult.parsed = await (this.__toInternal as any)(value);
     if (shouldRunToInternalToBubbleUp && hasNoErrors)
@@ -376,7 +439,8 @@ export default class Schema<
   }
 
   /**
-   * This let's you refine the schema with custom validations. This is useful when you want to validate something that is not supported by default by the schema adapter.
+   * This let's you refine the schema with custom validations. This is useful when you want to validate something
+   * that is not supported by default by the schema adapter.
    *
    * @example
    * ```typescript
@@ -388,7 +452,8 @@ export default class Schema<
    *
    * const { errors, parsed } = await numberSchema.parse(-1);
    *
-   * console.log(errors); // [{ isValid: false, code: 'invalid_number', message: 'The number should be greater than 0', path: [] }]
+   * console.log(errors);
+   * // [{ isValid: false, code: 'invalid_number', message: 'The number should be greater than 0', path: [] }]
    * ```
    *
    * @param refinementCallback - The callback that will be called to validate the value.
@@ -396,7 +461,13 @@ export default class Schema<
    * @param options.isAsync - Whether the callback is async or not. Defaults to true.
    */
   refine(
-    refinementCallback: (value: TType['input']) => Promise<void | undefined | { code: string; message: string }> | void | undefined | { code: string; message: string }
+    refinementCallback: (
+      value: TType['input']
+    ) =>
+      | Promise<void | undefined | { code: string; message: string }>
+      | void
+      | undefined
+      | { code: string; message: string }
   ) {
     this.__refinements.push(refinementCallback);
 
@@ -407,7 +478,8 @@ export default class Schema<
         internal: TType['internal'];
         output: TType['output'];
         representation: TType['representation'];
-      }, TDefinitions
+      },
+      TDefinitions
     >;
   }
 
@@ -438,7 +510,7 @@ export default class Schema<
   optional(options?: { message?: string; allow?: false }) {
     this.__optional = {
       message: typeof options?.message === 'string' ? options.message : 'Required',
-      allow: typeof options?.allow === 'boolean' ? options.allow : true,
+      allow: typeof options?.allow === 'boolean' ? options.allow : true
     };
 
     return this as unknown as Schema<
@@ -454,8 +526,8 @@ export default class Schema<
   }
 
   /**
-   * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value is NULL by setting
-   * the { message: 'Your custom message', allow: false } on the options.
+   * Allows the value to be null and ONLY null. You can also use this function to set a custom message when
+   * the value is NULL by setting the { message: 'Your custom message', allow: false } on the options.
    *
    * @example
    * ```typescript
@@ -481,7 +553,7 @@ export default class Schema<
   nullable(options?: { message: string; allow: false }) {
     this.__nullable = {
       message: typeof options?.message === 'string' ? options.message : 'Cannot be null',
-      allow: typeof options?.allow === 'boolean' ? options.allow : true,
+      allow: typeof options?.allow === 'boolean' ? options.allow : true
     };
 
     return this as unknown as Schema<
@@ -499,8 +571,8 @@ export default class Schema<
   /**
    * Appends a custom schema to the schema, this way it will bypass the creation of the schema in runtime.
    *
-   * By default when validating, on the first validation we create the schema. Just during the first validation. With this function, you bypass that,
-   * so you can speed up the validation process.
+   * By default when validating, on the first validation we create the schema. Just during the first validation.
+   * With this function, you bypass that, so you can speed up the validation process.
    *
    * @example
    * ```typescript
@@ -524,7 +596,7 @@ export default class Schema<
     this.__transformedSchemas[adapter.constructor.name] = {
       transformed: true,
       adapter: adapter,
-      schemas: [schema],
+      schemas: [schema]
     };
 
     return this as unknown as Schema<
@@ -540,14 +612,15 @@ export default class Schema<
   }
 
   /**
-   * This method will remove the value from the representation of the schema. If the value is undefined it will keep that way
-   * otherwise it will set the value to undefined after it's validated.
+   * This method will remove the value from the representation of the schema. If the value is undefined it will keep
+   * that way otherwise it will set the value to undefined after it's validated.
    * This is used in conjunction with the {@link data} function, the {@link parse} function or {@link validate}
    * function. This will remove the value from the representation of the schema.
    *
-   * By default, the value will be removed just from the representation, in other words, when you call the {@link data} function.
-   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal` as true.
-   * Then if you still want to remove the value from the representation, you will need to pass the argument `toRepresentation` as true as well.
+   * By default, the value will be removed just from the representation, in other words, when you call the {@link data}
+   * function. But if you want to remove the value from the internal representation, you can pass the argument
+   * `toInternal` as true. Then if you still want to remove the value from the representation, you will need to pass
+   * the argument `toRepresentation` as true as well.
    *
    * @example
    * ```typescript
@@ -569,18 +642,21 @@ export default class Schema<
    * ```
    *
    *
-   * @param args - By default, the value will be removed just from the representation, in other words, when you call the {@link data} function.
-   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal` as true.
-   * Then if you still want to remove the value from the representation, you will need to pass the argument `toRepresentation` as true as well.
+   * @param args - By default, the value will be removed just from the representation, in other words, when you call
+   * the {@link data} function.
+   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal`
+   * as true. Then if you still want to remove the value from the representation, you will need to pass the
+   * argument `toRepresentation` as true as well.
    *
    * @returns The schema.
    */
   omit<
     TToInternal extends boolean,
     TToRepresentation extends boolean = boolean extends TToInternal ? true : false
-  >(args?: { toInternal?: TToInternal, toRepresentation?: TToRepresentation }) {
+  >(args?: { toInternal?: TToInternal; toRepresentation?: TToRepresentation }) {
     // To representation is true by default, unless to internal is true.
-    const toRepresentation = typeof args?.toRepresentation === 'boolean' ? args.toRepresentation : typeof args?.toInternal !== 'boolean';
+    const toRepresentation =
+      typeof args?.toRepresentation === 'boolean' ? args.toRepresentation : typeof args?.toInternal !== 'boolean';
     const toInternal = typeof args?.toInternal === 'boolean' ? args.toInternal : false;
 
     if (toInternal) {
@@ -590,7 +666,7 @@ export default class Schema<
           await toInternal(value);
           return undefined;
         };
-      // eslint-disable-next-line ts/require-await
+        // eslint-disable-next-line ts/require-await
       } else this.__toInternal = async () => undefined;
     } else if (toRepresentation) {
       if (this.__toRepresentation) {
@@ -599,7 +675,7 @@ export default class Schema<
           await toRepresentation(value);
           return undefined;
         };
-      // eslint-disable-next-line ts/require-await
+        // eslint-disable-next-line ts/require-await
       } else this.__toRepresentation = async () => undefined;
     }
 
@@ -616,9 +692,9 @@ export default class Schema<
   }
 
   /**
-   * This function is used in conjunction with the {@link validate} function. It's used to save a value to an external source
-   * like a database. You should always return the schema after you save the value, that way we will always have the correct type
-   * of the schema after the save operation.
+   * This function is used in conjunction with the {@link validate} function. It's used to save a value to an external
+   * source like a database. You should always return the schema after you save the value, that way we will always have
+   * the correct type of the schema after the save operation.
    *
    * You can use the {@link toRepresentation} function to transform and clean the value it returns after the save.
    *
@@ -678,10 +754,11 @@ export default class Schema<
    * This function is used to validate the schema and save the value to the database. It is used in
    * conjunction with the {@link onSave} function.
    *
-   * Different from other validation libraries, palmares schemas is aware that you want to save. On your routes/functions
-   * we recommend to ALWAYS use this function instead of {@link parse} directly. This is because this function by default
-   * will return an object with the property `save` or the `errors`. If the errors are present, you can return the errors
-   * to the user. If the save property is present, you can use to save the value to an external source. e.g. a database.
+   * Different from other validation libraries, palmares schemas is aware that you want to save. On your
+   * routes/functions we recommend to ALWAYS use this function instead of {@link parse} directly. This is because
+   * this function by default will return an object with the property `save` or the `errors`. If the errors are present,
+   * you can return the errors to the user. If the save property is present, you can use to save the value to an
+   * external source. e.g. a database.
    *
    * @example
    * ```typescript
@@ -765,9 +842,7 @@ export default class Schema<
    *
    * @returns The parsed value.
    */
-  async parse(
-    value: TType['input']
-  ): Promise<{ errors?: any[]; parsed: TType['internal'] }> {
+  async parse(value: TType['input']): Promise<{ errors?: any[]; parsed: TType['internal'] }> {
     return this.__parse(value, [], {} as any);
   }
 
@@ -802,8 +877,9 @@ export default class Schema<
    * ```
    */
   async data(value: TType['output']): Promise<TType['representation']> {
+    this.__getDefaultTransformedSchemas();
     if (typeof this.__runBeforeParseAndData === 'function') await this.__runBeforeParseAndData(this);
-    value = await this.__parsersToTransformValue(value)
+    value = await this.__parsersToTransformValue(value);
 
     if (this.__toRepresentation) value = await Promise.resolve(this.__toRepresentation(value));
     if (this.__defaultFunction && value === undefined) value = await Promise.resolve(this.__defaultFunction());
@@ -827,7 +903,8 @@ export default class Schema<
   }
 
   /**
-   * This function is used to add a default value to the schema. If the value is either undefined or null, the default value will be used.
+   * This function is used to add a default value to the schema. If the value is either undefined or null,
+   * the default value will be used.
    *
    * @example
    * ```typescript
@@ -861,8 +938,9 @@ export default class Schema<
   }
 
   /**
-   * This function let's you customize the schema your own way. After we translate the schema on the adapter we call this function to let you customize
-   * the custom schema your own way. Our API does not support passthrough? No problem, you can use this function to customize the zod schema.
+   * This function let's you customize the schema your own way. After we translate the schema on the adapter we call
+   * this function to let you customize the custom schema your own way. Our API does not support passthrough?
+   * No problem, you can use this function to customize the zod schema.
    *
    * @example
    * ```typescript
@@ -874,12 +952,13 @@ export default class Schema<
    *
    * const { errors, parsed } = await numberSchema.parse(-1);
    *
-   * console.log(errors); // [{ isValid: false, code: 'nonnegative', message: 'The number should be nonnegative', path: [] }]
+   * console.log(errors);
+   * // [{ isValid: false, code: 'nonnegative', message: 'The number should be nonnegative', path: [] }]
    * ```
    *
    * @param callback - The callback that will be called to customize the schema.
-   * @param toStringCallback - The callback that will be called to transform the schema to a string when you want to compile the underlying schema
-   * to a string so you can save it for future runs.
+   * @param toStringCallback - The callback that will be called to transform the schema to a string when you want
+   * to compile the underlying schema to a string so you can save it for future runs.
    *
    * @returns The schema.
    */
@@ -891,14 +970,15 @@ export default class Schema<
   ) {
     this.__extends = {
       callback,
-      toStringCallback,
-    }
-    return this
+      toStringCallback
+    };
+    return this;
   }
 
   /**
-   * This function is used to transform the value to the representation of the schema. When using the {@link data} function. With this function you have full
-   * control to add data cleaning for example, transforming the data and whatever. Another use case is when you want to return deeply nested recursive data.
+   * This function is used to transform the value to the representation of the schema. When using the {@link data}
+   * function. With this function you have full control to add data cleaning for example, transforming the data
+   * and whatever. Another use case is when you want to return deeply nested recursive data.
    * The schema maps to itself.
    *
    * @example
@@ -937,25 +1017,31 @@ export default class Schema<
    * ```
    * @param toRepresentationCallback - The callback that will be called to transform the value to the representation.
    * @param options - Options for the toRepresentation function.
-   * @param options.after - Whether the toRepresentationCallback should be called after the existing toRepresentationCallback. Defaults to true.
-   * @param options.before - Whether the toRepresentationCallback should be called before the existing toRepresentationCallback. Defaults to true.
+   * @param options.after - Whether the toRepresentationCallback should be called after the existing
+   * toRepresentationCallback. Defaults to true.
+   * @param options.before - Whether the toRepresentationCallback should be called before the existing
+   * toRepresentationCallback. Defaults to true.
    *
    * @returns The schema with a new return type
    */
   toRepresentation<TRepresentation>(
-    toRepresentationCallback: (value: TType['representation']) => Promise<TRepresentation>,
+    toRepresentationCallback: (value: TType['representation']) => Promise<TRepresentation> | TRepresentation,
     options?: {
       after?: boolean;
       before?: boolean;
     }
   ) {
     if (this.__toRepresentation) {
-      const before = typeof options?.before === 'boolean' ? options.before :
-        (typeof options?.after === 'boolean' ? !options.after : true);
+      const before =
+        typeof options?.before === 'boolean'
+          ? options.before
+          : typeof options?.after === 'boolean'
+            ? !options.after
+            : true;
       const existingToRepresentation = this.__toRepresentation;
-      console.log('existing to representation', existingToRepresentation, before, options?.after)
+
       this.__toRepresentation = async (value) => {
-        if (before) return toRepresentationCallback(await existingToRepresentation(value))
+        if (before) return toRepresentationCallback(await existingToRepresentation(value));
         else return existingToRepresentation(await toRepresentationCallback(value));
       };
     } else this.__toRepresentation = toRepresentationCallback;
@@ -973,8 +1059,9 @@ export default class Schema<
   }
 
   /**
-   * This function is used to transform the value to the internal representation of the schema. This is useful when you want to transform the value
-   * to a type that the schema adapter can understand. For example, you might want to transform a string to a date. This is the function you use.
+   * This function is used to transform the value to the internal representation of the schema. This is useful
+   * when you want to transform the value to a type that the schema adapter can understand. For example, you
+   * might want to transform a string to a date. This is the function you use.
    *
    * @example
    * ```typescript
@@ -1026,8 +1113,9 @@ export default class Schema<
   }
 
   /**
-   * Called before the validation of the schema. Let's say that you want to validate a date that might receive a string, you can convert that string to a date
-   * here BEFORE the validation. This pretty much transforms the value to a type that the schema adapter can understand.
+   * Called before the validation of the schema. Let's say that you want to validate a date that might receive a
+   * string, you can convert that string to a date here BEFORE the validation. This pretty much transforms the value
+   * to a type that the schema adapter can understand.
    *
    * @example
    * ```
@@ -1066,7 +1154,7 @@ export default class Schema<
   async compile(adapter: SchemaAdapter) {
     const data = await this.__transformToAdapter({
       shouldAddStringVersion: true,
-      force: true,
+      force: true
     } as any);
 
     const stringVersions = data.map((value) => value.asString);
@@ -1077,17 +1165,8 @@ export default class Schema<
     ..._args: any[]
   ): Schema<TType> {
     const result = new Schema<TType>();
-
-    const adapterInstance = getDefaultAdapter();
-    result.__transformedSchemas[adapterInstance.constructor.name] = {
-      transformed: false,
-      adapter: adapterInstance,
-      schemas: [],
-    };
-
     return result;
   }
 }
 
 export const schema = Schema.new;
-

@@ -1,11 +1,19 @@
-
 import Schema from './schema';
-import { getDefaultAdapter } from '../conf';
 import { defaultTransform, defaultTransformToAdapter } from '../utils';
-import { endsWith, includes, maxLength, minLength, regex, startsWith, stringValidation } from '../validators/string';
+import { is, nullable, optional } from '../validators/schema';
+import {
+  email,
+  endsWith,
+  includes,
+  maxLength,
+  minLength,
+  regex,
+  startsWith,
+  stringValidation,
+  uuid
+} from '../validators/string';
 
 import type { DefinitionsOfSchemaType } from './types';
-import type { Narrow } from '@palmares/core';
 
 export default class StringSchema<
   TType extends {
@@ -21,53 +29,59 @@ export default class StringSchema<
     representation: string;
     validate: string;
   },
-  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
+  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
 > extends Schema<TType, TDefinitions> {
-  protected __is!: {
-    value: Narrow<TType['input'] | TType['input'][]>;
+  protected __is?: {
+    value: TType['input'] | TType['input'][];
     message: string;
   };
 
-  protected __email!: {
+  protected __email?: {
     message: string;
   };
 
-
-  protected __uuid!: {
+  protected __uuid?: {
     message: string;
   };
 
-  protected __minLength!: {
+  protected __minLength?: {
     value: number;
-    inclusive: boolean;
     message: string;
   };
 
-  protected __maxLength!: {
+  protected __maxLength?: {
     value: number;
-    inclusive: boolean;
     message: string;
   };
 
-  protected __regex!: {
+  protected __regex?: {
     value: RegExp;
     message: string;
   };
-  protected __endsWith!: {
+  protected __endsWith?: {
     value: string;
     message: string;
   };
 
-  protected __startsWith!: {
+  protected __startsWith?: {
     value: string;
     message: string;
   };
 
-  protected __includes!: {
+  protected __includes?: {
     value: string;
     message: string;
   };
 
+  protected __type: {
+    message: string;
+    check: (value: TType['input']) => boolean;
+  } = {
+    message: 'Invalid type',
+    check: (value: any) => {
+      return typeof value === 'string';
+    }
+  };
   protected async __transformToAdapter(options: Parameters<Schema['__transformToAdapter']>[0]): Promise<any> {
     return defaultTransformToAdapter(
       async (adapter) => {
@@ -77,6 +91,10 @@ export default class StringSchema<
           adapter,
           adapter.string,
           () => ({
+            type: this.__type,
+            is: this.__is,
+            email: this.__email,
+            uuid: this.__uuid,
             minLength: this.__minLength,
             maxLength: this.__maxLength,
             regex: this.__regex,
@@ -87,7 +105,7 @@ export default class StringSchema<
             optional: this.__optional,
             parsers: {
               nullable: this.__nullable.allow,
-              optional: this.__optional.allow,
+              optional: this.__optional.allow
             }
           }),
           {
@@ -95,8 +113,13 @@ export default class StringSchema<
             minLength,
             endsWith,
             startsWith,
+            email,
+            uuid,
+            is,
             regex,
             includes,
+            nullable,
+            optional
           },
           {
             validatorsIfFallbackOrNotSupported: stringValidation(),
@@ -104,10 +127,11 @@ export default class StringSchema<
             // eslint-disable-next-line ts/require-await
             fallbackIfNotSupported: async () => {
               return [];
-            },
+            }
           }
         );
       },
+      this,
       this.__transformedSchemas,
       options,
       'number'
@@ -115,7 +139,8 @@ export default class StringSchema<
   }
 
   /**
-   * This let's you refine the schema with custom validations. This is useful when you want to validate something that is not supported by default by the schema adapter.
+   * This let's you refine the schema with custom validations. This is useful when you want to validate something that
+   * is not supported by default by the schema adapter.
    *
    * @example
    * ```typescript
@@ -127,7 +152,8 @@ export default class StringSchema<
    *
    * const { errors, parsed } = await numberSchema.parse(-1);
    *
-   * console.log(errors); // [{ isValid: false, code: 'invalid_number', message: 'The number should be greater than 0', path: [] }]
+   * // [{ isValid: false, code: 'invalid_number', message: 'The number should be greater than 0', path: [] }]
+   * console.log(errors);
    * ```
    *
    * @param refinementCallback - The callback that will be called to validate the value.
@@ -135,7 +161,13 @@ export default class StringSchema<
    * @param options.isAsync - Whether the callback is async or not. Defaults to true.
    */
   refine(
-    refinementCallback: (value: TType['input']) => Promise<void | undefined | { code: string; message: string }> | void | undefined | { code: string; message: string }
+    refinementCallback: (
+      value: TType['input']
+    ) =>
+      | Promise<void | undefined | { code: string; message: string }>
+      | void
+      | undefined
+      | { code: string; message: string }
   ) {
     return super.refine(refinementCallback) as unknown as StringSchema<
       {
@@ -144,7 +176,8 @@ export default class StringSchema<
         internal: TType['internal'];
         output: TType['output'];
         representation: TType['representation'];
-      }, TDefinitions
+      },
+      TDefinitions
     >;
   }
 
@@ -172,8 +205,8 @@ export default class StringSchema<
    *
    * @returns - The schema we are working with.
    */
-  optional(options?: { message: string; allow: false }) {
-    return super.optional(options) as unknown as StringSchema<
+  optional() {
+    return super.optional() as unknown as StringSchema<
       {
         input: TType['input'] | undefined | null;
         validate: TType['validate'] | undefined | null;
@@ -186,8 +219,36 @@ export default class StringSchema<
   }
 
   /**
-   * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value is NULL by setting
-   * the { message: 'Your custom message', allow: false } on the options.
+   * Just adds a message when the value is undefined. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.string().optional({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonOptional function
+   * @param options.message - A custom message if the value is undefined.
+   *
+   * @returns - The schema.
+   */
+  nonOptional(options?: { message: string }) {
+    return super.optional({
+      message: options?.message,
+      allow: false
+    }) as unknown as StringSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
+   * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value
+   * is NULL by setting the { message: 'Your custom message', allow: false } on the options.
    *
    * @example
    * ```typescript
@@ -224,14 +285,43 @@ export default class StringSchema<
   }
 
   /**
-   * This method will remove the value from the representation of the schema. If the value is undefined it will keep that way
-   * otherwise it will set the value to undefined after it's validated.
+   * Just adds a message when the value is null. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.string().nullable({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonNullable function
+   * @param options.message - A custom message if the value is null.
+   *
+   * @returns - The schema.
+   */
+  nonNullable(options?: { message: string }) {
+    return super.nullable({
+      message: options?.message || '',
+      allow: false
+    }) as unknown as StringSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
+   * This method will remove the value from the representation of the schema. If the value is undefined it will keep
+   * that way otherwise it will set the value to undefined after it's validated.
    * This is used in conjunction with the {@link data} function, the {@link parse} function or {@link validate}
    * function. This will remove the value from the representation of the schema.
    *
-   * By default, the value will be removed just from the representation, in other words, when you call the {@link data} function.
-   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal` as true.
-   * Then if you still want to remove the value from the representation, you will need to pass the argument `toRepresentation` as true as well.
+   * By default, the value will be removed just from the representation, in other words, when you call the {@link data}
+   * function. But if you want to remove the value from the internal representation, you can pass the argument
+   * `toInternal` as true. Then if you still want to remove the value from the representation, you will need to pass
+   * the argument `toRepresentation` as true as well.
    *
    * @example
    * ```typescript
@@ -253,16 +343,17 @@ export default class StringSchema<
    * ```
    *
    *
-   * @param args - By default, the value will be removed just from the representation, in other words, when you call the {@link data} function.
-   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal` as true.
-   * Then if you still want to remove the value from the representation, you will need to pass the argument `toRepresentation` as true as well.
+   * @param args - By default, the value will be removed just from the representation, in other words, when you call
+   * the {@link data} function. But if you want to remove the value from the internal representation, you can pass the
+   * argument `toInternal` as true. Then if you still want to remove the value from the representation, you will need
+   * to pass the argument `toRepresentation` as true as well.
    *
    * @returns The schema.
    */
   omit<
     TToInternal extends boolean,
     TToRepresentation extends boolean = boolean extends TToInternal ? true : false
-  >(args?: { toInternal?: TToInternal, toRepresentation?: TToRepresentation }) {
+  >(args?: { toInternal?: TToInternal; toRepresentation?: TToRepresentation }) {
     return super.omit(args) as unknown as StringSchema<
       {
         input: TToInternal extends true ? TType['input'] | undefined : TType['input'];
@@ -276,9 +367,9 @@ export default class StringSchema<
   }
 
   /**
-   * This function is used in conjunction with the {@link validate} function. It's used to save a value to an external source
-   * like a database. You should always return the schema after you save the value, that way we will always have the correct type
-   * of the schema after the save operation.
+   * This function is used in conjunction with the {@link validate} function. It's used to save a value to an external
+   * source like a database. You should always return the schema after you save the value, that way we will always have
+   * the correct type of the schema after the save operation.
    *
    * You can use the {@link toRepresentation} function to transform and clean the value it returns after the save.
    *
@@ -332,9 +423,9 @@ export default class StringSchema<
     >;
   }
 
-
   /**
-   * This function is used to add a default value to the schema. If the value is either undefined or null, the default value will be used.
+   * This function is used to add a default value to the schema. If the value is either undefined or null, the default
+   * value will be used.
    *
    * @example
    * ```typescript
@@ -363,8 +454,9 @@ export default class StringSchema<
   }
 
   /**
-   * This function let's you customize the schema your own way. After we translate the schema on the adapter we call this function to let you customize
-   * the custom schema your own way. Our API does not support passthrough? No problem, you can use this function to customize the zod schema.
+   * This function let's you customize the schema your own way. After we translate the schema on the adapter we call
+   * this function to let you customize the custom schema your own way. Our API does not support passthrough?
+   * No problem, you can use this function to customize the zod schema.
    *
    * @example
    * ```typescript
@@ -375,13 +467,13 @@ export default class StringSchema<
    * });
    *
    * const { errors, parsed } = await numberSchema.parse(-1);
-   *
-   * console.log(errors); // [{ isValid: false, code: 'nonnegative', message: 'The number should be nonnegative', path: [] }]
+   * // [{ isValid: false, code: 'nonnegative', message: 'The number should be nonnegative', path: [] }]
+   * console.log(errors);
    * ```
    *
    * @param callback - The callback that will be called to customize the schema.
-   * @param toStringCallback - The callback that will be called to transform the schema to a string when you want to compile the underlying schema
-   * to a string so you can save it for future runs.
+   * @param toStringCallback - The callback that will be called to transform the schema to a string when you want to
+   * compile the underlying schema to a string so you can save it for future runs.
    *
    * @returns The schema.
    */
@@ -395,8 +487,9 @@ export default class StringSchema<
   }
 
   /**
-   * This function is used to transform the value to the representation of the schema. When using the {@link data} function. With this function you have full
-   * control to add data cleaning for example, transforming the data and whatever. Another use case is when you want to return deeply nested recursive data.
+   * This function is used to transform the value to the representation of the schema. When using the {@link data}
+   * function. With this function you have full control to add data cleaning for example, transforming the data and
+   * whatever. Another use case is when you want to return deeply nested recursive data.
    * The schema maps to itself.
    *
    * @example
@@ -453,8 +546,9 @@ export default class StringSchema<
   }
 
   /**
-   * This function is used to transform the value to the internal representation of the schema. This is useful when you want to transform the value
-   * to a type that the schema adapter can understand. For example, you might want to transform a string to a date. This is the function you use.
+   * This function is used to transform the value to the internal representation of the schema. This is useful when
+   * you want to transform the value to a type that the schema adapter can understand. For example, you might want
+   * to transform a string to a date. This is the function you use.
    *
    * @example
    * ```typescript
@@ -498,8 +592,9 @@ export default class StringSchema<
   }
 
   /**
-   * Called before the validation of the schema. Let's say that you want to validate a date that might receive a string, you can convert that string to a date
-   * here BEFORE the validation. This pretty much transforms the value to a type that the schema adapter can understand.
+   * Called before the validation of the schema. Let's say that you want to validate a date that might receive a string,
+   * you can convert that string to a date here BEFORE the validation. This pretty much transforms the value to a
+   * type that the schema adapter can understand.
    *
    * @example
    * ```typescript
@@ -531,7 +626,8 @@ export default class StringSchema<
   }
 
   /**
-   * Defines a list of strings that are allowed, it's useful when you want to restrict the values that are allowed. Like a selector or a Choice field.
+   * Defines a list of strings that are allowed, it's useful when you want to restrict the values that are allowed.
+   * Like a selector or a Choice field.
    *
    * @example
    * ```typescript
@@ -540,17 +636,25 @@ export default class StringSchema<
    * const schema = p.string().is(['Argentina', 'Brazil', 'Chile']);
    *
    * schema.parse('Argentina'); // { errors: [], parsed: 'Argentina' }
-   * schema.parse('Uruguay'); // { errors: [{ code: 'invalid_value', message: 'The value should be equal to Argentina, Brazil, Chile', path: [] }], parsed: 'Uruguay' }
+   * // { errors: [{
+   * //   code: 'invalid_value',
+   * //   message: 'The value should be equal to Argentina, Brazil, Chile',
+   * //   path: [] }], parsed: 'Uruguay' }
+   * schema.parse('Uruguay');
    * ```
    *
    * @param value - The list of numbers that are allowed
    *
    * @returns - The schema instance
    */
-  is<const TValue extends TType['input'][]>(value: TValue) {
+  is<const TValue extends TType['input'][]>(
+    value: TValue,
+    options?: Partial<Omit<NonNullable<StringSchema['__is']>, 'value'>>
+  ) {
     this.__is = {
       value,
-      message: `The value should be equal to ${value.join(', ')}`,
+      message:
+        typeof options?.message === 'string' ? options.message : `The value should be equal to ${value.join(', ')}`
     };
 
     return this as any as Schema<
@@ -575,7 +679,9 @@ export default class StringSchema<
    * const schema = p.string().endsWith('.com');
    *
    * schema.parse('example.com'); // { errors: [], parsed: 'example.com' }
-   * schema.parse('example.org'); // { errors: [{ code: 'endsWith', message: 'The value should end with .com', path: [] }], parsed: 'example.org' }
+   *
+   * // { errors: [{ code: 'endsWith', message: 'The value should end with .com', path: [] }], parsed: 'example.org' }
+   * schema.parse('example.org');
    * ```
    *
    * @param value - The value that the string should end with.
@@ -584,10 +690,10 @@ export default class StringSchema<
    *
    * @returns - The schema instance.
    */
-  endsWith(value: string, options?: Partial<Omit<StringSchema['__endsWith'], 'value'>>) {
+  endsWith(value: string, options?: Partial<Omit<NonNullable<StringSchema['__endsWith']>, 'value'>>) {
     this.__endsWith = {
       value,
-      message: options?.message || `The value should end with ${value}`,
+      message: options?.message || `The value should end with ${value}`
     };
     return this;
   }
@@ -602,7 +708,11 @@ export default class StringSchema<
    * const schema = p.string().startsWith('https://');
    *
    * schema.parse('https://example.com'); // { errors: [], parsed: 'https://example.com' }
-   * schema.parse('http://example.com'); // { errors: [{ code: 'startsWith', message: 'The value should start with https://', path: [] }], parsed: 'http://example.com' }
+   * // {
+   * //   errors: [{ code: 'startsWith', message: 'The value should start with https://', path: [] }],
+   * //   parsed: 'http://example.com'
+   * // }
+   * schema.parse('http://example.com');
    * ```
    *
    * @param value - The value that the string should start with.
@@ -611,10 +721,10 @@ export default class StringSchema<
    *
    * @returns - The schema instance.
    */
-  startsWith(value: string  , options?: Partial<Omit<StringSchema['__startsWith'], 'value'>>) {
+  startsWith(value: string, options?: Partial<Omit<NonNullable<StringSchema['__startsWith']>, 'value'>>) {
     this.__startsWith = {
       value,
-      message: options?.message || `The value should start with ${value}`,
+      message: options?.message || `The value should start with ${value}`
     };
     return this;
   }
@@ -629,7 +739,13 @@ export default class StringSchema<
    * const schema = p.string().includes('for babies');
    *
    * schema.parse('Computer graphics for babies'); // { errors: [], parsed: 'Computer graphics for babies' }
-   * schema.parse('Learn javascript as you were 5'); // { errors: [{ code: 'includes', message: 'The string value should include the following substring 'for babies', path: [] }], parsed: 'example.org' }
+   * // {
+   * //   errors: [{
+   * //     code: 'includes',
+   * //     message: 'The string value should include the following substring 'for babies',
+   * //     path: []
+   * //   }], parsed: 'example.org' }
+   * schema.parse('Learn javascript as you were 5');
    * ```
    *
    * @param value - The value that the string should include.
@@ -638,10 +754,10 @@ export default class StringSchema<
    *
    * @returns - The schema instance.
    */
-  includes(value: string, options?: Partial<Omit<StringSchema['__includes'], 'value'>>) {
+  includes(value: string, options?: Partial<Omit<NonNullable<StringSchema['__includes']>, 'value'>>) {
     this.__includes = {
       value,
-      message: options?.message || `The string value should include the following substring '${value}'`,
+      message: options?.message || `The string value should include the following substring '${value}'`
     };
     return this;
   }
@@ -656,7 +772,15 @@ export default class StringSchema<
    * const schema = p.string().regex(/^[a-z]+$/);
    *
    * schema.parse('abc'); // { errors: [], parsed: 'abc' }
-   * schema.parse('123'); // { errors: [{ code: 'regex', message: 'The value should match the following regex /^[a-z]+$/', path: [] }], parsed: '123' }
+   * // {
+   * //   errors: [{
+   * //     code: 'regex',
+   * //     message: 'The value should match the following regex /^[a-z]+$/',
+   * //     path: []
+   * //   }],
+   * //   parsed: '123'
+   * // }
+   * schema.parse('123');
    * ```
    *
    * @param value - The regex that the string should match.
@@ -665,16 +789,17 @@ export default class StringSchema<
    *
    * @returns - The schema instance.
    */
-  regex(value: RegExp, options?: Partial<Omit<StringSchema['__regex'], 'value'>>) {
+  regex(value: RegExp, options?: Partial<Omit<NonNullable<StringSchema['__regex']>, 'value'>>) {
     this.__regex = {
       value,
-      message: options?.message || `The value should match the following regex '${value.toString()}'`,
+      message: options?.message || `The value should match the following regex '${value.toString()}'`
     };
     return this;
   }
 
   /**
-   * Validates if the string has a maximum length. Use { inclusive: true } to allow the value to have the same length as the maximum length.
+   * Validates if the string has a maximum length. Use { inclusive: true } to allow the value to have the same length
+   * as the maximum length.
    *
    * @example
    * ```typescript
@@ -683,7 +808,11 @@ export default class StringSchema<
    * const schema = p.string().maxLength(5);
    *
    * schema.parse('12345'); // { errors: [], parsed: '12345' }
-   * schema.parse('123456'); // { errors: [{ code: 'maxLength', message: 'The value should have a maximum length of 5', path: [] }], parsed: '123
+   * // {
+   * //   errors: [{ code: 'maxLength', message: 'The value should have a maximum length of 5', path: [] }],
+   * //   parsed: '123
+   * //   }
+   * schema.parse('123456');
    * ```
    *
    * @param value - The maximum length that the string should have.
@@ -693,17 +822,17 @@ export default class StringSchema<
    *
    * @returns - The schema instance.
    */
-  maxLength(value: number, options?: Partial<Omit<StringSchema['__maxLength'], 'value'>>) {
+  maxLength(value: number, options?: Partial<Omit<NonNullable<StringSchema['__maxLength']>, 'value'>>) {
     this.__maxLength = {
       value,
-      message: options?.message || `The value should have a maximum length of ${value}`,
-      inclusive: typeof options?.inclusive === 'boolean' ? options.inclusive : false,
+      message: options?.message || `The value should have a maximum length of ${value}`
     };
     return this;
   }
 
   /**
-   * Validates if the string has a minimum length. Use { inclusive: true } to allow the value to have the same length as the minimum length.
+   * Validates if the string has a minimum length. Use { inclusive: true } to allow the value to have the same length
+   * as the minimum length.
    *
    * @example
    * ```typescript
@@ -712,7 +841,11 @@ export default class StringSchema<
    * const schema = p.string().minLength(5);
    *
    * schema.parse('12345'); // { errors: [], parsed: '12345' }
-   * schema.parse('1234'); // { errors: [{ code: 'minLength', message: 'The value should have a minimum length of 5', path: [] }], parsed: '1234' }
+   * // {
+   * //   errors: [{ code: 'minLength', message: 'The value should have a minimum length of 5', path: [] }],
+   * //   parsed: '1234'
+   * // }
+   * schema.parse('1234');
    * ```
    *
    * @param value - The minimum length that the string should have.
@@ -722,11 +855,10 @@ export default class StringSchema<
    *
    * @returns - The schema instance.
    */
-  minLength(value: number, options?: Partial<Omit<StringSchema['__minLength'], 'value'>>) {
+  minLength(value: number, options?: Partial<Omit<NonNullable<StringSchema['__minLength']>, 'value'>>) {
     this.__minLength = {
       value,
-      message: options?.message || `The value should have a minimum length of ${value}`,
-      inclusive: typeof options?.inclusive === 'boolean' ? options.inclusive : false,
+      message: options?.message || `The value should have a minimum length of ${value}`
     };
     return this;
   }
@@ -740,21 +872,22 @@ export default class StringSchema<
    *
    * const schema = p.string().uuid();
    *
-   * schema.parse('550e8400-e29b-41d4-a716-446655440000'); // { errors: [], parsed: '550e8400-e29b-41d4-a716-446655440000' }
+   * // { errors: [], parsed: '550e8400-e29b-41d4-a716-446655440000' }
+   * schema.parse('550e8400-e29b-41d4-a716-446655440000');
    * ```
    *
    * @param options - The options for the uuid function.
-   * @param options.message - The message to be shown when the value is not a valid UUID. Defaults to 'The value should be a valid UUID'.
+   * @param options.message - The message to be shown when the value is not a valid UUID. Defaults to
+   * 'The value should be a valid UUID'.
    *
    * @returns - The schema instance.
    */
   uuid(options?: StringSchema['__uuid']) {
     this.__uuid = {
-      message: options?.message || 'The value should be a valid UUID',
+      message: options?.message || 'The value should be a valid UUID'
     };
     return this;
   }
-
 
   /**
    * Validates if the string is a valid email or not
@@ -770,14 +903,15 @@ export default class StringSchema<
    * ```
    *
    * @param options - The options for the email function.
-   * @param options.message - The message to be shown when the value is not a valid email. Defaults to 'The value should be a valid email'.
+   * @param options.message - The message to be shown when the value is not a valid email.
+   * Defaults to 'The value should be a valid email'.
    *
    * @returns - The schema instance.
    */
   email(options?: StringSchema['__email']) {
     this.__email = {
-      message: options?.message || 'The value should be a valid email',
-    }
+      message: options?.message || 'The value should be a valid email'
+    };
     return this;
   }
 
@@ -792,13 +926,6 @@ export default class StringSchema<
       },
       TDefinitions
     >();
-    const adapterInstance = getDefaultAdapter();
-
-    returnValue.__transformedSchemas[adapterInstance.constructor.name] = {
-      transformed: false,
-      adapter: adapterInstance,
-      schemas: [],
-    };
 
     return returnValue;
   }

@@ -13,7 +13,7 @@ export type OnlyFieldAdaptersFromSchemaAdapter = keyof {
 };
 
 export type DefinitionsOfSchemaType = {
-  schemaType: 'array' | 'object' | 'string' | 'number' | 'boolean' | 'union' | 'datetime' | 'field' |'datetime';
+  schemaType: 'array' | 'object' | 'string' | 'number' | 'boolean' | 'union' | 'datetime' | 'field' | 'datetime';
   schemaAdapter: SchemaAdapter;
   hasSave?: boolean;
 };
@@ -22,6 +22,7 @@ export type ValidationFallbackCallbackType = Validator['fallbacks'][number];
 export type ValidationFallbackCallbackReturnType = {
   parsed: any;
   errors: {
+    received: any;
     isValid: boolean;
     code: ErrorCodes;
     message: string;
@@ -31,13 +32,14 @@ export type ValidationFallbackCallbackReturnType = {
 };
 export type ValidationFallbackReturnType = {
   type: ValidatorTypes;
+  name: string;
   callback: ValidationFallbackCallbackType;
 };
 
 type TypesOfSchema = Schema extends Schema<infer TType, any> ? TType : never;
 type ExtractTypeFromSchemaByTypeOfSchema<
   TSchema extends Schema,
-  TTypeToExtract extends keyof TypesOfSchema = 'input',
+  TTypeToExtract extends keyof TypesOfSchema = 'input'
 > = TSchema extends
   | Schema<
       {
@@ -83,16 +85,16 @@ type ExtractTypeFromSchemaByTypeOfSchema<
   ? TTypeToExtract extends 'input'
     ? TInputType
     : TTypeToExtract extends 'validate'
-    ? TValidateType
-    : TTypeToExtract extends 'internal'
-    ? TInternalType
-    : TTypeToExtract extends 'output'
-    ? TOutputType
-    : TRepresentationType
+      ? TValidateType
+      : TTypeToExtract extends 'internal'
+        ? TInternalType
+        : TTypeToExtract extends 'output'
+          ? TOutputType
+          : TRepresentationType
   : never;
 export type ExtractTypeFromObjectOfSchemas<
   TData extends Record<string, Schema>,
-  TTypeToExtract extends keyof TypesOfSchema = 'input',
+  TTypeToExtract extends keyof TypesOfSchema = 'input'
 > = {
   [key in keyof TData as undefined extends ExtractTypeFromSchemaByTypeOfSchema<TData[key], TTypeToExtract>
     ? never
@@ -103,10 +105,35 @@ export type ExtractTypeFromObjectOfSchemas<
     : never]?: ExtractTypeFromSchemaByTypeOfSchema<TData[key], TTypeToExtract>;
 };
 
+export type ExtractTypeFromUnionOfSchemas<
+  TSchemas extends readonly Schema[] = [],
+  TType extends 'input' | 'output' | 'representation' | 'internal' | 'validate' = 'input'
+> = TSchemas extends readonly [infer TFirstSchema, ...infer TRestOfSchemas]
+  ? TFirstSchema extends Schema<{
+      input: infer TInput;
+      internal: infer TInternal;
+      output: infer TOutput;
+      representation: infer TRepresentation;
+      validate: infer TValidate;
+    }>
+    ?
+        | (TType extends 'output'
+            ? TOutput
+            : TType extends 'representation'
+              ? TRepresentation
+              : TType extends 'internal'
+                ? TInternal
+                : TType extends 'validate'
+                  ? TValidate
+                  : TInput)
+        | ExtractTypeFromUnionOfSchemas<TRestOfSchemas extends readonly Schema[] ? TRestOfSchemas : [], TType>
+    : unknown
+  : never;
+
 export type ExtractTypeFromArrayOfSchemas<
-  TSchemas extends readonly [Schema, ...Schema[]] | [Schema[]],
+  TSchemas extends readonly [Schema, ...Schema[]] | [[Schema]],
   TTypeToExtract extends keyof TypesOfSchema = 'input',
-  TResult extends any[] = [],
+  TResult extends any[] = []
 > = TSchemas extends readonly [infer TSchema, ...infer TRestSchemas]
   ? TSchema extends Schema
     ? TRestSchemas extends readonly [Schema, ...Schema[]]
@@ -116,11 +143,12 @@ export type ExtractTypeFromArrayOfSchemas<
           [...TResult, ExtractTypeFromSchemaByTypeOfSchema<TSchema, TTypeToExtract>]
         >
       : [...TResult, ExtractTypeFromSchemaByTypeOfSchema<TSchema, TTypeToExtract>]
-    : TSchemas extends [infer TArraySchema]
-    ? TArraySchema extends Schema[]
-      ? ExtractTypeFromSchemaByTypeOfSchema<TArraySchema[number], TTypeToExtract>[]
+    : TSchemas extends [[infer TSchema]]
+      ? TSchema extends Schema
+        ? ExtractTypeFromSchemaByTypeOfSchema<TSchema, TTypeToExtract>[]
+        : never
       : never
-    : never
   : never;
 
-export type ExtractUnionTypesFromSchemas<TSchemas extends readonly Schema<any, any>[]> = TSchemas[number] extends Schema<infer TType, any> ? TType : never;
+export type ExtractUnionTypesFromSchemas<TSchemas extends readonly Schema<any, any>[]> =
+  TSchemas[number] extends Schema<infer TType, any> ? TType : never;

@@ -1,9 +1,9 @@
 import Schema from './schema';
-import { getDefaultAdapter } from '../conf';
 import {
   defaultTransform,
   defaultTransformToAdapter,
-  transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas,
+  shouldRunDataOnComplexSchemas,
+  transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas
 } from '../utils';
 import { arrayValidation, maxLength, minLength, nonEmpty } from '../validators/array';
 import { nullable, optional } from '../validators/schema';
@@ -26,9 +26,17 @@ export default class ArraySchema<
     validate: any[];
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
-  TSchemas extends readonly [Schema, ...Schema[]] | [Schema[]] = [Schema[]],
+  TSchemas extends readonly [Schema, ...Schema[]] | [[Schema]] = [[Schema]]
 > extends Schema<TType, TDefinitions> {
-  protected __schemas: readonly [Schema, ...Schema[]] | [Schema[]];
+  protected __schemas: readonly [Schema, ...Schema[]] | [[Schema]];
+
+  protected __type: {
+    message: string;
+    check: (value: TType['input']) => boolean;
+  } = {
+    message: 'Invalid type',
+    check: (value) => Array.isArray(value)
+  };
 
   protected __minLength!: {
     value: number;
@@ -56,11 +64,11 @@ export default class ArraySchema<
       async (adapter) => {
         const schemas = Array.isArray(this.__schemas[0]) ? this.__schemas[0] : this.__schemas;
         const transformedSchemasAsString: string[] = [];
-        const transformedSchemas: any[] = [];
+        const transformedSchemas = [] as unknown as [any, ...any[]] | [any];
         let shouldBeHandledByFallback = false;
 
         await Promise.all(
-          (schemas as Schema[]).map(async (schema) => {
+          (schemas as unknown as Schema[]).map(async (schema) => {
             const [transformedData, shouldAddFallbackValidationForThisSchema] =
               await transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas(schema, options);
 
@@ -79,7 +87,7 @@ export default class ArraySchema<
             this,
             arrayValidation(
               Array.isArray(this.__schemas[0]) === false,
-              (Array.isArray(this.__schemas[0]) ? this.__schemas[0] : this.__schemas) as Schema<any, any>[]
+              (Array.isArray(this.__schemas[0]) ? this.__schemas[0] : this.__schemas) as unknown as Schema<any, any>[]
             )
           );
 
@@ -95,9 +103,11 @@ export default class ArraySchema<
             maxLength: this.__maxLength,
             minLength: this.__minLength,
             nonEmpty: this.__nonEmpty,
+            schemas: transformedSchemas,
+            type: this.__type,
             parsers: {
               nullable: this.__nullable.allow,
-              optional: this.__optional.allow,
+              optional: this.__optional.allow
             }
           }),
           {
@@ -105,15 +115,16 @@ export default class ArraySchema<
             nullable,
             minLength,
             maxLength,
-            nonEmpty,
+            nonEmpty
           },
           {
             shouldAddStringVersion: options.shouldAddStringVersion,
             // eslint-disable-next-line ts/require-await
-            fallbackIfNotSupported: async () => [],
+            fallbackIfNotSupported: async () => []
           }
         );
       },
+      this,
       this.__transformedSchemas,
       options,
       'array'
@@ -121,7 +132,8 @@ export default class ArraySchema<
   }
 
   /**
-   * This let's you refine the schema with custom validations. This is useful when you want to validate something that is not supported by default by the schema adapter.
+   * This let's you refine the schema with custom validations. This is useful when you want to validate something that
+   * is not supported by default by the schema adapter.
    *
    * @example
    * ```typescript
@@ -133,7 +145,8 @@ export default class ArraySchema<
    *
    * const { errors, parsed } = await numberSchema.parse(-1);
    *
-   * console.log(errors); // [{ isValid: false, code: 'invalid_number', message: 'The number should be greater than 0', path: [] }]
+   *  // [{ isValid: false, code: 'invalid_number', message: 'The number should be greater than 0', path: [] }]
+   * console.log(errors);
    * ```
    *
    * @param refinementCallback - The callback that will be called to validate the value.
@@ -141,7 +154,13 @@ export default class ArraySchema<
    * @param options.isAsync - Whether the callback is async or not. Defaults to true.
    */
   refine(
-    refinementCallback: (value: TType['input']) => Promise<void | undefined | { code: string; message: string }> | void | undefined | { code: string; message: string }
+    refinementCallback: (
+      value: TType['input']
+    ) =>
+      | Promise<void | undefined | { code: string; message: string }>
+      | void
+      | undefined
+      | { code: string; message: string }
   ) {
     return super.refine(refinementCallback) as unknown as ArraySchema<
       {
@@ -157,9 +176,10 @@ export default class ArraySchema<
   }
 
   /**
-   * Allows the value to be either undefined or null. Different from the `optional` method on other schemas, You can pass `outputOnly` as `true` to this method.
-   * This will allow you to pass `null` or `undefined` as a value on the {@link Schema.data} method, but it will not allow the value to be `null` or `undefined`.
-   * This is useful for typing purposes.
+   * Allows the value to be either undefined or null. Different from the `optional` method on other schemas, You can
+   * pass `outputOnly` as `true` to this method.
+   * This will allow you to pass `null` or `undefined` as a value on the {@link Schema.data} method, but it will not
+   * allow the value to be `null` or `undefined`. This is useful for typing purposes.
    *
    * @example
    * ```typescript
@@ -186,36 +206,71 @@ export default class ArraySchema<
    *   company: companySchema.optional({ outputOnly: true })
    * });
    *
-   * const { errors, parsed } = await userSchema.data({ id: 1, name: 'John Doe' }); // Will not allow the company to be null or undefined on a typing level.
-   * const value = await userSchema.data({ id: 1, name: 'John Doe' }); // Will allow the company to be null or undefined on a typing level
+   * // Will not allow the company to be null or undefined on a typing level.
+   * const { errors, parsed } = await userSchema.data({ id: 1, name: 'John Doe' });
+   * // Will allow the company to be null or undefined on a typing level
+   * const value = await userSchema.data({ id: 1, name: 'John Doe' });
    * ```
    *
    * @returns - The schema we are working with.
    */
-  optional<TOutputOnly extends boolean = false>(options?: { message?: string; allow?: false, outputOnly?: TOutputOnly}) {
-    return (options?.outputOnly ? this : super.optional(options)) as unknown as ArraySchema<(TOutputOnly extends true ?
-      {
-        input: TType['input'];
-        validate: TType['validate'];
-        internal: TType['internal'];
-        output: TType['output'] | undefined | null;
-        representation: TType['representation'];
-      } :
-      {
-        input: TType['input'] | undefined | null;
-        validate: TType['validate'] | undefined | null;
-        internal: TType['internal'] | undefined | null;
-        output: TType['output'] | undefined | null;
-        representation: TType['representation'] | undefined | null;
-      }),
+  optional<TOutputOnly extends boolean = false>(options?: {
+    message?: string;
+    allow?: false;
+    outputOnly?: TOutputOnly;
+  }) {
+    return (options?.outputOnly ? this : super.optional(options)) as unknown as ArraySchema<
+      TOutputOnly extends true
+        ? {
+            input: TType['input'];
+            validate: TType['validate'];
+            internal: TType['internal'];
+            output: TType['output'] | undefined | null;
+            representation: TType['representation'];
+          }
+        : {
+            input: TType['input'] | undefined | null;
+            validate: TType['validate'] | undefined | null;
+            internal: TType['internal'] | undefined | null;
+            output: TType['output'] | undefined | null;
+            representation: TType['representation'] | undefined | null;
+          },
       TDefinitions,
       TSchemas
     >;
   }
 
   /**
-   * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value is NULL by setting
-   * the { message: 'Your custom message', allow: false } on the options.
+   * Just adds a message when the value is undefined. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.datetime().optional({ message: 'This value should be defined', allow: false })
+   * ```
+   *
+   * @param options - The options of nonOptional function
+   * @param options.message - A custom message if the value is undefined.
+   *
+   * @returns - The schema.
+   */
+  nonOptional(options?: { message: string }) {
+    return super.optional({
+      message: options?.message,
+      allow: false
+    }) as unknown as ArraySchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
+   * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value
+   * is NULL by setting the { message: 'Your custom message', allow: false } on the options.
    *
    * @example
    * ```typescript
@@ -252,16 +307,44 @@ export default class ArraySchema<
     >;
   }
 
+  /**
+   * Just adds a message when the value is null. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.datetime().nullable({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonNullable function
+   * @param options.message - A custom message if the value is null.
+   *
+   * @returns - The schema.
+   */
+  nonNullable(options?: { message: string }) {
+    return super.nullable({
+      message: options?.message || '',
+      allow: false
+    }) as unknown as ArraySchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
 
   /**
-   * This method will remove the value from the representation of the schema. If the value is undefined it will keep that way
-   * otherwise it will set the value to undefined after it's validated.
+   * This method will remove the value from the representation of the schema. If the value is undefined it will keep
+   * that way otherwise it will set the value to undefined after it's validated.
    * This is used in conjunction with the {@link data} function, the {@link parse} function or {@link validate}
    * function. This will remove the value from the representation of the schema.
    *
-   * By default, the value will be removed just from the representation, in other words, when you call the {@link data} function.
-   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal` as true.
-   * Then if you still want to remove the value from the representation, you will need to pass the argument `toRepresentation` as true as well.
+   * By default, the value will be removed just from the representation, in other words, when you call the {@link data}
+   * function. But if you want to remove the value from the internal representation, you can pass the argument
+   * `toInternal` as true. Then if you still want to remove the value from the representation, you will need to pass
+   * the argument `toRepresentation` as true as well.
    *
    * @example
    * ```typescript
@@ -283,16 +366,19 @@ export default class ArraySchema<
    * ```
    *
    *
-   * @param args - By default, the value will be removed just from the representation, in other words, when you call the {@link data} function.
-   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal` as true.
-   * Then if you still want to remove the value from the representation, you will need to pass the argument `toRepresentation` as true as well.
+   * @param args - By default, the value will be removed just from the representation, in other words, when you call
+   * the {@link data} function.
+   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal`
+   * as true.
+   * Then if you still want to remove the value from the representation, you will need to pass the argument
+   * `toRepresentation` as true as well.
    *
    * @returns The schema.
    */
   omit<
     TToInternal extends boolean,
     TToRepresentation extends boolean = boolean extends TToInternal ? true : false
-  >(args?: { toInternal?: TToInternal, toRepresentation?: TToRepresentation }) {
+  >(args?: { toInternal?: TToInternal; toRepresentation?: TToRepresentation }) {
     return super.omit(args) as unknown as ArraySchema<
       {
         input: TToInternal extends true ? TType['input'] | undefined : TType['input'];
@@ -307,9 +393,9 @@ export default class ArraySchema<
   }
 
   /**
-   * This function is used in conjunction with the {@link validate} function. It's used to save a value to an external source
-   * like a database. You should always return the schema after you save the value, that way we will always have the correct type
-   * of the schema after the save operation.
+   * This function is used in conjunction with the {@link validate} function. It's used to save a value to an external
+   * source like a database. You should always return the schema after you save the value, that way we will always have
+   * the correct type of the schema after the save operation.
    *
    * You can use the {@link toRepresentation} function to transform and clean the value it returns after the save.
    *
@@ -364,9 +450,9 @@ export default class ArraySchema<
     >;
   }
 
-
   /**
-   * This function is used to add a default value to the schema. If the value is either undefined or null, the default value will be used.
+   * This function is used to add a default value to the schema. If the value is either undefined or null, the default
+   * value will be used.
    *
    * @example
    * ```typescript
@@ -396,8 +482,57 @@ export default class ArraySchema<
   }
 
   /**
-   * This function let's you customize the schema your own way. After we translate the schema on the adapter we call this function to let you customize
-   * the custom schema your own way. Our API does not support passthrough? No problem, you can use this function to customize the zod schema.
+   * This function is used to transform the value to the representation without validating it.
+   * This is useful when you want to return a data from a query directly to the user. But for example
+   * you are returning the data of a user, you can clean the password or any other sensitive data.
+   *
+   * @example
+   * ```typescript
+   * import * as p from '@palmares/schemas';
+   *
+   * const userSchema = p.object({
+   *   id: p.number().optional(),
+   *   name: p.string(),
+   *   email: p.string().email(),
+   *   password: p.string().optional()
+   * }).toRepresentation(async (value) => {
+   *   return {
+   *    id: value.id,
+   *    name: value.name,
+   *   email: value.email
+   *  }
+   * });
+   *
+   * const user = await userSchema.data({
+   *   id: 1,
+   *   name: 'John Doe',
+   *   email: 'john@gmail.com',
+   *   password: '123456'
+   * });
+   * ```
+   */
+  async data(value: TType['output']): Promise<TType['representation']> {
+    let parsedValue = await super.data(value);
+    if (Array.isArray(parsedValue)) {
+      parsedValue = (await Promise.all(
+        Array.isArray(this.__schemas[0])
+          ? parsedValue.map((value: any) => {
+              const schema = (this.__schemas as unknown as [[Schema]])[0][0];
+
+              return shouldRunDataOnComplexSchemas(schema) ? schema.data(value) : value;
+            })
+          : (this.__schemas as [Schema, ...Schema[]]).map(async (schema) => {
+              return shouldRunDataOnComplexSchemas(schema) ? schema.data(value) : value;
+            })
+      )) as unknown as TType['representation'];
+    }
+    return parsedValue;
+  }
+
+  /**
+   * This function let's you customize the schema your own way. After we translate the schema on the adapter we call
+   * this function to let you customize the custom schema your own way. Our API does not support passthrough?
+   * No problem, you can use this function to customize the zod schema.
    *
    * @example
    * ```typescript
@@ -409,12 +544,13 @@ export default class ArraySchema<
    *
    * const { errors, parsed } = await numberSchema.parse(-1);
    *
-   * console.log(errors); // [{ isValid: false, code: 'nonnegative', message: 'The number should be nonnegative', path: [] }]
+   * // [{ isValid: false, code: 'nonnegative', message: 'The number should be nonnegative', path: [] }]
+   * console.log(errors);
    * ```
    *
    * @param callback - The callback that will be called to customize the schema.
-   * @param toStringCallback - The callback that will be called to transform the schema to a string when you want to compile the underlying schema
-   * to a string so you can save it for future runs.
+   * @param toStringCallback - The callback that will be called to transform the schema to a string when you want to
+   * compile the underlying schema to a string so you can save it for future runs.
    *
    * @returns The schema.
    */
@@ -428,8 +564,9 @@ export default class ArraySchema<
   }
 
   /**
-   * This function is used to transform the value to the representation of the schema. When using the {@link data} function. With this function you have full
-   * control to add data cleaning for example, transforming the data and whatever. Another use case is when you want to return deeply nested recursive data.
+   * This function is used to transform the value to the representation of the schema. When using the {@link data}
+   * function. With this function you have full control to add data cleaning for example, transforming the data and
+   * whatever. Another use case is when you want to return deeply nested recursive data.
    * The schema maps to itself.
    *
    * @example
@@ -487,8 +624,9 @@ export default class ArraySchema<
   }
 
   /**
-   * This function is used to transform the value to the internal representation of the schema. This is useful when you want to transform the value
-   * to a type that the schema adapter can understand. For example, you might want to transform a string to a date. This is the function you use.
+   * This function is used to transform the value to the internal representation of the schema. This is useful when you
+   * want to transform the value to a type that the schema adapter can understand. For example, you might want to
+   * transform a string to a date. This is the function you use.
    *
    * @example
    * ```typescript
@@ -533,8 +671,9 @@ export default class ArraySchema<
   }
 
   /**
-   * Called before the validation of the schema. Let's say that you want to validate a date that might receive a string, you can convert that string to a date
-   * here BEFORE the validation. This pretty much transforms the value to a type that the schema adapter can understand.
+   * Called before the validation of the schema. Let's say that you want to validate a date that might receive a string,
+   * you can convert that string to a date here BEFORE the validation. This pretty much transforms the value to a type
+   * that the schema adapter can understand.
    *
    * @example
    * ```
@@ -566,41 +705,69 @@ export default class ArraySchema<
     >;
   }
 
-  minLength(value: number, inclusive = true, message?: string) {
-    message = message || `The array must have a minimum length of ${value}`;
+  minLength(value: number, options?: Omit<ArraySchema['__minLength'], 'value'>) {
+    const message = options?.message || `The array must have a minimum length of ${value}`;
     this.__minLength = {
       value: value,
-      inclusive: inclusive,
-      message: message,
+      inclusive: typeof options?.inclusive === 'boolean' ? options.inclusive : true,
+      message: message
     };
 
-    return this;
+    return this as unknown as ArraySchema<
+      {
+        input: [TType['input'][number], ...TType['input'][number][]];
+        validate: [TType['validate'][number], ...TType['validate'][number][]];
+        internal: [TType['internal'][number], ...TType['internal'][number][]];
+        output: [TType['output'][number], ...TType['output'][number][]];
+        representation: [TType['representation'][number], ...TType['representation'][number][]];
+      },
+      TDefinitions,
+      TSchemas
+    >;
   }
 
-  maxLength(value: number, inclusive = true, message?: string) {
-    message = message || `The array must have a maximum length of ${value}`;
+  maxLength(value: number, options?: Omit<ArraySchema['__maxLength'], 'value'>) {
+    const message = options?.message || `The array must have a maximum length of ${value}`;
     this.__maxLength = {
       value: value,
-      inclusive: inclusive,
-      message: message,
-    };
-
-    return this;
-  }
-
-  nonEmpty(message?: string) {
-    message = message || 'The array must not be empty';
-    this.__nonEmpty = {
-      message: message,
+      inclusive: typeof options?.inclusive === 'boolean' ? options.inclusive : true,
+      message: message
     };
 
     return this;
   }
 
   static new<
-    TSchemas extends readonly [Schema, ...Schema[]] | [Schema[]],
-    TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
-  >(...schemas: TSchemas) {
+    TSchemas extends readonly [Schema, ...Schema[]] | [[Schema]],
+    TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
+  >(
+    ...schemas: TSchemas
+  ): TSchemas extends [[Schema]]
+    ? ArraySchema<
+        {
+          input: ExtractTypeFromArrayOfSchemas<TSchemas, 'input'>;
+          validate: ExtractTypeFromArrayOfSchemas<TSchemas, 'validate'>;
+          internal: ExtractTypeFromArrayOfSchemas<TSchemas, 'internal'>;
+          output: ExtractTypeFromArrayOfSchemas<TSchemas, 'output'>;
+          representation: ExtractTypeFromArrayOfSchemas<TSchemas, 'representation'>;
+        },
+        TDefinitions,
+        TSchemas
+      >
+    : ArraySchema<
+        {
+          input: ExtractTypeFromArrayOfSchemas<TSchemas, 'input'>;
+          validate: ExtractTypeFromArrayOfSchemas<TSchemas, 'validate'>;
+          internal: ExtractTypeFromArrayOfSchemas<TSchemas, 'internal'>;
+          output: ExtractTypeFromArrayOfSchemas<TSchemas, 'output'>;
+          representation: ExtractTypeFromArrayOfSchemas<TSchemas, 'representation'>;
+        },
+        TDefinitions,
+        TSchemas
+      > & {
+        maxLength: never;
+        minLength: never;
+      } {
     const returnValue = new ArraySchema<
       {
         input: ExtractTypeFromArrayOfSchemas<TSchemas, 'input'>;
@@ -613,21 +780,38 @@ export default class ArraySchema<
       TSchemas
     >(...schemas);
 
-    const adapterInstance = getDefaultAdapter();
-
-    returnValue.__transformedSchemas[adapterInstance.constructor.name] = {
-      transformed: false,
-      adapter: adapterInstance,
-      schemas: [],
-    };
-
-    return returnValue;
+    return returnValue as TSchemas extends [[Schema]]
+      ? ArraySchema<
+          {
+            input: ExtractTypeFromArrayOfSchemas<TSchemas, 'input'>;
+            validate: ExtractTypeFromArrayOfSchemas<TSchemas, 'validate'>;
+            internal: ExtractTypeFromArrayOfSchemas<TSchemas, 'internal'>;
+            output: ExtractTypeFromArrayOfSchemas<TSchemas, 'output'>;
+            representation: ExtractTypeFromArrayOfSchemas<TSchemas, 'representation'>;
+          },
+          TDefinitions,
+          TSchemas
+        >
+      : ArraySchema<
+          {
+            input: ExtractTypeFromArrayOfSchemas<TSchemas, 'input'>;
+            validate: ExtractTypeFromArrayOfSchemas<TSchemas, 'validate'>;
+            internal: ExtractTypeFromArrayOfSchemas<TSchemas, 'internal'>;
+            output: ExtractTypeFromArrayOfSchemas<TSchemas, 'output'>;
+            representation: ExtractTypeFromArrayOfSchemas<TSchemas, 'representation'>;
+          },
+          TDefinitions,
+          TSchemas
+        > & {
+          maxLength: never;
+          minLength: never;
+        };
   }
 }
 
 export const array = <
-  TSchemas extends readonly [Schema, ...Schema[]] | [Schema[]],
-  TDefinitions extends DefinitionsOfSchemaType,
+  TSchemas extends readonly [Schema, ...Schema[]] | [[Schema]],
+  TDefinitions extends DefinitionsOfSchemaType
 >(
   ...schemas: TSchemas
 ) => ArraySchema.new<TSchemas, TDefinitions>(...schemas);

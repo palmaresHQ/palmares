@@ -71,7 +71,10 @@ const removeQuery = adapterRemoveQuery({
     const engineInstanceOrTransaction = args.transaction || engine.instance.instance;
 
     if (engine.instance.mainType === 'sqlite' || engine.instance.mainType === 'postgres')
-      return engineInstanceOrTransaction.delete(args.modelOfEngineInstance).where(args.search).returning();
+      return engineInstanceOrTransaction
+        .delete(args.modelOfEngineInstance)
+        .where(and(...(Object.values(args.search) as any)))
+        .returning();
     else {
       const dataToBeDeleted =
         args.shouldReturnData !== false
@@ -81,7 +84,9 @@ const removeQuery = adapterRemoveQuery({
               .where(and(...(Object.values(args.search) as any)))
           : [];
 
-      await engineInstanceOrTransaction.delete(args.modelOfEngineInstance).where(args.search);
+      await engineInstanceOrTransaction
+        .delete(args.modelOfEngineInstance)
+        .where(and(...(Object.values(args.search) as any)));
       return dataToBeDeleted;
     }
   }
@@ -101,12 +106,13 @@ const search = adapterSearchQuery({
   // eslint-disable-next-line ts/require-await
   parseSearchFieldValue: async (operationType, key, model, value, result, options) => {
     switch (operationType) {
-      case 'like':
+      case 'like': {
         if (options?.ignoreCase) result[key] = ilike(model[key], value as string);
         else if (options?.isNot && options.ignoreCase) result[key] = notIlike(model[key], value as string);
         else if (options?.isNot) result[key] = notLike(model[key], value as string);
         else result[key] = like(model[key], value as string);
         return;
+      }
       case 'is':
         if (value === null && options?.isNot) {
           result[key] = isNotNull(model[key]);

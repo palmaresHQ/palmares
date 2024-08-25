@@ -12,7 +12,7 @@ const addHeadersAndAuthenticateUser = middleware({
     }>();
 
     return customRequest;
-  },
+  }
 });
 
 const authenticateRequest = middleware({
@@ -29,7 +29,7 @@ const authenticateRequest = middleware({
     }>();
 
     return modifiedRequest;
-  },
+  }
 });
 
 export const rootRouter = path(
@@ -39,19 +39,19 @@ export const rootRouter = path(
 const toReturn = {
   hello: {
     type: ['number'],
-    regex: new RegExp('\\d+'),
+    regex: new RegExp('\\d+')
   },
   userId: {
-    type: ['string'],
-  },
+    type: ['string']
+  }
 };
 
 const testRequestMiddleware1 = nestedMiddleware<typeof rootRouter>()({
   options: {
     responses: {
-      '200': (hello: string) => Response.json({ message: 'hello' }, { status: 200 }),
-    },
-  },
+      '200': (hello: string) => Response.json({ message: 'hello' }, { status: 200 })
+    }
+  }
 });
 
 const testRequestMiddleware = nestedMiddleware<typeof rootRouter>()({
@@ -63,16 +63,16 @@ const testRequestMiddleware = nestedMiddleware<typeof rootRouter>()({
   options: {
     responses: {
       '404': (teste: number) => Response.json({ message: 'hello' }, { status: 404 }),
-      '400': () => Response.json({ user: 'notFound' }, { status: 400 }),
-    },
-  },
+      '400': () => Response.json({ user: 'notFound' }, { status: 400 })
+    }
+  }
 });
 
 const testResponseMiddleware2 = nestedMiddleware<typeof testRouterWithController>()({
   response: (response) => {
     //const value = response.status === 200 ? response.body : response;
     return response;
-  },
+  }
 });
 
 const testRouter = path('/hey').middlewares([testRequestMiddleware1, testRequestMiddleware]);
@@ -83,8 +83,8 @@ const testController = pathNested<typeof testRouter>()('/<userId: string>').get(
   // return response;
   {
     responses: {
-      200: (body: string) => Response.json({ body: body }, { status: 200 }),
-    },
+      200: (body: string) => Response.json({ body: body }, { status: 200 })
+    }
   }
 );
 
@@ -133,6 +133,7 @@ export const router = withMiddlewares.nested((path) => [
     }),
   path('/').get((request) => {
     request.params.userId;
+
     return new Response<{
       id: number;
       firstName: string;
@@ -140,9 +141,11 @@ export const router = withMiddlewares.nested((path) => [
       username: string;
     }>();
   }),
-  controllers,
+  controllers
 ]);
-rootRouter.nested([withMiddlewares]); // this should not matter for the output, need to fix this so when you define the handlers for the nested router the parent WILL be updated.
+// this should not matter for the output, need to fix this so when you define the handlers
+// for the nested router the parent WILL be updated.
+rootRouter.nested([withMiddlewares]);
 
 const testResponseMiddleware = nestedMiddleware<typeof router>()({
   response: (response) => {
@@ -152,10 +155,11 @@ const testResponseMiddleware = nestedMiddleware<typeof router>()({
       const test = response.headers['x-header'];
     }
     return response;
-  },
+  }
 });
 
-// Esse exemplo é como o Request do Client deve ser definido, pensa em algo tipo um TRPC, aqui eu garanto que você ta passando
+// Esse exemplo é como o Request do Client deve ser definido, pensa em algo tipo um
+// TRPC, aqui eu garanto que você ta passando
 // os dados corretos para o request na hora de fazer o fetch.
 type ClientRequest = ExtractRequestsFromMiddlewaresForClient<
   string,

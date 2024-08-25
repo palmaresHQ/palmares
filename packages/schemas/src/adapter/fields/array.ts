@@ -1,7 +1,7 @@
 import FieldAdapter from '.';
 
 import type WithFallback from '../../utils';
-import type { NumberAdapterTranslateArgs } from '../types';
+import type { ArrayAdapterTranslateArgs, NumberAdapterTranslateArgs } from '../types';
 
 export function arrayFieldAdapter<
   TTranslate extends ArrayFieldAdapter['translate'],
@@ -27,5 +27,5 @@ export function arrayFieldAdapter<
 }
 
 export default class ArrayFieldAdapter extends FieldAdapter {
-  translate(_fieldAdapter: FieldAdapter, _args: NumberAdapterTranslateArgs): any | WithFallback<'array'> {}
+  translate(_fieldAdapter: FieldAdapter, _args: ArrayAdapterTranslateArgs): any | WithFallback<'array'> {}
 }

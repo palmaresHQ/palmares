@@ -9,12 +9,12 @@ type GetTypeByStringType<TString extends string, TFinalType = never> = TString e
     ? GetTypeByStringType<`(${TRest})`, TFinalType | GetTypeByStringType<TType>>
     : GetTypeByStringType<TUnionOrMergedTypes, TFinalType>
   : Trim<TString> extends 'number'
-  ? TFinalType | number
-  : Trim<TString> extends 'string'
-  ? TFinalType | string
-  : Trim<TString> extends 'boolean'
-  ? TFinalType | boolean
-  : TString;
+    ? TFinalType | number
+    : Trim<TString> extends 'string'
+      ? TFinalType | string
+      : Trim<TString> extends 'boolean'
+        ? TFinalType | boolean
+        : TString;
 
 // This is to see if the string is optional or not.
 type GetLastCharacterOfString<TString extends string> = TString extends `${string}${infer End}`
@@ -30,16 +30,16 @@ type GetTypeByStringForQueryParamsType<TString extends string> = TString extends
     ? GetTypeByStringType<TType>[] | undefined
     : GetTypeByStringType<TType>[]
   : TString extends `${infer TType}?` | `${infer TType}`
-  ? GetLastCharacterOfString<TString> extends '?'
-    ? GetTypeByStringType<TType> | undefined
-    : GetTypeByStringType<TType>
-  : never;
+    ? GetLastCharacterOfString<TString> extends '?'
+      ? GetTypeByStringType<TType> | undefined
+      : GetTypeByStringType<TType>
+    : never;
 
 type ExtractStringWithoutSpacesType<TString extends string> = TString extends ` ${infer TRest}`
   ? ExtractStringWithoutSpacesType<`${TRest}`>
   : TString extends `${infer TRest} `
-  ? ExtractStringWithoutSpacesType<`${TRest}`>
-  : TString;
+    ? ExtractStringWithoutSpacesType<`${TRest}`>
+    : TString;
 
 export type ExtractQueryParamsFromPathType<T extends string> = T extends `${string}?${infer TQueryParams}`
   ? ExtractUrlQueryParamsFromPathTypeRequiredAndOptional<TQueryParams>
@@ -70,27 +70,30 @@ export type ExtractUrlQueryParamsFromPathType<TPath extends string> =
         >;
       } & ExtractUrlQueryParamsFromPathType<TRest>
     : TPath extends `${infer TParam}=${infer TType}`
-    ? {
-        [key in TParam]: GetTypeByStringForQueryParamsType<
-          ExtractStringWithoutSpacesType<
-            TType extends `${string}{${string}}:${infer TTypeOfRegex}` ? TTypeOfRegex : TType
-          >
-        >;
-      }
-    : undefined;
+      ? {
+          [key in TParam]: GetTypeByStringForQueryParamsType<
+            ExtractStringWithoutSpacesType<
+              TType extends `${string}{${string}}:${infer TTypeOfRegex}` ? TTypeOfRegex : TType
+            >
+          >;
+        }
+      : undefined;
 
 /**
- * Some query parameters are obligatory and some are optional, we use this to convert values with "undefined" in them to optional
+ * Some query parameters are obligatory and some are optional, we use this to convert
+ * values with "undefined" in them to optional
  *
  * {
  *   key?: value
  * }
  */
 export type ExtractUrlQueryParamsFromPathTypeRequiredAndOptional<TPath extends string> = {
+  // eslint-disable-next-line max-len
   [key in keyof ExtractUrlQueryParamsFromPathType<TPath> as undefined extends ExtractUrlQueryParamsFromPathType<TPath>[key]
     ? never
     : key]: ExtractUrlQueryParamsFromPathType<TPath>[key];
 } & {
+  // eslint-disable-next-line max-len
   [key in keyof ExtractUrlQueryParamsFromPathType<TPath> as undefined extends ExtractUrlQueryParamsFromPathType<TPath>[key]
     ? key
     : never]?: ExtractUrlQueryParamsFromPathType<TPath>[key];
@@ -117,14 +120,15 @@ export type DefaultRequestType = Request<
 export type FormDataLike<TObject = unknown> = {
   new (
     /**
-     * This should be prefered, what it does is that instead of creating a default form data like class it'll return a proxy, this way all values are lazy loaded. Just when needed.
+     * This should be prefered, what it does is that instead of creating a default form data like class
+     * it'll return a proxy, this way all values are lazy loaded. Just when needed.
      */
     proxyCallback?: {
       /**
        * This function will be called when a value is needed. It should return an array of object for the given key.
        *
-       * If the key is a File or Blob, fileName should be defined. Otherwise just return on value. A File object is prefered over a Blob object, because it can hold more information
-       * about the file.
+       * If the key is a File or Blob, fileName should be defined. Otherwise just return on value. A File
+       * object is prefered over a Blob object, because it can hold more information about the file.
        *
        * @example
        * ```ts

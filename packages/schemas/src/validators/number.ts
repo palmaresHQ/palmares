@@ -4,9 +4,14 @@ import type { ValidationFallbackReturnType } from '../schema/types';
 
 export function numberValidation(): ValidationFallbackReturnType {
   return {
+    name: 'number',
     type: 'medium',
     // eslint-disable-next-line ts/require-await
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
+    callback: async (
+      value: any,
+      path: (string | number)[],
+      _options: Parameters<Schema['__transformToAdapter']>[0]
+    ) => {
       return {
         parsed: value,
         errors: [
@@ -15,19 +20,24 @@ export function numberValidation(): ValidationFallbackReturnType {
             code: 'number',
             // eslint-disable-next-line ts/no-unnecessary-condition
             path: path || [],
-            message: 'The value must be a number. Received: ' + typeof value,
-          },
-        ],
+            message: 'The value must be a number. Received: ' + typeof value
+          }
+        ]
       };
-    },
+    }
   };
 }
 
-export function max(args: NumberSchema['__max']): ValidationFallbackReturnType {
+export function max(args: NonNullable<NumberSchema['__max']>): ValidationFallbackReturnType {
   return {
+    name: 'max',
     type: 'low',
     // eslint-disable-next-line ts/require-await
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
+    callback: async (
+      value: any,
+      path: (string | number)[],
+      _options: Parameters<Schema['__transformToAdapter']>[0]
+    ) => {
       if (args.inclusive)
         return {
           parsed: value,
@@ -37,9 +47,9 @@ export function max(args: NumberSchema['__max']): ValidationFallbackReturnType {
               code: 'max',
               // eslint-disable-next-line ts/no-unnecessary-condition
               path: path || [],
-              message: args.message,
-            },
-          ],
+              message: args.message
+            }
+          ]
         };
 
       return {
@@ -50,16 +60,17 @@ export function max(args: NumberSchema['__max']): ValidationFallbackReturnType {
             code: 'max',
             // eslint-disable-next-line ts/no-unnecessary-condition
             path: path || [],
-            message: args.message,
-          },
-        ],
+            message: args.message
+          }
+        ]
       };
-    },
+    }
   };
 }
 
-export function min(args: NumberSchema['__min']): ValidationFallbackReturnType {
+export function min(args: NonNullable<NumberSchema['__min']>): ValidationFallbackReturnType {
   return {
+    name: 'min',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (value: any, path?: (string | number)[]) => {
@@ -71,9 +82,9 @@ export function min(args: NumberSchema['__min']): ValidationFallbackReturnType {
               isValid: value >= args.value,
               message: args.message,
               code: 'min',
-              path: path || [],
-            },
-          ],
+              path: path || []
+            }
+          ]
         };
 
       return {
@@ -83,20 +94,21 @@ export function min(args: NumberSchema['__min']): ValidationFallbackReturnType {
             isValid: value > args.value,
             message: args.message,
             code: 'min',
-            path: path || [],
-          },
-        ],
+            path: path || []
+          }
+        ]
       };
-    },
+    }
   };
 }
 
-export function negative(args: NumberSchema['__allowNegative']): ValidationFallbackReturnType {
+export function integer(args: NonNullable<NumberSchema['__integer']>): ValidationFallbackReturnType {
   return {
+    name: 'integer',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (value: any, path?: (string | number)[]) => {
-      const isValid = args.allowZero ? value < 0 : value <= 0;
+      const isValid = Number.isInteger(value);
 
       return {
         parsed: value,
@@ -106,41 +118,18 @@ export function negative(args: NumberSchema['__allowNegative']): ValidationFallb
               {
                 isValid: isValid,
                 message: args.message,
-                code: 'negative',
-                path: path || [],
-              },
-            ],
+                code: 'integer',
+                path: path || []
+              }
+            ]
       };
-    },
+    }
   };
 }
 
-export function positive(args: NumberSchema['__allowPositive']): ValidationFallbackReturnType {
+export function maxDigits(args: NonNullable<NumberSchema['__maxDigits']>): ValidationFallbackReturnType {
   return {
-    type: 'low',
-    // eslint-disable-next-line ts/require-await
-    callback: async (value: any, path?: (string | number)[]) => {
-      const isValid = args.allowZero ? value > 0 : value >= 0;
-
-      return {
-        parsed: value,
-        errors: isValid
-          ? []
-          : [
-              {
-                isValid: isValid,
-                message: args.message,
-                code: 'positive',
-                path: path || [],
-              },
-            ],
-      };
-    },
-  };
-}
-
-export function maxDigits(args: NumberSchema['__maxDigits']): ValidationFallbackReturnType {
-  return {
+    name: 'maxDigits',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (value: any, path?: (string | number)[]) => {
@@ -155,16 +144,17 @@ export function maxDigits(args: NumberSchema['__maxDigits']): ValidationFallback
                 isValid: isValid,
                 message: args.message,
                 code: 'maxDigits',
-                path: path || [],
-              },
-            ],
+                path: path || []
+              }
+            ]
       };
-    },
+    }
   };
 }
 
-export function decimalPlaces(args: NumberSchema['__decimalPlaces']): ValidationFallbackReturnType {
+export function decimalPlaces(args: NonNullable<NumberSchema['__decimalPlaces']>): ValidationFallbackReturnType {
   return {
+    name: 'decimalPlaces',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (value: any, path?: (string | number)[]) => {
@@ -179,10 +169,10 @@ export function decimalPlaces(args: NumberSchema['__decimalPlaces']): Validation
                 isValid: isValid,
                 message: args.message,
                 code: 'decimalPlaces',
-                path: path || [],
-              },
-            ],
+                path: path || []
+              }
+            ]
       };
-    },
+    }
   };
 }

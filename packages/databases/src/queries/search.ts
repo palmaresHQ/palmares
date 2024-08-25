@@ -33,8 +33,7 @@ async function parseSearchField(
             ignoreCase: true
           }
         );
-      }
-      if ('not' in fieldData.like) {
+      } else if ('not' in fieldData.like) {
         if (typeof fieldData.like.not === 'object') {
           await engine.query.search.parseSearchFieldValue(
             'like',
@@ -59,16 +58,19 @@ async function parseSearchField(
             }
           );
         }
-      } else {
-        await engine.query.search.parseSearchFieldValue(
-          'like',
-          key,
-          translatedModelInstance,
-          await inputFieldParser(fieldData.like),
-          result
-        );
       }
     }
+
+    if (typeof fieldData.like === 'string') {
+      await engine.query.search.parseSearchFieldValue(
+        'like',
+        key,
+        translatedModelInstance,
+        await inputFieldParser(fieldData.like),
+        result
+      );
+    }
+
     if (Array.isArray(fieldData.and)) {
       await engine.query.search.parseSearchFieldValue(
         'and',

@@ -1,5 +1,11 @@
 # @palmares/console-logging
 
+## 0.0.2
+
+### Patch Changes
+
+- Unstable release, but already on npm
+
 ## 0.0.1
 
 ### Patch Changes

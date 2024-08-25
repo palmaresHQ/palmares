@@ -1,5 +1,13 @@
 # @palmares/eventemitter2-emitter
 
+## 0.0.2
+
+### Patch Changes
+
+- Unstable release, but already on npm
+- Updated dependencies
+  - @palmares/events@0.0.2
+
 ## 0.0.1
 
 ### Patch Changes

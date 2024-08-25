@@ -11,41 +11,49 @@ export type AdapterToStringArgs = {
     optional: Schema['__optional']['allow'];
     nullable: Schema['__nullable']['allow'];
   };
+  type: Schema['__type'];
   optional: Schema['__optional'];
   nullable: Schema['__nullable'];
 };
 
-export type AdapterTranslateArgs<TType extends SupportedSchemas = SupportedSchemas> = AdapterToStringArgs & NonToTranslateArgs<TType>;
+export type AdapterTranslateArgs<TType extends SupportedSchemas = SupportedSchemas> = AdapterToStringArgs &
+  NonToTranslateArgs<TType>;
 
 export type DatetimeAdapterTranslateArgs = {
   allowString: boolean | undefined;
-  above: {
-    value: Date;
-    inclusive: boolean;
-    message: string;
-  };
-  below: {
-    value: Date;
-    inclusive: boolean;
-    message: string;
-  };
+  above:
+    | {
+        value: Date;
+        inclusive: boolean;
+        message: string;
+      }
+    | undefined;
+  below:
+    | {
+        value: Date;
+        inclusive: boolean;
+        message: string;
+      }
+    | undefined;
 } & AdapterTranslateArgs<'datetime'>;
 
 export type BooleanAdapterTranslateArgs = {
   parsers: {
     allowString: boolean | undefined;
     allowNumber: boolean | undefined;
-    trueValues: any[];
-    falseValues: any[];
-    is: boolean;
+    trueValues: any[] | undefined;
+    falseValues: any[] | undefined;
   } & AdapterTranslateArgs<'boolean'>['parsers'];
-  is: {
-    value: boolean;
-    message: string;
-  };
+  is:
+    | {
+        value: boolean;
+        message: string;
+      }
+    | undefined;
 } & AdapterTranslateArgs<'boolean'>;
 
 export type ArrayAdapterTranslateArgs = {
+  schemas: any[];
   minLength:
     | {
         value: number;
@@ -67,9 +75,19 @@ export type ArrayAdapterTranslateArgs = {
     | undefined;
 
   isTuple: boolean;
-} & AdapterTranslateArgs<'array'>;
+} & (
+  | {
+      isTuple: true;
+      schemas: [any, ...any[]];
+    }
+  | { isTuple: false; schemas: [any] }
+) &
+  AdapterTranslateArgs<'array'>;
 
 export type NumberAdapterTranslateArgs = {
+  parsers: {
+    allowString: boolean | undefined;
+  } & AdapterTranslateArgs<'number'>['parsers'];
   is:
     | {
         value: number[];
@@ -102,18 +120,6 @@ export type NumberAdapterTranslateArgs = {
         message: string;
       }
     | undefined;
-  allowNegative:
-    | {
-        allowZero: boolean;
-        message: string;
-      }
-    | undefined;
-  allowPositive:
-    | {
-        allowZero: boolean;
-        message: string;
-      }
-    | undefined;
   integer:
     | {
         message: string;
@@ -129,17 +135,27 @@ export type StringAdapterTranslateArgsWithoutNonTranslateArgs = Omit<
 >;
 
 export type StringAdapterTranslateArgs = {
+  is:
+    | {
+        value: string[] | string;
+        message: string;
+      }
+    | undefined;
+  uuid:
+    | {
+        message: string;
+      }
+    | undefined;
+  email: { message: string } | undefined;
   minLength:
     | {
         value: number;
-        inclusive: boolean;
         message: string;
       }
     | undefined;
   maxLength:
     | {
         value: number;
-        inclusive: boolean;
         message: string;
       }
     | undefined;
@@ -219,26 +235,25 @@ export type DatetimeAdapterTranslateArgsWithoutNonTranslateArgs = Omit<
 export type ValidationDataBasedOnType<TType> = TType extends 'number'
   ? NumberAdapterTranslateArgsWithoutNonTranslateArgs
   : TType extends 'union'
-  ? UnionAdapterTranslateArgsWithoutNonTranslateArgs
-  : TType extends 'string'
-  ? StringAdapterTranslateArgsWithoutNonTranslateArgs
-  : TType extends 'array'
-  ? ArrayAdapterTranslateArgsWithoutNonTranslateArgs
-  : TType extends 'boolean'
-  ? BooleanAdapterTranslateArgsWithoutNonTranslateArgs
-  : TType extends 'datetime'
-  ? DatetimeAdapterTranslateArgsWithoutNonTranslateArgs
-  : ObjectAdapterTranslateArgsWithoutNonTranslateArgs;
+    ? UnionAdapterTranslateArgsWithoutNonTranslateArgs
+    : TType extends 'string'
+      ? StringAdapterTranslateArgsWithoutNonTranslateArgs
+      : TType extends 'array'
+        ? ArrayAdapterTranslateArgsWithoutNonTranslateArgs
+        : TType extends 'boolean'
+          ? BooleanAdapterTranslateArgsWithoutNonTranslateArgs
+          : TType extends 'datetime'
+            ? DatetimeAdapterTranslateArgsWithoutNonTranslateArgs
+            : ObjectAdapterTranslateArgsWithoutNonTranslateArgs;
 
 export type ErrorCodes =
   | 'max'
-  | 'negative'
-  | 'positive'
   | 'maxDigits'
   | 'decimalPlaces'
   | 'min'
   | 'integer'
   | 'required'
+  | 'null'
   | 'object'
   | 'number'
   | 'string'

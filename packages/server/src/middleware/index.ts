@@ -7,7 +7,7 @@ import type {
   RequestDestination,
   RequestMethodTypes,
   RequestMode,
-  RequestRedirect,
+  RequestRedirect
 } from '../request/types';
 import type Response from '../response';
 import type { DefaultResponseType, ExtractResponsesFromMiddlewaresRequestAndRouterHandlers } from '../response/types';
@@ -17,7 +17,8 @@ import type { DefaultRouterType } from '../router/types';
 /**
  * This class is used to create a new {@link Middleware} instance.
  *
- * First, it's important to understand how middlewares work: Middlewares are executed in the order they are declared: `middlewares([middleware1, middleware2])`
+ * First, it's important to understand how middlewares work: Middlewares are executed in the order they are
+ * declared: `middlewares([middleware1, middleware2])`
  *
  * The execution lifecycle will be
  * _____________________________________________________________
@@ -35,8 +36,10 @@ import type { DefaultRouterType } from '../router/types';
  * 4. middleware2.response is executed
  * 5. middleware1.response is executed
  *
- * It works like an onion (the vegetable), we go IN the onion, the center is the handler and then we go OUT of the onion on the reversed order. Let's say we return a {@link Response}
- * on middleware1.request, the handler will not be executed, and `middleware2.response` will never be executed, just `middleware1.response`.
+ * It works like an onion (the vegetable), we go IN the onion, the center is the handler and then we go
+ * OUT of the onion on the reversed order. Let's say we return a {@link Response}
+ * on middleware1.request, the handler will not be executed, and `middleware2.response` will never be executed,
+ * just `middleware1.response`.
  *
  * Second, on the middleware, during the request lifecycle, there are two types of things you can do:
  * 1. You usually use a middleware to change the request until it reaches the handler
@@ -44,7 +47,8 @@ import type { DefaultRouterType } from '../router/types';
  *
  * This means the `request` can have return either a {@link Request} or a {@link Response}.
  *
- * The only usage of `response` is to make changes to {@link Response} before it is sent to the client, like filtering out properties, adding headers, whatever.
+ * The only usage of `response` is to make changes to {@link Response} before it is sent to the client,
+ * like filtering out properties, adding headers, whatever.
  *
  * @example
  * ```ts
@@ -78,17 +82,19 @@ export class Middleware<TRouter extends DefaultRouterType = DefaultRouterType> {
   /**
    * This function is executed during the request lifecycle. It can return a {@link Request} or a {@link Response}.
    *
-   * If it returns a {@link Request}, the request will be passed to the next middleware or handler. If it's a {@link Response}, the response
-   * will be sent to the passed middlewares until it's sent to the client.
+   * If it returns a {@link Request}, the request will be passed to the next middleware or handler. If it's
+   * a {@link Response}, the response will be sent to the passed middlewares until it's sent to the client.
    *
    * ### IMPORTANT
    *
-   * Using `middleware` function it's nice if you explicitly define how the {@link Request} will enter the function. This way we can correctly type the Request on the client. We will know
-   * how the data needs to be sent to the server.
+   * Using `middleware` function it's nice if you explicitly define how the {@link Request} will enter the
+   * function. This way we can correctly type the Request on the client. We will know how the data needs to
+   * be sent to the server.
    *
    * ### IMPORTANT2
    *
-   * If you don't explicitly type the Request, at least explicitly type the returned {@link Request}. This way we can correctly type the request on the handler.
+   * If you don't explicitly type the Request, at least explicitly type the returned {@link Request}.
+   * This way we can correctly type the request on the handler.
    *
    * @example
    * ```ts
@@ -112,7 +118,8 @@ export class Middleware<TRouter extends DefaultRouterType = DefaultRouterType> {
    *
    * @param request - An instance of {@link Request} with the data.
    *
-   * @returns - A {@link Request} instance with the modified data or a {@link Response} instance if you want to break the middleware chain.
+   * @returns - A {@link Request} instance with the modified data or a {@link Response} instance if you want
+   * to break the middleware chain.
    */
   request:
     | ((
@@ -128,8 +135,9 @@ export class Middleware<TRouter extends DefaultRouterType = DefaultRouterType> {
     | undefined = undefined;
 
   /**
-   * This function is executed during the response lifecycle. It needs to return a {@link Response} instance. Usually you will use this to either change the sent response entirely or
-   * to add some headers/data to the response or filter out some properties.
+   * This function is executed during the response lifecycle. It needs to return a {@link Response} instance.
+   * Usually you will use this to either change the sent response entirely or to add some headers/data to
+   * the response or filter out some properties.
    *
    * @example
    * ```ts
@@ -160,9 +168,11 @@ export class Middleware<TRouter extends DefaultRouterType = DefaultRouterType> {
 }
 
 /**
- * This function is used to create a new {@link Middleware} instance. It's a syntatic sugar over the inheritance/class approach.
+ * This function is used to create a new {@link Middleware} instance. It's a syntatic sugar over the inheritance/class
+ * approach.
  *
- * First, it's important to understand how middlewares work: Middlewares are executed in the order they are declared: `middlewares([middleware1, middleware2])`
+ * First, it's important to understand how middlewares work: Middlewares are executed in the order they are
+ * declared: `middlewares([middleware1, middleware2])`
  *
  * The execution lifecycle will be
  * _____________________________________________________________
@@ -180,8 +190,9 @@ export class Middleware<TRouter extends DefaultRouterType = DefaultRouterType> {
  * 4. middleware2.response is executed
  * 5. middleware1.response is executed
  *
- * It works like an onion (the vegetable), we go IN the onion, the center is the handler and then we go OUT of the onion on the reversed order. Let's say we return a {@link Response}
- * on middleware1.request, the handler will not be executed, and `middleware2.response` will never be executed, just `middleware1.response`.
+ * It works like an onion (the vegetable), we go IN the onion, the center is the handler and then we go OUT
+ * of the onion on the reversed order. Let's say we return a {@link Response} on middleware1.request, the
+ * handler will not be executed, and `middleware2.response` will never be executed, just `middleware1.response`.
  *
  * Second, on the middleware, during the request lifecycle, there are two types of things you can do:
  * 1. You usually use a middleware to change the request until it reaches the handler
@@ -189,7 +200,8 @@ export class Middleware<TRouter extends DefaultRouterType = DefaultRouterType> {
  *
  * This means the `request` can have return either a {@link Request} or a {@link Response}.
  *
- * The only usage of `response` is to make changes to {@link Response} before it is sent to the client, like filtering out properties, adding headers, whatever.
+ * The only usage of `response` is to make changes to {@link Response} before it is sent to the client, like
+ * filtering out properties, adding headers, whatever.
  *
  * @example
  * ```ts
@@ -229,22 +241,24 @@ export function middleware<
       ? TInferMiddlewares
       : never
     : never,
-  TRequest extends Request<any, any> | undefined = undefined,
+  TRequest extends Request<any, any> | undefined = undefined
 >(options: {
   /**
    * This function is executed during the request lifecycle. It can return a {@link Request} or a {@link Response}.
    *
-   * If it returns a {@link Request}, the request will be passed to the next middleware or handler. If it's a {@link Response}, the response
-   * will be sent to the passed middlewares until it's sent to the client.
+   * If it returns a {@link Request}, the request will be passed to the next middleware or handler. If it's a
+   * {@link Response}, the response will be sent to the passed middlewares until it's sent to the client.
    *
    * ### IMPORTANT
    *
-   * Using `middleware` function it's nice if you explicitly define how the {@link Request} will enter the function. This way we can correctly type the Request on the client. We will know
-   * how the data needs to be sent to the server.
+   * Using `middleware` function it's nice if you explicitly define how the {@link Request} will enter the
+   * function. This way we can correctly type the Request on the client. We will know how the data needs to
+   * be sent to the server.
    *
    * ### IMPORTANT2
    *
-   * If you don't explicitly type the Request, at least explicitly type the returned {@link Request}. This way we can correctly type the request on the handler.
+   * If you don't explicitly type the Request, at least explicitly type the returned {@link Request}. This
+   * way we can correctly type the request on the handler.
    *
    * @example
    * ```ts
@@ -268,7 +282,8 @@ export function middleware<
    *
    * @param request - An instance of {@link Request} with the data.
    *
-   * @returns - A {@link Request} instance with the modified data or a {@link Response} instance if you want to break the middleware chain.
+   * @returns - A {@link Request} instance with the modified data or a {@link Response} instance if you want
+   * to break the middleware chain.
    */
   request?: (
     request: TRouterMiddlewares extends readonly Middleware[]
@@ -298,8 +313,9 @@ export function middleware<
         >
   ) => TReturnOfRequestFunction | Promise<TReturnOfRequestFunction>;
   /**
-   * This function is executed during the response lifecycle. It needs to return a {@link Response} instance. Usually you will use this to either change the sent response entirely or
-   * to add some headers/data to the response or filter out some properties.
+   * This function is executed during the response lifecycle. It needs to return a {@link Response} instance.
+   * Usually you will use this to either change the sent response entirely or to add some headers/data to the
+   * response or filter out some properties.
    *
    * @example
    * ```ts
@@ -337,7 +353,8 @@ export function middleware<
   ) => Promise<TReturnOfResponseFunction> | TReturnOfResponseFunction;
 
   /**
-   * Options are custom options that you can pass to the middleware. Usually, those options will exist on the {@link Request} or {@link Response} instances.
+   * Options are custom options that you can pass to the middleware. Usually, those options will exist on the
+   * {@link Request} or {@link Response} instances.
    *
    * @example
    * ```ts
@@ -358,8 +375,8 @@ export function middleware<
    * ```
    *
    * @param options - The options passed to the middleware.
-   * @param options.responses - The responses that the middleware can return, this will enforce that the response returned from the handler
-   * is one of the responses defined here.
+   * @param options.responses - The responses that the middleware can return, this will enforce that the
+   * response returned from the handler is one of the responses defined here.
    */
   options?: TOptions;
 }) {
@@ -398,8 +415,9 @@ export function middleware<
 }
 
 /**
- * This functions is used to create a new {@link Middleware} instance. It's a syntatic sugar over the inheritance/class approach.
- * This function is pretty much the same as {@link middleware}, but it is preferred over {@link middleware} when you want to create a middleware typesafe middleware for a specific router.
+ * This functions is used to create a new {@link Middleware} instance. It's a syntatic sugar over the
+ * inheritance/class approach. This function is pretty much the same as {@link middleware}, but it is
+ * preferred over {@link middleware} when you want to create a middleware typesafe middleware for a specific router.
  *
  * See {@link middleware} for more information about how middlewares work in Palmares and it's lifecycle.
  *
@@ -417,7 +435,8 @@ export function middleware<
  *      }>();
  *     return customRequest;
  *   },
- *   // This response is fully typed from the router, it will contain the properties you return from the router handlers.
+ *   // This response is fully typed from the router, it will contain the properties you return from the
+ *   // router handlers.
  *   response: (response) => {
  *     const modifiedResponse = response.clone();
  *     return modifiedResponse;
@@ -434,22 +453,24 @@ export function nestedMiddleware<TRouter extends DefaultRouterType>() {
       ? TInferMiddlewares extends readonly Middleware[]
         ? TInferMiddlewares
         : never
-      : never,
+      : never
   >(options: {
     /**
      * This function is executed during the request lifecycle. It can return a {@link Request} or a {@link Response}.
      *
-     * If it returns a {@link Request}, the request will be passed to the next middleware or handler. If it's a {@link Response}, the response
-     * will be sent to the passed middlewares until it's sent to the client.
+     * If it returns a {@link Request}, the request will be passed to the next middleware or handler. If it's
+     * a {@link Response}, the response will be sent to the passed middlewares until it's sent to the client.
      *
      * ### IMPORTANT
      *
-     * Using `middleware` function it's nice if you explicitly define how the {@link Request} will enter the function. This way we can correctly type the Request on the client. We will know
-     * how the data needs to be sent to the server.
+     * Using `middleware` function it's nice if you explicitly define how the {@link Request} will enter the
+     * function. This way we can correctly type the Request on the client. We will know how the data needs
+     * to be sent to the server.
      *
      * ### IMPORTANT2
      *
-     * If you don't explicitly type the Request, at least explicitly type the returned {@link Request}. This way we can correctly type the request on the handler.
+     * If you don't explicitly type the Request, at least explicitly type the returned {@link Request}.
+     * This way we can correctly type the request on the handler.
      *
      * @example
      * ```ts
@@ -473,7 +494,8 @@ export function nestedMiddleware<TRouter extends DefaultRouterType>() {
      *
      * @param request - An instance of {@link Request} with the data.
      *
-     * @returns - A {@link Request} instance with the modified data or a {@link Response} instance if you want to break the middleware chain.
+     * @returns - A {@link Request} instance with the modified data or a {@link Response} instance if you
+     * want to break the middleware chain.
      */
     request?: (
       request: TRouterMiddlewares extends readonly Middleware[]
@@ -503,8 +525,9 @@ export function nestedMiddleware<TRouter extends DefaultRouterType>() {
           >
     ) => TReturnOfRequestFunction | Promise<TReturnOfRequestFunction>;
     /**
-     * This function is executed during the response lifecycle. It needs to return a {@link Response} instance. Usually you will use this to either change the sent response entirely or
-     * to add some headers/data to the response or filter out some properties.
+     * This function is executed during the response lifecycle. It needs to return a {@link Response} instance.
+     * Usually you will use this to either change the sent response entirely or to add some headers/data to
+     * the response or filter out some properties.
      *
      * @example
      * ```ts
@@ -542,7 +565,8 @@ export function nestedMiddleware<TRouter extends DefaultRouterType>() {
     ) => Promise<TReturnOfResponseFunction> | TReturnOfResponseFunction;
 
     /**
-     * Options are custom options that you can pass to the middleware. Usually, those options will exist on the {@link Request} or {@link Response} instances.
+     * Options are custom options that you can pass to the middleware. Usually, those options will exist on
+     * the {@link Request} or {@link Response} instances.
      *
      * @example
      * ```ts
@@ -563,8 +587,8 @@ export function nestedMiddleware<TRouter extends DefaultRouterType>() {
      * ```
      *
      * @param options - The options passed to the middleware.
-     * @param options.responses - The responses that the middleware can return, this will enforce that the response returned from the handler
-     * is one of the responses defined here.
+     * @param options.responses - The responses that the middleware can return, this will enforce that the
+     * response returned from the handler is one of the responses defined here.
      */
     options?: TOptions;
   }) => {
@@ -610,7 +634,7 @@ export function nestedMiddleware<TRouter extends DefaultRouterType>() {
 
 export function requestMiddleware<
   TRequest extends Request<any, any>,
-  TRouter extends DefaultRouterType = DefaultRouterType,
+  TRouter extends DefaultRouterType = DefaultRouterType
 >() {
   return <
     TOptions extends MiddlewareOptions,
@@ -620,22 +644,24 @@ export function requestMiddleware<
       ? TInferMiddlewares extends readonly Middleware[]
         ? TInferMiddlewares
         : never
-      : never,
+      : never
   >(options: {
     /**
      * This function is executed during the request lifecycle. It can return a {@link Request} or a {@link Response}.
      *
-     * If it returns a {@link Request}, the request will be passed to the next middleware or handler. If it's a {@link Response}, the response
-     * will be sent to the passed middlewares until it's sent to the client.
+     * If it returns a {@link Request}, the request will be passed to the next middleware or handler. If it's
+     * a {@link Response}, the response will be sent to the passed middlewares until it's sent to the client.
      *
      * ### IMPORTANT
      *
-     * Using `middleware` function it's nice if you explicitly define how the {@link Request} will enter the function. This way we can correctly type the Request on the client. We will know
-     * how the data needs to be sent to the server.
+     * Using `middleware` function it's nice if you explicitly define how the {@link Request} will enter the
+     * function. This way we can correctly type the Request on the client. We will know how the data needs
+     * to be sent to the server.
      *
      * ### IMPORTANT2
      *
-     * If you don't explicitly type the Request, at least explicitly type the returned {@link Request}. This way we can correctly type the request on the handler.
+     * If you don't explicitly type the Request, at least explicitly type the returned {@link Request}.
+     * This way we can correctly type the request on the handler.
      *
      * @example
      * ```ts
@@ -659,12 +685,14 @@ export function requestMiddleware<
      *
      * @param request - An instance of {@link Request} with the data.
      *
-     * @returns - A {@link Request} instance with the modified data or a {@link Response} instance if you want to break the middleware chain.
+     * @returns - A {@link Request} instance with the modified data or a {@link Response} instance if you
+     * want to break the middleware chain.
      */
     request?: (request: TRequest) => TReturnOfRequestFunction | Promise<TReturnOfRequestFunction>;
     /**
-     * This function is executed during the response lifecycle. It needs to return a {@link Response} instance. Usually you will use this to either change the sent response entirely or
-     * to add some headers/data to the response or filter out some properties.
+     * This function is executed during the response lifecycle. It needs to return a {@link Response} instance.
+     * Usually you will use this to either change the sent response entirely or to add some headers/data to
+     * the response or filter out some properties.
      *
      * @example
      * ```ts
@@ -702,7 +730,8 @@ export function requestMiddleware<
     ) => Promise<TReturnOfResponseFunction> | TReturnOfResponseFunction;
 
     /**
-     * Options are custom options that you can pass to the middleware. Usually, those options will exist on the {@link Request} or {@link Response} instances.
+     * Options are custom options that you can pass to the middleware. Usually, those options will exist on
+     * the {@link Request} or {@link Response} instances.
      *
      * @example
      * ```ts
@@ -723,8 +752,8 @@ export function requestMiddleware<
      * ```
      *
      * @param options - The options passed to the middleware.
-     * @param options.responses - The responses that the middleware can return, this will enforce that the response returned from the handler
-     * is one of the responses defined here.
+     * @param options.responses - The responses that the middleware can return, this will enforce that the
+     * response returned from the handler is one of the responses defined here.
      */
     options?: TOptions;
   }) => {

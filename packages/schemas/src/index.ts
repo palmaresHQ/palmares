@@ -1,4 +1,5 @@
 import SchemaAdapter from './adapter';
+import SchemaDomain from './domain';
 import { modelSchema } from './model';
 import ArraySchema, { array } from './schema/array';
 import BooleanSchema, { boolean } from './schema/boolean';
@@ -9,23 +10,21 @@ import Schema, { schema } from './schema/schema';
 import StringSchema, { string } from './schema/string';
 import UnionSchema, { union } from './schema/union';
 
-import type { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from "./schema/types";
+import type { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from './schema/types';
 import type { Narrow } from '@palmares/core';
-import type {
-  Model,
-  ModelFields} from "@palmares/databases";
+import type { Model, ModelFields } from '@palmares/databases';
 
-export { default as default } from './domain';
-export { default as FieldAdapter } from './adapter/fields';
-export { default as NumberAdapter } from './adapter/fields/number';
-export { default as ObjectFieldAdapter } from './adapter/fields/object';
-export { default as UnionFieldAdapter } from './adapter/fields/union';
-export { default as StringFieldAdapter } from './adapter/fields/string';
-export { default as ArrayFieldAdapter } from './adapter/fields/array';
-export { default as BooleanFieldAdapter } from './adapter/fields/boolean';
-export { default as DatetimeFieldAdapter } from './adapter/fields/datetime';
+export { default as FieldAdapter, fieldAdapter } from './adapter/fields';
+export { default as NumberFieldAdapter, numberFieldAdapter } from './adapter/fields/number';
+export { default as ObjectFieldAdapter, objectFieldAdapter } from './adapter/fields/object';
+export { default as UnionFieldAdapter, unionFieldAdapter } from './adapter/fields/union';
+export { default as StringFieldAdapter, stringFieldAdapter } from './adapter/fields/string';
+export { default as ArrayFieldAdapter, arrayFieldAdapter } from './adapter/fields/array';
+export { default as BooleanFieldAdapter, booleanFieldAdapter } from './adapter/fields/boolean';
+export { default as DatetimeFieldAdapter, datetimeFieldAdapter } from './adapter/fields/datetime';
 
-export { setDefaultAdapter } from './conf';
+export { Infer as infer } from './types';
+export { setDefaultAdapter, getDefaultAdapter } from './conf';
 export * from './adapter/types';
 export * from './schema';
 export {
@@ -37,18 +36,20 @@ export {
   ArraySchema,
   BooleanSchema,
   DatetimeSchema,
-  Schema,
+  Schema
 };
 export { schema, number, object, union, string, array, datetime, boolean };
 export { default as compile } from './compile';
 
 export { modelSchema };
 
+export default SchemaDomain;
+
 export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
   return {
     number: () => NumberSchema.new<{ schemaAdapter: TAdapter; schemaType: 'number'; hasSave: false }>(),
     string: () => StringSchema.new<{ schemaAdapter: TAdapter; schemaType: 'string'; hasSave: false }>(),
-    array: <TSchemas extends readonly [Schema, ...Schema[]] | [Schema[]]>(...schemas: TSchemas) =>
+    array: <TSchemas extends readonly [Schema, ...Schema[]] | [[Schema]]>(...schemas: TSchemas) =>
       array<TSchemas, { schemaAdapter: TAdapter; schemaType: 'array'; hasSave: false }>(...schemas),
     boolean: () => BooleanSchema.new<{ schemaAdapter: TAdapter; schemaType: 'boolean'; hasSave: false }>(),
     object: <TData extends Record<any, Schema<any, any>>>(data: TData) =>
@@ -58,22 +59,23 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
     ) => UnionSchema.new<TSchemas, { schemaAdapter: TAdapter; schemaType: 'union'; hasSave: false }>(schemas),
     datetime: () => DatetimeSchema.new<{ schemaAdapter: TAdapter; schemaType: 'datetime'; hasSave: false }>(),
     /**
-     * Different from other models, this function is a factory function that returns either an ObjectSchema or an ArraySchema.
+     * Different from other models, this function is a factory function that returns either an ObjectSchema or
+     * an ArraySchema.
      * The idea is to build the schema of a model dynamically based on its fields.
      *
-     * Another feature is that it can automatically add the foreign key relation to the schema, but for that you need to define
-     * the fields of the related model in the fields object.
+     * Another feature is that it can automatically add the foreign key relation to the schema,
+     * but for that you need to define the fields of the related model in the fields object.
      *
-     * For example: A User model have a field `companyId` that is a ForeignKeyField to the Company model. The `relationName`
-     * is the direct relation from the User model to the Company model, and the `relatedName` is the reverse relation from the
-     * Company model to the User model. If you define the fieldName as either the relatedName or the relationName it will fetch
-     * the data automatically.
+     * For example: A User model have a field `companyId` that is a ForeignKeyField to the Company model.
+     * The `relationName` is the direct relation from the User model to the Company model, and the `relatedName`
+     * is the reverse relation from the Company model to the User model. If you define the fieldName as either
+     * the relatedName or the relationName it will fetch the data automatically.
      *
-     * **Important**: We build the schema dynamically but also lazily, if you don't try to parse or validate the schema, it won't be built.
-     * After the first time it's built, it's cached and never built again.
+     * **Important**: We build the schema dynamically but also lazily, if you don't try to parse or validate the
+     * schema, it won't be built. After the first time it's built, it's cached and never built again.
      *
-     * **Important 2**: If you want to use the automatic relation feature, you need to define guarantee that the foreignKey field fieldName
-     * exists on `show` array, or that it doesn't exist on `omit` array.
+     * **Important 2**: If you want to use the automatic relation feature, you need to define guarantee that the
+     * foreignKey field fieldName exists on `show` array, or that it doesn't exist on `omit` array.
      *
      * Like: `{ options: { show: ['id', 'name', 'companyId'] }}` or `{ options: { omit: ['id'] }}` it **will work**.
      *
@@ -128,19 +130,20 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
      *   show: ['id', 'type']
      * });
      *```
-    * @param model - The model that you want to build the schema from.
-    * @param options - The options to build the schema.
-    * @param options.ignoreExtraneousFields - If you want to ignore extraneous fields set this to true.
-    * @param options.engineInstance - What engine instance you want to use to fetch the data. Defaults to the first one.
-    * @param options.fields - Extra fields that you want to add to the schema. If it has the same name as the model field,
-    * We will not create a schema for that field and use the one you have defined here.
-    * @param options.omit - Fields that you want to omit from the schema. If that is defined, we ignore `show` option.
-    * @param options.show - Fields that you want to show on the schema. If that is defined, we ignore `omit` option.
-    * @param options.many - If you want to return an array instead of an object, set this to true. With that we create
-    * an ArraySchema instead of an ObjectSchema.
-    *
-    * @returns - If you pass the `many` option as true, we return an ArraySchema, otherwise we return an ObjectSchema.
-    */
+     * @param model - The model that you want to build the schema from.
+     * @param options - The options to build the schema.
+     * @param options.ignoreExtraneousFields - If you want to ignore extraneous fields set this to true.
+     * @param options.engineInstance - What engine instance you want to use to fetch the data.
+     * Defaults to the first one.
+     * @param options.fields - Extra fields that you want to add to the schema. If it has the same name as the
+     * model field, We will not create a schema for that field and use the one you have defined here.
+     * @param options.omit - Fields that you want to omit from the schema. If that is defined, we ignore `show` option.
+     * @param options.show - Fields that you want to show on the schema. If that is defined, we ignore `omit` option.
+     * @param options.many - If you want to return an array instead of an object, set this to true. With that we create
+     * an ArraySchema instead of an ObjectSchema.
+     *
+     * @returns - If you pass the `many` option as true, we return an ArraySchema, otherwise we return an ObjectSchema.
+     */
     modelSchema: <
       TModel extends ReturnType<typeof Model>,
       const TOmit extends readonly (keyof ModelFields<InstanceType<TModel>>)[] | undefined[] = undefined[],
@@ -151,188 +154,163 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
       TFieldsOnModel = TOmit extends undefined[]
         ? TShow extends undefined[]
           ? TAllModelFields
-          : Pick<
-              TAllModelFields,
-              TShow[number] extends keyof TAllModelFields ? TShow[number] : never
-            >
-        : Omit<
-            TAllModelFields,
-            TOmit[number] extends keyof TAllModelFields ? TOmit[number] : never
-          >,
+          : Pick<TAllModelFields, TShow[number] extends keyof TAllModelFields ? TShow[number] : never>
+        : Omit<TAllModelFields, TOmit[number] extends keyof TAllModelFields ? TOmit[number] : never>,
       TReturnType extends {
         input: any;
         output: any;
-        validate: any,
+        validate: any;
         internal: any;
         representation: any;
       } = {
-        input: TFields extends undefined ? TFieldsOnModel :
-          Omit<
-          TFieldsOnModel,
-            keyof ExtractTypeFromObjectOfSchemas<
-              // eslint-disable-next-line ts/ban-types
-              TFields extends undefined ? {} : TFields,
-              'input'
-            >
-          > &
-          ExtractTypeFromObjectOfSchemas<
-            // eslint-disable-next-line ts/ban-types
-            TFields extends undefined ? {} : TFields,
-            'input'
-          >
-        output: TFields extends undefined ? TFieldsOnModel :
-          (Omit<
-            TFieldsOnModel,
-            keyof ExtractTypeFromObjectOfSchemas<
-              // eslint-disable-next-line ts/ban-types
-              TFields extends undefined ? {} : TFields,
-              'output'
-            >
-          > &
-          ExtractTypeFromObjectOfSchemas<
-            // eslint-disable-next-line ts/ban-types
-            TFields extends undefined ? {} : TFields,
-            'output'
-          >);
-        internal: TFields extends undefined ? TFieldsOnModel :
-          (Omit<
-            TFieldsOnModel,
-            keyof ExtractTypeFromObjectOfSchemas<
-              // eslint-disable-next-line ts/ban-types
-              TFields extends undefined ? {} : TFields,
-              'internal'
-            >
-          > &
-          ExtractTypeFromObjectOfSchemas<
-            // eslint-disable-next-line ts/ban-types
-            TFields extends undefined ? {} : TFields,
-            'internal'
-          >);
-        representation: TFields extends undefined ? TFieldsOnModel :
-          (Omit<
-            TFieldsOnModel,
-            keyof ExtractTypeFromObjectOfSchemas<
-              // eslint-disable-next-line ts/ban-types
-              TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
-              'representation'
-            >
-          > &
-          ExtractTypeFromObjectOfSchemas<
-            // eslint-disable-next-line ts/ban-types
-            TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
-            'representation'
-          >);
-        validate: TFields extends undefined ? TFieldsOnModel :
-          Omit<
-          TFieldsOnModel,
-            keyof ExtractTypeFromObjectOfSchemas<
-              // eslint-disable-next-line ts/ban-types
-              TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
-              'validate'
-            >
-          > &
-          ExtractTypeFromObjectOfSchemas<
-            // eslint-disable-next-line ts/ban-types
-            TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
-            'validate'
-          >;
+        input: TFields extends undefined
+          ? TFieldsOnModel
+          : Omit<
+              TFieldsOnModel,
+              keyof ExtractTypeFromObjectOfSchemas<
+                // eslint-disable-next-line ts/ban-types
+                TFields extends undefined ? {} : TFields,
+                'input'
+              >
+            > &
+              ExtractTypeFromObjectOfSchemas<
+                // eslint-disable-next-line ts/ban-types
+                TFields extends undefined ? {} : TFields,
+                'input'
+              >;
+        output: TFields extends undefined
+          ? TFieldsOnModel
+          : Omit<
+              TFieldsOnModel,
+              keyof ExtractTypeFromObjectOfSchemas<
+                // eslint-disable-next-line ts/ban-types
+                TFields extends undefined ? {} : TFields,
+                'output'
+              >
+            > &
+              ExtractTypeFromObjectOfSchemas<
+                // eslint-disable-next-line ts/ban-types
+                TFields extends undefined ? {} : TFields,
+                'output'
+              >;
+        internal: TFields extends undefined
+          ? TFieldsOnModel
+          : Omit<
+              TFieldsOnModel,
+              keyof ExtractTypeFromObjectOfSchemas<
+                // eslint-disable-next-line ts/ban-types
+                TFields extends undefined ? {} : TFields,
+                'internal'
+              >
+            > &
+              ExtractTypeFromObjectOfSchemas<
+                // eslint-disable-next-line ts/ban-types
+                TFields extends undefined ? {} : TFields,
+                'internal'
+              >;
+        representation: TFields extends undefined
+          ? TFieldsOnModel
+          : Omit<
+              TFieldsOnModel,
+              keyof ExtractTypeFromObjectOfSchemas<
+                // eslint-disable-next-line ts/ban-types
+                TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
+                'representation'
+              >
+            > &
+              ExtractTypeFromObjectOfSchemas<
+                // eslint-disable-next-line ts/ban-types
+                TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
+                'representation'
+              >;
+        validate: TFields extends undefined
+          ? TFieldsOnModel
+          : Omit<
+              TFieldsOnModel,
+              keyof ExtractTypeFromObjectOfSchemas<
+                // eslint-disable-next-line ts/ban-types
+                TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
+                'validate'
+              >
+            > &
+              ExtractTypeFromObjectOfSchemas<
+                // eslint-disable-next-line ts/ban-types
+                TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
+                'validate'
+              >;
       }
     >(
       model: TModel,
       options?: {
-      ignoreExtraneousFields?: boolean;
-      engineInstance?: string;
-      fields?: TFields;
-      omit?: TOmit;
-      omitRelation?: readonly (keyof TFields)[];
-      show?: TShow;
-      many?: TMany
-    }): TMany extends true ? ArraySchema<{
-      input: TReturnType['input'][];
-      output: TReturnType['output'][];
-      internal: TReturnType['internal'][];
-      representation: TReturnType['representation'][];
-      validate: TReturnType['validate'][];
-    }, {
-      schemaAdapter: TAdapter;
-      schemaType: 'object';
-      hasSave: false
-    }, [
-      ObjectSchema<{
-          input: TReturnType['input'];
-          output: TReturnType['output'];
-          internal: TReturnType['internal'];
-          representation: TReturnType['representation'];
-          validate: TReturnType['validate'];
-        }, {
+        ignoreExtraneousFields?: boolean;
+        engineInstance?: string;
+        fields?: TFields;
+        omit?: TOmit;
+        omitRelation?: readonly (keyof TFields)[];
+        show?: TShow;
+        many?: TMany;
+      }
+    ): TMany extends true
+      ? ArraySchema<
+          {
+            input: TReturnType['input'][];
+            output: TReturnType['output'][];
+            internal: TReturnType['internal'][];
+            representation: TReturnType['representation'][];
+            validate: TReturnType['validate'][];
+          },
+          {
+            schemaAdapter: TAdapter;
+            schemaType: 'object';
+            hasSave: false;
+          },
+          [
+            ObjectSchema<
+              {
+                input: TReturnType['input'];
+                output: TReturnType['output'];
+                internal: TReturnType['internal'];
+                representation: TReturnType['representation'];
+                validate: TReturnType['validate'];
+              },
+              {
+                schemaAdapter: TAdapter;
+                schemaType: 'object';
+                hasSave: false;
+              },
+              Record<any, any>
+            >
+          ]
+        >
+      : ObjectSchema<
+          {
+            input: TReturnType['input'];
+            output: TReturnType['output'];
+            internal: TReturnType['internal'];
+            representation: TReturnType['representation'];
+            validate: TReturnType['validate'];
+          },
+          {
+            schemaAdapter: TAdapter;
+            schemaType: 'object';
+            hasSave: false;
+          },
+          Record<any, any>
+        > =>
+      modelSchema<
+        TModel,
+        TOmit,
+        TShow,
+        TMany,
+        TFields,
+        TAllModelFields,
+        {
           schemaAdapter: TAdapter;
           schemaType: 'object';
-          hasSave: false
-        }, Record<any, any>>[]
-      ]> : ObjectSchema<{
-      input: TReturnType['input'];
-      output: TReturnType['output'];
-      internal: TReturnType['internal'];
-      representation: TReturnType['representation'];
-      validate: TReturnType['validate'];
-    }, {
-      schemaAdapter: TAdapter;
-      schemaType: 'object';
-      hasSave: false
-    }, Record<any, any>> => modelSchema<
-      TModel,
-      TOmit,
-      TShow,
-      TMany,
-      TFields,
-      TAllModelFields,
-      {
-        schemaAdapter: TAdapter;
-        schemaType: 'object';
-        hasSave: false
-      },
-      TFieldsOnModel,
-      TReturnType
-    >(model, options)
+          hasSave: false;
+        },
+        TFieldsOnModel,
+        TReturnType
+      >(model, options)
   };
 }
-/*
-export class User extends Model<User>() {
-  fields = {
-    id: AutoField.new(),
-    uuid: UuidField.new({
-      autoGenerate: true
-    }),
-    name: CharField.new({ maxLength: 255, dbIndex: true, allowNull: true }),
-    age: IntegerField.new({ dbIndex: true }),
-    userType: EnumField.new({ choices: ['admin', 'user'], defaultValue: 'admin' }),
-    price: DecimalField.new({ maxDigits: 5, decimalPlaces: 2, allowNull: true }),
-    isActive: BooleanField.new({ defaultValue: true }),
-    companyId: ForeignKeyField.new({
-      onDelete: ON_DELETE.CASCADE,
-      relatedName: 'usersOfCompany',
-      relationName: 'company',
-      toField: 'id',
-      relatedTo: Company
-    }),
-    updatedAt: DateField.new({ autoNow: true }),
-    createdAt: DateField.new({ autoNowAdd: true }),
-  }
-
-  options: ModelOptionsType<User> = {
-    tableName: 'users',
-  }
-}
-
-export class Company extends Model<Company>() {
-  fields = {
-    id: AutoField.new(),
-    name: CharField.new({ maxLength: 255 }),
-    address: CharField.new({ maxLength: 255, allowNull: true }),
-  }
-
-  options: ModelOptionsType<Company> = {
-    tableName: 'companies',
-  }
-}
-*/

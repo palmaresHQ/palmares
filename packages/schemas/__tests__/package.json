@@ -1,0 +1,36 @@
+{
+  "name": "@tests/schemas",
+  "version": "0.0.1",
+  "description": "testing the schemas",
+  "main": "manage.ts",
+  "scripts": {
+    "test": "tsx manage.ts test",
+    "test:watch": "WATCH=true tsx manage.ts test",
+    "load": "tsx manage.ts load-models",
+    "makemigrations": "drizzle-kit generate",
+    "migrate": "tsx manage.ts drizzleMigrate"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@palmares/console-logging": "workspace:*",
+    "@palmares/core": "workspace:*",
+    "@palmares/databases": "workspace:*",
+    "@palmares/drizzle-engine": "workspace:*",
+    "@palmares/jest-tests": "workspace:*",
+    "@palmares/logging": "workspace:*",
+    "@palmares/node-std": "workspace:*",
+    "@palmares/schemas": "workspace:*",
+    "@palmares/tests": "workspace:*",
+    "@palmares/zod-schema": "workspace:*",
+    "better-sqlite3": "^11.1.2",
+    "drizzle-kit": "^0.23.0",
+    "drizzle-orm": "^0.32.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.4"
+  }
+}

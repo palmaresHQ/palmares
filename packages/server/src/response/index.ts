@@ -4,7 +4,7 @@ import {
   HTTP_500_INTERNAL_SERVER_ERROR,
   isRedirect,
   isServerError,
-  isSuccess,
+  isSuccess
 } from './status';
 import { FileLike } from './utils';
 import {
@@ -14,14 +14,12 @@ import {
   DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_TEXT,
   DEFAULT_RESPONSE_HEADERS_CONTENT_DISPOSITION_KEY,
   DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY,
-  DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY,
+  DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY
 } from '../defaults';
 import { formDataLikeFactory } from '../request/utils';
 
-import type {
-  RedirectionStatusCodes,
-  StatusCodes} from './status';
-import type { ResponseTypeType } from './types';
+import type { RedirectionStatusCodes, StatusCodes } from './status';
+import type { HeadersType, ResponseTypeType } from './types';
 import type Request from '../request';
 import type { FormDataLike } from '../request/types';
 
@@ -38,7 +36,7 @@ export default class Response<
   TResponse extends {
     status?: StatusCodes;
     responses?: Record<string, (...args: any[]) => Response<any, any> | Promise<Response<any, any>>> | undefined;
-    headers?: { [key: string]: string } | unknown;
+    headers?: HeadersType | unknown;
     context?: object | unknown;
   } = {
     status: undefined;
@@ -48,7 +46,8 @@ export default class Response<
   }
 > {
   /**
-   * This is data sent by the server, you can use it to translate your request and response during the lifecycle of Request/Response.
+   * This is data sent by the server, you can use it to translate your request and response during the
+   * lifecycle of Request/Response.
    *
    * Think like that, on express:
    *
@@ -77,10 +76,12 @@ export default class Response<
 
   /**
    * # IMPORTANT
-   * We advise you to use the static methods instead of this constructor directly, it will not set the headers and status correctly so it can lead to unexpected behavior.
+   * We advise you to use the static methods instead of this constructor directly, it will not set the
+   * headers and status correctly so it can lead to unexpected behavior.
    * Need to clone a response? Use the {@link Response.clone} method instead.
    *
-   * @param body - The body of the response, it doesn't support FormData, but it supports Blob, ArrayBuffer, string and object.
+   * @param body - The body of the response, it doesn't support FormData, but it supports Blob, ArrayBuffer,
+   * string and object.
    * @param options - The options of the response.
    */
   constructor(body?: TBody, options?: TResponse & { statusText?: string }) {
@@ -124,12 +125,8 @@ export default class Response<
     TBody extends object | object[],
     TResponse extends {
       status?: StatusCodes;
-      headers?: object | unknown;
-      context?: object | unknown;
-    } = {
-      status: undefined;
-      headers: undefined;
-      context: undefined;
+      headers?: HeadersType;
+      context?: object;
     }
   >(body: TBody, options?: TResponse) {
     const isStatusNotDefined = typeof options?.status !== 'number';
@@ -151,11 +148,11 @@ export default class Response<
             DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON;
         else
           options.headers = {
-            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON,
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON
           };
       } else
         options = {
-          headers: { [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON },
+          headers: { [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON }
         } as TResponse;
     }
 
@@ -170,8 +167,10 @@ export default class Response<
   }
 
   /**
-   * Streams a response back to the client. Instead of using a ReadableStream (which is not Supported by things like React Native.) We opted to use a generator function instead.
-   * You just need to return a generator function that yields chunks of data, and we will stream it back to the client. Seems easy enough, right?
+   * Streams a response back to the client. Instead of using a ReadableStream (which is not Supported by
+   * things like React Native.) We opted to use a generator function instead.
+   * You just need to return a generator function that yields chunks of data, and we will stream it back to
+   * the client. Seems easy enough, right?
    *
    * @example
    * ```ts
@@ -223,11 +222,11 @@ export default class Response<
             DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_STREAM;
         else
           options.headers = {
-            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_STREAM,
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_STREAM
           };
       } else
         options = {
-          headers: { [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON },
+          headers: { [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON }
         } as TResponse;
     }
 
@@ -242,8 +241,10 @@ export default class Response<
   }
 
   /**
-   * Sends a response back to the client, by default it will set the status to 200 and we will try to retrieve the content-type from the Blob body sent.
-   * If you also want to send the filename, you can pass it as the second argument using the `filename` key, OR you can send a FileLike object as the body.
+   * Sends a response back to the client, by default it will set the status to 200 and we will try to
+   * retrieve the content-type from the Blob body sent.
+   * If you also want to send the filename, you can pass it as the second argument using the `filename`
+   * key, OR you can send a FileLike object as the body.
    *
    * @example
    * ```ts
@@ -302,8 +303,8 @@ export default class Response<
   >(body: TBody, options?: TResponse & { statusText?: string; filename?: string }) {
     // See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition for reference.
     // Also: https://stackoverflow.com/questions/60833644/getting-filename-from-react-fetch-call
-    // Also: https://stackoverflow.com/questions/49286221/how-to-get-the-filename-from-a-file-downloaded-using-javascript-fetch-api
-    // I concluded we should use Content-Disposition for this.
+    // Also: https://stackoverflow.com/questions/49286221/how-to-get-the-filename-from-a-file-downloaded-
+    // using-javascript-fetch-api I concluded we should use Content-Disposition for this.
     const isStatusNotDefined = typeof options?.status !== 'number';
     const hasNotDefinedFileHeader =
       typeof (options?.headers as any)?.[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY] !== 'string' &&
@@ -330,7 +331,7 @@ export default class Response<
           options.headers = {
             [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: contentType,
             [DEFAULT_RESPONSE_HEADERS_CONTENT_DISPOSITION_KEY]:
-              `attachment` + (fileName ? `; filename="${fileName}"` : ''),
+              `attachment` + (fileName ? `; filename="${fileName}"` : '')
           };
         }
       } else
@@ -338,8 +339,8 @@ export default class Response<
           headers: {
             [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: contentType,
             [DEFAULT_RESPONSE_HEADERS_CONTENT_DISPOSITION_KEY]:
-              `attachment` + (fileName ? `; filename="${fileName}"` : ''),
-          },
+              `attachment` + (fileName ? `; filename="${fileName}"` : '')
+          }
         } as TResponse;
     }
 
@@ -454,11 +455,11 @@ export default class Response<
             DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML;
         else
           options.headers = {
-            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML,
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML
           };
       } else
         options = {
-          headers: { [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML },
+          headers: { [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML }
         } as TResponse;
     }
 
@@ -518,11 +519,11 @@ export default class Response<
             DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_TEXT;
         else
           options.headers = {
-            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_TEXT,
+            [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_TEXT
           };
       } else
         options = {
-          headers: { [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_TEXT },
+          headers: { [DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY]: DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_TEXT }
         } as TResponse;
     }
 
@@ -556,7 +557,8 @@ export default class Response<
   }
 
   /**
-   * You know? Sometimes s*it happens, and you need to send an error back to the client. This method is used so you can retrieve the error metadata. This is helpful on the `handler500` on your settings.
+   * You know? Sometimes s*it happens, and you need to send an error back to the client. This method is u
+   * sed so you can retrieve the error metadata. This is helpful on the `handler500` on your settings.
    * You can also extract errors on custom middlewares so you can properly handle them.
    *
    * @example
@@ -587,9 +589,11 @@ export default class Response<
   }
 
   /**
-   * This method should be used to throw a {@link Response}. Throwing a Response will not trigger the `handler500` function.
+   * This method should be used to throw a {@link Response}. Throwing a Response will not trigger the
+   * `handler500` function.
    *
-   * Use it when you want to throw stuff like 404, 403, 401, etc. This is a syntatic sugar for `throw Response(response)`.
+   * Use it when you want to throw stuff like 404, 403, 401, etc. This is a syntatic sugar for `throw
+   *  Response(response)`.
    *
    * @example
    * ```ts
@@ -612,8 +616,8 @@ export default class Response<
   }
 
   /**
-   * This is similar to the {@link Request.clone()} method. By default it will modify the response in place, but you can set
-   * the `inPlace` option to false to return a new response.
+   * This is similar to the {@link Request.clone()} method. By default it will modify the response in place,
+   * but you can set the `inPlace` option to false to return a new response.
    *
    * @param args - The arguments to pass to the new response.
    * @param options - The options to pass to the new response.
@@ -622,7 +626,7 @@ export default class Response<
     TNewResponse extends {
       body?: object;
       status?: StatusCodes;
-      headers?: object | unknown;
+      headers?: HeadersType | unknown;
       context?: object | unknown;
     } = {
       body: never;
@@ -630,7 +634,19 @@ export default class Response<
       headers: undefined;
       context: undefined;
     }
-  >(args?: TNewResponse, options?: { inPlace: boolean }) {
+  >(
+    args?: TNewResponse,
+    options?: { inPlace: boolean }
+  ): Response<
+    TNewResponse['body'] extends never ? TBody : TNewResponse['body'],
+    {
+      status: TNewResponse['status'] extends StatusCodes ? TNewResponse['status'] : TResponse['status'];
+      headers: TNewResponse['headers'] extends object ? TNewResponse['headers'] : TResponse['headers'];
+      context: TNewResponse['context'] extends object
+        ? TNewResponse['context'] & TResponse['context']
+        : TResponse['context'];
+    }
+  > {
     const isInPlace = options?.inPlace !== false;
     const newResponse = isInPlace
       ? this
@@ -646,7 +662,7 @@ export default class Response<
         >(args?.body ? args.body : (this.body as any), {
           headers: args?.headers ? args.headers : (this.headers as any),
           status: args?.status ? args.status : (this.status as any),
-          context: args?.context ? { ...args.context, ...this.context } : this.context,
+          context: args?.context ? { ...args.context, ...this.context } : this.context
         });
 
     newResponse.__serverRequestAndResponseData = this.__serverRequestAndResponseData;
@@ -657,24 +673,31 @@ export default class Response<
       (newResponse as any).redirected = isRedirect(args.status);
       (newResponse as any).type = isServerError(args.status) ? 'error' : 'basic';
     }
-    return newResponse;
+    return newResponse as any;
   }
 
   /**
-   * This method is used to get the underlying server data. This is similar to {@link Request.serverData()} method. This is useful usually on middlewares, not on handlers.
-   * This is the underlying serverData. The documentation of this should be provided by the framework you are using underlined with Palmares.
-   * So, the idea is simple, when a request is made, the underlying framework will call a callback we provide passing the data it needs to handle both
-   * the request and the response. For Express.js for example this will be an object containing both the `req` and `res` objects. If for some reason you need
-   * some data or some functionality we do not support by default you can, at any time, call this function and get this data.
+   * This method is used to get the underlying server data. This is similar to {@link Request.serverData()}
+   * method. This is useful usually on middlewares, not on handlers.
+   * This is the underlying serverData. The documentation of this should be provided by the framework you
+   * are using underlined with Palmares.
+   * So, the idea is simple, when a request is made, the underlying framework will call a callback we
+   * provide passing the data it needs to handle both the request and the response. For Express.js for
+   * example this will be an object containing both the `req` and `res` objects. If for some reason you
+   * need some data or some functionality we do not support by default you can, at any time, call this
+   * function and get this data.
    *
    * ### IMPORTANT
    *
-   * It's not up for us to document this, ask the library author of the adapter to provide a documentation and properly type this.
+   * It's not up for us to document this, ask the library author of the adapter to provide a documentation
+   * and properly type this.
    *
    * ### IMPORTANT2
    *
-   * Understand that when you create a new instance of response we will not have the server data attached to it, so calling this method will return undefined.
-   * You should use the request to attach the server data to the response. This method is useful for middlewares, and only that.
+   * Understand that when you create a new instance of response we will not have the server data attached to
+   * it, so calling this method will return undefined.
+   * You should use the request to attach the server data to the response. This method is useful for
+   * middlewares, and only that.
    *
    * @example
    * ```ts
@@ -708,7 +731,8 @@ export default class Response<
    *
    * path('/test').get((request) => {
    *   const response = Response.json({ hello: 'World' });
-   *   response.serverData(); // undefined, we have not appended the server data just yet, you should use request for that.
+   *   response.serverData(); // undefined, we have not appended the server data just yet, you should use
+   *                          // request for that.
    *   return response
    * }).middlewares([
    *   middleware({
@@ -790,7 +814,8 @@ export default class Response<
   }
 
   /**
-   * You can use this method to get the body of the response as a FormData, you cannot send FormData though, we don't currently support it.
+   * You can use this method to get the body of the response as a FormData, you cannot send FormData though,
+   * we don't currently support it.
    *
    * @example
    * ```ts
@@ -815,7 +840,7 @@ export default class Response<
     else if (typeof this.body === 'object') {
       return new formDataLike({
         getKeys: () => Object.keys(this.body as object),
-        getValue: (key: string) => (this.body as any)[key],
+        getValue: (key: string) => (this.body as any)[key]
       });
     } else return undefined;
   }

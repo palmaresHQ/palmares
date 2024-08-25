@@ -1,9 +1,8 @@
 import Schema from './schema';
-import { getDefaultAdapter } from '../conf';
 import {
   defaultTransform,
   defaultTransformToAdapter,
-  transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas,
+  transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas
 } from '../utils';
 import { objectValidation } from '../validators/object';
 import Validator from '../validators/utils';
@@ -26,10 +25,18 @@ export default class ObjectSchema<
     representation: Record<any, any>;
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
-  TData extends Record<any, any> = Record<any, any>,
+  TData extends Record<any, any> = Record<any, any>
 > extends Schema<TType, TDefinitions> {
   protected __data: Record<any, Schema>;
   protected __cachedDataAsEntries!: [string, Schema][];
+
+  protected __type: {
+    message: string;
+    check: (value: TType['input']) => boolean;
+  } = {
+    message: 'Invalid type',
+    check: (value) => typeof value === 'object' && value !== null
+  };
 
   constructor(data: TData) {
     super();
@@ -39,7 +46,7 @@ export default class ObjectSchema<
   protected __retrieveDataAsEntriesAndCache(): [string, Schema][] {
     const dataAsEntries = Array.isArray(this.__cachedDataAsEntries)
       ? this.__cachedDataAsEntries
-      : (Object.entries(this.__data));
+      : Object.entries(this.__data);
     this.__cachedDataAsEntries = dataAsEntries;
     return this.__cachedDataAsEntries;
   }
@@ -57,10 +64,10 @@ export default class ObjectSchema<
         // This is needed because we will create other objects based this one by reference
         const transformedDataByKeys = {
           transformed: {},
-          asString: {},
+          asString: {}
         } as { transformed: Record<any, any>; asString: Record<any, string> };
         const transformedDataByKeysArray: { transformed: Record<any, any>; asString: Record<any, string> }[] = [
-          transformedDataByKeys,
+          transformedDataByKeys
         ];
 
         let shouldValidateWithFallback = false;
@@ -90,7 +97,7 @@ export default class ObjectSchema<
                 if (transformedDataByKeysArray[indexOnTransformedDataByKeys] === undefined)
                   transformedDataByKeysArray[indexOnTransformedDataByKeys] = {
                     transformed: { ...transformedDataByKeys.transformed },
-                    asString: { ...transformedDataByKeys.asString },
+                    asString: { ...transformedDataByKeys.asString }
                   };
                 transformedDataByKeysArray[indexOnTransformedDataByKeys].transformed[key] =
                   transformedDataAndString[transformedDataIndex].transformed;
@@ -121,20 +128,22 @@ export default class ObjectSchema<
                   data: isStringVersion ? asString : transformed,
                   nullable: this.__nullable,
                   optional: this.__optional,
+                  type: this.__type,
                   parsers: {
                     nullable: this.__nullable.allow,
-                    optional: this.__optional.allow,
+                    optional: this.__optional.allow
                   }
                 }),
                 {},
                 {
-                  shouldAddStringVersion: options.shouldAddStringVersion,
+                  shouldAddStringVersion: options.shouldAddStringVersion
                 }
               )
             )
           )
         ).flat();
       },
+      this,
       this.__transformedSchemas,
       options,
       'object'
@@ -142,8 +151,10 @@ export default class ObjectSchema<
   }
 
   /**
-   * Transform the data to the representation without validating it. This is useful when you want to return a data from a query directly to the user. The core idea of this is that you can join the data
-   * from the database "by hand". In other words, you can do the joins by yourself directly on code. For more complex cases, this can be really helpful.
+   * Transform the data to the representation without validating it. This is useful when you want to return a data
+   * from a query directly to the user. The core idea of this is that you can join the data from the database "by hand".
+   * In other words, you can do the joins by yourself directly on code. For more complex cases, this can be really
+   * helpful.
    *
    * @param value - The value to be transformed.
    *
@@ -173,7 +184,8 @@ export default class ObjectSchema<
   }
 
   /**
-   * This let's you refine the schema with custom validations. This is useful when you want to validate something that is not supported by default by the schema adapter.
+   * This let's you refine the schema with custom validations. This is useful when you want to validate something
+   * that is not supported by default by the schema adapter.
    *
    * @example
    * ```typescript
@@ -185,7 +197,8 @@ export default class ObjectSchema<
    *
    * const { errors, parsed } = await numberSchema.parse(-1);
    *
-   * console.log(errors); // [{ isValid: false, code: 'invalid_number', message: 'The number should be greater than 0', path: [] }]
+   * // [{ isValid: false, code: 'invalid_number', message: 'The number should be greater than 0', path: [] }]
+   * console.log(errors);
    * ```
    *
    * @param refinementCallback - The callback that will be called to validate the value.
@@ -193,7 +206,13 @@ export default class ObjectSchema<
    * @param options.isAsync - Whether the callback is async or not. Defaults to true.
    */
   refine(
-    refinementCallback: (value: TType['input']) => Promise<void | undefined | { code: string; message: string }> | void | undefined | { code: string; message: string }
+    refinementCallback: (
+      value: TType['input']
+    ) =>
+      | Promise<void | undefined | { code: string; message: string }>
+      | void
+      | undefined
+      | { code: string; message: string }
   ) {
     return super.refine(refinementCallback) as unknown as ObjectSchema<
       {
@@ -202,14 +221,17 @@ export default class ObjectSchema<
         internal: TType['internal'];
         output: TType['output'];
         representation: TType['representation'];
-      }, TDefinitions, TData
+      },
+      TDefinitions,
+      TData
     >;
   }
 
   /**
-   * Allows the value to be either undefined or null. Different from the `optional` method on other schemas, You can pass `outputOnly` as `true` to this method.
-   * This will allow you to pass `null` or `undefined` as a value on the {@link Schema.data} method, but it will not allow the value to be `null` or `undefined`.
-   * This is useful for typing purposes
+   * Allows the value to be either undefined or null. Different from the `optional` method on other schemas, You can
+   * pass `outputOnly` as `true` to this method. This will allow you to pass `null` or `undefined` as a value on the
+   * {@link Schema.data} method, but it will not allow the value to be `null` or `undefined`. This is useful for
+   * typing purposes
    *
    * @example
    * ```typescript
@@ -237,35 +259,72 @@ export default class ObjectSchema<
    *   company: companySchema.optional({ outputOnly: true })
    * });
    *
-   * const { errors, parsed } = await userSchema.data({ id: 1, name: 'John Doe' }); // Will not allow the company to be null or undefined on a typing level.
-   * const value = await userSchema.data({ id: 1, name: 'John Doe' }); // Will allow the company to be null or undefined on a typing level
+   * // Will not allow the company to be null or undefined on a typing level.
+   * const { errors, parsed } = await userSchema.data({ id: 1, name: 'John Doe' });
+   *
+   * // Will allow the company to be null or undefined on a typing level
+   * const value = await userSchema.data({ id: 1, name: 'John Doe' });
    * ```
    *
    * @returns - The schema we are working with.
    */
-  optional<TOutputOnly extends boolean = false>(options?: { message?: string; allow?: false, outputOnly?: TOutputOnly}) {
-    return (options?.outputOnly ? this : super.optional(options)) as unknown as ObjectSchema<TOutputOnly extends true ?
-      {
-        input: TType['input'];
-        validate: TType['validate'];
-        internal: TType['internal'];
-        output: TType['output'] | undefined | null;
-        representation: TType['representation'];
-      } :
-      {
-        input: TType['input'] | undefined | null;
-        validate: TType['validate'] | undefined | null;
-        internal: TType['internal'] | undefined | null;
-        output: TType['output'] | undefined | null;
-        representation: TType['representation'] | undefined | null;
-      },
+  optional<TOutputOnly extends boolean = false>(options?: {
+    message?: string;
+    allow?: false;
+    outputOnly?: TOutputOnly;
+  }) {
+    return (options?.outputOnly ? this : super.optional(options)) as unknown as ObjectSchema<
+      TOutputOnly extends true
+        ? {
+            input: TType['input'];
+            validate: TType['validate'];
+            internal: TType['internal'];
+            output: TType['output'] | undefined | null;
+            representation: TType['representation'];
+          }
+        : {
+            input: TType['input'] | undefined | null;
+            validate: TType['validate'] | undefined | null;
+            internal: TType['internal'] | undefined | null;
+            output: TType['output'] | undefined | null;
+            representation: TType['representation'] | undefined | null;
+          },
       TDefinitions,
       TData
     >;
   }
 
   /**
-   * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value is NULL by setting
+   * Just adds a message when the value is undefined. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.datetime().optional({ message: 'This value should be defined', allow: false })
+   * ```
+   *
+   * @param options - The options of nonOptional function
+   * @param options.message - A custom message if the value is undefined.
+   *
+   * @returns - The schema.
+   */
+  nonOptional(options?: { message: string }) {
+    return super.optional({
+      message: options?.message,
+      allow: false
+    }) as unknown as ObjectSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
+   * Allows the value to be null and ONLY null. You can also use this function to set a custom message when the value
+   * is NULL by setting
    * the { message: 'Your custom message', allow: false } on the options.
    *
    * @example
@@ -304,14 +363,45 @@ export default class ObjectSchema<
   }
 
   /**
-   * This method will remove the value from the representation of the schema. If the value is undefined it will keep that way
-   * otherwise it will set the value to undefined after it's validated.
+   * Just adds a message when the value is null. It's just a syntax sugar for
+   *
+   * ```typescript
+   * p.datetime().nullable({ message: 'This value cannot be null', allow: false })
+   * ```
+   *
+   * @param options - The options of nonNullable function
+   * @param options.message - A custom message if the value is null.
+   *
+   * @returns - The schema.
+   */
+  nonNullable(options?: { message: string }) {
+    return super.nullable({
+      message: options?.message || '',
+      allow: false
+    }) as unknown as ObjectSchema<
+      {
+        input: TType['input'];
+        validate: TType['validate'];
+        internal: TType['internal'];
+        output: TType['output'];
+        representation: TType['representation'];
+      },
+      TDefinitions
+    >;
+  }
+
+  /**
+   * This method will remove the value from the representation of the schema. If the value is undefined it will keep
+   * that way otherwise it will set the value to undefined after it's validated.
    * This is used in conjunction with the {@link data} function, the {@link parse} function or {@link validate}
    * function. This will remove the value from the representation of the schema.
    *
-   * By default, the value will be removed just from the representation, in other words, when you call the {@link data} function.
-   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal` as true.
-   * Then if you still want to remove the value from the representation, you will need to pass the argument `toRepresentation` as true as well.
+   * By default, the value will be removed just from the representation, in other words, when you call the {@link data}
+   * function.
+   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal`
+   * as true.
+   * Then if you still want to remove the value from the representation, you will need to pass the argument
+   * `toRepresentation` as true as well.
    *
    * @example
    * ```typescript
@@ -333,16 +423,19 @@ export default class ObjectSchema<
    * ```
    *
    *
-   * @param args - By default, the value will be removed just from the representation, in other words, when you call the {@link data} function.
-   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal` as true.
-   * Then if you still want to remove the value from the representation, you will need to pass the argument `toRepresentation` as true as well.
+   * @param args - By default, the value will be removed just from the representation, in other words, when you call
+   * the {@link data} function.
+   * But if you want to remove the value from the internal representation, you can pass the argument `toInternal`
+   * as true.
+   * Then if you still want to remove the value from the representation, you will need to pass the argument
+   * `toRepresentation` as true as well.
    *
    * @returns The schema.
    */
   omit<
     TToInternal extends boolean,
     TToRepresentation extends boolean = boolean extends TToInternal ? true : false
-  >(args?: { toInternal?: TToInternal, toRepresentation?: TToRepresentation }) {
+  >(args?: { toInternal?: TToInternal; toRepresentation?: TToRepresentation }) {
     return super.omit(args) as unknown as ObjectSchema<
       {
         input: TToInternal extends true ? TType['input'] | undefined : TType['input'];
@@ -357,9 +450,9 @@ export default class ObjectSchema<
   }
 
   /**
-   * This function is used in conjunction with the {@link validate} function. It's used to save a value to an external source
-   * like a database. You should always return the schema after you save the value, that way we will always have the correct type
-   * of the schema after the save operation.
+   * This function is used in conjunction with the {@link validate} function. It's used to save a value to an external
+   * source like a database. You should always return the schema after you save the value, that way we will always have
+   * the correct type of the schema after the save operation.
    *
    * You can use the {@link toRepresentation} function to transform and clean the value it returns after the save.
    *
@@ -414,9 +507,9 @@ export default class ObjectSchema<
     >;
   }
 
-
   /**
-   * This function is used to add a default value to the schema. If the value is either undefined or null, the default value will be used.
+   * This function is used to add a default value to the schema. If the value is either undefined or null, the default
+   * value will be used.
    *
    * @example
    * ```typescript
@@ -446,8 +539,9 @@ export default class ObjectSchema<
   }
 
   /**
-   * This function let's you customize the schema your own way. After we translate the schema on the adapter we call this function to let you customize
-   * the custom schema your own way. Our API does not support passthrough? No problem, you can use this function to customize the zod schema.
+   * This function let's you customize the schema your own way. After we translate the schema on the adapter we call
+   * this function to let you customize the custom schema your own way. Our API does not support passthrough?
+   * No problem, you can use this function to customize the zod schema.
    *
    * @example
    * ```typescript
@@ -459,12 +553,13 @@ export default class ObjectSchema<
    *
    * const { errors, parsed } = await numberSchema.parse(-1);
    *
-   * console.log(errors); // [{ isValid: false, code: 'nonnegative', message: 'The number should be nonnegative', path: [] }]
+   * // [{ isValid: false, code: 'nonnegative', message: 'The number should be nonnegative', path: [] }]
+   * console.log(errors);
    * ```
    *
    * @param callback - The callback that will be called to customize the schema.
-   * @param toStringCallback - The callback that will be called to transform the schema to a string when you want to compile the underlying schema
-   * to a string so you can save it for future runs.
+   * @param toStringCallback - The callback that will be called to transform the schema to a string when you want to
+   * compile the underlying schema to a string so you can save it for future runs.
    *
    * @returns The schema.
    */
@@ -478,8 +573,9 @@ export default class ObjectSchema<
   }
 
   /**
-   * This function is used to transform the value to the representation of the schema. When using the {@link data} function. With this function you have full
-   * control to add data cleaning for example, transforming the data and whatever. Another use case is when you want to return deeply nested recursive data.
+   * This function is used to transform the value to the representation of the schema. When using the {@link data}
+   * function. With this function you have full control to add data cleaning for example, transforming the data and
+   * whatever. Another use case is when you want to return deeply nested recursive data.
    * The schema maps to itself.
    *
    * @example
@@ -518,8 +614,10 @@ export default class ObjectSchema<
    * ```
    * @param toRepresentationCallback - The callback that will be called to transform the value to the representation.
    * @param options - Options for the toRepresentation function.
-   * @param options.after - Whether the toRepresentationCallback should be called after the existing toRepresentationCallback. Defaults to true.
-   * @param options.before - Whether the toRepresentationCallback should be called before the existing toRepresentationCallback. Defaults to true.
+   * @param options.after - Whether the toRepresentationCallback should be called after the existing
+   * toRepresentationCallback. Defaults to true.
+   * @param options.before - Whether the toRepresentationCallback should be called before the existing
+   * toRepresentationCallback. Defaults to true.
    *
    * @returns The schema with a new return type
    */
@@ -544,8 +642,9 @@ export default class ObjectSchema<
   }
 
   /**
-   * This function is used to transform the value to the internal representation of the schema. This is useful when you want to transform the value
-   * to a type that the schema adapter can understand. For example, you might want to transform a string to a date. This is the function you use.
+   * This function is used to transform the value to the internal representation of the schema. This is useful when
+   * you want to transform the value to a type that the schema adapter can understand. For example, you might want
+   * to transform a string to a date. This is the function you use.
    *
    * @example
    * ```typescript
@@ -590,8 +689,9 @@ export default class ObjectSchema<
   }
 
   /**
-   * Called before the validation of the schema. Let's say that you want to validate a date that might receive a string, you can convert that string to a date
-   * here BEFORE the validation. This pretty much transforms the value to a type that the schema adapter can understand.
+   * Called before the validation of the schema. Let's say that you want to validate a date that might receive a string,
+   * you can convert that string to a date here BEFORE the validation. This pretty much transforms the value to a type
+   * that the schema adapter can understand.
    *
    * @example
    * ```
@@ -648,10 +748,11 @@ export default class ObjectSchema<
    */
   removeExtraneous() {
     this.__parsers.medium.set('removeExtraneous', (value) => {
-      if (typeof value !== 'object' || value === null) return {
-        value,
-        preventNextParsers: false,
-      };
+      if (typeof value !== 'object' || value === null)
+        return {
+          value,
+          preventNextParsers: false
+        };
 
       const valueKeys = Object.keys(value);
       for (const key of valueKeys) {
@@ -661,7 +762,7 @@ export default class ObjectSchema<
 
       return {
         value,
-        preventNextParsers: false,
+        preventNextParsers: false
       };
     });
 
@@ -670,7 +771,7 @@ export default class ObjectSchema<
 
   static new<
     TData extends Record<any, Schema<any, TDefinitions>>,
-    TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
+    TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
   >(data: TData) {
     const returnValue = new ObjectSchema<
       {
@@ -683,14 +784,6 @@ export default class ObjectSchema<
       TDefinitions,
       TData
     >(data);
-
-    const adapterInstance = getDefaultAdapter();
-
-    returnValue.__transformedSchemas[adapterInstance.constructor.name] = {
-      transformed: false,
-      adapter: adapterInstance,
-      schemas: [],
-    };
 
     return returnValue;
   }

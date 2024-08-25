@@ -1,44 +1,42 @@
-import {
-  ErrorCodes,
-  FieldAdapter,
-  ObjectAdapterToStringArgs,
-  ObjectAdapterTranslateArgs,
-  ObjectFieldAdapter,
-  SchemaAdapter,
-} from '@palmares/schemas';
+import { objectFieldAdapter } from '@palmares/schemas';
 import * as z from 'zod';
 
-export default class ZodObjectFieldSchemaAdapter extends ObjectFieldAdapter {
-  translate(fieldAdapter: FieldAdapter, args: ObjectAdapterTranslateArgs) {
-    let result = z.object(args.data);
+import { transformErrorsOnComplexTypes } from '../utils';
+
+export default objectFieldAdapter({
+  translate: (fieldAdapter, args) => {
+    let result = z.object(args.data, {
+      errorMap: (issue) => {
+        const isOptional =
+          issue.code === 'invalid_type' && issue.expected === 'object' && issue.received === 'undefined';
+        const isNullable = issue.code === 'invalid_type' && issue.received === 'null';
+
+        if (isOptional) return { message: args.optional.message };
+        else if (isNullable) return { message: args.nullable.message };
+        else if (issue.code === 'invalid_type') return { message: args.type.message };
+        return { message: issue.message || '' };
+      }
+    });
     result = fieldAdapter.translate(fieldAdapter, args, result);
     return result;
-  }
+  },
+  // eslint-disable-next-line ts/require-await
+  parse: async (_adapter, fieldAdapter, result: z.ZodObject<any>, value, _args) => {
+    return fieldAdapter.parse(_adapter, fieldAdapter, result, value, _args);
+  },
+  formatError: async (adapter, fieldAdapter, schema: z.ZodObject<any>, error: z.ZodIssue, metadata) => {
+    if (metadata === undefined) metadata = {};
+    if (metadata.$type instanceof Set === false) metadata.$type = new Set();
+    if (metadata.$type instanceof Set) metadata.$type.add('object');
 
-  async parse(_adapter: any,_fieldAdapter: FieldAdapter, result: z.ZodObject<any>, value: any, _args: ObjectAdapterTranslateArgs) {
-    try {
-      const parsed = await result.parseAsync(value, { });
-      return { errors: null, parsed };
-    } catch (error) {
-      if (error instanceof z.ZodError) return { errors: error.errors, parsed: value };
-      else throw error;
-    }
-  }
-
-  formatError(_adapter:SchemaAdapter, _fieldAdapter: FieldAdapter, error: any, _metadata?: any): Promise<{ message: string; path: (string | number)[]; code: ErrorCodes; }> {
-    return error
-  }
-
-  async toString(
-    _adapter: SchemaAdapter,
-    _fieldAdapter: FieldAdapter,
-    args: ObjectAdapterToStringArgs,
-    _base?: any
-  ): Promise<string> {
+    return transformErrorsOnComplexTypes(adapter, fieldAdapter, schema, error, metadata);
+  },
+  // eslint-disable-next-line ts/require-await
+  toString: async (_adapter, _fieldAdapter, args) => {
     let objectData = `{\n`;
     for (const [key, value] of Object.entries(args.data)) {
       objectData = objectData + `  ${key}: ${value},\n`;
     }
     return `z.object(${objectData.slice(0, -2)}\n)`;
   }
-}
+});

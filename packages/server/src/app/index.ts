@@ -10,10 +10,12 @@ import type ServerlessAdapter from '../adapters/serverless';
 import type { ServerDomain } from '../domain/types';
 import type { AllServerSettingsType, ServerSettingsType } from '../types';
 
-const serverInstances: Map<string, { server: ServerAdapter | ServerlessAdapter; settings: ServerSettingsType }> = new Map();
+const serverInstances: Map<string, { server: ServerAdapter | ServerlessAdapter; settings: ServerSettingsType }> =
+  new Map();
 
 /**
- * This is the http app server, it is responsible for loading the server and starting it configuring all of the routes of the application.
+ * This is the http app server, it is responsible for loading the server and starting it configuring all of
+ * the routes of the application.
  *
  * The life cycle of the app is explained on '@palmares/core', but it's basically:
  * - `load`: Loads the constructor.
@@ -63,9 +65,9 @@ export default appServer({
   close: async () => {
     for (const [serverName, { server }] of serverInstances.entries()) {
       serverLogger.logMessage('STOP_SERVER', {
-        serverName,
+        serverName
       });
       if (server instanceof ServerAdapter) await server.close();
     }
-  },
+  }
 });

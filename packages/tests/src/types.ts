@@ -1,9 +1,8 @@
-
 import type TestAdapter from './adapter';
 import type { testDomainModifier } from './domain';
 import type { Domain, ExtractModifierArguments, SettingsType2 } from '@palmares/core';
 
-export type AllTestsSettingsType = SettingsType2 & TestsSettingsType
+export type AllTestsSettingsType = SettingsType2 & TestsSettingsType;
 
 export type TestsSettingsType = {
   testAdapter: typeof TestAdapter;

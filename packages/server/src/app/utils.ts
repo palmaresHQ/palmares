@@ -3,7 +3,7 @@ import { getDefaultStd } from '@palmares/core';
 import {
   HandlerOrHandlersShouldBeDefinedOnRouterAdapterError,
   RedirectionStatusCodesMustHaveALocationHeaderError,
-  ResponseNotReturnedFromResponseOnMiddlewareError,
+  ResponseNotReturnedFromResponseOnMiddlewareError
 } from './exceptions';
 import ServerAdapter from '../adapters';
 import ServerlessAdapter from '../adapters/serverless';
@@ -11,7 +11,7 @@ import {
   DEFAULT_NOT_FOUND_STATUS_TEXT_MESSAGE,
   DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY,
   DEFAULT_SERVER_ERROR_RESPONSE,
-  DEFAULT_STATUS_CODE_BY_METHOD,
+  DEFAULT_STATUS_CODE_BY_METHOD
 } from '../defaults';
 import { errorCaptureHandler } from '../handlers';
 import { serverLogger } from '../logging';
@@ -20,7 +20,6 @@ import Response from '../response';
 import { HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR, isRedirect } from '../response/status';
 import { AsyncGeneratorFunction, FileLike, GeneratorFunction } from '../response/utils';
 import { path } from '../router';
-
 
 import type ServerRequestAdapter from '../adapters/requests';
 import type ServerResponseAdapter from '../adapters/response';
@@ -33,8 +32,8 @@ import type { HandlerType, MethodTypes, RouterOptionsType } from '../router/type
 import type { AllServerSettingsType } from '../types';
 
 /**
- * By default we don't know how to handle the routes by itself. Pretty much MethodsRouter does everything that we need here during runtime.
- * So we pretty much need to extract this data "for free".
+ * By default we don't know how to handle the routes by itself. Pretty much MethodsRouter does everything
+ * that we need here during runtime. So we pretty much need to extract this data "for free".
  */
 export async function getRootRouterCompletePaths(
   domains: ServerDomain[],
@@ -48,11 +47,14 @@ export async function getRootRouterCompletePaths(
     ReturnType<NonNullable<Awaited<NonNullable<(typeof domains)[number]>['getRoutes']>>>
   >[] = [];
   for (const domain of domains) {
-    if (domain.getRoutes) extractedRoutes.push(Promise.resolve(domain.getRoutes()).then((route) => {
-      const routeWithProtected = route as MethodsRouter & { __domain: MethodsRouter['__domain'] };
-      routeWithProtected.__domain = domain;
-      return routeWithProtected;
-    }));
+    if (domain.getRoutes)
+      extractedRoutes.push(
+        Promise.resolve(domain.getRoutes()).then((route) => {
+          const routeWithProtected = route as MethodsRouter & { __domain: MethodsRouter['__domain'] };
+          routeWithProtected.__domain = domain;
+          return routeWithProtected;
+        })
+      );
     if (domain.routerInterceptor) extractedRouterInterceptors.push(domain.routerInterceptor);
   }
 
@@ -71,7 +73,8 @@ export async function getRootRouterCompletePaths(
 }
 
 async function* wrappedMiddlewareRequests(middlewares: Middleware[], request: Request<any, any>) {
-  // We need to use this, because if we were creating another array we would be consuming an uneccesary amount of memory.
+  // We need to use this, because if we were creating another array we would be consuming an uneccesary
+  // amount of memory.
   let middlewareIndex = 0;
   for (const middleware of middlewares) {
     middlewareIndex++;
@@ -103,7 +106,8 @@ async function* wrappedMiddlewareResponses(
 }
 
 /**
- * This will pretty much wrap call the handler500.request and return the response if it returns a response. Otherwise it will throw an error.
+ * This will pretty much wrap call the handler500.request and return the response if it returns a response.
+ * Otherwise it will throw an error.
  *
  * @param request - The new response with the error.
  * @param error - The error that was thrown or a response if a ResponseError was thrown.
@@ -123,12 +127,13 @@ async function appendErrorToResponseAndReturnResponseOrThrow(
 }
 
 /**
- * Used for appending multiple private methods and values to the Request object. Private methods and values are prefixed with __. Remember that they only exist on typescript
- * not on runtime, so there is no issue when assigning a value to them. Also, we want to guarantee a nice user experience so we should keep them private so that intellisense
- * doesn't catch it.
+ * Used for appending multiple private methods and values to the Request object. Private methods and values
+ * are prefixed with __. Remember that they only exist on typescript
+ * not on runtime, so there is no issue when assigning a value to them. Also, we want to guarantee a nice
+ * user experience so we should keep them private so that intellisense doesn't catch it.
  *
- * IMPORTANT: Don't expect any maintainer to know about those private methods, so if you need to use them in a translation, flat them out! In other words: send them directly,
- * don't send the request object.
+ * IMPORTANT: Don't expect any maintainer to know about those private methods, so if you need to use them in
+ * a translation, flat them out! In other words: send them directly, don't send the request object.
  *
  * @param request - The request that was created by the server adapter.
  * @param serverAdapter - The server adapter that was selected to handle the server creation.
@@ -163,7 +168,7 @@ function appendTranslatorToRequest(
   };
   if (options?.responses)
     requestWithoutPrivateMethods.__responses = Object.freeze({
-      value: options.responses as any,
+      value: options.responses as any
     });
   requestWithoutPrivateMethods.__validation = validation;
   requestWithoutPrivateMethods.__serverAdapter = serverAdapter;
@@ -192,7 +197,7 @@ function appendTranslatorToResponse(
   };
   if (options?.responses)
     responseWithoutPrivateMethods.responses = Object.freeze({
-      value: options.responses as any,
+      value: options.responses as any
     });
   responseWithoutPrivateMethods.__serverAdapter = serverAdapter;
   responseWithoutPrivateMethods.__serverRequestAndResponseData = serverRequestAndResponseData;
@@ -201,7 +206,8 @@ function appendTranslatorToResponse(
 }
 
 /**
- * Responsible for translating the response to something that the selected server can understand. We translate each part needed for the response internally.
+ * Responsible for translating the response to something that the selected server can understand. We translate
+ * each part needed for the response internally.
  *
  * @param response - The response that was returned from the handler.
  * @param server - The server adapter that was selected.
@@ -384,10 +390,10 @@ function wrapHandlerAndMiddlewares(
       const isResponseError = error instanceof Response;
       const errorAsError = error as Error;
       let errorResponse: Response = isResponseError
-        ? (error)
-        : server.settings.debug === true ?
-          DEFAULT_SERVER_ERROR_RESPONSE(errorAsError, server.allSettings, server.domains) :
-          new Response(undefined, { status: HTTP_500_INTERNAL_SERVER_ERROR });
+        ? error
+        : server.settings.debug === true
+          ? DEFAULT_SERVER_ERROR_RESPONSE(errorAsError, server.allSettings, server.domains)
+          : new Response(undefined, { status: HTTP_500_INTERNAL_SERVER_ERROR });
       wasErrorAlreadyHandledInRequestLifecycle = true;
 
       errorResponse = appendTranslatorToResponse(
@@ -412,11 +418,7 @@ function wrapHandlerAndMiddlewares(
 
     try {
       if (response) {
-        for await (const modifiedResponse of wrappedMiddlewareResponses(
-          middlewares,
-          response,
-          middlewareOnionIndex
-        )) {
+        for await (const modifiedResponse of wrappedMiddlewareResponses(middlewares, response, middlewareOnionIndex)) {
           const isResponse = modifiedResponse instanceof Response;
           if (isResponse)
             response = appendTranslatorToResponse(
@@ -428,17 +430,21 @@ function wrapHandlerAndMiddlewares(
             );
           else throw new ResponseNotReturnedFromResponseOnMiddlewareError();
         }
-        serverLogger.logMessage('REQUEST_RECEIVED', { method: request.method, url: request.url, timePassed: new Date().getTime() - startTime});
+        serverLogger.logMessage('REQUEST_RECEIVED', {
+          method: request.method,
+          url: request.url,
+          timePassed: new Date().getTime() - startTime
+        });
         return translateResponseToServerResponse(response, method, server, serverRequestAndResponseData);
       }
     } catch (error) {
       if (wasErrorAlreadyHandledInRequestLifecycle === false) {
         const isResponseError = error instanceof Response;
         let errorResponse: Response = isResponseError
-          ? (error)
-          : server.settings.debug === true ?
-          DEFAULT_SERVER_ERROR_RESPONSE(error as Error, server.allSettings, server.domains) :
-          new Response(undefined, { status: HTTP_500_INTERNAL_SERVER_ERROR });
+          ? error
+          : server.settings.debug === true
+            ? DEFAULT_SERVER_ERROR_RESPONSE(error as Error, server.allSettings, server.domains)
+            : new Response(undefined, { status: HTTP_500_INTERNAL_SERVER_ERROR });
 
         errorResponse = appendTranslatorToResponse(
           errorResponse,
@@ -460,7 +466,11 @@ function wrapHandlerAndMiddlewares(
           options
         );
       }
-      serverLogger.logMessage('REQUEST_RECEIVED', { method: request.method, url: request.url, timePassed: new Date().getTime() - startTime});
+      serverLogger.logMessage('REQUEST_RECEIVED', {
+        method: request.method,
+        url: request.url,
+        timePassed: new Date().getTime() - startTime
+      });
       if (response) return translateResponseToServerResponse(response, method, server, serverRequestAndResponseData);
       else throw error;
     }
@@ -475,53 +485,63 @@ function generateServerlessHandler(
   domainName: string,
   method: MethodTypes | 'all',
   path: string,
-  pathOfHandler: { pathOfHandler: string },
+  pathOfHandler: { pathOfHandler: string }
 ): HandlerForServerless {
-  const std = getDefaultStd()
+  const std = getDefaultStd();
   const shouldBeTypeAnnotated = allSettings.settingsLocation.endsWith('.ts');
   const extension = allSettings.settingsLocation.split('.').pop();
 
   return {
     appendBody: (args) => {
       // eslint-disable-next-line ts/no-unnecessary-condition
-      if(pathOfHandler === undefined) throw new Error('You should call writeFile before appendBody');
+      if (pathOfHandler === undefined) throw new Error('You should call writeFile before appendBody');
 
       serverLogger.logMessage('SERVERLESS_HANDLER_UPDATED', {
         method: method.toUpperCase(),
         path: pathOfHandler.pathOfHandler,
-        url: path,
-      })
+        url: path
+      });
 
       return std.files.appendFile(
         pathOfHandler.pathOfHandler,
-        `\nasync function ${args.functionName}`+
-        `(${args.parameters.map((parameter) => {
-          if (shouldBeTypeAnnotated && typeof parameter !== 'object' || typeof (parameter as any)?.type !== 'string')
-            throw new Error('The parameter must have a type when generating a serverless handler.');
-          if (typeof parameter === 'object') return `${parameter.name}: ${parameter.type}`;
-          return parameter;
-        }).join(', ')}) {\n` +
-        `  return Serverless.handleServerless(settings, {\n` +
-        `    requestAndResponseData: ${args.requestAndResponseData},\n` +
-        `    getRoute: () => ${args.getRouteFunctionBody},\n` +
-        `    serverName: '${serverName}',\n` +
-        `    adapter: ${args.adapter},\n` +
-        `    getMethod: () => ${args.getMethodFunctionBody}${args.isSpecificMethod || args.isSpecificRoute ? ',' : ''}\n` +
-        (args.isSpecificMethod ? `    method: '${method}',\n` : '') +
-        (args.isSpecificRoute ? `    route: '${path}',\n    domainRoutes: ['${domainName}']\n` : `    domainRoutes: []\n`) +
-        `  });\n`+
-        `}\n`+
-        (args.customExport ?
-          args.customExport :
-          args.isCJSModule ?
-            `exports.${args.functionName} = ${args.functionName};` :
-            args.isDefaultExport ?
-              `export default ${args.functionName};` :
-              `export { ${args.functionName} };\n`)
+        `\nasync function ${args.functionName}` +
+          `(${args.parameters
+            .map((parameter) => {
+              if (
+                (shouldBeTypeAnnotated && typeof parameter !== 'object') ||
+                typeof (parameter as any)?.type !== 'string'
+              )
+                throw new Error('The parameter must have a type when generating a serverless handler.');
+              if (typeof parameter === 'object') return `${parameter.name}: ${parameter.type}`;
+              return parameter;
+            })
+            .join(', ')}) {\n` +
+          `  return Serverless.handleServerless(settings, {\n` +
+          `    requestAndResponseData: ${args.requestAndResponseData},\n` +
+          `    getRoute: () => ${args.getRouteFunctionBody},\n` +
+          `    serverName: '${serverName}',\n` +
+          `    adapter: ${args.adapter},\n` +
+          `    getMethod: () => ${args.getMethodFunctionBody}${
+            args.isSpecificMethod || args.isSpecificRoute ? ',' : ''
+          }\n` +
+          (args.isSpecificMethod ? `    method: '${method}',\n` : '') +
+          (args.isSpecificRoute
+            ? `    route: '${path}',\n    domainRoutes: ['${domainName}']\n`
+            : `    domainRoutes: []\n`) +
+          `  });\n` +
+          `}\n` +
+          (args.customExport
+            ? args.customExport
+            : args.isCJSModule
+              ? `exports.${args.functionName} = ${args.functionName};`
+              : args.isDefaultExport
+                ? `export default ${args.functionName};`
+                : `export { ${args.functionName} };\n`)
       );
     },
     writeFile: async (args) => {
-      args.pathOfHandlerFile[args.pathOfHandlerFile.length-1] = `${args.pathOfHandlerFile[args.pathOfHandlerFile.length-1]}.${extension}`;
+      args.pathOfHandlerFile[args.pathOfHandlerFile.length - 1] =
+        `${args.pathOfHandlerFile[args.pathOfHandlerFile.length - 1]}.${extension}`;
 
       // The serverless folder location is used to go back to the settings file. So we need to know how many directories we need to go back.
       let numberOfTwoDotsOnServerlessLocation = 0;
@@ -532,45 +552,50 @@ function generateServerlessHandler(
           numberOfDirectoriesToGoBackOnSettingsFromServerlessFolderLocation++;
       }
 
-      const basePathGoingBackFromServerlessLocation =await std.files.join(
-        allSettings.basePath, ...Array.from({ length: numberOfTwoDotsOnServerlessLocation }).map(() => '..')
+      const basePathGoingBackFromServerlessLocation = await std.files.join(
+        allSettings.basePath,
+        ...Array.from({ length: numberOfTwoDotsOnServerlessLocation }).map(() => '..')
       );
 
       const pathWithoutBasePath = allSettings.settingsLocation.replace(basePathGoingBackFromServerlessLocation, '');
 
-      const baseDirectoryOfHandlerFile =
-      settings.serverlessFolderLocation ?
-      await std.files.join(allSettings.basePath, settings.serverlessFolderLocation, await std.files.join(...args.pathOfHandlerFile.slice(0, -1))) :
-      await std.files.join(allSettings.basePath, await std.files.join(...args.pathOfHandlerFile.slice(0, -1)));
+      const baseDirectoryOfHandlerFile = settings.serverlessFolderLocation
+        ? await std.files.join(
+            allSettings.basePath,
+            settings.serverlessFolderLocation,
+            await std.files.join(...args.pathOfHandlerFile.slice(0, -1))
+          )
+        : await std.files.join(allSettings.basePath, await std.files.join(...args.pathOfHandlerFile.slice(0, -1)));
 
       const existsDirectory = await std.files.exists(baseDirectoryOfHandlerFile);
-      if (existsDirectory === false)  await std.files.makeDirectory(baseDirectoryOfHandlerFile);
+      if (existsDirectory === false) await std.files.makeDirectory(baseDirectoryOfHandlerFile);
 
       const pathWithFile = await std.files.join(
-          baseDirectoryOfHandlerFile,
-          args.pathOfHandlerFile[args.pathOfHandlerFile.length-1]
-        );
+        baseDirectoryOfHandlerFile,
+        args.pathOfHandlerFile[args.pathOfHandlerFile.length - 1]
+      );
 
       pathOfHandler.pathOfHandler = pathWithFile;
 
-      const numberOfDirectoriesToGoBackOnSettings = numberOfDirectoriesToGoBackOnSettingsFromServerlessFolderLocation
-        + args.pathOfHandlerFile.length - 1
+      const numberOfDirectoriesToGoBackOnSettings =
+        numberOfDirectoriesToGoBackOnSettingsFromServerlessFolderLocation + args.pathOfHandlerFile.length - 1;
 
       serverLogger.logMessage('SERVERLESS_HANDLER_CREATED', {
         path: pathWithFile,
-        url: path,
-      })
+        url: path
+      });
       return std.files.writeFile(
         pathWithFile,
-        `import { Serverless } from '@palmares/server';\n`+
-        `import { ${args.adapter.name} } from '${args.projectName}';\n` +
-        `import settings from '${
-          Array.from({ length: numberOfDirectoriesToGoBackOnSettings })
-            .map(()=> '..').join('/') + pathWithoutBasePath.replace(`.${extension}`, '')
-        }';\n`
-      )
-    },
-  }
+        `import { Serverless } from '@palmares/server';\n` +
+          `import { ${args.adapter.name} } from '${args.projectName}';\n` +
+          `import settings from '${
+            Array.from({ length: numberOfDirectoriesToGoBackOnSettings })
+              .map(() => '..')
+              .join('/') + pathWithoutBasePath.replace(`.${extension}`, '')
+          }';\n`
+      );
+    }
+  };
 }
 
 /**
@@ -583,14 +608,21 @@ function doTheRoutingForServerlessOnly(
   serverAdapter: ServerlessAdapter,
   partsOfPath: BaseRouter['__partsOfPath'],
   urlParams: BaseRouter['__urlParamsAndPath']['params'],
-  routeToFilter: string,
+  routeToFilter: string
 ) {
   // eslint-disable-next-line no-useless-escape
-  const regex = new RegExp(`^(\\/?)${partsOfPath.map((part) => {
-    if (part.isUrlParam)
-      return `(${urlParams.get(part.part)?.regex?.toString().replace(/(\/(\^)?(\()?|(\))?(\$)?\/)/g, '')})`;
-    return part.part;
-  }).join('\\/')}(\\/?)$`);
+  const regex = new RegExp(
+    `^(\\/?)${partsOfPath
+      .map((part) => {
+        if (part.isUrlParam)
+          return `(${urlParams
+            .get(part.part)
+            ?.regex?.toString()
+            .replace(/(\/(\^)?(\()?|(\))?(\$)?\/)/g, '')})`;
+        return part.part;
+      })
+      .join('\\/')}(\\/?)$`
+  );
   const groups = routeToFilter.match(regex);
   if (regex.test(routeToFilter) === false) return false;
 
@@ -600,7 +632,7 @@ function doTheRoutingForServerlessOnly(
     const result = existingRequestParams?.(_server, _serverRequestAndResponseData, key);
     if (result === '' || result === undefined) return groups?.groups?.[key] || '';
     return result;
-  }
+  };
   return true;
 }
 
@@ -616,10 +648,10 @@ export async function* getAllRouters(
     serverless?: {
       generate: boolean;
       use: {
-        method: MethodTypes,
-        route: string,
-      }
-    }
+        method: MethodTypes;
+        route: string;
+      };
+    };
   }
 ) {
   const methodToFilterWhenOnServerlessEnvironment = options?.serverless?.use.method;
@@ -643,12 +675,15 @@ export async function* getAllRouters(
 
     // On a serverless environment, we do the routing. Not great, but it works for most cases.
     if (isUseServerless && typeof routeToFilterWhenOnServerlessEnvironment === 'string') {
-      if (doTheRoutingForServerlessOnly(
-        serverAdapter,
-        router.partsOfPath,
-        router.urlParams,
-        routeToFilterWhenOnServerlessEnvironment
-      ) === false) continue;
+      if (
+        doTheRoutingForServerlessOnly(
+          serverAdapter,
+          router.partsOfPath,
+          router.urlParams,
+          routeToFilterWhenOnServerlessEnvironment
+        ) === false
+      )
+        continue;
     } else translatedPath = translatePath(path, router.partsOfPath, router.urlParams);
 
     if (isGeneratingServerless) {
@@ -657,32 +692,34 @@ export async function* getAllRouters(
       const pathOfHandler = { pathOfHandler: '' };
       yield {
         translatedPath,
-        handlers: handlerByMethod.reduce((accumulator, currentValue) => {
-          const [method, handler] = currentValue;
-          const routerWithProtected = router.router as MethodsRouter & { __domain: MethodsRouter['__domain'] };
+        handlers: handlerByMethod.reduce(
+          (accumulator, currentValue) => {
+            const [method, handler] = currentValue;
+            const routerWithProtected = router.router as MethodsRouter & { __domain: MethodsRouter['__domain'] };
 
-          accumulator.set(method as MethodTypes | 'all', {
-            handler: generateServerlessHandler(
-              settings,
-              allSettings,
-              serverAdapter.serverName,
-              routerWithProtected.__domain.name,
-              method as MethodTypes,
-              path,
-              pathOfHandler
-            ),
-            options: handler.options?.customRouterOptions,
-          })
-          return accumulator;
-        },
-        new Map<
-          MethodTypes | 'all',
-          {
-            handler: ReturnType<typeof generateServerlessHandler>;
-            options?: RouterOptionsType['customRouterOptions'];
-          }
-        >()),
-        queryParams: router.queryParams,
+            accumulator.set(method as MethodTypes | 'all', {
+              handler: generateServerlessHandler(
+                settings,
+                allSettings,
+                serverAdapter.serverName,
+                routerWithProtected.__domain.name,
+                method as MethodTypes,
+                path,
+                pathOfHandler
+              ),
+              options: handler.options?.customRouterOptions
+            });
+            return accumulator;
+          },
+          new Map<
+            MethodTypes | 'all',
+            {
+              handler: ReturnType<typeof generateServerlessHandler>;
+              options?: RouterOptionsType['customRouterOptions'];
+            }
+          >()
+        ),
+        queryParams: router.queryParams
       };
     }
 
@@ -692,11 +729,10 @@ export async function* getAllRouters(
         const [method, handler] = currentValue;
 
         // On serverless we should just wrap the method that we want to use.
-        const shouldBypassMethodWrapperOnServerless = shouldFilterMethod && method !== methodToFilterWhenOnServerlessEnvironment &&
-          method !== 'all';
+        const shouldBypassMethodWrapperOnServerless =
+          shouldFilterMethod && method !== methodToFilterWhenOnServerlessEnvironment && method !== 'all';
 
-        if (shouldBypassMethodWrapperOnServerless)
-          return accumulator;
+        if (shouldBypassMethodWrapperOnServerless) return accumulator;
 
         const wrappedHandler = wrapHandlerAndMiddlewares(
           method as MethodTypes,
@@ -713,7 +749,7 @@ export async function* getAllRouters(
         );
         accumulator.set(method as MethodTypes | 'all', {
           handler: wrappedHandler,
-          options: handler.options?.customRouterOptions,
+          options: handler.options?.customRouterOptions
         });
         return accumulator;
       },
@@ -724,12 +760,12 @@ export async function* getAllRouters(
           options?: RouterOptionsType['customRouterOptions'];
         }
       >()
-    )
+    );
 
     yield {
       translatedPath,
       handlers: handlersOfRouterByMethod,
-      queryParams: router.queryParams,
+      queryParams: router.queryParams
     };
   }
 }
@@ -770,7 +806,7 @@ export async function* getAllHandlers(
         handler: wrappedHandler,
         partsOfPath: router.partsOfPath,
         queryParams: router.queryParams,
-        urlParams: router.urlParams,
+        urlParams: router.urlParams
       };
     }
   }
@@ -786,7 +822,7 @@ export function wrap404HandlerAndRootMiddlewares(
     if (!handler404) return;
     let response = appendTranslatorToResponse(
       new Response(undefined, { status: HTTP_404_NOT_FOUND, statusText: DEFAULT_NOT_FOUND_STATUS_TEXT_MESSAGE }),
-      serverAdapter ,
+      serverAdapter,
       serverAdapter.response,
       serverRequestAndResponseData,
       undefined
@@ -840,7 +876,7 @@ export async function initializeRouters(
       /** An object that contains data for when running serverless functions */
       use?: {
         /** Gets the method from the request, should be lower cased */
-        getMethod: () => string,
+        getMethod: () => string;
         /** Gets the path route from the request */
         getRoute: () => string;
         /** The data to send to the request during the request / response lifecycle */
@@ -856,7 +892,8 @@ export async function initializeRouters(
   const serverRequestAndResponseData = options?.serverless?.use?.requestAndResponseData;
 
   // eslint-disable-next-line ts/require-await
-  let wrapped404Handler: Parameters<NonNullable<ServerAdapter['routers']['parseHandlers']>>['4'] = async () => undefined;
+  let wrapped404Handler: Parameters<NonNullable<ServerAdapter['routers']['parseHandlers']>>['4'] = async () =>
+    undefined;
 
   if (useServerless) {
     wrapped404Handler = wrap404HandlerAndRootMiddlewares(
@@ -873,13 +910,14 @@ export async function initializeRouters(
         generate: generateServerless,
         use: {
           method: method,
-          route: route as string,
+          route: route as string
         }
       }
     });
     for await (const router of routers) {
-      if (useServerless && router.handlers.has(method) || router.handlers.get('all')) {
-        if (router.handlers.has(method)) return (router.handlers.get(method) as any)?.handler(serverRequestAndResponseData);
+      if ((useServerless && router.handlers.has(method)) || router.handlers.get('all')) {
+        if (router.handlers.has(method))
+          return (router.handlers.get(method) as any)?.handler(serverRequestAndResponseData);
         else return (router.handlers.get('all') as any)?.handler(serverRequestAndResponseData);
       } else if (useServerless === false && serverAdapter.routers.parseHandlers) {
         if (serverAdapter instanceof ServerAdapter) {
@@ -902,7 +940,7 @@ export async function initializeRouters(
         }
       }
     }
-  // eslint-disable-next-line ts/no-unnecessary-condition
+    // eslint-disable-next-line ts/no-unnecessary-condition
   } else if (serverAdapter instanceof ServerAdapter && serverAdapter.routers.parseHandler !== undefined) {
     const translatePath = translatePathFactory(serverAdapter);
     const handlers = getAllHandlers(domains, settings, serverAdapter);

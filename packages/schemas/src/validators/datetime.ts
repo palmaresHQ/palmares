@@ -4,9 +4,14 @@ import type { ValidationFallbackReturnType } from '../schema/types';
 
 export function datetimeValidation(): ValidationFallbackReturnType {
   return {
+    name: 'datetime',
     type: 'medium',
     // eslint-disable-next-line ts/require-await
-    callback: async (value: any, path: (string | number)[], _options: Parameters<Schema['__transformToAdapter']>[0]) => {
+    callback: async (
+      value: any,
+      path: (string | number)[],
+      _options: Parameters<Schema['__transformToAdapter']>[0]
+    ) => {
       const isValid = value instanceof Date && !isNaN(value.getTime());
 
       return {
@@ -19,17 +24,18 @@ export function datetimeValidation(): ValidationFallbackReturnType {
                 code: 'datetime',
                 // eslint-disable-next-line ts/no-unnecessary-condition
                 path: path || [],
-                message: 'Value is not a date',
-              },
+                message: 'Value is not a date'
+              }
             ],
-        preventChildValidation: true,
+        preventChildValidation: true
       };
-    },
+    }
   };
 }
 
 export function allowStringParser(): ValidationFallbackReturnType {
   return {
+    name: 'allowString',
     type: 'high',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -42,20 +48,21 @@ export function allowStringParser(): ValidationFallbackReturnType {
         if (parsed instanceof Date && !isNaN(parsed.getTime())) {
           return {
             parsed: parsed,
-            errors: [],
+            errors: []
           };
         }
       }
       return {
         parsed: value,
-        errors: [],
+        errors: []
       };
-    },
+    }
   };
 }
 
 export function below(args: DatetimeSchema['__below']): ValidationFallbackReturnType {
   return {
+    name: 'below',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -75,16 +82,17 @@ export function below(args: DatetimeSchema['__below']): ValidationFallbackReturn
                 code: 'below',
                 // eslint-disable-next-line ts/no-unnecessary-condition
                 path: path || [],
-                message: args.message,
-              },
-            ],
+                message: args.message
+              }
+            ]
       };
-    },
+    }
   };
 }
 
 export function above(args: DatetimeSchema['__above']): ValidationFallbackReturnType {
   return {
+    name: 'above',
     type: 'low',
     // eslint-disable-next-line ts/require-await
     callback: async (
@@ -104,10 +112,10 @@ export function above(args: DatetimeSchema['__above']): ValidationFallbackReturn
                 code: 'above',
                 // eslint-disable-next-line ts/no-unnecessary-condition
                 path: path || [],
-                message: args.message,
-              },
-            ],
+                message: args.message
+              }
+            ]
       };
-    },
+    }
   };
 }
