@@ -1,6 +1,6 @@
 {
   "name": "@palmares/client",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "This is the client part of the palmares framework, you should be able to use it on any runtime",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",

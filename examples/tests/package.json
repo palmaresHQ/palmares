@@ -1,6 +1,6 @@
 {
   "name": "@example/tests",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "testing the tests",
   "main": "manage.ts",
   "scripts": {
