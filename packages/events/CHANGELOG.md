@@ -1,5 +1,15 @@
 # @palmares/events
 
+## 0.0.4
+
+### Patch Changes
+
+- Bug fixes
+- Release because of the changes on the core package
+- Updated dependencies
+  - @palmares/core@0.1.1
+  - @palmares/logging@0.1.1
+
 ## 0.0.3
 
 ### Patch Changes

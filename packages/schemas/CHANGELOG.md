@@ -1,5 +1,14 @@
 # @palmares/schemas
 
+## 0.1.1
+
+### Patch Changes
+
+- Bug fixes
+- Updated dependencies
+  - @palmares/databases@0.1.1
+  - @palmares/core@0.1.1
+
 ## 0.1.0
 
 ### Minor Changes

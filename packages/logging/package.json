@@ -1,6 +1,6 @@
 {
   "name": "@palmares/logging",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Palmares logging interface so you can log it to the console or other places as well",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",

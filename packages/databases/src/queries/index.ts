@@ -696,7 +696,7 @@ async function resultsFromRelatedModelWithSearch<
       isRemoveOperation: args.isRemoveOperation,
       useParsers: args.useParsers,
       modelInstance: args.includedModelInstance,
-      search: args.searchForRelatedModel,
+      search: args.searchForRelatedModel as any,
       queryDataFn: args.queryData,
       shouldReturnData: false,
       shouldRemove: args.shouldRemove,
@@ -921,7 +921,7 @@ async function resultsFromRelatedModelsWithoutSearch<
       isRemoveOperation: args.isRemoveOperation,
       useParsers: args.useParsers,
       modelInstance: args.modelInstance,
-      search: args.search,
+      search: args.search as any,
       queryDataFn: args.queryData,
       shouldReturnData: false,
       shouldRemove: args.shouldRemove,
@@ -1232,13 +1232,13 @@ export default async function getResultsWithIncludes<
           (includesForGet.fields ||
             allFieldsOfIncludedModel) as readonly (keyof (typeof includedModelInstance)['fields'])[],
           fields,
-          safeSearch,
-          results,
+          safeSearch as any,
+          results as any,
           isDirectlyRelatedModel,
           isSetOperation,
           isRemoveOperation,
           queryData,
-          resultToMergeWithData as ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>,
+          resultToMergeWithData as ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>> as any,
           shouldRemove,
           ordering,
           limit,
@@ -1259,26 +1259,17 @@ export default async function getResultsWithIncludes<
       TModel,
       TFields,
       ModelFieldsWithIncludes<TModel, Includes, TFields, false, false, true, true> | undefined,
-      | ModelFieldsWithIncludes<
-          TModel,
-          TIncludes,
-          FieldsOFModelType<TModel>,
-          true,
-          false,
-          TSearch extends undefined ? false : true,
-          false
-        >[]
-      | undefined,
+      any,
       ModelFieldsWithIncludes<TModel, Includes, TFields>[]
     >(engine, {
       isSetOperation: isSetOperation,
       isRemoveOperation: isRemoveOperation,
       useParsers,
       modelInstance,
-      search: safeSearch,
+      search: safeSearch as any,
       queryDataFn: queryData,
       fields,
-      results,
+      results: results as any,
       ordering,
       limit,
       offset,
@@ -1286,7 +1277,7 @@ export default async function getResultsWithIncludes<
       data: dataToAdd,
       transaction: transaction,
       palmaresTransaction: palmaresTransaction,
-      resultToMergeWithData,
+      resultToMergeWithData: resultToMergeWithData as any,
       isToPreventEvents: isToPreventEvents
     });
   }

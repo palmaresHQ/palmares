@@ -1,5 +1,13 @@
 # @palmares/zod-schema
 
+## 0.1.1
+
+### Patch Changes
+
+- Bug fixes
+- Updated dependencies
+  - @palmares/schemas@0.1.1
+
 ## 0.1.0
 
 ### Minor Changes

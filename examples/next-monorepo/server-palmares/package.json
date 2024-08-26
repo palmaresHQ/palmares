@@ -8,8 +8,7 @@
     "runserver": "tsx manage.ts runserver",
     "test": "tsx ./api/test/route.ts",
     "run": "node ./dist/src/api/test.js",
-    "clear": "rimraf ./dist",
-    "build": "pnpm run clear && swc . -d ./dist --config-file  ../../build/.commonjs.swcrc --ignore node_modules dist"
+    "clear": "rimraf ./dist"
   },
   "keywords": [],
   "author": "",
