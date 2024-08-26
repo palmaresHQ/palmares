@@ -1,13 +1,14 @@
-import { TestAdapter } from "@palmares/tests";
+/* eslint-disable ts/consistent-type-imports */
+import { TestAdapter } from '@palmares/tests';
 import { run as runJest } from 'jest';
 
-import JestTestFunctionsAdapter from "./functions";
-import JestExpectAdapter from "./expect";
+import JestExpectAdapter from './expect';
+import JestTestFunctionsAdapter from './functions';
 
 let defaultConfig: import('jest').Config = {
-  preset: "ts-jest",
-  testEnvironment: "node",
-  rootDir: process.cwd(),
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  rootDir: process.cwd()
 };
 
 let cliOptions: string[] = [];
@@ -17,13 +18,13 @@ export default class JestTestAdapter extends TestAdapter {
   expect = new JestExpectAdapter();
 
   getCustomProps(): {
-    expect: typeof import('@jest/globals')['expect'];
-    describe: typeof import('@jest/globals')['describe'];
-    beforeAll: typeof import('@jest/globals')['beforeAll'];
-    beforeEach: typeof import('@jest/globals')['beforeEach'];
-    afterEach: typeof import('@jest/globals')['afterEach'];
-    afterAll: typeof import('@jest/globals')['afterAll'];
-    jest: typeof import('@jest/globals')['jest'];
+    expect: (typeof import('@jest/globals'))['expect'];
+    describe: (typeof import('@jest/globals'))['describe'];
+    beforeAll: (typeof import('@jest/globals'))['beforeAll'];
+    beforeEach: (typeof import('@jest/globals'))['beforeEach'];
+    afterEach: (typeof import('@jest/globals'))['afterEach'];
+    afterAll: (typeof import('@jest/globals'))['afterAll'];
+    jest: (typeof import('@jest/globals'))['jest'];
   } {
     const { expect, describe, jest, beforeAll, beforeEach, afterAll, afterEach } = require('@jest/globals');
 
@@ -34,38 +35,37 @@ export default class JestTestAdapter extends TestAdapter {
       beforeEach,
       afterAll,
       afterEach,
-      jest,
-    }
+      jest
+    };
   }
 
   async run(
     filesToRun: string[],
     globalSetupFunctionBody: string,
     std: {
-      mkdir: (path: string | string[]) => Promise<void>,
-      join: (...args: string[]) => Promise<string>,
+      mkdir: (path: string | string[]) => Promise<void>;
+      join: (...args: string[]) => Promise<string>;
       writeFile: (path: string | string[], content: string) => Promise<void>;
       removeFile: (path: string | string[]) => Promise<void>;
-  }) {
-    const [_, __, whereToCreateJestConfig,whereToCreateGlobalSetup] = await Promise.all([
+    }
+  ) {
+    const [_, __, whereToCreateJestConfig, whereToCreateGlobalSetup] = await Promise.all([
       std.mkdir(await std.join(__dirname, '.jest')),
       std.mkdir(await std.join(__dirname, '.jest')),
-      std.join(__dirname,'.jest', 'jest.config.js'),
+      std.join(__dirname, '.jest', 'jest.config.js'),
       std.join(__dirname, '.jest', 'setup-jest.js')
-    ])
+    ]);
     await std.writeFile(whereToCreateGlobalSetup, globalSetupFunctionBody);
     defaultConfig.testRegex = filesToRun.concat(defaultConfig.testRegex || []);
     defaultConfig.setupFiles = [whereToCreateGlobalSetup].concat(defaultConfig.setupFiles || []);
     const defaultConfigAsString = JSON.stringify(defaultConfig, null, 2);
-    await std.writeFile(whereToCreateJestConfig,
-      `module.exports = ${defaultConfigAsString};`
-    )
+    await std.writeFile(whereToCreateJestConfig, `module.exports = ${defaultConfigAsString};`);
     await runJest(['--config', whereToCreateJestConfig].concat(cliOptions));
-    await Promise.all([std.removeFile(whereToCreateJestConfig), std.removeFile(whereToCreateGlobalSetup)])
+    await Promise.all([std.removeFile(whereToCreateJestConfig), std.removeFile(whereToCreateGlobalSetup)]);
   }
 
   static new(args?: {
-    config?: import('jest').Config,
+    config?: import('jest').Config;
     cliOptions?: [
       '--watch',
       '--watchAll',
@@ -83,14 +83,14 @@ export default class JestTestAdapter extends TestAdapter {
       '--onlyChanged',
       '--listTests',
       ['--maxWorkers', number | string],
-      '--noStackTrace',
-    ][number][]
+      '--noStackTrace'
+    ][number][];
   }) {
     if (args?.config) {
       defaultConfig = {
         ...defaultConfig,
-        ...args.config,
-      }
+        ...args.config
+      };
     }
     if (args?.cliOptions) {
       cliOptions = args.cliOptions.map((option) => {
