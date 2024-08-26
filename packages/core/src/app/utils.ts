@@ -24,13 +24,16 @@ export async function initializeApp(
   commandLineArgs: DomainHandlerFunctionArgs['commandLineArgs'],
   appServer: typeof AppServer
 ) {
+  let customArgumentsOfAppServer: any = undefined;
   const instanceOfAppServer = new appServer(domains, settings);
   await instanceOfAppServer.load({ domains, settings, commandLineArgs });
   await instanceOfAppServer.baseAppServer.initialize(settings, domains);
-  await instanceOfAppServer.start(async (args) => {
-    await instanceOfAppServer.baseAppServer.configureCleanup.bind(instanceOfAppServer.baseAppServer)(
+  await instanceOfAppServer.start((args) => {
+    customArgumentsOfAppServer = args;
+    instanceOfAppServer.baseAppServer.configureCleanup.bind(instanceOfAppServer.baseAppServer)(
       instanceOfAppServer,
       args
     );
   });
+  return () => instanceOfAppServer.close(customArgumentsOfAppServer);
 }

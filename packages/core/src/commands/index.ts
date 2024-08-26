@@ -36,7 +36,8 @@ function getValueFromType(type: 'boolean' | 'number' | 'string' | string[] | rea
 
 /**
  * This will format the arguments and it will return an object with the positional and keyword arguments.
- * It will also check and parse the arguments from the `type` provided on either the `keywordArgs` or `positionalArgs` object of your domain.
+ * It will also check and parse the arguments from the `type` provided on either the `keywordArgs` or `positionalArgs`
+ * object of your domain.
  *
  * @example ```ts
  * import { domain, handleCommands } from '@palmares/core';
@@ -133,12 +134,13 @@ function formatArgs(command: DefaultCommandType[string], args: string[]) {
 
   return {
     positionalArgs,
-    keywordArgs,
+    keywordArgs
   };
 }
 
 /**
- * Main entrypoint for the hole application, the idea is simple: when we start the program we load all the domains, then we get all the commands it have.
+ * Main entrypoint for the hole application, the idea is simple: when we start the program we load all the domains,
+ * then we get all the commands it have.
  */
 export async function handleCommands(
   settingsOrSettingsPath:
@@ -159,7 +161,8 @@ export async function handleCommands(
 
   const { settings, domains, commands: availableCommands } = await initializeDomains(settingsOrSettingsPath);
 
-  // the '@palmares/logging' package sends a new logger constructor through the settings, if that exist we will use it, otherwise it'll just be a default `console.info`
+  // the '@palmares/logging' package sends a new logger constructor through the settings, if that exist we will use it,
+  // otherwise it'll just be a default `console.info`
   const loggerConstructorFromPalmaresLoggingPackage = (settings as any)?.__logger as
     | (new (args: { name?: string; domainName?: string }) => {
         log: (message: string) => void;
@@ -182,7 +185,7 @@ export async function handleCommands(
   let returnOfCommand: void | typeof AppServer | ReturnType<typeof appServer>;
   let formattedCommandLineArgs = {
     positionalArgs: {},
-    keywordArgs: {},
+    keywordArgs: {}
   } as DomainHandlerFunctionArgs['commandLineArgs'];
 
   if (isCommandDefined) {
@@ -194,15 +197,15 @@ export async function handleCommands(
       availableCommands[commandType].handler({
         settings,
         domains,
-        commandLineArgs: formattedCommandLineArgs as any,
+        commandLineArgs: formattedCommandLineArgs as any
       })
     );
   } else {
     throw new CommandNotFoundException(commandType);
   }
 
-  // This will start the app server if your command returns an app server class. Please, don't try to run the app server manually, unless you REALLY know
-  // what you are doing, since it has it's own lifecycle.
+  // This will start the app server if your command returns an app server class. Please, don't try to run the app
+  // server manually, unless you REALLY know what you are doing, since it has it's own lifecycle.
   if (returnOfCommand?.prototype instanceof AppServer) {
     logger.info(`Command wants to start the app server, starting it...`);
 

@@ -31,7 +31,7 @@ export default serverRouterAdapter({
       initializedServer.all(path, (req: Request, res: Response) => {
         const serverRequestAndResponseData = {
           req,
-          res,
+          res
         };
         if (optionsHandler && req.method === 'OPTIONS') {
           optionsHandler(serverRequestAndResponseData);
@@ -72,10 +72,10 @@ export default serverRouterAdapter({
       initializedServer.use((req, res) => {
         const serverRequestAndResponseData = {
           req,
-          res,
+          res
         };
         handler(serverRequestAndResponseData);
       });
     }
-  },
+  }
 });

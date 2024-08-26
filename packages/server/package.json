@@ -45,7 +45,7 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
-    "@palmares/logging": "workspace:*",
-    "@palmares/core": "workspace:*"
+    "@palmares/core": "workspace:*",
+    "@palmares/logging": "workspace:*"
   }
 }

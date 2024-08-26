@@ -3,7 +3,7 @@ import config from '../../../eslint.config.js';
 /** @type {import('eslint').Linter.RulesRecord} */
 const configs = [{
   ...config[0],
-  name: '@palmares/schemas/tests',
+  name: '@palmares/server/tests',
   files: ['src/**/*.ts', 'src/**/*.postgres.ts', 'manage.ts', 'drizzle.config.ts', '.drizzle/schema.ts'],
 }];
 

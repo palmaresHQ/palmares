@@ -51,5 +51,5 @@ export default serverResponseAdapter({
       res.send(Buffer.from(arrayBuffer));
       return;
     } else res.send(body);
-  },
+  }
 });

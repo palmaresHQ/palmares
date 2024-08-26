@@ -73,9 +73,11 @@ export default serverRequestAdapter({
     });
   },
   /**
-   * Since express doesn't have a built-in method for parsing form data, we use multer for this. Multer is from express so it should serve most use cases.
+   * Since express doesn't have a built-in method for parsing form data, we use multer for this. Multer is from express
+   * so it should serve most use cases.
    *
-   * This handles both `multipart/form-data` and `application/x-www-form-urlencoded` requests. So this, by default, uses both the `multer` and `urlencoded` methods from express.
+   * This handles both `multipart/form-data` and `application/x-www-form-urlencoded` requests. So this, by default, uses
+   * both the `multer` and `urlencoded` methods from express.
    */
   toFormData: async (
     server,
@@ -97,7 +99,7 @@ export default serverRequestAdapter({
 
         serverInstanceAndSettings.urlEncodedParser = express.urlencoded({
           ...urlEncodedParserSettings,
-          extended: true,
+          extended: true
         });
         formDataOrUrlEncodedParser = serverInstanceAndSettings.urlEncodedParser;
       } else if (serverInstanceAndSettings && !serverInstanceAndSettings.formDataParser) {
@@ -145,8 +147,8 @@ export default serverRequestAdapter({
                 return [
                   {
                     value: req.body[key],
-                    filename: undefined,
-                  },
+                    filename: undefined
+                  }
                 ];
             }
 
@@ -157,7 +159,7 @@ export default serverRequestAdapter({
                   if (file.fieldname === name)
                     files.push({
                       value: new File([file.buffer], file.originalname, { type: file.mimetype }),
-                      filename: file.originalname,
+                      filename: file.originalname
                     });
                 }
                 return files;
@@ -169,7 +171,7 @@ export default serverRequestAdapter({
                   if (file.fieldname === name)
                     filesArray.push({
                       value: new File([file.buffer], file.originalname, { type: file.mimetype }),
-                      filename: file.originalname,
+                      filename: file.originalname
                     });
                 }
                 return filesArray;
@@ -181,12 +183,12 @@ export default serverRequestAdapter({
                 return [
                   {
                     value: new File([req.file.buffer], req.file.originalname, { type: req.file.mimetype }),
-                    filename: req.file.originalname,
-                  },
+                    filename: req.file.originalname
+                  }
                 ];
 
             return [];
-          },
+          }
         });
         resolve(formData);
       });
@@ -252,5 +254,5 @@ export default serverRequestAdapter({
   url: (_server, serverRequestAndResponseData) => {
     const { req } = serverRequestAndResponseData as { req: Request };
     return req.url;
-  },
+  }
 });

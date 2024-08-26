@@ -14,7 +14,8 @@ export type CustomSettingsForExpress = {
   bodyRawOptions?: Parameters<typeof raw>[0];
   /**
    * This is used for defining custom options for the `urlencoded` method from express.
-   * Generally urlencoded is used when you want to parse the body of a request that is sent with the `application/x-www-form-urlencoded` content type.
+   * Generally urlencoded is used when you want to parse the body of a request that is sent with the
+   * `application/x-www-form-urlencoded` content type.
    * You can get this data by using the `toBlob` method on the `Request` object.
    */
   urlEncodedOptions?: Parameters<typeof urlencoded>[0];
