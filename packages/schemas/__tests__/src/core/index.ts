@@ -13,7 +13,7 @@ export default domain('testingZodSchemas', __dirname, {
       keywordArgs: undefined,
       positionalArgs: undefined,
       handler: () => {
-        migrate(db, { migrationsFolder: './.drizzle/migrations' });
+        migrate(db as any, { migrationsFolder: './.drizzle/migrations' });
       }
     }
   },

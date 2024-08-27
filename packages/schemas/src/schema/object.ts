@@ -2,6 +2,7 @@ import Schema from './schema';
 import {
   defaultTransform,
   defaultTransformToAdapter,
+  shouldRunDataOnComplexSchemas,
   transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas
 } from '../utils';
 import { objectValidation } from '../validators/object';
@@ -169,11 +170,9 @@ export default class ObjectSchema<
     if (isValueAnObject) {
       await Promise.all(
         dataAsEntries.map(async ([key, valueToTransform]) => {
-          const isValueToTransformASchemaAndNotUndefined =
-            valueToTransform instanceof Schema &&
-            (value[key] !== undefined || (valueToTransform as any).__defaultFunction);
-          if (isValueToTransformASchemaAndNotUndefined) {
-            const transformedValue = await valueToTransform.data(value[key]);
+          const shouldRunData = shouldRunDataOnComplexSchemas(valueToTransform);
+          if (shouldRunData) {
+            const transformedValue = await valueToTransform.data(parsedValue[key]);
             (parsedValue as any)[key] = transformedValue;
           }
         })

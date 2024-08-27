@@ -1,5 +1,17 @@
 # @palmares/core
 
+## 0.1.3
+
+### Patch Changes
+
+- Fix issue with version
+
+## 0.1.2
+
+### Patch Changes
+
+- Republish
+
 ## 0.1.1
 
 ### Patch Changes

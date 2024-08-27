@@ -1,5 +1,21 @@
 # @palmares/events
 
+## 0.0.6
+
+### Patch Changes
+
+- Updated dependencies
+  - @palmares/core@0.1.3
+  - @palmares/logging@0.1.3
+
+## 0.0.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @palmares/core@0.1.2
+  - @palmares/logging@0.1.2
+
 ## 0.0.4
 
 ### Patch Changes
