@@ -13,9 +13,9 @@ export function getSettings() {
 
 /**
  * Extracts the settings from the path provided using an standard library provided, could be Node, Bun, Deno, whatever.
- * We do need an standard library on this case because we can't make any assumptions on where you are running. Please be aware that
- * if you are using NodeStd and trying to run the code on the browser it WILL fail. Just use it if you are completely sure that it will
- * only run on that runtime and any other.
+ * We do need an standard library on this case because we can't make any assumptions on where you are running. Please
+ * be aware that if you are using NodeStd and trying to run the code on the browser it WILL fail. Just use it if you
+ * are completely sure that it will only run on that runtime and any other.
  */
 async function extractSettingsFromPath(stdToUse: Std, path?: string) {
   setDefaultStd(stdToUse);
@@ -31,7 +31,8 @@ async function extractSettingsFromPath(stdToUse: Std, path?: string) {
 }
 
 /**
- * Function supposed to be called after all of the domains were loaded. It will save the settings in memory and return it when it's needed / requested by calling the `getSettings` function.
+ * Function supposed to be called after all of the domains were loaded. It will save the settings in memory and return
+ * it when it's needed / requested by calling the `getSettings` function.
  */
 export async function setSettings(
   settingsOrStd:

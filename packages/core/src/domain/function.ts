@@ -26,7 +26,7 @@ import type { DefaultCommandType } from '../commands/types';
  * ```
  */
 export default function domain<
-  const TModifierArguments = object,
+  const TModifierArguments = unknown,
   // eslint-disable-next-line no-shadow
   const TModifiers extends (abstract new (...args: any) => {
     modifiers: any;
@@ -50,7 +50,8 @@ export default function domain<
     | Promise<(args: DomainReadyFunctionArgs<unknown, any>) => void | Promise<void>>,
   TReadyFunction extends (args: DomainReadyFunctionArgs<any, any>) => void | Promise<void> = (
     args: DomainReadyFunctionArgs<unknown, any>
-  ) => void | Promise<void>
+  ) => void | Promise<void>,
+  TArgs extends ExtractModifierArguments<TModifiers> = ExtractModifierArguments<TModifiers>
 >(
   /**
    * The name of the domain. It will be used to identify the domain and to load the settings for it.
@@ -82,7 +83,7 @@ export default function domain<
      */
     ready?: TReadyFunction;
     close?: () => void | Promise<void>;
-  } & ExtractModifierArguments<TModifiers>
+  } & TArgs
 ) {
   const argsEntries = Object.entries(args);
   class ReturnedClass extends Domain<TModifierArguments> {
@@ -99,5 +100,7 @@ export default function domain<
 
   for (const [key, value] of argsEntries) (ReturnedClass as any).prototype[key] = value;
 
-  return ReturnedClass;
+  return ReturnedClass as unknown as typeof ReturnedClass & {
+    new (): InstanceType<typeof ReturnedClass> & TArgs;
+  };
 }

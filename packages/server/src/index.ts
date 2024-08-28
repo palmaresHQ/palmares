@@ -16,3 +16,4 @@ export { default as default, serverDomainModifier } from './domain';
 export * from './response/status';
 export { FormDataLike } from './request/types';
 export { default as Serverless } from './serverless';
+export { MethodsRouter, IncludesRouter, BaseRouter } from './router/routers';

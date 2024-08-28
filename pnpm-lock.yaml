@@ -670,7 +670,14 @@ importers:
         specifier: ^5.5.4
         version: 5.5.4
 
-  packages/client: {}
+  packages/client:
+    devDependencies:
+      '@palmares/core':
+        specifier: workspace:*
+        version: link:../core
+      '@palmares/server':
+        specifier: workspace:*
+        version: link:../server
 
   packages/core:
     devDependencies:

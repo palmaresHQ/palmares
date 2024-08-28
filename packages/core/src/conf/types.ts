@@ -1,7 +1,7 @@
 import type Domain from '../domain/domain';
 import type domain from '../domain/function';
 import type { DomainReadyFunctionArgs } from '../domain/types';
-import type Std from '../std-adapter'
+import type Std from '../std-adapter';
 import type { Narrow } from '../utils';
 
 export type ValidateDomains<
@@ -32,16 +32,15 @@ export type ValidateDomains<
             ]
         )[]
       >
-> = TDomains extends
-  | readonly [
-      (
-        | infer TFirstDomain
-        | readonly [infer TFirstDomain, any]
-        | Promise<infer TFirstDomain>
-        | Promise<readonly [infer TFirstDomain, any]>
-      ),
-      ...infer TRestDomains
-    ]
+> = TDomains extends readonly [
+  (
+    | infer TFirstDomain
+    | readonly [infer TFirstDomain, any]
+    | Promise<infer TFirstDomain>
+    | Promise<readonly [infer TFirstDomain, any]>
+  ),
+  ...infer TRestDomains
+]
   ? TFirstDomain extends typeof Domain | ReturnType<typeof domain>
     ? InstanceType<TFirstDomain> extends
         | {
@@ -77,7 +76,7 @@ export type ValidateDomains<
     : never
   : TDomains;
 
-export type InstalledDomainsType = Promise<{ default: typeof Domain }>[] | typeof Domain[];
+export type InstalledDomainsType = Promise<{ default: typeof Domain }>[] | (typeof Domain)[];
 
 export type SettingsType2<
   TDomains extends readonly (

@@ -86,7 +86,7 @@ export default class Serverless {
         : domains;
 
     return await initializeRouters(
-      domainRoutes,
+      domainRoutes as ServerDomain[],
       settingsServers.servers[args.serverName],
       settings as AllServerSettingsType,
       initializedAdapter,
