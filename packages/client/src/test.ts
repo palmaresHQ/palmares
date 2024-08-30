@@ -2,16 +2,39 @@ import { defineSettings, domain } from '@palmares/core';
 import ServerDomain, { Response, path, serverDomainModifier } from '@palmares/server';
 import { dirname, resolve } from 'path';
 
+import type { MethodsRouter } from '@palmares/server';
+
+const seiLa = path('/here')
+  .get(async (request) => {
+    return Response.json({
+      success: true,
+      message: 'Hello World'
+    });
+  })
+  .nested((path) => [
+    path('/sync').nested((path) => [
+      path('/sync2').get(async (req) => {
+        req.params;
+      })
+    ])
+  ]);
+
+type ExtractRoutesAndHandlerFromRouter<
+  TRouter extends MethodsRouter<any, any, any, any, any, any> | Omit<MethodsRouter<any, any, any, any, any, any>, any>
+> = TRouter extends MethodsRouter<any, any, any, any, any, infer TRootPath> ? TRootPath : TRouter;
+
 export const coreDomain = domain('core', __dirname, {
   modifiers: [serverDomainModifier] as const,
   getRoutes: () =>
-    path('/here').nested([
+    path('/here').nested((path) => [
       // eslint-disable-next-line ts/require-await
-      path('/hello').get(async () => {
-        return Response.json({
-          message: 'Hello World'
-        });
-      }),
+      path('/hello')
+        .get(async () => {
+          return Response.json({
+            message: 'Hello World'
+          });
+        })
+        .nested((path) => [path('/world').get(async () => Response.json({ message: 'Hello World' }))]),
       // eslint-disable-next-line ts/require-await
       path('/test').get(async () => {
         return Response.json({
@@ -22,7 +45,7 @@ export const coreDomain = domain('core', __dirname, {
           }
         });
       })
-    ] as const)
+    ])
 });
 
 export const settings = defineSettings({

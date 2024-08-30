@@ -13,7 +13,7 @@ export function adapterModels<
   TTranslateFieldsFunction extends AdapterModels['translateFields'],
   TTranslateFunction extends AdapterModels['translate'],
   TAfterModelsTranslationFunction extends AdapterModels['afterModelsTranslation'],
-  TCustomOptionsFunction extends (typeof AdapterModels)['customOptions'],
+  TCustomOptionsFunction extends (typeof AdapterModels)['customOptions']
 >(args: {
   /**
    * Used for translating the options of the model. Options of the model are things like the `tableName`, `indexes`, `timestamps`, etc. If your engine does not offer the option
@@ -391,16 +391,21 @@ export default class AdapterModels {
    * }
    * ```
    *
-   * Last but not least, you can totally opt out of using it. If that's your choice, just don't implement it and we will use the default implementation.
-   * On your `translate` method you should see that `fields` object will be an object where the keys are the field names and the values are the translated fields.
+   * Last but not least, you can totally opt out of using it. If that's your choice, just don't implement it and we will
+   * use the default implementation.
+   * On your `translate` method you should see that `fields` object will be an object where the keys are the field names
+   * and the values are the translated fields.
    *
    * @param engine - Your custom engine instance.
    * @param modelName - The name of the model that is being translated.
-   * @param fieldEntriesOfModel - The field entries of the model. It's an array of tuples where the first element is the field name and the second is the field.
+   * @param fieldEntriesOfModel - The field entries of the model. It's an array of tuples where the first element is the
+   * field name and the second is the field.
    * @param model - The model that is being translated.
-   * @param defaultTranslateFieldCallback - The default implementation of the `translateField` method that Palmares provides. If you have a `translateField` implementation on your
-   * `EngineFields` implementation, you need to make sure that you pass it to this method.
-   * @param defaultTranslateFieldsCallback - The default implementation of the `translateFields` method that Palmares provides.
+   * @param defaultTranslateFieldCallback - The default implementation of the `translateField` method that Palmares
+   * provides. If you have a `translateField` implementation on your `EngineFields` implementation, you need to make
+   * sure that you pass it to this method.
+   * @param defaultTranslateFieldsCallback - The default implementation of the `translateFields` method that Palmares
+   * provides.
    *
    * @returns - An object where the keys are the field names and the values are the translated values.
    */
@@ -417,8 +422,8 @@ export default class AdapterModels {
   }
 
   /**
-   * The `translate` method will be called to translate the model to a instance of something that your engine/ORM can understand. In other words, we will transform a Palmares model to
-   * YOUR model.
+   * The `translate` method will be called to translate the model to a instance of something that your engine/ORM can understand. In other words,
+   * we will transform a Palmares model to YOUR model.
    *
    * ## first, a little explanation what it does:
    *

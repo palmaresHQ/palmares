@@ -14,12 +14,14 @@ export function serverRouterAdapter<
   TParseRouteFunction extends ServerRouterAdapter['parseRoute'],
   TParseHandlerFunction extends ServerRouterAdapter['parseHandler'],
   TParseHandlersFunction extends ServerRouterAdapter['parseHandlers'],
-  TLoad404Function extends ServerRouterAdapter['load404'],
+  TLoad404Function extends ServerRouterAdapter['load404']
 >(args: {
   /**
-   * Used for parsing each part of the route, instead of parsing the whole route all at once, the framework itself will call this method for each part of the route.
+   * Used for parsing each part of the route, instead of parsing the whole route all at once, the framework itself will
+   * call this method for each part of the route.
    *
-   * n this example we are parsing the route and following Express's route syntax, like /users/:id, /users/:id/posts, /users/:id/posts/:postId, etc. So each url param will contain
+   * n this example we are parsing the route and following Express's route syntax, like /users/:id, /users/:id/posts,
+   * /users/:id/posts/:postId, etc. So each url param will contain
    * a colon before the name of the param.
    *
    * @example
@@ -69,6 +71,7 @@ export function serverRouterAdapter<
    *
    * IMPORTANT: Don't forget to handle the `all` method, so it can be used to accept all methods.
    *
+   * app.[method]()
    * @example
    * ```ts
    * parseHandler(server, path, method, handler, queryParams) {
@@ -214,7 +217,6 @@ export default class ServerRouterAdapter {
   ): Promise<void> {
     return undefined;
   }
-
 
   /**
    * Used for parsing each part of the route, instead of parsing the whole route all at once, the framework itself will call this method for each part of the route.

@@ -15,6 +15,17 @@ import type { Middleware } from '../middleware';
 import type { RequestMethodTypes } from '../request/types';
 import type { Domain, Narrow } from '@palmares/core';
 
+type ExtractTRouteTreesFromChildren<
+  TRouters extends readonly (DefaultRouterType | Omit<DefaultRouterType, any>)[],
+  TResult = unknown
+> = TRouters extends readonly [infer TRouterFirst, ...infer TRestRouters]
+  ? TRouterFirst extends BaseRouter<any, any, any, any, any, infer TRootTRouteTree>
+    ? TRestRouters extends readonly (DefaultRouterType | Omit<DefaultRouterType, any>)[]
+      ? ExtractTRouteTreesFromChildren<TRestRouters, TResult & TRootTRouteTree>
+      : TResult & TRootTRouteTree
+    : TResult
+  : TResult;
+
 /**
  * This is the core of the types and for the application to work.
  *
@@ -45,7 +56,8 @@ export class BaseRouter<
   TRootPath extends string | undefined = undefined,
   TAlreadyDefinedHandlers extends
     | AlreadyDefinedMethodsType<TRootPath extends string ? TRootPath : '', readonly Middleware[]>
-    | unknown = unknown
+    | unknown = unknown,
+  TRootRoutesTree = unknown
 > {
   path!: TRootPath;
 
@@ -127,7 +139,7 @@ export class BaseRouter<
   }
 
   static new<TPath extends string | undefined = undefined>(path: TPath) {
-    const newRouter = new MethodsRouter<undefined, [], [], TPath, undefined>(path);
+    const newRouter = new MethodsRouter<undefined, [], [], TPath, undefined, unknown>(path);
     return newRouter;
   }
 
@@ -161,11 +173,18 @@ export class BaseRouter<
           router: ReturnType<IncludesRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, undefined>['child']>
         ) => Narrow<TIncludes>)
       | Narrow<TIncludes>
-  ): MethodsRouter<TParentRouter, ExtractIncludes<TIncludes, []>, TMiddlewares, TRootPath, TAlreadyDefinedHandlers> {
+  ): MethodsRouter<
+    TParentRouter,
+    ExtractIncludes<TIncludes, []>,
+    TMiddlewares,
+    TRootPath,
+    TAlreadyDefinedHandlers,
+    TRootRoutesTree & ExtractTRouteTreesFromChildren<ExtractIncludes<TIncludes, []>>
+  > {
     const newRouter = new IncludesRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, undefined>(this.path);
 
     const isNested = typeof children === 'function';
-    const childrenArray = isNested ? children(newRouter.child()) : children;
+    const childrenArray = isNested ? children(newRouter.child() as any) : children;
     const doesChildrenAlreadyExists = Array.isArray(this.__children);
 
     const formattedChildren = childrenArray.map((child) => {
@@ -183,7 +202,8 @@ export class BaseRouter<
       ExtractIncludes<TIncludes, []>,
       TMiddlewares,
       TRootPath,
-      TAlreadyDefinedHandlers
+      TAlreadyDefinedHandlers,
+      TRootRoutesTree & ExtractTRouteTreesFromChildren<ExtractIncludes<TIncludes, []>>
     >;
   }
 
@@ -504,8 +524,9 @@ export class IncludesRouter<
   TRootPath extends string | undefined = undefined,
   TAlreadyDefinedMethods extends
     | AlreadyDefinedMethodsType<TRootPath extends string ? TRootPath : '', readonly Middleware[]>
-    | undefined = undefined
-> extends BaseRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, TAlreadyDefinedMethods> {
+    | undefined = undefined,
+  TRootRoutesTree = unknown
+> extends BaseRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, TAlreadyDefinedMethods, TRootRoutesTree> {
   /**
    * Syntax sugar for creating a nested router inside of the `include` method when passing a function
    * instead of an array.
@@ -515,7 +536,7 @@ export class IncludesRouter<
    */
   child() {
     return MethodsRouter.newNested<
-      BaseRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, TAlreadyDefinedMethods>
+      BaseRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, TAlreadyDefinedMethods, TRootRoutesTree>
     >();
   }
 }
@@ -527,8 +548,9 @@ export class MethodsRouter<
   TRootPath extends string | undefined = undefined,
   TAlreadyDefinedMethods extends
     | AlreadyDefinedMethodsType<TRootPath extends string ? TRootPath : '', readonly Middleware[]>
-    | unknown = unknown
-> extends BaseRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, TAlreadyDefinedMethods> {
+    | unknown = unknown,
+  TRootRoutesTree = unknown
+> extends BaseRouter<TParentRouter, TChildren, TMiddlewares, TRootPath, TAlreadyDefinedMethods, TRootRoutesTree> {
   get<
     THandler extends HandlerType<
       TRootPath extends string ? TRootPath : string,
@@ -568,7 +590,17 @@ export class MethodsRouter<
           THandler,
           TOptions,
           'get'
-        >
+        >,
+        {
+          [TKey in TRootPath as TKey extends string | number | symbol ? TKey : never]: DefineAlreadyDefinedMethodsType<
+            TRootPath extends string ? TRootPath : string,
+            TMiddlewares,
+            TAlreadyDefinedMethods,
+            THandler,
+            TOptions,
+            'get'
+          >;
+        } & TRootRoutesTree
       >,
       keyof TAlreadyDefinedMethods | 'get' | 'all'
     >;
@@ -613,7 +645,17 @@ export class MethodsRouter<
           THandler,
           TOptions,
           'post'
-        >
+        >,
+        {
+          [TKey in TRootPath as TKey extends string | number | symbol ? TKey : never]: DefineAlreadyDefinedMethodsType<
+            TRootPath extends string ? TRootPath : string,
+            TMiddlewares,
+            TAlreadyDefinedMethods,
+            THandler,
+            TOptions,
+            'post'
+          >;
+        } & TRootRoutesTree
       >,
       keyof TAlreadyDefinedMethods | 'post' | 'all'
     >;
@@ -658,7 +700,17 @@ export class MethodsRouter<
           THandler,
           TOptions,
           'delete'
-        >
+        >,
+        {
+          [TKey in TRootPath as TKey extends string | number | symbol ? TKey : never]: DefineAlreadyDefinedMethodsType<
+            TRootPath extends string ? TRootPath : string,
+            TMiddlewares,
+            TAlreadyDefinedMethods,
+            THandler,
+            TOptions,
+            'delete'
+          >;
+        } & TRootRoutesTree
       >,
       keyof TAlreadyDefinedMethods | 'delete' | 'all'
     >;
@@ -703,7 +755,17 @@ export class MethodsRouter<
           THandler,
           TOptions,
           'options'
-        >
+        >,
+        {
+          [TKey in TRootPath as TKey extends string | number | symbol ? TKey : never]: DefineAlreadyDefinedMethodsType<
+            TRootPath extends string ? TRootPath : string,
+            TMiddlewares,
+            TAlreadyDefinedMethods,
+            THandler,
+            TOptions,
+            'post'
+          >;
+        } & TRootRoutesTree
       >,
       keyof TAlreadyDefinedMethods | 'options' | 'all'
     >;
@@ -748,7 +810,17 @@ export class MethodsRouter<
           THandler,
           TOptions,
           'head'
-        >
+        >,
+        {
+          [TKey in TRootPath as TKey extends string | number | symbol ? TKey : never]: DefineAlreadyDefinedMethodsType<
+            TRootPath extends string ? TRootPath : string,
+            TMiddlewares,
+            TAlreadyDefinedMethods,
+            THandler,
+            TOptions,
+            'head'
+          >;
+        } & TRootRoutesTree
       >,
       keyof TAlreadyDefinedMethods | 'head' | 'all'
     >;
@@ -791,7 +863,17 @@ export class MethodsRouter<
           THandler,
           TOptions,
           'put'
-        >
+        >,
+        {
+          [TKey in TRootPath as TKey extends string | number | symbol ? TKey : never]: DefineAlreadyDefinedMethodsType<
+            TRootPath extends string ? TRootPath : string,
+            TMiddlewares,
+            TAlreadyDefinedMethods,
+            THandler,
+            TOptions,
+            'put'
+          >;
+        } & TRootRoutesTree
       >,
       keyof TAlreadyDefinedMethods | 'put' | 'all'
     >;
@@ -834,7 +916,17 @@ export class MethodsRouter<
           THandler,
           TOptions,
           'patch'
-        >
+        >,
+        {
+          [TKey in TRootPath as TKey extends string | number | symbol ? TKey : never]: DefineAlreadyDefinedMethodsType<
+            TRootPath extends string ? TRootPath : string,
+            TMiddlewares,
+            TAlreadyDefinedMethods,
+            THandler,
+            TOptions,
+            'patch'
+          >;
+        } & TRootRoutesTree
       >,
       keyof TAlreadyDefinedMethods | 'patch' | 'all'
     >;
@@ -881,7 +973,17 @@ export class MethodsRouter<
           THandler,
           TOptions,
           MethodTypes
-        >
+        >,
+        {
+          [TKey in TRootPath as TKey extends string | number | symbol ? TKey : never]: DefineAlreadyDefinedMethodsType<
+            TRootPath extends string ? TRootPath : string,
+            TMiddlewares,
+            TAlreadyDefinedMethods,
+            THandler,
+            TOptions,
+            MethodTypes
+          >;
+        } & TRootRoutesTree
       >,
       keyof TAlreadyDefinedMethods | MethodTypes | 'all'
     >;

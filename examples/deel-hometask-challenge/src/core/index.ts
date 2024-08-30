@@ -46,7 +46,7 @@ export default domain('core', __dirname, {
         }
       },
       handler: ({ commandLineArgs }) => {
-        console.log(`Hello ${commandLineArgs.positionalArgs['name'] || 'World'}`);
+        console.log(`Hello123123 ${commandLineArgs.positionalArgs['name'] || 'World'}`);
       }
     },
     seedDb: {

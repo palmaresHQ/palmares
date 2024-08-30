@@ -4,7 +4,6 @@ import { describe } from '@palmares/tests';
 import type JestTestAdapter from '@palmares/jest-tests';
 
 describe<JestTestAdapter>('Object Tests', ({ test }) => {
-  /*
   test('optional', async ({ expect }) => {
     const objectSchema = p.object({
       name: p.string(),
@@ -195,7 +194,7 @@ describe<JestTestAdapter>('Object Tests', ({ test }) => {
     expect(errors?.[0]?.code).toBe('max');
     expect(errors?.[0]?.path?.[0]).toBe('nested');
     expect(errors?.[0]?.path?.[1]).toBe('age');
-  });*/
+  });
 
   test('nested issue error message', async ({ expect }) => {
     const schema = p.object({
@@ -216,3 +215,4 @@ describe<JestTestAdapter>('Object Tests', ({ test }) => {
     expect(data.name).toBe('Hello from backend');
   });
 });
+
