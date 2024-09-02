@@ -1,63 +1,6 @@
 import type { coreDomain, settings } from './test';
 import type { Domain, SettingsType, SettingsType2, defineSettings, domain } from '@palmares/core';
-import type { BaseRouter, MethodsRouter } from '@palmares/server';
-
-type GetPathOfRouter<TRouter extends BaseRouter<any, any, any, any, any>> =
-  TRouter extends BaseRouter<any, any, any, infer TPath, any> ? TPath : never;
-
-type RemoveSubstringOfRouterPath<TRouter, TString extends string> =
-  TRouter extends BaseRouter<any, any, any, any, any>
-    ? TString extends `${GetPathOfRouter<TRouter>}${infer TRest}`
-      ? TRest
-      : TString
-    : TString;
-
-type ExtractRoutesFromRouter<
-  TRouters extends MethodsRouter<any, any, any, any, any> | Omit<MethodsRouter<any, any, any, any, any>, any>,
-  TPaths extends string = ''
-> = TRouters extends
-  | MethodsRouter<infer TParentRouter, infer TChildren, infer TMiddlewares, infer TPath, infer TDefinedHandlers>
-  | Omit<
-      MethodsRouter<infer TParentRouter, infer TChildren, infer TMiddlewares, infer TPath, infer TDefinedHandlers>,
-      any
-    >
-  ? TDefinedHandlers extends undefined
-    ? TChildren extends readonly (
-        | MethodsRouter<any, any, any, any, any>
-        | Omit<MethodsRouter<any, any, any, any, any>, any>
-      )[]
-      ? TChildren['length'] extends 0
-        ? `${TPaths}`
-        : ExtractRoutesFromRouter<
-            TChildren[number],
-            `${TPaths}${RemoveSubstringOfRouterPath<TParentRouter, TPath extends string ? TPath : ''>}`
-          >
-      : `${TPaths}`
-    : TChildren extends readonly (
-          | MethodsRouter<any, any, any, any, any>
-          | Omit<MethodsRouter<any, any, any, any, any>, any>
-        )[]
-      ? TChildren['length'] extends 0
-        ? TDefinedHandlers extends undefined
-          ? `${TPaths}${RemoveSubstringOfRouterPath<TParentRouter, TPath extends string ? TPath : ''>}`
-          : `${TPaths}${RemoveSubstringOfRouterPath<TParentRouter, TPath extends string ? TPath : ''>}`
-        : ExtractRoutesFromRouter<
-            TChildren[number],
-            `${TPaths}${RemoveSubstringOfRouterPath<TParentRouter, TPath extends string ? TPath : ''>}`
-          >
-      : `${TPaths}`
-  : `${TPaths}`;
-/*
-    ? TChildren extends readonly MethodsRouter<any, any, any, any, any>[]
-      ? TChildren['length'] extends 0
-        ? TPath
-        : ExtractRoutesFromRouter<
-            TChildren[number],
-            `${TPaths}${RemoveSubstringOfRouterPath<TParentRouter, TPath extends string ? TPath : ''>}`
-          >
-      : TPaths
-    : TPaths
-*/
+import type { BaseRouter, MethodsRouter, Request } from '@palmares/server';
 
 type ExtractRoutesAndHandlerFromRouter<
   TRouter extends MethodsRouter<any, any, any, any, any, any> | Omit<MethodsRouter<any, any, any, any, any, any>, any>
@@ -117,14 +60,71 @@ type ExtractRoutesFromDomains<
         : TResult
       : TResult;
 
+type ExtractBodyFromHandler<THandler> = THandler extends { handler: (request: infer TRequest) => any }
+  ? TRequest extends Request<any, { body: infer TBody }>
+    ? TBody
+    : never
+  : never;
+
+type CapitalizeFirstLetter<
+  TString extends string,
+  TResult extends string = ''
+> = TString extends `${infer TFirst}-${infer TRest}`
+  ? CapitalizeFirstLetter<TRest, `${TResult extends '' ? '' : `${TResult}-`}${Capitalize<TFirst>}`>
+  : `${TResult extends '' ? '' : `${TResult}-`}${Capitalize<TString>}`;
+
+type ExtractHeadersFromHandler<THandler> = THandler extends { handler: (request: infer TRequest) => any }
+  ? TRequest extends Request<any, { headers: infer THeaders }>
+    ? { [TKey in keyof THeaders as TKey extends string ? CapitalizeFirstLetter<TKey> : never]: THeaders[TKey] }
+    : never
+  : never;
+
 // eslint-disable-next-line ts/require-await
 function palmaresFetchConstructor<THandlersAndPaths>() {
-  return async <TInput extends keyof THandlersAndPaths, TMethod extends keyof THandlersAndPaths[TInput]>(
+  return async <
+    TInput extends keyof THandlersAndPaths,
+    TMethod extends Uppercase<keyof THandlersAndPaths[TInput] extends string ? keyof THandlersAndPaths[TInput] : string>
+  >(
     input: TInput,
-    init?: {
-      method?: Uppercase<TMethod extends string ? TMethod : string>;
-    }
-  ) => {
+    init: {
+      method?: TMethod;
+    } & (TMethod extends 'GET'
+      ? unknown
+      : ExtractBodyFromHandler<
+            Lowercase<TMethod> extends keyof THandlersAndPaths[TInput]
+              ? THandlersAndPaths[TInput][Lowercase<TMethod>]
+              : never
+          > extends never
+        ? unknown
+        : {
+            body: ExtractBodyFromHandler<
+              Lowercase<TMethod> extends keyof THandlersAndPaths[TInput]
+                ? THandlersAndPaths[TInput][Lowercase<TMethod>]
+                : never
+            >;
+          }) &
+      (ExtractHeadersFromHandler<
+        Lowercase<TMethod> extends keyof THandlersAndPaths[TInput]
+          ? THandlersAndPaths[TInput][Lowercase<TMethod>]
+          : never
+      > extends never
+        ? unknown
+        : {
+            headers: ExtractHeadersFromHandler<
+              Lowercase<TMethod> extends keyof THandlersAndPaths[TInput]
+                ? THandlersAndPaths[TInput][Lowercase<TMethod>]
+                : never
+            >;
+          })
+  ): Promise<
+    Awaited<
+      Lowercase<TMethod> extends keyof THandlersAndPaths[TInput]
+        ? THandlersAndPaths[TInput][Lowercase<TMethod>] extends { handler: (request: any) => infer TResult }
+          ? TResult
+          : never
+        : never
+    >
+  > => {
     return {} as any;
   };
 }
@@ -136,7 +136,22 @@ export default function defineFetch<
 }
 
 const tFetch = defineFetch<[typeof coreDomain]>();
-tFetch('/here/hello', {
-  method: 'GET'
+const main = async () => {
+  const response = await tFetch('/here/hello', {
+    method: 'POST',
+    body: {
+      name: 'asasd',
+      age: 1
+    },
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  const data = await response.json();
+  data.message;
+};
+
+fetch('/here/hello', {
+  method: ''
 });
-fetch('/here/hello', {});

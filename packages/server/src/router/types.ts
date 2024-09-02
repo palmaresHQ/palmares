@@ -86,9 +86,11 @@ export type HandlerType<
     | undefined = undefined
 > = (
   request: RequestOnHandlerType<TRootPath, TMiddlewares, TMethod, TResponses>
-) => ExtractPossibleResponsesOfHandlerType<
-  RequestOnHandlerType<TRootPath, TMiddlewares, TMethod, TResponses>['responses']
->;
+) => RequestOnHandlerType<TRootPath, TMiddlewares, TMethod, TResponses>['responses'] extends never
+  ? Promise<Response<any, any>> | Response<any, any>
+  : ExtractPossibleResponsesOfHandlerType<
+      RequestOnHandlerType<TRootPath, TMiddlewares, TMethod, TResponses>['responses']
+    >;
 
 /**
  * This is used for validating the response of the handler. If a response is defined on the handler or any
@@ -112,20 +114,19 @@ type ExtractPossibleResponsesOfHandlerType<
       }
     >
   | Promise<
-      | ReturnType<TPossibleResponses[keyof TPossibleResponses]>
-      | Response<
-          any,
-          {
-            context?: any;
-            headers?: any;
-            status?: Exclude<
-              `${StatusCodes}`,
-              keyof TPossibleResponses
-            > extends `${infer TStatusCode extends StatusCodes}`
-              ? TStatusCode
-              : StatusCodes;
-          }
-        >
+      Response<
+        any,
+        {
+          context?: any;
+          headers?: any;
+          status?: Exclude<
+            `${StatusCodes}`,
+            keyof TPossibleResponses
+          > extends `${infer TStatusCode extends StatusCodes}`
+            ? TStatusCode
+            : StatusCodes;
+        }
+      >
     >;
 
 /**
@@ -149,8 +150,8 @@ export type DefineAlreadyDefinedMethodsType<
   TRootPath extends string,
   TMiddlewares extends readonly Middleware[],
   TAlreadyDefinedMethods extends AlreadyDefinedMethodsType<TRootPath, TMiddlewares> | unknown,
-  THandler extends HandlerType<TRootPath, TMiddlewares, any, any>,
-  TOptions extends RouterOptionsType,
+  THandler extends HandlerType<TRootPath, any, any, any>,
+  TOptions extends RouterOptionsType<any>,
   TMethodType extends MethodTypes
 > = TAlreadyDefinedMethods extends object
   ? TAlreadyDefinedMethods & {
@@ -235,4 +236,5 @@ export type ExtractIncludes<
 
 export type RouterOptionsType<TCustomRouterOptions = any> = MiddlewareOptions & {
   customRouterOptions?: TCustomRouterOptions;
+  middlewares?: Narrow<readonly Middleware[]>;
 };
