@@ -3,14 +3,7 @@
   "tasks": {
     "build": {
       "cache": true,
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "packages/**/dist/**",
-        "examples/**/dist/**",
-        "lib/**/dist/**"
-      ]
+      "dependsOn": ["^build"]
     },
     "build:watch": {
       "persistent": true,

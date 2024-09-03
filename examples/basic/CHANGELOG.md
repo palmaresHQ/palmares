@@ -1,5 +1,16 @@
 # @example/basic
 
+## 0.0.7
+
+### Patch Changes
+
+- Updated dependencies [d49968e]
+  - @palmares/sequelize-engine@0.1.4
+  - @palmares/express-adapter@0.1.4
+  - @palmares/databases@0.1.4
+  - @palmares/server@0.1.4
+  - @palmares/core@0.1.4
+
 ## 0.0.6
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # @examples/schemas
 
+## 0.0.8
+
+### Patch Changes
+
+- d49968e: Better typescript support for most stuff, added handler to the schemas and modified a lot the server stuff to comply with the client
+- Updated dependencies [d49968e]
+  - @palmares/schemas@0.1.4
+  - @palmares/zod-schema@0.1.5
+
 ## 0.0.7
 
 ### Patch Changes

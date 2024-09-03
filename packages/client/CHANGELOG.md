@@ -1,5 +1,11 @@
 # @palmares/client
 
+## 0.1.2
+
+### Patch Changes
+
+- d49968e: Better typescript support for most stuff, added handler to the schemas and modified a lot the server stuff to comply with the client
+
 ## 0.1.1
 
 ### Patch Changes

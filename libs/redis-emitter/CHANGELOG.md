@@ -1,5 +1,13 @@
 # @palmares/redis-emitter
 
+## 0.0.4
+
+### Patch Changes
+
+- d49968e: Better typescript support for most stuff, added handler to the schemas and modified a lot the server stuff to comply with the client
+- Updated dependencies [d49968e]
+  - @palmares/events@0.0.7
+
 ## 0.0.3
 
 ### Patch Changes

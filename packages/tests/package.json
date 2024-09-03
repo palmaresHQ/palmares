@@ -1,6 +1,6 @@
 {
   "name": "@palmares/tests",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "This defines a default test framework testing stuff inside of the framework",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",

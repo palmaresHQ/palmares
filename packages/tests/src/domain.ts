@@ -16,7 +16,7 @@ export default domain('@palmares/tests', __dirname, {
       description: 'Run the tests in your palmares application',
       keywordArgs: undefined,
       positionalArgs: undefined,
-      handler: (args) => {
+      handler: (args: any) => {
         test(args.domains, args.settings as AllTestsSettingsType);
       }
     }

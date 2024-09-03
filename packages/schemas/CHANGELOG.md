@@ -1,5 +1,15 @@
 # @palmares/schemas
 
+## 0.1.4
+
+### Patch Changes
+
+- d49968e: Better typescript support for most stuff, added handler to the schemas and modified a lot the server stuff to comply with the client
+- Updated dependencies [d49968e]
+  - @palmares/databases@0.1.4
+  - @palmares/server@0.1.4
+  - @palmares/core@0.1.4
+
 ## 0.1.3
 
 ### Patch Changes

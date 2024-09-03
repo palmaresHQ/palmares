@@ -1,5 +1,13 @@
 # @palmares/vercel-adapter
 
+## 0.0.7
+
+### Patch Changes
+
+- d49968e: Better typescript support for most stuff, added handler to the schemas and modified a lot the server stuff to comply with the client
+- Updated dependencies [d49968e]
+  - @palmares/server@0.1.4
+
 ## 0.0.6
 
 ### Patch Changes
