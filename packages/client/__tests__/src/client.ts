@@ -1,6 +1,6 @@
 import initializeClient from '@palmares/client';
 
-import type { coreDomain } from './core';
+import type { coreDomain, inventoryDomain } from './core';
 import type settings from './settings';
 import type palmaresCoreDomain from '@palmares/core';
 import type serverDomain from '@palmares/server';

@@ -8,7 +8,11 @@ import type {
 
 type ExtractRoutesAndHandlerFromRouter<
   TRouter extends MethodsRouter<any, any, any, any, any, any> | Omit<MethodsRouter<any, any, any, any, any, any>, any>
-> = TRouter extends MethodsRouter<any, any, any, any, any, infer TRootPath> ? TRootPath : unknown;
+> = TRouter extends
+  | MethodsRouter<any, any, any, any, any, infer TRootPath>
+  | Omit<MethodsRouter<any, any, any, any, any, infer TRootPath>, any>
+  ? TRootPath
+  : unknown;
 
 type ExtractRouteFromDomain<TDomain extends typeof Domain | ReturnType<typeof domain>> =
   InstanceType<TDomain> extends { getRoutes: () => infer TRoutes }
@@ -105,7 +109,7 @@ function palmaresFetchConstructor<THandlersAndPaths>(host: string) {
   >(
     input: TInput,
     init: {
-      method?: TMethod;
+      method: TMethod;
     } & (keyof ExtractUrlParamsFromPathType<TInput extends string ? TInput : never> extends never
       ? unknown
       : { params: ExtractUrlParamsFromPathType<TInput extends string ? TInput : never> }) &

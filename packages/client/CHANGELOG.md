@@ -1,5 +1,11 @@
 # @palmares/client
 
+## 0.1.3
+
+### Patch Changes
+
+- Fix typing issues on client package
+
 ## 0.1.2
 
 ### Patch Changes

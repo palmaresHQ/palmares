@@ -17,6 +17,11 @@ const validationMiddleware = middleware({
   }
 });
 
+export const inventoryDomain = domain('inventory', __dirname, {
+  modifiers: [serverDomainModifier] as const,
+  getRoutes: () => path('/aqui').get(async (request) => Response.json({ message: 'aqui' }))
+});
+
 export const coreDomain = domain('core', __dirname, {
   modifiers: [serverDomainModifier] as const,
   getRoutes: () =>
