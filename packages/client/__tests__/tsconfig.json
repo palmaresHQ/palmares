@@ -4,6 +4,7 @@
     "declaration": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
     "outDir": "./dist",
     "types": ["node"]
   },

@@ -97,11 +97,6 @@ type ExtractHeadersFromHandler<THandler> = THandler extends { handler: (request:
     : never
   : never;
 
-type Extract<THandler> = THandler extends { handler: (request: infer TRequest) => any }
-  ? TRequest extends Request<any, { headers: infer THeaders }>
-    ? { [TKey in keyof THeaders as TKey extends string ? CapitalizeFirstLetter<TKey> : never]: THeaders[TKey] }
-    : never
-  : never;
 // eslint-disable-next-line ts/require-await
 function palmaresFetchConstructor<THandlersAndPaths>(host: string) {
   return async <

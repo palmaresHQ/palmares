@@ -2,7 +2,10 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "declaration": false,
-    "noErrorTruncation": true,
+    "types": ["@palmares/core", "@palmares/server", "node"],
+    "rootDir": "./src",                                  /* Specify the root folder within your source files. */
+    "baseUrl": "./src",
+    "lib": ["Es2022"],
     "outDir": "./dist/cjs"
   },
   "include": ["src/**/*"]
