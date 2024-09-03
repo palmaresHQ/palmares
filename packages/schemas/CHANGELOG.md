@@ -1,5 +1,13 @@
 # @palmares/schemas
 
+## 0.1.6
+
+### Patch Changes
+
+- Exported schemas handler for easier management
+- Updated dependencies
+  - @palmares/databases@0.1.6
+
 ## 0.1.5
 
 ### Patch Changes

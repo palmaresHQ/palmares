@@ -1,7 +1,6 @@
 import { CommandNotFoundException } from './exceptions';
 import { AppServer } from '../app';
 import { initializeApp } from '../app/utils';
-import { setSettings } from '../conf/settings';
 import { initializeDomains } from '../domain/utils';
 import { getLogger, setLogger } from '../logging';
 import { PACKAGE_NAME, structuredClone } from '../utils';

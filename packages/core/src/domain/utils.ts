@@ -120,8 +120,9 @@ export async function initializeDomains(
 
   for (const domainClass of domainClasses) {
     const initializedDomain = new domainClass();
+
     const domainIsNotLoadedAndHasLoadFunction =
-      typeof initializedDomain.load === 'function' && !initializedDomain.isLoaded && ignoreCache !== false;
+      typeof initializedDomain.load === 'function' && !initializedDomain.isLoaded && ignoreCache !== true;
 
     if (domainIsNotLoadedAndHasLoadFunction) {
       if (initializedDomain.load) {

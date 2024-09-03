@@ -7,10 +7,11 @@ function textWithEmptySpaces(length: number, text: string) {
 }
 
 /**
- * This is really similar to `logKeywordArgs` but it's used for logging the positional arguments. It will fully construct the syntax of the positional arguments and
- * it will also log the description of each positional argument.
+ * This is really similar to `logKeywordArgs` but it's used for logging the positional arguments. It will fully
+ * construct the syntax of the positional arguments and it will also log the description of each positional argument.
  *
- * It will return an array where the first element is the syntax of the positional arguments and the second element is the string of the description to log.
+ * It will return an array where the first element is the syntax of the positional arguments and the second
+ * element is the string of the description to log.
  */
 function logPositionalArgs(commandData: NonNullable<Domain['commands']>[string]) {
   let stringToLog = '';
@@ -53,10 +54,11 @@ function logPositionalArgs(commandData: NonNullable<Domain['commands']>[string])
 }
 
 /**
- * This is really similar to `logPositionalArgs` but it's used for logging the keyword arguments. It will fully construct the syntax of the keyword arguments and
- * it will also log the description of each keyword argument.
+ * This is really similar to `logPositionalArgs` but it's used for logging the keyword arguments. It will fully
+ * construct the syntax of the keyword arguments and it will also log the description of each keyword argument.
  *
- * It will return an array where the first element is the syntax of the keyword arguments and the second element is the string of the description to log.
+ * It will return an array where the first element is the syntax of the keyword arguments and the second
+ * element is the string of the description to log.
  */
 function logKeywordArgs(commandData: NonNullable<Domain['commands']>[string]) {
   let stringToLog = '';

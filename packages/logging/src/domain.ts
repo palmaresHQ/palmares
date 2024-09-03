@@ -7,15 +7,15 @@ import type { LoggingSettingsType, LoggingTypes } from './types';
 
 // eslint-disable-next-line ts/ban-ts-comment
 // @ts-ignore
-export default domain('@palmares/logging', __dirname || import.meta.url, {
+export default domain('@palmares/logging', __dirname, {
   load: async (settings: LoggingSettingsType) => {
     // eslint-disable-next-line ts/no-unnecessary-condition
-    if (settings.logger) {
+    if (settings?.logger) {
       if (settings.logger instanceof Promise || Array.isArray(settings.logger) === false) {
-        const logger = (
-          settings.logger instanceof Promise ? (await settings.logger).default : settings.logger
-        );
-        const loggerData = { logger: new logger() }; // Create once only and link them together, this way we don't need to create too much objects and instances just to consume memory.
+        const logger = settings.logger instanceof Promise ? (await settings.logger).default : settings.logger;
+        // Create once only and link them together, this way we don't need to create too much
+        // objects and instances just to consume memory.
+        const loggerData = { logger: new logger() };
         setLoggerAtLevel('debug', loggerData);
         setLoggerAtLevel('log', loggerData);
         setLoggerAtLevel('info', loggerData);
@@ -33,12 +33,12 @@ export default domain('@palmares/logging', __dirname || import.meta.url, {
           const loggingLevels: LoggingTypes[] = Array.isArray(logger.level)
             ? logger.level
             : typeof logger.level === 'string'
-            ? [logger.level]
-            : ['debug', 'log', 'info', 'warn', 'error'];
+              ? [logger.level]
+              : ['debug', 'log', 'info', 'warn', 'error'];
           for (const level of loggingLevels) setLoggerAtLevel(level, logger as any);
         }
       }
       (settings as any).__logger = Logger;
     }
-  },
+  }
 });

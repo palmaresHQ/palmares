@@ -40,6 +40,7 @@ export {
 };
 export { schema, number, object, union, string, array, datetime, boolean };
 export { default as compile } from './compile';
+export { default as schemaHandler } from './middleware';
 
 export { modelSchema };
 

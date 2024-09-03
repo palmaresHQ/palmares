@@ -41,7 +41,9 @@ export class ManagerEngineInstanceNotFoundError extends Error {
 
 export class ShouldAssignAllInstancesException extends Error {
   constructor() {
-    super('You have translated the model before. And you have assigned `instance` to the model options. You should assign `instance` to all model options.');
+    super(
+      'You have translated the model before. And you have assigned `instance` to the model options. You should assign `instance` to all model options.'
+    );
     this.name = ShouldAssignAllInstancesException.name;
   }
 }

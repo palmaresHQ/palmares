@@ -13,17 +13,17 @@ export default defineSettings({
   settingsLocation: __dirname,
   std: NodeStd,
   installedDomains: [
-    [
-      LoggingDomain,
-      {
-        logger: ConsoleLogging
-      }
-    ],
     // Domain Core, required for palmares to work
     [
       PalmaresCoreDomain,
       {
         appName: 'My App'
+      }
+    ],
+    [
+      LoggingDomain,
+      {
+        logger: ConsoleLogging
       }
     ],
     // Server Domain, required for the server

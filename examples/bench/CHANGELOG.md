@@ -1,5 +1,13 @@
 # @examples/bench
 
+## 0.0.9
+
+### Patch Changes
+
+- Updated dependencies
+  - @palmares/databases@0.1.6
+  - @palmares/sequelize-engine@0.1.6
+
 ## 0.0.8
 
 ### Patch Changes
