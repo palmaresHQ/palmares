@@ -408,7 +408,12 @@ export default class StringSchema<
    *
    * @returns The schema.
    */
-  onSave(callback: (value: TType['internal']) => Promise<TType['output']> | TType['output']) {
+  onSave(
+    callback: <TContext = any>(
+      value: TType['internal'],
+      context: TContext
+    ) => Promise<TType['output']> | TType['output']
+  ) {
     return super.onSave(callback) as unknown as StringSchema<
       {
         input: TType['input'];

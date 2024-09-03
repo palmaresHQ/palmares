@@ -63,7 +63,7 @@ export default class Schema<
   protected __alreadyAppliedModel?: Promise<any>;
   protected __runBeforeParseAndData?: (self: any) => Promise<void>;
   protected __rootFallbacksValidator!: Validator;
-  protected __saveCallback?: (value: any) => Promise<any | void> | any | void;
+  protected __saveCallback?: <TContext = any>(value: any, context: TContext) => Promise<any | void> | any | void;
   protected __modelOmitCallback?: () => void;
   protected __parsers: Record<
     'high' | 'medium' | 'low',
@@ -252,6 +252,7 @@ export default class Schema<
     schemaAdapter?: SchemaAdapter;
     errorsAsHashedSet?: Set<string>;
     shouldAddStringVersion?: boolean;
+    context?: any;
     appendFallbacksBeforeAdapterValidation?: (
       schema: Schema<any, any>,
       uniqueNameOfFallback: string,
@@ -733,7 +734,12 @@ export default class Schema<
    *
    * @returns The schema.
    */
-  onSave(callback: (value: TType['internal']) => Promise<TType['output']> | TType['output']) {
+  onSave(
+    callback: <TContext = any>(
+      value: TType['internal'],
+      context: TContext
+    ) => Promise<TType['output']> | TType['output']
+  ) {
     this.__saveCallback = callback;
 
     return this as unknown as Schema<
@@ -797,12 +803,13 @@ export default class Schema<
    * If the value is invalid, the property errors will be present.
    */
   async validate(
-    value: TType['input']
+    value: TType['input'],
+    context: any
   ): Promise<{ isValid: false; errors: any[] } | { isValid: true; save: () => Promise<TType['representation']> }> {
-    const { errors, parsed } = await this.__parse(value, [], {} as any);
+    const { errors, parsed } = await this.__parse(value, [], { context } as any);
     // eslint-disable-next-line ts/no-unnecessary-condition
     if ((errors || []).length <= 0) return { isValid: false, errors: errors };
-    return { isValid: true, save: async () => this._save.bind(this)(parsed) };
+    return { isValid: true, save: async () => this._save.bind(this)(parsed, context) };
   }
 
   /**
@@ -813,9 +820,9 @@ export default class Schema<
    *
    * @returns The value to representation.
    */
-  protected async _save(value: TType['input']): Promise<TType['representation']> {
+  protected async _save(value: TType['input'], context: any): Promise<TType['representation']> {
     if (this.__saveCallback) {
-      const result = await this.__saveCallback(value);
+      const result = await this.__saveCallback(value, context);
       return this.data(result) as Promise<
         true extends TDefinitions['hasSave'] ? TType['representation'] : { errors?: any[]; parsed: TType['internal'] }
       >;

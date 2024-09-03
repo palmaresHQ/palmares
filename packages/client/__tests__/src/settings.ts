@@ -1,16 +1,12 @@
 import ConsoleLogging from '@palmares/console-logging';
-import PalmaresCoreDomain, { defineSettings } from '@palmares/core';
-import DatabasesDomain from '@palmares/databases';
+import PalmaresCoreDomain, { defineSettings, domain } from '@palmares/core';
 import { ExpressServerAdapter } from '@palmares/express-adapter';
 import LoggingDomain from '@palmares/logging';
 import NodeStd from '@palmares/node-std';
-import SequelizeEngine from '@palmares/sequelize-engine';
 import ServerDomain, { Response } from '@palmares/server';
 import { dirname, resolve } from 'path';
 
-import ContractsDomain from './contracts';
-import CoreDomain from './core';
-import JobsDomain from './jobs';
+import { coreDomain } from './core';
 
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
@@ -36,7 +32,7 @@ export default defineSettings({
       {
         servers: {
           default: {
-            server: ExpressServerAdapter,
+            server: ExpressServerAdapter as any,
             debug: true,
             port: 3001,
             validation: {
@@ -58,20 +54,7 @@ export default defineSettings({
         }
       }
     ],
-    [
-      DatabasesDomain,
-      {
-        databases: {
-          default: {
-            engine: SequelizeEngine.new({
-              dialect: 'sqlite',
-              storage: './database.sqlite3'
-            })
-          }
-        }
-      }
-    ],
-    CoreDomain,
-    JobsDomain
+    // We have just created this custom domain, and it defines our routes.
+    coreDomain
   ]
 });

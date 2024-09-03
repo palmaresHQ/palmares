@@ -320,7 +320,8 @@ export default class Request<
    * @returns - The method of the request. For reference, see: https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
    */
   get method(): TRequest['method'] {
-    if (this.__cachedMethod.value) return this.__cachedMethod.value;
+    // eslint-disable-next-line ts/no-unnecessary-condition
+    if (this.__cachedMethod?.value) return this.__cachedMethod.value;
     else if (this.__requestAdapter && this.__serverAdapter) {
       const method = this.__requestAdapter.method(
         this.__serverAdapter as NonNullable<Request['__serverAdapter']>,

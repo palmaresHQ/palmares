@@ -43,6 +43,7 @@
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
     "@palmares/core": "workspace:*",
-    "@palmares/databases": "workspace: *"
+    "@palmares/databases": "workspace:*",
+    "@palmares/server": "workspace:*"
   }
 }

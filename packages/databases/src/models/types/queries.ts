@@ -850,7 +850,7 @@ type BaseFieldsWithRelationsFromIncludesType<
   TIsAllRequired extends boolean = false,
   TIsAllOptional extends boolean = false,
   TIsForSearch extends boolean = false
-> = TType /* &
+> = TType &
   RelatedFieldOfModelOptional<
     TModel,
     InstanceType<TIncludedModel>,
@@ -883,7 +883,7 @@ type BaseFieldsWithRelationsFromIncludesType<
     TIsAllRequired,
     TIsAllOptional,
     TIsForSearch
-  >*/;
+  >;
 
 export type FieldsWithRelationsFromIncludesType<
   TType,

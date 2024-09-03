@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "declaration": false,
-    //"noErrorTruncation": true,
+    "noErrorTruncation": true,
     "outDir": "./dist/cjs"
   },
   "include": ["src/**/*"]

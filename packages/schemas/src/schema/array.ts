@@ -434,7 +434,12 @@ export default class ArraySchema<
    *
    * @returns The schema.
    */
-  onSave(callback: (value: TType['internal']) => Promise<TType['output']> | TType['output']) {
+  onSave(
+    callback: <TContext = any>(
+      value: TType['internal'],
+      context: TContext
+    ) => Promise<TType['output']> | TType['output']
+  ) {
     return super.onSave(callback) as unknown as ArraySchema<
       {
         input: TType['input'];

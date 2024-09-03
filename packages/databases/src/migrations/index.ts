@@ -67,7 +67,7 @@ export default class Migrations {
           foundMigrations.push({
             domainPath: domain.path,
             domainName: domain.name,
-            migration: domainMigration,
+            migration: domainMigration
           });
         }
       } else {
@@ -89,7 +89,7 @@ export default class Migrations {
               foundMigrations.push({
                 domainName: domain.name,
                 domainPath: domain.path,
-                migration: migrationFile,
+                migration: migrationFile
               });
             }
           });
@@ -100,7 +100,7 @@ export default class Migrations {
           if (error.code === ERR_MODULE_NOT_FOUND || couldNotFindFileOrDirectory) {
             if (this.settings.dismissNoMigrationsLog !== false)
               databaseLogger.logMessage('MIGRATIONS_NOT_FOUND', {
-                domainName: domain.name,
+                domainName: domain.name
               });
           } else {
             throw e;

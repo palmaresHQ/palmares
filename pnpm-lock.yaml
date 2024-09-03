@@ -679,6 +679,37 @@ importers:
         specifier: workspace:*
         version: link:../server
 
+  packages/client/__tests__:
+    dependencies:
+      '@palmares/client':
+        specifier: workspace:*
+        version: link:..
+      '@palmares/console-logging':
+        specifier: workspace:*
+        version: link:../../../libs/console-logging
+      '@palmares/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@palmares/express-adapter':
+        specifier: workspace:*
+        version: link:../../../libs/express-adapter
+      '@palmares/logging':
+        specifier: workspace:*
+        version: link:../../logging
+      '@palmares/node-std':
+        specifier: workspace:*
+        version: link:../../../libs/node-std
+      '@palmares/server':
+        specifier: workspace:*
+        version: link:../../server
+    devDependencies:
+      tsx:
+        specifier: ^4.16.2
+        version: 4.16.2
+      typescript:
+        specifier: ^5.5.4
+        version: 5.5.4
+
   packages/core:
     devDependencies:
       '@types/node':
@@ -773,8 +804,11 @@ importers:
         specifier: workspace:*
         version: link:../core
       '@palmares/databases':
-        specifier: 'workspace: *'
+        specifier: workspace:*
         version: link:../databases
+      '@palmares/server':
+        specifier: workspace:*
+        version: link:../server
 
   packages/schemas/__tests__:
     dependencies:

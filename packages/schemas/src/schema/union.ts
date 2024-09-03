@@ -1,7 +1,4 @@
-import { number } from '.';
 import Schema from './schema';
-import { string } from './string';
-import { getDefaultAdapter } from '../conf';
 import {
   defaultTransform,
   defaultTransformToAdapter,
@@ -11,7 +8,6 @@ import { unionValidation } from '../validators/union';
 import Validator from '../validators/utils';
 
 import type { DefinitionsOfSchemaType, ExtractTypeFromUnionOfSchemas } from './types';
-import type SchemaAdapter from '../adapter';
 import type FieldAdapter from '../adapter/fields';
 import type { Narrow } from '@palmares/core';
 
@@ -435,7 +431,12 @@ export default class UnionSchema<
    *
    * @returns The schema.
    */
-  onSave(callback: (value: TType['internal']) => Promise<TType['output']> | TType['output']) {
+  onSave(
+    callback: <TContext = any>(
+      value: TType['internal'],
+      context: TContext
+    ) => Promise<TType['output']> | TType['output']
+  ) {
     return super.onSave(callback) as unknown as UnionSchema<
       {
         input: TType['input'];

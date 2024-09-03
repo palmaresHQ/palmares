@@ -364,7 +364,12 @@ export default class DatetimeSchema<
    *
    * @returns The schema.
    */
-  onSave(callback: (value: TType['internal']) => Promise<TType['output']> | TType['output']) {
+  onSave(
+    callback: <TContext = any>(
+      value: TType['internal'],
+      context: TContext
+    ) => Promise<TType['output']> | TType['output']
+  ) {
     return super.onSave(callback) as unknown as DatetimeSchema<
       {
         input: TType['input'];

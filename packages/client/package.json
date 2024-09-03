@@ -25,6 +25,7 @@
   ],
   "scripts": {
     "clear": "rimraf ./dist",
+    "runserver": "tsx ./src/manage.ts runserver",
     "build:types": "tsc --project tsconfig.types.json",
     "build:cjs": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc",
     "build:module": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc",
