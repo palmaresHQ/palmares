@@ -1,5 +1,12 @@
 # @examples/schemas
 
+## 0.0.11
+
+### Patch Changes
+
+- @palmares/schemas@0.1.7
+- @palmares/zod-schema@0.1.8
+
 ## 0.0.10
 
 ### Patch Changes

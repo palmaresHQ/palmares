@@ -1,5 +1,19 @@
 # @examples/bench
 
+## 0.0.10
+
+### Patch Changes
+
+- Updated dependencies
+  - @palmares/core@0.1.5
+  - @palmares/express-adapter@0.1.6
+  - @palmares/node-std@0.1.5
+  - @palmares/sequelize-engine@0.1.7
+  - @palmares/databases@0.1.7
+  - @palmares/logging@0.1.5
+  - @palmares/server@0.1.5
+  - @palmares/console-logging@0.1.2
+
 ## 0.0.9
 
 ### Patch Changes
