@@ -1,5 +1,16 @@
 # @examples/deel-hometask-challenge
 
+## 0.0.9
+
+### Patch Changes
+
+- Updated dependencies
+  - @palmares/express-adapter@0.1.5
+  - @palmares/sequelize-engine@0.1.5
+  - @palmares/databases@0.1.5
+  - @palmares/schemas@0.1.5
+  - @palmares/zod-schema@0.1.6
+
 ## 0.0.8
 
 ### Patch Changes
