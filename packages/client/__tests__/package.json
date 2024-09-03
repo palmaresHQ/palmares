@@ -1,0 +1,26 @@
+{
+  "name": "@tests/client",
+  "version": "0.0.1",
+  "description": "testing the client and server",
+  "main": "manage.ts",
+  "scripts": {
+    "test": "tsx manage.ts runserver",
+    "client": "tsx ./src/client.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@palmares/console-logging": "workspace:*",
+    "@palmares/logging": "workspace:*",
+    "@palmares/client": "workspace:*",
+    "@palmares/core": "workspace:*",
+    "@palmares/express-adapter": "workspace:*",
+    "@palmares/server": "workspace:*",
+    "@palmares/node-std": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.4"
+  }
+}

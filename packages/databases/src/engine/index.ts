@@ -8,7 +8,6 @@ import type { EngineInitializedModels } from './types';
 import type model from '../models/model';
 import type { DatabaseConfigurationType } from '../types';
 
-
 export function databaseAdapter<
   TFieldsAdapter extends AdapterFields,
   TModelsAdapter extends AdapterModels,
@@ -18,7 +17,7 @@ export function databaseAdapter<
   TFunctionDuplicate extends DatabaseAdapter['duplicate'],
   TFunctionClose extends DatabaseAdapter['close'],
   TFunctionIsConnected extends DatabaseAdapter['isConnected'],
-  TFunctionTransaction extends DatabaseAdapter['transaction'],
+  TFunctionTransaction extends DatabaseAdapter['transaction']
 >(args: {
   fields: TFieldsAdapter;
   models: TModelsAdapter;
@@ -50,7 +49,7 @@ export function databaseAdapter<
     transaction = args.transaction;
   }
 
-  return CustomDatabaseAdapter
+  return CustomDatabaseAdapter;
 }
 
 /**
@@ -73,7 +72,7 @@ export default class DatabaseAdapter<
   TFieldsAdapter extends AdapterFields = AdapterFields,
   TModelsAdapter extends AdapterModels = AdapterModels,
   TQueryAdapter extends AdapterQuery = AdapterQuery,
-  TMigrationsAdapter extends AdapterMigrations = AdapterMigrations,
+  TMigrationsAdapter extends AdapterMigrations = AdapterMigrations
 > {
   connectionName!: string;
   databaseSettings!: DatabaseConfigurationType;

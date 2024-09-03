@@ -1,14 +1,15 @@
 import { getLogger } from '../logging';
 
 import type { DomainHandlerFunctionArgs } from '../commands/types';
-import type { CoreSettingsType , SettingsType2 } from '../conf/types';
+import type { CoreSettingsType, SettingsType2 } from '../conf/types';
 import type Domain from '../domain/domain';
 
 let baseAppServerInstance: BaseAppServer | undefined = undefined;
 let appServerInstance: InstanceType<ReturnType<typeof appServer>> | AppServer | undefined = undefined;
 
 /**
- * Functional approach for creating an app server instead of using the class approach, it's pretty much the same as the class one.
+ * Functional approach for creating an app server instead of using the class approach, it's pretty much the same as the
+ * class one.
  */
 export function appServer<
   TLoadFunction extends AppServer['load'],
@@ -23,7 +24,8 @@ export function appServer<
 }
 
 /**
- * The base app server is not supposed to be extended and used externally, it's used internally by the app server and it configures automatically the cleanup phase of the server.
+ * The base app server is not supposed to be extended and used externally, it's used internally by the app server and
+ * it configures automatically the cleanup phase of the server.
  * It also handles the start of the server.
  */
 export class BaseAppServer {
@@ -45,7 +47,8 @@ export class BaseAppServer {
    * Configure the cleanup of the server, this will run when the user press Ctrl+C and the server stops running.
    * This will stop the server gracefully instead of hard kill the process so we are able to do some cleanup.
    *
-   * @params args - The arguments of the server, this way you can send anything you want to the `close` method of the app server.
+   * @params args - The arguments of the server, this way you can send anything you want to the `close` method of the
+   * app server.
    */
   configureCleanup(appServer: AppServer, args: any) {
     process.on('SIGINT', async () => {
@@ -95,7 +98,7 @@ export class BaseAppServer {
           settings: settings,
           domains,
           app: this as unknown as AppServer | InstanceType<ReturnType<typeof appServer>>,
-          customOptions,
+          customOptions
         });
       }
     }
@@ -103,8 +106,9 @@ export class BaseAppServer {
 }
 
 /**
- * This is the app, the app instance is responsible for loading the server, think about the server as anything. A server is just a program
- * that keeps running until you close it. It can be an HTTP server, an Events Server, a TCP server, etc.
+ * This is the app, the app instance is responsible for loading the server, think about the server as anything.
+ * A server is just a program that keeps running until you close it. It can be an HTTP server, an Events Server,
+ * a TCP server, etc.
  *
  * By default this overrides many of the things defined on the core, like the `domains`.
  * It's on here that we call the `ready` and `close` methods of each domain so we are able to
@@ -168,7 +172,7 @@ export class AppServer {
    * ```
    */
   // eslint-disable-next-line ts/require-await
-  async start(_configureCleanup: (args?: any) => Promise<void>): Promise<void> {
+  async start(_configureCleanup: (args?: any) => Promise<void> | void): Promise<void> {
     return undefined;
   }
 

@@ -3,10 +3,11 @@ import { MethodsRouter } from './routers';
 import type { DefaultRouterType } from './types';
 
 /**
- * This function is used to create a router or a controller. Palmares, by default, does not make that distinction, it's up to you when organizing your code to properly
- * differentiate between a router and a controller.
+ * This function is used to create a router or a controller. Palmares, by default, does not make that distinction,
+ * it's up to you when organizing your code to properly differentiate between a router and a controller.
  *
- * So, a Router is pretty much a tree of other Routes, in other words, you can construct your routes in a more sensible way, you can create a route.
+ * So, a Router is pretty much a tree of other Routes, in other words, you can construct your routes in a more sensible
+ * way, you can create a route.
  *
  * @example
  * ```
@@ -45,7 +46,8 @@ import type { DefaultRouterType } from './types';
  * #### IMPORTANT:
  * - Types supported: number, string, boolean.
  * - Query parameters modifiers: ? (optional), [] (array).
- * **Take notice**: they are lazy loaded and parsed, you can change this in the settings. This means that we will only validate it's contents if you USE it, otherwise it will
+ * **Take notice**: they are lazy loaded and parsed, you can change this in the settings. This means that we will only
+ * validate it's contents if you USE it, otherwise it will
  * be ignored.
  *
  * @example
@@ -73,7 +75,8 @@ export function path<TPath extends string = ''>(path: TPath = '' as TPath) {
  * This is more specific version of {@link path} that allows you to nest paths without losing track of the parent path.
  * See {@link path} for more beginner-friendly documentation.
  *
- * So, imagine this problem: you want to define a parent router, your parent router defines query parameters, params, etc. But you want to create the child router
+ * So, imagine this problem: you want to define a parent router, your parent router defines query parameters, params, etc.
+ * But you want to create the child router
  * without losing track of all of that information. What is the full url? What types are the query parameters? What types are the params? etc.
  *
  * This function solves that problem, it allows you to create a child router without losing track of the parent router by just passing the parent router as a generic.
@@ -124,5 +127,5 @@ export function pathNested<TParentRouter extends DefaultRouterType>(parentRouter
     const newRouter = MethodsRouter.newNested<TParentRouter>()(path);
     if (parentRouter) parentRouter.nested([newRouter as any]);
     return newRouter;
-  }
+  };
 }

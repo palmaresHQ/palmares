@@ -1,4 +1,5 @@
 import { SchemaAdapter } from '@palmares/schemas';
+import * as z from 'zod';
 
 import ZodFieldSchemaAdapter from './fields';
 import ZodArrayFieldSchemaAdapter from './fields/array';
@@ -10,8 +11,8 @@ import ZodStringFieldSchemaAdapter from './fields/string';
 import ZodUnionFieldSchemaAdapter from './fields/union';
 
 import type { ErrorCodes } from '@palmares/schemas';
-import type * as z from 'zod';
 
+export { z };
 export class ZodSchemaAdapter extends SchemaAdapter {
   field = new ZodFieldSchemaAdapter();
   number = new ZodNumberFieldSchemaAdapter();

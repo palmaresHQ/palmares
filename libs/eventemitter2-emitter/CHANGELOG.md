@@ -1,5 +1,15 @@
 # @palmares/eventemitter2-emitter
 
+## 0.0.3
+
+### Patch Changes
+
+- Bug fixes
+- Release because of the changes on the core package
+- Updated dependencies
+- Updated dependencies
+  - @palmares/events@0.0.4
+
 ## 0.0.2
 
 ### Patch Changes

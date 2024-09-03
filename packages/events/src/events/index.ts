@@ -30,22 +30,25 @@ import type Emitter from '../emitter';
  * This means that all of the logic is extracted away from the emitter interface and should be implemented here. One
  * of those special logics are wildcards.
  * To save an event to the emitter like 'EventEmitter2' we will have some work to do. We don't save it `raw`,
- * but instead we save a representation of the event. First things first we need to separate it between groups and handlers.
+ * but instead we save a representation of the event. First things first we need to separate it between groups and
+ * handlers.
+ *
  * - Groups:
  * T.L.D.R.: This is the name of the event.
  * a groupId is the name of the event, so for example: for the event 'create.user', we transform 'create.user' to
- * a uuid `124002c4-3719-4c9b-a88e-f743b67f1686`, this means that on the emitter what we will be firing is the `124002c4-3719-4c9b-a88e-f743b67f1686`
- * event and not directly `create.user`. In other words we need to guarantee that we do this conversion when firing the event.
- * To help us with that we use the `this.#groupByKeys`, this means that for `create.user`, or `create.**`, or `create.*` we need
- * to fire the emit action to the following groups. You will see that for most functions we just need to do is get the groupIds and fire it.
+ * a uuid `124002c4-3719-4c9b-a88e-f743b67f1686`, this means that on the emitter what we will be firing is the
+ * `124002c4-3719-4c9b-a88e-f743b67f1686` event and not directly `create.user`. In other words we need to guarantee that
+ * we do this conversion when firing the event. To help us with that we use the `this.#groupByKeys`, this means that for
+ * `create.user`, or `create.**`, or `create.*` we need to fire the emit action to the following groups. You will see
+ * that for most functions we just need to do is get the groupIds and fire it.
  *
  * ```ts
  * const key = `create.user`
  * const groupIdsToEmitEventTo = (this.#groupByKeys[key] || new Set()).values();
  * ```
  *
- * This guarantees that for the specific key we will call the emitters correctly. The nicest thing about doing this way is that
- * it's really easy to store this data since most of them are just strings so stuff like wildcards are like:
+ * This guarantees that for the specific key we will call the emitters correctly. The nicest thing about doing this way
+ * is that it's really easy to store this data since most of them are just strings so stuff like wildcards are like:
  *
  * ```ts
  * {
@@ -60,8 +63,8 @@ import type Emitter from '../emitter';
  * You see that for `create.*`, 'create.**', 'create.user' we are pointing to the same group? That's the general idea.
  *
  * - Handlers:
- * Handlers are the functions, that is being called, it doesn't have any usage for the `emitter` instance. Our usage for it is internal
- * like for example removing a handler. Most APIs for event emitters work like:
+ * Handlers are the functions, that is being called, it doesn't have any usage for the `emitter` instance. Our usage for
+ * it is internal like for example removing a handler. Most APIs for event emitters work like:
  *
  * ```
  * const emitter = new EventEmitter2()
@@ -73,13 +76,13 @@ import type Emitter from '../emitter';
  * emitter.removeListener('foo', callback);
  * ```
  *
- * Do you see that we need to pass the function there to remove the listener? That's what we try to solve by storing it. By transforming
- * this handler to an id we can easily find for it with a O(n) algorithm that retrieves the handler and removes it. The other usage
- * of handlers is on results we will cover it on the next topic.
+ * Do you see that we need to pass the function there to remove the listener? That's what we try to solve by storing it.
+ * By transforming this handler to an id we can easily find for it with a O(n) algorithm that retrieves the handler and
+ * removes it. The other usage of handlers is on results we will cover it on the next topic.
  *
  * - 2: Emitting an event and waiting for a result.
- * Your first though might be? WHAT, how's that even possible? We can't know an event has fired or even the result of it, specially
- * on distributed systems.
+ * Your first though might be? WHAT, how's that even possible? We can't know an event has fired or even the result of
+ * it, specially on distributed systems.
  *
  * That's not really magic it's really simple actually.
  * When we add a new listener you see that we wrap the function (callback) to another function (see #wrapInResultCallback).
@@ -260,9 +263,9 @@ export default class EventEmitter<TEmitter extends Emitter = Emitter> {
     else {
       this.#groups[handlerGroupId] = {
         listeners: {
-          [handlerId]: callback,
+          [handlerId]: callback
         },
-        keys: new Set([key]),
+        keys: new Set([key])
       };
     }
   }
@@ -334,9 +337,9 @@ export default class EventEmitter<TEmitter extends Emitter = Emitter> {
     else {
       this.#groups[handlerGroupId] = {
         listeners: {
-          [handlerId]: callback,
+          [handlerId]: callback
         },
-        keys: new Set(allKeysOfKey),
+        keys: new Set(allKeysOfKey)
       };
     }
   }
@@ -408,18 +411,18 @@ export default class EventEmitter<TEmitter extends Emitter = Emitter> {
       // Guarantee that we will only call the handler once, this is useful for layers we might send multiple times
       // because the same emitter might be attached to the same layer.
       this.emitResult(resultsEventName, handlerId, resultKey, channelLayer, {
-        status: 'pending',
+        status: 'pending'
       });
       try {
         const result = await Promise.resolve(callback(...data));
         this.emitResult(resultsEventName, handlerId, resultKey, channelLayer, {
           status: 'completed',
-          result,
+          result
         });
         // Emit the result back to the caller.
       } catch (e) {
         this.emitResult(resultsEventName, handlerId, resultKey, channelLayer, {
-          status: 'failed',
+          status: 'failed'
         });
         throw e;
         // Emit an empty result back to the caller
@@ -450,7 +453,7 @@ export default class EventEmitter<TEmitter extends Emitter = Emitter> {
       {
         useResult: true,
         wildcards: this.#wildcards,
-        usePreventMultipleCalls: true,
+        usePreventMultipleCalls: true
       },
       callback
     );
@@ -471,7 +474,7 @@ export default class EventEmitter<TEmitter extends Emitter = Emitter> {
       {
         useResult: false,
         wildcards: this.#wildcards,
-        usePreventMultipleCalls: true,
+        usePreventMultipleCalls: true
       },
       callback
     );
@@ -644,7 +647,7 @@ export default class EventEmitter<TEmitter extends Emitter = Emitter> {
    * @param handlerId - The id of the handler that we want to remove from the emitter.
    */
   // eslint-disable-next-line ts/require-await
-  async #unsubscribe({ handlerGroupId, key, handlerId }: { handlerGroupId: string; key: string; handlerId: string; }) {
+  async #unsubscribe({ handlerGroupId, key, handlerId }: { handlerGroupId: string; key: string; handlerId: string }) {
     const unsubscribeHandlerFunction = async () => {
       const doesGroupStillExists = handlerGroupId in this.#groups;
       const doesHandlerStillExists = doesGroupStillExists && handlerId in this.#groups[handlerGroupId].listeners;

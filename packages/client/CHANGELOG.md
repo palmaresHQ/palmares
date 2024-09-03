@@ -1,5 +1,11 @@
 # @palmares/client
 
+## 0.1.1
+
+### Patch Changes
+
+- Bug fixes
+
 ## 0.1.0
 
 ### Minor Changes

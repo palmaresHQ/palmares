@@ -20,7 +20,7 @@ const args = DrizzleEngine.new({
   type: 'better-sqlite3',
   drizzle: drizzleBetterSqlite3(database, { schema: schema })
 })
-export const db = args[1].instance.instance as any
+export const db = args[1].instance.instance
 
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),

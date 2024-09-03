@@ -1,9 +1,9 @@
-import { ModelFields } from '@palmares/databases';
-import SequelizeEngine from '@palmares/sequelize-engine';
-
-import { Profile } from '../auth/models';
 import { Jobs } from './models';
+import { Profile } from '../auth/models';
 import { Contract } from '../contracts/models';
+
+import type { ModelFields } from '@palmares/databases';
+import type SequelizeEngine from '@palmares/sequelize-engine';
 
 type ProfileType = ModelFields<Profile>;
 
@@ -15,15 +15,15 @@ export async function getUnpaidJobs(profileId: ProfileType['id']) {
         contract: {
           clientId: profileId,
           status: {
-            or: ['new', 'in_progress'],
-          },
-        },
+            or: ['new', 'in_progress']
+          }
+        }
       },
       includes: [
         {
-          model: Contract,
-        },
-      ],
+          model: Contract
+        }
+      ]
     }),
     Jobs.default.get({
       search: {
@@ -31,16 +31,16 @@ export async function getUnpaidJobs(profileId: ProfileType['id']) {
         contract: {
           contractorId: profileId,
           status: {
-            or: ['new', 'in_progress'],
-          },
-        },
+            or: ['new', 'in_progress']
+          }
+        }
       },
       includes: [
         {
-          model: Contract,
-        },
-      ],
-    }),
+          model: Contract
+        }
+      ]
+    })
   ]);
   return unpaidJobsForContractor[0].concat(unpaidJobsForContractor[1]);
 }
@@ -54,28 +54,29 @@ export async function payJobId(
   const profileBalanceAsNumber: number = profileBalance || 0;
   if (profileBalanceAsNumber < amountToPay) return false;
   const engineInstance = await Jobs.default.getEngineInstance<InstanceType<typeof SequelizeEngine>>();
+
   const jobs = await Jobs.default.get({
     search: {
       id: jobId,
       contract: {
         client: {
-          id: profileId,
+          id: profileId
         },
         status: {
-          or: ['new', 'in_progress'],
-        },
-      },
+          or: ['new', 'in_progress']
+        }
+      }
     },
     includes: [
       {
         model: Contract,
         includes: [
           {
-            model: Profile,
-          },
-        ],
-      },
-    ],
+            model: Profile
+          }
+        ]
+      }
+    ]
   });
   if (!jobs.length) return false;
   const job = jobs[0];
@@ -86,26 +87,26 @@ export async function payJobId(
     await Promise.all([
       Profile.default.set(
         {
-          balance: profileBalanceAsNumber - amountToPay,
+          balance: profileBalanceAsNumber - amountToPay
         },
         {
           transaction,
           search: {
-            id: profileId,
-          },
+            id: profileId
+          }
         }
       ),
       Profile.default.set(
         {
-          balance: contractorBalance + amountToPay,
+          balance: contractorBalance + amountToPay
         },
         {
           transaction,
           search: {
-            id: contractorId,
-          },
+            id: contractorId
+          }
         }
-      ),
+      )
     ]);
   });
   return true;

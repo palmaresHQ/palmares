@@ -14,10 +14,10 @@ export default class PalmaresMigrationsManager extends models.Manager<PalmaresMi
     return this.set(
       {
         migrationName,
-        engineName,
+        engineName
       },
       {
-        useTransaction: true,
+        useTransaction: true
       },
       engineName
     );

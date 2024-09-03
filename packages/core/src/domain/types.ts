@@ -2,7 +2,6 @@ import type Domain from './domain';
 import type { AppServer, appServer } from '../app';
 import type { SettingsType } from '../conf/types';
 
-
 export type DomainReadyFunctionArgs<TSettings = SettingsType, TCustom extends object = object> = {
   settings: TSettings;
   domains: Domain[];
@@ -29,3 +28,9 @@ export type ExtractModifierArguments<
       >
     : never
   : TFinalArgs;
+
+type Test = ExtractModifierArguments<
+  (abstract new (...args: any) => {
+    modifiers: any;
+  })[]
+>;

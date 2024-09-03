@@ -1,3 +1,5 @@
+export { initializeApp } from './app/utils';
+
 export * as Commands from './commands';
 export * from './commands/types';
 export { Domain, domain } from './domain';
@@ -10,6 +12,7 @@ export * as utils from './utils';
 export * from './utils/constants';
 export { imports } from './utils';
 export * from './utils/types';
+
 export { AppServer, appServer } from './app';
 export { AppServerInterface } from './app/types';
 export * from './std';

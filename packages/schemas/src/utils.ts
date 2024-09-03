@@ -372,7 +372,10 @@ export async function transformSchemaAndCheckIfShouldBeHandledByFallbackOnComple
 
 export function shouldRunDataOnComplexSchemas(schema: Schema<any, any>) {
   return (
-    typeof schema['__parsersToTransformValue'] === 'function' ||
+    schema['__parsers'].high.size > 0 ||
+    schema['__parsers'].medium.size > 0 ||
+    schema['__parsers'].low.size > 0 ||
+    schema['__parsers']._fallbacks.size > 0 ||
     typeof schema['__runBeforeParseAndData'] === 'function' ||
     typeof schema['__toRepresentation'] === 'function' ||
     typeof schema['__defaultFunction'] === 'function'

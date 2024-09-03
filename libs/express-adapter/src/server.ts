@@ -14,11 +14,11 @@ export const servers = new Map<
   {
     server: Express;
     settings: ServerSettingsTypeExpress;
-    jsonParser?: ReturnType<typeof express['json']>;
-    bodyRawParser?: ReturnType<typeof express['raw']>;
+    jsonParser?: ReturnType<(typeof express)['json']>;
+    bodyRawParser?: ReturnType<(typeof express)['raw']>;
     formDataParser?: ReturnType<typeof multer>;
-    textParser?: ReturnType<typeof express['text']>;
-    urlEncodedParser?: ReturnType<typeof express['urlencoded']>;
+    textParser?: ReturnType<(typeof express)['text']>;
+    urlEncodedParser?: ReturnType<(typeof express)['urlencoded']>;
   }
 >();
 
@@ -53,5 +53,5 @@ export default serverAdapter({
     if (serverInstanceToStart) {
       serverInstanceToStart.server.listen(port, () => logServerStart());
     }
-  },
+  }
 });

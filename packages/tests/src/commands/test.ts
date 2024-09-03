@@ -6,7 +6,7 @@ import type { AllTestsSettingsType, TestDomain } from '../types';
 
 const filesToTest: string[] = [];
 
-export default async function test(domains:TestDomain[], settings: AllTestsSettingsType){
+export default async function test(domains: TestDomain[], settings: AllTestsSettingsType) {
   for (const domain of domains) {
     if (domain.getTests) {
       const testFilesOrTestFile = domain.getTests();
@@ -18,14 +18,10 @@ export default async function test(domains:TestDomain[], settings: AllTestsSetti
   setTestAdapter(newTestAdapter);
   const std = getDefaultStd();
 
-  return newTestAdapter.run(
-    filesToTest,
-    `require('@palmares/tests').run('${settings.settingsLocation}');`,
-    {
-      mkdir: std.files.makeDirectory,
-      join: std.files.join,
-      writeFile: std.files.writeFile,
-      removeFile: std.files.removeFile,
-    }
-  );
+  return newTestAdapter.run(filesToTest, `require('@palmares/tests').run('${settings.settingsLocation}');`, {
+    mkdir: std.files.makeDirectory,
+    join: std.files.join,
+    writeFile: std.files.writeFile,
+    removeFile: std.files.removeFile
+  });
 }

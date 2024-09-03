@@ -3,7 +3,7 @@ import {
   ForeignKeyField, IntegerField, Manager, Model, ON_DELETE, TranslatableField, UuidField, define
 } from '@palmares/databases';
 
-//import { Company as DCompany, User as DUser } from '../../.drizzle/schema';
+import { Company as DCompany, User as DUser } from '../../.drizzle/schema';
 
 import type { ModelOptionsType} from '@palmares/databases';
 

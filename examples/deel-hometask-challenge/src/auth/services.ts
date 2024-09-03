@@ -1,9 +1,10 @@
-import { SequelizeModel } from '@palmares/sequelize-engine';
 import { Op } from 'sequelize';
 
 import { Profile } from '../auth/models';
-import { Jobs } from '../jobs/models';
 import { Contract } from '../contracts/models';
+import { Jobs } from '../jobs/models';
+
+import type { SequelizeModel } from '@palmares/sequelize-engine';
 
 export async function depositAmountFromContractorIdToClientId(
   contractorId: number,
@@ -14,13 +15,13 @@ export async function depositAmountFromContractorIdToClientId(
   const contract = await Contract.default.get({
     search: {
       clientId: clientId,
-      contractorId: contractorId,
+      contractorId: contractorId
     },
     includes: [
       {
-        model: Profile,
-      },
-    ],
+        model: Profile
+      }
+    ]
   });
   const existsContractWithClientAndContractor = contract.length > 0;
   if (!existsContractWithClientAndContractor) return false;
@@ -31,18 +32,18 @@ export async function depositAmountFromContractorIdToClientId(
     search: {
       clientId: clientId,
       status: {
-        or: ['new', 'in_progress'],
-      },
-    },
+        or: ['new', 'in_progress']
+      }
+    }
   });
   const contractsIdsToPay = contractsToPay.map((contract) => contract.id);
   const profileClientAmountOfJobsToPay = await JobsSequelizeModel.sum('price', {
     where: {
       paid: false,
       contractId: {
-        [Op.in]: contractsIdsToPay,
-      },
-    },
+        [Op.in]: contractsIdsToPay
+      }
+    }
   });
 
   const depositCapLimit = 0.25 * profileClientAmountOfJobsToPay;
@@ -50,12 +51,12 @@ export async function depositAmountFromContractorIdToClientId(
 
   await Profile.default.set(
     {
-      balance: (clientProfile.balance || 0) + amountToDeposit,
+      balance: (clientProfile.balance || 0) + amountToDeposit
     },
     {
       search: {
-        id: clientId,
-      },
+        id: clientId
+      }
     }
   );
   return true;

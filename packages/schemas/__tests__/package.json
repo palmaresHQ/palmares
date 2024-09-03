@@ -1,14 +1,11 @@
 {
   "name": "@tests/schemas",
   "version": "0.0.1",
-  "description": "testing the schemas",
+  "description": "testing the server",
   "main": "manage.ts",
   "scripts": {
     "test": "tsx manage.ts test",
-    "test:watch": "WATCH=true tsx manage.ts test",
-    "load": "tsx manage.ts load-models",
-    "makemigrations": "drizzle-kit generate",
-    "migrate": "tsx manage.ts drizzleMigrate"
+    "test:watch": "WATCH=true tsx manage.ts test"
   },
   "keywords": [],
   "author": "",
@@ -18,6 +15,7 @@
     "@palmares/core": "workspace:*",
     "@palmares/databases": "workspace:*",
     "@palmares/drizzle-engine": "workspace:*",
+    "@palmares/express-adapter": "workspace:*",
     "@palmares/jest-tests": "workspace:*",
     "@palmares/logging": "workspace:*",
     "@palmares/node-std": "workspace:*",

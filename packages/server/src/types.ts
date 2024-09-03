@@ -1,10 +1,9 @@
-import { SettingsType2 } from '@palmares/core';
-
 import type ServerAdapter from './adapters';
 import type ServerlessAdapter from './adapters/serverless';
 import type { Middleware } from './middleware';
 import type Request from './request';
 import type Response from './response';
+import type { SettingsType2 } from '@palmares/core';
 
 export type AllServerSettingsType<TCustomServerSettings = unknown> = SettingsType2 &
   ServersSettingsType<TCustomServerSettings>;
@@ -12,13 +11,15 @@ export type AllServerSettingsType<TCustomServerSettings = unknown> = SettingsTyp
 export type ServerSettingsType<TCustomServerSettings = unknown> = {
   server: typeof ServerAdapter | typeof ServerlessAdapter;
   /**
-   * The root middlewares to be used by the server, all routes will be wrapped by those middlewares. Use case is for cors, authentication and so on.
+   * The root middlewares to be used by the server, all routes will be wrapped by those middlewares. Use case is for
+   * cors, authentication and so on.
    */
   middlewares?: Middleware[];
   /** Defaults to 4000 */
   port?: number;
   debug?: boolean;
-  /** This is the settings for when initializing the server, for example custom options for express initialization or custom options for fastify initialization */
+  /** This is the settings for when initializing the server, for example custom options for express initialization or
+   * custom options for fastify initialization */
   customServerSettings?: TCustomServerSettings;
   prefix?: string;
   handler404?: Required<Middleware>['response'];
@@ -26,15 +27,19 @@ export type ServerSettingsType<TCustomServerSettings = unknown> = {
   validation?: {
     handler?: (request: Request<any, any>) => Response<any, any>;
     /**
-     * Those options are used to configure how we will validate the query and the url parameters. By default we will use the `lazy` option.
+     * Those options are used to configure how we will validate the query and the url parameters. By default we will use
+     * the `lazy` option.
      *
      * So let's explain what each option means:
      *
-     * - `strict`: This will validate the query and the url parameters before the request is handled, if the validation fails, the request will be rejected.
-     * - `lazy`: This will validate the query and the url parameters only when they are used, if the validation fails, the request will be rejected. This is the default option.
+     * - `strict`: This will validate the query and the url parameters before the request is handled, if the validation
+     * fails, the request will be rejected.
+     * - `lazy`: This will validate the query and the url parameters only when they are used, if the validation fails,
+     * the request will be rejected. This is the default option.
      * - `none`: This will not validate the query and the url parameters.
      *
-     * Be aware that if you use the `strict` option we will not pass through the middlewares. Lazy option will pass through the middlewares you passed during the request lifecycle.
+     * Be aware that if you use the `strict` option we will not pass through the middlewares. Lazy option will pass
+     * through the middlewares you passed during the request lifecycle.
      */
     options?: {
       url?: 'strict' | 'lazy' | 'none';
@@ -47,7 +52,8 @@ export type ServerSettingsType<TCustomServerSettings = unknown> = {
 export type ServersSettingsType<TCustomServerSettings = unknown> = {
   servers: Record<string, ServerSettingsType<TCustomServerSettings>>;
   /**
-   * Used for debugging purposes, it will show a error screen when an error occurs when trying to open the request. Defaults to true.
+   * Used for debugging purposes, it will show a error screen when an error occurs when trying to open the request.
+   * Defaults to true.
    *
    * PLEASE, MAKE SURE TO SET THIS TO FALSE ON PRODUCTION.
    */

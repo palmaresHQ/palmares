@@ -122,7 +122,7 @@ export default class Response<
    * @returns - A response with the status set to 200 and the content-type header set to application/json.
    */
   static json<
-    TBody extends object | object[],
+    TBody extends any | any[],
     TResponse extends {
       status?: StatusCodes;
       headers?: HeadersType;
@@ -237,7 +237,7 @@ export default class Response<
       };
       status: TResponse['status'] extends StatusCodes ? TResponse['status'] : 200 | 201;
     };
-    return new Response<TBody, typeof optionsFormatted>(body, optionsFormatted);
+    return new Response<ReturnType<TBody>, typeof optionsFormatted>(body as ReturnType<TBody>, optionsFormatted);
   }
 
   /**

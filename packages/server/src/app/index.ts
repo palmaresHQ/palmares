@@ -60,7 +60,7 @@ export default appServer({
         );
       }
     }
-    await Promise.all(promises.concat(configureCleanup()));
+    await Promise.all(promises.concat(Promise.resolve(configureCleanup())));
   },
   close: async () => {
     for (const [serverName, { server }] of serverInstances.entries()) {

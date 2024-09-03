@@ -353,7 +353,7 @@ type OptionalFields<
   TIsForSearch extends boolean = false
 > = {
   [TFieldName in TIsCreateOrUpdate extends true
-    ? keyof HasDefaultValueFieldsOrIsAuto<TModel> | keyof HasNullFields<TModel>
+    ? keyof HasDefaultValueFieldsOrIsAuto<TModel>
     : keyof HasNullFields<TModel> as TFieldName extends TFieldsToConsider[number] | undefined
     ? TRelationsToIgnore extends readonly any[]
       ? AllFieldsOfModel<TModel>[TFieldName] extends ForeignKeyField<
@@ -392,7 +392,7 @@ type RequiredFields<
   TIsForSearch extends boolean = false
 > = {
   [TFieldName in TIsCreateOrUpdate extends true
-    ? keyof DoNotHaveDefaultValueFieldsOrIsNotAuto<TModel> | keyof DoesNotHaveNullFields<TModel>
+    ? keyof DoNotHaveDefaultValueFieldsOrIsNotAuto<TModel>
     : keyof DoesNotHaveNullFields<TModel> as TFieldName extends TFieldsToConsider[number] | undefined
     ? TRelationsToIgnore extends readonly any[]
       ? AllFieldsOfModel<TModel>[TFieldName] extends ForeignKeyField<
@@ -850,7 +850,7 @@ type BaseFieldsWithRelationsFromIncludesType<
   TIsAllRequired extends boolean = false,
   TIsAllOptional extends boolean = false,
   TIsForSearch extends boolean = false
-> = TType /*&
+> = TType &
   RelatedFieldOfModelOptional<
     TModel,
     InstanceType<TIncludedModel>,
@@ -883,7 +883,7 @@ type BaseFieldsWithRelationsFromIncludesType<
     TIsAllRequired,
     TIsAllOptional,
     TIsForSearch
-  >*/;
+  >;
 
 export type FieldsWithRelationsFromIncludesType<
   TType,
@@ -939,7 +939,7 @@ export type FieldsWithRelationsFromIncludesType<
         TIsForSearch
       >;
 
-type CleanNever<TObject> = {
+export type CleanNever<TObject> = {
   [TKey in keyof TObject as Required<TObject>[TKey] extends never ? never : TKey]: TObject[TKey];
 };
 export type IncludesRelatedModels<

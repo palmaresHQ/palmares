@@ -6,7 +6,7 @@ import SequelizeMigrations from './migrations';
 import SequelizeEngineModels from './model';
 import SequelizeEngineQuery from './query';
 
-import type { DatabaseAdapter} from '@palmares/databases';
+import type { DatabaseAdapter } from '@palmares/databases';
 import type { Options, Transaction } from 'sequelize';
 
 const instancesByConnectionNames = new Map<
@@ -29,7 +29,7 @@ const checkIfInstanceSavedOrSave = (
 
   const toSave = {
     instance: sequelizeInstance,
-    isConnected: undefined,
+    isConnected: undefined
   };
   instancesByConnectionNames.set(connectionName, toSave);
   return toSave;
@@ -82,13 +82,15 @@ const sequelizeDatabaseAdapter = databaseAdapter({
 
     return new Promise((resolve, reject) => {
       try {
-        instanceData.instance.transaction(async (transaction) => {
-          try {
-            resolve(await callback(transaction, ...args));
-          } catch (e) {
-            reject(e);
-          }
-        }).catch(reject);
+        instanceData.instance
+          .transaction(async (transaction) => {
+            try {
+              resolve(await callback(transaction, ...args));
+            } catch (e) {
+              reject(e);
+            }
+          })
+          .catch(reject);
       } catch (e) {
         reject(e);
       }
@@ -102,7 +104,7 @@ const sequelizeDatabaseAdapter = databaseAdapter({
     try {
       await Promise.resolve(instanceData.instance.close());
     } catch (_) {}
-  },
+  }
 });
 
 export default sequelizeDatabaseAdapter;

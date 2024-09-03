@@ -1,6 +1,6 @@
 {
   "name": "@palmares/client",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "This is the client part of the palmares framework, you should be able to use it on any runtime",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
@@ -25,6 +25,7 @@
   ],
   "scripts": {
     "clear": "rimraf ./dist",
+    "runserver": "tsx ./src/manage.ts runserver",
     "build:types": "tsc --project tsconfig.types.json",
     "build:cjs": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc",
     "build:module": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc",
@@ -40,5 +41,9 @@
   "bugs": {
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
-  "homepage": "https://github.com/palmaresHQ/palmares#readme"
+  "homepage": "https://github.com/palmaresHQ/palmares#readme",
+  "devDependencies": {
+    "@palmares/core": "workspace:*",
+    "@palmares/server": "workspace:*"
+  }
 }

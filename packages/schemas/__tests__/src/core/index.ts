@@ -6,14 +6,14 @@ import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import * as models from './models';
 import { db } from '../settings';
 
-export default domain('testingDrizzle', __dirname, {
+export default domain('testingZodSchemas', __dirname, {
   commands: {
     drizzleMigrate: {
       description: 'Migrate the database using drizzle',
       keywordArgs: undefined,
       positionalArgs: undefined,
       handler: () => {
-        migrate(db, { migrationsFolder: './.drizzle/migrations' });
+        migrate(db as any, { migrationsFolder: './.drizzle/migrations' });
       }
     }
   },

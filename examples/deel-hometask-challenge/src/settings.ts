@@ -71,7 +71,7 @@ export default defineSettings({
         }
       }
     ],
-    // We have just created this custom domain, and it defines our routes.
-    CoreDomain
+    CoreDomain,
+    JobsDomain
   ]
 });

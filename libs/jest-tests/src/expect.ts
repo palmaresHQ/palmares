@@ -1,4 +1,4 @@
-import { TestExpectAdapter } from "@palmares/tests";
+import { TestExpectAdapter } from '@palmares/tests';
 
 export default class JestExpectAdapter extends TestExpectAdapter {
   toBe(value: any, expected: any, isNot: boolean) {
@@ -31,8 +31,7 @@ export default class JestExpectAdapter extends TestExpectAdapter {
     else expect(value).toStrictEqual(expected);
   }
 
-  async toHaveBeenCalled(value: any, isNot: boolean) {
-
+  toHaveBeenCalled(value: any, isNot: boolean) {
     const expect = require('@jest/globals').expect;
 
     if (isNot) expect(value).not.toHaveBeenCalled();

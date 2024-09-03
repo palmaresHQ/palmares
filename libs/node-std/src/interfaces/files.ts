@@ -1,8 +1,8 @@
-import { FilesAndFolders } from '@palmares/core';
-
-import { join, basename, relative, dirname, } from 'path';
+import { access, appendFile, constants, mkdir, readFile, readdir, rm, writeFile } from 'fs';
+import { basename, dirname, join, relative } from 'path';
 import { env } from 'process';
-import { readFile, access, constants, writeFile, appendFile, mkdir, readdir, rm } from 'fs';
+
+import type { FilesAndFolders } from '@palmares/core';
 
 export default class FilesAndFoldersNode implements FilesAndFolders {
   async basename(path: string | string[]): Promise<string> {
@@ -35,7 +35,6 @@ export default class FilesAndFoldersNode implements FilesAndFolders {
   }
 
   async exists(path: string | string[]): Promise<boolean> {
-
     const pathToUse = Array.isArray(path) ? await this.join(...path) : path;
     return new Promise((resolve, reject) => {
       access(pathToUse, constants.F_OK, (error) => {

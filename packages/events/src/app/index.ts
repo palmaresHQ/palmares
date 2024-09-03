@@ -7,7 +7,6 @@ import { default as eventsServer, getEventsServer, setEventsServer } from '../se
 import type { EventsDomainInterface } from '../interfaces';
 import type { EventsSettingsType } from '../types';
 
-
 let cachedSettings: EventsSettingsType | undefined = undefined;
 
 /**
@@ -40,9 +39,9 @@ export default appServer({
       server.listen(() => {
         if (cachedSettings)
           eventsLogger.logMessage('APP_START_EVENTS_SERVER', {
-            appName: cachedSettings.APP_NAME || '@palmares/events_server',
+            appName: cachedSettings.APP_NAME || '@palmares/events_server'
           });
-      }),
+      })
     ]);
-  },
+  }
 });
