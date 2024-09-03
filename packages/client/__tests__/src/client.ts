@@ -5,7 +5,7 @@ import type settings from './settings';
 import type palmaresCoreDomain from '@palmares/core';
 import type serverDomain from '@palmares/server';
 
-const pFetch = initializeClient<[typeof coreDomain]>('http://localhost:3001');
+const pFetch = initializeClient<[typeof coreDomain, typeof inventoryDomain]>('http://localhost:3001');
 
 const main = async () => {
   const response = await pFetch('/here/hello/<id: number>?name=string?', {
