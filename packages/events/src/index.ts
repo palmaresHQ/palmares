@@ -4,6 +4,6 @@ export { default as Emitter } from './emitter';
 export { default as EventEmitter } from './events';
 export { default as eventsServer, getEventsServer } from './server';
 //export { default as LayerEmitter } from './events/layer';
-export { EventsDomainInterface } from './interfaces';
+export type { EventsDomainInterface } from './interfaces';
 
 export default EventsDomain;
