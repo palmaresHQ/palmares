@@ -19,9 +19,9 @@ export const serverDomainModifier = domain<{
    * running the server.
    */
   routerInterceptor?: (router: BaseRouter['__completePaths']) => Promise<void>;
-}>('@palmares/server', __dirname, {} as any);
+}>('@palmares/server', '', {} as any);
 
-export default domain('@palmares/server', __dirname, {
+export default domain('@palmares/server', '', {
   commands: {
     runserver: {
       description: 'Start the server in development mode',

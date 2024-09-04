@@ -4,7 +4,7 @@ import { PACKAGE_NAME } from '../utils';
 
 import type { CoreSettingsType } from '../conf/types';
 
-const coreDomain = domain(PACKAGE_NAME, __dirname, {
+const coreDomain = domain(PACKAGE_NAME, '', {
   modifiers: [] as const,
   commands: {
     help: {

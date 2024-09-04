@@ -1,5 +1,11 @@
 # @palmares/jest-tests
 
+## 0.1.7
+
+### Patch Changes
+
+- @palmares/tests@0.1.7
+
 ## 0.1.6
 
 ### Patch Changes

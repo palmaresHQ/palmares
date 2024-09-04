@@ -7,7 +7,7 @@ import type { LoggingSettingsType, LoggingTypes } from './types';
 
 // eslint-disable-next-line ts/ban-ts-comment
 // @ts-ignore
-export default domain('@palmares/logging', __dirname, {
+export default domain('@palmares/logging', '', {
   load: async (settings: LoggingSettingsType) => {
     // eslint-disable-next-line ts/no-unnecessary-condition
     if (settings?.logger) {
