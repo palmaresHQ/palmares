@@ -1,5 +1,12 @@
 # @examples/deel-hometask-challenge
 
+## 0.0.16
+
+### Patch Changes
+
+- Updated dependencies [5d75ca6]
+  - @palmares/zod-schema@0.1.13
+
 ## 0.0.15
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @palmares/zod-schema
 
+## 0.1.13
+
+### Patch Changes
+
+- 5d75ca6: Fix import for esm modules
+
 ## 0.1.12
 
 ### Patch Changes
