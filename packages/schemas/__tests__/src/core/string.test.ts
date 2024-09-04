@@ -100,8 +100,8 @@ describe<JestTestAdapter>('String Schema', ({ test }) => {
 
     const [{ errors: errorsOnFail }, { errors: errorsOnFailWithCustomMessage }, { errors: errorsOnValid, parsed }] =
       await Promise.all([
-        stringSchema.parse('Hello'),
-        stringSchemaWithCustomMessage.parse('Hello'),
+        stringSchema.parse(''),
+        stringSchemaWithCustomMessage.parse(''),
         stringSchema.parse('Hello World')
       ]);
 

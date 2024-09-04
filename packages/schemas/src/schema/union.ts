@@ -32,6 +32,8 @@ export default class UnionSchema<
     ...Schema<any, any>[]
   ]
 > extends Schema<TType, TDefinitions> {
+  protected fieldType = 'union';
+
   protected __type: {
     message: string;
     check: (value: TType['input']) => boolean;

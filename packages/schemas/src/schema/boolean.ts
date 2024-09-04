@@ -22,6 +22,8 @@ export default class BooleanSchema<
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
 > extends Schema<TType, TDefinitions> {
+  protected fieldType = 'boolean';
+
   protected __allowString!: boolean;
   protected __allowNumber!: boolean;
   protected __trueValues!: any[];

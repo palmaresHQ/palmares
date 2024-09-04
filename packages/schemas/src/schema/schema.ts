@@ -27,6 +27,7 @@ export default class Schema<
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
 > {
+  protected fieldType = 'schema';
   // Those functions will assume control of the validation process on adapters, instead of the schema.
   // Why this is used? The idea is that the Schema has NO idea
   // that one of it's children might be an UnionSchema for example. The adapter might not support unions,
@@ -331,9 +332,7 @@ export default class Schema<
 
     const shouldCallDefaultFunction = value === undefined && typeof this.__defaultFunction === 'function';
     const shouldCallToValidateCallback = typeof this.__toValidate === 'function';
-    const schemaAdapterFieldType = this.constructor.name
-      .replace('Schema', '')
-      .toLowerCase() as OnlyFieldAdaptersFromSchemaAdapter;
+    const schemaAdapterFieldType = this.fieldType;
 
     if (shouldCallDefaultFunction) value = await (this.__defaultFunction as any)();
     if (shouldCallToValidateCallback) value = await Promise.resolve((this.__toValidate as any)(value));
@@ -379,7 +378,7 @@ export default class Schema<
       for (const callback of this.__beforeValidationCallbacks.values()) {
         const parsedValuesAfterValidationCallbacks = await callback(
           adapterToUse,
-          adapterToUse[schemaAdapterFieldType],
+          (adapterToUse as any)[schemaAdapterFieldType],
           this as any,
           this.__transformedSchemas[adapterToUse.constructor.name].schemas,
           value,
@@ -398,7 +397,7 @@ export default class Schema<
     } else {
       const parsedValuesAfterValidatingByAdapter = await this.__validateByAdapter(
         adapterToUse,
-        adapterToUse[schemaAdapterFieldType],
+        (adapterToUse as any)[schemaAdapterFieldType],
         this.__transformedSchemas[adapterToUse.constructor.name].schemas[0],
         value,
         path,
