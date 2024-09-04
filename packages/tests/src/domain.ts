@@ -8,9 +8,9 @@ import type { AllTestsSettingsType, TestsSettingsType } from './types';
 export const testDomainModifier = domain<{
   // Should return the path location of the tests. Or an array containing the paths of the tests.
   getTests: () => string[] | string;
-}>('@palmares/tests', __dirname, {});
+}>('@palmares/tests', '', {});
 
-export default domain('@palmares/tests', __dirname, {
+export default domain('@palmares/tests', '', {
   commands: {
     test: {
       description: 'Run the tests in your palmares application',

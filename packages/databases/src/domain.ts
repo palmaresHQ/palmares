@@ -28,11 +28,11 @@ const databaseDomainModifier = domain<{
     | Record<string, ReturnType<typeof BaseModel>>
     | ReturnType<typeof BaseModel>[];
   getMigrations: () => Promise<any> | any;
-}>('@palmares/database', __dirname, {});
+}>('@palmares/database', '', {});
 
 export { databaseDomainModifier };
 
-export default domain('@palmares/database', __dirname, {
+export default domain('@palmares/database', '', {
   modifiers: [databaseDomainModifier] as const,
   commands: {
     makemigrations: {

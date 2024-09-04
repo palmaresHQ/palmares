@@ -1,5 +1,17 @@
 # @example/tests
 
+## 0.0.10
+
+### Patch Changes
+
+- Updated dependencies [44958f4]
+  - @palmares/core@0.1.7
+  - @palmares/node-std@0.1.7
+  - @palmares/logging@0.1.7
+  - @palmares/tests@0.1.7
+  - @palmares/console-logging@0.1.2
+  - @palmares/jest-tests@0.1.7
+
 ## 0.0.9
 
 ### Patch Changes

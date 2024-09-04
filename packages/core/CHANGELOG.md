@@ -1,5 +1,11 @@
 # @palmares/core
 
+## 0.1.7
+
+### Patch Changes
+
+- 44958f4: Fix typings issues
+
 ## 0.1.6
 
 ### Patch Changes

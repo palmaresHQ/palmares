@@ -1,5 +1,15 @@
 # @palmares/databases
 
+## 0.1.9
+
+### Patch Changes
+
+- 44958f4: Fix typings issues
+- Updated dependencies [44958f4]
+  - @palmares/events@0.0.10
+  - @palmares/core@0.1.7
+  - @palmares/logging@0.1.7
+
 ## 0.1.8
 
 ### Patch Changes

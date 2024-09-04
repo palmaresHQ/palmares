@@ -1,5 +1,17 @@
 # @palmares/server-vercel
 
+## 0.0.10
+
+### Patch Changes
+
+- Updated dependencies [44958f4]
+  - @palmares/server@0.1.7
+  - @palmares/core@0.1.7
+  - @palmares/vercel-adapter@0.0.10
+  - @palmares/node-std@0.1.7
+  - @palmares/logging@0.1.7
+  - @palmares/console-logging@0.1.2
+
 ## 0.0.9
 
 ### Patch Changes

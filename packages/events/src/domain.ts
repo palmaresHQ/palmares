@@ -4,14 +4,13 @@ import eventsAppServer from './app';
 
 import type { EventHandlerType } from './interfaces';
 
-
 export const eventsDomainModifier = domain<{
   getEvents: () => Promise<{
     [eventName: string]: EventHandlerType | { handler: EventHandlerType; withResult: boolean };
   }>;
-}>('@palmares/events', __dirname, {});
+}>('@palmares/events', '', {});
 
-export default domain('@palmares/events', __dirname, {
+export default domain('@palmares/events', '', {
   commands: {
     eventsServer: {
       description: 'Run the application in events server mode',
@@ -19,7 +18,7 @@ export default domain('@palmares/events', __dirname, {
       keywordArgs: undefined,
       handler: () => {
         return eventsAppServer;
-      },
-    },
-  },
+      }
+    }
+  }
 });
