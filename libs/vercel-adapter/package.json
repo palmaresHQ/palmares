@@ -3,15 +3,15 @@
   "version": "0.0.12",
   "description": "This is the adapter for Vercel allows you to deploy Palmares apps on Vercel",
   "main": "./dist/cjs/src/index.js",
-  "module": "./dist/esm/index.js",
+  "module": "./dist/esm/src/index.js",
   "types": "./dist/cjs/types/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/cjs/types/index.d.ts",
       "node": "./dist/cjs/src/index.js",
       "require": "./dist/cjs/src/index.js",
-      "import": "./dist/esm/index.js",
-      "default": "./dist/esm/index.js"
+      "import": "./dist/esm/src/index.js",
+      "default": "./dist/esm/src/index.js"
     }
   },
   "repository": {
