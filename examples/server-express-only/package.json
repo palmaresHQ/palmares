@@ -1,6 +1,6 @@
 {
   "name": "@examples/server-express-only",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "This is an example just to see if the server works as expected",
   "main": "manage.ts",
   "scripts": {

@@ -1,5 +1,20 @@
 # @examples/bench
 
+## 0.0.13
+
+### Patch Changes
+
+- 421057e: Remove \_\_dirname on all core packages domains
+- Updated dependencies [421057e]
+  - @palmares/sequelize-engine@0.1.10
+  - @palmares/express-adapter@0.1.9
+  - @palmares/databases@0.1.10
+  - @palmares/logging@0.1.8
+  - @palmares/server@0.1.8
+  - @palmares/node-std@0.1.8
+  - @palmares/core@0.1.8
+  - @palmares/console-logging@0.1.2
+
 ## 0.0.12
 
 ### Patch Changes

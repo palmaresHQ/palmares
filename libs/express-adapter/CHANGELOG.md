@@ -1,5 +1,14 @@
 # @palmares/express-adapter
 
+## 0.1.9
+
+### Patch Changes
+
+- 421057e: Remove \_\_dirname on all core packages domains
+- Updated dependencies [421057e]
+  - @palmares/server@0.1.8
+  - @palmares/core@0.1.8
+
 ## 0.1.8
 
 ### Patch Changes

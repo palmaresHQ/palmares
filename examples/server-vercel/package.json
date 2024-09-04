@@ -1,6 +1,6 @@
 {
   "name": "@palmares/server-vercel",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "testing the serverless vercel",
   "main": "manage.ts",
   "scripts": {

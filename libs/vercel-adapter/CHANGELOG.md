@@ -1,5 +1,13 @@
 # @palmares/vercel-adapter
 
+## 0.0.11
+
+### Patch Changes
+
+- 421057e: Remove \_\_dirname on all core packages domains
+- Updated dependencies [421057e]
+  - @palmares/server@0.1.8
+
 ## 0.0.10
 
 ### Patch Changes

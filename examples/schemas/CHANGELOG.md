@@ -1,5 +1,14 @@
 # @examples/schemas
 
+## 0.0.14
+
+### Patch Changes
+
+- 421057e: Remove \_\_dirname on all core packages domains
+- Updated dependencies [421057e]
+  - @palmares/schemas@0.1.10
+  - @palmares/zod-schema@0.1.11
+
 ## 0.0.13
 
 ### Patch Changes

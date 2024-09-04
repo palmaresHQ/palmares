@@ -1,5 +1,14 @@
 # @palmares/events
 
+## 0.0.11
+
+### Patch Changes
+
+- 421057e: Remove \_\_dirname on all core packages domains
+- Updated dependencies [421057e]
+  - @palmares/logging@0.1.8
+  - @palmares/core@0.1.8
+
 ## 0.0.10
 
 ### Patch Changes

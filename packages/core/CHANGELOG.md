@@ -1,5 +1,11 @@
 # @palmares/core
 
+## 0.1.8
+
+### Patch Changes
+
+- 421057e: Remove \_\_dirname on all core packages domains
+
 ## 0.1.7
 
 ### Patch Changes

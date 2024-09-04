@@ -1,6 +1,6 @@
 {
   "name": "@examples/bench",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "asdasdasd",
   "main": "manage.ts",
   "scripts": {
