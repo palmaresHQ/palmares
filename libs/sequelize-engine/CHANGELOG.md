@@ -1,5 +1,13 @@
 # @palmares/sequelize-engine
 
+## 0.1.8
+
+### Patch Changes
+
+- Updated dependencies [871b836]
+  - @palmares/core@0.1.6
+  - @palmares/databases@0.1.8
+
 ## 0.1.7
 
 ### Patch Changes

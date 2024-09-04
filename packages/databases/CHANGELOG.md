@@ -1,5 +1,14 @@
 # @palmares/databases
 
+## 0.1.8
+
+### Patch Changes
+
+- Updated dependencies [871b836]
+  - @palmares/core@0.1.6
+  - @palmares/events@0.0.9
+  - @palmares/logging@0.1.6
+
 ## 0.1.7
 
 ### Patch Changes

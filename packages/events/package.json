@@ -1,6 +1,6 @@
 {
   "name": "@palmares/events",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "This is the events framework for palmares, it's responsible for handling everything that is Pub/Sub like websockets, pub/sub like redis, and other types of asynchronous background tasks",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",

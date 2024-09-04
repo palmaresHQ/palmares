@@ -1,5 +1,16 @@
 # @palmares/schemas
 
+## 0.1.8
+
+### Patch Changes
+
+- 871b836: - let schema models be used without models being initialized
+  - Fix testing library issue where it was not being loaded
+- Updated dependencies [871b836]
+  - @palmares/core@0.1.6
+  - @palmares/databases@0.1.8
+  - @palmares/server@0.1.6
+
 ## 0.1.7
 
 ### Patch Changes

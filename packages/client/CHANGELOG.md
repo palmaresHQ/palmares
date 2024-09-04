@@ -1,5 +1,12 @@
 # @palmares/client
 
+## 0.1.7
+
+### Patch Changes
+
+- 871b836: - let schema models be used without models being initialized
+  - Fix testing library issue where it was not being loaded
+
 ## 0.1.6
 
 ### Patch Changes

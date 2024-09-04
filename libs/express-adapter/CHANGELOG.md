@@ -1,5 +1,13 @@
 # @palmares/express-adapter
 
+## 0.1.7
+
+### Patch Changes
+
+- Updated dependencies [871b836]
+  - @palmares/core@0.1.6
+  - @palmares/server@0.1.6
+
 ## 0.1.6
 
 ### Patch Changes
