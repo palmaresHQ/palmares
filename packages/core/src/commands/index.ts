@@ -158,7 +158,13 @@ export async function handleCommands(
   logger.info('Loading the settings and domains...');
   const commandType = args[0];
 
-  const { settings, domains, commands: availableCommands } = await initializeDomains(settingsOrSettingsPath);
+  const {
+    settings,
+    domains,
+    commands: availableCommands
+  } = await initializeDomains(settingsOrSettingsPath, {
+    ignoreCache: false
+  });
 
   // the '@palmares/logging' package sends a new logger constructor through the settings, if that exist we will use it,
   // otherwise it'll just be a default `console.info`

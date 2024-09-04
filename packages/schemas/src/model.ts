@@ -93,38 +93,40 @@ async function getSchemaFromModelField(
       fieldWithRelationName instanceof Schema && (fieldWithRelationName as any).__model !== undefined;
     const relatedToModel = field.relatedTo;
     const toField = field.toField;
-    const engineInstance = await model.default.getEngineInstance(engineInstanceName);
-    const relatedToModelInstance = engineInstance.__modelsOfEngine[relatedToModel];
-    const modelFieldsOfRelatedModel = (relatedToModelInstance as any).__cachedFields[toField];
-    if (isFieldWithRelatedNameAModelField) {
-      if (typeof options !== 'object') options = {};
-      options.foreignKeyRelation = {
-        schema: parent,
-        isArray: fieldWithRelatedName instanceof ArraySchema,
-        model: (fieldWithRelatedName as any).__model,
-        fieldToSearchOnModel: field.fieldName,
-        fieldToGetFromData: field.toField,
-        relationOrRelatedName: field.relatedName!
-      };
-    } else if (isFieldWithRelationNameAModelField) {
-      if (typeof options !== 'object') options = {};
-      options.foreignKeyRelation = {
-        isArray: fieldWithRelationName instanceof ArraySchema,
-        model: (fieldWithRelationName as any).__model,
-        fieldToSearchOnModel: field.toField,
-        fieldToGetFromData: field.fieldName,
-        relationOrRelatedName: field.relationName!
-      };
-    }
+    if (Object.keys(model._initialized).length > 0) {
+      const engineInstance = await model.default.getEngineInstance(engineInstanceName);
+      const relatedToModelInstance = engineInstance.__modelsOfEngine[relatedToModel];
+      const modelFieldsOfRelatedModel = (relatedToModelInstance as any).__cachedFields[toField];
+      if (isFieldWithRelatedNameAModelField) {
+        if (typeof options !== 'object') options = {};
+        options.foreignKeyRelation = {
+          schema: parent,
+          isArray: fieldWithRelatedName instanceof ArraySchema,
+          model: (fieldWithRelatedName as any).__model,
+          fieldToSearchOnModel: field.fieldName,
+          fieldToGetFromData: field.toField,
+          relationOrRelatedName: field.relatedName!
+        };
+      } else if (isFieldWithRelationNameAModelField) {
+        if (typeof options !== 'object') options = {};
+        options.foreignKeyRelation = {
+          isArray: fieldWithRelationName instanceof ArraySchema,
+          model: (fieldWithRelationName as any).__model,
+          fieldToSearchOnModel: field.toField,
+          fieldToGetFromData: field.fieldName,
+          relationOrRelatedName: field.relationName!
+        };
+      }
 
-    return getSchemaFromModelField(
-      relatedToModelInstance,
-      modelFieldsOfRelatedModel,
-      parent,
-      definedFields,
-      engineInstanceName,
-      options
-    );
+      return getSchemaFromModelField(
+        relatedToModelInstance,
+        modelFieldsOfRelatedModel,
+        parent,
+        definedFields,
+        engineInstanceName,
+        options
+      );
+    }
   } else if (field instanceof TranslatableField && field.customAttributes.schema) {
     if (field.customAttributes.schema instanceof Schema === false)
       throw new TranslatableFieldNotImplementedError(field.fieldName);

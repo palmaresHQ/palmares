@@ -9,7 +9,7 @@ export default async function run(settingsPath: string) {
   const defaultSettings = settings.default;
   defaultSettings.$$test = true;
   await initializeDomains(defaultSettings, {
-    ignoreCache: true,
+    ignoreCache: false,
     ignoreCommands: true
   });
 }

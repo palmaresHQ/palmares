@@ -1,5 +1,17 @@
 # @examples/server-express-only
 
+## 0.0.9
+
+### Patch Changes
+
+- Updated dependencies
+  - @palmares/core@0.1.5
+  - @palmares/express-adapter@0.1.6
+  - @palmares/node-std@0.1.5
+  - @palmares/logging@0.1.5
+  - @palmares/server@0.1.5
+  - @palmares/console-logging@0.1.2
+
 ## 0.0.8
 
 ### Patch Changes

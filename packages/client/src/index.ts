@@ -8,7 +8,11 @@ import type {
 
 type ExtractRoutesAndHandlerFromRouter<
   TRouter extends MethodsRouter<any, any, any, any, any, any> | Omit<MethodsRouter<any, any, any, any, any, any>, any>
-> = TRouter extends MethodsRouter<any, any, any, any, any, infer TRootPath> ? TRootPath : unknown;
+> = TRouter extends
+  | MethodsRouter<any, any, any, any, any, infer TRootPath>
+  | Omit<MethodsRouter<any, any, any, any, any, infer TRootPath>, any>
+  ? TRootPath
+  : unknown;
 
 type ExtractRouteFromDomain<TDomain extends typeof Domain | ReturnType<typeof domain>> =
   InstanceType<TDomain> extends { getRoutes: () => infer TRoutes }
@@ -94,14 +98,9 @@ type CapitalizeFirstLetter<
 type ExtractHeadersFromHandler<THandler> = THandler extends { handler: (request: infer TRequest) => any }
   ? TRequest extends Request<any, { headers: infer THeaders }>
     ? { [TKey in keyof THeaders as TKey extends string ? CapitalizeFirstLetter<TKey> : never]: THeaders[TKey] }
-    : never
-  : never;
+    : unknown
+  : unknown;
 
-type Extract<THandler> = THandler extends { handler: (request: infer TRequest) => any }
-  ? TRequest extends Request<any, { headers: infer THeaders }>
-    ? { [TKey in keyof THeaders as TKey extends string ? CapitalizeFirstLetter<TKey> : never]: THeaders[TKey] }
-    : never
-  : never;
 // eslint-disable-next-line ts/require-await
 function palmaresFetchConstructor<THandlersAndPaths>(host: string) {
   return async <
@@ -110,7 +109,7 @@ function palmaresFetchConstructor<THandlersAndPaths>(host: string) {
   >(
     input: TInput,
     init: {
-      method?: TMethod;
+      method: TMethod;
     } & (keyof ExtractUrlParamsFromPathType<TInput extends string ? TInput : never> extends never
       ? unknown
       : { params: ExtractUrlParamsFromPathType<TInput extends string ? TInput : never> }) &
@@ -137,13 +136,20 @@ function palmaresFetchConstructor<THandlersAndPaths>(host: string) {
           ? THandlersAndPaths[TInput][Lowercase<TMethod>]
           : never
       > extends never
-        ? { headers?: unknown }
+        ? ExtractHeadersFromHandler<
+            Lowercase<TMethod> extends keyof THandlersAndPaths[TInput]
+              ? THandlersAndPaths[TInput][Lowercase<TMethod>]
+              : never
+          > extends never
+          ? { headers?: unknown }
+          : { headers?: unknown }
         : {
-            headers: ExtractHeadersFromHandler<
-              Lowercase<TMethod> extends keyof THandlersAndPaths[TInput]
-                ? THandlersAndPaths[TInput][Lowercase<TMethod>]
-                : never
-            >;
+            headers: object &
+              ExtractHeadersFromHandler<
+                Lowercase<TMethod> extends keyof THandlersAndPaths[TInput]
+                  ? THandlersAndPaths[TInput][Lowercase<TMethod>]
+                  : unknown
+              >;
           })
   ): Promise<
     Awaited<

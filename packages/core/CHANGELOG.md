@@ -1,5 +1,11 @@
 # @palmares/core
 
+## 0.1.5
+
+### Patch Changes
+
+- The logging was not working so i have noticed that the domains were not properly loading as it should
+
 ## 0.1.4
 
 ### Patch Changes
