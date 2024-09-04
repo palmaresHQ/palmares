@@ -81,6 +81,7 @@ describe<JestTestAdapter>('Array Tests', ({ test }) => {
 
     const data = await arraySchema.data(['test', 1]);
 
+    console.log(data);
     expect(data[0]).toBe('hey');
     expect(data[1]).toBe(1)
   });

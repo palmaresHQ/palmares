@@ -27,6 +27,8 @@ export default class NumberSchema<
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
 > extends Schema<TType, TDefinitions> {
+  protected fieldType = 'number';
+
   protected __allowString!: boolean;
 
   protected __is?: {

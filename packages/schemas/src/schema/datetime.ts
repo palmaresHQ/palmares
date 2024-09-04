@@ -21,6 +21,8 @@ export default class DatetimeSchema<
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
 > extends Schema<TType, TDefinitions> {
+  protected fieldType = 'datetime';
+
   protected __allowString!: boolean;
 
   protected __above!: {

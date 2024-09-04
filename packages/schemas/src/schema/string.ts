@@ -31,6 +31,8 @@ export default class StringSchema<
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
 > extends Schema<TType, TDefinitions> {
+  protected fieldType = 'string';
+
   protected __is?: {
     value: TType['input'] | TType['input'][];
     message: string;

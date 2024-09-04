@@ -28,6 +28,8 @@ export default class ObjectSchema<
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
   TData extends Record<any, any> = Record<any, any>
 > extends Schema<TType, TDefinitions> {
+  protected fieldType = 'object';
+
   protected __data: Record<any, Schema>;
   protected __cachedDataAsEntries!: [string, Schema][];
 
