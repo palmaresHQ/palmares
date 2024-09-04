@@ -98,8 +98,8 @@ type CapitalizeFirstLetter<
 type ExtractHeadersFromHandler<THandler> = THandler extends { handler: (request: infer TRequest) => any }
   ? TRequest extends Request<any, { headers: infer THeaders }>
     ? { [TKey in keyof THeaders as TKey extends string ? CapitalizeFirstLetter<TKey> : never]: THeaders[TKey] }
-    : never
-  : never;
+    : unknown
+  : unknown;
 
 // eslint-disable-next-line ts/require-await
 function palmaresFetchConstructor<THandlersAndPaths>(host: string) {
@@ -136,13 +136,20 @@ function palmaresFetchConstructor<THandlersAndPaths>(host: string) {
           ? THandlersAndPaths[TInput][Lowercase<TMethod>]
           : never
       > extends never
-        ? { headers?: unknown }
+        ? ExtractHeadersFromHandler<
+            Lowercase<TMethod> extends keyof THandlersAndPaths[TInput]
+              ? THandlersAndPaths[TInput][Lowercase<TMethod>]
+              : never
+          > extends never
+          ? { headers?: unknown }
+          : { headers?: unknown }
         : {
-            headers: ExtractHeadersFromHandler<
-              Lowercase<TMethod> extends keyof THandlersAndPaths[TInput]
-                ? THandlersAndPaths[TInput][Lowercase<TMethod>]
-                : never
-            >;
+            headers: object &
+              ExtractHeadersFromHandler<
+                Lowercase<TMethod> extends keyof THandlersAndPaths[TInput]
+                  ? THandlersAndPaths[TInput][Lowercase<TMethod>]
+                  : unknown
+              >;
           })
   ): Promise<
     Awaited<

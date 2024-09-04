@@ -1,5 +1,23 @@
 # @palmares/client
 
+## 0.1.6
+
+### Patch Changes
+
+- Moare typing issues
+
+## 0.1.5
+
+### Patch Changes
+
+- more typing issue
+
+## 0.1.4
+
+### Patch Changes
+
+- Fix typing issue on client
+
 ## 0.1.3
 
 ### Patch Changes
