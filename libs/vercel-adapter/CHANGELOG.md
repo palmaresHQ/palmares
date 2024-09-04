@@ -1,5 +1,11 @@
 # @palmares/vercel-adapter
 
+## 0.0.13
+
+### Patch Changes
+
+- 5d75ca6: Fix import for esm modules
+
 ## 0.0.12
 
 ### Patch Changes
