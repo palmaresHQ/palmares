@@ -1,5 +1,11 @@
 # @palmares/console-logging
 
+## 0.1.3
+
+### Patch Changes
+
+- New version because on last versions the changes werent applied
+
 ## 0.1.2
 
 ### Patch Changes

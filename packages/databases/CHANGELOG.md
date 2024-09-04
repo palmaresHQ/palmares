@@ -1,5 +1,15 @@
 # @palmares/databases
 
+## 0.1.11
+
+### Patch Changes
+
+- New version because on last versions the changes werent applied
+- Updated dependencies
+  - @palmares/logging@0.1.9
+  - @palmares/core@0.1.9
+  - @palmares/events@0.0.12
+
 ## 0.1.10
 
 ### Patch Changes

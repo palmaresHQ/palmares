@@ -1,6 +1,6 @@
 {
   "name": "@palmares/databases",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Add support for working with databases with palmares framework",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
@@ -8,15 +8,15 @@
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/cjs/types/index.d.ts",
-        "default": "./dist/esm/src/index.js"
+        "default": "./dist/esm/src/index.js",
+        "types": "./dist/cjs/types/index.d.ts"
       },
       "require": {
-        "types": "./dist/cjs/types/index.d.ts",
-        "default": "./dist/cjs/src/index.js"
+        "default": "./dist/cjs/src/index.js",
+        "types": "./dist/cjs/types/index.d.ts"
       },
-      "types": "./dist/cjs/types/index.d.ts",
-      "default": "./dist/esm/src/index.js"
+      "default": "./dist/esm/src/index.js",
+      "types": "./dist/cjs/types/index.d.ts"
     }
   },
   "scripts": {

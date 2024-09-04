@@ -1,17 +1,17 @@
 {
   "name": "@palmares/core",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "This is the core part of the palmares framework, palmares is a framework heavily inspired by django and nestjs core ideas",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
   "types": "./dist/cjs/types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/cjs/types/index.d.ts",
       "node": "./dist/cjs/src/index.js",
       "require": "./dist/cjs/src/index.js",
       "import": "./dist/esm/src/index.js",
-      "default": "./dist/esm/src/index.js"
+      "default": "./dist/esm/src/index.js",
+      "types": "./dist/cjs/types/index.d.ts"
     }
   },
   "repository": {

@@ -1,5 +1,13 @@
 # @palmares/jest-tests
 
+## 0.1.9
+
+### Patch Changes
+
+- New version because on last versions the changes werent applied
+- Updated dependencies
+  - @palmares/tests@0.1.9
+
 ## 0.1.8
 
 ### Patch Changes

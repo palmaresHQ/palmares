@@ -1,5 +1,13 @@
 # @palmares/redis-emitter
 
+## 0.0.5
+
+### Patch Changes
+
+- New version because on last versions the changes werent applied
+- Updated dependencies
+  - @palmares/events@0.0.12
+
 ## 0.0.4
 
 ### Patch Changes

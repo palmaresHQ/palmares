@@ -1,5 +1,11 @@
 # @palmares/client
 
+## 0.1.8
+
+### Patch Changes
+
+- New version because on last versions the changes werent applied
+
 ## 0.1.7
 
 ### Patch Changes

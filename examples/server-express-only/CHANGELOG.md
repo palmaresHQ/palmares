@@ -1,5 +1,18 @@
 # @examples/server-express-only
 
+## 0.0.13
+
+### Patch Changes
+
+- New version because on last versions the changes werent applied
+- Updated dependencies
+  - @palmares/logging@0.1.9
+  - @palmares/core@0.1.9
+  - @palmares/console-logging@0.1.3
+  - @palmares/express-adapter@0.1.10
+  - @palmares/node-std@0.1.9
+  - @palmares/server@0.1.9
+
 ## 0.0.12
 
 ### Patch Changes
