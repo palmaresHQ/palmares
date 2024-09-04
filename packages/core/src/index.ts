@@ -14,8 +14,8 @@ export { imports } from './utils';
 export * from './utils/types';
 
 export { AppServer, appServer } from './app';
-export { AppServerInterface } from './app/types';
+export type { AppServerInterface } from './app/types';
 export * from './std';
-export { default as Std, Asker, ChildProcess, FilesAndFolders, Os } from './std-adapter';
+export { default as Std, type Asker, type ChildProcess, type FilesAndFolders, type Os } from './std-adapter';
 
 export { default as default } from './domain/default';

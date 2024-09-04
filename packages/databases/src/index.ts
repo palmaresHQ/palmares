@@ -2,7 +2,6 @@ import DatabasesDomain from './domain';
 import { model as Model, Model as ModelBaseClass } from './models';
 import * as fields from './models/fields';
 
-
 export * from './types';
 export { default as DatabaseAdapter, databaseAdapter } from './engine';
 export { default as AdapterQuery, adapterQuery } from './engine/query';
@@ -29,20 +28,25 @@ export { default as AdapterFieldParser, adapterFieldParser } from './engine/fiel
 export { default as AdapterBooleanFieldParser, adapterBooleanFieldParser } from './engine/fields/boolean';
 export * from './engine/types';
 export { default as Manager } from './models/manager';
-export { model as Model, Model as ModelBaseClass, initialize as define, BaseModel as InternalModelClass_DoNotUse } from './models';
+export {
+  model as Model,
+  Model as ModelBaseClass,
+  initialize as define,
+  BaseModel as InternalModelClass_DoNotUse
+} from './models';
 export * as fields from './models/fields';
 export const models = {
   fields,
   Model,
-  ModelBaseClass,
+  ModelBaseClass
 };
 export * from './models/fields';
 export * from './models/types';
 export * as actions from './migrations/actions';
 export { default as Migration } from './migrations/migrate/migration';
 export { default as Database } from './databases';
-export { DatabaseDomainInterface } from './interfaces';
+export type { DatabaseDomainInterface } from './interfaces';
 export { databaseDomainModifier } from './domain';
-export { generateUUID } from './utils/index'
+export { generateUUID } from './utils/index';
 
 export default DatabasesDomain;

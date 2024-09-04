@@ -23,7 +23,7 @@ export { default as ArrayFieldAdapter, arrayFieldAdapter } from './adapter/field
 export { default as BooleanFieldAdapter, booleanFieldAdapter } from './adapter/fields/boolean';
 export { default as DatetimeFieldAdapter, datetimeFieldAdapter } from './adapter/fields/datetime';
 
-export { Infer as infer } from './types';
+export type { Infer as infer } from './types';
 export { setDefaultAdapter, getDefaultAdapter } from './conf';
 export * from './adapter/types';
 export * from './schema';

@@ -1,7 +1,7 @@
-import Asker from './asker';
-import ChildProcess from './child-process';
-import FilesAndFolders from './files';
-import Os from './os';
+import type Asker from './asker';
+import type ChildProcess from './child-process';
+import type FilesAndFolders from './files';
+import type Os from './os';
 
 export default class Std {
   asker!: Asker;
@@ -10,4 +10,4 @@ export default class Std {
   os!: Os;
 }
 
-export { Asker, FilesAndFolders, ChildProcess, Os };
+export type { Asker, FilesAndFolders, ChildProcess, Os };
