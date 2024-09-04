@@ -1,5 +1,17 @@
 # @palmares/schemas
 
+## 0.1.13
+
+### Patch Changes
+
+- Didn't build the package before
+
+## 0.1.12
+
+### Patch Changes
+
+- 733c643: this.constructor.name was not working on an ESM environment
+
 ## 0.1.11
 
 ### Patch Changes
