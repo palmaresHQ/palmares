@@ -1,5 +1,11 @@
 # @palmares/sequelize-engine
 
+## 0.1.12
+
+### Patch Changes
+
+- 6f2a099: Added limit and offset to drizzle querying
+
 ## 0.1.11
 
 ### Patch Changes
