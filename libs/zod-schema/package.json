@@ -1,6 +1,6 @@
 {
   "name": "@palmares/zod-schema",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "Zod as the validation schema for palmares so we are able to validate through zod instead of using serializers",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",

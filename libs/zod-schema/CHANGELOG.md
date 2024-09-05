@@ -1,5 +1,13 @@
 # @palmares/zod-schema
 
+## 0.1.17
+
+### Patch Changes
+
+- 32e7569: Last build was bugged, didn't build
+- Updated dependencies [32e7569]
+  - @palmares/schemas@0.1.15
+
 ## 0.1.16
 
 ### Patch Changes

@@ -32,11 +32,13 @@ import {
 const getQuery = adapterGetQuery({
   // eslint-disable-next-line ts/require-await
   queryData: async (engine, args) => {
-    return engine.instance.instance
-      .select()
-      .from(args.modelOfEngineInstance)
-      .where(and(...(Object.values(args.search) as any)))
-      .orderBy(...(args.ordering || []));
+    const searchAsObjectValues = Object.values(args.search) as any;
+    let query = engine.instance.instance.select().from(args.modelOfEngineInstance);
+    if (searchAsObjectValues.length > 0) query = query.where(and(...(Object.values(args.search) as any)));
+    if (typeof args.limit === 'number') query = query.limit(args.limit);
+    if (typeof args.offset === 'number') query = query.offset(args.offset);
+    if ((args.ordering || []).length > 0) query = query.orderBy(...(args.ordering || []));
+    return query;
   }
 });
 
