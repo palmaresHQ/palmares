@@ -1,6 +1,6 @@
 {
   "name": "@examples/deel-hometask-challenge",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "description": "This is the home task challenge solution for deel",
   "main": "manage.ts",
   "scripts": {

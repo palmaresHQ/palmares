@@ -1,5 +1,11 @@
 # @palmares/schemas
 
+## 0.1.14
+
+### Patch Changes
+
+- 418abd3: - .validate was not working previously
+
 ## 0.1.13
 
 ### Patch Changes
