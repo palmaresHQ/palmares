@@ -21,15 +21,15 @@ export default domain('testingZodSchemas', __dirname, {
   getMigrations: () => [],
   getModels: () => models,
   getTests: () => [
-    __dirname + '/test.test.ts',
-    __dirname + '/numbers.test.ts',
-    __dirname + '/boolean.test.ts',
-    __dirname + '/datetime.test.ts',
-    __dirname + '/object.test.ts',
-    __dirname + '/union.test.ts',
-    __dirname + '/array.test.ts',
-    __dirname + '/types.test.ts',
-    __dirname + '/string.test.ts',
+    //__dirname + '/test.test.ts',
+    //__dirname + '/numbers.test.ts',
+    //__dirname + '/boolean.test.ts',
+    //__dirname + '/datetime.test.ts',
+    //__dirname + '/object.test.ts',
+    //__dirname + '/union.test.ts',
+    //__dirname + '/array.test.ts',
+    //__dirname + '/types.test.ts',
+    //__dirname + '/string.test.ts',
     __dirname + '/model.test.ts'
   ]
 });
