@@ -1,5 +1,11 @@
 # @palmares/schemas
 
+## 0.1.15
+
+### Patch Changes
+
+- 32e7569: Last build was bugged, didn't build
+
 ## 0.1.14
 
 ### Patch Changes
