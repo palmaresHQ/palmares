@@ -72,7 +72,7 @@ export class User extends Model<User>() {
 
   options: ModelOptionsType<User> = {
     tableName: 'users',
-    //instance: DUser
+    // instance: DUser
   }
 }
 

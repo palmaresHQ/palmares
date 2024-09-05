@@ -807,7 +807,7 @@ export default class Schema<
   ): Promise<{ isValid: false; errors: any[] } | { isValid: true; save: () => Promise<TType['representation']> }> {
     const { errors, parsed } = await this.__parse(value, [], { context } as any);
     // eslint-disable-next-line ts/no-unnecessary-condition
-    if ((errors || []).length >= 0) return { isValid: false, errors: errors };
+    if ((errors || []).length > 0) return { isValid: false, errors: errors };
     return { isValid: true, save: async () => this._save.bind(this)(parsed, context) };
   }
 

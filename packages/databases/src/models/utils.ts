@@ -389,7 +389,11 @@ export async function initializeModels(
           modelEntries: [] as [string, InitializedModelsType][]
         }
       );
-      if (modelEntries.length > 0 && modelEntries.length !== initializeModels.length) {
+      if (
+        modelEntries.length > 0 &&
+        modelEntries.length !== initializeModels.length &&
+        options?.forceTranslation !== true
+      ) {
         const std = getDefaultStd();
         const answer = await std.asker.ask(
           `\nYou have translated the model before. And you have assigned 'instance' to` +

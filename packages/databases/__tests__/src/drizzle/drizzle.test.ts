@@ -2,11 +2,27 @@ import {
   describe,
 } from '@palmares/tests'
 
-import { Company, User } from '../sequelize/models';
+import { Company, User } from '../drizzle/models';
 
 import type JestTestAdapter from '@palmares/jest-tests';
 
 describe<JestTestAdapter>('drizzle models', ({ test }) => {
+  test('its limiting the query', async ({ expect }) => {
+    await Company.default.set({ name: 'test', address: 'test' })
+    await Company.default.set({ name: 'test', address: 'test' })
+
+    const companies = await Company.default.get({
+      search: {
+        name: {
+          like: '%te%'
+        }
+      },
+      limit: 1,
+      ordering: ['-id']
+    });
+
+    expect(companies.length === 1).toBe(true);
+  });
   test('its working with functions', async ({ expect }) => {
     await Company.default.set({ name: 'test', address: 'test' });
     const companies = await Company.test.test('test');
@@ -39,7 +55,7 @@ describe<JestTestAdapter>('drizzle models', ({ test }) => {
       model: User
     }]});
 
-    const user = await User.default.get({ search: { companyId: company[0].id as number }});
+    const user = await User.default.get({ search: { companyId: company[0].id as number }, limit: 1});
     expect(company[0].usersOfCompany.length > 0).toBe(true);
     expect(user[0].companyId).toBe(company[0].id as number);
   })

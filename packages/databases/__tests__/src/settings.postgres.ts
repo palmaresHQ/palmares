@@ -1,4 +1,4 @@
-import ConsoleLogging from '@palmares/console-logging';
+/*import ConsoleLogging from '@palmares/console-logging';
 import CoreDomain, { defineSettings } from '@palmares/core';
 import DatabasesDomain from '@palmares/databases';
 import DrizzleEngine from '@palmares/drizzle-engine';
@@ -60,3 +60,4 @@ export default defineSettings({
     TestDomain,
   ],
 });
+*/

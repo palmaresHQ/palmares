@@ -143,7 +143,7 @@ export default class Manager<TModel = Model, TEI extends DatabaseAdapter | null 
     if (doesInstanceExists) return this.instances[engineInstanceName].instance;
 
     const hasLazilyInitialized = await this.verifyIfNotInitializedAndInitializeModels(engineInstanceName);
-    if (hasLazilyInitialized) return this.getInstance(engineName);
+    if (!hasLazilyInitialized) return this.getInstance(engineName);
 
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }
@@ -343,10 +343,8 @@ export default class Manager<TModel = Model, TEI extends DatabaseAdapter | null 
   ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]> {
     const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
     let engineInstanceName = engineName || this.defaultEngineInstanceName;
-
     // Promise.all here will not work, we need to do this sequentially.
     const engineInstance = await this.getEngineInstance(engineName);
-
     engineInstanceName = engineName || this.defaultEngineInstanceName;
     const dataAsAnArray = Array.isArray(data)
       ? data

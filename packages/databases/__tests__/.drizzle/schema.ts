@@ -6,6 +6,7 @@ export const Company = d.sqliteTable('companies', {
   id: d.integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }).notNull().unique(),
   name: d.text('name', { length: 255 }).notNull(),
   address: d.text('address', { length: 255 }),
+  translatable: d.real('translatable')
 }, (table) => ({
   idIdx: d.uniqueIndex('companies_id_idx').on(table.id)
 }));

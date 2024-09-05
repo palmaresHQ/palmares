@@ -8,6 +8,7 @@ export default async function run(settingsPath: string) {
   });
   const defaultSettings = settings.default;
   defaultSettings.$$test = true;
+  console.log('runner');
   await initializeDomains(defaultSettings, {
     ignoreCache: false,
     ignoreCommands: true
