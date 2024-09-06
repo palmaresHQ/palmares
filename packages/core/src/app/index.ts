@@ -2,7 +2,7 @@ import { getLogger } from '../logging';
 
 import type { DomainHandlerFunctionArgs } from '../commands/types';
 import type { CoreSettingsType, SettingsType2 } from '../conf/types';
-import type Domain from '../domain/domain';
+import type { Domain } from '../domain/domain';
 
 let baseAppServerInstance: BaseAppServer | undefined = undefined;
 let appServerInstance: InstanceType<ReturnType<typeof appServer>> | AppServer | undefined = undefined;

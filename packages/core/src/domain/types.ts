@@ -1,4 +1,4 @@
-import type Domain from './domain';
+import type { Domain } from './domain';
 import type { AppServer, appServer } from '../app';
 import type { SettingsType } from '../conf/types';
 

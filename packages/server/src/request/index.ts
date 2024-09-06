@@ -17,14 +17,14 @@ import type {
   RequestMode,
   RequestRedirect
 } from './types';
-import type ServerAdapter from '../adapters';
-import type ServerRequestAdapter from '../adapters/requests';
-import type ServerlessAdapter from '../adapters/serverless';
-import type Response from '../response';
+import type { ServerAdapter } from '../adapters';
+import type { ServerRequestAdapter } from '../adapters/requests';
+import type { ServerlessAdapter } from '../adapters/serverless';
+import type { Response } from '../response';
 import type { BaseRouter } from '../router/routers';
 import type { AllServerSettingsType } from '../types';
 
-export default class Request<
+export class Request<
   TRoutePath extends string = string,
   TRequest extends {
     method?: RequestMethodTypes;

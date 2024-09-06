@@ -1,5 +1,23 @@
 # @examples/next-monorepo
 
+## 0.0.5
+
+### Patch Changes
+
+- removed all default exports
+
+## 0.0.4
+
+### Patch Changes
+
+- Add named exports so it can function properly
+
+## 0.0.3
+
+### Patch Changes
+
+- Fix module issues to allow palmares to run as a module as well as commonjs
+
 ## 0.0.2
 
 ### Patch Changes

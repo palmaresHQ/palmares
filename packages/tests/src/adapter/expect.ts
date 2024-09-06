@@ -1,4 +1,4 @@
-export default class TestExpectAdapter {
+export class TestExpectAdapter {
   toBe(_value: any, _expected: any, _isNot: boolean) {
     throw new Error('Not implemented');
   }

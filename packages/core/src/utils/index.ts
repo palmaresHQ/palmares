@@ -1,6 +1,11 @@
-export * from './constants';
-export { default as imports } from '../std/imports';
-export * from './types';
+export {
+  ERR_MODULE_NOT_FOUND,
+  FRAMEWORK_NAME,
+  PACKAGE_NAME,
+  PALMARES_SETTINGS_MODULE_ENVIRONMENT_VARIABLE
+} from './constants';
+export { imports } from '../std/imports';
+export { Narrow, NarrowRaw } from './types';
 
 /**
  * Converts a snakeCase string to a camelCase string formatting.

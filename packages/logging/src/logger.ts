@@ -17,7 +17,7 @@ import type { LoggerArgumentsToFilterAndFormatters, LoggingTypes, SavedLoggingMe
  * logger.log('Hello World!');
  * ```
  */
-export default class Logger<TLoggingMessages extends SavedLoggingMessagesType> {
+export class Logger<TLoggingMessages extends SavedLoggingMessagesType> {
   name = '';
   domainName = '';
   loggingMessages?: TLoggingMessages;
@@ -55,16 +55,16 @@ export default class Logger<TLoggingMessages extends SavedLoggingMessagesType> {
       this.loggingMessages && loggingMessages
         ? {
             ...this.loggingMessages,
-            ...loggingMessages,
+            ...loggingMessages
           }
         : this.loggingMessages
-        ? this.loggingMessages
-        : loggingMessages
+          ? this.loggingMessages
+          : loggingMessages
     ) as TLoggingMessages & TNewLoggingMessages;
     return new Logger(
       {
         domainName: this.domainName,
-        name,
+        name
       },
       concatenatedLoggingMessages
     );
@@ -144,7 +144,7 @@ export default class Logger<TLoggingMessages extends SavedLoggingMessagesType> {
       domain: this.domainName,
       name: this.name,
       frameworkName: FRAMEWORK_NAME,
-      logLevel: level.toUpperCase() as Uppercase<LoggingTypes>,
+      logLevel: level.toUpperCase() as Uppercase<LoggingTypes>
     };
     const loggers = getLoggersAtLevel(level);
     if (!Array.isArray(loggers)) return;

@@ -1,5 +1,23 @@
 # @palmares/console-logging
 
+## 0.1.6
+
+### Patch Changes
+
+- removed all default exports
+
+## 0.1.5
+
+### Patch Changes
+
+- Add named exports so it can function properly
+
+## 0.1.4
+
+### Patch Changes
+
+- Fix module issues to allow palmares to run as a module as well as commonjs
+
 ## 0.1.3
 
 ### Patch Changes

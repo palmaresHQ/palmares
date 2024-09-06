@@ -3,7 +3,7 @@ import * as z from 'zod';
 
 import type { ErrorCodes } from '@palmares/schemas';
 
-export default datetimeFieldAdapter({
+export const datetimeAdapter = datetimeFieldAdapter({
   translate: (fieldAdapter, args) => {
     let result: z.ZodDate | z.ZodEffects<z.ZodDate, Date, Date> = z.date({
       errorMap: (issue) => {

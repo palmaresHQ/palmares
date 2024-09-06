@@ -5,34 +5,20 @@ import { NotImplementedServerException } from './exceptions';
  *
  * It could be an implementation using node.js, or by using the default browser behaviour and so on.
  */
-export default class Emitter {
+export class Emitter {
   // eslint-disable-next-line ts/require-await
   static async new(...args: any[]): Promise<Emitter> {
     throw new NotImplementedServerException(this.name, 'new');
   }
 
   // eslint-disable-next-line ts/require-await
-  async addEventListener(
-    groupId: string,
-    eventName: string,
-    callback: (...args: any) => any
-  ) {
-    throw new NotImplementedServerException(
-      this.constructor.name,
-      'addEventListener'
-    );
+  async addEventListener(groupId: string, eventName: string, callback: (...args: any) => any) {
+    throw new NotImplementedServerException(this.constructor.name, 'addEventListener');
   }
 
   // eslint-disable-next-line ts/require-await
-  async removeEventListener(
-    groupId: string,
-    eventName: string,
-    callback: (...args: any) => any
-  ) {
-    throw new NotImplementedServerException(
-      this.constructor.name,
-      'unsubscribe'
-    );
+  async removeEventListener(groupId: string, eventName: string, callback: (...args: any) => any) {
+    throw new NotImplementedServerException(this.constructor.name, 'unsubscribe');
   }
 
   // eslint-disable-next-line ts/require-await

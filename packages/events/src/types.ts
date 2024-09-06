@@ -1,4 +1,4 @@
-import type Emitter from './emitter';
+import type { Emitter } from './emitter';
 import type { EventEmitterOptionsType } from './events/types';
 import type { SettingsType } from '@palmares/core';
 

@@ -1,6 +1,6 @@
 import { NotImplementedAdapterException } from './exceptions';
 
-import type DatabaseAdapter from '.';
+import type { DatabaseAdapter } from '.';
 import type { ModelOptionsType } from '..';
 import type { Field } from '../models/fields';
 import type { Model } from '../models/model';
@@ -276,7 +276,7 @@ export function adapterModels<
 /**
  * Used for translating a model from palmares to a model that your engine/ORM can understand. This is used alongside the `EngineFields` instance.
  */
-export default class AdapterModels {
+export class AdapterModels {
   /**
    * Used for translating the options of the model. Options of the model are things like the `tableName`, `indexes`, `timestamps`, etc. If your engine does not offer the option
    * to implement the options, just return the `options` argument as is.

@@ -1,17 +1,17 @@
-import getResultsWithIncludes from '.';
-import getQuery from './get';
-import Transaction from '../transaction';
+import { getResultsWithIncludes } from '.';
+import { getQuery } from './get';
+import { Transaction } from '../transaction';
 
-import type DatabaseAdapter from '../engine';
-import type model from '../models/model';
+import type { DatabaseAdapter } from '../engine';
+import type { model } from '../models/model';
 import type { FieldsOFModelType, Includes, ModelFieldsWithIncludes } from '../models/types';
 
-export default async function setQuery<
+export async function setQuery<
   TModel,
   TIncludes extends Includes = undefined,
   TSearch extends
     | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
-    | undefined = undefined,
+    | undefined = undefined
 >(
   data: ModelFieldsWithIncludes<
     TModel,
@@ -74,19 +74,19 @@ export default async function setQuery<
     const doesSearchExist = args.search !== undefined;
     const useParsers = {
       input: typeof args.useParsers?.input === 'boolean' ? args.useParsers.input : true,
-      output: typeof args.useParsers?.output === 'boolean' ? args.useParsers.output : true,
+      output: typeof args.useParsers?.output === 'boolean' ? args.useParsers.output : true
     };
 
     if (doesSearchExist) {
       const allResultsOfSearch = await getQuery<TModel, TIncludes, FieldsOFModelType<TModel>, TSearch>(
         {
           fields: fields,
-          search: args.search as TSearch,
+          search: args.search as TSearch
         },
         {
           model: internal.model,
           engine: internal.engine,
-          includes: internal.includes,
+          includes: internal.includes
         }
       );
       await getResultsWithIncludes(

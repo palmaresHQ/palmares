@@ -1,6 +1,6 @@
 import { TestExpectAdapter } from '@palmares/tests';
 
-export default class JestExpectAdapter extends TestExpectAdapter {
+export class JestExpectAdapter extends TestExpectAdapter {
   toBe(value: any, expected: any, isNot: boolean) {
     const expect = require('@jest/globals').expect;
     if (isNot) expect(value).not.toBe(expected);

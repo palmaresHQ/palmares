@@ -1,9 +1,9 @@
 import type { BaseRouter } from '../../router/routers';
 import type { MethodTypes, RouterOptionsType } from '../../router/types';
-import type ServerAdapter from '../index';
-import type ServerRequestAdapter from '../requests';
-import type ServerResponseAdapter from '../response';
-import type ServerlessAdapter from '../serverless';
+import type { ServerAdapter } from '../index';
+import type { ServerRequestAdapter } from '../requests';
+import type { ServerResponseAdapter } from '../response';
+import type { ServerlessAdapter } from '../serverless';
 
 /**
  * Adapter used for translating Palmares router to the framework of choice router.
@@ -184,7 +184,7 @@ export function serverRouterAdapter<
 /**
  * Adapter used for translating palmares router to the framework of choice router.
  */
-export default class ServerRouterAdapter {
+export class ServerRouterAdapter {
   /**
    * This method is used for loading a 405 handler, this will only be called if no handler is found for the requested method.
    *

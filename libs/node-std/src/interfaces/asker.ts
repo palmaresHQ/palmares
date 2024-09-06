@@ -1,13 +1,13 @@
-import { Asker } from '@palmares/core';
-
-import { createInterface } from 'readline';
 import { stdin as input, stdout as output } from 'process';
+import { createInterface } from 'readline';
 
-export default class AskerNode implements Asker {
+import type { Asker } from '@palmares/core';
+
+export class AskerNode implements Asker {
   async ask(question: string): Promise<string> {
     const readlineInterface = createInterface({
       input,
-      output,
+      output
     });
     return new Promise((resolve) => {
       readlineInterface.question(question, (answer: string) => {

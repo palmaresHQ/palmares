@@ -164,7 +164,7 @@ export function testFunctionsAdapter<
   return CustomTestFunctionsAdapter;
 }
 
-export default class TestFunctionsAdapter {
+export class TestFunctionsAdapter {
   /**
    * Should run a callback inside a describe function from your test framework.
    *

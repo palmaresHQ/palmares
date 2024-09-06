@@ -1,9 +1,9 @@
 import type { Operation } from './operation';
-import type DatabaseAdapter from '../../engine';
+import type { DatabaseAdapter } from '../../engine';
 import type { Field } from '../../models/fields';
 import type { CustomImportsForFieldType } from '../../models/fields/types';
 import type { ModelFieldsType, ModelOptionsType } from '../../models/types';
-import type Migration from '../migrate/migration';
+import type { Migration } from '../migrate/migration';
 import type { StateModelsConstructorType } from '../types';
 
 export type ActionToGenerateType<T> = {

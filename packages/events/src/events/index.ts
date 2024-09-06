@@ -2,7 +2,7 @@ import { NoLayerError } from './exceptions';
 import { uuid } from '../utils';
 
 import type { EventEmitterOptionsType, ResultWrappedCallbackType } from './types';
-import type Emitter from '../emitter';
+import type { Emitter } from '../emitter';
 
 /**
  * This class is responsible for appending listeners (functions) and sending events to them
@@ -152,7 +152,7 @@ import type Emitter from '../emitter';
  * a listener might be in other machine. So when working with them we do not have to rely too much on
  * internal data for the class.
  */
-export default class EventEmitter<TEmitter extends Emitter = Emitter> {
+export class EventEmitter<TEmitter extends Emitter = Emitter> {
   emitter: TEmitter;
   protected layer?: EventEmitter;
   private resultsEventName!: string;

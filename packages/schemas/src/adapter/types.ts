@@ -1,4 +1,4 @@
-import type Schema from '../schema/schema';
+import type { Schema } from '../schema/schema';
 import type { SupportedSchemas } from '../types';
 import type { withFallbackFactory } from '../utils';
 

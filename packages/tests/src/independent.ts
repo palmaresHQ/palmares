@@ -2,7 +2,7 @@ import { setTestAdapter } from './utils';
 
 import type { Std } from '@palmares/core';
 
-export default async function testIndependently(adapterLocation: string, std: Std, filesToTest: string[]) {
+export async function testIndependently(adapterLocation: string, std: Std, filesToTest: string[]) {
   const adapter = await import(adapterLocation).catch((e) => {
     console.error('Error importing adapter', e);
   });

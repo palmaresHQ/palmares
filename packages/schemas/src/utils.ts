@@ -1,11 +1,11 @@
-import SchemaAdapter from './adapter';
+import { SchemaAdapter } from './adapter';
 import { getDefaultAdapter } from './conf';
 import { checkType, nullable, optional } from './validators/schema';
-import Validator from './validators/utils';
+import { Validator } from './validators/utils';
 
-import type FieldAdapter from './adapter/fields';
+import type { FieldAdapter } from './adapter/fields';
 import type { ValidationDataBasedOnType } from './adapter/types';
-import type Schema from './schema/schema';
+import type { Schema } from './schema/schema';
 import type { ValidationFallbackCallbackReturnType, ValidationFallbackReturnType } from './schema/types';
 import type { FallbackFunctionsType, SupportedSchemas } from './types';
 
@@ -14,7 +14,7 @@ import type { FallbackFunctionsType, SupportedSchemas } from './types';
  * our schema definition, it can return an instance of this class and with this instance we are able to
  * fallback to our default implementation of the schema validation.
  */
-export default class WithFallback<TType extends SupportedSchemas> {
+export class WithFallback<TType extends SupportedSchemas> {
   fallbackFor: Set<
     | keyof Omit<ValidationDataBasedOnType<TType>, 'withFallback' | 'parsers'>
     | keyof ValidationDataBasedOnType<TType>['parsers']

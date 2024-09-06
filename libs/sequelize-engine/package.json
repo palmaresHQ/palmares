@@ -1,6 +1,6 @@
 {
   "name": "@palmares/sequelize-engine",
-  "version": "0.1.12",
+  "version": "0.1.15",
   "description": "This is the engine that wraps the hole sequelize interface in a way palmares can understand and have full control of",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
@@ -46,11 +46,13 @@
   "author": "Nicolas Melo",
   "license": "MIT",
   "dependencies": {
-    "@palmares/core": "workspace:*",
-    "@palmares/databases": "workspace:*",
     "sequelize": "^6.37.3"
   },
   "devDependencies": {
     "@types/sequelize": "^4.28.14"
+  },
+  "peerDependencies": {
+    "@palmares/core": "workspace:*",
+    "@palmares/databases": "workspace:*"
   }
 }

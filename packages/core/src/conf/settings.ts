@@ -3,7 +3,7 @@ import { setDefaultStd } from '../std/config';
 import { PALMARES_SETTINGS_MODULE_ENVIRONMENT_VARIABLE } from '../utils';
 
 import type { SettingsType2 } from './types';
-import type Std from '../std-adapter';
+import type { Std } from '../std-adapter';
 
 let cachedSettings: SettingsType2 | null = null;
 

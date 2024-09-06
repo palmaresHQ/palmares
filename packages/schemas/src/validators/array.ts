@@ -1,5 +1,5 @@
-import type ArraySchema from '../schema/array';
-import type Schema from '../schema/schema';
+import type { ArraySchema } from '../schema/array';
+import type { Schema } from '../schema/schema';
 import type { ValidationFallbackCallbackReturnType, ValidationFallbackReturnType } from '../schema/types';
 
 export function arrayValidation(isTuple: boolean, schemas: Schema<any, any>[]): ValidationFallbackReturnType {

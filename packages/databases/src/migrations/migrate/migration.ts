@@ -1,10 +1,10 @@
-import State from '../state';
+import { State } from '../state';
 
-import type DatabaseAdapter from '../../engine';
+import type { DatabaseAdapter } from '../../engine';
 import type { Operation } from '../actions';
 import type { FoundMigrationsFileType, MigrationFileType } from '../types';
 
-export default class Migration {
+export class Migration {
   domainName: string;
   databaseName: string;
   name: string;
@@ -69,7 +69,7 @@ export default class Migration {
       if (closeToEngineInstance) connectionsToClose.push(() => closeToEngineInstance(this.engineInstance));
       if (closeFromEngineInstance) connectionsToClose.push(() => closeFromEngineInstance(this.engineInstance));
     }
-    return connectionsToClose
+    return connectionsToClose;
   }
 
   /**
@@ -81,7 +81,11 @@ export default class Migration {
     let returnOfInit: any = undefined;
     if (this.engineInstance.migrations?.init)
       returnOfInit = await this.engineInstance.migrations.init(this.engineInstance);
-    const connectionsToClose = await this.engineInstance.useTransaction(this.#runOnTransaction.bind(this), this.allMigrations, returnOfInit);
+    const connectionsToClose = await this.engineInstance.useTransaction(
+      this.#runOnTransaction.bind(this),
+      this.allMigrations,
+      returnOfInit
+    );
 
     if (this.engineInstance.migrations?.finish)
       await this.engineInstance.migrations.finish(this.engineInstance, returnOfInit);

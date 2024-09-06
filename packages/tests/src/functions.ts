@@ -1,7 +1,7 @@
-import getExpect from './expect';
+import { getExpect } from './expect';
 import { getTestAdapter } from './utils';
 
-import type TestAdapter from './adapter';
+import type { TestAdapter } from './adapter';
 import type { Expect } from './expect';
 
 /**

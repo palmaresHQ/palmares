@@ -1,12 +1,12 @@
-import Schema from './schema';
-import convertFromStringBuilder from '../parsers/convert-from-string';
+import { Schema } from './schema';
+import { convertFromStringBuilder } from '../parsers/convert-from-string';
 import { defaultTransform, defaultTransformToAdapter } from '../utils';
 import { booleanValidation } from '../validators/boolean';
 import { is, nullable, optional } from '../validators/schema';
 
 import type { DefinitionsOfSchemaType } from './types';
 
-export default class BooleanSchema<
+export class BooleanSchema<
   TType extends {
     input: any;
     validate: any;

@@ -1,5 +1,5 @@
 import type { Field, ForeignKeyField } from '../fields';
-import type model from '../model';
+import type { model } from '../model';
 
 export type PalmaresTransactionsType = {
   isSetOrRemoveOperation: 'set' | 'remove';

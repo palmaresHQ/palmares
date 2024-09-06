@@ -7,7 +7,7 @@ import type { Request, Response } from 'express';
 /**
  * This will automatically initialize all the routes of the server on the express server.
  */
-export default serverRouterAdapter({
+export const routerAdapter = serverRouterAdapter({
   /**
    * Handler is the function to call when a request is made to the server, by default Palmares
    * gives us the option to send a data during the request/response lifecycle, we just send req and res.

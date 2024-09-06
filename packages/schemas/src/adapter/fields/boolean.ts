@@ -1,8 +1,8 @@
-import FieldAdapter from '.';
+import { FieldAdapter } from '.';
 import { SchemaAdapterNotImplementedError } from '../../exceptions';
 
-import type SchemaAdapter from '..';
-import type WithFallback from '../../utils';
+import type { SchemaAdapter } from '..';
+import type { WithFallback } from '../../utils';
 import type { BooleanAdapterTranslateArgs } from '../types';
 
 export function booleanFieldAdapter<
@@ -28,7 +28,7 @@ export function booleanFieldAdapter<
   };
 }
 
-export default class BooleanFieldAdapter extends FieldAdapter {
+export class BooleanFieldAdapter extends FieldAdapter {
   translate(_fieldAdapter: FieldAdapter, _args: BooleanAdapterTranslateArgs): any | WithFallback<'boolean'> {}
 
   parse(

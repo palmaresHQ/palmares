@@ -8,7 +8,7 @@ import { servers } from './server';
 
 import type { ToFormDataOptions } from './types';
 
-export default serverRequestAdapter({
+export const requestAdapter = serverRequestAdapter({
   customToFormDataOptions<TType extends keyof ReturnType<typeof multer>>(args: ToFormDataOptions<TType>) {
     return args;
   },

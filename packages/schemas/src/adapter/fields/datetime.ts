@@ -1,8 +1,8 @@
-import FieldAdapter from '.';
+import { FieldAdapter } from '.';
 import { SchemaAdapterNotImplementedError } from '../../exceptions';
 
-import type SchemaAdapter from '..';
-import type WithFallback from '../../utils';
+import type { SchemaAdapter } from '..';
+import type { WithFallback } from '../../utils';
 import type { DatetimeAdapterTranslateArgs } from '../types';
 
 export function datetimeFieldAdapter<
@@ -28,7 +28,7 @@ export function datetimeFieldAdapter<
   };
 }
 
-export default class DatetimeFieldAdapter extends FieldAdapter {
+export class DatetimeFieldAdapter extends FieldAdapter {
   translate(_fieldAdapter: FieldAdapter, _args: DatetimeAdapterTranslateArgs): any | WithFallback<'datetime'> {}
 
   parse(

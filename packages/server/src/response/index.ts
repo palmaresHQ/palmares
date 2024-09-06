@@ -20,10 +20,10 @@ import { formDataLikeFactory } from '../request/utils';
 
 import type { RedirectionStatusCodes, StatusCodes } from './status';
 import type { HeadersType, ResponseTypeType } from './types';
-import type Request from '../request';
+import type { Request } from '../request';
 import type { FormDataLike } from '../request/types';
 
-export default class Response<
+export class Response<
   TBody extends
     | unknown
     | undefined

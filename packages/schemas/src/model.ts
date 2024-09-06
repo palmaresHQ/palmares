@@ -19,11 +19,11 @@ import {
 
 import { TranslatableFieldNotImplementedError } from './exceptions';
 import { number } from './schema';
-import ArraySchema from './schema/array';
+import { ArraySchema } from './schema/array';
 import { boolean } from './schema/boolean';
 import { datetime } from './schema/datetime';
-import ObjectSchema from './schema/object';
-import Schema from './schema/schema';
+import { ObjectSchema } from './schema/object';
+import { Schema } from './schema/schema';
 import { string } from './schema/string';
 import { union } from './schema/union';
 

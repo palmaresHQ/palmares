@@ -1,4 +1,4 @@
-import Field from './field';
+import { Field } from './field';
 
 import type { FieldDefaultParamsType, MaybeNull } from './types';
 import type { This } from '../../types';
@@ -56,7 +56,7 @@ export function bigAuto<
  * const bigAutoField = BigAutoField.new({ databaseName: 'user_id' });
  * ```
  */
-export default class BigAutoField<
+export class BigAutoField<
   TType extends { input: bigint | number; output: bigint | number } = {
     input: bigint | number;
     output: bigint | number;

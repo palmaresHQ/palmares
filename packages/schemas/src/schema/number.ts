@@ -1,4 +1,4 @@
-import Schema from './schema';
+import { Schema } from './schema';
 import {
   DEFAULT_NUMBER_INTEGER_EXCEPTION,
   DEFAULT_NUMBER_MAX_EXCEPTION,
@@ -11,7 +11,7 @@ import { is, nullable, optional } from '../validators/schema';
 
 import type { DefinitionsOfSchemaType } from './types';
 
-export default class NumberSchema<
+export class NumberSchema<
   TType extends {
     input: any;
     validate: any;

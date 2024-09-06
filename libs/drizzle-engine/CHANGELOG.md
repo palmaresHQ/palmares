@@ -1,5 +1,32 @@
 # @palmares/sequelize-engine
 
+## 0.1.16
+
+### Patch Changes
+
+- removed all default exports
+- Updated dependencies
+  - @palmares/databases@0.1.15
+  - @palmares/core@0.1.12
+
+## 0.1.15
+
+### Patch Changes
+
+- Add named exports so it can function properly
+- Updated dependencies
+  - @palmares/databases@0.1.14
+  - @palmares/core@0.1.11
+
+## 0.1.14
+
+### Patch Changes
+
+- Fix module issues to allow palmares to run as a module as well as commonjs
+- Updated dependencies
+  - @palmares/core@0.1.10
+  - @palmares/databases@0.1.13
+
 ## 0.1.13
 
 ### Patch Changes

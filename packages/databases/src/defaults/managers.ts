@@ -1,8 +1,8 @@
-import * as models from '../models';
+import { Manager } from '../models';
 
 import type { PalmaresMigrations } from './models';
 
-export default class PalmaresMigrationsManager extends models.Manager<PalmaresMigrations> {
+export class PalmaresMigrationsManager extends Manager<PalmaresMigrations> {
   /**
    * Creates a new migration in the database. This way we can know what migrations have was evaluated and what migration
    * still needs to be evaluated.

@@ -1,6 +1,6 @@
 import { UnopinionatedField } from './field';
 
-import type Field from './field';
+import type { Field } from './field';
 import type { DecimalFieldParamsType, MaybeNull } from './types';
 import type { This } from '../../types';
 
@@ -39,7 +39,7 @@ export function decimal<
  * const amount = DecimalField.new({ maxDigits: 10, decimalPlaces: 2 });
  * ```
  */
-export default class DecimalField<
+export class DecimalField<
   TType extends { input: number; output: number } = {
     input: number;
     output: number;

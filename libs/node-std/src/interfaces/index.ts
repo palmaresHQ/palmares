@@ -1,4 +1,4 @@
-export { default as FilesAndFoldersNode } from './files';
-export { default as ChildProcessNode } from './child-process';
-export { default as AskerNode } from './asker';
-export { default as NodeOs } from './os';
+export { FilesAndFoldersNode } from './files';
+export { ChildProcessNode } from './child-process';
+export { AskerNode } from './asker';
+export { NodeOs } from './os';

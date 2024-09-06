@@ -3,7 +3,7 @@ import * as z from 'zod';
 
 import { transformErrorsOnComplexTypes } from '../utils';
 
-export default objectFieldAdapter({
+export const objectAdapter = objectFieldAdapter({
   translate: (fieldAdapter, args) => {
     let result = z.object(args.data, {
       errorMap: (issue) => {

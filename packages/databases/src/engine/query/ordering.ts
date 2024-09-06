@@ -45,7 +45,7 @@ export function adapterOrderingQuery<TFunctionParseOrdering extends AdapterOrder
  * This is used for handling ordering in your queries, we decided to move it out from the `AdapterGetQuery` in order to handle ordering separately from only the `.get` query.
  * Ordering the query is as simple as passing an array of string, each string contains the name of the field alongside a `-` if it's descending.
  */
-export default class AdapterOrderingQuery {
+export class AdapterOrderingQuery {
   /**
    * Ordering the query is as simple as passing an array of string, each string contains the name of the field alongside a `-` if it's descending.
    *

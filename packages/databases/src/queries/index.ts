@@ -1,9 +1,9 @@
 import { UnmanagedModelsShouldImplementSpecialMethodsException } from './exceptions';
-import parseSearch from './search';
+import { parseSearch } from './search';
 import { extractDefaultEventsHandlerFromModel } from './utils';
 
 import type { QueryDataFnType } from './types';
-import type DatabaseAdapter from '../engine';
+import type { DatabaseAdapter } from '../engine';
 import type { BaseModel, model } from '../models';
 import type { Field, ForeignKeyField } from '../models/fields';
 import type {
@@ -14,7 +14,7 @@ import type {
   ModelFieldsWithIncludes,
   OrderingOfModelsType
 } from '../models/types';
-import type Transaction from '../transaction';
+import type { Transaction } from '../transaction';
 
 /**
  * Used for parsing the values of each field of the result of the query.
@@ -44,7 +44,7 @@ async function parseResults(
               field,
               engine,
               fieldParser: engine.fields.fieldsParser,
-              model: modelInstance as InstanceType<ReturnType<typeof model>> & BaseModel,
+              model: modelInstance,
               modelName: modelName
             });
             (data as any)[key] = parsedValue;
@@ -67,8 +67,8 @@ async function parseData(
 ) {
   if (data) {
     const connectionName = engine.connectionName;
-    const modelConstructor = modelInstance.constructor as ReturnType<typeof model> & typeof BaseModel;
-    const fieldsInModel = modelConstructor._fields(modelInstance as any);
+    const modelConstructor = modelInstance.constructor;
+    const fieldsInModel = (modelConstructor as any)._fields(modelInstance as any);
     const fieldNamesInModel = Object.keys(fieldsInModel);
 
     const dataAsArray = Array.isArray(data) ? data : [data];
@@ -93,7 +93,7 @@ async function parseData(
                       engine,
                       fieldParser: engine.fields.fieldsParser,
                       model: modelInstance,
-                      modelName: modelConstructor.getName()
+                      modelName: (modelConstructor as any).getName()
                     })
                   : eachDataToFormat[key];
             }
@@ -225,7 +225,7 @@ async function fireEventsAfterQueryDataFn<
   }
 ) {
   const modelInstanceAsModel = args.modelInstance as InstanceType<ReturnType<typeof model>> & BaseModel;
-  const modelConstructor = modelInstanceAsModel.constructor as ReturnType<typeof model> & typeof BaseModel;
+  const modelConstructor = modelInstanceAsModel.constructor as any;
 
   const shouldCallEvents =
     engine.databaseSettings.events?.emitter &&
@@ -327,7 +327,7 @@ async function callQueryDataFn<
   } = args;
 
   const modelInstanceAsModel = modelInstance as InstanceType<ReturnType<typeof model>> & BaseModel;
-  const modelConstructor = modelInstanceAsModel.constructor as ReturnType<typeof model> & typeof BaseModel;
+  const modelConstructor = modelInstanceAsModel.constructor as any;
   const fields = (args.fields || Object.keys(modelInstanceAsModel.fields)) as TFields;
   const mergedSearchForData = resultToMergeWithData !== undefined ? search : search;
 
@@ -1046,10 +1046,9 @@ async function resultsFromRelatedModels<
   palmaresTransaction: Transaction | undefined = undefined
 ) {
   const modelInstanceAsModel = modelInstance as InstanceType<ReturnType<typeof model>> & BaseModel;
-  const modelConstructor = modelInstanceAsModel.constructor as ReturnType<typeof model> & typeof BaseModel;
+  const modelConstructor = modelInstanceAsModel.constructor as any;
   const includedModelInstanceAsModel = includedModelInstance as InstanceType<ReturnType<typeof model>> & BaseModel;
-  const includedModelConstructor = includedModelInstanceAsModel.constructor as ReturnType<typeof model> &
-    typeof BaseModel;
+  const includedModelConstructor = includedModelInstanceAsModel.constructor as any;
 
   const fieldToUseToGetRelationName = isDirectlyRelated ? 'relationName' : 'relatedName';
   const relatedNamesDirectlyOrIndirectlyRelatedToModel =
@@ -1058,7 +1057,7 @@ async function resultsFromRelatedModels<
       ? modelConstructor.directlyRelatedTo[includedModelConstructor.originalName()]
       : modelConstructor.indirectlyRelatedTo[includedModelConstructor.originalName()]) || [];
   const filteredRelatedNamesDirectlyOrIndirectlyRelatedToModel = Array.isArray(includesRelationNames)
-    ? relatedNamesDirectlyOrIndirectlyRelatedToModel.filter((relationName) =>
+    ? relatedNamesDirectlyOrIndirectlyRelatedToModel.filter((relationName: string) =>
         includesRelationNames.includes(relationName)
       )
     : relatedNamesDirectlyOrIndirectlyRelatedToModel;
@@ -1067,54 +1066,57 @@ async function resultsFromRelatedModels<
       modelConstructor.associations[includedModelConstructor.originalName()] || []
     : // eslint-disable-next-line ts/no-unnecessary-condition
       includedModelConstructor.associations[modelConstructor.originalName()] || [];
-  const promises = filteredRelatedNamesDirectlyOrIndirectlyRelatedToModel.map(async (relationNameOrRelatedName) => {
-    const searchForRelatedModel:
-      | ModelFieldsWithIncludes<TIncludedModel, TIncludesOfIncluded, TFieldsOfIncluded, false, false, true, true>
-      | undefined = search ? (search as any)[relationNameOrRelatedName] : undefined;
-    const foreignKeyFieldRelatedToModel = associationsOfIncludedModel.find(
-      (association) => association[fieldToUseToGetRelationName] === relationNameOrRelatedName
-    );
-    const isToGetResultsWithSearch = foreignKeyFieldRelatedToModel && searchForRelatedModel && isSetOperation !== true;
+  const promises = filteredRelatedNamesDirectlyOrIndirectlyRelatedToModel.map(
+    async (relationNameOrRelatedName: string) => {
+      const searchForRelatedModel:
+        | ModelFieldsWithIncludes<TIncludedModel, TIncludesOfIncluded, TFieldsOfIncluded, false, false, true, true>
+        | undefined = search ? (search as any)[relationNameOrRelatedName] : undefined;
+      const foreignKeyFieldRelatedToModel = associationsOfIncludedModel.find(
+        (association: any) => association[fieldToUseToGetRelationName] === relationNameOrRelatedName
+      );
+      const isToGetResultsWithSearch =
+        foreignKeyFieldRelatedToModel && searchForRelatedModel && isSetOperation !== true;
 
-    const isToGetResultsWithoutSearch = foreignKeyFieldRelatedToModel;
+      const isToGetResultsWithoutSearch = foreignKeyFieldRelatedToModel;
 
-    const parametersForResultsFromRelatedModelsWithAndWithoutSearch = {
-      relatedField: foreignKeyFieldRelatedToModel as ForeignKeyField,
-      modelInstance: modelInstance,
-      useParsers: useParsers,
-      includedModelInstance: includedModelInstance,
-      includesOfModel: includesOfModel,
-      includesOfIncluded: includesOfIncluded,
-      fieldsOfModel: fieldsOfModel,
-      fieldsOfIncludedModel: fieldsOfIncludedModel,
-      searchForRelatedModel,
-      search,
-      results,
-      isDirectlyRelated,
-      queryData,
-      isSetOperation,
-      isRemoveOperation,
-      shouldRemove,
-      ordering,
-      limit,
-      offset,
-      shouldRemoveIncluded,
-      orderingOfIncluded,
-      limitOfIncluded,
-      offsetOfIncluded,
-      transaction,
-      isToPreventEvents,
-      palmaresTransaction,
-      resultToMergeWithData,
-      data
-    };
+      const parametersForResultsFromRelatedModelsWithAndWithoutSearch = {
+        relatedField: foreignKeyFieldRelatedToModel as ForeignKeyField,
+        modelInstance: modelInstance,
+        useParsers: useParsers,
+        includedModelInstance: includedModelInstance,
+        includesOfModel: includesOfModel,
+        includesOfIncluded: includesOfIncluded,
+        fieldsOfModel: fieldsOfModel,
+        fieldsOfIncludedModel: fieldsOfIncludedModel,
+        searchForRelatedModel,
+        search,
+        results,
+        isDirectlyRelated,
+        queryData,
+        isSetOperation,
+        isRemoveOperation,
+        shouldRemove,
+        ordering,
+        limit,
+        offset,
+        shouldRemoveIncluded,
+        orderingOfIncluded,
+        limitOfIncluded,
+        offsetOfIncluded,
+        transaction,
+        isToPreventEvents,
+        palmaresTransaction,
+        resultToMergeWithData,
+        data
+      };
 
-    if (isToGetResultsWithSearch) {
-      await resultsFromRelatedModelWithSearch(engine, parametersForResultsFromRelatedModelsWithAndWithoutSearch);
-    } else if (isToGetResultsWithoutSearch) {
-      await resultsFromRelatedModelsWithoutSearch(engine, parametersForResultsFromRelatedModelsWithAndWithoutSearch);
+      if (isToGetResultsWithSearch) {
+        await resultsFromRelatedModelWithSearch(engine, parametersForResultsFromRelatedModelsWithAndWithoutSearch);
+      } else if (isToGetResultsWithoutSearch) {
+        await resultsFromRelatedModelsWithoutSearch(engine, parametersForResultsFromRelatedModelsWithAndWithoutSearch);
+      }
     }
-  });
+  );
   await Promise.all(promises);
 }
 
@@ -1129,7 +1131,7 @@ async function resultsFromRelatedModels<
  * we loop through the data and get the results of the related models as well and then
  * we append this to the original object.
  */
-export default async function getResultsWithIncludes<
+export async function getResultsWithIncludes<
   TModel,
   TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>,
   TSearch extends ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true> | undefined = undefined,
@@ -1184,7 +1186,7 @@ export default async function getResultsWithIncludes<
     safeIncludes = includes
   ) {
     const modelInstanceAsModel = modelInstance as InstanceType<ReturnType<typeof model>> & BaseModel;
-    const modelConstructor = modelInstanceAsModel.constructor as ReturnType<typeof model> & typeof BaseModel;
+    const modelConstructor = modelInstanceAsModel.constructor as any;
 
     const safeSearch = Object.keys(search || {}).length > 0 ? search : undefined;
     const hasIncludes = (safeIncludes || []).length > 0;
@@ -1195,7 +1197,7 @@ export default async function getResultsWithIncludes<
         ReturnType<typeof model>
       > &
         BaseModel;
-      const includedModelConstructor = includedModelInstance.constructor as ReturnType<typeof model> & typeof BaseModel;
+      const includedModelConstructor = includedModelInstance.constructor as any;
 
       const allFieldsOfIncludedModel = Object.keys(includedModelInstance['fields']);
       const isDirectlyRelatedModel =

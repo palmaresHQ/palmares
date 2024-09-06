@@ -1,9 +1,9 @@
 /* eslint-disable ts/consistent-type-imports */
 import { databaseAdapter } from '@palmares/databases';
 
-import DrizzleFields from './fields';
-import DrizzleModels from './model';
-import DrizzleQuery from './query';
+import { fields as DrizzleFields } from './fields';
+import { models as DrizzleModels } from './model';
+import { query as DrizzleQuery } from './query';
 import { ReturnTypeByType } from './types';
 
 import type { DatabaseAdapter } from '@palmares/databases';
@@ -236,4 +236,5 @@ const drizzleDatabaseAdapter = databaseAdapter({
   }
 });
 
+export { drizzleDatabaseAdapter as DrizzleDatabaseAdapter };
 export default drizzleDatabaseAdapter;

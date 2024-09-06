@@ -24,7 +24,7 @@
  *
  * @returns - Returns the imported module.
  */
-export default async function imports<TImportResult>(
+export async function imports<TImportResult>(
   packageName: string,
   args?: {
     apiName?: string;

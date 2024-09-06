@@ -1,8 +1,8 @@
-import type ServerAdapter from './adapters';
-import type ServerlessAdapter from './adapters/serverless';
+import type { ServerAdapter } from './adapters';
+import type { ServerlessAdapter } from './adapters/serverless';
 import type { Middleware } from './middleware';
-import type Request from './request';
-import type Response from './response';
+import type { Request } from './request';
+import type { Response } from './response';
 import type { SettingsType2 } from '@palmares/core';
 
 export type AllServerSettingsType<TCustomServerSettings = unknown> = SettingsType2 &

@@ -1,5 +1,5 @@
 import type { Middleware } from '.';
-import type Request from '../request';
+import type { Request } from '../request';
 import type {
   RequestCache,
   RequestCredentials,
@@ -8,7 +8,7 @@ import type {
   RequestMode,
   RequestRedirect
 } from '../request/types';
-import type Response from '../response';
+import type { Response } from '../response';
 import type { StatusCodes } from '../response/status';
 
 /**

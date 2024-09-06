@@ -1,8 +1,8 @@
 import { SchemaAdapterNotImplementedError } from '../../exceptions';
 
 import type { SupportedSchemas } from '../../types';
-import type WithFallback from '../../utils';
-import type SchemaAdapter from '../index';
+import type { WithFallback } from '../../utils';
+import type { SchemaAdapter } from '../index';
 import type { AdapterToStringArgs, AdapterTranslateArgs, ErrorCodes } from '../types';
 
 export function fieldAdapter<
@@ -27,7 +27,7 @@ export function fieldAdapter<
     };
   };
 }
-export default class FieldAdapter {
+export class FieldAdapter {
   translate(
     _fieldAdapter: FieldAdapter,
     _args: AdapterTranslateArgs<SupportedSchemas>,

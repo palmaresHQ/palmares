@@ -1,5 +1,5 @@
-import type NumberSchema from '../schema/number';
-import type Schema from '../schema/schema';
+import type { NumberSchema } from '../schema/number';
+import type { Schema } from '../schema/schema';
 import type { ValidationFallbackReturnType } from '../schema/types';
 
 export function numberValidation(): ValidationFallbackReturnType {

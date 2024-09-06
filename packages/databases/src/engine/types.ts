@@ -1,5 +1,5 @@
-import type DatabaseAdapter from '.';
-import type EngineFields from './fields';
+import type { DatabaseAdapter } from '.';
+import type { AdapterFields as EngineFields } from './fields';
 import type {
   AdapterFieldParser,
   AutoField,

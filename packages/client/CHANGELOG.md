@@ -1,5 +1,23 @@
 # @palmares/client
 
+## 0.1.12
+
+### Patch Changes
+
+- removed all default exports
+
+## 0.1.11
+
+### Patch Changes
+
+- Add named exports so it can function properly
+
+## 0.1.10
+
+### Patch Changes
+
+- Fix module issues to allow palmares to run as a module as well as commonjs
+
 ## 0.1.9
 
 ### Patch Changes

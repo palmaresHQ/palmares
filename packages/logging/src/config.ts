@@ -1,4 +1,4 @@
-import type LoggingAdapter from './adapter';
+import type { LoggingAdapter } from './adapter';
 import type { LoggerArgumentsToFilterAndFormatters, LoggingTypes } from './types';
 
 const cachedLogging: Partial<

@@ -1,9 +1,8 @@
+import { ServerRequestAdapter } from './requests';
+import { ServerResponseAdapter } from './response';
+import { ServerlessRouterAdapter } from './routers/serverless';
 
-import ServerRequestAdapter from './requests';
-import ServerResponseAdapter from './response';
-import ServerlessRouterAdapter from './routers/serverless';
-
-import type { AllServerSettingsType, ServerSettingsType} from '../types';
+import type { AllServerSettingsType, ServerSettingsType } from '../types';
 import type { Domain } from '@palmares/core';
 
 /**
@@ -15,7 +14,7 @@ export function serverlessAdapter<
   TServerlessRouterAdapter extends ServerlessAdapter['routers'],
   TLoadFunction extends ServerlessAdapter['load'],
   TStartFunction extends ServerlessAdapter['generate'],
-  TCustomServerSettings extends (typeof ServerlessAdapter)['customServerSettings'],
+  TCustomServerSettings extends (typeof ServerlessAdapter)['customServerSettings']
 >(args: {
   /**
    * This is the {@link ServerRequestAdapter}. The request will hold all of the request data from the server, this way we can
@@ -54,7 +53,7 @@ export function serverlessAdapter<
   };
 }
 
-export default class ServerlessAdapter {
+export class ServerlessAdapter {
   serverName: string;
   settings: ServerSettingsType;
   allSettings: AllServerSettingsType;
@@ -63,7 +62,12 @@ export default class ServerlessAdapter {
   request: ServerRequestAdapter = new ServerRequestAdapter();
   response: ServerResponseAdapter = new ServerResponseAdapter();
 
-  constructor(serverName: string, allSettings:AllServerSettingsType,  settings: AllServerSettingsType['servers'][string], domains: Domain[]) {
+  constructor(
+    serverName: string,
+    allSettings: AllServerSettingsType,
+    settings: AllServerSettingsType['servers'][string],
+    domains: Domain[]
+  ) {
     this.serverName = serverName;
     this.settings = settings;
     this.allSettings = allSettings;

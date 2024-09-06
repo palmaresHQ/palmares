@@ -1,4 +1,4 @@
-import type DatabaseAdapter from '..';
+import type { DatabaseAdapter } from '..';
 
 export function adapterRemoveQuery<TFunctionQueryData extends AdapterRemoveQuery['queryData']>(args: {
   /**
@@ -40,7 +40,7 @@ export function adapterRemoveQuery<TFunctionQueryData extends AdapterRemoveQuery
   };
 }
 
-export default class AdapterRemoveQuery {
+export class AdapterRemoveQuery {
   /**
    * This query is used to remove a certain data from the database.
    *

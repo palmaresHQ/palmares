@@ -1,7 +1,7 @@
 import { ERR_MODULE_NOT_FOUND, getDefaultStd } from '@palmares/core';
 
-import MakeMigrations from './makemigrations';
-import Migrate from './migrate';
+import { MakeMigrations } from './makemigrations';
+import { Migrate } from './migrate';
 import { databaseLogger } from '../logging';
 
 import type { FoundMigrationsFileType, MigrationFileType } from './types';
@@ -12,7 +12,7 @@ import type { DatabaseSettingsType, InitializedEngineInstancesType, OptionalMake
  * Used for working with anything related to migrations inside of the project, from the automatic creation of migrations
  * to running the migrations and making the application and the database in sync.
  */
-export default class Migrations {
+export class Migrations {
   settings: DatabaseSettingsType;
   domains: DatabaseDomainInterface[];
 

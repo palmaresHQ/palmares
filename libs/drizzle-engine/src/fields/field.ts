@@ -2,7 +2,7 @@ import { adapterFieldParser } from '@palmares/databases';
 
 import type { AdapterFieldParserTranslateArgs } from '@palmares/databases';
 
-export default adapterFieldParser({
+export const fieldParser = adapterFieldParser({
   // eslint-disable-next-line ts/require-await
   translate: async (args: AdapterFieldParserTranslateArgs<any, any, any, any>) => {
     if (args.field.dbIndex) {

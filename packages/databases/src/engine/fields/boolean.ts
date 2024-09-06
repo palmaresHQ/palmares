@@ -180,7 +180,7 @@ export function adapterBooleanFieldParser<
  * translated directly with the `translate` method, all other field types should define a parser with the `translate` field, those will be injected
  * in the `DatabaseAdapter` class constructor.
  */
-export default class AdapterBooleanFieldParser {
+export class AdapterBooleanFieldParser {
   /**
    * @description
    * Used to translate the field to something that the database can understand. The `{@link AdapterFieldParser}` instance will be injected by default in the `translate` method.

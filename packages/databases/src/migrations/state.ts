@@ -1,11 +1,10 @@
 import { DefaultDuplicateFunctionNotCalledOnEngine } from './exceptions';
 import { defaultEngineDuplicate } from '../engine/utils';
-import model from '../models/model';
+import { model } from '../models/model';
 import { initializeModels } from '../models/utils';
 
-
 import type { FoundMigrationsFileType, OriginalOrStateModelsByNameType, StateModelsType } from './types';
-import type DatabaseAdapter from '../engine';
+import type { DatabaseAdapter } from '../engine';
 import type { BaseModel } from '../models/model';
 import type { InitializedModelsType } from '../types';
 
@@ -22,7 +21,7 @@ import type { InitializedModelsType } from '../types';
  * This is what the state is for. States keeps track of the state of the models at a specific moment in time based
  * on the migration files.
  */
-export default class State {
+export class State {
   modelsByName: StateModelsType = {};
   initializedModelsByName: OriginalOrStateModelsByNameType = {};
   stateNumber = 0;
@@ -79,7 +78,7 @@ export default class State {
     };
     const newModelInstance = new ModelClass() as InstanceType<ReturnType<typeof model>> & BaseModel;
 
-    this.modelsByName[modelName] = newModelInstance
+    this.modelsByName[modelName] = newModelInstance;
     return this.get(modelName);
   }
 
@@ -155,7 +154,7 @@ export default class State {
     if (wasInitialized)
       return {
         initializedModels: this.initializedModelsByName,
-        closeEngineInstance,
+        closeEngineInstance
       };
 
     const initializedModels = await this.initializeStateModels(duplicatedEngineInstance);
@@ -165,7 +164,7 @@ export default class State {
     }
     return {
       initializedModels: this.initializedModelsByName,
-      closeEngineInstance,
+      closeEngineInstance
     };
   }
 

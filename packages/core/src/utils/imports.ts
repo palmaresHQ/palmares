@@ -24,7 +24,7 @@
  *
  * @returns - Returns the imported module.
  */
-export default async function imports<R>(
+export async function imports<R>(
   packageName: string,
   args?: {
     packagePath?: string;
@@ -53,10 +53,8 @@ export default async function imports<R>(
   }
 ) {
   // This defaults to node error code,
-  const errorCodeToConsider =
-    typeof args?.errorCode === 'string' ? args.errorCode : 'MODULE_NOT_FOUND';
-  const packagePathToUse =
-    typeof args?.packagePath === 'string' ? args.packagePath : 'default';
+  const errorCodeToConsider = typeof args?.errorCode === 'string' ? args.errorCode : 'MODULE_NOT_FOUND';
+  const packagePathToUse = typeof args?.packagePath === 'string' ? args.packagePath : 'default';
   try {
     const module = await import(packageName);
     const splittedPackagePath: string[] = packagePathToUse.split('.');

@@ -1,8 +1,8 @@
-import FieldAdapter from '.';
+import { FieldAdapter } from '.';
 import { SchemaAdapterNotImplementedError } from '../../exceptions';
 
-import type SchemaAdapter from '..';
-import type WithFallback from '../../utils';
+import type { SchemaAdapter } from '..';
+import type { WithFallback } from '../../utils';
 import type { NumberAdapterTranslateArgs } from '../types';
 
 export function numberFieldAdapter<
@@ -28,7 +28,7 @@ export function numberFieldAdapter<
   };
 }
 
-export default class NumberFieldAdapter extends FieldAdapter {
+export class NumberFieldAdapter extends FieldAdapter {
   translate(_fieldAdapter: FieldAdapter, _args: NumberAdapterTranslateArgs): any | WithFallback<'number'> {}
 
   parse(

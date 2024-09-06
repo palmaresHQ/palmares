@@ -1,10 +1,9 @@
 import { Operation } from './operation';
 
 import type { CodeFunctionType } from './types';
-import type DatabaseAdapter from '../../engine';
-import type Migration from '../migrate/migration';
+import type { DatabaseAdapter } from '../../engine';
+import type { Migration } from '../migrate/migration';
 import type { OriginalOrStateModelsByNameType, StateModelsConstructorType } from '../types';
-
 
 /**
  * Run a Javascript function action, this action can make queries or requests.
@@ -65,8 +64,6 @@ export class RunJs extends Operation {
     for (const modelName of modelNamesAlreadyAvailable) {
       stateModels[modelName] = toState[modelName].class;
     }
-    await Promise.resolve(
-      this.code(migration, engineInstance, stateModels, returnOfInit)
-    );
+    await Promise.resolve(this.code(migration, engineInstance, stateModels, returnOfInit));
   }
 }

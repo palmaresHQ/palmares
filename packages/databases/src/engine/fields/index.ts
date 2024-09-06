@@ -1,22 +1,21 @@
-import AdapterAutoFieldParser from './auto';
-import AdapterBigAutoFieldParser from './big-auto';
-import AdapterBigIntegerFieldParser from './big-integer';
-import AdapterBooleanFieldParser from './boolean';
-import AdapterCharFieldParser from './char';
-import AdapterDateFieldParser from './date';
-import AdapterDecimalFieldParser from './decimal';
-import AdapterEnumFieldParser from './enum';
-import AdapterFieldParser from './field';
-import AdapterForeignKeyFieldParser from './foreign-key';
-import AdapterIntegerFieldParser from './integer';
-import AdapterTextFieldParser from './text';
-import AdapterUuidFieldParser from './uuid';
+import { AdapterAutoFieldParser } from './auto';
+import { AdapterBigAutoFieldParser } from './big-auto';
+import { AdapterBigIntegerFieldParser } from './big-integer';
+import { AdapterBooleanFieldParser } from './boolean';
+import { AdapterCharFieldParser } from './char';
+import { AdapterDateFieldParser } from './date';
+import { AdapterDecimalFieldParser } from './decimal';
+import { AdapterEnumFieldParser } from './enum';
+import { AdapterFieldParser } from './field';
+import { AdapterForeignKeyFieldParser } from './foreign-key';
+import { AdapterIntegerFieldParser } from './integer';
+import { AdapterTextFieldParser } from './text';
+import { AdapterUuidFieldParser } from './uuid';
 import { NotImplementedAdapterFieldsException } from '../exceptions';
 
-import type Adapter from '..';
+import type { DatabaseAdapter as Adapter } from '..';
 import type { Model } from '../../models';
 import type { Field } from '../../models/fields';
-
 
 /**
  * Functional approach to create a custom {@link AdapterFields} class.
@@ -36,7 +35,7 @@ export function adapterFields<
   TEnumFieldParser extends AdapterEnumFieldParser,
   TBooleanFieldParser extends AdapterBooleanFieldParser,
   TLazyEvaluateField extends AdapterFields['lazyEvaluateField'],
-  TTranslateField extends AdapterFields['translateField'],
+  TTranslateField extends AdapterFields['translateField']
 >(args: {
   /** An {@link AdapterFieldParser}, it allows you to have a default translate function for all fields. By default, the translate function will receive the fields parser */
   fieldsParser: TFieldsParser;
@@ -69,7 +68,7 @@ export function adapterFields<
    * ```ts
    * // First, on your FieldParser you need to call the `lazyEvaluate` function, what you pass to it, will be passed to this method on `_fieldTranslated`.
    *
-   * export default class SequelizeAdapterForeignKeyFieldParser extends AdapterForeignKeyFieldParser {
+   * export class SequelizeAdapterForeignKeyFieldParser extends AdapterForeignKeyFieldParser {
    *   async translate(args: {
    *     Adapter: SequelizeAdapter;
    *     field: ForeignKeyField;
@@ -89,7 +88,7 @@ export function adapterFields<
    *
    * // Then, on your AdapterFields you need to implement the `lazyEvaluateField` method.
    *
-   * export default class SequelizeAdapterFields extends AdapterFields {
+   * export class SequelizeAdapterFields extends AdapterFields {
    *   async lazyEvaluateField(
    *     Adapter: SequelizeAdapter,
    *     _modelName: string,
@@ -175,8 +174,12 @@ export function adapterFields<
 }) {
   class CustomAdapterFields extends AdapterFields {
     fieldsParser = args.fieldsParser;
-    autoFieldParser = (typeof args.autoFieldParser === 'function' ? args.autoFieldParser : args.integerFieldParser) as unknown as TAutoFieldParser ;
-    bigAutoFieldParser = (typeof args.bigAutoFieldParser === 'function' ? args.bigAutoFieldParser : args.bigIntegerFieldParser) as unknown as TBigAutoFieldParser;
+    autoFieldParser = (typeof args.autoFieldParser === 'function'
+      ? args.autoFieldParser
+      : args.integerFieldParser) as unknown as TAutoFieldParser;
+    bigAutoFieldParser = (typeof args.bigAutoFieldParser === 'function'
+      ? args.bigAutoFieldParser
+      : args.bigIntegerFieldParser) as unknown as TBigAutoFieldParser;
     bigIntegerFieldParser = args.bigIntegerFieldParser;
     charFieldParser = args.charFieldParser;
     dateFieldParser = args.dateFieldParser;
@@ -217,7 +220,7 @@ export function adapterFields<
  * that will store all of the fields in the object and then we have the `get` method that will return
  * the fields translated to a way that the ORM can understand.
  */
-export default class AdapterFields {
+export class AdapterFields {
   /** An {@link AdapterFieldParser}, it allows you to have a default translate function for all fields. By default, the translate function will receive the fields parser */
   fieldsParser: AdapterFieldParser = new AdapterFieldParser();
   autoFieldParser: AdapterAutoFieldParser = new AdapterAutoFieldParser();
@@ -248,7 +251,7 @@ export default class AdapterFields {
    * ```ts
    * // First, on your FieldParser you need to call the `lazyEvaluate` function, what you pass to it, will be passed to this method on `_fieldTranslated`.
    *
-   * export default class SequelizeAdapterForeignKeyFieldParser extends AdapterForeignKeyFieldParser {
+   * export class SequelizeAdapterForeignKeyFieldParser extends AdapterForeignKeyFieldParser {
    *   async translate(args: {
    *     Adapter: SequelizeAdapter;
    *     field: ForeignKeyField;
@@ -268,7 +271,7 @@ export default class AdapterFields {
    *
    * // Then, on your AdapterFields you need to implement the `lazyEvaluateField` method.
    *
-   * export default class SequelizeAdapterFields extends AdapterFields {
+   * export class SequelizeAdapterFields extends AdapterFields {
    *   async lazyEvaluateField(
    *     Adapter: SequelizeAdapter,
    *     _modelName: string,

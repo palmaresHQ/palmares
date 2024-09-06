@@ -1,2 +1,2 @@
-export { default as Domain } from './domain';
-export { default as domain } from './function';
+export { Domain } from './domain';
+export { domain } from './function';

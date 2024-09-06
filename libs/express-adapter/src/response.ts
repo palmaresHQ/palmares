@@ -2,7 +2,7 @@ import { FileLike, serverResponseAdapter } from '@palmares/server';
 
 import type { Response } from 'express';
 
-export default serverResponseAdapter({
+export const responseAdapter = serverResponseAdapter({
   // eslint-disable-next-line ts/require-await
   redirect: async (_server, serverRequestAndResponseData, status, headers, redirectTo) => {
     const { res } = serverRequestAndResponseData as { res: Response };

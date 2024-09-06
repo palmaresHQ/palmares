@@ -1,6 +1,6 @@
-import type Response from '.';
+import type { Response } from '.';
 import type { Middleware } from '../middleware';
-import type Request from '../request';
+import type { Request } from '../request';
 import type { BaseRouter } from '../router/routers';
 import type { DefaultRouterType, ExtractAllHandlersType } from '../router/types';
 

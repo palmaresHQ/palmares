@@ -1,6 +1,6 @@
-import TextField from './text';
+import { TextField } from './text';
 
-import type Field from './field';
+import type { Field } from './field';
 import type { MaybeNull, UUIDFieldParamsType } from './types';
 import type { This } from '../../types';
 
@@ -54,7 +54,7 @@ export function uuid<
  * const uuidField = UuidField.new({ defaultValue: `9962b833-f2ac-4ce4-914c-8eee93e14772` });
  * ```
  */
-export default class UuidField<
+export class UuidField<
   TType extends { input: string; output: string } = { input: string; output: string },
   TField extends Field = any,
   TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,

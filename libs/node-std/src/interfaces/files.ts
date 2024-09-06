@@ -4,7 +4,7 @@ import { env } from 'process';
 
 import type { FilesAndFolders } from '@palmares/core';
 
-export default class FilesAndFoldersNode implements FilesAndFolders {
+export class FilesAndFoldersNode implements FilesAndFolders {
   async basename(path: string | string[]): Promise<string> {
     const pathToUse = Array.isArray(path) ? await this.join(...path) : path;
     return basename(pathToUse);

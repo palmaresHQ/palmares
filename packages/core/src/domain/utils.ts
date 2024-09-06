@@ -1,4 +1,4 @@
-import Domain from './domain';
+import { Domain } from './domain';
 import { NotAValidDomainDefaultExportedError } from './exceptions';
 import { getCommands } from '../commands';
 import { getSettings, setSettings } from '../conf/settings';
@@ -7,7 +7,7 @@ import type { DomainReadyFunctionArgs } from './types';
 import type { AppServer, appServer } from '../app';
 import type { DefaultCommandType } from '../commands/types';
 import type { CoreSettingsType, SettingsType2 } from '../conf/types';
-import type Std from '../std-adapter';
+import type { Std } from '../std-adapter';
 
 let cachedDomains: (typeof Domain)[] | null = null;
 let cachedInitializedDomains: Domain<any>[] | null = null;

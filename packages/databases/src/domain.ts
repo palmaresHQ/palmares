@@ -1,9 +1,9 @@
 import { domain } from '@palmares/core';
 
 import { makeMigrations, migrate } from './commands';
-import Databases from './databases';
+import { Databases } from './databases';
 import { defaultMigrations, defaultModels } from './defaults';
-import defaultSettings from './settings';
+import { defaultSettings } from './settings';
 
 import type { DatabaseAdapter } from '.';
 import type { DatabaseDomainInterface } from './interfaces';
@@ -32,7 +32,7 @@ const databaseDomainModifier = domain<{
 
 export { databaseDomainModifier };
 
-export default domain('@palmares/database', '', {
+export const databasesDomain = domain('@palmares/database', '', {
   modifiers: [databaseDomainModifier] as const,
   commands: {
     makemigrations: {

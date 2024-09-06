@@ -2,7 +2,7 @@ import type { InstalledDomainsType } from './types';
 
 const defaultInstalledDomains: InstalledDomainsType = [];
 
-export default {
+export const defaultConfig = {
   BASE_PATH: '.',
   ADAPTER: '@palmares/express-adapter',
   ROOT_URLCONF: '',
@@ -13,5 +13,5 @@ export default {
   DEBUG: true,
   APP_NAME: 'palmares',
   INSTALLED_DOMAINS: defaultInstalledDomains,
-  LOGGING: {},
+  LOGGING: {}
 };

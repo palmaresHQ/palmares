@@ -1,5 +1,5 @@
 import { ModelCircularAbstractError, ModelNoUniqueFieldsError } from './exceptions';
-import Manager, { DefaultManager } from './manager';
+import { DefaultManager, Manager } from './manager';
 import { factoryFunctionForModelTranslate, getDefaultModelOptions, indirectlyRelatedModels } from './utils';
 import { getUniqueCustomImports, hashString } from '../utils';
 
@@ -13,7 +13,7 @@ import type {
   onRemoveFunction,
   onSetFunction
 } from './types';
-import type DatabaseAdapter from '../engine';
+import type { DatabaseAdapter } from '../engine';
 import type { ExtractFieldsFromAbstracts, ExtractManagersFromAbstracts } from '../types';
 
 export class BaseModel {
@@ -579,7 +579,7 @@ export class Model extends BaseModelWithoutMethods {
  * This function is needed so we can add the type to the DefaultManager. This will help keeping the API simple for the
  * end user without complicating too much stuff.
  */
-export default function model<TModel>() {
+export function model<TModel>() {
   let defaultManagerInstance: any = null;
 
   class DefaultModel extends Model {

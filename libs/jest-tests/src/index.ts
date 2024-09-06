@@ -2,8 +2,8 @@
 import { TestAdapter } from '@palmares/tests';
 import { run as runJest } from 'jest';
 
-import JestExpectAdapter from './expect';
-import JestTestFunctionsAdapter from './functions';
+import { JestExpectAdapter } from './expect';
+import { JestTestFunctionsAdapter } from './functions';
 
 let defaultConfig: import('jest').Config = {
   preset: 'ts-jest',
@@ -13,7 +13,7 @@ let defaultConfig: import('jest').Config = {
 
 let cliOptions: string[] = [];
 
-export default class JestTestAdapter extends TestAdapter {
+class JestTestAdapter extends TestAdapter {
   functions = new JestTestFunctionsAdapter();
   expect = new JestExpectAdapter();
 
@@ -102,3 +102,6 @@ export default class JestTestAdapter extends TestAdapter {
     return this;
   }
 }
+
+export { JestTestAdapter };
+export { JestTestAdapter as default };

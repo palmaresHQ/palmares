@@ -1,5 +1,5 @@
-import type DatetimeSchema from '../schema/datetime';
-import type Schema from '../schema/schema';
+import type { DatetimeSchema } from '../schema/datetime';
+import type { Schema } from '../schema/schema';
 import type { ValidationFallbackReturnType } from '../schema/types';
 
 export function datetimeValidation(): ValidationFallbackReturnType {

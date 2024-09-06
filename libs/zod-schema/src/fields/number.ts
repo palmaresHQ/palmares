@@ -3,7 +3,7 @@ import * as z from 'zod';
 
 import type { FieldAdapter, NumberAdapterToStringArgs, SchemaAdapter } from '@palmares/schemas';
 
-export default numberFieldAdapter({
+export const numberAdapter = numberFieldAdapter({
   translate: (fieldAdapter, args) => {
     let result: z.ZodNumber | z.ZodEffects<z.ZodNumber, number, number> = z.number({
       errorMap: (issue) => {

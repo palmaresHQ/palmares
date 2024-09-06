@@ -1,3 +1,4 @@
-import DrizzleEngine from './engine';
+import { DrizzleDatabaseAdapter } from './engine';
 
-export default DrizzleEngine;
+export { DrizzleDatabaseAdapter };
+export default DrizzleDatabaseAdapter;

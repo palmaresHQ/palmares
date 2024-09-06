@@ -1,5 +1,32 @@
 # @examples/schemas
 
+## 0.0.24
+
+### Patch Changes
+
+- removed all default exports
+- Updated dependencies
+  - @palmares/schemas@0.1.19
+  - @palmares/zod-schema@0.1.21
+
+## 0.0.23
+
+### Patch Changes
+
+- Add named exports so it can function properly
+- Updated dependencies
+  - @palmares/schemas@0.1.18
+  - @palmares/zod-schema@0.1.20
+
+## 0.0.22
+
+### Patch Changes
+
+- Fix module issues to allow palmares to run as a module as well as commonjs
+- Updated dependencies
+  - @palmares/zod-schema@0.1.19
+  - @palmares/schemas@0.1.17
+
 ## 0.0.21
 
 ### Patch Changes

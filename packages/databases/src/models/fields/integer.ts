@@ -1,4 +1,4 @@
-import Field from './field';
+import { Field } from './field';
 
 import type { FieldDefaultParamsType, MaybeNull } from './types';
 import type { This } from '../../types';
@@ -53,7 +53,7 @@ export function integer<
  * const IntegerField = IntegerField.new({ databaseName: 'user_id' });
  * ```
  */
-export default class IntegerField<
+export class IntegerField<
   TType extends { input: number; output: number } = {
     input: number;
     output: number;

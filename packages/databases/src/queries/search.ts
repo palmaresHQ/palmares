@@ -1,4 +1,4 @@
-import type DatabaseAdapter from '../engine';
+import type { DatabaseAdapter } from '../engine';
 import type { BaseModel, model } from '../models';
 import type { FieldWithOperationType } from '../models/types';
 
@@ -205,7 +205,7 @@ async function parseSearchField(
  *
  * @returns The parsed search, translated to the database engine so we can make a query.
  */
-export default async function parseSearch(
+export async function parseSearch(
   engine: DatabaseAdapter,
   modelInstance: InstanceType<ReturnType<typeof model>>,
   translatedModelInstance: any,

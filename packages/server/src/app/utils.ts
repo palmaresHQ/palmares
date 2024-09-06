@@ -5,8 +5,8 @@ import {
   RedirectionStatusCodesMustHaveALocationHeaderError,
   ResponseNotReturnedFromResponseOnMiddlewareError
 } from './exceptions';
-import ServerAdapter from '../adapters';
-import ServerlessAdapter from '../adapters/serverless';
+import { ServerAdapter } from '../adapters';
+import { ServerlessAdapter } from '../adapters/serverless';
 import {
   DEFAULT_NOT_FOUND_STATUS_TEXT_MESSAGE,
   DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY,
@@ -15,15 +15,15 @@ import {
 } from '../defaults';
 import { errorCaptureHandler } from '../handlers';
 import { serverLogger } from '../logging';
-import Request from '../request';
-import Response from '../response';
+import { Request } from '../request';
+import { Response } from '../response';
 import { HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR, isRedirect } from '../response/status';
 import { AsyncGeneratorFunction, FileLike, GeneratorFunction } from '../response/utils';
 import { path } from '../router';
 
-import type ServerRequestAdapter from '../adapters/requests';
-import type ServerResponseAdapter from '../adapters/response';
-import type ServerRouterAdapter from '../adapters/routers';
+import type { ServerRequestAdapter } from '../adapters/requests';
+import type { ServerResponseAdapter } from '../adapters/response';
+import type { ServerRouterAdapter } from '../adapters/routers';
 import type { HandlerForServerless } from '../adapters/routers/serverless';
 import type { ServerDomain } from '../domain/types';
 import type { Middleware } from '../middleware';

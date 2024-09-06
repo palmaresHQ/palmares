@@ -1,7 +1,7 @@
 import { BigAutoField } from '../..';
 import { EngineDoesNotSupportFieldTypeException } from '../../models/exceptions';
 
-import type AdapterFieldParser from './field';
+import type { AdapterFieldParser } from './field';
 import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateArgs } from '../..';
 
 /**
@@ -18,7 +18,7 @@ import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateA
 export function adapterBigAutoFieldParser<
   TTranslateFunction extends AdapterBigAutoFieldParser['translate'],
   TInputParserFunction extends Required<AdapterBigAutoFieldParser>['inputParser'],
-  TOutputParserFunction extends Required<AdapterBigAutoFieldParser>['outputParser'],
+  TOutputParserFunction extends Required<AdapterBigAutoFieldParser>['outputParser']
 >(args: {
   /**
    * @description
@@ -181,7 +181,7 @@ export function adapterBigAutoFieldParser<
  * translated directly with the `translate` method, all other field types should define a parser with the `translate` field, those will be injected
  * in the `DatabaseAdapter` class constructor.
  */
-export default class AdapterBigAutoFieldParser {
+export class AdapterBigAutoFieldParser {
   /**
    * @description
    * Used to translate the field to something that the database can understand. The `{@link AdapterFieldParser}` instance will be injected by default in the `translate` method.

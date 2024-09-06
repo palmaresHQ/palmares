@@ -1,6 +1,6 @@
-import EventEmitter from './events';
+import { EventEmitter } from './events';
 
-import type Emitter from './emitter';
+import type { Emitter } from './emitter';
 import type { EventEmitterOptionsType } from './events/types';
 
 let runningEventsServer: EventsServer<Emitter>;
@@ -72,7 +72,7 @@ export class EventsServer<TEmitter extends Emitter> extends EventEmitter<TEmitte
   }
 }
 
-export default async function eventsServer<TEmitter extends typeof Emitter = typeof Emitter>(
+export async function eventsServer<TEmitter extends typeof Emitter = typeof Emitter>(
   emitter: Promise<{ default: TEmitter }> | TEmitter,
   options?: EventEmitterOptionsType & {
     emitterParams?: Parameters<TEmitter['new']>;

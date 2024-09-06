@@ -1,6 +1,6 @@
 import { domain } from '@palmares/core';
 
-import eventsAppServer from './app';
+import { eventsAppServer } from './app';
 
 import type { EventHandlerType } from './interfaces';
 
@@ -10,7 +10,7 @@ export const eventsDomainModifier = domain<{
   }>;
 }>('@palmares/events', '', {});
 
-export default domain('@palmares/events', '', {
+export const eventsDomain = domain('@palmares/events', '', {
   commands: {
     eventsServer: {
       description: 'Run the application in events server mode',

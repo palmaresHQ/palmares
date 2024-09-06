@@ -1,4 +1,4 @@
-export default interface FilesAndFolders {
+export interface FilesAndFolders {
   readFromEnv: <T = string>(envName: string) => Promise<T>;
   /**
    * Reads a file from the path, if the path is an array of strings, join the strings with .join() and then work normally

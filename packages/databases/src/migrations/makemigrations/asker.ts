@@ -39,4 +39,4 @@ class Asker {
   }
 }
 
-export default new Asker();
+export const asker = new Asker();

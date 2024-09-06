@@ -1,27 +1,27 @@
 import { SchemaAdapter } from '@palmares/schemas';
 import * as z from 'zod';
 
-import ZodFieldSchemaAdapter from './fields';
-import ZodArrayFieldSchemaAdapter from './fields/array';
-import ZodBooleanFieldSchemaAdapter from './fields/boolean';
-import ZodDatetimeFieldSchemaAdapter from './fields/datetime';
-import ZodNumberFieldSchemaAdapter from './fields/number';
-import ZodObjectFieldSchemaAdapter from './fields/object';
-import ZodStringFieldSchemaAdapter from './fields/string';
-import ZodUnionFieldSchemaAdapter from './fields/union';
+import { defaultFieldAdapter } from './fields';
+import { arrayAdapter } from './fields/array';
+import { booleanAdapter } from './fields/boolean';
+import { datetimeAdapter } from './fields/datetime';
+import { numberAdapter } from './fields/number';
+import { objectAdapter } from './fields/object';
+import { stringAdapter } from './fields/string';
+import { unionAdapter } from './fields/union';
 
 import type { ErrorCodes } from '@palmares/schemas';
 
 export { z };
 export class ZodSchemaAdapter extends SchemaAdapter {
-  field = new ZodFieldSchemaAdapter();
-  number = new ZodNumberFieldSchemaAdapter();
-  object = new ZodObjectFieldSchemaAdapter();
-  union = new ZodUnionFieldSchemaAdapter();
-  boolean = new ZodBooleanFieldSchemaAdapter();
-  string = new ZodStringFieldSchemaAdapter();
-  datetime = new ZodDatetimeFieldSchemaAdapter();
-  array = new ZodArrayFieldSchemaAdapter();
+  field = new defaultFieldAdapter();
+  number = new numberAdapter();
+  object = new objectAdapter();
+  union = new unionAdapter();
+  boolean = new booleanAdapter();
+  string = new stringAdapter();
+  datetime = new datetimeAdapter();
+  array = new arrayAdapter();
   // eslint-disable-next-line ts/require-await
   async formatError(error: z.ZodIssue) {
     return {

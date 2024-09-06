@@ -1,10 +1,10 @@
-import Migration from './migration';
+import { Migration } from './migration';
 import { PalmaresMigrations } from '../../defaults/models';
 import { databaseLogger } from '../../logging';
-import State from '../state';
+import { State } from '../state';
 
 import type { MigrationsToAddAfterIterationType } from './type';
-import type DatabaseAdapter from '../../engine';
+import type { DatabaseAdapter } from '../../engine';
 import type { DatabaseSettingsType, InitializedEngineInstancesType } from '../../types';
 import type { FoundMigrationsFileType } from '../types';
 
@@ -12,7 +12,7 @@ import type { FoundMigrationsFileType } from '../types';
  * This class holds the logic for evaluating migrations, usually evaluating migrations is simple because we just
  * need to build and call the `Migration` class.
  */
-export default class Migrate {
+export class Migrate {
   settings: DatabaseSettingsType;
   migrationsToAddAfterIteration: MigrationsToAddAfterIterationType[] = [];
 
@@ -94,7 +94,7 @@ export default class Migrate {
       // Run the migrations in batch, so just get the current state and let the ORM handle the rest.
       if (engineInstance.migrations?.batchAll) {
         databaseLogger.logMessage('MIGRATION_RUNNING_IN_BATCH', {
-          databaseName: engineInstance.connectionName,
+          databaseName: engineInstance.connectionName
         });
 
         let returnOfInit: any = undefined;
@@ -116,9 +116,11 @@ export default class Migrate {
 
         if (engineInstance.migrations?.batchAll === undefined) {
           databaseLogger.logMessage('MIGRATIONS_RUNNING_FILE_NAME', {
-            title: migrationName,
+            title: migrationName
           });
-          connectionsToClose = connectionsToClose.concat(await Migration.buildFromFile(engineInstance, migrationFile, allMigrationsOfDatabase));
+          connectionsToClose = connectionsToClose.concat(
+            await Migration.buildFromFile(engineInstance, migrationFile, allMigrationsOfDatabase)
+          );
         }
 
         await this.saveMigration(migrationName, engineInstance.connectionName);
@@ -127,7 +129,7 @@ export default class Migrate {
       await Promise.allSettled(connectionsToClose.map((closeConnection) => closeConnection()));
     } else {
       databaseLogger.logMessage('MIGRATIONS_NO_NEW_MIGRATIONS', {
-        databaseName: engineInstance.connectionName,
+        databaseName: engineInstance.connectionName
       });
     }
   }

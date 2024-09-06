@@ -1,7 +1,7 @@
-import TestExpectAdapter from './expect';
-import TestFunctionsAdapter from './functions';
+import { TestExpectAdapter } from './expect';
+import { TestFunctionsAdapter } from './functions';
 
-export default class TestAdapter {
+export class TestAdapter {
   functions = new TestFunctionsAdapter();
   expect = new TestExpectAdapter();
 

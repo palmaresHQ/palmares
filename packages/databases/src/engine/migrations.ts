@@ -1,10 +1,9 @@
 import { NotImplementedAdapterException } from './exceptions';
 
-import type DatabaseAdapter from '.';
-import type Migration from '../migrations/migrate/migration';
+import type { DatabaseAdapter } from '.';
+import type { Migration } from '../migrations/migrate/migration';
 import type { Field } from '../models/fields';
 import type { InitializedModelsType } from '../types';
-
 
 /**
  * Functional approach for the migrations. This is used to run the migrations.
@@ -15,16 +14,16 @@ import type { InitializedModelsType } from '../types';
  * Or you can opt in to batchAll and let your ORM handle the migrations.
  */
 export function adapterMigrations<
-  TFunctionBatchAll extends AdapterMigration['batchAll'],
-  TFunctionInit extends AdapterMigration['init'],
-  TFunctionAddModel extends AdapterMigration['addModel'],
-  TFunctionRemoveModel extends AdapterMigration['removeModel'],
-  TFunctionChangeModel extends AdapterMigration['changeModel'],
-  TFunctionAddField extends AdapterMigration['addField'],
-  TFunctionChangeField extends AdapterMigration['changeField'],
-  TFunctionRenameField extends AdapterMigration['renameField'],
-  TFunctionRemoveField extends AdapterMigration['removeField'],
-  TFunctionFinish extends AdapterMigration['finish'],
+  TFunctionBatchAll extends AdapterMigrations['batchAll'],
+  TFunctionInit extends AdapterMigrations['init'],
+  TFunctionAddModel extends AdapterMigrations['addModel'],
+  TFunctionRemoveModel extends AdapterMigrations['removeModel'],
+  TFunctionChangeModel extends AdapterMigrations['changeModel'],
+  TFunctionAddField extends AdapterMigrations['addField'],
+  TFunctionChangeField extends AdapterMigrations['changeField'],
+  TFunctionRenameField extends AdapterMigrations['renameField'],
+  TFunctionRemoveField extends AdapterMigrations['removeField'],
+  TFunctionFinish extends AdapterMigrations['finish']
 >(args: {
   /**
    * This function is COMPLETELY optional and allows you to batch all of the migrations on a single function. By default we run each migration file one by one, but for stuff like Prisma
@@ -337,7 +336,7 @@ export function adapterMigrations<
    */
   finish?: TFunctionFinish;
 }) {
-  class CustomAdapterMigration extends AdapterMigration {
+  class CustomAdapterMigrations extends AdapterMigrations {
     batchAll = args.batchAll as TFunctionBatchAll;
     init = args.init as TFunctionInit;
     addModel = args.addModel;
@@ -350,8 +349,8 @@ export function adapterMigrations<
     finish = args.finish as TFunctionFinish;
   }
 
-  return CustomAdapterMigration as typeof AdapterMigration & {
-    new (): AdapterMigration & {
+  return CustomAdapterMigrations as typeof AdapterMigrations & {
+    new (): AdapterMigrations & {
       batchAll: TFunctionBatchAll;
       init: TFunctionInit;
       addModel: TFunctionAddModel;
@@ -372,7 +371,7 @@ export function adapterMigrations<
  * This can run FOR EACH MIGRATION FILE. So if you have 10 migration files this flow will run 10 times.
  * Or you can opt in to batchAll and let your ORM handle the migrations.
  */
-export default class AdapterMigration {
+export class AdapterMigrations {
   /**
    * This function is COMPLETELY optional and allows you to batch all of the migrations on a single function. By default we run each migration file one by one, but for stuff like Prisma
    * we do not have this option. Prisma already migrates everything on a single command. So what we do is that instead of running each migration file one by one we run all of them at once.

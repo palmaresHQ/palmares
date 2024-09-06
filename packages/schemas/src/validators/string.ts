@@ -1,7 +1,7 @@
 import { type ValidationFallbackReturnType } from '../schema/types';
 
-import type Schema from '../schema/schema';
-import type StringSchema from '../schema/string';
+import type { Schema } from '../schema/schema';
+import type { StringSchema } from '../schema/string';
 
 export function stringValidation(): ValidationFallbackReturnType {
   return {

@@ -1,4 +1,4 @@
-import type TestAdapter from './adapter';
+import type { TestAdapter } from './adapter';
 
 export type Expect<TValue, TIsNot extends boolean = false, TIsEventually extends boolean = false> = {
   not: Expect<TValue, true, false>;
@@ -37,7 +37,7 @@ export type Expect<TValue, TIsNot extends boolean = false, TIsEventually extends
       }
     : unknown);
 
-export default function getExpect<TValue, TIsNot extends boolean = false, TIsEventually extends boolean = false>(
+export function getExpect<TValue, TIsNot extends boolean = false, TIsEventually extends boolean = false>(
   value: TValue,
   testAdapter: TestAdapter,
   isNot: TIsNot = false as TIsNot,

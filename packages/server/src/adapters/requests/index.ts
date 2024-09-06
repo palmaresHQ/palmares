@@ -1,2 +1,2 @@
-export { default as default } from './class';
-export { default as serverRequestAdapter } from './function';
+export { ServerRequestAdapter } from './class';
+export { serverRequestAdapter } from './function';

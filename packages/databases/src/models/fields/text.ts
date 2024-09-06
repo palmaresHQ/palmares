@@ -1,4 +1,4 @@
-import Field from './field';
+import { Field } from './field';
 
 import type { MaybeNull, TextFieldParamsType } from './types';
 import type { This } from '../../types';
@@ -44,7 +44,7 @@ export function text<
  * const textField = TextField.new({ defaultValue: false });
  * ```
  */
-export default class TextField<
+export class TextField<
   TType extends { input: string; output: string } = { input: string; output: string },
   TField extends Field = any,
   TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,

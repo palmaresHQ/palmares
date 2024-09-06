@@ -1,8 +1,8 @@
-import AdapterFieldParser from './field';
+import { AdapterFieldParser } from './field';
 import { ForeignKeyField } from '../..';
 import { EngineDoesNotSupportFieldTypeException } from '../../models/exceptions';
 
-import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateArgs} from '../..';
+import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateArgs } from '../..';
 
 /**
  * Functional approach to create a custom field parser.
@@ -18,7 +18,7 @@ import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateA
 export function adapterForeignKeyFieldParser<
   TTranslateFunction extends AdapterForeignKeyFieldParser['translate'],
   TInputParserFunction extends Required<AdapterForeignKeyFieldParser>['inputParser'],
-  TOutputParserFunction extends Required<AdapterForeignKeyFieldParser>['outputParser'],
+  TOutputParserFunction extends Required<AdapterForeignKeyFieldParser>['outputParser']
 >(args: {
   /**
    * @description
@@ -181,7 +181,7 @@ export function adapterForeignKeyFieldParser<
  * translated directly with the `translate` method, all other field types should define a parser with the `translate` field, those will be injected
  * in the `DatabaseAdapter` class constructor.
  */
-export default class AdapterForeignKeyFieldParser {
+export class AdapterForeignKeyFieldParser {
   /**
    * @description
    * Used to translate the field to something that the database can understand. The `{@link AdapterFieldParser}` instance will be injected by default in the `translate` method.

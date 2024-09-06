@@ -1,7 +1,7 @@
-import type Domain from '../domain/domain';
-import type domain from '../domain/function';
+import type { Domain } from '../domain/domain';
+import type { domain } from '../domain/function';
 import type { DomainReadyFunctionArgs } from '../domain/types';
-import type Std from '../std-adapter';
+import type { Std } from '../std-adapter';
 import type { Narrow } from '../utils';
 
 export type ValidateDomains<

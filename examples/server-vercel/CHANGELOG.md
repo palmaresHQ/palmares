@@ -1,5 +1,44 @@
 # @palmares/server-vercel
 
+## 0.0.16
+
+### Patch Changes
+
+- removed all default exports
+- Updated dependencies
+  - @palmares/console-logging@0.1.6
+  - @palmares/vercel-adapter@0.0.16
+  - @palmares/logging@0.1.12
+  - @palmares/server@0.1.12
+  - @palmares/node-std@0.1.12
+  - @palmares/core@0.1.12
+
+## 0.0.15
+
+### Patch Changes
+
+- Add named exports so it can function properly
+- Updated dependencies
+  - @palmares/console-logging@0.1.5
+  - @palmares/vercel-adapter@0.0.15
+  - @palmares/logging@0.1.11
+  - @palmares/server@0.1.11
+  - @palmares/node-std@0.1.11
+  - @palmares/core@0.1.11
+
+## 0.0.14
+
+### Patch Changes
+
+- Fix module issues to allow palmares to run as a module as well as commonjs
+- Updated dependencies
+  - @palmares/console-logging@0.1.4
+  - @palmares/node-std@0.1.10
+  - @palmares/vercel-adapter@0.0.14
+  - @palmares/core@0.1.10
+  - @palmares/logging@0.1.10
+  - @palmares/server@0.1.10
+
 ## 0.0.13
 
 ### Patch Changes

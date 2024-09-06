@@ -1,6 +1,6 @@
-import TextField from './text';
+import { TextField } from './text';
 
-import type Field from './field';
+import type { Field } from './field';
 import type { CharFieldParamsType, MaybeNull } from './types';
 import type { This } from '../../types';
 
@@ -50,7 +50,7 @@ export function char<
  * const charField = CharField.new({ maxLength: 140, defaultValue: false });
  * ```
  */
-export default class CharField<
+export class CharField<
   TType extends { input: string; output: string } = { input: string; output: string },
   TField extends Field = any,
   TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,

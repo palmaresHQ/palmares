@@ -1,4 +1,4 @@
-import type DatabaseAdapter from '..';
+import type { DatabaseAdapter } from '..';
 
 export function adapterSetQuery<TFunctionQueryData extends AdapterSetQuery['queryData']>(args: {
   /**
@@ -59,7 +59,7 @@ export function adapterSetQuery<TFunctionQueryData extends AdapterSetQuery['quer
   };
 }
 
-export default class AdapterSetQuery {
+export class AdapterSetQuery {
   /**
    * This is a simple upsert query, by default you should always implement this function in your AdapterSetQuery.
    *

@@ -1,8 +1,8 @@
 import { getSettings, initializeApp } from '@palmares/core';
 
-import httpAppServer from './app';
+import { httpAppServer } from './app';
 
-export default function runServerWhenTesting() {
+export function runServerWhenTesting() {
   const settings = getSettings();
   if (settings)
     initializeApp(

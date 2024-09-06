@@ -1,32 +1,32 @@
-import ServerRequestAdapter from './class';
+import { ServerRequestAdapter } from './class';
 
-import type ServerAdapter from '..';
-import type Request from '../../request';
+import type { ServerAdapter } from '..';
+import type { Request } from '../../request';
 import type { FormDataLike } from '../../request/types';
-import type ServerRouterAdapter from '../routers';
-import type ServerlessAdapter from '../serverless';
+import type { ServerRouterAdapter } from '../routers';
+import type { ServerlessAdapter } from '../serverless';
 
 /**
  * Functional approach to creating a server adapter instead of the default class/inheritance approach.
  */
-export default function serverRequestAdapter<
+export function serverRequestAdapter<
   TUrlMethodFunction extends ServerRequestAdapter['url'],
   TMethodFunction extends ServerRequestAdapter['method'],
   THeadersFunction extends ServerRequestAdapter['headers'],
   TParamsFunction extends ServerRequestAdapter['params'],
   TQueryFunction extends ServerRequestAdapter['query'],
   TToJsonFunction extends ServerRequestAdapter['toJson'],
-  TCustomToJsonOptionsFunction extends typeof ServerRequestAdapter['customToJsonOptions'],
+  TCustomToJsonOptionsFunction extends (typeof ServerRequestAdapter)['customToJsonOptions'],
   TToFormDataFunction extends ServerRequestAdapter['toFormData'],
-  TCustomToFormDataOptionsFunction extends typeof ServerRequestAdapter['customToFormDataOptions'],
+  TCustomToFormDataOptionsFunction extends (typeof ServerRequestAdapter)['customToFormDataOptions'],
   TToArrayBufferFunction extends ServerRequestAdapter['toArrayBuffer'],
-  TCustomToArrayBufferOptionsFunction extends typeof ServerRequestAdapter['customToArrayBufferOptions'],
+  TCustomToArrayBufferOptionsFunction extends (typeof ServerRequestAdapter)['customToArrayBufferOptions'],
   TToBlobFunction extends ServerRequestAdapter['toBlob'],
-  TCustomToBlobOptionsFunction extends typeof ServerRequestAdapter['customToBlobOptions'],
+  TCustomToBlobOptionsFunction extends (typeof ServerRequestAdapter)['customToBlobOptions'],
   TToTextFunction extends ServerRequestAdapter['toText'],
-  TCustomToTextOptionsFunction extends typeof ServerRequestAdapter['customToTextOptions'],
+  TCustomToTextOptionsFunction extends (typeof ServerRequestAdapter)['customToTextOptions'],
   TToRawFunction extends ServerRequestAdapter['toRaw'],
-  TCustomToRawOptionsFunction extends typeof ServerRequestAdapter['customToRawOptions']
+  TCustomToRawOptionsFunction extends (typeof ServerRequestAdapter)['customToRawOptions']
 >(args: {
   /**
    * This should return the full concatenated url of the request, with domain and path.

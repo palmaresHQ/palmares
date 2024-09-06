@@ -1,4 +1,4 @@
-import type LoggerAdapter from './adapter';
+import type { LoggingAdapter } from './adapter';
 
 export type LoggingTypes = 'debug' | 'log' | 'info' | 'warn' | 'error';
 export type SavedLoggingMessagesType = Record<string, { category: LoggingTypes; handler: (args?: any) => string }>;
@@ -12,10 +12,10 @@ export type LoggerArgumentsToFilterAndFormatters = {
 };
 export type LoggingSettingsType = {
   logger:
-    | Promise<{ default: typeof LoggerAdapter }>
-    | typeof LoggerAdapter
+    | Promise<{ default: typeof LoggingAdapter }>
+    | typeof LoggingAdapter
     | {
-        logger: typeof LoggerAdapter | typeof LoggerAdapter[];
+        logger: typeof LoggingAdapter | (typeof LoggingAdapter)[];
         level?: LoggingTypes | LoggingTypes[];
         filter?: (args: LoggerArgumentsToFilterAndFormatters) => boolean;
         formatter?: (args: LoggerArgumentsToFilterAndFormatters) => string;

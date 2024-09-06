@@ -1,11 +1,11 @@
 import { NotImplementedAdapterException } from './exceptions';
 
-import type AdapterFields from './fields';
-import type AdapterMigrations from './migrations';
-import type AdapterModels from './model';
-import type AdapterQuery from './query';
+import type { AdapterFields } from './fields';
+import type { AdapterMigrations } from './migrations';
+import type { AdapterModels } from './model';
+import type { AdapterQuery } from './query';
 import type { EngineInitializedModels } from './types';
-import type model from '../models/model';
+import type { model } from '../models/model';
 import type { DatabaseConfigurationType } from '../types';
 
 export function databaseAdapter<
@@ -67,7 +67,7 @@ export function databaseAdapter<
  * the base class with `super.initializeModel(model, theInstanceOfYourCustomModel)` so we can save it on the `initializedModels` object
  * in the class instance.
  */
-export default class DatabaseAdapter<
+export class DatabaseAdapter<
   TInstanceType = any,
   TFieldsAdapter extends AdapterFields = AdapterFields,
   TModelsAdapter extends AdapterModels = AdapterModels,

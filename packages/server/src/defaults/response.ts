@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import { getErrorId } from '../handlers';
-import Response from '../response';
+import { Response } from '../response';
 import { HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR } from '../response/status';
 
 import type { AllServerSettingsType } from '../types';

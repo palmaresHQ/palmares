@@ -1,16 +1,16 @@
-import getResultsWithIncludes from '.';
-import Transaction from '../transaction';
+import { getResultsWithIncludes } from '.';
+import { Transaction } from '../transaction';
 
-import type DatabaseAdapter from '../engine';
-import type model from '../models/model';
+import type { DatabaseAdapter } from '../engine';
+import type { model } from '../models/model';
 import type { FieldsOFModelType, Includes, ModelFieldsWithIncludes } from '../models/types';
 
-export default async function removeQuery<
+export async function removeQuery<
   TModel,
   TIncludes extends Includes = undefined,
   TSearch extends
     | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
-    | undefined = undefined,
+    | undefined = undefined
 >(
   args: {
     isToPreventEvents?: boolean;
@@ -46,7 +46,7 @@ export default async function removeQuery<
     const selectedFields = Object.keys(internalModelAsModel.fields) as unknown as FieldsOFModelType<TModel>;
     const useParsers = {
       input: true,
-      output: typeof args.useParsers === 'boolean' ? args.useParsers : true,
+      output: typeof args.useParsers === 'boolean' ? args.useParsers : true
     };
 
     await getResultsWithIncludes(

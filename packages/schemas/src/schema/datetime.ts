@@ -1,11 +1,11 @@
-import Schema from './schema';
+import { Schema } from './schema';
 import { defaultTransform, defaultTransformToAdapter } from '../utils';
 import { above, allowStringParser, below, datetimeValidation } from '../validators/datetime';
 import { nullable, optional } from '../validators/schema';
 
 import type { DefinitionsOfSchemaType } from './types';
 
-export default class DatetimeSchema<
+export class DatetimeSchema<
   TType extends {
     input: any;
     validate: any;

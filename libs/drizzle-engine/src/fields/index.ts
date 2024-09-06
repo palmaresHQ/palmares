@@ -1,27 +1,34 @@
-import {  adapterFields } from '@palmares/databases';
+import { adapterFields } from '@palmares/databases';
 
-import DrizzleEngineBigIntegerFieldParser from './big-integer';
-import DrizzleEngineBooleanFieldParser from './boolean';
-import DrizzleEngineCharFieldParser from './char';
-import DrizzleEngineDateFieldParser from './date';
-import DrizzleEngineDecimalFieldParser from './decimal';
-import DrizzleEngineEnumFieldParser from './enum';
-import DrizzleEngineFieldParser from './field';
-import DrizzleEngineForeignKeyFieldParser from './foreign-key';
-import DrizzleEngineIntegerFieldParser from './integer';
-import DrizzleEngineTextFieldParser from './text';
-import DrizzleEngineUuidFieldParser from './uuid';
+import { bigIntegerFieldParser } from './big-integer';
+import { booleanFieldParser } from './boolean';
+import { charFieldParser } from './char';
+import { dateFieldParser } from './date';
+import { decimalFieldParser } from './decimal';
+import { enumFieldParse } from './enum';
+import { fieldParser } from './field';
+import { foreignKeyFieldParser } from './foreign-key';
+import { integerFieldParser } from './integer';
+import { textFieldParser } from './text';
+import { uuidFieldParser } from './uuid';
 
 import type { Field, ModelBaseClass } from '@palmares/databases';
 
 /**
  * Creates a one relation since it's a repeating pattern in the code itself
  */
-function createOneToOneRelation(modelName: string, modelFieldName: string, relatedModelName: string, relatedFieldName: string) {
-  return `args.one(${relatedModelName}, {\n` +
+function createOneToOneRelation(
+  modelName: string,
+  modelFieldName: string,
+  relatedModelName: string,
+  relatedFieldName: string
+) {
+  return (
+    `args.one(${relatedModelName}, {\n` +
     `    fields: [${modelName}.${modelFieldName}],\n` +
-    `    references: [${relatedModelName}.${relatedFieldName}]\n`+
+    `    references: [${relatedModelName}.${relatedFieldName}]\n` +
     `  })`
+  );
 }
 
 async function formatForeignKeyField(
@@ -29,7 +36,7 @@ async function formatForeignKeyField(
   modelName: string,
   translatedModel: any,
   fieldTranslated: any,
-  parse: (model: ModelBaseClass, field: Field) => Promise<any>,
+  parse: (model: ModelBaseClass, field: Field) => Promise<any>
 ) {
   // Modify the field and then after parse modify it back.
   const foreignData = fieldTranslated.fieldAttributes.foreignData;
@@ -62,15 +69,17 @@ async function formatForeignKeyField(
   foreignData.palmaresField.dbIndex = originalDbIndex;
   foreignData.palmaresField.unique = originalUnique;
   foreignData.palmaresField.underscored = originalUnderscored;
-  foreignData.palmaresField.allowNull = originalAllowNull
+  foreignData.palmaresField.allowNull = originalAllowNull;
 
-  const columnType = engine.instance.mainType === 'postgres' ?
-    'd.AnyPgColumn' :
-    engine.instance.mainType === 'sqlite' ?
-    'd.AnySQLiteColumn' :
-    'd.AnyMySqlColumn'
+  const columnType =
+    engine.instance.mainType === 'postgres'
+      ? 'd.AnyPgColumn'
+      : engine.instance.mainType === 'sqlite'
+        ? 'd.AnySQLiteColumn'
+        : 'd.AnyMySqlColumn';
 
-  translatedModel.fields[fieldTranslated.fieldAttributes.fieldName] = `${data}.references((): ${columnType} => ${foreignData.relatedToModelName}.${foreignData.toField})`;
+  translatedModel.fields[fieldTranslated.fieldAttributes.fieldName] =
+    `${data}.references((): ${columnType} => ${foreignData.relatedToModelName}.${foreignData.toField})`;
 
   translatedModel.options.relationships ??= {};
   translatedModel.options.relationships[modelName] ??= {};
@@ -88,11 +97,13 @@ async function formatForeignKeyField(
     fieldTranslated.fieldAttributes.fieldName
   );
 
-  const ifIndirectManyRelation = `args.many(${modelName})`
+  const ifIndirectManyRelation = `args.many(${modelName})`;
 
   translatedModel.options.relationships[foreignData.relatedToModelName] ??= {};
-  translatedModel.options.relationships[foreignData.relatedToModelName][foreignData.relatedName] =
-    fieldTranslated.fieldAttributes.unique ? ifIndirectOneRelation : ifIndirectManyRelation;
+  translatedModel.options.relationships[foreignData.relatedToModelName][foreignData.relatedName] = fieldTranslated
+    .fieldAttributes.unique
+    ? ifIndirectOneRelation
+    : ifIndirectManyRelation;
 }
 
 /**
@@ -101,18 +112,18 @@ async function formatForeignKeyField(
  * or sometimes we need to translate stuff outside of the fields for example the indexes that are from the model
  * itself.
  */
-export default adapterFields({
-  fieldsParser: new DrizzleEngineFieldParser(),
-  bigIntegerFieldParser: new DrizzleEngineBigIntegerFieldParser(),
-  charFieldParser: new DrizzleEngineCharFieldParser(),
-  dateFieldParser: new DrizzleEngineDateFieldParser(),
-  decimalFieldParser: new DrizzleEngineDecimalFieldParser(),
-  foreignKeyFieldParser: new DrizzleEngineForeignKeyFieldParser(),
-  integerFieldParser: new DrizzleEngineIntegerFieldParser(),
-  textFieldParser: new DrizzleEngineTextFieldParser(),
-  uuidFieldParser: new DrizzleEngineUuidFieldParser(),
-  enumFieldParser: new DrizzleEngineEnumFieldParser(),
-  booleanFieldParser: new DrizzleEngineBooleanFieldParser(),
+export const fields = adapterFields({
+  fieldsParser: new fieldParser(),
+  bigIntegerFieldParser: new bigIntegerFieldParser(),
+  charFieldParser: new charFieldParser(),
+  dateFieldParser: new dateFieldParser(),
+  decimalFieldParser: new decimalFieldParser(),
+  foreignKeyFieldParser: new foreignKeyFieldParser(),
+  integerFieldParser: new integerFieldParser(),
+  textFieldParser: new textFieldParser(),
+  uuidFieldParser: new uuidFieldParser(),
+  enumFieldParser: new enumFieldParse(),
+  booleanFieldParser: new booleanFieldParser(),
 
   lazyEvaluateField: async (
     engine: any,
@@ -120,13 +131,13 @@ export default adapterFields({
     translatedModel: any,
     _field: Field,
     fieldTranslated: any,
-    parse: (model: ModelBaseClass, field: Field) => Promise<any>,
+    parse: (model: ModelBaseClass, field: Field) => Promise<any>
   ) => {
     switch (fieldTranslated.type) {
       case 'enum': {
         translatedModel.options.enums ??= [];
         translatedModel.options.enums.push(fieldTranslated.data);
-        return translatedModel
+        return translatedModel;
       }
       case 'uuid': {
         translatedModel.options.imports ??= new Set();
@@ -143,9 +154,9 @@ export default adapterFields({
           translatedModel.options.drizzleIndexes.push(fieldTranslated.indexAttributes);
           return translatedModel;
         }
-        break
+        break;
       }
     }
     return undefined;
-  },
+  }
 } as any);

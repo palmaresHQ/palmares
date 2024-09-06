@@ -1,4 +1,4 @@
-import Schema from './schema';
+import { Schema } from './schema';
 import {
   defaultTransform,
   defaultTransformToAdapter,
@@ -6,12 +6,12 @@ import {
   transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas
 } from '../utils';
 import { objectValidation } from '../validators/object';
-import Validator from '../validators/utils';
+import { Validator } from '../validators/utils';
 
 import type { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from './types';
-import type FieldAdapter from '../adapter/fields';
+import type { FieldAdapter } from '../adapter/fields';
 
-export default class ObjectSchema<
+export class ObjectSchema<
   TType extends {
     input: any;
     validate: any;

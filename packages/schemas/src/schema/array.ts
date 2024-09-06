@@ -1,4 +1,4 @@
-import Schema from './schema';
+import { Schema } from './schema';
 import {
   defaultTransform,
   defaultTransformToAdapter,
@@ -7,11 +7,11 @@ import {
 } from '../utils';
 import { arrayValidation, maxLength, minLength, nonEmpty } from '../validators/array';
 import { nullable, optional } from '../validators/schema';
-import Validator from '../validators/utils';
+import { Validator } from '../validators/utils';
 
 import type { DefinitionsOfSchemaType, ExtractTypeFromArrayOfSchemas } from './types';
 
-export default class ArraySchema<
+export class ArraySchema<
   TType extends {
     input: any;
     validate: any;

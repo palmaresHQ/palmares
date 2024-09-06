@@ -1,16 +1,11 @@
 import { adapterForeignKeyFieldParser } from '@palmares/databases';
 
-import type DrizzleEngineFieldParser from './field';
-import type { AdapterFieldParserTranslateArgs} from '@palmares/databases';
+import type { fieldParser as DrizzleEngineFieldParser } from './field';
+import type { AdapterFieldParserTranslateArgs } from '@palmares/databases';
 
-export default adapterForeignKeyFieldParser({
+export const foreignKeyFieldParser = adapterForeignKeyFieldParser({
   translate: async (
-    args: AdapterFieldParserTranslateArgs<
-      'foreign-key',
-      any,
-      InstanceType<typeof DrizzleEngineFieldParser>,
-      any
-    >
+    args: AdapterFieldParserTranslateArgs<'foreign-key', any, InstanceType<typeof DrizzleEngineFieldParser>, any>
   ): Promise<undefined> => {
     const defaultOptions = await args.fieldParser.translate(args);
 
@@ -27,7 +22,7 @@ export default adapterForeignKeyFieldParser({
           relationName: args.field.relationName,
           action: args.field.onDelete
         }
-      },
-    })
-  },
+      }
+    });
+  }
 });

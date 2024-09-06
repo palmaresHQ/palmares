@@ -1,17 +1,17 @@
-import Schema from './schema';
+import { Schema } from './schema';
 import {
   defaultTransform,
   defaultTransformToAdapter,
   transformSchemaAndCheckIfShouldBeHandledByFallbackOnComplexSchemas
 } from '../utils';
 import { unionValidation } from '../validators/union';
-import Validator from '../validators/utils';
+import { Validator } from '../validators/utils';
 
 import type { DefinitionsOfSchemaType, ExtractTypeFromUnionOfSchemas } from './types';
-import type FieldAdapter from '../adapter/fields';
+import type { FieldAdapter } from '../adapter/fields';
 import type { Narrow } from '@palmares/core';
 
-export default class UnionSchema<
+export class UnionSchema<
   TType extends {
     input: unknown;
     validate: unknown;

@@ -1,15 +1,14 @@
 import { getSettings, retrieveDomains } from '@palmares/core';
 import { EventEmitter } from '@palmares/events';
 
-import DatabaseAdapter from './engine';
+import { DatabaseAdapter } from './engine';
 import { databaseLogger } from './logging';
-import Migrations from './migrations';
+import { Migrations } from './migrations';
 import { initializeModels } from './models/utils';
 
 import type { DatabaseDomainInterface } from './interfaces';
 import type { Model } from './models';
-import type { BaseModel } from './models/model';
-import type model from './models/model';
+import type { BaseModel, model } from './models/model';
 import type {
   DatabaseConfigurationType,
   DatabaseSettingsType,
@@ -19,7 +18,7 @@ import type {
   OptionalMakemigrationsArgsType
 } from './types';
 
-export default class Databases {
+export class Databases {
   settings!: DatabaseSettingsType;
   isInitializing = false;
   isInitialized = false;

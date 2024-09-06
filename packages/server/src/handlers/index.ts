@@ -1,1 +1,1 @@
-export { default as errorCaptureHandler, getErrorId } from './error-handler';
+export { errorCaptureHandler, getErrorId } from './error-handler';

@@ -1,8 +1,8 @@
 import type { SettingsType2 } from './types';
-import type Domain from '../domain/domain';
-import type domain from '../domain/function';
+import type { Domain } from '../domain/domain';
+import type { domain } from '../domain/function';
 
-export default function defineSettings<
+export function defineSettings<
   const TDomains extends readonly (
     | typeof Domain
     | ReturnType<typeof domain>

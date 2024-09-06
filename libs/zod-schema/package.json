@@ -1,6 +1,6 @@
 {
   "name": "@palmares/zod-schema",
-  "version": "0.1.18",
+  "version": "0.1.21",
   "description": "Zod as the validation schema for palmares so we are able to validate through zod instead of using serializers",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
@@ -46,10 +46,12 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
-    "@palmares/schemas": "workspace:*",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "typescript": "^5.5.4"
+  },
+  "peerDependencies": {
+    "@palmares/schemas": "workspace:*"
   }
 }

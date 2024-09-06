@@ -2,7 +2,7 @@ import { initializeDomains } from '@palmares/core';
 
 import { initializeRouters } from './app/utils';
 
-import type ServerlessAdapter from './adapters/serverless';
+import type { ServerlessAdapter } from './adapters/serverless';
 import type { ServerDomain } from './domain/types';
 import type { AllServerSettingsType } from './types';
 import type { SettingsType2 } from '@palmares/core';
@@ -10,7 +10,7 @@ import type { SettingsType2 } from '@palmares/core';
 /**
  * This class is responsible for generating the serverless functions as well as executing them.
  */
-export default class Serverless {
+export class Serverless {
   /**
    * Generate the serverless functions. We still use initializeRouters to generate the routes.
    * Similarly to an actual server adapter.

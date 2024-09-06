@@ -5,7 +5,7 @@ import { transformErrorsOnComplexTypes } from '../utils';
 
 import type { ErrorCodes } from '@palmares/schemas';
 
-export default arrayFieldAdapter({
+export const arrayAdapter = arrayFieldAdapter({
   translate: (fieldAdapter, args) => {
     let result = (z[args.isTuple ? 'tuple' : 'array'] as any)(
       // eslint-disable-next-line ts/no-unnecessary-type-assertion

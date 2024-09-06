@@ -1,8 +1,8 @@
-import AdapterGetQuery from './get';
-import AdapterOrderingQuery from './ordering';
-import AdapterRemoveQuery from './remove';
-import AdapterSearchQuery from './search';
-import AdapterSetQuery from './set';
+import { AdapterGetQuery } from './get';
+import { AdapterOrderingQuery } from './ordering';
+import { AdapterRemoveQuery } from './remove';
+import { AdapterSearchQuery } from './search';
+import { AdapterSetQuery } from './set';
 
 /**
  * Offers >>>>BASIC<<<< querying functionalities, this enables us to create libs that works well on every
@@ -24,7 +24,7 @@ export function adapterQuery<
   TSet extends AdapterSetQuery,
   TRemove extends AdapterRemoveQuery,
   TSearch extends AdapterSearchQuery,
-  TOrdering extends AdapterOrderingQuery,
+  TOrdering extends AdapterOrderingQuery
 >(args: { get: TGet; set: TSet; remove: TRemove; search: TSearch; ordering: TOrdering }) {
   class CustomAdapterQuery extends AdapterQuery {
     get = args.get;
@@ -54,7 +54,7 @@ export function adapterQuery<
  * The basic methods `get`, `set` and `remove` have the API idea taken of the browser's `localhost` and also
  * from `redis`. This guarantees this can work on most kind of databases without issues.
  */
-export default class AdapterQuery {
+export class AdapterQuery {
   get: AdapterGetQuery = new AdapterGetQuery();
   set: AdapterSetQuery = new AdapterSetQuery();
   remove: AdapterRemoveQuery = new AdapterRemoveQuery();

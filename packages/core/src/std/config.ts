@@ -1,6 +1,6 @@
 import { StdNotSetError } from './exceptions';
 
-import type Std from '../std-adapter';
+import type { Std } from '../std-adapter';
 
 let cachedDefaultStd: undefined | Std = undefined;
 

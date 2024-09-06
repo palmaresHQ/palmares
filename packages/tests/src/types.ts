@@ -1,4 +1,4 @@
-import type TestAdapter from './adapter';
+import type { TestAdapter } from './adapter';
 import type { testDomainModifier } from './domain';
 import type { Domain, ExtractModifierArguments, SettingsType2 } from '@palmares/core';
 

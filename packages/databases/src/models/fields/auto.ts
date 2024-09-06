@@ -1,4 +1,4 @@
-import Field from './field';
+import { Field } from './field';
 
 import type { FieldDefaultParamsType, MaybeNull } from './types';
 import type { This } from '../../types';
@@ -54,7 +54,7 @@ export function auto<
  * const autoField = AutoField.new({ databaseName: 'user_id' });
  * ```
  */
-export default class AutoField<
+export class AutoField<
   TType extends { input: number; output: number } = { input: number; output: number },
   TField extends Field = any,
   TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,

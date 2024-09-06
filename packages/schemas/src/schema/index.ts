@@ -1,4 +1,4 @@
-import NumberSchema from './number';
+import { NumberSchema } from './number';
 
 const number = NumberSchema.new; // teste
 

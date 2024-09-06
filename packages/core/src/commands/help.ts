@@ -1,6 +1,6 @@
 import type { DefaultCommandType, ExtractCommandsType } from './types';
 import type { Domain } from '../domain';
-import type coreDomain from '../domain/default';
+import type { coreDomain } from '../domain/default';
 
 function textWithEmptySpaces(length: number, text: string) {
   return `${' '.repeat(length)}${text}`;
@@ -112,10 +112,7 @@ function logKeywordArgs(commandData: NonNullable<Domain['commands']>[string]) {
  *
  * You can also use to show
  */
-export default function help(
-  domains: Domain[],
-  keywordArgs: ExtractCommandsType<typeof coreDomain, 'help'>['keywordArgs']
-) {
+export function help(domains: Domain[], keywordArgs: ExtractCommandsType<typeof coreDomain, 'help'>['keywordArgs']) {
   for (let i = 0; i < domains.length; i++) {
     const domain = domains[i];
     const shouldNotShowAnythingFromDomain =

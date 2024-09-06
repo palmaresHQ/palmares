@@ -1,7 +1,7 @@
 import { stringFieldAdapter } from '@palmares/schemas';
 import * as z from 'zod';
 
-export default stringFieldAdapter({
+export const stringAdapter = stringFieldAdapter({
   translate: (fieldAdapter, args) => {
     let result: z.ZodString | z.ZodEnum<[string, ...string[]]> | z.ZodLiteral<string> = z.string({
       errorMap: (issue) => {

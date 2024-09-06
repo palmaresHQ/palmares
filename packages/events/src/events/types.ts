@@ -5,7 +5,7 @@ export type EventEmitterOptionsType = {
   };
   layer?: {
     // eslint-disable-next-line ts/consistent-type-imports
-    use: import('./index').default | Promise<import('./index').default>;
+    use: import('./index').EventEmitter | Promise<import('./index').EventEmitter>;
     channels: string[];
   };
   results?: {

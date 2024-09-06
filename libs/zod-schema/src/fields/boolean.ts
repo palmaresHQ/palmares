@@ -3,7 +3,7 @@ import * as z from 'zod';
 
 import type { ErrorCodes } from '@palmares/schemas';
 
-export default booleanFieldAdapter({
+export const booleanAdapter = booleanFieldAdapter({
   translate: (fieldAdapter, args) => {
     let result: z.ZodBoolean | z.ZodEffects<z.ZodBoolean, boolean, boolean> = z.boolean({
       errorMap: (issue) => {

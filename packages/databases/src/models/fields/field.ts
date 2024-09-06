@@ -1,7 +1,7 @@
 import { utils } from '@palmares/core';
 
 import type { CustomImportsForFieldType, FieldDefaultParamsType, MaybeNull } from './types';
-import type EngineFieldParser from '../../engine/fields/field';
+import type { AdapterFieldParser as EngineFieldParser } from '../../engine/fields/field';
 import type { This } from '../../types';
 import type { ModelType } from '../types';
 
@@ -10,7 +10,7 @@ import type { ModelType } from '../types';
  * one but this one SHOULDN't be called directly.
  * Generally we do not offer any translation to this type of field.
  */
-export default class Field<
+export class Field<
   TType extends { input: any; output: any } = { input: any; output: any },
   TField extends Field = any,
   TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,

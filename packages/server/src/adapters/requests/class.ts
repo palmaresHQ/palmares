@@ -1,12 +1,12 @@
 import { formDataLikeFactory } from '../../request/utils';
 
-import type ServerAdapter from '..';
-import type Request from '../../request';
+import type { ServerAdapter } from '..';
+import type { Request } from '../../request';
 import type { FormDataLike } from '../../request/types';
-import type ServerRouterAdapter from '../routers';
-import type ServerlessAdapter from '../serverless';
+import type { ServerRouterAdapter } from '../routers';
+import type { ServerlessAdapter } from '../serverless';
 
-export default class ServerRequestAdapter {
+export class ServerRequestAdapter {
   /**
    * This should return the full concatenated url of the request, with domain and path.
    *
@@ -54,7 +54,11 @@ export default class ServerRequestAdapter {
    *
    * @returns - The value of the header if it exists, otherwise undefined.
    */
-  headers(_server: ServerAdapter | ServerlessAdapter, _serverRequestAndResponseData: any, _key: string): string | undefined {
+  headers(
+    _server: ServerAdapter | ServerlessAdapter,
+    _serverRequestAndResponseData: any,
+    _key: string
+  ): string | undefined {
     return undefined;
   }
 
@@ -106,7 +110,11 @@ export default class ServerRequestAdapter {
    *
    * @returns - The value of the param if it exists, otherwise undefined.
    */
-  params?(_server: ServerAdapter | ServerlessAdapter, _serverRequestAndResponseData: any, _key: string): string | undefined {
+  params?(
+    _server: ServerAdapter | ServerlessAdapter,
+    _serverRequestAndResponseData: any,
+    _key: string
+  ): string | undefined {
     return undefined;
   }
 
@@ -135,7 +143,11 @@ export default class ServerRequestAdapter {
    *
    * @returns - The value of the query if it exists, otherwise undefined.
    */
-  query(_server: ServerAdapter | ServerlessAdapter, _serverRequestAndResponseData: any, _key: string): string | undefined {
+  query(
+    _server: ServerAdapter | ServerlessAdapter,
+    _serverRequestAndResponseData: any,
+    _key: string
+  ): string | undefined {
     return undefined;
   }
 
@@ -168,7 +180,11 @@ export default class ServerRequestAdapter {
    *
    * @returns - A promise that resolves to the parsed json.
    */
-  toJson(_server: ServerAdapter | ServerlessAdapter, _serverRequestAndResponseData: any, _options: any): Promise<object | undefined> {
+  toJson(
+    _server: ServerAdapter | ServerlessAdapter,
+    _serverRequestAndResponseData: any,
+    _options: any
+  ): Promise<object | undefined> {
     return new Promise((resolve) => resolve(undefined));
   }
 
@@ -376,7 +392,11 @@ export default class ServerRequestAdapter {
    *
    * @returns - A promise that resolves to the parsed Blob.
    */
-  toBlob(_server: ServerAdapter | ServerlessAdapter, _serverRequestAndResponseData: any, _options: any): Promise<Blob | File | undefined> {
+  toBlob(
+    _server: ServerAdapter | ServerlessAdapter,
+    _serverRequestAndResponseData: any,
+    _options: any
+  ): Promise<Blob | File | undefined> {
     return new Promise((resolve) => resolve(undefined));
   }
 
@@ -441,7 +461,11 @@ export default class ServerRequestAdapter {
    *
    * @returns A promise that resolves to a string.
    */
-  toText(_server: ServerAdapter | ServerlessAdapter, _serverRequestAndResponseData: any, _options: any): Promise<string | undefined> {
+  toText(
+    _server: ServerAdapter | ServerlessAdapter,
+    _serverRequestAndResponseData: any,
+    _options: any
+  ): Promise<string | undefined> {
     return new Promise((resolve) => resolve(undefined));
   }
 

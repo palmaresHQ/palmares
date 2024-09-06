@@ -1,21 +1,21 @@
-import removeQuery from './queries/remove';
-import setQuery from './queries/set';
+import { removeQuery } from './queries/remove';
+import { setQuery } from './queries/set';
 
-import type model from './models/model';
+import type { model } from './models/model';
 
 /**
  * This class is responsible for controlling the transactions that happens inside of the framework, this is supposed to be handled for the framework
  * itself specially for distributed systems where the data is stored in different places. The transaction instance is created so that the framework
  * can handle when something goes wrong and fails.
  */
-export default class Transaction {
+export class Transaction {
   originalOperation: 'set' | 'remove';
   insertionOrdering: {
     orderingByEngines: Map<string, Map<string, number>>; //We can have the same model in different engines.
     currentOrderOfOperation: number;
   } = {
     orderingByEngines: new Map(),
-    currentOrderOfOperation: 0,
+    currentOrderOfOperation: 0
   };
   dataThatWasInsertedOrRemoved: Map<
     number,
@@ -60,7 +60,7 @@ export default class Transaction {
       this.dataThatWasInsertedOrRemoved.set(insertionOrder, {
         engineName,
         model: modelInstance,
-        data: new Map([[stringifiedSearch, data]]),
+        data: new Map([[stringifiedSearch, data]])
       });
   }
 
@@ -87,13 +87,13 @@ export default class Transaction {
                       {
                         isToPreventEvents: false,
                         useTransaction: false,
-                        search: formattedSearchObject,
+                        search: formattedSearchObject
                       },
                       {
                         model: model,
                         transaction: transaction,
                         engine: engineToUse,
-                        includes: undefined,
+                        includes: undefined
                       }
                     );
                   } else {
@@ -102,13 +102,13 @@ export default class Transaction {
                         isToPreventEvents: false,
                         useTransaction: false,
                         search: dataToSet,
-                        shouldRemove: true,
+                        shouldRemove: true
                       },
                       {
                         model: model,
                         transaction: transaction,
                         engine: engineToUse,
-                        includes: undefined,
+                        includes: undefined
                       }
                     );
                   }
@@ -116,7 +116,7 @@ export default class Transaction {
               );
             }
           }
-        // eslint-disable-next-line ts/no-unnecessary-condition
+          // eslint-disable-next-line ts/no-unnecessary-condition
         } else if (this.originalOperation === 'remove') {
           for (const [search, data] of dataToProcess.data.entries()) {
             for (const dataThatWasRemoved of data) {
@@ -131,13 +131,13 @@ export default class Transaction {
                     {
                       isToPreventEvents: false,
                       useTransaction: false,
-                      search: searchObject,
+                      search: searchObject
                     },
                     {
                       model: model,
                       transaction: transaction,
                       engine: engineToUse,
-                      includes: undefined,
+                      includes: undefined
                     }
                   );
                 })()

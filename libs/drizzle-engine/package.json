@@ -1,6 +1,6 @@
 {
   "name": "@palmares/drizzle-engine",
-  "version": "0.1.13",
+  "version": "0.1.16",
   "description": "This is the engine that wraps the hole drizzle interface in a way palmares can understand and have full control of",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
@@ -144,9 +144,11 @@
   "author": "Nicolas Melo",
   "license": "MIT",
   "dependencies": {
-    "@palmares/core": "workspace:*",
-    "@palmares/databases": "workspace:*",
     "drizzle-orm": "^0.32.1"
+  },
+  "peerDependencies": {
+    "@palmares/core": "workspace:*",
+    "@palmares/databases": "workspace:*"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.11"

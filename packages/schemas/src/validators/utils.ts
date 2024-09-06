@@ -1,6 +1,6 @@
 import type { ValidatorTypes } from './types';
 import type { ErrorCodes } from '../adapter/types';
-import type Schema from '../schema/schema';
+import type { Schema } from '../schema/schema';
 import type {
   ValidationFallbackCallbackReturnType,
   ValidationFallbackCallbackType,
@@ -42,7 +42,7 @@ const typeByPriority = Object.entries(priorityByType).reduce(
  * That's what this solve, it's a better approach than repeating the same code 3 times on the schema. It's also
  * more powerful, because if we need to add any extra priorities we can do that easily without changing the schema.
  */
-export default class Validator {
+export class Validator {
   child?: Validator;
   parent?: Validator;
   fallbackNamesAdded = new Set();

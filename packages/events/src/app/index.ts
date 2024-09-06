@@ -2,7 +2,7 @@ import { appServer } from '@palmares/core';
 
 import { loadEvents } from './utils';
 import { eventsLogger } from '../logging';
-import { default as eventsServer, getEventsServer, setEventsServer } from '../server';
+import { eventsServer, getEventsServer, setEventsServer } from '../server';
 
 import type { EventsDomainInterface } from '../interfaces';
 import type { EventsSettingsType } from '../types';
@@ -15,7 +15,7 @@ let cachedSettings: EventsSettingsType | undefined = undefined;
  * so the program keeps running. If a Server was created, then it will not initialize anything, it'll be
  * just a simple EventEmitter instance.
  */
-export default appServer({
+export const eventsAppServer = appServer({
   load: async ({ settings, domains }) => {
     const settingsAsEventsSettingsType = settings as unknown as EventsSettingsType;
     cachedSettings = settingsAsEventsSettingsType;

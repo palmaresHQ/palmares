@@ -1,9 +1,9 @@
-import getResultsWithIncludes from '.';
-import parseSearch from './search';
+import { getResultsWithIncludes } from '.';
+import { parseSearch } from './search';
 import { NotImplementedAdapterException } from '../engine/exceptions';
 
-import type DatabaseAdapter from '../engine';
-import type model from '../models/model';
+import type { DatabaseAdapter } from '../engine';
+import type { model } from '../models/model';
 import type {
   FieldsOFModelType,
   FieldsOfModelOptionsType,
@@ -12,7 +12,7 @@ import type {
   OrderingOfModelsType
 } from '../models/types';
 
-export default async function getQuery<
+export async function getQuery<
   TModel,
   TIncludes extends Includes = undefined,
   TFieldsOfModel extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>,
@@ -56,7 +56,7 @@ export default async function getQuery<
   };
   let hasRun = false;
   if (internal.engine.query.get.queryDataNatively) {
-    const modelConstructor = modelInstanceAsModel.constructor as ReturnType<typeof model>;
+    const modelConstructor = modelInstanceAsModel.constructor as any;
     try {
       hasRun = true;
       return await internal.engine.query.get.queryDataNatively(

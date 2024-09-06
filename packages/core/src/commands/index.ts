@@ -8,7 +8,7 @@ import { PACKAGE_NAME, structuredClone } from '../utils';
 import type { DefaultCommandType, DomainHandlerFunctionArgs } from './types';
 import type { appServer } from '../app';
 import type { SettingsType2 } from '../conf/types';
-import type Std from '../std-adapter';
+import type { Std } from '../std-adapter';
 
 let cachedCommands = {} as DefaultCommandType;
 

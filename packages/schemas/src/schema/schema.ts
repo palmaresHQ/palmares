@@ -6,12 +6,12 @@ import type {
   OnlyFieldAdaptersFromSchemaAdapter,
   ValidationFallbackCallbackReturnType
 } from './types';
-import type SchemaAdapter from '../adapter';
-import type FieldAdapter from '../adapter/fields';
+import type { SchemaAdapter } from '../adapter';
+import type { FieldAdapter } from '../adapter/fields';
 import type { ValidationDataBasedOnType } from '../adapter/types';
-import type Validator from '../validators/utils';
+import type { Validator } from '../validators/utils';
 
-export default class Schema<
+export class Schema<
   TType extends {
     input: any;
     validate: any;

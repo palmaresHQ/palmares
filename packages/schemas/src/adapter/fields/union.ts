@@ -1,8 +1,8 @@
-import FieldAdapter from '.';
+import { FieldAdapter } from '.';
 import { SchemaAdapterNotImplementedError } from '../../exceptions';
 
-import type SchemaAdapter from '..';
-import type WithFallback from '../../utils';
+import type { SchemaAdapter } from '..';
+import type { WithFallback } from '../../utils';
 import type { UnionAdapterTranslateArgs } from '../types';
 
 export function unionFieldAdapter<
@@ -28,7 +28,7 @@ export function unionFieldAdapter<
   };
 }
 
-export default class UnionFieldAdapter extends FieldAdapter {
+export class UnionFieldAdapter extends FieldAdapter {
   translate(_fieldAdapter: FieldAdapter, _args: UnionAdapterTranslateArgs): any | WithFallback<'union'> {}
 
   parse(

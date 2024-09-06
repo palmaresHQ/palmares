@@ -1,5 +1,5 @@
 import type { OperatorsOfQuery } from '../../models/types';
-import type AdapterFieldParser from '../fields/field';
+import type { AdapterFieldParser } from '../fields/field';
 
 /**
  * Functional approach to the search query adapter.
@@ -8,7 +8,7 @@ import type AdapterFieldParser from '../fields/field';
  * `like`, `in`, `is`, `between` and so on.
  */
 export function adapterSearchQuery<
-  TFunctionParseSearchFieldValue extends AdapterSearchQuery['parseSearchFieldValue'],
+  TFunctionParseSearchFieldValue extends AdapterSearchQuery['parseSearchFieldValue']
 >(args: {
   /**
    * This will pretty much receive the search value and parse it and translate that into an object for each field..
@@ -90,7 +90,7 @@ export function adapterSearchQuery<
  * This engine query interface is used for the search arguments of a query, when making a query we should parse the search so we support stuff like
  * `like`, `in`, `is`, `between` and so on.
  */
-export default class AdapterSearchQuery {
+export class AdapterSearchQuery {
   /**
    * This will pretty much receive the search value and parse it and translate that into an object for each field..
    * The nicest thing is that we send you the `result`. This way you can organize the `search` object the way that you want and makes sense for your engine.

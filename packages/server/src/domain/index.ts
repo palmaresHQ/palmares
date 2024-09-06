@@ -1,7 +1,7 @@
 import { domain } from '@palmares/core';
 
-import httpAppServer from '../app';
-import Serverless from '../serverless';
+import { httpAppServer } from '../app';
+import { Serverless } from '../serverless';
 
 import type { ServerDomain } from './types';
 import type { BaseRouter } from '../router/routers';
@@ -21,7 +21,7 @@ export const serverDomainModifier = domain<{
   routerInterceptor?: (router: BaseRouter['__completePaths']) => Promise<void>;
 }>('@palmares/server', '', {} as any);
 
-export default domain('@palmares/server', '', {
+export const serverDomain = domain('@palmares/server', '', {
   commands: {
     runserver: {
       description: 'Start the server in development mode',

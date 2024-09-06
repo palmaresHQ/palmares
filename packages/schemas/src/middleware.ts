@@ -1,13 +1,13 @@
 import { Response } from '@palmares/server';
 
-import type Schema from './schema/schema';
+import type { Schema } from './schema/schema';
 import type { Infer } from './types';
 import type { Request } from '@palmares/server';
 
 /**
  * Validates the request body and returns a response automatically, don't need to do anything else.
  */
-export default function schemaHandler<
+export function schemaHandler<
   TInput extends Schema<any, any>,
   TOutput extends Schema<
     { input: Infer<TInput, 'output'>; internal: any; output: any; representation: any; validate: any },

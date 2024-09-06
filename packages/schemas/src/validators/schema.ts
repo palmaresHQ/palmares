@@ -1,8 +1,8 @@
 import type { ErrorCodes } from '../adapter/types';
-import type BooleanSchema from '../schema/boolean';
-import type NumberSchema from '../schema/number';
-import type Schema from '../schema/schema';
-import type StringSchema from '../schema/string';
+import type { BooleanSchema } from '../schema/boolean';
+import type { NumberSchema } from '../schema/number';
+import type { Schema } from '../schema/schema';
+import type { StringSchema } from '../schema/string';
 import type { ValidationFallbackReturnType } from '../schema/types';
 
 export function optional(args: Schema['__optional']): ValidationFallbackReturnType {

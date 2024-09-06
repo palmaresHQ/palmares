@@ -1,12 +1,12 @@
-import type BooleanSchema from './boolean';
-import type ObjectSchema from './object';
-import type Schema from './schema';
-import type StringSchema from './string';
-import type SchemaAdapter from '../adapter';
-import type FieldAdapter from '../adapter/fields';
+import type { BooleanSchema } from './boolean';
+import type { ObjectSchema } from './object';
+import type { Schema } from './schema';
+import type { StringSchema } from './string';
+import type { SchemaAdapter } from '../adapter';
+import type { FieldAdapter } from '../adapter/fields';
 import type { ErrorCodes } from '../adapter/types';
 import type { ValidatorTypes } from '../validators/types';
-import type Validator from '../validators/utils';
+import type { Validator } from '../validators/utils';
 
 export type OnlyFieldAdaptersFromSchemaAdapter = keyof {
   [key in keyof SchemaAdapter as SchemaAdapter[key] extends FieldAdapter ? key : never]: SchemaAdapter[key];

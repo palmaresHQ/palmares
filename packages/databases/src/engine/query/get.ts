@@ -1,9 +1,9 @@
 import { NotImplementedAdapterException } from '../exceptions';
 
-import type AdapterQueryOrdering from './ordering';
-import type AdapterQuerySearch from './search';
-import type DatabaseAdapter from '..';
-import type model from '../../models/model';
+import type { AdapterOrderingQuery as AdapterQueryOrdering } from './ordering';
+import type { AdapterSearchQuery as AdapterQuerySearch } from './search';
+import type { DatabaseAdapter } from '..';
+import type { model } from '../../models/model';
 import type { Includes } from '../../models/types';
 
 /**
@@ -73,7 +73,7 @@ export function adapterGetQuery<TFunctionQueryData extends AdapterGetQuery['quer
 }
 
 /** This class is used to run `.get` queries, so when we want to retrieve a value from the database to the user. */
-export default class AdapterGetQuery {
+export class AdapterGetQuery {
   /**
    * This is a simple query, by default you should always implement this function in your AdapterGetQuery.
    *

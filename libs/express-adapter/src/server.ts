@@ -1,9 +1,9 @@
 import { serverAdapter } from '@palmares/server';
 import express, { type Express } from 'express';
 
-import ExpressServerRequestAdapter from './request';
-import ExpressServerResponseAdapter from './response';
-import ExpressServerRouterAdapter from './router';
+import { requestAdapter } from './request';
+import { responseAdapter } from './response';
+import { routerAdapter } from './router';
 
 import type { CustomSettingsForExpress, ServerSettingsTypeExpress } from './types';
 import type { Domain } from '@palmares/core';
@@ -22,10 +22,10 @@ export const servers = new Map<
   }
 >();
 
-export default serverAdapter({
-  request: new ExpressServerRequestAdapter(),
-  response: new ExpressServerResponseAdapter(),
-  routers: new ExpressServerRouterAdapter(),
+const expressServerAdapter = serverAdapter({
+  request: new requestAdapter(),
+  response: new responseAdapter(),
+  routers: new routerAdapter(),
   /** Used for defining custom settings specific for express adapter. */
   customServerSettings: (args: CustomSettingsForExpress) => {
     return args;
@@ -55,3 +55,6 @@ export default serverAdapter({
     }
   }
 });
+
+export { expressServerAdapter as ExpressServerAdapter };
+export { expressServerAdapter as default };

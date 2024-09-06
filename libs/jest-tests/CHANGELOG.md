@@ -1,5 +1,29 @@
 # @palmares/jest-tests
 
+## 0.1.12
+
+### Patch Changes
+
+- removed all default exports
+- Updated dependencies
+  - @palmares/tests@0.1.12
+
+## 0.1.11
+
+### Patch Changes
+
+- Add named exports so it can function properly
+- Updated dependencies
+  - @palmares/tests@0.1.11
+
+## 0.1.10
+
+### Patch Changes
+
+- Fix module issues to allow palmares to run as a module as well as commonjs
+- Updated dependencies
+  - @palmares/tests@0.1.10
+
 ## 0.1.9
 
 ### Patch Changes

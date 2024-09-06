@@ -1,4 +1,4 @@
-import PalmaresMigrationsManager from './managers';
+import { PalmaresMigrationsManager } from './managers';
 import { BigAutoField, CharField } from '..';
 import { model } from '../models';
 
@@ -13,12 +13,12 @@ export class PalmaresMigrations extends model<PalmaresMigrations>() {
   fields = {
     id: BigAutoField.new(),
     migrationName: CharField.new({ maxLength: 150 }),
-    engineName: CharField.new({ maxLength: 150 }),
+    engineName: CharField.new({ maxLength: 150 })
   };
 
   options: ModelOptionsType<PalmaresMigrations> = {
     tableName: 'palmares_migrations',
-    ordering: ['-id'],
+    ordering: ['-id']
   };
 
   static migrations = new PalmaresMigrationsManager();

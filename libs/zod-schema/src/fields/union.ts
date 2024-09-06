@@ -3,7 +3,7 @@ import * as z from 'zod';
 
 import { transformErrorsOnComplexTypes } from '../utils';
 
-export default unionFieldAdapter({
+export const unionAdapter = unionFieldAdapter({
   translate: (fieldAdapter, args) => {
     let result = z.union(args.schemas, {
       errorMap: (issue) => {

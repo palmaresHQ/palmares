@@ -1,4 +1,4 @@
-import Response from '../response';
+import { Response } from '../response';
 import { HTTP_200_OK } from '../response/status';
 import { path } from '../router';
 import { generateErrorId } from '../utils/error-id';
@@ -19,7 +19,7 @@ export function getErrorId() {
  * don't have the problem of clashing route names.
  * 2 - We need to use a POST request because we need to send the file, line and column where the error occurred.
  */
-export default function errorCaptureHandler() {
+export function errorCaptureHandler() {
   errorId = generateErrorId();
   return path(`/${errorId}`).post(async (request) => {
     const body = await request.json();

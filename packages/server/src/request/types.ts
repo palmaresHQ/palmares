@@ -1,4 +1,4 @@
-import type Request from '.';
+import type { Request } from '.';
 import type { MethodTypes } from '../router/types';
 
 type Whitespace = '\n' | ' ';

@@ -2,7 +2,7 @@ import { initializeDomains } from '@palmares/core';
 
 import { setTestAdapter } from './utils';
 
-export default async function run(settingsPath: string) {
+export async function run(settingsPath: string) {
   const settings = await import(settingsPath).catch((e) => {
     console.error('Error importing settings', e);
   });

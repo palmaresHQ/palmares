@@ -1,8 +1,8 @@
-import FieldAdapter from '.';
+import { FieldAdapter } from '.';
 import { SchemaAdapterNotImplementedError } from '../../exceptions';
 
-import type SchemaAdapter from '..';
-import type WithFallback from '../../utils';
+import type { SchemaAdapter } from '..';
+import type { WithFallback } from '../../utils';
 import type { ObjectAdapterToStringArgs, ObjectAdapterTranslateArgs } from '../types';
 
 export function objectFieldAdapter<
@@ -28,7 +28,7 @@ export function objectFieldAdapter<
   };
 }
 
-export default class ObjectFieldAdapter extends FieldAdapter {
+export class ObjectFieldAdapter extends FieldAdapter {
   translate(_fieldAdapter: FieldAdapter, _args: ObjectAdapterTranslateArgs): any | WithFallback<'object'> {}
 
   parse(

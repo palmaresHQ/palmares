@@ -3,7 +3,7 @@ import { adapterModels } from '@palmares/databases';
 
 import type { ModelOptionsType } from '@palmares/databases';
 
-export default adapterModels({
+export const models = adapterModels({
   // eslint-disable-next-line ts/require-await
   translateOptions: async (_engine, modelName, options): Promise<object> => {
     const optionsWithConjunctiveIndexes = options as typeof options & { conjunctiveIndexes: string[] };

@@ -1,8 +1,8 @@
 import type { CustomImportsForFieldType } from '../models/fields/types';
 
-export * from './constants';
-export { default as hashString } from './hash';
-export * from './models';
+export { PACKAGE_NAME } from './constants';
+export { hashString } from './hash';
+export { extractDefaultEventsHandlerFromModel } from './models';
 
 /** Retrieves the unique custom imports of the field or the model to generate the migrations to. */
 export function getUniqueCustomImports(
@@ -26,7 +26,7 @@ export function generateUUID() {
   let date = new Date().getTime(); //Timestamp
   import('perf_hooks');
   // eslint-disable-next-line ts/consistent-type-imports
-  const performance = (globalThis as any).performance as typeof import('perf_hooks')['performance'];
+  const performance = (globalThis as any).performance as (typeof import('perf_hooks'))['performance'];
   // eslint-disable-next-line ts/no-unnecessary-condition
   let performanceDate = (performance && performance.now && performance.now() * 1000) || 0; //Time in microseconds since page-load or 0 if unsupported
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {

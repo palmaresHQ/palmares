@@ -1,6 +1,6 @@
-import Field from './field';
+import { Field } from './field';
 
-import type DatabaseAdapter from '../../engine';
+import type { DatabaseAdapter } from '../../engine';
 
 /**
  * Enables developers to create custom fields while also being able to translate them dynamically for a specific engine.
@@ -26,7 +26,7 @@ import type DatabaseAdapter from '../../engine';
  * }
  * ```
  */
-export default class TranslatableField extends Field {
+export class TranslatableField extends Field {
   typeName: string = TranslatableField.name;
   translate!: () => Promise<any>;
   customToString?: () => Promise<{ imports: string[]; translateBody: string }>;
@@ -34,23 +34,26 @@ export default class TranslatableField extends Field {
   constructor(params: {
     translate: () => Promise<any>;
     customAttributes?: any;
-    customToString?: () => Promise<{ imports: string[]; translateBody: string }>
+    customToString?: () => Promise<{ imports: string[]; translateBody: string }>;
   }) {
     super({ customAttributes: params.customAttributes } as any);
     this.translate = params.translate.bind(this);
-    if (params.customToString)
-      this.customToString = params.customToString?.bind(this)
+    if (params.customToString) this.customToString = params.customToString.bind(this);
   }
 
   static new(params: {
     translate: () => Promise<any>;
     customToString?: () => Promise<{
       imports: string[];
-      translateBody: string
+      translateBody: string;
     }>;
     customAttributes?: any;
   }): Field<any, any, any, any, any, any, any, any> {
-    return new this({ customAttributes: params.customAttributes, customToString: params.customToString, translate: params.translate } as any);
+    return new this({
+      customAttributes: params.customAttributes,
+      customToString: params.customToString,
+      translate: params.translate
+    } as any);
   }
 
   async toString(indentation?: number, _customParams?: string | undefined): Promise<string> {
@@ -66,7 +69,7 @@ export default class TranslatableField extends Field {
       `${fieldParamsIdent}${translateBody.imports.join('\n')}\n` +
       `${fieldParamsIdent}${translateBody.translateBody}\n` +
       `${ident}}\n` +
-      `${'  '.repeat((indentation || 0))}})
+      `${'  '.repeat(indentation || 0)}})
       `
     );
   }
@@ -80,6 +83,5 @@ export default class TranslatableField extends Field {
     if (!isTranslateEqual) changedAttributes.push('translate');
 
     return [isTranslateEqual && isEqual, changedAttributes];
-
   }
 }

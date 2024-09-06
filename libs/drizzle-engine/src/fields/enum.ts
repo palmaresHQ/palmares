@@ -1,32 +1,27 @@
 import { adapterEnumFieldParser } from '@palmares/databases';
 
-import type DrizzleEngineFieldParser from './field';
-import type { AdapterFieldParserTranslateArgs} from '@palmares/databases';
+import type { fieldParser as DrizzleEngineFieldParser } from './field';
+import type { AdapterFieldParserTranslateArgs } from '@palmares/databases';
 
-export default adapterEnumFieldParser({
+export const enumFieldParse = adapterEnumFieldParser({
   translate: async (
-    args: AdapterFieldParserTranslateArgs<
-      'enum',
-      any,
-      InstanceType<typeof DrizzleEngineFieldParser>,
-      any
-    >
+    args: AdapterFieldParserTranslateArgs<'enum', any, InstanceType<typeof DrizzleEngineFieldParser>, any>
   ): Promise<any> => {
     const defaultOptions = await args.fieldParser.translate(args);
     const field = args.field;
     const mainType = args.engine.instance.mainType;
-    const optionsAsString = args.field.choices.map((choice) => `"${choice}"`).join(', ')
+    const optionsAsString = args.field.choices.map((choice) => `"${choice}"`).join(', ');
     switch (mainType) {
       case 'sqlite':
         return `d.text('${field.databaseName}', { enum: [${optionsAsString}] })${
-            defaultOptions.primaryKey ? '.primaryKey()' : ''
+          defaultOptions.primaryKey ? '.primaryKey()' : ''
           // eslint-disable-next-line ts/no-unnecessary-condition
-          }${defaultOptions.default ? `.default(${typeof defaultOptions.default === 'string' ? `'${defaultOptions.default}'` : defaultOptions.default})` : ''}${
+        }${defaultOptions.default ? `.default(${typeof defaultOptions.default === 'string' ? `'${defaultOptions.default}'` : defaultOptions.default})` : ''}${
           defaultOptions.nullable !== true ? `.notNull()` : ''
-          }${
+        }${
           // eslint-disable-next-line ts/no-unnecessary-condition
           defaultOptions.unique ? `.unique()` : ''
-          }`
+        }`;
       case 'postgres':
         // eslint-disable-next-line no-case-declarations
         const enumVariableName = `${field.fieldName}Enum`;
@@ -36,26 +31,26 @@ export default adapterEnumFieldParser({
         });
 
         return `${enumVariableName}('${field.databaseName}')${
-            defaultOptions.primaryKey ? '.primaryKey()' : ''
+          defaultOptions.primaryKey ? '.primaryKey()' : ''
           // eslint-disable-next-line ts/no-unnecessary-condition
-          }${defaultOptions.default ? `.default(${typeof defaultOptions.default === 'string' ? `'${defaultOptions.default}'` : defaultOptions.default})` : ''}${
+        }${defaultOptions.default ? `.default(${typeof defaultOptions.default === 'string' ? `'${defaultOptions.default}'` : defaultOptions.default})` : ''}${
           defaultOptions.nullable !== true ? `.notNull()` : ''
-          }${
+        }${
           // eslint-disable-next-line ts/no-unnecessary-condition
           defaultOptions.unique ? `.unique()` : ''
-          }`
+        }`;
       default:
         return `d.mysqlEnum('${field.databaseName}', [${optionsAsString}])${
           defaultOptions.primaryKey ? '.primaryKey()' : ''
         }${
           // eslint-disable-next-line ts/no-unnecessary-condition
-          defaultOptions.default ? `.default(${typeof defaultOptions.default === 'string' ? `'${defaultOptions.default}'` : defaultOptions.default})` : ''
-        }${
-          defaultOptions.nullable !== true ? `.notNull()` : ''
-        }${
+          defaultOptions.default
+            ? `.default(${typeof defaultOptions.default === 'string' ? `'${defaultOptions.default}'` : defaultOptions.default})`
+            : ''
+        }${defaultOptions.nullable !== true ? `.notNull()` : ''}${
           // eslint-disable-next-line ts/no-unnecessary-condition
           defaultOptions.unique ? `.unique()` : ''
-        }`
+        }`;
     }
-  },
+  }
 });

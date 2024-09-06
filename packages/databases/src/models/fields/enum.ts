@@ -1,6 +1,6 @@
 import { UnopinionatedField } from './field';
 
-import type Field from './field';
+import type { Field } from './field';
 import type { EnumFieldParamsType, MaybeNull } from './types';
 import type { This } from '../../types';
 import type { Narrow } from '@palmares/core';
@@ -51,7 +51,7 @@ export function choice<
  * const status = EnumField.new({ choices: ['active', 'inactive', 'in-progress'] });
  * ```
  */
-export default class EnumField<
+export class EnumField<
   TType extends { input: TEnumChoices[number]; output: TEnumChoices[number] } = {
     input: string;
     output: string;

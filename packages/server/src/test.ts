@@ -1,5 +1,5 @@
 import { middleware, nestedMiddleware } from './middleware';
-import Response from './response';
+import { Response } from './response';
 import { path, pathNested } from './router';
 
 import type { ExtractRequestsFromMiddlewaresForClient } from './middleware/types';

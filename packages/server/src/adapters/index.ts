@@ -1,7 +1,6 @@
-
-import ServerRequestAdapter from './requests';
-import ServerResponseAdapter from './response';
-import ServerRouterAdapter from './routers';
+import { ServerRequestAdapter } from './requests';
+import { ServerResponseAdapter } from './response';
+import { ServerRouterAdapter } from './routers';
 
 import type { AllServerSettingsType, ServersSettingsType } from '../types';
 import type { Domain } from '@palmares/core';
@@ -16,7 +15,7 @@ export function serverAdapter<
   TLoadFunction extends ServerAdapter['load'],
   TStartFunction extends ServerAdapter['start'],
   TCloseFunction extends ServerAdapter['close'],
-  TCustomServerSettings extends (typeof ServerAdapter)['customServerSettings'],
+  TCustomServerSettings extends (typeof ServerAdapter)['customServerSettings']
 >(args: {
   /**
    * This is the {@link ServerRequestAdapter}. The request will hold all of the request data from the server, this way we can
@@ -116,7 +115,7 @@ export function serverAdapter<
   };
 }
 
-export default class ServerAdapter {
+export class ServerAdapter {
   serverName: string;
   settings: AllServerSettingsType['servers'][string];
   allSettings: AllServerSettingsType;
@@ -125,7 +124,12 @@ export default class ServerAdapter {
   request: ServerRequestAdapter = new ServerRequestAdapter();
   response: ServerResponseAdapter = new ServerResponseAdapter();
 
-  constructor(serverName: string, allSettings: AllServerSettingsType, settings: AllServerSettingsType['servers'][string], domains: Domain[]) {
+  constructor(
+    serverName: string,
+    allSettings: AllServerSettingsType,
+    settings: AllServerSettingsType['servers'][string],
+    domains: Domain[]
+  ) {
     this.serverName = serverName;
     this.settings = settings;
     this.allSettings = allSettings;

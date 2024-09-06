@@ -1,15 +1,15 @@
 import type { FieldsOFModelType, ModelFieldsInQueries } from './queries';
-import type DatabaseAdapter from '../../engine';
+import type { DatabaseAdapter } from '../../engine';
 import type { DatabaseSettingsType } from '../../types';
 import type { Field } from '../fields';
-import type Manager from '../manager';
+import type { Manager } from '../manager';
 import type { BaseModel, Model } from '../model';
 
 export type ModelType = typeof BaseModel & typeof Model;
 
 export type ManagerInstancesType = {
   [engineName: string]: {
-    instance: any,
+    instance: any;
     modifyItself: () => void;
   };
 };
@@ -42,7 +42,7 @@ export type ExtractFieldNames<TFieldsAndAbstracts, TModelAbstracts> = TFieldsAnd
   ?
       | keyof TFields
       | (TModelAbstracts extends readonly [infer TAbstract, ...infer TRestAbstracts]
-          ? TAbstract extends { fields: any } | { fields: any;}
+          ? TAbstract extends { fields: any } | { fields: any }
             ?
                 | ExtractFieldNames<TAbstract, []>
                 | ExtractFieldNames<
@@ -58,7 +58,7 @@ export type ExtractFieldNames<TFieldsAndAbstracts, TModelAbstracts> = TFieldsAnd
 type ExtractFieldTypes<
   TFieldsAndAbstracts,
   TModelAbstracts,
-  TIsAllOptional extends boolean = false,
+  TIsAllOptional extends boolean = false
 > = TFieldsAndAbstracts extends { fields: infer TFields }
   ? (TIsAllOptional extends true
       ? {

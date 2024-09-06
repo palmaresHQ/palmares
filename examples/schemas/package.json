@@ -1,6 +1,6 @@
 {
   "name": "@examples/schemas",
-  "version": "0.0.21",
+  "version": "0.0.24",
   "description": "asdasdasd",
   "main": "./src/index.ts",
   "scripts": {

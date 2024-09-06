@@ -10,7 +10,7 @@ export const testDomainModifier = domain<{
   getTests: () => string[] | string;
 }>('@palmares/tests', '', {});
 
-export default domain('@palmares/tests', '', {
+export const testDomain = domain('@palmares/tests', '', {
   commands: {
     test: {
       description: 'Run the tests in your palmares application',

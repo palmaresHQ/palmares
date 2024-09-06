@@ -19,15 +19,14 @@ import {
   TextField,
   TranslatableField
 } from './fields';
-import UuidField from './fields/uuid';
+import { UuidField } from './fields/uuid';
 
 import type { Field } from './fields';
-import type { BaseModel, Model } from './model';
-import type model from './model';
+import type { BaseModel, Model, model } from './model';
 import type { ModelOptionsType, ModelType } from './types';
-import type DatabaseAdapter from '../engine';
-import type AdapterFields from '../engine/fields';
-import type EngineFieldParser from '../engine/fields/field';
+import type { DatabaseAdapter } from '../engine';
+import type { AdapterFields } from '../engine/fields';
+import type { AdapterFieldParser as EngineFieldParser } from '../engine/fields/field';
 import type { InitializedModelsType } from '../types';
 
 /**
@@ -310,10 +309,10 @@ export async function initializeModels(
     // track of the index of the model so that we can update it later
     // When we set to evaluate the fields later we will update the initialized model.
     const initializeModelPromises = models.map(async (modelClass, index) => {
-      const modelInstance = new modelClass() as InstanceType<ReturnType<typeof model>> & BaseModel;
+      const modelInstance = new modelClass();
       const doesModelIncludesTheConnection =
-        Array.isArray(modelInstance.options?.databases) && typeof engine.connectionName === 'string'
-          ? modelInstance.options.databases.includes(engine.connectionName)
+        Array.isArray((modelInstance as any).options?.databases) && typeof engine.connectionName === 'string'
+          ? (modelInstance as any).databases.includes(engine.connectionName)
           : true;
 
       const domainName = modelClass.domainName;
@@ -326,7 +325,7 @@ export async function initializeModels(
           domainPath,
           (field, translatedField) =>
             fieldsToEvaluateAfter.push({
-              model: modelInstance,
+              model: modelInstance as any,
               field,
               translatedField,
               getInitialized: () => initializedModel
@@ -346,7 +345,7 @@ export async function initializeModels(
           class: modelClass,
           initialized: initializedModel.instance,
           modifyItself: initializedModel.modifyItself,
-          original: modelInstance
+          original: modelInstance as any
         });
       }
     });

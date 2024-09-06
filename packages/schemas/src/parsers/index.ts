@@ -1,2 +1,2 @@
-export { default as convertFromNumberBuilder } from './convert-from-number';
-export { default as convertFromStringBuilder } from './convert-from-string';
+export { convertFromNumberBuilder } from './convert-from-number';
+export { convertFromStringBuilder } from './convert-from-string';

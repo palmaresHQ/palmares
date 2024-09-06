@@ -2,10 +2,10 @@ import { ForeignKeyFieldRequiredParamsMissingError } from './exceptions';
 import { UnopinionatedField } from './field';
 import { generateUUID } from '../../utils';
 
-import type Field from './field';
+import type { Field } from './field';
 import type { ClassConstructor, ForeignKeyFieldParamsType, MaybeNull, ON_DELETE } from './types';
 import type { ModelType } from '../..';
-import type DatabaseAdapter from '../../engine';
+import type { DatabaseAdapter } from '../../engine';
 import type { This } from '../../types';
 import type { Model } from '../model';
 
@@ -163,7 +163,7 @@ export function foreignKeyLazy<TRelatedModel>() {
  * What this means that each value in the column `user_id` is one of the ids of the `users` table. This means that we
  * can use this value to join them together.
  */
-export default class ForeignKeyField<
+export class ForeignKeyField<
   TType extends {
     input: TCustomType extends undefined
       ? TRelatedModel extends abstract new (...args: any) => any

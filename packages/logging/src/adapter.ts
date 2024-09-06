@@ -88,7 +88,7 @@ export function loggingAdapter<
   };
 }
 
-export default class LoggingAdapter {
+export class LoggingAdapter {
   /**
    * Log level log message.
    *

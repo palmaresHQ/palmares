@@ -1,4 +1,4 @@
-import Schema from './schema';
+import { Schema } from './schema';
 import { defaultTransform, defaultTransformToAdapter } from '../utils';
 import { is, nullable, optional } from '../validators/schema';
 import {
@@ -15,7 +15,7 @@ import {
 
 import type { DefinitionsOfSchemaType } from './types';
 
-export default class StringSchema<
+export class StringSchema<
   TType extends {
     input: any;
     validate: any;

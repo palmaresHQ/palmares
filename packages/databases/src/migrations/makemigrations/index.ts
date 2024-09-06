@@ -1,11 +1,11 @@
 /* eslint-disable no-case-declarations */
 import { FRAMEWORK_NAME, getDefaultStd, retrieveDomains } from '@palmares/core';
 
-import Asker from './asker';
+import { asker as Asker } from './asker';
 import { databaseLogger } from '../../logging';
 import { PACKAGE_NAME, getUniqueCustomImports } from '../../utils';
 import * as actions from '../actions';
-import State from '../state';
+import { State } from '../state';
 
 import type { EmptyOptionsOnGenerateFilesType, FieldOrModelParamType } from './types';
 import type { Field } from '../../models/fields';
@@ -30,7 +30,7 @@ import type { SettingsType2 } from '@palmares/core';
  * All of the migrations must pass through this class, even for empty migrations, if the user does not use this for
  * generating migrations errors might happen.
  */
-export default class MakeMigrations {
+export class MakeMigrations {
   #originalModelsByName!: OriginalOrStateModelsByNameType;
   #stateModelsByName!: OriginalOrStateModelsByNameType;
   settings: DatabaseSettingsType;

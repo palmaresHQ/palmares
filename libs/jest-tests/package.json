@@ -1,6 +1,6 @@
 {
   "name": "@palmares/jest-tests",
-  "version": "0.1.9",
+  "version": "0.1.12",
   "description": "This is the jest testing adapter, we are abstracting jest to work flawlessly with palmares",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
@@ -45,8 +45,10 @@
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
+  "peerDependencies": {
+    "@palmares/tests": "workspace:*"
+  },
   "dependencies": {
-    "@palmares/tests": "workspace:*",
     "@types/jest": "^29.5.12"
   },
   "devDependencies": {

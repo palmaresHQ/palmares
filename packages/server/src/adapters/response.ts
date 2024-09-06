@@ -1,6 +1,6 @@
-import type ServerAdapter from '.';
-import type ServerRouterAdapter from './routers';
-import type ServerlessAdapter from './serverless';
+import type { ServerAdapter } from '.';
+import type { ServerRouterAdapter } from './routers';
+import type { ServerlessAdapter } from './serverless';
 
 /**
  * Functional approach to creating a server adapter instead of the default class/inheritance approach.
@@ -31,7 +31,7 @@ export function serverResponseAdapter<
 /**
  * This code here is responsible for translating the response from the palmares framework to the server.
  */
-export default class ServerResponseAdapter {
+export class ServerResponseAdapter {
   /**
    * This function is used for handling redirects.
    *

@@ -1,3 +1,3 @@
-export default interface Asker {
+export interface Asker {
   ask: (question: string) => Promise<string>;
 }

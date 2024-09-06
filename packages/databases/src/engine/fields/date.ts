@@ -1,4 +1,4 @@
-import AdapterFieldParser from './field';
+import { AdapterFieldParser } from './field';
 import { DateField } from '../..';
 import { EngineDoesNotSupportFieldTypeException } from '../../models/exceptions';
 
@@ -18,7 +18,7 @@ import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateA
 export function adapterDateFieldParser<
   TTranslateFunction extends AdapterDateFieldParser['translate'],
   TInputParserFunction extends Required<AdapterDateFieldParser>['inputParser'],
-  TOutputParserFunction extends Required<AdapterDateFieldParser>['outputParser'],
+  TOutputParserFunction extends Required<AdapterDateFieldParser>['outputParser']
 >(args: {
   /**
    * @description
@@ -181,7 +181,7 @@ export function adapterDateFieldParser<
  * translated directly with the `translate` method, all other field types should define a parser with the `translate` field, those will be injected
  * in the `DatabaseAdapter` class constructor.
  */
-export default class AdapterDateFieldParser {
+export class AdapterDateFieldParser {
   /**
    * @description
    * Used to translate the field to something that the database can understand. The `{@link AdapterFieldParser}` instance will be injected by default in the `translate` method.

@@ -9,7 +9,7 @@ import type { DefaultCommandType } from '../commands/types';
  * EVERYTHING is a domain, the server is a domain, the database is a domain. Domains are
  * the building blocks of your application. Everything inside Palmares starts with domains.
  */
-export default class Domain<TModifiers = any> {
+export class Domain<TModifiers = any> {
   commands = {} as DefaultCommandType | undefined;
   name!: string;
   path!: string;

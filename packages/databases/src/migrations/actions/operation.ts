@@ -1,7 +1,7 @@
 import type { ActionToGenerateType, ToStringFunctionReturnType } from './types';
-import type DatabaseAdapter from '../../engine';
-import type Migration from '../migrate/migration';
-import type State from '../state';
+import type { DatabaseAdapter } from '../../engine';
+import type { Migration } from '../migrate/migration';
+import type { State } from '../state';
 import type { OriginalOrStateModelsByNameType } from '../types';
 
 /**
@@ -64,14 +64,14 @@ export class Operation {
       modelName: modelName,
       order: 0,
       dependsOn: [],
-      data: data,
+      data: data
     };
   }
 
   // eslint-disable-next-line ts/require-await
   static async toString(indentation = 0, data: ActionToGenerateType<any>): Promise<ToStringFunctionReturnType> {
     return {
-      asString: '',
+      asString: ''
     };
   }
 

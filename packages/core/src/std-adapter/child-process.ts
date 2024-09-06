@@ -1,4 +1,4 @@
-export default interface ChildProcess {
+export interface ChildProcess {
   executeAndOutput: (command: string) => Promise<string>;
   spawn: (
     command: string,

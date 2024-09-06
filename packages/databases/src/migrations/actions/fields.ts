@@ -6,15 +6,14 @@ import type {
   CreateFieldToGenerateData,
   DeleteFieldToGenerateData,
   RenameFieldToGenerateData,
-  ToStringFunctionReturnType,
+  ToStringFunctionReturnType
 } from './types';
-import type DatabaseAdapter from '../../engine';
+import type { DatabaseAdapter } from '../../engine';
 import type { BaseModel } from '../../models';
 import type { Field } from '../../models/fields';
-import type Migration from '../migrate/migration';
-import type State from '../state';
+import type { Migration } from '../migrate/migration';
+import type { State } from '../state';
 import type { OriginalOrStateModelsByNameType } from '../types';
-
 
 /**
  * This operation is used when a new field is created on a specific model. If the hole model is created
@@ -76,7 +75,7 @@ export class CreateField extends Operation {
           `${ident}"${data.data.fieldName}",\n` +
           `${await data.data.fieldDefinition.toString(indentation)}`
       ),
-      customImports: await data.data.fieldDefinition.customImports(),
+      customImports: await data.data.fieldDefinition.customImports()
     };
   }
 
@@ -153,13 +152,16 @@ export class ChangeField extends Operation {
       ),
       customImports: (await data.data.fieldDefinitionBefore.customImports()).concat(
         await data.data.fieldDefinitionAfter.customImports()
-      ),
+      )
     };
   }
 
   // eslint-disable-next-line ts/require-await
   static async describe(data: ActionToGenerateType<ChangeFieldToGenerateData>): Promise<string> {
-    return `Changed the ${`attribute${data.data.changedAttributes.length > 1 ? 's' : ''} ${data.data.changedAttributes.map((attribute) => `'${attribute}'`).join(', ').replace(/,(?!.*,)/, ' and')}`} of the '${data.data.fieldName}' field on the '${data.modelName}' model`;
+    return `Changed the ${`attribute${data.data.changedAttributes.length > 1 ? 's' : ''} ${data.data.changedAttributes
+      .map((attribute) => `'${attribute}'`)
+      .join(', ')
+      .replace(/,(?!.*,)/, ' and')}`} of the '${data.data.fieldName}' field on the '${data.modelName}' model`;
   }
 }
 
@@ -191,7 +193,7 @@ export class RenameField extends Operation {
     const hasNamesReallyChanged = this.fieldNameAfter !== this.fieldNameBefore;
     if (hasNamesReallyChanged) {
       model.fields[this.fieldNameAfter] = model.fields[this.fieldNameBefore];
-      delete model.fields[this.fieldNameBefore]
+      delete model.fields[this.fieldNameBefore];
     }
 
     model.fields[this.fieldNameAfter] = this.fieldDefinition;
@@ -235,7 +237,7 @@ export class RenameField extends Operation {
           `${ident}"${data.data.fieldNameAfter}",\n` +
           `${await data.data.fieldDefinition.toString(indentation)}`
       ),
-      customImports: await data.data.fieldDefinition.customImports(),
+      customImports: await data.data.fieldDefinition.customImports()
     };
   }
 
@@ -297,7 +299,7 @@ export class DeleteField extends Operation {
       asString: await super.defaultToString(
         indentation - 1,
         `${ident}"${data.modelName}",\n` + `${ident}"${data.data.fieldName}"`
-      ),
+      )
     };
   }
 

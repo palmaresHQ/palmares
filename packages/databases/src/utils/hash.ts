@@ -1,4 +1,4 @@
-export default function hashString(stringToHash: string): string {
+export function hashString(stringToHash: string): string {
   // P and M
   const p = 53;
   const m = 1e9 + 9;

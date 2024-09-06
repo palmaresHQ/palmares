@@ -6,7 +6,7 @@ import type { AllTestsSettingsType, TestDomain } from '../types';
 
 const filesToTest: string[] = [];
 
-export default async function test(domains: TestDomain[], settings: AllTestsSettingsType) {
+export async function test(domains: TestDomain[], settings: AllTestsSettingsType) {
   for (const domain of domains) {
     if (domain.getTests) {
       const testFilesOrTestFile = domain.getTests();

@@ -1,39 +1,41 @@
-import ServerAdapter from '.';
+import { ServerAdapter } from '../index';
 
 import type { BaseRouter } from '../../router/routers';
 import type { MethodTypes, RouterOptionsType } from '../../router/types';
-import type ServerRequestAdapter from '../requests';
-import type ServerResponseAdapter from '../response';
-import type ServerlessAdapter from '../serverless';
+import type { ServerRequestAdapter } from '../requests';
+import type { ServerResponseAdapter } from '../response';
+import type { ServerlessAdapter } from '../serverless';
 
 export type HandlerForServerless = {
   writeFile: (args: {
-    pathOfHandlerFile: string[],
+    pathOfHandlerFile: string[];
     /** This is the name of your current package as on package.json the import like: `import ${name} from ${projectName}` */
-    projectName: string,
+    projectName: string;
     adapter: {
       /** Is it a default export? like `import ${name} from ${projectName}` or not, like: `import { ${name} } from ${projectName}` */
-      isDefaultImport: boolean,
+      isDefaultImport: boolean;
       /** This is the name on the import like: `import ${name} from ${projectName}` */
-      name: string
-    },
-  }) => Promise<void>,
+      name: string;
+    };
+  }) => Promise<void>;
   appendBody: (args: {
-    parameters: {
-      name: string
-      type: string
-    }[] | string[];
+    parameters:
+      | {
+          name: string;
+          type: string;
+        }[]
+      | string[];
     customExport?: string;
     isCJSModule?: boolean;
     isDefaultExport?: boolean;
     functionName: string;
-    adapter: string
+    adapter: string;
     isSpecificRoute?: boolean;
     isSpecificMethod?: boolean;
-    requestAndResponseData: string
-    getMethodFunctionBody: string
-    getRouteFunctionBody: string
-  }) => Promise<void>
+    requestAndResponseData: string;
+    getMethodFunctionBody: string;
+    getRouteFunctionBody: string;
+  }) => Promise<void>;
 };
 
 /**
@@ -44,7 +46,7 @@ export type HandlerForServerless = {
 export function serverlessRouterAdapter<
   TParseRouteFunction extends ServerlessRouterAdapter['parseRoute'],
   TParseHandlersFunction extends ServerlessRouterAdapter['parseHandlers'],
-  TLoad404Function extends ServerlessRouterAdapter['load404'],
+  TLoad404Function extends ServerlessRouterAdapter['load404']
 >(args: {
   /**
    * Used for parsing each part of the route, instead of parsing the whole route all at once, the framework itself will call this method for each part of the route.
@@ -178,7 +180,7 @@ export function serverlessRouterAdapter<
 /**
  * Adapter used for translating palmares router to the framework of choice router.
  */
-export default class ServerlessRouterAdapter {
+export class ServerlessRouterAdapter {
   /**
    * This method is used for loading a 405 handler, this will only be called if no handler is found for the requested method.
    *

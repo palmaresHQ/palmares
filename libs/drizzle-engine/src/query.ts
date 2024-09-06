@@ -157,7 +157,7 @@ const search = adapterSearchQuery({
   }
 });
 
-export default adapterQuery({
+export const query = adapterQuery({
   search: new search(),
   ordering: new order(),
   get: new getQuery(),

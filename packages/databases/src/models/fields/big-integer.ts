@@ -1,4 +1,4 @@
-import Field from './field';
+import { Field } from './field';
 
 import type { FieldDefaultParamsType, MaybeNull } from './types';
 import type { This } from '../../types';
@@ -52,7 +52,7 @@ export function bigInt<
  * const bigIntegerField = BigIntegerField.new({ databaseName: 'user_id' });
  * ```
  */
-export default class BigIntegerField<
+export class BigIntegerField<
   TType extends { input: bigint | number; output: bigint | number } = {
     input: bigint | number;
     output: bigint | number;

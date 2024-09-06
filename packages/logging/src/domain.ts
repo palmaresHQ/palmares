@@ -1,13 +1,13 @@
 import { domain } from '@palmares/core';
 
 import { setLoggerAtLevel } from './config';
-import Logger from './logger';
+import { Logger } from './logger';
 
 import type { LoggingSettingsType, LoggingTypes } from './types';
 
 // eslint-disable-next-line ts/ban-ts-comment
 // @ts-ignore
-export default domain('@palmares/logging', '', {
+export const loggingDomain = domain('@palmares/logging', '', {
   load: async (settings: LoggingSettingsType) => {
     // eslint-disable-next-line ts/no-unnecessary-condition
     if (settings?.logger) {
@@ -29,13 +29,13 @@ export default domain('@palmares/logging', '', {
                 return new loggerConstructor();
               })
             : new logger.logger();
-          (logger as any).logger = initializedLogger;
+          (logger.logger as any) = initializedLogger;
           const loggingLevels: LoggingTypes[] = Array.isArray(logger.level)
             ? logger.level
             : typeof logger.level === 'string'
               ? [logger.level]
               : ['debug', 'log', 'info', 'warn', 'error'];
-          for (const level of loggingLevels) setLoggerAtLevel(level, logger as any);
+          for (const level of loggingLevels) setLoggerAtLevel(level, { logger: logger.logger as any });
         }
       }
       (settings as any).__logger = Logger;

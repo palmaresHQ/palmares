@@ -1,6 +1,6 @@
 {
   "name": "@palmares/databases",
-  "version": "0.1.12",
+  "version": "0.1.15",
   "description": "Add support for working with databases with palmares framework",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
@@ -46,7 +46,7 @@
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
-  "dependencies": {
+  "peerDependencies": {
     "@palmares/core": "workspace:*",
     "@palmares/events": "workspace:*",
     "@palmares/logging": "workspace:*"

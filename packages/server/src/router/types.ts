@@ -1,9 +1,9 @@
 import type { BaseRouter } from './routers';
 import type { Middleware } from '../middleware';
 import type { ExtractRequestsFromMiddlewaresForServer, MiddlewareOptions } from '../middleware/types';
-import type Request from '../request';
+import type { Request } from '../request';
 import type { RequestMethodTypes } from '../request/types';
-import type Response from '../response';
+import type { Response } from '../response';
 import type { StatusCodes } from '../response/status';
 import type { Narrow } from '@palmares/core';
 

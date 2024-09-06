@@ -1,12 +1,12 @@
 import { getSettings, initializeDomains } from '@palmares/core';
 
 import { ManagerEngineInstanceNotFoundError } from './exceptions';
-import Databases from '../databases';
-import getQuery from '../queries/get';
-import removeQuery from '../queries/remove';
-import setQuery from '../queries/set';
+import { Databases } from '../databases';
+import { getQuery } from '../queries/get';
+import { removeQuery } from '../queries/remove';
+import { setQuery } from '../queries/set';
 
-import type { Model, default as model } from './model';
+import type { Model, model } from './model';
 import type {
   FieldsOFModelType,
   FieldsOfModelOptionsType,
@@ -19,7 +19,7 @@ import type {
   ModelType,
   OrderingOfModelsType
 } from './types';
-import type DatabaseAdapter from '../engine';
+import type { DatabaseAdapter } from '../engine';
 import type { DatabaseDomainInterface } from '../interfaces';
 import type { DatabaseSettingsType } from '../types';
 import type { Narrow, SettingsType2 } from '@palmares/core';
@@ -68,7 +68,7 @@ import type { Narrow, SettingsType2 } from '@palmares/core';
  * For example: one could create a framework that enables `bull.js` tasks to be defined on the database instead
  * of the code. This way we could update the tasks dynamically.
  */
-export default class Manager<TModel = Model, TEI extends DatabaseAdapter | null = null> {
+export class Manager<TModel = Model, TEI extends DatabaseAdapter | null = null> {
   instances: ManagerInstancesType;
   engineInstances: ManagerEngineInstancesType;
   defaultEngineInstanceName: string;

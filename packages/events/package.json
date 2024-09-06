@@ -1,6 +1,6 @@
 {
   "name": "@palmares/events",
-  "version": "0.0.12",
+  "version": "0.0.15",
   "description": "This is the events framework for palmares, it's responsible for handling everything that is Pub/Sub like websockets, pub/sub like redis, and other types of asynchronous background tasks",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
@@ -45,7 +45,7 @@
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
-  "dependencies": {
+  "peerDependencies": {
     "@palmares/logging": "workspace:*",
     "@palmares/core": "workspace:*"
   }

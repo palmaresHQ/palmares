@@ -6,14 +6,13 @@ import type {
   ChangeModelToGenerateData,
   CreateModelToGenerateData,
   RenameModelToGenerateData,
-  ToStringFunctionReturnType,
+  ToStringFunctionReturnType
 } from './types';
-import type DatabaseAdapter from '../../engine';
+import type { DatabaseAdapter } from '../../engine';
 import type { ModelFieldsType, ModelOptionsType } from '../../models/types';
-import type Migration from '../migrate/migration';
-import type State from '../state';
+import type { Migration } from '../migrate/migration';
+import type { State } from '../state';
 import type { OriginalOrStateModelsByNameType } from '../types';
-
 
 /**
  * This operation is used when you create a model in the application.
@@ -43,7 +42,7 @@ export class CreateModel extends Operation {
     modelConstructor.domainPath = domainPath;
     model.fields = this.fields;
     model.options = this.options;
-    state.set(this.modelName, model)
+    state.set(this.modelName, model);
   }
 
   async run(
@@ -74,7 +73,7 @@ export class CreateModel extends Operation {
           `${fieldsAsString},\n` +
           `${await BaseModel._optionsToString(indentation, data.data.options)}`
       ),
-      customImports: customImports,
+      customImports: customImports
     };
   }
 
@@ -119,7 +118,7 @@ export class DeleteModel extends Operation {
   static async toString(indentation = 0, data: ActionToGenerateType<null>): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
     return {
-      asString: await super.defaultToString(indentation - 1, `${ident}"${data.modelName}"`),
+      asString: await super.defaultToString(indentation - 1, `${ident}"${data.modelName}"`)
     };
   }
 
@@ -184,7 +183,7 @@ export class ChangeModel extends Operation {
         `${ident}"${data.modelName}",\n` +
           `${await BaseModel._optionsToString(indentation, data.data.optionsBefore)},\n` +
           `${await BaseModel._optionsToString(indentation, data.data.optionsAfter)}`
-      ),
+      )
     };
   }
 
@@ -232,7 +231,7 @@ export class RenameModel extends Operation {
       asString: await super.defaultToString(
         indentation - 1,
         `${ident}"${data.data.modelNameBefore}",\n` + `${ident}"${data.data.modelNameBefore}"`
-      ),
+      )
     };
   }
 

@@ -1,4 +1,4 @@
-import Field from './field';
+import { Field } from './field';
 
 import type { DateFieldParamsType, MaybeNull } from './types';
 import type { This } from '../../types';
@@ -62,7 +62,7 @@ export function date<
  * const createdAt = DateField.new({ autoNowAdd: true });
  * ```
  */
-export default class DateField<
+export class DateField<
   TType extends { input: string | Date; output: string | Date } = {
     input: string | Date;
     output: string | Date;

@@ -1,27 +1,27 @@
-import SchemaAdapter from './adapter';
-import SchemaDomain from './domain';
+import { SchemaAdapter } from './adapter';
+import { schemasDomain as SchemaDomain } from './domain';
 import { modelSchema } from './model';
-import ArraySchema, { array } from './schema/array';
-import BooleanSchema, { boolean } from './schema/boolean';
-import DatetimeSchema, { datetime } from './schema/datetime';
-import NumberSchema, { number } from './schema/number';
-import ObjectSchema, { object } from './schema/object';
-import Schema, { schema } from './schema/schema';
-import StringSchema, { string } from './schema/string';
-import UnionSchema, { union } from './schema/union';
+import { ArraySchema, array } from './schema/array';
+import { BooleanSchema, boolean } from './schema/boolean';
+import { DatetimeSchema, datetime } from './schema/datetime';
+import { NumberSchema, number } from './schema/number';
+import { ObjectSchema, object } from './schema/object';
+import { Schema, schema } from './schema/schema';
+import { StringSchema, string } from './schema/string';
+import { UnionSchema, union } from './schema/union';
 
 import type { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from './schema/types';
 import type { Narrow } from '@palmares/core';
 import type { Model, ModelFields } from '@palmares/databases';
 
-export { default as FieldAdapter, fieldAdapter } from './adapter/fields';
-export { default as NumberFieldAdapter, numberFieldAdapter } from './adapter/fields/number';
-export { default as ObjectFieldAdapter, objectFieldAdapter } from './adapter/fields/object';
-export { default as UnionFieldAdapter, unionFieldAdapter } from './adapter/fields/union';
-export { default as StringFieldAdapter, stringFieldAdapter } from './adapter/fields/string';
-export { default as ArrayFieldAdapter, arrayFieldAdapter } from './adapter/fields/array';
-export { default as BooleanFieldAdapter, booleanFieldAdapter } from './adapter/fields/boolean';
-export { default as DatetimeFieldAdapter, datetimeFieldAdapter } from './adapter/fields/datetime';
+export { FieldAdapter, fieldAdapter } from './adapter/fields';
+export { NumberFieldAdapter, numberFieldAdapter } from './adapter/fields/number';
+export { ObjectFieldAdapter, objectFieldAdapter } from './adapter/fields/object';
+export { UnionFieldAdapter, unionFieldAdapter } from './adapter/fields/union';
+export { StringFieldAdapter, stringFieldAdapter } from './adapter/fields/string';
+export { ArrayFieldAdapter, arrayFieldAdapter } from './adapter/fields/array';
+export { BooleanFieldAdapter, booleanFieldAdapter } from './adapter/fields/boolean';
+export { DatetimeFieldAdapter, datetimeFieldAdapter } from './adapter/fields/datetime';
 
 export type { Infer as infer } from './types';
 export { setDefaultAdapter, getDefaultAdapter } from './conf';
@@ -39,10 +39,11 @@ export {
   Schema
 };
 export { schema, number, object, union, string, array, datetime, boolean };
-export { default as compile } from './compile';
-export { default as schemaHandler } from './middleware';
+export { compile } from './compile';
+export { schemaHandler } from './middleware';
 
 export { modelSchema };
+export { SchemaDomain };
 
 export default SchemaDomain;
 

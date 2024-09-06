@@ -1,7 +1,7 @@
 import { fieldAdapter } from '@palmares/schemas';
 import * as z from 'zod';
 
-export default fieldAdapter({
+export const defaultFieldAdapter = fieldAdapter({
   translate: (_, args, baseResult) => {
     if (args.optional.allow) baseResult = baseResult.optional();
     if (args.nullable.allow) baseResult = baseResult.nullable();

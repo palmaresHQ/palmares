@@ -3,7 +3,7 @@ import type { performance } from 'perf_hooks';
 /**
  * Generates a random uuid for each event so we change the actual name of the event with uuids.
  */
-export default function uuid() {
+export function uuid() {
   let date = new Date().getTime();
   const browserOrNodePerformance = (globalThis as any).performance as typeof performance | undefined;
   let performanceDate =

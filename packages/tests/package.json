@@ -1,6 +1,6 @@
 {
   "name": "@palmares/tests",
-  "version": "0.1.9",
+  "version": "0.1.12",
   "description": "This defines a default test framework testing stuff inside of the framework",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
@@ -47,7 +47,7 @@
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
-  "dependencies": {
+  "peerDependencies": {
     "@palmares/core": "workspace:*"
   }
 }

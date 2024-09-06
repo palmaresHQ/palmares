@@ -1,5 +1,6 @@
-export { default as LoggingAdapter, loggingAdapter } from './adapter';
-export { default as Logger } from './logger';
-export * from './utils';
+export { LoggingAdapter, loggingAdapter } from './adapter';
+export { Logger } from './logger';
+export { removeColorsFormatting } from './utils';
 
-export { default as default } from './domain';
+export { loggingDomain as loggingDomain } from './domain';
+export { loggingDomain as default } from './domain';

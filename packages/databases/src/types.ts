@@ -1,4 +1,4 @@
-import type DatabaseAdapter from './engine';
+import type { DatabaseAdapter } from './engine';
 import type { BaseModel, Manager, model } from './models';
 import type { EventEmitter } from '@palmares/events';
 
@@ -12,7 +12,7 @@ export interface DatabaseConfigurationType {
 
 export type ExtractFieldsFromAbstracts<TAbstracts extends readonly any[]> = TAbstracts extends readonly [
   infer TAbstract,
-  ...infer TRest,
+  ...infer TRest
 ]
   ? TAbstract extends {
       new (): { fields: infer TFields };
@@ -23,7 +23,7 @@ export type ExtractFieldsFromAbstracts<TAbstracts extends readonly any[]> = TAbs
 
 export type ExtractManagersFromAbstracts<TAbstracts extends readonly any[]> = TAbstracts extends readonly [
   infer TAbstract,
-  ...infer TRest,
+  ...infer TRest
 ]
   ? {
       [TKey in keyof TAbstract as TAbstract[TKey] extends Manager<any> ? TKey : never]: TAbstract[TKey];

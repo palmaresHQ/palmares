@@ -2,11 +2,11 @@ import { appServer } from '@palmares/core';
 
 import { ServerAlreadyInitializedError } from './exceptions';
 import { initializeRouters } from './utils';
-import ServerAdapter from '../adapters';
+import { ServerAdapter } from '../adapters';
 import { DEFAULT_SERVER_PORT } from '../defaults';
 import { serverLogger } from '../logging';
 
-import type ServerlessAdapter from '../adapters/serverless';
+import type { ServerlessAdapter } from '../adapters/serverless';
 import type { ServerDomain } from '../domain/types';
 import type { AllServerSettingsType, ServerSettingsType } from '../types';
 
@@ -22,7 +22,7 @@ const serverInstances: Map<string, { server: ServerAdapter | ServerlessAdapter; 
  * - `start`: Starts the appServer.
  * - `close`: Called when SIGINT is received.
  */
-export default appServer({
+export const httpAppServer = appServer({
   load: async (args: {
     settings: AllServerSettingsType;
     commandLineArgs: {

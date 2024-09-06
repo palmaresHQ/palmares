@@ -1,16 +1,16 @@
 import { SchemaAdapterNotImplementedError } from '../exceptions';
 
-import type FieldAdapter from './fields';
-import type ArrayFieldAdapter from './fields/array';
-import type BooleanFieldAdapter from './fields/boolean';
-import type DatetimeFieldAdapter from './fields/datetime';
-import type NumberFieldAdapter from './fields/number';
-import type ObjectFieldAdapter from './fields/object';
-import type StringFieldAdapter from './fields/string';
-import type UnionFieldAdapter from './fields/union';
+import type { FieldAdapter } from './fields';
+import type { ArrayFieldAdapter } from './fields/array';
+import type { BooleanFieldAdapter } from './fields/boolean';
+import type { DatetimeFieldAdapter } from './fields/datetime';
+import type { NumberFieldAdapter } from './fields/number';
+import type { ObjectFieldAdapter } from './fields/object';
+import type { StringFieldAdapter } from './fields/string';
+import type { UnionFieldAdapter } from './fields/union';
 import type { ErrorCodes } from './types';
 
-export default class SchemaAdapter {
+export class SchemaAdapter {
   field!: FieldAdapter;
   number?: NumberFieldAdapter;
   object!: ObjectFieldAdapter;

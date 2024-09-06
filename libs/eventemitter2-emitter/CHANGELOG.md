@@ -1,5 +1,29 @@
 # @palmares/eventemitter2-emitter
 
+## 0.0.7
+
+### Patch Changes
+
+- removed all default exports
+- Updated dependencies
+  - @palmares/events@0.0.15
+
+## 0.0.6
+
+### Patch Changes
+
+- Add named exports so it can function properly
+- Updated dependencies
+  - @palmares/events@0.0.14
+
+## 0.0.5
+
+### Patch Changes
+
+- Fix module issues to allow palmares to run as a module as well as commonjs
+- Updated dependencies
+  - @palmares/events@0.0.13
+
 ## 0.0.4
 
 ### Patch Changes

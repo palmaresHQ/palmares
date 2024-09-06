@@ -1,4 +1,4 @@
-import Field from './field';
+import { Field } from './field';
 
 import type { FieldDefaultParamsType, MaybeNull } from './types';
 import type { This } from '../../types';
@@ -52,7 +52,7 @@ export function bool<
  * const booleanField = BooleanField.new({ defaultValue: false });
  * ```
  */
-export default class BooleanField<
+export class BooleanField<
   TType extends { input: boolean; output: boolean } = { input: boolean; output: boolean },
   TField extends Field = any,
   TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,

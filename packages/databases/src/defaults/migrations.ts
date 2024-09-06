@@ -6,7 +6,7 @@ import type { MigrationFileType } from '../migrations/types';
 /**
  * Here we just create the `palmares_migrations` table in the database.
  */
-const migrations: MigrationFileType[] = [
+export const defaultMigrations: MigrationFileType[] = [
   {
     name: 'create_palmares_migration_table',
     database: '*',
@@ -23,7 +23,7 @@ const migrations: MigrationFileType[] = [
             dbIndex: true,
             databaseName: 'id',
             underscored: false,
-            customAttributes: {},
+            customAttributes: {}
           }),
           migrationName: CharField.new({
             allowBlank: true,
@@ -35,7 +35,7 @@ const migrations: MigrationFileType[] = [
             dbIndex: false,
             databaseName: 'migration_name',
             underscored: false,
-            customAttributes: {},
+            customAttributes: {}
           }),
           engineName: CharField.new({
             allowBlank: true,
@@ -47,8 +47,8 @@ const migrations: MigrationFileType[] = [
             dbIndex: false,
             databaseName: 'engine_name',
             underscored: false,
-            customAttributes: {},
-          }),
+            customAttributes: {}
+          })
         },
         {
           abstract: false,
@@ -58,11 +58,9 @@ const migrations: MigrationFileType[] = [
           ordering: ['-id'],
           indexes: [],
           databases: ['default'],
-          customOptions: {},
+          customOptions: {}
         }
-      ),
-    ],
-  },
+      )
+    ]
+  }
 ];
-
-export default migrations;

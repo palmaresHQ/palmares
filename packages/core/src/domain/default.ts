@@ -1,10 +1,10 @@
-import domain from './function';
-import help from '../commands/help';
+import { domain } from './function';
+import { help } from '../commands/help';
 import { PACKAGE_NAME } from '../utils';
 
 import type { CoreSettingsType } from '../conf/types';
 
-const coreDomain = domain(PACKAGE_NAME, '', {
+export const coreDomain = domain(PACKAGE_NAME, '', {
   modifiers: [] as const,
   commands: {
     help: {
@@ -36,5 +36,3 @@ const coreDomain = domain(PACKAGE_NAME, '', {
   // eslint-disable-next-line ts/require-await
   load: async (_: CoreSettingsType) => undefined
 });
-
-export default coreDomain;
