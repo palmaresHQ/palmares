@@ -1,5 +1,13 @@
 # @palmares/schemas
 
+## 0.1.16
+
+### Patch Changes
+
+- Small fixes, for schemas validate, and for databases just the tests
+- Updated dependencies
+  - @palmares/databases@0.1.12
+
 ## 0.1.15
 
 ### Patch Changes

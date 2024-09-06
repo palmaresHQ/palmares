@@ -1,5 +1,13 @@
 # @examples/schemas
 
+## 0.0.21
+
+### Patch Changes
+
+- Updated dependencies
+  - @palmares/schemas@0.1.16
+  - @palmares/zod-schema@0.1.18
+
 ## 0.0.20
 
 ### Patch Changes
