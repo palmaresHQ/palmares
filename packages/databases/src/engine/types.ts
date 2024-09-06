@@ -15,7 +15,7 @@ import type {
   IntegerField,
   TextField,
   UuidField,
-  adapterFieldParser,
+  adapterFieldParser
 } from '..';
 import type { model } from '../models';
 
@@ -45,7 +45,7 @@ export type AdapterFieldParserTranslateArgs<
     | 'uuid' = 'field',
   TEngine = DatabaseAdapter,
   TFieldParser extends AdapterFieldParser | InstanceType<ReturnType<typeof adapterFieldParser>> = AdapterFieldParser,
-  TLazyTranslatedFieldArg = any,
+  TLazyTranslatedFieldArg = any
 > = {
   /**The engine instance. */
   engine: TEngine;
@@ -66,28 +66,28 @@ export type AdapterFieldParserTranslateArgs<
         | TextField
         | UuidField
     : TFieldType extends 'auto'
-    ? AutoField
-    : TFieldType extends 'big-auto'
-    ? BigAutoField
-    : TFieldType extends 'big-integer'
-    ? BigIntegerField
-    : TFieldType extends 'boolean'
-    ? BooleanField
-    : TFieldType extends 'char'
-    ? CharField
-    : TFieldType extends 'date'
-    ? DateField
-    : TFieldType extends 'decimal'
-    ? DecimalField
-    : TFieldType extends 'enum'
-    ? EnumField
-    : TFieldType extends 'foreign-key'
-    ? ForeignKeyField
-    : TFieldType extends 'integer'
-    ? IntegerField
-    : TFieldType extends 'text'
-    ? TextField
-    : UuidField;
+      ? AutoField
+      : TFieldType extends 'big-auto'
+        ? BigAutoField
+        : TFieldType extends 'big-integer'
+          ? BigIntegerField
+          : TFieldType extends 'boolean'
+            ? BooleanField
+            : TFieldType extends 'char'
+              ? CharField
+              : TFieldType extends 'date'
+                ? DateField
+                : TFieldType extends 'decimal'
+                  ? DecimalField
+                  : TFieldType extends 'enum'
+                    ? EnumField
+                    : TFieldType extends 'foreign-key'
+                      ? ForeignKeyField
+                      : TFieldType extends 'integer'
+                        ? IntegerField
+                        : TFieldType extends 'text'
+                          ? TextField
+                          : UuidField;
   /** The field parser instance so we can call the `translate` method on other field types. */
   fieldParser: TFieldParser;
   /** The name of the model */
@@ -115,7 +115,7 @@ export type AdapterFieldParserInputAndOutputArgs<
     | 'uuid' = 'field',
   TEngine extends DatabaseAdapter = DatabaseAdapter,
   TFieldParser extends AdapterFieldParser = AdapterFieldParser,
-  TValue = any,
+  TValue = any
 > = {
   /** The engine instance. */
   engine: TEngine;
@@ -132,27 +132,27 @@ export type AdapterFieldParserInputAndOutputArgs<
     TFieldType extends 'field'
       ? typeof Field
       : TFieldType extends 'auto'
-      ? typeof AutoField
-      : TFieldType extends 'big-auto'
-      ? typeof BigAutoField
-      : TFieldType extends 'big-integer'
-      ? typeof BigIntegerField
-      : TFieldType extends 'boolean'
-      ? typeof BooleanField
-      : TFieldType extends 'char'
-      ? typeof CharField
-      : TFieldType extends 'date'
-      ? typeof DateField
-      : TFieldType extends 'decimal'
-      ? typeof DecimalField
-      : TFieldType extends 'enum'
-      ? typeof EnumField
-      : TFieldType extends 'foreign-key'
-      ? typeof ForeignKeyField
-      : TFieldType extends 'integer'
-      ? typeof IntegerField
-      : TFieldType extends 'text'
-      ? typeof TextField
-      : typeof UuidField
+        ? typeof AutoField
+        : TFieldType extends 'big-auto'
+          ? typeof BigAutoField
+          : TFieldType extends 'big-integer'
+            ? typeof BigIntegerField
+            : TFieldType extends 'boolean'
+              ? typeof BooleanField
+              : TFieldType extends 'char'
+                ? typeof CharField
+                : TFieldType extends 'date'
+                  ? typeof DateField
+                  : TFieldType extends 'decimal'
+                    ? typeof DecimalField
+                    : TFieldType extends 'enum'
+                      ? typeof EnumField
+                      : TFieldType extends 'foreign-key'
+                        ? typeof ForeignKeyField
+                        : TFieldType extends 'integer'
+                          ? typeof IntegerField
+                          : TFieldType extends 'text'
+                            ? typeof TextField
+                            : typeof UuidField
   >[0];
 };

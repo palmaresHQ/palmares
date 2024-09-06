@@ -46,6 +46,7 @@ export { default as BigIntegerField, bigInt } from './models/fields/big-integer'
 export { default as CharField, char } from './models/fields/char';
 export { default as DateField, date } from './models/fields/date';
 export { default as DecimalField, decimal } from './models/fields/decimal';
+export { default as Field } from './models/fields/field';
 export { default as ForeignKeyField, foreignKey } from './models/fields/foreign-key';
 export { default as IntegerField, integer } from './models/fields/integer';
 export { default as TextField, text } from './models/fields/text';
