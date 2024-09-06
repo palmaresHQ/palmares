@@ -1,5 +1,11 @@
 # @palmares/client
 
+## 0.1.9
+
+### Patch Changes
+
+- 7e36006: New version with better support for paths with regex
+
 ## 0.1.8
 
 ### Patch Changes

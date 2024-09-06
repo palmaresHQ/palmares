@@ -40,7 +40,19 @@ export const models = {
   Model,
   ModelBaseClass
 };
-export * from './models/fields';
+export { default as AutoField, auto } from './models/fields/auto';
+export { default as BigAutoField, bigAuto } from './models/fields/big-auto';
+export { default as BigIntegerField, bigInt } from './models/fields/big-integer';
+export { default as CharField, char } from './models/fields/char';
+export { default as DateField, date } from './models/fields/date';
+export { default as DecimalField, decimal } from './models/fields/decimal';
+export { default as ForeignKeyField, foreignKey } from './models/fields/foreign-key';
+export { default as IntegerField, integer } from './models/fields/integer';
+export { default as TextField, text } from './models/fields/text';
+export { default as UuidField, uuid } from './models/fields/uuid';
+export { default as EnumField, choice } from './models/fields/enum';
+export { default as BooleanField, bool } from './models/fields/boolean';
+export { default as TranslatableField } from './models/fields/translatable';
 export * from './models/types';
 export * as actions from './migrations/actions';
 export { default as Migration } from './migrations/migrate/migration';

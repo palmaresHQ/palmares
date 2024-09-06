@@ -105,11 +105,16 @@
       "default": "./dist/cjs/src/drizzles/xata-http.js"
     },
     ".": {
-      "types": "./dist/cjs/types/index.d.ts",
-      "node": "./dist/cjs/src/index.js",
-      "require": "./dist/cjs/src/index.js",
-      "import": "./dist/esm/src/index.js",
-      "default": "./dist/esm/src/index.js"
+      "import": {
+        "default": "./dist/esm/src/index.js",
+        "types": "./dist/cjs/types/index.d.ts"
+      },
+      "require": {
+        "default": "./dist/cjs/src/index.js",
+        "types": "./dist/cjs/types/index.d.ts"
+      },
+      "default": "./dist/esm/src/index.js",
+      "types": "./dist/cjs/types/index.d.ts"
     }
   },
   "scripts": {

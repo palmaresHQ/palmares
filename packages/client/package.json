@@ -1,17 +1,22 @@
 {
   "name": "@palmares/client",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "This is the client part of the palmares framework, you should be able to use it on any runtime",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
   "types": "./dist/cjs/types/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/cjs/types/index.d.ts",
-      "node": "./dist/cjs/src/index.js",
-      "require": "./dist/cjs/src/index.js",
-      "import": "./dist/esm/src/index.js",
-      "default": "./dist/esm/src/index.js"
+      "import": {
+        "default": "./dist/esm/src/index.js",
+        "types": "./dist/cjs/types/index.d.ts"
+      },
+      "require": {
+        "default": "./dist/cjs/src/index.js",
+        "types": "./dist/cjs/types/index.d.ts"
+      },
+      "default": "./dist/esm/src/index.js",
+      "types": "./dist/cjs/types/index.d.ts"
     }
   },
   "repository": {
@@ -35,7 +40,6 @@
     "build:module:watch": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc --watch",
     "build:watch": "pnpm run build:cjs:watch & pnpm run build:module:watch & pnpm run build:types:watch"
   },
-  "type": "module",
   "author": "Nicolas Leal",
   "license": "MIT",
   "bugs": {

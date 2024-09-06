@@ -7,9 +7,14 @@
   "types": "./dist/cjs/types/index.d.ts",
   "exports": {
     ".": {
-      "node": "./dist/cjs/src/index.js",
-      "require": "./dist/cjs/src/index.js",
-      "import": "./dist/esm/src/index.js",
+      "import": {
+        "default": "./dist/esm/src/index.js",
+        "types": "./dist/cjs/types/index.d.ts"
+      },
+      "require": {
+        "default": "./dist/cjs/src/index.js",
+        "types": "./dist/cjs/types/index.d.ts"
+      },
       "default": "./dist/esm/src/index.js",
       "types": "./dist/cjs/types/index.d.ts"
     }
@@ -34,7 +39,6 @@
     "build:module:watch": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc --watch",
     "build:watch": "pnpm run build:cjs:watch & pnpm run build:module:watch & pnpm run build:types:watch"
   },
-  "type": "module",
   "author": "Nicolas Leal",
   "license": "MIT",
   "bugs": {
