@@ -162,13 +162,46 @@ function palmaresFetchConstructor<THandlersAndPaths>(host: string) {
     // eslint-disable-next-line ts/require-await
   > => {
     if ((init as any)?.params) {
-      Object.entries((init as any).params || {}).forEach(([key, value]) => {
-        (input as string) = (input as string).replace(
-          new RegExp(`\\<${key}:[\\w\\d-_$%^&$@!#*\\(\\)\\{\\}\\'\\"\\;\\,\\.\\/\\|\\[\\]\\+ ]+>`),
-          value as string
-        );
-      });
+      const paramsInUrl: {
+        variable: string;
+        start: number;
+        end: number;
+      }[] = [];
+      const splittedUrl = (typeof input === 'string' ? input : '').split('');
+      let start = 0;
+      let isParam = false;
+      let isIgnore = false;
+      let variable = '';
+
+      for (let i = 0; i < splittedUrl.length; i++) {
+        const partOfUrl = splittedUrl[i];
+
+        if (isParam && partOfUrl === ':') isParam = false;
+        if (isParam) variable += partOfUrl;
+        if (!isIgnore && partOfUrl === '<') {
+          isParam = true;
+          start = i;
+        }
+        if (!isIgnore && partOfUrl === '>') {
+          isParam = false;
+          paramsInUrl.push({
+            variable,
+            start,
+            end: i
+          });
+          variable = '';
+        }
+        if (isIgnore) isIgnore = false;
+        if (partOfUrl === '\\') isIgnore = true;
+      }
+
+      paramsInUrl.reverse();
+      for (const { start, end, variable } of paramsInUrl) {
+        (input as string) =
+          (input as string).substring(0, start) + (init as any).params[variable] + (input as string).substring(end + 1);
+      }
     }
+
     (input as string) = (input as string).split('?')[0];
     const url = new URL(input, host);
 
