@@ -1,5 +1,16 @@
 # @palmares/sequelize-engine
 
+## 0.1.17
+
+### Patch Changes
+
+- add everything as peer dependencies of one another
+- Everything now has peer dependencies instead of dependency
+- Updated dependencies
+- Updated dependencies
+  - @palmares/databases@0.1.16
+  - @palmares/core@0.1.13
+
 ## 0.1.16
 
 ### Patch Changes

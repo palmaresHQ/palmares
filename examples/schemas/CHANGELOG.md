@@ -1,5 +1,15 @@
 # @examples/schemas
 
+## 0.0.25
+
+### Patch Changes
+
+- Everything now has peer dependencies instead of dependency
+- Updated dependencies
+- Updated dependencies
+  - @palmares/zod-schema@0.1.22
+  - @palmares/schemas@0.1.20
+
 ## 0.0.24
 
 ### Patch Changes

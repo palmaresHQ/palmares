@@ -8,5 +8,5 @@ const consoleLoggingAdapter = loggingAdapter({
   warn: (message: string) => console.warn(message)
 });
 
-export { consoleLoggingAdapter as consoleLoggingAdapter };
+export { consoleLoggingAdapter as ConsoleLogging };
 export default consoleLoggingAdapter;

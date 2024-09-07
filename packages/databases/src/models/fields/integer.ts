@@ -66,6 +66,7 @@ export class IntegerField<
   TDatabaseName extends string | null | undefined = undefined,
   TCustomAttributes = any
 > extends Field<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
+  protected $$type = '$PIntegerField';
   declare _type: TType;
   typeName: string = IntegerField.name;
 

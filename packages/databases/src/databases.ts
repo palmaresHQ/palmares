@@ -1,11 +1,10 @@
 import { getSettings, retrieveDomains } from '@palmares/core';
-import { EventEmitter } from '@palmares/events';
 
-import { DatabaseAdapter } from './engine';
 import { databaseLogger } from './logging';
 import { Migrations } from './migrations';
 import { initializeModels } from './models/utils';
 
+import type { DatabaseAdapter } from './engine';
 import type { DatabaseDomainInterface } from './interfaces';
 import type { Model } from './models';
 import type { BaseModel, model } from './models/model';
@@ -17,6 +16,12 @@ import type {
   InitializedEngineInstancesType,
   OptionalMakemigrationsArgsType
 } from './types';
+import type { EventEmitter } from '@palmares/events';
+
+declare global {
+  // eslint-disable-next-line no-var
+  var $PDatabaseInstance: Databases;
+}
 
 export class Databases {
   settings!: DatabaseSettingsType;
@@ -27,11 +32,11 @@ export class Databases {
   #cachedModelsByModelName: {
     [modelName: string]: FoundModelType;
   } = {};
-  private static __instance?: Databases;
 
   constructor() {
-    if (Databases.__instance) return Databases.__instance;
-    Databases.__instance = this;
+    // eslint-disable-next-line ts/no-unnecessary-condition
+    if (globalThis.$PDatabaseInstance) return globalThis.$PDatabaseInstance;
+    globalThis.$PDatabaseInstance = this;
   }
 
   /**
@@ -85,11 +90,12 @@ export class Databases {
         const databaseEntries: [string, DatabaseConfigurationType][] = Object.entries(settings.databases);
         const existsEventEmitterForAllEngines =
           // eslint-disable-next-line ts/no-unnecessary-condition
-          settings.eventEmitter instanceof EventEmitter || (settings.eventEmitter || {}) instanceof Promise;
+          (settings.eventEmitter as any)?.['$$type'] === '$PEventEmitter' ||
+          (settings.eventEmitter || {}) instanceof Promise;
 
         for (const [databaseName, databaseSettings] of databaseEntries) {
           const existsEventEmitterForSpecificEngine =
-            databaseSettings.events?.emitter instanceof EventEmitter ||
+            (databaseSettings.events?.emitter as any)?.['$$type'] === '$PEventEmitter' ||
             databaseSettings.events?.emitter instanceof Promise;
 
           if (existsEventEmitterForSpecificEngine === false && existsEventEmitterForAllEngines) {
@@ -182,7 +188,8 @@ export class Databases {
       engineInstance = engineArgs[1];
 
       const isAnEngineInstanceDefinedForDatabase = isProbablyAnEngineInstanceDefinedForDatabase
-        ? engineInstance instanceof DatabaseAdapter
+        ? // eslint-disable-next-line ts/no-unnecessary-condition
+          engineInstance?.['$$type'] === '$PDatabaseAdapter'
         : false;
       if (!isAnEngineInstanceDefinedForDatabase) throw new Error('You must define an engine for the database.');
     }

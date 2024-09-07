@@ -1,5 +1,19 @@
 # @example/tests
 
+## 0.0.16
+
+### Patch Changes
+
+- Everything now has peer dependencies instead of dependency
+- Updated dependencies
+- Updated dependencies
+  - @palmares/console-logging@0.1.7
+  - @palmares/core@0.1.13
+  - @palmares/jest-tests@0.1.13
+  - @palmares/node-std@0.1.13
+  - @palmares/logging@0.1.13
+  - @palmares/tests@0.1.13
+
 ## 0.0.15
 
 ### Patch Changes

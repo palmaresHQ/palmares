@@ -27,6 +27,7 @@ export class Schema<
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
 > {
+  protected $$type = '$PSchema';
   protected fieldType = 'schema';
   // Those functions will assume control of the validation process on adapters, instead of the schema.
   // Why this is used? The idea is that the Schema has NO idea

@@ -1,35 +1,32 @@
-import {
-  ForeignKeyField,
-  adapterMigrations,
-} from '@palmares/databases';
+import { adapterMigrations } from '@palmares/databases';
 
 import type SequelizeEngine from './engine';
 import type {
   CircularDependenciesInMigrationType,
   GetForeignKeyReferencesForTableReturnType,
   IndexesToAddOnNextIterationType,
-  MigrationModelType,
+  MigrationModelType
 } from './types';
+import type { DatabaseAdapter, Field, InitializedModelsType, Migration , ForeignKeyField} from '@palmares/databases';
 import type {
-  DatabaseAdapter,
-  Field,
-  InitializedModelsType,
-  Migration} from '@palmares/databases';
-import type { Model, ModelAttributeColumnOptions, ModelCtor, QueryInterface, QueryInterfaceIndexOptions, Sequelize } from 'sequelize';
+  Model,
+  ModelAttributeColumnOptions,
+  ModelCtor,
+  QueryInterface,
+  QueryInterfaceIndexOptions,
+  Sequelize
+} from 'sequelize';
 import type { SetRequired } from 'sequelize/types/utils/set-required';
 
 const circularDependenciesInMigration: CircularDependenciesInMigrationType[] = [];
 let indexesToAddOnNextIteration: IndexesToAddOnNextIterationType[] = [];
 
-function formatForeignKeyFields(
-  model: ModelCtor<Model>,
-  field: ModelAttributeColumnOptions<Model<any, any>>
-) {
+function formatForeignKeyFields(model: ModelCtor<Model>, field: ModelAttributeColumnOptions<Model<any, any>>) {
   if (field.type === 'foreign-key') {
-    const modelAssociation = Object.values(model.associations).find((association) =>
-      association.foreignKey === ((field as any).name || (field as any).fieldName)
+    const modelAssociation = Object.values(model.associations).find(
+      (association) => association.foreignKey === ((field as any).name || (field as any).fieldName)
     );
-    const actualField = modelAssociation?.target.getAttributes()[(field.references as any)?.key as string]
+    const actualField = modelAssociation?.target.getAttributes()[(field.references as any)?.key as string];
     if (actualField) field.type = actualField.type;
   }
   return field;
@@ -86,7 +83,7 @@ async function handleCircularDependencies(
   migration: Migration,
   {
     toModel,
-    fromModel,
+    fromModel
   }: {
     toModel: MigrationModelType;
     fromModel?: MigrationModelType;
@@ -109,7 +106,7 @@ async function handleCircularDependencies(
   // eslint-disable-next-line ts/no-unnecessary-condition
   const allFieldsOfModel = Object.values(toModel.original.fields || {});
   for (const fieldDefinition of allFieldsOfModel) {
-    const isAForeignKeyField = fieldDefinition instanceof ForeignKeyField;
+    const isAForeignKeyField = (fieldDefinition as any)?.['$$type'] === '$PForeignKeyField';
     const relatedTo = (fieldDefinition as ForeignKeyField).relatedTo;
     const fieldDoesNotExist = isAForeignKeyField && engine.initializedModels[relatedTo] === undefined;
     if (fieldDoesNotExist) {
@@ -117,7 +114,7 @@ async function handleCircularDependencies(
         fromModel: fromModel !== undefined ? fromModel : toModel,
         toModel: toModel,
         fieldName: fieldDefinition.fieldName,
-        relatedToName: relatedTo,
+        relatedToName: relatedTo
       });
     }
   }
@@ -133,7 +130,7 @@ async function handleIndexes(
   migration: Migration,
   {
     fromModel,
-    toModel,
+    toModel
   }: {
     fromModel?: MigrationModelType;
     toModel: MigrationModelType;
@@ -176,7 +173,7 @@ async function handleIndexes(
       } else {
         failedIndexesForNextIteration.push({
           tableName: toModelName,
-          index: toModelIndex,
+          index: toModelIndex
         });
       }
     }
@@ -261,17 +258,16 @@ export default adapterMigrations({
   ): Promise<void> => {
     const model = toModel.initialized;
 
-    const formattedFields = Object.entries(model.getAttributes())
-      .reduce((accumulator, [fieldName, field]) => {
-        accumulator[fieldName] = formatForeignKeyFields(model, field);;
-        return accumulator;
-      }, {} as any);
+    const formattedFields = Object.entries(model.getAttributes()).reduce((accumulator, [fieldName, field]) => {
+      accumulator[fieldName] = formatForeignKeyFields(model, field);
+      return accumulator;
+    }, {} as any);
 
     await queryInterface.createTable(
       model.options.tableName as string,
       formattedFields,
       Object.assign(model.options, {
-        transaction: migration.transaction,
+        transaction: migration.transaction
       })
     );
     await handleCircularDependencies(engine, migration, { toModel }, queryInterface);
@@ -312,7 +308,7 @@ export default adapterMigrations({
 
     if (hasTheNameOfTheTableChanged) {
       await queryInterface.renameTable(fromTableName, toTableName, {
-        transaction: migration.transaction,
+        transaction: migration.transaction
       });
     }
     await handleCircularDependencies(engine, migration, { fromModel, toModel }, queryInterface);
@@ -331,7 +327,7 @@ export default adapterMigrations({
     const columnName = fromModel.initialized.getAttributes()[fieldName].field as string;
     const tableName = fromModel.initialized.options.tableName as string;
     await queryInterface.removeColumn(tableName, columnName, {
-      transaction: migration.transaction,
+      transaction: migration.transaction
     });
     await handleIndexes(migration, { toModel, fromModel }, queryInterface);
   },
@@ -352,7 +348,7 @@ export default adapterMigrations({
     const tableNameWhereRenameHappened = toModel.initialized.options.tableName as string;
 
     await queryInterface.renameColumn(tableNameWhereRenameHappened, databaseNameBefore, databaseNameAfter, {
-      transaction: migration.transaction,
+      transaction: migration.transaction
     });
     await handleCircularDependencies(engine, migration, { fromModel, toModel }, queryInterface);
     await handleIndexes(migration, { toModel, fromModel }, queryInterface);
@@ -384,13 +380,13 @@ export default adapterMigrations({
     const initializedAttribute = attributesAsArray.find((attribute) => attribute.field === fieldAfter.databaseName);
     const tableName = toModel.initialized.options.tableName as string;
     if (initializedAttribute) {
-      const isOfTypeRelation = fieldBefore instanceof ForeignKeyField;
+      const isOfTypeRelation = (fieldBefore as any)?.['$$type'] === '$PForeignKeyField';
       // This removes the constraint, when we change the column sequelize automatically creates a new constraint
       // because of that we remove the old one.
       if (isOfTypeRelation) {
         const constraints: GetForeignKeyReferencesForTableReturnType[] | undefined =
           (await queryInterface.getForeignKeyReferencesForTable(tableName, {
-            transaction: migration.transaction,
+            transaction: migration.transaction
           })) as GetForeignKeyReferencesForTableReturnType[] | undefined;
 
         if (constraints) {
@@ -400,7 +396,7 @@ export default adapterMigrations({
 
           for (const constraintToRemove of constraintsToRemove) {
             await queryInterface.removeConstraint(tableName, constraintToRemove.constraintName as string, {
-              transaction: migration.transaction,
+              transaction: migration.transaction
             });
           }
         }
@@ -408,9 +404,9 @@ export default adapterMigrations({
     }
 
     await queryInterface.changeColumn(tableName, fieldAfter.databaseName as unknown as string, initializedAttribute, {
-      transaction: migration.transaction,
+      transaction: migration.transaction
     });
     await handleCircularDependencies(engine, migration, { fromModel, toModel }, queryInterface);
     await handleIndexes(migration, { toModel, fromModel }, queryInterface);
-  },
+  }
 });

@@ -1,6 +1,6 @@
 {
   "name": "@examples/server-palmares",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "testing the serverless vercel",
   "main": "manage.ts",
   "scripts": {

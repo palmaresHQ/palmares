@@ -20,6 +20,7 @@ export class Field<
   TDatabaseName extends string | null | undefined = undefined,
   TCustomAttributes = any
 > {
+  protected $$type = '$PField';
   inputParsers = new Map<string, Required<EngineFieldParser>['inputParser']>();
   outputParsers = new Map<string, Required<EngineFieldParser>['outputParser']>();
   isAuto!: TAuto;

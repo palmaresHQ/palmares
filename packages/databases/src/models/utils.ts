@@ -222,7 +222,7 @@ export async function parse(
       // eslint-disable-next-line ts/no-unnecessary-condition
       if (engineFields.foreignKeyFieldParser) {
         const fieldToParse = await foreignKeyFieldParser(engine, field as ForeignKeyField);
-        if (fieldToParse instanceof ForeignKeyField) {
+        if (fieldToParse?.['$$type'] === '$PForeignKeyField') {
           return callTranslateAndAppendInputAndOutputParsersToField(
             engine.connectionName,
             fieldToParse as Field,

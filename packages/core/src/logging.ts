@@ -11,7 +11,7 @@ let cachedLogger: {
   info: (message: string) => console.info(getDefaultFormattedMessage(message)),
   debug: (message: string) => console.debug(getDefaultFormattedMessage(message)),
   warn: (message: string) => console.warn(getDefaultFormattedMessage(message)),
-  error: (message: string) => console.error(getDefaultFormattedMessage(message)),
+  error: (message: string) => console.error(getDefaultFormattedMessage(message))
 };
 
 /**

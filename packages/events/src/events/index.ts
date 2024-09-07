@@ -85,40 +85,47 @@ import type { Emitter } from '../emitter';
  * it, specially on distributed systems.
  *
  * That's not really magic it's really simple actually.
- * When we add a new listener you see that we wrap the function (callback) to another function (see #wrapInResultCallback).
- * What this function do is that it has a lifecycle, similar to a promise in javascript: `pending`, `completed`, `failed`.
+ * When we add a new listener you see that we wrap the function (callback) to another function
+ * (see #wrapInResultCallback).
+ * What this function do is that it has a lifecycle, similar to a promise in javascript: `pending`, `completed`,
+ * `failed`.
  * What's the idea?
  * When we call the for example `emitter.emit('create.user', 1)` we will call this function after
  * creating a resultKey, the emitter by itself, when we initialize the class, will also hold a `resultsEventName`.
  * Why both? The second one is a listener, a listener that will only listen for results of this emitter. The second one
  * is needed because a single emitter can send multiple events at the same time, se we need to differ between them.
  *
- * Continuing on, we called `emitter.emit('create.user', 1)`, created the resultId, and sent the resultsEventName to the listener.
- * After calling we return to the user a promise, inside of this promise there will be a recursion that iterates over for
- * each tick of the event loop. (see #fetchResultForEmit). Inside of this promise be aware of `pingTimeout` and `resultsTimeout`.
- * Ping is how long we will wait to be notified that ""someone"" is working on the result, this is needed for cases when the
- * event simply don't exist so we don't wait for too long. The second one is `resultsTimeout`, as you might have guessed, means
- * how long we will wait for a result.
+ * Continuing on, we called `emitter.emit('create.user', 1)`, created the resultId, and sent the resultsEventName to
+ * the listener. After calling we return to the user a promise, inside of this promise there will be a recursion that
+ * iterates over for each tick of the event loop. (see #fetchResultForEmit). Inside of this promise be aware of
+ * `pingTimeout` and `resultsTimeout`.
+ * Ping is how long we will wait to be notified that ""someone"" is working on the result, this is needed for cases
+ * when the event simply don't exist so we don't wait for too long. The second one is `resultsTimeout`, as you might
+ * have guessed, means how long we will wait for a result.
  *
- * Now let's jump to the listener itself, you see that the first thing we do is to emit an event TO THE `resultsEventName` (remember,
- * that's the listener for the results), this event will have the following structure: { status: string; data: any }
- * When the listener receives this event, it'll append this result to `#pendingResults` the Promise (that will not be resolved just yet),
- * will iterate over and it'll see that some listener is working on the response for this emit. When this finishes we enter the `waiting`
- * stage. So now we will wait until all pending results have finished or until we reach the resultsTimeout. This get's kinda complicated
- * when adding a layer.
+ * Now let's jump to the listener itself, you see that the first thing we do is to emit an event TO THE
+ * `resultsEventName` (remember, that's the listener for the results), this event will have the following structure:
+ * { status: string; data: any } When the listener receives this event, it'll append this result to `#pendingResults`
+ * the Promise (that will not be resolved just yet), will iterate over and it'll see that some listener is working
+ * on the response for this emit. When this finishes we enter the `waiting` stage. So now we will wait until all pending
+ * results have finished or until we reach the resultsTimeout. This get's kinda complicated when adding a layer.
  *
  * - 3: Layers, what makes this almost unstoppable and where things gets kinda complicated.
- * Layers are just EventEmitter instances, a layer will be able to make distributed systems fully in sync with each other. But how?
- * Generally speaking a layer will be using `RedisEmitter` or `KafkaEmitter` or basically any type of Pub/Sub or messaging service.
+ * Layers are just EventEmitter instances, a layer will be able to make distributed systems fully in sync with each
+ * other.
+ * But how?
+ * Generally speaking a layer will be using `RedisEmitter` or `KafkaEmitter` or basically any type of Pub/Sub or
+ * messaging service.
  *
- * A layer works by channels, channels enables the user to separate the logic between each of them, for example: if we have
- * have a chat, we might end up having multiple rooms, `room1` would be the first channel and `room2` would be the second channel.
- * If we want to broadcast an event to `room1` layer we can do that by just emitting the event to it. If we want `room2` to be broadcasted
- * we can send an event directly to it.
- * You will see that when layers are defined, emitting events are done inside of the layer, and not inside of the EventEmitter instance.
- * In other words, what we are doing is: Every event that will be emitted from the emitter will actually be sent to the layer. The layer broadcasts
- * the events to `room1` for example, `room1`  so we emit it, when we emit a broadcast will be fired, this message received it'll be
- * handled by
+ * A layer works by channels, channels enables the user to separate the logic between each of them, for example:
+ * if we have have a chat, we might end up having multiple rooms, `room1` would be the first channel and `room2`
+ * would be the second channel. If we want to broadcast an event to `room1` layer we can do that by just emitting
+ * the event to it. If we want `room2` to be broadcasted we can send an event directly to it.
+ * You will see that when layers are defined, emitting events are done inside of the layer, and not inside of the
+ * EventEmitter instance.
+ * In other words, what we are doing is: Every event that will be emitted from the emitter will actually be sent
+ * to the layer. The layer broadcasts the events to `room1` for example, `room1`  so we emit it, when we emit a
+ * broadcast will be fired, this message received it'll be handled by
  *
  * ```
  * this.emitEventToEmitter
@@ -129,8 +136,10 @@ import type { Emitter } from '../emitter';
  * This might become easier with an example:
  * - Call `emitter.emitToChannel(['birds', 'users'], 'create.user', { id: 1, name: 'Nicolas'})`
  * - Send the key ('create.user') and the data both to `bird` and `user` keys INSIDE of the layer
- * - `Bird` handler points to a function defined in birdsEmitter, so when we are receiving this value we are handling inside of `birdsEmitter`.
- * - on `birdsEmitter` instance, we get get the original key (so `create.user`) and we will be able to make it work normally as the layer didn't exist.
+ * - `Bird` handler points to a function defined in birdsEmitter, so when we are receiving this value we are
+ * handling inside of `birdsEmitter`.
+ * - on `birdsEmitter` instance, we get get the original key (so `create.user`) and we will be able to make
+ * it work normally as the layer didn't exist.
  * - When we notify about the response we follow the same thing.
  *
  * IMPORTANT: Your emitter cannot receive responses from channels it's not subscribed to.
@@ -144,7 +153,8 @@ import type { Emitter } from '../emitter';
  *  wildcards: { use: true },
  * });
  *
- * const result = await emitter.emitToChannel(['users', 'birds'], 'create.*'); // We totally ignore 'users channel' on this case
+ * const result = await emitter.emitToChannel(['users', 'birds'], 'create.*');
+ * // We totally ignore 'users channel' on this case
  * ```
  *
  * IMPORTANT: We can't rely on the data inside of this class, when working with events
@@ -153,6 +163,7 @@ import type { Emitter } from '../emitter';
  * internal data for the class.
  */
 export class EventEmitter<TEmitter extends Emitter = Emitter> {
+  protected $$type = '$PEventEmitter';
   emitter: TEmitter;
   protected layer?: EventEmitter;
   private resultsEventName!: string;
@@ -168,15 +179,16 @@ export class EventEmitter<TEmitter extends Emitter = Emitter> {
   #groups: Record<string, { keys: Set<string>; listeners: Record<string, (...args: any) => any> }> = {};
 
   /**
-   * Factory method for the building the emitter, we need this because we need to add results listener and layer listeners
-   * to the function and both operations are async.
+   * Factory method for the building the emitter, we need this because we need to add results listener and layer
+   * listeners to the function and both operations are async.
    *
-   * Be aware that you need to pass the emitter, the constructor, and not the instance, you can pass the parameters of the emitter
-   * inside of options: { customParams: <your_params_for_the_emitter> }
+   * Be aware that you need to pass the emitter, the constructor, and not the instance, you can pass the parameters
+   * of the emitter inside of options: { customParams: <your_params_for_the_emitter> }
    *
-   * @param emitter - The emitter constructor so we build it inside here or a default export by using `import('./my-custom-emitter.ts')`
-   * @param options - Custom options for the emitter, on here you can pass a layer instance, wildcards options and customize
-   * the timeout for the results to be retrieved.
+   * @param emitter - The emitter constructor so we build it inside here or a default export by using
+   * `import('./my-custom-emitter.ts')`
+   * @param options - Custom options for the emitter, on here you can pass a layer instance, wildcards options and
+   * customize the timeout for the results to be retrieved.
    *
    * @returns - This is a factory method so we create a new EventEmitter instance.
    */
@@ -219,7 +231,7 @@ export class EventEmitter<TEmitter extends Emitter = Emitter> {
   }
 
   get hasLayer() {
-    return this.layer instanceof EventEmitter;
+    return (this.layer as any)?.['$$type'] === '$PEventEmitter';
   }
 
   get channels(): string[] {
@@ -271,11 +283,11 @@ export class EventEmitter<TEmitter extends Emitter = Emitter> {
   }
 
   /**
-   * This will add the listener with the wildcards, what we do in order to be able to save the list with the wildcards is that
-   * we save all of the events tied to the same group.
+   * This will add the listener with the wildcards, what we do in order to be able to save the list with the
+   * wildcards is that we save all of the events tied to the same group.
    *
-   * Think that we are appending the event with the keyword: `create.users`. The group id refers to all of the handlers that will
-   * listen for this particular event.
+   * Think that we are appending the event with the keyword: `create.users`. The group id refers to all of the
+   * handlers that will listen for this particular event.
    *
    * What we do is that we append the same groupId to multiple keys like for example:
    *
@@ -433,8 +445,8 @@ export class EventEmitter<TEmitter extends Emitter = Emitter> {
   }
 
   /**
-   * This will subscribe a listener (function) to an specific event (key). When this key is emitted, either from a channel
-   * or from the emitter itself, the listener (function) will be called.
+   * This will subscribe a listener (function) to an specific event (key). When this key is emitted, either from
+   * a channel or from the emitter itself, the listener (function) will be called.
    *
    * Returning a value from the function will emit a result back to the caller.
    *
@@ -524,9 +536,9 @@ export class EventEmitter<TEmitter extends Emitter = Emitter> {
     },
     callback: (...args: any) => any
   ) {
-    // A group means another handler for the same key. For example, to listeners to `users.create.index` will point to the same
-    // group but are different handlers. Generally speaking, the groupId will be the name of the event that you should append
-    // in your custom listeners.
+    // A group means another handler for the same key. For example, to listeners to `users.create.index` will
+    // point to the same group but are different handlers. Generally speaking, the groupId will be the name of
+    // the event that you should append in your custom listeners.
     const handlerGroupId = key in this.#groupByKeys ? [...this.#groupByKeys[key].values()][0] : `group-${uuid()}`;
     const handlerId = `handler-${uuid()}`;
 

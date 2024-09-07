@@ -40,6 +40,7 @@ export function parseQueryParams(
  */
 export function formDataLikeFactory() {
   return class FormDataLike {
+    $$type = '$PFormDataLike';
     proxyCallback: ConstructorParameters<typeof FormDataLike>[0];
     data: Record<string, { value: string | Blob | File; fileName?: string }[]>;
 

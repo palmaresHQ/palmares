@@ -69,6 +69,7 @@ export class BigAutoField<
   TDatabaseName extends string | null | undefined = undefined,
   TCustomAttributes = any
 > extends Field<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
+  protected $$type = '$PBigAutoField';
   declare _type: TType;
   typeName: string = BigAutoField.name;
 

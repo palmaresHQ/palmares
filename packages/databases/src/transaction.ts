@@ -4,8 +4,9 @@ import { setQuery } from './queries/set';
 import type { model } from './models/model';
 
 /**
- * This class is responsible for controlling the transactions that happens inside of the framework, this is supposed to be handled for the framework
- * itself specially for distributed systems where the data is stored in different places. The transaction instance is created so that the framework
+ * This class is responsible for controlling the transactions that happens inside of the framework,
+ * this is supposed to be handled for the framework itself specially for distributed systems where
+ * the data is stored in different places. The transaction instance is created so that the framework
  * can handle when something goes wrong and fails.
  */
 export class Transaction {

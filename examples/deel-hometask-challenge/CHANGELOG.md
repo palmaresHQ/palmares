@@ -1,5 +1,23 @@
 # @examples/deel-hometask-challenge
 
+## 0.0.25
+
+### Patch Changes
+
+- Everything now has peer dependencies instead of dependency
+- Updated dependencies
+- Updated dependencies
+  - @palmares/console-logging@0.1.7
+  - @palmares/databases@0.1.16
+  - @palmares/server@0.1.13
+  - @palmares/core@0.1.13
+  - @palmares/express-adapter@0.1.14
+  - @palmares/node-std@0.1.13
+  - @palmares/sequelize-engine@0.1.16
+  - @palmares/zod-schema@0.1.22
+  - @palmares/logging@0.1.13
+  - @palmares/schemas@0.1.20
+
 ## 0.0.24
 
 ### Patch Changes

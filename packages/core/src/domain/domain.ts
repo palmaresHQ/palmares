@@ -10,7 +10,25 @@ import type { DefaultCommandType } from '../commands/types';
  * the building blocks of your application. Everything inside Palmares starts with domains.
  */
 export class Domain<TModifiers = any> {
+  static $$type = '$PDomain';
   commands = {} as DefaultCommandType | undefined;
+  /**
+   * Because of how node_modules work, we might have multiple instances of the core package.
+   * Your package requires core? So it might install it as well inside of the node_modules.
+   *
+   * Like that:
+   *
+   * The user's App
+   *   |-> node_modules
+   *      |-> @palmares/core
+   *          |-> YOUR PACKAGE
+   *              |-> node_modules
+   *                  |-> @palmares/core
+   *
+   * This will mess things up since we will have multiple instances of the core package.
+   * Since we rely a lot on global data. Shared data lets you
+   */
+  instances?: Domain<any>[];
   name!: string;
   path!: string;
   isLoaded = false;

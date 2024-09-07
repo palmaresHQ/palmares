@@ -1,11 +1,31 @@
 import { getLogger } from '../logging';
 
 import type { DomainHandlerFunctionArgs } from '../commands/types';
-import type { CoreSettingsType, SettingsType2 } from '../conf/types';
+import type { SettingsType2 } from '../conf/types';
 import type { Domain } from '../domain/domain';
 
-let baseAppServerInstance: BaseAppServer | undefined = undefined;
-let appServerInstance: InstanceType<ReturnType<typeof appServer>> | AppServer | undefined = undefined;
+declare global {
+  // eslint-disable-next-line no-var
+  var $PBaseAppServerInstance: BaseAppServer | undefined;
+  // eslint-disable-next-line no-var
+  var $PAppServerInstance: InstanceType<ReturnType<typeof appServer>> | AppServer | undefined;
+}
+
+function getBaseAppServerInstance() {
+  return globalThis.$PBaseAppServerInstance;
+}
+
+function getAppServerInstance() {
+  return globalThis.$PAppServerInstance;
+}
+
+function setAppServerInstance(instance: InstanceType<ReturnType<typeof appServer>> | AppServer) {
+  globalThis.$PAppServerInstance = instance;
+}
+
+function setBaseAppServerInstance(instance: BaseAppServer) {
+  globalThis.$PBaseAppServerInstance = instance;
+}
 
 /**
  * Functional approach for creating an app server instead of using the class approach, it's pretty much the same as the
@@ -34,11 +54,12 @@ export class BaseAppServer {
   isClosingServer = false;
 
   constructor(domains: Domain[], settings: SettingsType2) {
+    const baseAppServerInstance = getBaseAppServerInstance();
     if (baseAppServerInstance) return baseAppServerInstance;
     else {
       this.domains = domains;
       this.settings = settings;
-      baseAppServerInstance = this;
+      setBaseAppServerInstance(this);
       return this;
     }
   }
@@ -120,13 +141,15 @@ export class BaseAppServer {
  * - `close`: Stops the appServer.
  */
 export class AppServer {
+  static $$type = '$PAppServer';
   baseAppServer!: BaseAppServer;
 
   constructor(domains: Domain[], settings: SettingsType2) {
+    const appServerInstance = getAppServerInstance();
     if (appServerInstance) return appServerInstance;
     else {
       this.baseAppServer = new BaseAppServer(domains, settings);
-      appServerInstance = this;
+      setAppServerInstance(this);
       return this;
     }
   }

@@ -10,7 +10,6 @@
       "cache": true,
       "outputs": [
         "packages/**/dist/**",
-        "examples/**/dist/**",
         "lib/**/dist/**"
       ]
     },

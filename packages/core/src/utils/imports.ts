@@ -1,6 +1,7 @@
 /**
- * With this function we are able to import a module from a specific path. We don't want to be tied to nodejs runtime, we want
- * to enable the framework to work on any runtime and environment like react native, the browser and many other that might exist.
+ * With this function we are able to import a module from a specific path. We don't want to be tied
+ * to nodejs runtime, we want to enable the framework to work on any runtime and environment like
+ * react native, the browser and many other that might exist.
  *
  * IMPORTANT: When importing multiple modules from different packages like:
  * ```ts
@@ -24,13 +25,13 @@
  *
  * @returns - Returns the imported module.
  */
-export async function imports<R>(
+export async function imports<TResult>(
   packageName: string,
   args?: {
     packagePath?: string;
     /**
-     * This error code is the code that returns when we have an import error, to see what error code to use, try to run the following
-     * code on your environment:
+     * This error code is the code that returns when we have an import error, to see what error
+     * code to use, try to run the following code on your environment:
      *
      * ```
      * async function main() {
@@ -62,7 +63,7 @@ export async function imports<R>(
     for (const key of splittedPackagePath) {
       result = result[key];
     }
-    return result as R;
+    return result as TResult;
   } catch (e) {
     const error = e as any;
     if (error.code === errorCodeToConsider) {

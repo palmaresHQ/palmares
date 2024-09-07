@@ -54,6 +54,7 @@ export class TextField<
   TDatabaseName extends string | null | undefined = undefined,
   TCustomAttributes = any
 > extends Field<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
+  protected $$type = '$PTextField';
   declare _type: TType;
   typeName: string = TextField.name;
   allowBlank: boolean;

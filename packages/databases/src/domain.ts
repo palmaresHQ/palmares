@@ -11,13 +11,16 @@ import type { model as BaseModel } from './models';
 import type { DatabaseSettingsType } from './types';
 import type { DomainHandlerFunctionArgs, DomainReadyFunctionArgs, SettingsType2 } from '@palmares/core';
 
-let databases: Databases | undefined = undefined;
-let cachedDatabaseDomains: DatabaseDomainInterface[] | undefined = undefined;
-
+declare global {
+  // eslint-disable-next-line no-var
+  var $PDatabases: Databases | undefined;
+  // eslint-disable-next-line no-var
+  var $PCachedDatabaseDomains: DatabaseDomainInterface[] | undefined;
+}
 function loadDatabases(databaseDomains?: DatabaseDomainInterface[]) {
-  if (Array.isArray(databaseDomains)) cachedDatabaseDomains = databaseDomains;
-  if (!databases) databases = new Databases();
-  return [databases, cachedDatabaseDomains] as const;
+  if (Array.isArray(databaseDomains)) globalThis.$PCachedDatabaseDomains = databaseDomains;
+  if (!globalThis.$PDatabases) globalThis.$PDatabases = new Databases();
+  return [globalThis.$PDatabases, globalThis.$PCachedDatabaseDomains] as const;
 }
 
 const databaseDomainModifier = domain<{

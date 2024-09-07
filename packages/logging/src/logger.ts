@@ -5,11 +5,12 @@ import { getDefaultFormattedMessage } from './defaults';
 import type { LoggerArgumentsToFilterAndFormatters, LoggingTypes, SavedLoggingMessagesType } from './types';
 
 /**
- * This is the main logger class. This is the class that you will use to log messages in the application. You can log to the console but you can also log to a file or a database.
+ * This is the main logger class. This is the class that you will use to log messages in the application. You can
+ * log to the console but you can also log to a file or a database.
  * You can add your own custom logger logic.
  *
- * This also lets you add logging messages that you can use to log messages. This is useful when you want to log the same message multiple times. And you don't want to repeat the
- * same text over and over again.
+ * This also lets you add logging messages that you can use to log messages. This is useful when you want to log
+ * the same message multiple times. And you don't want to repeat the same text over and over again.
  *
  * @example
  * ```ts
@@ -71,9 +72,11 @@ export class Logger<TLoggingMessages extends SavedLoggingMessagesType> {
   }
 
   /**
-   * If you don't use the `loggingMessages` property in the constructor, you can use this method to add logging messages to the logger.
+   * If you don't use the `loggingMessages` property in the constructor, you can use this method to add logging
+   * messages to the logger.
    *
-   * On here you are only able to add logging messages one by one. So you need to call this method for each logging message you want to add.
+   * On here you are only able to add logging messages one by one. So you need to call this method for each
+   * logging message you want to add.
    * This will work as a builder pattern so you can append as many logging messages as you want.
    *
    * @example
@@ -102,7 +105,8 @@ export class Logger<TLoggingMessages extends SavedLoggingMessagesType> {
   }
 
   /**
-   * This will log the message that was added to the logger using the `appendLogMessage` method or the `loggingMessages` property in the constructor.
+   * This will log the message that was added to the logger using the `appendLogMessage` method or the
+   * `loggingMessages` property in the constructor.
    *
    * @example
    * ```ts
@@ -128,7 +132,8 @@ export class Logger<TLoggingMessages extends SavedLoggingMessagesType> {
   }
 
   /**
-   * This is the main logging method. This will log the message to the console or to a file or a database, or even an api.
+   * This is the main logging method. This will log the message to the console or to a file or a database,
+   * or even an api.
    *
    * With this method we can reuse the same logic over and over again on each logging type.
    *

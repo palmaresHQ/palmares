@@ -27,8 +27,9 @@ export function generateUUID() {
   import('perf_hooks');
   // eslint-disable-next-line ts/consistent-type-imports
   const performance = (globalThis as any).performance as (typeof import('perf_hooks'))['performance'];
+  //Time in microseconds since page-load or 0 if unsupported
   // eslint-disable-next-line ts/no-unnecessary-condition
-  let performanceDate = (performance && performance.now && performance.now() * 1000) || 0; //Time in microseconds since page-load or 0 if unsupported
+  let performanceDate = (performance && performance.now && performance.now() * 1000) || 0;
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
     let randomNumber = Math.random() * 16; //random number between 0 and 16
     if (date > 0) {

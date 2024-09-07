@@ -1,12 +1,11 @@
 import { getDefaultStd } from '@palmares/core';
+import { Server } from 'http';
 
 import {
   HandlerOrHandlersShouldBeDefinedOnRouterAdapterError,
   RedirectionStatusCodesMustHaveALocationHeaderError,
   ResponseNotReturnedFromResponseOnMiddlewareError
 } from './exceptions';
-import { ServerAdapter } from '../adapters';
-import { ServerlessAdapter } from '../adapters/serverless';
 import {
   DEFAULT_NOT_FOUND_STATUS_TEXT_MESSAGE,
   DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY,
@@ -21,10 +20,12 @@ import { HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR, isRedirect } from '
 import { AsyncGeneratorFunction, FileLike, GeneratorFunction } from '../response/utils';
 import { path } from '../router';
 
+import type { ServerAdapter } from '../adapters';
 import type { ServerRequestAdapter } from '../adapters/requests';
 import type { ServerResponseAdapter } from '../adapters/response';
 import type { ServerRouterAdapter } from '../adapters/routers';
 import type { HandlerForServerless } from '../adapters/routers/serverless';
+import type { ServerlessAdapter } from '../adapters/serverless';
 import type { ServerDomain } from '../domain/types';
 import type { Middleware } from '../middleware';
 import type { BaseRouter, MethodsRouter } from '../router/routers';
@@ -80,9 +81,11 @@ async function* wrappedMiddlewareRequests(middlewares: Middleware[], request: Re
     middlewareIndex++;
     if (middleware.request) {
       const responseOrRequest = await middleware.request(request);
-      if (responseOrRequest instanceof Response) yield [middlewareIndex, responseOrRequest] as const;
+      // eslint-disable-next-line ts/no-unnecessary-condition
+      if ((responseOrRequest as Response)?.['$$type'] === '$PResponse')
+        yield [middlewareIndex, responseOrRequest as Response] as const;
       else {
-        request = responseOrRequest;
+        request = responseOrRequest as Request<any, any>;
         yield [middlewareIndex, responseOrRequest] as const;
       }
     }
@@ -118,11 +121,13 @@ async function appendErrorToResponseAndReturnResponseOrThrow(
   error: Error | Response<any, any>,
   handler500?: AllServerSettingsType['servers'][string]['handler500']
 ) {
-  if (error instanceof Response) return error;
+  // eslint-disable-next-line ts/no-unnecessary-condition
+  if ((error as Response)?.['$$type'] === '$PResponse') return error as Response;
   else if (!handler500) throw error;
 
   response = await Promise.resolve(handler500(response));
-  if (response instanceof Response) return response;
+  // eslint-disable-next-line ts/no-unnecessary-condition
+  if ((response as Response)?.['$$type'] === '$PResponse') return response as Response;
   else throw error;
 }
 
@@ -229,7 +234,7 @@ async function translateResponseToServerResponse(
   const isFileResponse =
     // eslint-disable-next-line ts/no-unnecessary-condition
     (response.body && (response.body as any) instanceof Blob) ||
-    (response.body as any) instanceof FileLike ||
+    (response.body as any)?.$$type === '$PFileLike' ||
     (response.body as any) instanceof ArrayBuffer;
   // eslint-disable-next-line ts/no-unnecessary-condition
   if (isRedirectResponse && !response.headers?.[DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY])
@@ -269,12 +274,15 @@ async function translateResponseToServerResponse(
 }
 
 /**
- * There are two ways of translating the path, either use {@link ServerRouterAdapter.parseHandler} which will parse each handler (method) at a time. Or use
- * {@link ServerRouterAdapter.parseHandlers} which will parse all of the handlers at once.
+ * There are two ways of translating the path, either use {@link ServerRouterAdapter.parseHandler} which will
+ * parse each handler (method) at a time. Or use {@link ServerRouterAdapter.parseHandlers} which will parse
+ * all of the handlers at once.
  *
- * Since they are pretty similar and they both need to translate the path we use this factory function to extract this common functionality on both of them.
+ * Since they are pretty similar and they both need to translate the path we use this factory function to extract
+ * this common functionality on both of them.
  *
- * @param serverAdapter - The server adapter that was selected. We will call the {@link ServerRouterAdapter.parseRoute} method on it.
+ * @param serverAdapter - The server adapter that was selected. We will call the {@link ServerRouterAdapter.parseRoute}
+ * method on it.
  *
  * @returns - A function that can be used to translate the path.
  */
@@ -307,9 +315,11 @@ function translatePathFactory(serverAdapter: ServerAdapter | ServerlessAdapter) 
 }
 
 /**
- * Responsible for wrapping the handler and the middlewares into a single function that will be called when a request is made to the server.
+ * Responsible for wrapping the handler and the middlewares into a single function that will be called when a
+ * request is made to the server.
  *
- * The server adapter is responsible for passing the data it needs to be able to safely translate the request and response during it's lifecycle.
+ * The server adapter is responsible for passing the data it needs to be able to safely translate the request
+ * and response during it's lifecycle.
  *
  * @param method - The method that was extracted from the router.
  * @param middlewares - The middlewares that will be applied to the request.
@@ -345,17 +355,19 @@ function wrapHandlerAndMiddlewares(
 
     let response: Response | undefined = undefined;
     let wasErrorAlreadyHandledInRequestLifecycle = false;
-    // This is the index of the middleware that we are currently handling for the request. So on the response we start from the last to the first.
+    // This is the index of the middleware that we are currently handling for the request. So on the
+    // response we start from the last to the first.
     let middlewareOnionIndex = 0;
 
     try {
       // Go through all of the middlewares and apply them to the request or modify the request.
       for await (const [middlewareIndex, responseOrRequest] of wrappedMiddlewareRequests(middlewares, request)) {
         middlewareOnionIndex = middlewareIndex;
-        const isResponse = responseOrRequest instanceof Response;
+        // eslint-disable-next-line ts/no-unnecessary-condition
+        const isResponse = (responseOrRequest as Response)?.['$$type'] === '$PResponse';
         if (isResponse)
           response = appendTranslatorToResponse(
-            responseOrRequest,
+            responseOrRequest as Response<any, any>,
             server,
             server.response,
             serverRequestAndResponseData,
@@ -363,7 +375,7 @@ function wrapHandlerAndMiddlewares(
           );
         else
           request = appendTranslatorToRequest(
-            responseOrRequest,
+            responseOrRequest as Request<any, any>,
             server,
             server.request,
             serverRequestAndResponseData,
@@ -387,10 +399,11 @@ function wrapHandlerAndMiddlewares(
         if (handlerResponse) response = handlerResponse;
       }
     } catch (error) {
-      const isResponseError = error instanceof Response;
+      // eslint-disable-next-line ts/no-unnecessary-condition
+      const isResponseError = (error as Response)?.['$$type'] === '$PResponse';
       const errorAsError = error as Error;
-      let errorResponse: Response = isResponseError
-        ? error
+      let errorResponse: Response<any, any> = isResponseError
+        ? (error as Response)
         : server.settings.debug === true
           ? DEFAULT_SERVER_ERROR_RESPONSE(errorAsError, server.allSettings, server.domains)
           : new Response(undefined, { status: HTTP_500_INTERNAL_SERVER_ERROR });
@@ -419,7 +432,8 @@ function wrapHandlerAndMiddlewares(
     try {
       if (response) {
         for await (const modifiedResponse of wrappedMiddlewareResponses(middlewares, response, middlewareOnionIndex)) {
-          const isResponse = modifiedResponse instanceof Response;
+          // eslint-disable-next-line ts/no-unnecessary-condition
+          const isResponse = (modifiedResponse as Response)?.['$$type'] === '$PResponse';
           if (isResponse)
             response = appendTranslatorToResponse(
               modifiedResponse,
@@ -439,9 +453,10 @@ function wrapHandlerAndMiddlewares(
       }
     } catch (error) {
       if (wasErrorAlreadyHandledInRequestLifecycle === false) {
-        const isResponseError = error instanceof Response;
-        let errorResponse: Response = isResponseError
-          ? error
+        // eslint-disable-next-line ts/no-unnecessary-condition
+        const isResponseError = (error as Response)?.['$$type'] === '$PResponse';
+        let errorResponse: Response<any, any> = isResponseError
+          ? (error as Response)
           : server.settings.debug === true
             ? DEFAULT_SERVER_ERROR_RESPONSE(error as Error, server.allSettings, server.domains)
             : new Response(undefined, { status: HTTP_500_INTERNAL_SERVER_ERROR });
@@ -543,7 +558,8 @@ function generateServerlessHandler(
       args.pathOfHandlerFile[args.pathOfHandlerFile.length - 1] =
         `${args.pathOfHandlerFile[args.pathOfHandlerFile.length - 1]}.${extension}`;
 
-      // The serverless folder location is used to go back to the settings file. So we need to know how many directories we need to go back.
+      // The serverless folder location is used to go back to the settings file. So we need to know how many
+      // directories we need to go back.
       let numberOfTwoDotsOnServerlessLocation = 0;
       let numberOfDirectoriesToGoBackOnSettingsFromServerlessFolderLocation = 0;
       for (const pathParts of (settings.serverlessFolderLocation || '').split('/')) {
@@ -599,10 +615,12 @@ function generateServerlessHandler(
 }
 
 /**
- * This will take care of the routing. It's just used on serverless environments. On serverless you might define a function but
- * the routing is not handled by the serverless. This is a workaround for that. It's not the most efficient way but it does work.
+ * This will take care of the routing. It's just used on serverless environments. On serverless you might
+ * define a function but the routing is not handled by the serverless. This is a workaround for that. It's
+ * not the most efficient way but it does work.
  *
- * We could use a custom server for just using the router, but not all servers support just routing so we prefer to do that way.
+ * We could use a custom server for just using the router, but not all servers support just routing so we
+ * prefer to do that way.
  */
 function doTheRoutingForServerlessOnly(
   serverAdapter: ServerlessAdapter,
@@ -637,7 +655,8 @@ function doTheRoutingForServerlessOnly(
 }
 
 /**
- * A generator that will yield all of the routers that were extracted from the domains and the settings. Used for {@link ServerRouterAdapter.parseHandlers} function.
+ * A generator that will yield all of the routers that were extracted from the domains and the settings.
+ * Used for {@link ServerRouterAdapter.parseHandlers} function.
  */
 export async function* getAllRouters(
   domains: ServerDomain[],
@@ -656,8 +675,14 @@ export async function* getAllRouters(
 ) {
   const methodToFilterWhenOnServerlessEnvironment = options?.serverless?.use.method;
   const routeToFilterWhenOnServerlessEnvironment = options?.serverless?.use.route;
-  const isUseServerless = serverAdapter instanceof ServerlessAdapter && typeof options?.serverless?.use === 'object';
-  const isGeneratingServerless = serverAdapter instanceof ServerlessAdapter && options?.serverless?.generate === true;
+  const isUseServerless =
+    // eslint-disable-next-line ts/no-unnecessary-condition
+    (serverAdapter as ServerlessAdapter)?.$$type === '$PServerlessAdapter' &&
+    typeof options?.serverless?.use === 'object';
+
+  const isGeneratingServerless =
+    // eslint-disable-next-line ts/no-unnecessary-condition
+    (serverAdapter as ServerlessAdapter)?.$$type === '$PServerlessAdapter' && options?.serverless?.generate === true;
 
   const translatePath = translatePathFactory(serverAdapter);
   const existsRootMiddlewares = Array.isArray(settings.middlewares) && settings.middlewares.length > 0;
@@ -677,7 +702,7 @@ export async function* getAllRouters(
     if (isUseServerless && typeof routeToFilterWhenOnServerlessEnvironment === 'string') {
       if (
         doTheRoutingForServerlessOnly(
-          serverAdapter,
+          serverAdapter as ServerlessAdapter,
           router.partsOfPath,
           router.urlParams,
           routeToFilterWhenOnServerlessEnvironment
@@ -771,7 +796,8 @@ export async function* getAllRouters(
 }
 
 /**
- * A generator that will yield all of the routers that were extracted from the domains and the settings. Used for {@link ServerRouterAdapter.parseHandler} function.
+ * A generator that will yield all of the routers that were extracted from the domains and the
+ * settings. Used for {@link ServerRouterAdapter.parseHandler} function.
  */
 export async function* getAllHandlers(
   domains: ServerDomain[],
@@ -837,7 +863,8 @@ export function wrap404HandlerAndRootMiddlewares(
           response as Response,
           middlewares.length - 1
         )) {
-          const isResponse = modifiedResponse instanceof Response;
+          // eslint-disable-next-line ts/no-unnecessary-condition
+          const isResponse = (modifiedResponse as Response)?.['$$type'] === '$PResponse';
           if (isResponse)
             response = appendTranslatorToResponse(
               modifiedResponse,
@@ -863,7 +890,8 @@ export function wrap404HandlerAndRootMiddlewares(
 }
 
 /**
- * This will initialize all of the routers in sequence, it'll extract all of the routes from all of the domains and initialize them on the server.
+ * This will initialize all of the routers in sequence, it'll extract all of the routes from all of
+ * the domains and initialize them on the server.
  */
 export async function initializeRouters(
   domains: ServerDomain[],
@@ -920,17 +948,18 @@ export async function initializeRouters(
           return (router.handlers.get(method) as any)?.handler(serverRequestAndResponseData);
         else return (router.handlers.get('all') as any)?.handler(serverRequestAndResponseData);
       } else if (useServerless === false && serverAdapter.routers.parseHandlers) {
-        if (serverAdapter instanceof ServerAdapter) {
-          serverAdapter.routers.parseHandlers(
+        if ((serverAdapter as ServerAdapter).$$type === '$PServerAdapter') {
+          serverAdapter = serverAdapter as ServerAdapter;
+          serverAdapter.routers.parseHandlers?.(
             serverAdapter,
             router.translatedPath,
             router.handlers as Parameters<NonNullable<ServerAdapter['routers']['parseHandlers']>>['2'],
             router.queryParams,
             wrapped404Handler
           );
-        } else if (serverAdapter instanceof ServerlessAdapter) {
-          await serverAdapter.routers.parseHandlers(
-            serverAdapter,
+        } else if ((serverAdapter as ServerlessAdapter).$$type === '$PServerlessAdapter') {
+          await (serverAdapter as ServerlessAdapter).routers.parseHandlers(
+            serverAdapter as ServerlessAdapter,
             allSettings.basePath,
             router.translatedPath,
             router.handlers as Parameters<NonNullable<ServerlessAdapter['routers']['parseHandlers']>>['3'],
@@ -941,14 +970,18 @@ export async function initializeRouters(
       }
     }
     // eslint-disable-next-line ts/no-unnecessary-condition
-  } else if (serverAdapter instanceof ServerAdapter && serverAdapter.routers.parseHandler !== undefined) {
+  } else if (
+    (serverAdapter as ServerAdapter).$$type === '$PServerAdapter' &&
+    // eslint-disable-next-line ts/no-unnecessary-condition
+    (serverAdapter as ServerAdapter).routers.parseHandler !== undefined
+  ) {
     const translatePath = translatePathFactory(serverAdapter);
     const handlers = getAllHandlers(domains, settings, serverAdapter);
 
     for await (const handler of handlers) {
       const translatedPath = translatePath(handler.path, handler.partsOfPath, handler.urlParams);
-      serverAdapter.routers.parseHandler(
-        serverAdapter,
+      (serverAdapter as ServerAdapter).routers.parseHandler(
+        serverAdapter as ServerAdapter,
         translatedPath,
         handler.method as MethodTypes | 'all',
         handler.handler,

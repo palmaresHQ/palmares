@@ -1,7 +1,7 @@
-import { ForeignKeyField, fields } from '@palmares/databases';
+import { fields } from '@palmares/databases';
 
 import type SequelizeEngine from './engine';
-import type { Field} from '@palmares/databases';
+import type { Field , ForeignKeyField} from '@palmares/databases';
 import type {
   BelongsToOptions,
   ForeignKeyOptions,
@@ -10,7 +10,7 @@ import type {
   IndexesOptions,
   Model,
   ModelAttributeColumnOptions,
-  ModelCtor,
+  ModelCtor
 } from 'sequelize';
 
 const indexesByEngineAndModelName = new Map<string, Map<string, IndexesOptions[]>>();
@@ -19,7 +19,7 @@ const onDeleteOperationsTable = {
   [fields.ON_DELETE.SET_NULL]: 'SET NULL',
   [fields.ON_DELETE.SET_DEFAULT]: 'SET DEFAULT',
   [fields.ON_DELETE.RESTRICT]: 'RESTRICT',
-  [fields.ON_DELETE.DO_NOTHING]: 'DO NOTHING',
+  [fields.ON_DELETE.DO_NOTHING]: 'DO NOTHING'
 };
 
 /**
@@ -42,7 +42,7 @@ export function appendIndexes(
   const indexesForModelOnEngine = indexesByEngineAndModelName.get(engineName)?.get(modelName) as IndexesOptions[];
   indexesForModelOnEngine.push({
     unique: (field.unique as boolean) === true,
-    fields: [field.databaseName],
+    fields: [field.databaseName]
   });
 }
 
@@ -70,7 +70,9 @@ export function handleRelatedField(
   field: ForeignKeyField,
   fieldAttributes: ModelAttributeColumnOptions & ForeignKeyOptions
 ) {
-  const modelWithForeignKeyField: ModelCtor<Model> = engine.initializedModels[field.model.getName()] as ModelCtor<Model>;
+  const modelWithForeignKeyField: ModelCtor<Model> = engine.initializedModels[
+    field.model.getName()
+  ] as ModelCtor<Model>;
   const relatedToModel: ModelCtor<Model> = engine.initializedModels[field.relatedTo] as ModelCtor<Model>;
   // eslint-disable-next-line ts/no-unnecessary-condition
   const isRelatedModelAndModelOfForeignDefined = relatedToModel !== undefined && modelWithForeignKeyField !== undefined;
@@ -83,16 +85,16 @@ export function handleRelatedField(
       foreignKey: fieldAttributes,
       hooks: true,
       onDelete: translatedOnDelete,
-      sourceKey: field.toField,
+      sourceKey: field.toField
     };
 
-    if (field instanceof ForeignKeyField) {
+    if ((field as any)?.['$$type'] === '$PForeignKeyField') {
       relationOptions.as = field.relatedName as string;
       relatedToModel.hasMany(modelWithForeignKeyField, relationOptions);
 
       relationOptions.as = field.relationName as string;
       modelWithForeignKeyField.belongsTo(relatedToModel, relationOptions);
-      return false
+      return false;
     }
   }
   return true;

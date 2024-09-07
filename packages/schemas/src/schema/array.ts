@@ -28,6 +28,7 @@ export class ArraySchema<
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
   TSchemas extends readonly [Schema, ...Schema[]] | [[Schema]] = [[Schema]]
 > extends Schema<TType, TDefinitions> {
+  protected $$type = '$PArraySchema';
   protected fieldType = 'array';
 
   protected __schemas: readonly [Schema, ...Schema[]] | [[Schema]];

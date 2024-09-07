@@ -74,6 +74,7 @@ export class DatabaseAdapter<
   TQueryAdapter extends AdapterQuery = AdapterQuery,
   TMigrationsAdapter extends AdapterMigrations = AdapterMigrations
 > {
+  $$type = '$PDatabaseAdapter';
   connectionName!: string;
   databaseSettings!: DatabaseConfigurationType;
   initializedModels: EngineInitializedModels = {};

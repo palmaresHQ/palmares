@@ -52,6 +52,7 @@ export class DecimalField<
   TDatabaseName extends string | null | undefined = undefined,
   TCustomAttributes = any
 > extends UnopinionatedField<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
+  protected $$type = '$PDecimalField';
   declare _type: TType;
   typeName: string = DecimalField.name;
   maxDigits: number;

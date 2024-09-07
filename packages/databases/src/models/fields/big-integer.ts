@@ -65,6 +65,7 @@ export class BigIntegerField<
   TDatabaseName extends string | null | undefined = undefined,
   TCustomAttributes = any
 > extends Field<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
+  protected $$type = '$PBigIntegerField';
   declare _type: TType;
   typeName: string = BigIntegerField.name;
 

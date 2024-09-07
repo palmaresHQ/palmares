@@ -1,5 +1,11 @@
 # @examples/next-monorepo
 
+## 0.0.6
+
+### Patch Changes
+
+- Everything now has peer dependencies instead of dependency
+
 ## 0.0.5
 
 ### Patch Changes

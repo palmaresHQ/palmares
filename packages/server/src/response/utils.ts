@@ -4,6 +4,7 @@
  * This is just a simple class that also holds the name of the file.
  */
 export class FileLike {
+  $$type = '$PFileLike';
   blob: Blob;
   name: string;
 

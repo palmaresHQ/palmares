@@ -64,6 +64,7 @@ export class AutoField<
   TDatabaseName extends string | null | undefined = undefined,
   TCustomAttributes = any
 > extends Field<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
+  protected $$type = '$PAutoField';
   declare _type: TType;
   typeName: string = AutoField.name;
 

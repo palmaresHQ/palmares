@@ -110,7 +110,8 @@ export class ObjectSchema<
               }
             }
           };
-          if (valueToTransform instanceof Schema) promises.push(awaitableTransformer());
+          // eslint-disable-next-line ts/no-unnecessary-condition
+          if (valueToTransform?.['$$type'] === '$PSchema') promises.push(awaitableTransformer());
         }
 
         await Promise.all(promises);
