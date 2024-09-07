@@ -1,16 +1,21 @@
 import type { LoggingAdapter } from './adapter';
 import type { LoggerArgumentsToFilterAndFormatters, LoggingTypes } from './types';
 
-const cachedLogging: Partial<
-  Record<
-    LoggingTypes,
-    {
-      logger: LoggingAdapter | LoggingAdapter[];
-      filter?: (args: LoggerArgumentsToFilterAndFormatters) => boolean;
-      formatter?: (args: LoggerArgumentsToFilterAndFormatters) => string;
-    }[]
-  >
-> = {};
+declare global {
+  // eslint-disable-next-line no-var
+  var $PLogging:
+    | Partial<
+        Record<
+          LoggingTypes,
+          {
+            logger: LoggingAdapter | LoggingAdapter[];
+            filter?: (args: LoggerArgumentsToFilterAndFormatters) => boolean;
+            formatter?: (args: LoggerArgumentsToFilterAndFormatters) => string;
+          }[]
+        >
+      >
+    | undefined;
+}
 
 /**
  * This will set the logger for the given logging level.
@@ -31,8 +36,9 @@ export function setLoggerAtLevel(
     formatter?: (args: LoggerArgumentsToFilterAndFormatters) => string;
   }
 ) {
-  if (cachedLogging[level]) cachedLogging[level].push(logger);
-  else cachedLogging[level] = [logger];
+  if (typeof globalThis.$PLogging !== 'object') globalThis.$PLogging = {};
+  if (globalThis.$PLogging[level]) globalThis.$PLogging[level].push(logger);
+  else globalThis.$PLogging[level] = [logger];
 }
 
 /**
@@ -48,5 +54,5 @@ export function setLoggerAtLevel(
  * @returns - The logger data for the given logging level.
  */
 export function getLoggersAtLevel(level: LoggingTypes) {
-  return cachedLogging[level];
+  return globalThis.$PLogging?.[level];
 }

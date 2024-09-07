@@ -1,5 +1,15 @@
 # @palmares/vercel-adapter
 
+## 0.0.17
+
+### Patch Changes
+
+- add everything as peer dependencies of one another
+- Everything now has peer dependencies instead of dependency
+- Updated dependencies
+- Updated dependencies
+  - @palmares/server@0.1.13
+
 ## 0.0.16
 
 ### Patch Changes

@@ -218,6 +218,7 @@ export class ForeignKeyField<
   TRelatedName extends string = any,
   TRelationName extends string = any
 > extends UnopinionatedField<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
+  protected $$type = '$PForeignKeyField';
   declare _type: TType;
   modelRelatedTo!: TRelatedModel;
   typeName: string = ForeignKeyField.name;

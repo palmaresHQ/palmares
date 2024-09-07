@@ -18,24 +18,29 @@ export function serverAdapter<
   TCustomServerSettings extends (typeof ServerAdapter)['customServerSettings']
 >(args: {
   /**
-   * This is the {@link ServerRequestAdapter}. The request will hold all of the request data from the server, this way we can
-   * translate the original request to Palmares request, everything is all lazy loaded.
+   * This is the {@link ServerRequestAdapter}. The request will hold all of the request data from
+   * the server, this way we can translate the original request to Palmares request, everything
+   * is all lazy loaded.
    */
   request: TServerRequestAdapter;
   /**
-   * This is the {@link ServerResponseAdapter} instance to be used by the server so we can translate Palmares's response to the server's response.
+   * This is the {@link ServerResponseAdapter} instance to be used by the server so we can
+   * translate Palmares's response to the server's response.
    */
   response: TServerResponseAdapter;
   /**
-   * This is the {@link ServerRouterAdapter} instance to be used by the server so we can translate Palmares's router to the server's router.
+   * This is the {@link ServerRouterAdapter} instance to be used by the server so we can translate
+   * Palmares's router to the server's router.
    */
   routers: TServerRouterAdapter;
   customServerSettings: TCustomServerSettings;
   /**
-   * This is the function that will be called by Palmares to load the server. Usually you add the server constructor here. Notice that this function
-   * DOES NOT start the server, it will be used for adding middleware, custom logic, etc.
+   * This is the function that will be called by Palmares to load the server. Usually you add the
+   * server constructor here. Notice that this function DOES NOT start the server, it will be used
+   * for adding middleware, custom logic, etc.
    *
-   * You can use a global Map to store the server instance, this way you can access it later on the start function. Since this is functional and not class based.
+   * You can use a global Map to store the server instance, this way you can access it later on the
+   * start function. Since this is functional and not class based.
    *
    * @example
    * ```
@@ -116,6 +121,7 @@ export function serverAdapter<
 }
 
 export class ServerAdapter {
+  $$type = '$PServerAdapter';
   serverName: string;
   settings: AllServerSettingsType['servers'][string];
   allSettings: AllServerSettingsType;
@@ -137,10 +143,12 @@ export class ServerAdapter {
   }
 
   /**
-   * This is the function that will be called by Palmares to load the server. Usually you add the server constructor here. Notice that this function
-   * DOES NOT start the server, it will be used for adding middleware, custom logic, etc.
+   * This is the function that will be called by Palmares to load the server. Usually you add the
+   * server constructor here. Notice that this function DOES NOT start the server, it will be used
+   * for adding middleware, custom logic, etc.
    *
-   * You can use a global Map to store the server instance, this way you can access it later on the start function. Since this is functional and not class based.
+   * You can use a global Map to store the server instance, this way you can access it later on the
+   * start function. Since this is functional and not class based.
    *
    * @example
    * ```

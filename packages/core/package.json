@@ -1,6 +1,6 @@
 {
   "name": "@palmares/core",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "This is the core part of the palmares framework, palmares is a framework heavily inspired by django and nestjs core ideas",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
@@ -27,6 +27,11 @@
     "palmares",
     "framework",
     "core"
+  ],
+  "files": [
+    "dist",
+    "package.json",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "clear": "rimraf ./dist",

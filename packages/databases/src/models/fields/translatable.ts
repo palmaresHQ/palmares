@@ -27,6 +27,7 @@ import type { DatabaseAdapter } from '../../engine';
  * ```
  */
 export class TranslatableField extends Field {
+  protected $$type = '$PTranslatableField';
   typeName: string = TranslatableField.name;
   translate!: () => Promise<any>;
   customToString?: () => Promise<{ imports: string[]; translateBody: string }>;

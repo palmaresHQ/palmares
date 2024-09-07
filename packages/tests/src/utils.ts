@@ -1,14 +1,17 @@
 import type { TestAdapter } from './adapter';
 
-let testAdapter: TestAdapter | undefined = undefined;
+declare global {
+  // eslint-disable-next-line no-var
+  var $PTestAdapter: TestAdapter | undefined;
+}
 
 export function setTestAdapter(adapter: TestAdapter) {
-  testAdapter = adapter;
+  globalThis.$PTestAdapter = adapter;
 }
 
 export function getTestAdapter() {
-  if (!testAdapter) {
+  if (!globalThis.$PTestAdapter) {
     throw new Error('Test adapter not set');
   }
-  return testAdapter;
+  return globalThis.$PTestAdapter;
 }

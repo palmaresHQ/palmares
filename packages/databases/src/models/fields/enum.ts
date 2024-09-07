@@ -65,6 +65,7 @@ export class EnumField<
   TCustomAttributes = any,
   TEnumChoices extends string[] = string[]
 > extends UnopinionatedField<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
+  protected $$type = '$PEnumField';
   declare _type: TType;
   choices: TEnumChoices;
   typeName: string = EnumField.name;

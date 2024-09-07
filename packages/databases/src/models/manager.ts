@@ -69,6 +69,7 @@ import type { Narrow, SettingsType2 } from '@palmares/core';
  * of the code. This way we could update the tasks dynamically.
  */
 export class Manager<TModel = Model, TEI extends DatabaseAdapter | null = null> {
+  $$type = '$PManager';
   instances: ManagerInstancesType;
   engineInstances: ManagerEngineInstancesType;
   defaultEngineInstanceName: string;

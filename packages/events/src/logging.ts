@@ -6,7 +6,7 @@ export const eventsLogger = new Logger(
     APP_START_EVENTS_SERVER: {
       category: 'info',
       handler: ({ appName }: { appName: string }) =>
-        `${appName} is running an events server and will only listen for events.\nPress Ctrl+C to quit.`,
-    },
+        `${appName} is running an events server and will only listen for events.\nPress Ctrl+C to quit.`
+    }
   }
 );

@@ -1,16 +1,28 @@
-import { Domain } from './domain';
 import { NotAValidDomainDefaultExportedError } from './exceptions';
 import { getCommands } from '../commands';
 import { getSettings, setSettings } from '../conf/settings';
 
+import type { Domain } from './domain';
 import type { DomainReadyFunctionArgs } from './types';
 import type { AppServer, appServer } from '../app';
 import type { DefaultCommandType } from '../commands/types';
 import type { CoreSettingsType, SettingsType2 } from '../conf/types';
 import type { Std } from '../std-adapter';
 
-let cachedDomains: (typeof Domain)[] | null = null;
-let cachedInitializedDomains: Domain<any>[] | null = null;
+declare global {
+  // eslint-disable-next-line no-var
+  var $PCachedInitializedDomains: Domain<any>[] | undefined;
+  // eslint-disable-next-line no-var
+  var $PCachedDomains: (typeof Domain)[] | undefined;
+}
+
+function setCachedDomains(domains: (typeof Domain)[]) {
+  globalThis.$PCachedDomains = domains;
+}
+
+function setCachedInitializedDomains(domains: Domain<any>[]) {
+  globalThis.$PCachedInitializedDomains = domains;
+}
 
 /**
  * This is used to retrieve all of the domains from the settings. We will loop through all of the installed domains in
@@ -28,7 +40,8 @@ export async function retrieveDomains(
   }
 ): Promise<(typeof Domain)[]> {
   const isNotDynamicDomains = settings.isDynamicDomains !== true;
-  if (cachedDomains && isNotDynamicDomains && options?.ignoreCache !== true) return cachedDomains;
+  if (globalThis.$PCachedDomains && isNotDynamicDomains && options?.ignoreCache !== true)
+    return globalThis.$PCachedDomains;
 
   const mergedSettings: any = settings;
   const domainClasses: (typeof Domain)[] = [];
@@ -47,14 +60,15 @@ export async function retrieveDomains(
 
     if (domainKls instanceof Promise) domainKls = (await domainKls).default;
 
-    if ((domainKls as typeof Domain).prototype instanceof Domain) {
+    // eslint-disable-next-line ts/no-unnecessary-condition
+    if ((domainKls as typeof Domain)?.['$$type'] === '$PDomain') {
       domainClasses.push(domainKls as typeof Domain);
     } else {
       throw new NotAValidDomainDefaultExportedError();
     }
   }
 
-  if (isNotDynamicDomains) cachedDomains = domainClasses;
+  if (isNotDynamicDomains) setCachedDomains(domainClasses);
 
   setSettings(mergedSettings);
   return domainClasses;
@@ -101,10 +115,10 @@ export async function initializeDomains(
   commands: DefaultCommandType;
 }> {
   const ignoreCache = options?.ignoreCache === true;
-  if (cachedInitializedDomains && ignoreCache !== true)
+  if (globalThis.$PCachedInitializedDomains && ignoreCache !== true)
     return {
       settings: getSettings() as SettingsType2,
-      domains: cachedInitializedDomains,
+      domains: globalThis.$PCachedInitializedDomains,
       commands: getCommands()
     };
 
@@ -153,12 +167,12 @@ export async function initializeDomains(
   }
 
   if (ignoreCache !== true) {
-    cachedInitializedDomains = initializedDomains;
+    setCachedInitializedDomains(initializedDomains);
 
     return {
       commands: commands,
       settings: settings,
-      domains: cachedInitializedDomains
+      domains: globalThis.$PCachedInitializedDomains as Domain<any>[]
     };
   } else {
     return {

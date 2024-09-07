@@ -11,6 +11,8 @@ import type { UnionFieldAdapter } from './fields/union';
 import type { ErrorCodes } from './types';
 
 export class SchemaAdapter {
+  $$type = '$PSchemaAdapter';
+  name!: string;
   field!: FieldAdapter;
   number?: NumberFieldAdapter;
   object!: ObjectFieldAdapter;

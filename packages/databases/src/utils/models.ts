@@ -3,7 +3,7 @@ import type { onRemoveFunction, onSetFunction } from '../models/types';
 
 export function extractDefaultEventsHandlerFromModel<
   TModel extends InstanceType<ReturnType<typeof model>>,
-  TFunctionType extends 'onSet' | 'onRemove',
+  TFunctionType extends 'onSet' | 'onRemove'
 >(
   modelInstance: TModel,
   functionType: TFunctionType

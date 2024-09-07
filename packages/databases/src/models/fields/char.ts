@@ -60,6 +60,7 @@ export class CharField<
   TDatabaseName extends string | null | undefined = undefined,
   TCustomAttributes = any
 > extends TextField<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
+  protected $$type = '$PCharField';
   declare _type: TType;
   typeName: string = CharField.name;
   maxLength: number;

@@ -1,0 +1,18 @@
+{
+  "name": "@examples/with-code-share",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "turbo run dev",
+    "server:help": "turbo run help",
+    "seed": "turbo run seed",
+    "storybook": "turbo run storybook",
+    "test": "turbo run test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@9.9.0"
+}

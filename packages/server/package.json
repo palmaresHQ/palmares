@@ -1,6 +1,6 @@
 {
   "name": "@palmares/server",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "files": [
     "dist",
     "README.md"
@@ -48,7 +48,7 @@
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
-  "peerDependencies": {
+  "dependencies": {
     "@palmares/core": "workspace:*",
     "@palmares/logging": "workspace:*"
   }

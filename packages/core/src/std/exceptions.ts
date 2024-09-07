@@ -8,7 +8,9 @@ export class ImportsError extends Error {
 export class StdNotSetError extends Error {
   constructor() {
     super(
-      'Default standard library not set. Please make sure you install `@palmares/std`, and add it at the top of your installed domains like: `installedDomains: [[StdDomain, { STD: NodeStd }], ...// other domains]`'
+      'Default standard library not set. Please make sure you install `@palmares/std`, and add it ' +
+        'at the top of your installed domains like: `installedDomains: ' +
+        '[[StdDomain, { STD: NodeStd }], ...// other domains]`'
     );
     this.name = 'StdNotSetError';
   }

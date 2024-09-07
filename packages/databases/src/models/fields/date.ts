@@ -86,6 +86,7 @@ export class DateField<
   TDatabaseName,
   TCustomAttributes
 > {
+  protected $$type = '$PDateField';
   declare _type: TType;
   typeName: string = DateField.name;
   autoNow: TAutoNow;

@@ -65,6 +65,7 @@ export class UuidField<
   TCustomAttributes = any,
   TAutoGenerate extends boolean = false
 > extends TextField<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
+  protected $$type = '$PUuidField';
   declare _type: TType;
   typeName: string = UuidField.name;
   autoGenerate: TAutoGenerate;

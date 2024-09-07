@@ -75,11 +75,14 @@ export function path<TPath extends string = ''>(path: TPath = '' as TPath) {
  * This is more specific version of {@link path} that allows you to nest paths without losing track of the parent path.
  * See {@link path} for more beginner-friendly documentation.
  *
- * So, imagine this problem: you want to define a parent router, your parent router defines query parameters, params, etc.
- * But you want to create the child router
- * without losing track of all of that information. What is the full url? What types are the query parameters? What types are the params? etc.
+ * So, imagine this problem: you want to define a parent router, your parent router defines query parameters,
+ * params, etc.
  *
- * This function solves that problem, it allows you to create a child router without losing track of the parent router by just passing the parent router as a generic.
+ * But you want to create the child router without losing track of all of that information. What is the full url? What
+ * types are the query parameters? What types are the params? etc.
+ *
+ * This function solves that problem, it allows you to create a child router without losing track of the parent router
+ * by just passing the parent router as a generic.
  *
  * On **routers.ts** file:
  * @example
@@ -119,8 +122,8 @@ export function path<TPath extends string = ''>(path: TPath = '' as TPath) {
  * ]);
  * ```
  *
- * This will create a circular dependency in typescript and it'll complain with you. So guarantee that you are not trying not using `.nested` function
- * in the same router you use as parent. Separate them in different variables.
+ * This will create a circular dependency in typescript and it'll complain with you. So guarantee that you are not
+ * trying not using `.nested` function in the same router you use as parent. Separate them in different variables.
  */
 export function pathNested<TParentRouter extends DefaultRouterType>(parentRouter?: TParentRouter) {
   return <TPath extends string = ''>(path: TPath = '' as TPath) => {

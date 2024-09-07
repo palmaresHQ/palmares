@@ -1,8 +1,8 @@
-import { SchemaAdapter } from './adapter';
 import { getDefaultAdapter } from './conf';
 import { checkType, nullable, optional } from './validators/schema';
 import { Validator } from './validators/utils';
 
+import type { SchemaAdapter } from './adapter';
 import type { FieldAdapter } from './adapter/fields';
 import type { ValidationDataBasedOnType } from './adapter/types';
 import type { Schema } from './schema/schema';
@@ -15,6 +15,7 @@ import type { FallbackFunctionsType, SupportedSchemas } from './types';
  * fallback to our default implementation of the schema validation.
  */
 export class WithFallback<TType extends SupportedSchemas> {
+  protected $$type = '$PWithFallback';
   fallbackFor: Set<
     | keyof Omit<ValidationDataBasedOnType<TType>, 'withFallback' | 'parsers'>
     | keyof ValidationDataBasedOnType<TType>['parsers']
@@ -185,7 +186,8 @@ export async function defaultTransform<TType extends SupportedSchemas>(
   };
 
   const appendRequiredFallbacks = () => {
-    const hasFallbacks = schemaWithPrivateFields.__rootFallbacksValidator instanceof Validator;
+    // eslint-disable-next-line ts/no-unnecessary-condition
+    const hasFallbacks = schemaWithPrivateFields.__rootFallbacksValidator?.['$$type'] === '$PValidator';
     if (hasFallbacks) {
       Validator.createAndAppendFallback(schema, optional(schemaWithPrivateFields.__optional));
       Validator.createAndAppendFallback(schema, nullable(schemaWithPrivateFields.__nullable));
@@ -224,7 +226,8 @@ export async function defaultTransform<TType extends SupportedSchemas>(
   if (options.shouldAddStringVersion)
     stringVersion = await fieldAdapter.toString(adapter, adapter.field, validationDataForStringVersion);
 
-  if (translatedSchemaOrWithFallback instanceof WithFallback) {
+  // eslint-disable-next-line ts/no-unnecessary-condition
+  if ((translatedSchemaOrWithFallback as WithFallback<any>)?.['$$type'] === '$PWithFallback') {
     appendRootFallback();
     for (const fallback of translatedSchemaOrWithFallback.fallbackFor) {
       checkIfShouldAppendFallbackAndAppend(fallback);
@@ -272,15 +275,18 @@ export async function defaultTransformToAdapter(
   const isTransformedSchemasEmpty = Object.keys(transformedSchemas).length <= 0;
   if (isTransformedSchemasEmpty) {
     const adapterInstanceToUse =
-      options.schemaAdapter instanceof SchemaAdapter ? options.schemaAdapter : getDefaultAdapter();
-    schema['__transformedSchemas'][adapterInstanceToUse.constructor.name] = {
+      // eslint-disable-next-line ts/no-unnecessary-condition
+      (options.schemaAdapter as SchemaAdapter)?.['$$type'] === '$PSchemaAdapter'
+        ? options.schemaAdapter
+        : getDefaultAdapter();
+    schema['__transformedSchemas'][(adapterInstanceToUse as SchemaAdapter).name] = {
       transformed: false,
       adapter: adapterInstanceToUse,
       schemas: []
     };
   }
 
-  const schemaAdapterNameToUse = options.schemaAdapter?.constructor.name || Object.keys(transformedSchemas)[0];
+  const schemaAdapterNameToUse = options.schemaAdapter?.name || Object.keys(transformedSchemas)[0];
   const isACustomSchemaAdapterAndNotYetDefined =
     // eslint-disable-next-line ts/no-unnecessary-condition
     transformedSchemas[schemaAdapterNameToUse] === undefined && options.schemaAdapter !== undefined;

@@ -6,7 +6,6 @@ import {
   isServerError,
   isSuccess
 } from './status';
-import { FileLike } from './utils';
 import {
   DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_HTML,
   DEFAULT_RESPONSE_CONTENT_HEADER_VALUE_JSON,
@@ -20,6 +19,7 @@ import { formDataLikeFactory } from '../request/utils';
 
 import type { RedirectionStatusCodes, StatusCodes } from './status';
 import type { HeadersType, ResponseTypeType } from './types';
+import type { FileLike } from './utils';
 import type { Request } from '../request';
 import type { FormDataLike } from '../request/types';
 
@@ -58,6 +58,7 @@ export class Response<
    * });
    * ```
    */
+  protected $$type = '$PResponse';
   private __serverRequestAndResponseData: any = undefined;
   private __error: Error | undefined = undefined;
 
@@ -89,7 +90,7 @@ export class Response<
       typeof body === 'object' &&
       body !== null &&
       !(body instanceof Blob) &&
-      !(body instanceof FileLike) &&
+      !((body as unknown as FileLike).$$type === '$PFileLike') &&
       !(body instanceof ArrayBuffer);
     this.body = isAJsonObject ? (JSON.stringify(body) as unknown as TBody) : (body as TBody);
     this.context = options?.context as TResponse['context'] extends object ? TResponse['context'] : undefined;
@@ -317,9 +318,10 @@ export class Response<
       options.statusText = typeof options.statusText === 'string' ? options.statusText : 'OK';
     }
 
-    if (hasNotDefinedFileHeader && (body instanceof FileLike || body instanceof Blob)) {
-      const contentType = body instanceof FileLike ? body.blob.type : body.type;
-      const fileName = body instanceof FileLike ? body.name : options?.filename ? options.filename : undefined;
+    if (hasNotDefinedFileHeader && ((body as any).$$type === '$PFileLike' || body instanceof Blob)) {
+      const contentType = (body as any).$$type === '$PFileLike' ? (body as FileLike).blob.type : (body as Blob).type;
+      const fileName =
+        (body as any).$$type === '$PFileLike' ? (body as FileLike) : options?.filename ? options.filename : undefined;
       if (options) {
         if (options.headers) {
           if (!(options.headers as any)[DEFAULT_RESPONSE_HEADERS_CONTENT_HEADER_KEY])
@@ -836,7 +838,8 @@ export class Response<
   // eslint-disable-next-line ts/require-await
   async formData() {
     const formDataLike = formDataLikeFactory();
-    if (this.body instanceof formDataLike) return this.body;
+    // eslint-disable-next-line ts/no-unnecessary-condition
+    if (this.body && (this.body as any)?.['$$type'] === '$PFormDataLike') return this.body as FormDataLike;
     else if (typeof this.body === 'object') {
       return new formDataLike({
         getKeys: () => Object.keys(this.body as object),

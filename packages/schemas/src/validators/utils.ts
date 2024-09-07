@@ -43,6 +43,7 @@ const typeByPriority = Object.entries(priorityByType).reduce(
  * more powerful, because if we need to add any extra priorities we can do that easily without changing the schema.
  */
 export class Validator {
+  protected $$type = '$PValidator';
   child?: Validator;
   parent?: Validator;
   fallbackNamesAdded = new Set();

@@ -2,7 +2,10 @@ import { NoAdapterFoundError } from './exceptions';
 
 import type { SchemaAdapter } from './adapter';
 
-let cachedAdapter: SchemaAdapter | null = null;
+declare global {
+  // eslint-disable-next-line no-var
+  var $PSchemasAdapter: SchemaAdapter | undefined;
+}
 
 /**
  * Sets the default adapter to be used by all of your schemas.
@@ -10,7 +13,7 @@ let cachedAdapter: SchemaAdapter | null = null;
  * @param adapter - The adapter to use when you define schemas.
  */
 export function setDefaultAdapter(adapter: SchemaAdapter) {
-  cachedAdapter = adapter;
+  globalThis.$PSchemasAdapter = adapter;
 }
 
 /**
@@ -21,7 +24,7 @@ export function setDefaultAdapter(adapter: SchemaAdapter) {
  * @returns The default adapter.
  */
 export function getDefaultAdapter(): SchemaAdapter {
-  if (!cachedAdapter) throw new NoAdapterFoundError();
+  if (!globalThis.$PSchemasAdapter) throw new NoAdapterFoundError();
 
-  return cachedAdapter;
+  return globalThis.$PSchemasAdapter;
 }

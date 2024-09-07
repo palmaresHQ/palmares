@@ -1,5 +1,18 @@
 # @example/basic
 
+## 0.0.19
+
+### Patch Changes
+
+- Everything now has peer dependencies instead of dependency
+- Updated dependencies
+- Updated dependencies
+  - @palmares/databases@0.1.16
+  - @palmares/server@0.1.13
+  - @palmares/core@0.1.13
+  - @palmares/express-adapter@0.1.14
+  - @palmares/sequelize-engine@0.1.16
+
 ## 0.0.18
 
 ### Patch Changes

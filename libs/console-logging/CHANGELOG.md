@@ -1,5 +1,15 @@
 # @palmares/console-logging
 
+## 0.1.7
+
+### Patch Changes
+
+- add everything as peer dependencies of one another
+- Everything now has peer dependencies instead of dependency
+- Updated dependencies
+- Updated dependencies
+  - @palmares/logging@0.1.13
+
 ## 0.1.6
 
 ### Patch Changes

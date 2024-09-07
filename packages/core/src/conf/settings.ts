@@ -5,10 +5,13 @@ import { PALMARES_SETTINGS_MODULE_ENVIRONMENT_VARIABLE } from '../utils';
 import type { SettingsType2 } from './types';
 import type { Std } from '../std-adapter';
 
-let cachedSettings: SettingsType2 | null = null;
+declare global {
+  // eslint-disable-next-line no-var
+  var $PCachedSettings: SettingsType2 | undefined;
+}
 
 export function getSettings() {
-  if (cachedSettings) return cachedSettings;
+  if (globalThis.$PCachedSettings) return globalThis.$PCachedSettings;
 }
 
 /**
@@ -24,7 +27,7 @@ async function extractSettingsFromPath(stdToUse: Std, path?: string) {
 
   if (!pathToUse) throw new SettingsNotFoundException();
   try {
-    cachedSettings = ((await import(pathToUse)) as { default: SettingsType2 }).default;
+    globalThis.$PCachedSettings = ((await import(pathToUse)) as { default: SettingsType2 }).default;
   } catch (e) {
     throw new SettingsNotFoundException();
   }
@@ -45,16 +48,22 @@ export async function setSettings(
         std: Std;
       }
 ) {
+  let settings = undefined;
   if (settingsOrStd instanceof Promise) {
     const awaitedSettingsOrSrd = await settingsOrStd;
     if ('files' in awaitedSettingsOrSrd.default) await extractSettingsFromPath(awaitedSettingsOrSrd.default);
-    else cachedSettings = awaitedSettingsOrSrd.default;
+    else {
+      settings = awaitedSettingsOrSrd.default;
+    }
   } else if ('files' in settingsOrStd) await extractSettingsFromPath(settingsOrStd);
   else if (typeof settingsOrStd === 'object' && 'settingsPathLocation' in settingsOrStd) {
     await extractSettingsFromPath(settingsOrStd.std, settingsOrStd.settingsPathLocation);
-  } else cachedSettings = settingsOrStd;
+  } else {
+    settings = settingsOrStd;
+  }
 
-  if (!cachedSettings) throw new SettingsNotFoundException();
-  setDefaultStd(new cachedSettings.std());
-  return cachedSettings;
+  if (!settings) throw new SettingsNotFoundException();
+  globalThis.$PCachedSettings = settings;
+  setDefaultStd(new settings.std());
+  return settings;
 }

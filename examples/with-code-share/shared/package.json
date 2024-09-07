@@ -1,0 +1,50 @@
+{
+  "name": "@examples/with-code-share-shared",
+  "version": "1.0.1",
+  "description": "",
+  "private": true,
+  "types": "./src/index.ts",
+  "module": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "scripts": {
+    "dev": "tsup --format esm,cjs --watch",
+    "dev:shared": "tsup --format esm,cjs --watch",
+    "build:shared": "tsup --format esm"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@swc/cli": "^0.4.0",
+    "@swc/core": "^1.7.23",
+    "concurrently": "^8.2.2",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.2.4",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^8.4.1"
+  },
+  "peerDependencies": {
+    "@palmares/core": "workspace:*",
+    "@palmares/databases": "workspace:*",
+    "@palmares/schemas": "workspace:*",
+    "@palmares/zod-schema": "workspace:*"
+  },
+  "type": "module",
+  "tsup": {
+    "entry": [
+      "src/**/*.ts"
+    ],
+    "splitting": false,
+    "sourcemap": true,
+    "clean": true
+  }
+}

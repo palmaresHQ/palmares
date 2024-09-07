@@ -1,19 +1,27 @@
 import { CommandNotFoundException } from './exceptions';
-import { AppServer } from '../app';
 import { initializeApp } from '../app/utils';
 import { initializeDomains } from '../domain/utils';
 import { getLogger, setLogger } from '../logging';
 import { PACKAGE_NAME, structuredClone } from '../utils';
 
 import type { DefaultCommandType, DomainHandlerFunctionArgs } from './types';
-import type { appServer } from '../app';
+import type { AppServer, appServer } from '../app';
 import type { SettingsType2 } from '../conf/types';
 import type { Std } from '../std-adapter';
 
-let cachedCommands = {} as DefaultCommandType;
+declare global {
+  // eslint-disable-next-line no-var
+  var $PCachedCommands: DefaultCommandType | undefined;
+}
 
 export function getCommands() {
+  const cachedCommands = globalThis.$PCachedCommands;
+  if (cachedCommands === undefined) return {};
   return cachedCommands;
+}
+
+function setCommands(commands: DefaultCommandType) {
+  globalThis.$PCachedCommands = commands;
 }
 
 function getValueFromType(type: 'boolean' | 'number' | 'string' | string[] | readonly string[], value: string) {
@@ -181,7 +189,7 @@ export async function handleCommands(
     setLogger(new loggerConstructorFromPalmaresLoggingPackage({ domainName: PACKAGE_NAME }));
   logger = getLogger();
 
-  cachedCommands = availableCommands;
+  setCommands(availableCommands);
 
   const isCommandDefined: boolean =
     // eslint-disable-next-line ts/no-unnecessary-condition
@@ -211,9 +219,10 @@ export async function handleCommands(
 
   // This will start the app server if your command returns an app server class. Please, don't try to run the app
   // server manually, unless you REALLY know what you are doing, since it has it's own lifecycle.
-  if (returnOfCommand?.prototype instanceof AppServer) {
+  // eslint-disable-next-line ts/no-unnecessary-condition
+  if ((returnOfCommand as typeof AppServer)?.['$$type'] === '$PAppServer') {
     logger.info(`Command wants to start the app server, starting it...`);
 
-    initializeApp(domains, settings, formattedCommandLineArgs, returnOfCommand);
+    initializeApp(domains, settings, formattedCommandLineArgs, returnOfCommand as typeof AppServer);
   }
 }

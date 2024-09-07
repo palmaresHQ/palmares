@@ -54,6 +54,7 @@ export function serverlessAdapter<
 }
 
 export class ServerlessAdapter {
+  $$type = '$PServerlessAdapter';
   serverName: string;
   settings: ServerSettingsType;
   allSettings: AllServerSettingsType;

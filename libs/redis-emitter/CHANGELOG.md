@@ -1,5 +1,15 @@
 # @palmares/redis-emitter
 
+## 0.0.9
+
+### Patch Changes
+
+- add everything as peer dependencies of one another
+- Everything now has peer dependencies instead of dependency
+- Updated dependencies
+- Updated dependencies
+  - @palmares/events@0.0.16
+
 ## 0.0.8
 
 ### Patch Changes

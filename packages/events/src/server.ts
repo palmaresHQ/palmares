@@ -1,9 +1,13 @@
+/* eslint-disable max-len */
 import { EventEmitter } from './events';
 
 import type { Emitter } from './emitter';
 import type { EventEmitterOptionsType } from './events/types';
 
-let runningEventsServer: EventsServer<Emitter>;
+declare global {
+  // eslint-disable-next-line no-var
+  var $PRunningEventsServer: EventsServer<Emitter>;
+}
 
 /**
  * The idea of an event server is to keep the application running so that it can receive requests from other servers
@@ -82,9 +86,9 @@ export async function eventsServer<TEmitter extends typeof Emitter = typeof Emit
 }
 
 export function setEventsServer(server: EventsServer<Emitter>) {
-  runningEventsServer = server;
+  globalThis.$PRunningEventsServer = server;
 }
 
 export function getEventsServer<TEmitter extends typeof Emitter = typeof Emitter>() {
-  return runningEventsServer as EventsServer<InstanceType<TEmitter>>;
+  return globalThis.$PRunningEventsServer as EventsServer<InstanceType<TEmitter>>;
 }

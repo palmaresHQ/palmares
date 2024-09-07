@@ -234,7 +234,7 @@ export class BaseModel {
         const propertyNamesOfModel = Object.getOwnPropertyNames(prototype);
         for (const propName of propertyNamesOfModel) {
           const value = (prototype as any)[propName];
-          if (value instanceof Manager) managers[propName] = value;
+          if ((value as Manager)['$$type'] === '$PManager') managers[propName] = value;
         }
         prototype = Object.getPrototypeOf(prototype);
       }
@@ -569,6 +569,7 @@ const BaseModelWithoutMethods = BaseModel as unknown as { new (): Pick<BaseModel
  * you can have the hole power of linting VSCode and other IDEs give you.
  */
 export class Model extends BaseModelWithoutMethods {
+  $$type = '$PModel';
   static [managers: string]: Manager | ((...args: any) => any) | ModelFieldsType;
   fields: ModelFieldsType = {};
   options: ModelOptionsType<any> | undefined = undefined;
