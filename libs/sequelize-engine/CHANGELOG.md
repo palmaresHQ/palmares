@@ -1,5 +1,14 @@
 # @palmares/sequelize-engine
 
+## 0.1.17
+
+### Patch Changes
+
+- c5f4e08: - Added ESModules support, you can have deeply nested packages and it wont affect the function of your app. For example, if module A has a dependency in @palmares/schema, and palmares schema depends on @palmares/core, it will work normally
+- Updated dependencies [c5f4e08]
+  - @palmares/databases@0.1.17
+  - @palmares/core@0.1.14
+
 ## 0.1.16
 
 ### Patch Changes

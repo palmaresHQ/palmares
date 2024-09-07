@@ -1,5 +1,18 @@
 # @palmares/server-vercel
 
+## 0.0.18
+
+### Patch Changes
+
+- c5f4e08: - Added ESModules support, you can have deeply nested packages and it wont affect the function of your app. For example, if module A has a dependency in @palmares/schema, and palmares schema depends on @palmares/core, it will work normally
+- Updated dependencies [c5f4e08]
+  - @palmares/console-logging@0.1.8
+  - @palmares/vercel-adapter@0.0.18
+  - @palmares/logging@0.1.14
+  - @palmares/server@0.1.14
+  - @palmares/node-std@0.1.14
+  - @palmares/core@0.1.14
+
 ## 0.0.17
 
 ### Patch Changes
