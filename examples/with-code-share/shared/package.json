@@ -1,7 +1,8 @@
 {
-  "name": "shared",
+  "name": "@examples/with-code-share-shared",
   "version": "1.0.1",
   "description": "",
+  "private": true,
   "types": "./src/index.ts",
   "module": "./dist/index.js",
   "main": "./dist/index.cjs",

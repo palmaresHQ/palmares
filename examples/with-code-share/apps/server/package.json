@@ -1,8 +1,9 @@
 {
-  "name": "server",
+  "name": "@examples/with-code-share-server",
   "version": "1.0.1",
   "description": "",
   "main": "./dist/manage.js",
+  "private": true,
   "scripts": {
     "help": "tsx manage.ts help",
     "dev": "tsx watch --clear-screen=false manage.ts runserver",
@@ -36,7 +37,7 @@
     "cors": "^2.8.5",
     "drizzle-kit": "^0.24.2",
     "drizzle-orm": "^0.32.2",
-    "shared": "workspace:*"
+    "@examples/with-code-share-shared": "workspace:*"
   },
   "devDependencies": {
     "@palmares/jest-tests": "^0.1.13",
