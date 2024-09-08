@@ -1,5 +1,11 @@
 # @palmares/client
 
+## 0.1.16
+
+### Patch Changes
+
+- Move core and server to devDependencies of @palmares/client
+
 ## 0.1.15
 
 ### Patch Changes

@@ -923,7 +923,7 @@ export async function initializeRouters(
   let wrapped404Handler: Parameters<NonNullable<ServerAdapter['routers']['parseHandlers']>>['4'] = async () =>
     undefined;
 
-  if (useServerless) {
+  if (!useServerless) {
     wrapped404Handler = wrap404HandlerAndRootMiddlewares(
       serverAdapter,
       settings.middlewares || [],

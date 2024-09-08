@@ -21,7 +21,7 @@
     "lint": "eslint . --ignore-pattern .gitignore",
     "define:change": "pnpm changeset",
     "release:apply": "pnpm changeset version",
-    "release:publish": "pnpm changeset publish",
+    "release:publish": "pnpm changeset publish --filter @palmares/*",
     "release:github": "tsx scripts/release/index.ts",
     "release": "pnpm run build && pnpm run release:apply && pnpm run release:publish && pnpm run release:github",
     "docs:dev": "cd docs && pnpm run docs:dev",

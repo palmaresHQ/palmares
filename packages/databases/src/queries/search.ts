@@ -219,12 +219,13 @@ export async function parseSearch(
 
     const formattedSearch: Record<string, any> = {};
     const promises = fieldsInSearch.map(async (key) => {
+      const modelInstanceFields = modelConstructor._fields();
       const fieldInputParserFunction =
-        useInputParser && modelInstance.fields[key].inputParsers.has(engine.connectionName)
+        useInputParser && modelInstanceFields[key].inputParsers.has(engine.connectionName)
           ? async (value: any) =>
-              modelInstance.fields[key].inputParsers.get(engine.connectionName)?.({
+              modelInstanceFields[key].inputParsers.get(engine.connectionName)?.({
                 engine,
-                field: modelInstance.fields[key],
+                field: modelInstanceFields[key],
                 fieldParser: engine.fields.fieldsParser,
                 model: modelInstance,
                 modelName: modelConstructor.getName(),

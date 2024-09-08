@@ -1,6 +1,6 @@
 {
   "name": "@palmares/client",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "This is the client part of the palmares framework, you should be able to use it on any runtime",
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
@@ -53,9 +53,7 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "devDependencies": {
-    "@types/node": "^22.5.2"
-  },
-  "dependencies": {
+    "@types/node": "^22.5.2",
     "@palmares/core": "workspace:*",
     "@palmares/server": "workspace:*"
   }

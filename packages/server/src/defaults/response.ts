@@ -37,29 +37,6 @@ export const DEFAULT_SERVER_ERROR_RESPONSE = (error: Error, settings: AllServerS
       <meta charset="utf-8">
       <title>[Palmares] - Internal Server Error</title>
       <link href="https://fonts.googleapis.com/css?family=Mooli" rel="stylesheet">
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs/loader.min.js"></script>
-      <script>
-      require.config({
-        paths: {
-          vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs',
-        },
-      });
-
-      const sourceCode = \`${JSON.stringify(settings, null, 2)}\`;
-
-      require(['vs/editor/editor.main'], () => {
-        monaco.editor.create(document.getElementById('settings'), {
-          value: sourceCode,
-          language: 'json',
-          lineNumbers: 'off',
-          automaticLayout: true,
-          minimap: { enabled: false },
-          padding: { top: 5, right: 5, bottom: 5, left: 5 },
-          overviewRulerLanes: 0,
-          overviewRulerBorder: false,
-        });
-      });
-    </script>
     </head>
     <body style="font-family: 'Mooli'">
       <div style="background-color: yellow; text-align: center;">
@@ -82,14 +59,6 @@ export const DEFAULT_SERVER_ERROR_RESPONSE = (error: Error, settings: AllServerS
           </div>
           <div style="border-bottom: 1px solid black; width: 100%; height: 1px;" ></div>
           <pre>${error.stack}</pre>
-        </div>
-      </div>
-      <br>
-      <div style="width: 100%; background-color: #f1f1f1; border-radius: 20px">
-        <div style="padding: 10px">
-          <h4>App Settings</h4>
-          <div style="border-bottom: 1px solid black; width: 100%; height: 1px;" ></div>
-          <div id="settings" style="width: 100%; height: 50vh"></div>
         </div>
       </div>
       <br>
