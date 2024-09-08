@@ -1,5 +1,13 @@
 # @palmares/console-logging
 
+## 0.1.12
+
+### Patch Changes
+
+- Remove swc and building with tsup now
+- Updated dependencies
+  - @palmares/logging@0.1.18
+
 ## 0.1.11
 
 ### Patch Changes

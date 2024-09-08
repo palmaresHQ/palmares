@@ -1,5 +1,15 @@
 # @palmares/schemas
 
+## 0.1.26
+
+### Patch Changes
+
+- Remove swc and building with tsup now
+- Updated dependencies
+  - @palmares/core@0.1.17
+  - @palmares/databases@0.1.22
+  - @palmares/server@0.1.19
+
 ## 0.1.25
 
 ### Patch Changes

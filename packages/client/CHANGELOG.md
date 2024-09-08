@@ -1,5 +1,11 @@
 # @palmares/client
 
+## 0.1.19
+
+### Patch Changes
+
+- Remove swc and building with tsup now
+
 ## 0.1.18
 
 ### Patch Changes

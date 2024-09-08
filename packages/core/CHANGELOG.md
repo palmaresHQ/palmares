@@ -1,5 +1,11 @@
 # @palmares/core
 
+## 0.1.17
+
+### Patch Changes
+
+- Remove swc and building with tsup now
+
 ## 0.1.16
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@palmares/jest-tests",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "description": "This is the jest testing adapter, we are abstracting jest to work flawlessly with palmares",
   "main": "./dist/src/index.cjs",
   "module": "./dist/src/index.js",

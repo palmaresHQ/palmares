@@ -1,5 +1,14 @@
 # @palmares/server
 
+## 0.1.19
+
+### Patch Changes
+
+- Remove swc and building with tsup now
+- Updated dependencies
+  - @palmares/core@0.1.17
+  - @palmares/logging@0.1.18
+
 ## 0.1.18
 
 ### Patch Changes

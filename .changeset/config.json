@@ -17,6 +17,7 @@
     "@examples/server-palmares",
     "@examples/server-express-only",
     "@examples/next-monorepo",
+    "@examples/server-vercel",
     "@examples/basic",
     "@examples/bench",
     "@examples/tests",

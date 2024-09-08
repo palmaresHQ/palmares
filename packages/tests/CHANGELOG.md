@@ -1,5 +1,13 @@
 # @palmares/tests
 
+## 0.1.18
+
+### Patch Changes
+
+- Remove swc and building with tsup now
+- Updated dependencies
+  - @palmares/core@0.1.17
+
 ## 0.1.17
 
 ### Patch Changes

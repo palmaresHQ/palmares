@@ -1,5 +1,14 @@
 # @palmares/express-adapter
 
+## 0.1.20
+
+### Patch Changes
+
+- Remove swc and building with tsup now
+- Updated dependencies
+  - @palmares/core@0.1.17
+  - @palmares/server@0.1.19
+
 ## 0.1.19
 
 ### Patch Changes

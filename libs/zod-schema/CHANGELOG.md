@@ -1,5 +1,13 @@
 # @palmares/zod-schema
 
+## 0.1.28
+
+### Patch Changes
+
+- Remove swc and building with tsup now
+- Updated dependencies
+  - @palmares/schemas@0.1.26
+
 ## 0.1.27
 
 ### Patch Changes

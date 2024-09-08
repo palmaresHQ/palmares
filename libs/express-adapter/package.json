@@ -1,6 +1,6 @@
 {
   "name": "@palmares/express-adapter",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "description": "This is the adapter for express framework to work with Palmares framework",
   "main": "./dist/src/index.cjs",
   "module": "./dist/src/index.js",

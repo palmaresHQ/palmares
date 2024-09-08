@@ -1,5 +1,13 @@
 # @palmares/vercel-adapter
 
+## 0.0.23
+
+### Patch Changes
+
+- Remove swc and building with tsup now
+- Updated dependencies
+  - @palmares/server@0.1.19
+
 ## 0.0.22
 
 ### Patch Changes

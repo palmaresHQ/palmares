@@ -1,5 +1,14 @@
 # @palmares/sequelize-engine
 
+## 0.1.22
+
+### Patch Changes
+
+- Remove swc and building with tsup now
+- Updated dependencies
+  - @palmares/core@0.1.17
+  - @palmares/databases@0.1.22
+
 ## 0.1.21
 
 ### Patch Changes

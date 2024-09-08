@@ -1,5 +1,13 @@
 # @palmares/eventemitter2-emitter
 
+## 0.0.13
+
+### Patch Changes
+
+- Remove swc and building with tsup now
+- Updated dependencies
+  - @palmares/events@0.0.21
+
 ## 0.0.12
 
 ### Patch Changes

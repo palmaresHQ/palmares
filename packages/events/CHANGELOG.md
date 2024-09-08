@@ -1,5 +1,14 @@
 # @palmares/events
 
+## 0.0.21
+
+### Patch Changes
+
+- Remove swc and building with tsup now
+- Updated dependencies
+  - @palmares/core@0.1.17
+  - @palmares/logging@0.1.18
+
 ## 0.0.20
 
 ### Patch Changes
