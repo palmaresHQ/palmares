@@ -1,7 +1,7 @@
+import { mockInventory, mockUsers } from '@examples/with-code-share-shared';
 import { domain } from '@palmares/core';
 import { testDomainModifier } from '@palmares/tests';
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
-import { mockInventory, mockUsers } from 'shared';
 
 import { User } from '../auth/models';
 import { InventoryItem } from '../inventory/models';

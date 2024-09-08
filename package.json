@@ -47,8 +47,6 @@
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "devDependencies": {
     "@changesets/cli": "^2.27.7",
-    "@swc/cli": "^0.4.0",
-    "@swc/core": "^1.7.2",
     "@types/node": "^20.14.12",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^6.21.0",
@@ -64,10 +62,10 @@
     "globals": "^15.8.0",
     "prettier": "3.3.3",
     "rimraf": "^6.0.1",
-    "swc": "^1.0.11",
+    "tsup": "^8.2.4",
     "tsx": "^4.16.2",
     "turbo": "^2.0.9",
-    "typescript-eslint": "^7.17.0",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^7.17.0"
   }
 }

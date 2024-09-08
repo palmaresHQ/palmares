@@ -3,7 +3,7 @@
   "compilerOptions": {
     "declaration": true, /* Generate d.ts files */
     "rootDir": "./src",
-    "outDir": "./dist/cjs/types",
+    "outDir": "./dist/src",
     "types": ["node"]
   },
   "include": ["src/**/*"]

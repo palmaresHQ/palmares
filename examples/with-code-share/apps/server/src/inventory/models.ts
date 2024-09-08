@@ -1,5 +1,5 @@
+import { AbstractInventoryItem } from '@examples/with-code-share-shared';
 import { define, fields, foreignKey } from '@palmares/databases';
-import { AbstractInventoryItem } from 'shared';
 
 import { InventoryItem as DInventoryItem } from '../../drizzle/schema';
 import { User } from '../auth/models';

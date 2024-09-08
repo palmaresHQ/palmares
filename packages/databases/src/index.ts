@@ -1,7 +1,9 @@
 import { databasesDomain as DatabasesDomain } from './domain';
 import { model as Model, Model as ModelBaseClass } from './models';
 import * as fields from './models/fields';
+import { Manager } from './models/manager';
 
+export { Manager };
 export { ON_DELETE } from './models/fields';
 export * from './types';
 export { DatabaseAdapter, databaseAdapter } from './engine';
@@ -28,7 +30,6 @@ export { AdapterEnumFieldParser, adapterEnumFieldParser } from './engine/fields/
 export { AdapterFieldParser, adapterFieldParser } from './engine/fields/field';
 export { AdapterBooleanFieldParser, adapterBooleanFieldParser } from './engine/fields/boolean';
 export * from './engine/types';
-export { Manager } from './models/manager';
 export {
   model as Model,
   Model as ModelBaseClass,

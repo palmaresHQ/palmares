@@ -3,10 +3,9 @@
   "compilerOptions": {
     "declaration": true,
     "types": ["@palmares/core", "@palmares/server", "node"],
-    "rootDir": "./src",                                  /* Specify the root folder within your source files. */
-    "baseUrl": "./src",
+    "rootDir": "./src",
     "lib": ["Es2022"],                              /* Specify the base directory to resolve non-relative module names. */
-    "outDir": "./dist/cjs/types"
+    "outDir": "./dist/src"
   },
   "include": ["src/**/*"]
 }

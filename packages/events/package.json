@@ -2,9 +2,9 @@
   "name": "@palmares/events",
   "version": "0.0.20",
   "description": "This is the events framework for palmares, it's responsible for handling everything that is Pub/Sub like websockets, pub/sub like redis, and other types of asynchronous background tasks",
-  "main": "./dist/cjs/src/index.js",
-  "module": "./dist/esm/src/index.js",
-  "types": "./dist/cjs/types/index.d.ts",
+  "main": "./dist/src/index.cjs",
+  "module": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
   "files": [
     "dist",
     "package.json",
@@ -13,28 +13,19 @@
   ],
   "exports": {
     ".": {
-      "import": {
-        "default": "./dist/esm/src/index.js",
-        "types": "./dist/cjs/types/index.d.ts"
-      },
-      "require": {
-        "default": "./dist/cjs/src/index.js",
-        "types": "./dist/cjs/types/index.d.ts"
-      },
-      "default": "./dist/esm/src/index.js",
-      "types": "./dist/cjs/types/index.d.ts"
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js",
+      "require": "./dist/src/index.cjs"
     }
   },
   "scripts": {
     "clear": "rimraf ./dist",
     "build:types": "tsc --project tsconfig.types.json",
-    "build:cjs": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc",
-    "build:module": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc",
-    "build": "pnpm run clear && pnpm run build:cjs && pnpm run build:module && pnpm run build:types",
+    "build:cjs:esm": "tsup ./src --out-dir ./dist/src --format cjs,esm --silent --no-splitting",
+    "build": "pnpm run clear && pnpm run build:cjs:esm && pnpm run build:types",
     "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
-    "build:cjs:watch": "swc ./src -d ./dist/cjs --config-file ../../build/.commonjs.swcrc --watch",
-    "build:module:watch": "swc ./src -d ./dist/esm --config-file ../../build/.esm.swcrc --watch",
-    "build:watch": "pnpm run build:cjs:watch & pnpm run build:module:watch & pnpm run build:types:watch"
+    "build:cjs:esm:watch": "tsup ./src --out-dir ./dist/src --format cjs,esm --watch --silent --no-splitting",
+    "build:watch": "pnpm run build:cjs:esm:watch & pnpm run build:types:watch"
   },
   "repository": {
     "type": "git",
@@ -45,6 +36,7 @@
     "events",
     "framework"
   ],
+  "type": "module",
   "author": "Nicolas Leal",
   "license": "MIT",
   "bugs": {

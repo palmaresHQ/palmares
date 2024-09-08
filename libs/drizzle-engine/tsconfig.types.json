@@ -6,7 +6,7 @@
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "rootDir": "./src",
-    "outDir": "./dist/cjs/types",
+    "outDir": "./dist/src",
     "types": ["drizzle-orm", "node", "better-sqlite3"],
   },
   "include": ["src/**/*"]

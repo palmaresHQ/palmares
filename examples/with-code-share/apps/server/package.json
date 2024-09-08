@@ -13,8 +13,6 @@
     "migrate": "tsx manage.ts drizzleMigrate",
     "seed": "tsx manage.ts seedDb",
     "clear": "rimraf ./dist",
-    "build:drizzle": "swc drizzle -d dist/drizzle --copy-files --config-file .commonjs.swcrc --ignore node_modules dist",
-    "build:src": "swc . -d ./dist --config-file .commonjs.swcrc --ignore node_modules dist && rimraf ./dist/dist",
     "build:app": "pnpm run clear && tsup --format esm",
     "start": "node ./dist/manage.js runserver"
   },

@@ -1,5 +1,5 @@
+import { AbstractUser } from '@examples/with-code-share-shared';
 import { define } from '@palmares/databases';
-import { AbstractUser } from 'shared';
 
 import { User as DUser } from '../../drizzle/schema';
 

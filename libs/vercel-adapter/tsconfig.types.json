@@ -5,7 +5,7 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "rootDir": "./src",
-    "outDir": "./dist/cjs/types",
+    "outDir": "./dist/src",
     "types": ["node", "@vercel/node"],
     "paths": {
       "*": ["node_modules/*"],
