@@ -7,6 +7,12 @@
     "type": "git",
     "url": "git+https://github.com/palmaresHQ/palmares.git"
   },
+  "files": [
+    "dist",
+    "package.json",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "keywords": [
     "eventemitter2",
     "emitter",

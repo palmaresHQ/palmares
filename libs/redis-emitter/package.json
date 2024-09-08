@@ -3,6 +3,12 @@
   "version": "0.0.10",
   "description": "The default implementation for redis to act as pub/sub for palmares. It's specially useful as a layer.",
   "main": "src/index.ts",
+  "files": [
+    "dist",
+    "package.json",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

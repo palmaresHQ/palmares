@@ -5,6 +5,12 @@
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
   "types": "./dist/cjs/types/index.d.ts",
+  "files": [
+    "dist",
+    "package.json",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "exports": {
     "./better-sqlite3": {
       "types": "./dist/cjs/types/drizzles/better-sqlite3.d.ts",

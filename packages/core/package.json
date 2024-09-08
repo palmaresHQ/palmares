@@ -5,6 +5,12 @@
   "main": "./dist/cjs/src/index.js",
   "module": "./dist/esm/src/index.js",
   "types": "./dist/cjs/types/index.d.ts",
+  "files": [
+    "dist",
+    "package.json",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "exports": {
     ".": {
       "import": {
@@ -27,11 +33,6 @@
     "palmares",
     "framework",
     "core"
-  ],
-  "files": [
-    "dist",
-    "package.json",
-    "CHANGELOG.md"
   ],
   "scripts": {
     "clear": "rimraf ./dist",

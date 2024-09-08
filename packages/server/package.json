@@ -3,7 +3,9 @@
   "version": "0.1.14",
   "files": [
     "dist",
-    "README.md"
+    "package.json",
+    "README.md",
+    "CHANGELOG.md"
   ],
   "description": "The server from palmares, this is what you will use generally to make HTTP requests",
   "main": "./dist/cjs/src/index.js",
