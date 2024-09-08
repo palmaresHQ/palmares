@@ -46,12 +46,10 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "@palmares/schemas": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.5.4"
-  },
-  "peerDependencies": {
-    "@palmares/schemas": "workspace:*"
   }
 }

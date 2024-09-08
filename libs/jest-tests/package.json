@@ -45,11 +45,9 @@
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
-  "peerDependencies": {
-    "@palmares/tests": "workspace:*"
-  },
   "dependencies": {
-    "@types/jest": "^29.5.12"
+    "@types/jest": "^29.5.12",
+    "@palmares/tests": "workspace:*"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.25.0",

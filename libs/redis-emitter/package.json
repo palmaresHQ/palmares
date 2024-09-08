@@ -22,11 +22,9 @@
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
-  "peerDependencies": {
-    "@palmares/events": "*"
-  },
   "dependencies": {
-    "redis": "^4.6.15"
+    "redis": "^4.6.15",
+    "@palmares/events": "*"
   },
   "devDependencies": {
     "typescript": "^5.5.4"

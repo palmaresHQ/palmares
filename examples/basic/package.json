@@ -1,5 +1,5 @@
 {
-  "name": "@example/basic",
+  "name": "@examples/basic",
   "version": "0.0.19",
   "private": true,
   "description": "This is a basic example application, just to test if everything works as expected",

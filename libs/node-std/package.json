@@ -45,7 +45,7 @@
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
-  "peerDependencies": {
+  "dependencies": {
     "@palmares/core": "workspace:*"
   }
 }
