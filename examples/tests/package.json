@@ -1,5 +1,5 @@
 {
-  "name": "@example/tests",
+  "name": "@examples/tests",
   "version": "0.0.16",
   "description": "testing the tests",
   "main": "manage.ts",

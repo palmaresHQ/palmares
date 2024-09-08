@@ -19,9 +19,7 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
-    "eventemitter2": "^6.4.9"
-  },
-  "peerDependencies": {
+    "eventemitter2": "^6.4.9",
     "@palmares/events": "*"
   },
   "devDependencies": {

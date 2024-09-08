@@ -17,9 +17,9 @@
     "@examples/server-palmares",
     "@examples/server-express-only",
     "@examples/next-monorepo",
-    "@example/basic",
+    "@examples/basic",
     "@examples/bench",
-    "@example/tests",
+    "@examples/tests",
     "@examples/schemas"
   ]
 }
