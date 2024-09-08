@@ -1,5 +1,29 @@
 # @palmares/zod-schema
 
+## 0.1.27
+
+### Patch Changes
+
+- Update all for running on vite
+- Updated core with export type
+- Updated dependencies
+- Updated dependencies
+  - @palmares/schemas@0.1.25
+
+## 0.1.26
+
+### Patch Changes
+
+- Update all packages
+- Updated dependencies
+  - @palmares/schemas@0.1.24
+
+## 0.1.25
+
+### Patch Changes
+
+- @palmares/schemas@0.1.23
+
 ## 0.1.24
 
 ### Patch Changes

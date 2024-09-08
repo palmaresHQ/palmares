@@ -1,6 +1,6 @@
 {
   "name": "@palmares/server",
-  "version": "0.1.15",
+  "version": "0.1.18",
   "files": [
     "dist",
     "package.json",

@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 
-import { InventoryInput, InventoryOutput, getInventorySchemaWithSave } from "shared";
+import { InventoryInput, InventoryOutput, getInventorySchemaWithSave } from "@examples/with-code-share-shared";
 
 import Modal from "../Modal/Modal.component";
 import { formatErrors, MutationErrors, uuid } from "../../utils";
 
-export default function ItemsFormLayout(props: { 
-  newItem?: boolean; 
-  item?: InventoryInput, 
-  onClose?: () => void, 
+export default function ItemsFormLayout(props: {
+  newItem?: boolean;
+  item?: InventoryInput,
+  onClose?: () => void,
   onAddOrUpdateData: (item: InventoryInput) => Promise<InventoryOutput | Error| MutationErrors>,
 }) {
   const [isOpen, setIsOpen] = useState(props.item ? true : typeof props.newItem === 'boolean' ? props.newItem : false);
@@ -17,7 +17,7 @@ export default function ItemsFormLayout(props: {
     code: string;
     message: string;
   }>>({});
-  
+
   function getNewUser() {
     return {
       uuid: uuid(),
@@ -51,7 +51,7 @@ export default function ItemsFormLayout(props: {
           if (validateData.isValid === false) return setErrors(formatErrors(validateData.errors));
           else validateData.save();
       })
-    } 
+    }
   }
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export default function ItemsFormLayout(props: {
       setItem(props.item);
     }
   }, [props.item]);
-  
+
   useEffect(() => {
     if (typeof props.newItem === 'boolean') {
       if (props.newItem) setIsOpen(true);
@@ -78,7 +78,7 @@ export default function ItemsFormLayout(props: {
       }
       setIsOpen(isOpen);
     }}>
-      <form 
+      <form
       className="flex flex-col min-w-96 w-[50vw] max-w-[624px]"
       onSubmit={(e) => {
         e.preventDefault();
@@ -107,19 +107,19 @@ export default function ItemsFormLayout(props: {
           </div>
           <div className="flex flex-col pb-3">
             <label htmlFor="serial" className="text-gray-400 text-sm font-normal select-none">Serial</label>
-            <input             
+            <input
               className="pr-3 pl-3 pt-1 pb-1 border-[1px] border-gray-200 rounded-md font-normal"
-              type="text" 
-              id="serial" 
-              value={item?.serial || ''} 
+              type="text"
+              id="serial"
+              value={item?.serial || ''}
               onChange={(e) => {
               if (item) setItem({ ...item, serial: e.target.value });
             }} />
             <small className="text-red-400 font-light text-[8pt]">{errors['serial']?.message}</small>
           </div>
           <div className="flex flex-col pb-3">
-            <label 
-            htmlFor="purchaseDate" 
+            <label
+            htmlFor="purchaseDate"
             className="text-gray-400 text-sm font-normal"
             >
               Purchase Date

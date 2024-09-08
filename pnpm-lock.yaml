@@ -516,12 +516,21 @@ importers:
 
   examples/with-code-share/apps/client:
     dependencies:
+      '@examples/with-code-share-shared':
+        specifier: workspace:*
+        version: link:../../shared
       '@faker-js/faker':
         specifier: ^8.4.1
         version: 8.4.1
       '@palmares/client':
         specifier: workspace:*
         version: link:../../../../packages/client
+      '@palmares/schemas':
+        specifier: workspace:*
+        version: link:../../../../packages/schemas
+      '@palmares/zod-schema':
+        specifier: workspace:*
+        version: link:../../../../libs/zod-schema
       '@tanstack/react-query':
         specifier: ^5.55.0
         version: 5.55.0(react@18.3.1)
@@ -534,9 +543,6 @@ importers:
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
-      shared:
-        specifier: workspace:*
-        version: link:../../shared
     devDependencies:
       '@chromatic-com/storybook':
         specifier: ^1.9.0
@@ -622,6 +628,9 @@ importers:
 
   examples/with-code-share/apps/server:
     dependencies:
+      '@examples/with-code-share-shared':
+        specifier: workspace:*
+        version: link:../../shared
       '@palmares/console-logging':
         specifier: workspace:*
         version: link:../../../../libs/console-logging
@@ -664,16 +673,13 @@ importers:
       drizzle-orm:
         specifier: ^0.32.2
         version: 0.32.2(@types/better-sqlite3@7.6.11)(@types/react@18.3.5)(better-sqlite3@11.2.1)(pg@8.12.0)(postgres@3.4.4)(react@18.3.1)(sqlite3@5.1.7)
-      shared:
-        specifier: workspace:*
-        version: link:../../shared
     devDependencies:
       '@palmares/jest-tests':
-        specifier: ^0.1.13
-        version: 0.1.13(@palmares/tests@0.1.13(@palmares/core@packages+core))
+        specifier: ^0.1.16
+        version: 0.1.16
       '@palmares/tests':
-        specifier: ^0.1.13
-        version: 0.1.13(@palmares/core@packages+core)
+        specifier: ^0.1.16
+        version: 0.1.16
       '@swc/cli':
         specifier: ^0.4.0
         version: 0.4.0(@swc/core@1.7.23(@swc/helpers@0.5.5))(chokidar@3.6.0)
@@ -904,14 +910,13 @@ importers:
         version: 5.5.4
 
   packages/client:
-    dependencies:
+    devDependencies:
       '@palmares/core':
         specifier: workspace:*
         version: link:../core
       '@palmares/server':
         specifier: workspace:*
         version: link:../server
-    devDependencies:
       '@types/node':
         specifier: ^22.5.2
         version: 22.5.2
@@ -2912,21 +2917,20 @@ packages:
   '@palmares/core@0.0.3':
     resolution: {integrity: sha512-H0+lvHVLupC94wll2SHkJKYuoUR20/MgpzanQy9ooggm5bD9xmh+OhGVfuZpSyvEgz/ALlrMe6qUPFYHQY45Qw==}
 
+  '@palmares/core@0.1.15':
+    resolution: {integrity: sha512-cG6hnfscUS1Vx7Qg4S1lfJNuyhXf1IlS1/jEFw5VlHtthARceUhqXwG1/NBeiuf28UDvXeJafxdEFzmgcJ1wqQ==}
+
   '@palmares/events@0.0.1':
     resolution: {integrity: sha512-w14qDi/I9ugiVy5Wj6zS8OnWN8aJCwIx8I1DPUXlnllDDZmqII7BJ6Ox6WxgwdhczthnV1/MM00dp/XIbq2PAw==}
 
-  '@palmares/jest-tests@0.1.13':
-    resolution: {integrity: sha512-+w/5ZXVT6fTqnNi5+PQNF9meS0fixBi9gvfQTfqsbbHjtQVgkZdldGFpOWmDM+0fIMEId5miYlrBY9+B0sT/6A==}
-    peerDependencies:
-      '@palmares/tests': 0.1.13
+  '@palmares/jest-tests@0.1.16':
+    resolution: {integrity: sha512-5gHKWbRrEzwQO4ZlMTkXhOKxcZdwPcBXKV2g3yIfuRgvzGaZZ1kZfIFlu5S1HKyaTHJOrdUks9VzBMLfe9Lpag==}
 
   '@palmares/logging@0.0.1':
     resolution: {integrity: sha512-3mBPEk1WwacXG8StU1wGs2ZJGyV+KWOvSsawDUHVsqd2YmqKQb1TVoVW2GC4QcwWtKK9OReoiGbhmFXsTBzB9g==}
 
-  '@palmares/tests@0.1.13':
-    resolution: {integrity: sha512-nS2nptU7WP6YDai5EIQWa0Bb6bMBD2oESxc0VKakGB9H/A/Z0FLBDFjhpirszbWftl38/y83ABF0fiukwXWNFg==}
-    peerDependencies:
-      '@palmares/core': 0.1.13
+  '@palmares/tests@0.1.16':
+    resolution: {integrity: sha512-dscg/wj716tOeNDGLzyMvQIkVDzmguvuQwgv12FdfXNTop9X6vhA4pPm3QHaIPG1bqOQ4ywAEQxBlhpFoDxT5A==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -11328,23 +11332,25 @@ snapshots:
 
   '@palmares/core@0.0.3': {}
 
+  '@palmares/core@0.1.15': {}
+
   '@palmares/events@0.0.1':
     dependencies:
       '@palmares/core': 0.0.3
       '@palmares/logging': 0.0.1
 
-  '@palmares/jest-tests@0.1.13(@palmares/tests@0.1.13(@palmares/core@packages+core))':
+  '@palmares/jest-tests@0.1.16':
     dependencies:
-      '@palmares/tests': 0.1.13(@palmares/core@packages+core)
+      '@palmares/tests': 0.1.16
       '@types/jest': 29.5.12
 
   '@palmares/logging@0.0.1':
     dependencies:
       '@palmares/core': 0.0.3
 
-  '@palmares/tests@0.1.13(@palmares/core@packages+core)':
+  '@palmares/tests@0.1.16':
     dependencies:
-      '@palmares/core': link:packages/core
+      '@palmares/core': 0.1.15
 
   '@pkgjs/parseargs@0.11.0':
     optional: true

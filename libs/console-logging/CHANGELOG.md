@@ -1,5 +1,23 @@
 # @palmares/console-logging
 
+## 0.1.11
+
+### Patch Changes
+
+- Update all for running on vite
+- Updated core with export type
+- Updated dependencies
+- Updated dependencies
+  - @palmares/logging@0.1.17
+
+## 0.1.10
+
+### Patch Changes
+
+- Update all packages
+- Updated dependencies
+  - @palmares/logging@0.1.16
+
 ## 0.1.9
 
 ### Patch Changes

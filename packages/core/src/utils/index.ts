@@ -5,7 +5,7 @@ export {
   PALMARES_SETTINGS_MODULE_ENVIRONMENT_VARIABLE
 } from './constants';
 export { imports } from '../std/imports';
-export { Narrow, NarrowRaw } from './types';
+export type { Narrow, NarrowRaw } from './types';
 
 /**
  * Converts a snakeCase string to a camelCase string formatting.

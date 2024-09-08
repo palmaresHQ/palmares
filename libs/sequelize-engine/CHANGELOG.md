@@ -1,5 +1,32 @@
 # @palmares/sequelize-engine
 
+## 0.1.21
+
+### Patch Changes
+
+- Update all for running on vite
+- Updated core with export type
+- Updated dependencies
+- Updated dependencies
+  - @palmares/databases@0.1.21
+  - @palmares/core@0.1.16
+
+## 0.1.20
+
+### Patch Changes
+
+- Update all packages
+- Updated dependencies
+  - @palmares/databases@0.1.20
+  - @palmares/core@0.1.15
+
+## 0.1.19
+
+### Patch Changes
+
+- Updated dependencies
+  - @palmares/databases@0.1.19
+
 ## 0.1.18
 
 ### Patch Changes

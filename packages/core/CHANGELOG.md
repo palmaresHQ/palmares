@@ -1,5 +1,18 @@
 # @palmares/core
 
+## 0.1.16
+
+### Patch Changes
+
+- Update all for running on vite
+- Updated core with export type
+
+## 0.1.15
+
+### Patch Changes
+
+- Update all packages
+
 ## 0.1.14
 
 ### Patch Changes

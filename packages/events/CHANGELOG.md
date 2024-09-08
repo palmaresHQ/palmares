@@ -1,5 +1,25 @@
 # @palmares/events
 
+## 0.0.20
+
+### Patch Changes
+
+- Update all for running on vite
+- Updated core with export type
+- Updated dependencies
+- Updated dependencies
+  - @palmares/logging@0.1.17
+  - @palmares/core@0.1.16
+
+## 0.0.19
+
+### Patch Changes
+
+- Update all packages
+- Updated dependencies
+  - @palmares/core@0.1.15
+  - @palmares/logging@0.1.16
+
 ## 0.0.18
 
 ### Patch Changes

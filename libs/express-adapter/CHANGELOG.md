@@ -1,5 +1,32 @@
 # @palmares/express-adapter
 
+## 0.1.19
+
+### Patch Changes
+
+- Update all for running on vite
+- Updated core with export type
+- Updated dependencies
+- Updated dependencies
+  - @palmares/server@0.1.18
+  - @palmares/core@0.1.16
+
+## 0.1.18
+
+### Patch Changes
+
+- Update all packages
+- Updated dependencies
+  - @palmares/server@0.1.17
+  - @palmares/core@0.1.15
+
+## 0.1.17
+
+### Patch Changes
+
+- Updated dependencies
+  - @palmares/server@0.1.16
+
 ## 0.1.16
 
 ### Patch Changes

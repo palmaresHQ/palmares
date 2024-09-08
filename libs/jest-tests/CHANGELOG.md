@@ -1,5 +1,23 @@
 # @palmares/jest-tests
 
+## 0.1.17
+
+### Patch Changes
+
+- Update all for running on vite
+- Updated core with export type
+- Updated dependencies
+- Updated dependencies
+  - @palmares/tests@0.1.17
+
+## 0.1.16
+
+### Patch Changes
+
+- Update all packages
+- Updated dependencies
+  - @palmares/tests@0.1.16
+
 ## 0.1.15
 
 ### Patch Changes

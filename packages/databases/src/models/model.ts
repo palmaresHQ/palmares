@@ -696,6 +696,8 @@ export function initialize<
       options: TOptions;
     }
   >() {
+    // @ts-ignore To function correctly we need this
+    static name = modelName;
     static isState = false;
     // It would be kinda bad on performance if we always looped through all of the fields of a model to parse them.
     // So we store the fields that have parsers here and we will

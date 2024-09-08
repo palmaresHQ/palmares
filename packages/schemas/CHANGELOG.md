@@ -1,5 +1,35 @@
 # @palmares/schemas
 
+## 0.1.25
+
+### Patch Changes
+
+- Update all for running on vite
+- Updated core with export type
+- Updated dependencies
+- Updated dependencies
+  - @palmares/databases@0.1.21
+  - @palmares/server@0.1.18
+  - @palmares/core@0.1.16
+
+## 0.1.24
+
+### Patch Changes
+
+- Update all packages
+- Updated dependencies
+  - @palmares/databases@0.1.20
+  - @palmares/server@0.1.17
+  - @palmares/core@0.1.15
+
+## 0.1.23
+
+### Patch Changes
+
+- Updated dependencies
+  - @palmares/databases@0.1.19
+  - @palmares/server@0.1.16
+
 ## 0.1.22
 
 ### Patch Changes

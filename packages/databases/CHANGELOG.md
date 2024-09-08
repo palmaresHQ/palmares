@@ -1,5 +1,36 @@
 # @palmares/databases
 
+## 0.1.21
+
+### Patch Changes
+
+- Update all for running on vite
+- Updated core with export type
+- Updated dependencies
+- Updated dependencies
+  - @palmares/logging@0.1.17
+  - @palmares/events@0.0.20
+  - @palmares/core@0.1.16
+
+## 0.1.20
+
+### Patch Changes
+
+- Update all packages
+- Updated dependencies
+  - @palmares/core@0.1.15
+  - @palmares/events@0.0.19
+  - @palmares/logging@0.1.16
+
+## 0.1.19
+
+### Patch Changes
+
+- - For databases, we added the ability to use a functional model on abstracts
+  - Fixed the loading of fields issue on queries
+  - For server fixed the routes not loading.
+  - Fixed handler404 not loading
+
 ## 0.1.18
 
 ### Patch Changes

@@ -1,5 +1,23 @@
 # @palmares/eventemitter2-emitter
 
+## 0.0.12
+
+### Patch Changes
+
+- Update all for running on vite
+- Updated core with export type
+- Updated dependencies
+- Updated dependencies
+  - @palmares/events@0.0.20
+
+## 0.0.11
+
+### Patch Changes
+
+- Update all packages
+- Updated dependencies
+  - @palmares/events@0.0.19
+
 ## 0.0.10
 
 ### Patch Changes

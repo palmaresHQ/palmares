@@ -1,5 +1,23 @@
 # @palmares/node-std
 
+## 0.1.17
+
+### Patch Changes
+
+- Update all for running on vite
+- Updated core with export type
+- Updated dependencies
+- Updated dependencies
+  - @palmares/core@0.1.16
+
+## 0.1.16
+
+### Patch Changes
+
+- Update all packages
+- Updated dependencies
+  - @palmares/core@0.1.15
+
 ## 0.1.15
 
 ### Patch Changes

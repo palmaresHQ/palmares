@@ -1,5 +1,30 @@
 # @palmares/vercel-adapter
 
+## 0.0.22
+
+### Patch Changes
+
+- Update all for running on vite
+- Updated core with export type
+- Updated dependencies
+- Updated dependencies
+  - @palmares/server@0.1.18
+
+## 0.0.21
+
+### Patch Changes
+
+- Update all packages
+- Updated dependencies
+  - @palmares/server@0.1.17
+
+## 0.0.20
+
+### Patch Changes
+
+- Updated dependencies
+  - @palmares/server@0.1.16
+
 ## 0.0.19
 
 ### Patch Changes
