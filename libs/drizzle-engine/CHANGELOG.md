@@ -1,5 +1,13 @@
 # @palmares/sequelize-engine
 
+## 0.1.19
+
+### Patch Changes
+
+- 80b60c3: Go back to dependencies from peerDependencies, should work fine now
+- Updated dependencies [80b60c3]
+  - @palmares/databases@0.1.18
+
 ## 0.1.18
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @palmares/console-logging
 
+## 0.1.9
+
+### Patch Changes
+
+- 80b60c3: Go back to dependencies from peerDependencies, should work fine now
+- Updated dependencies [80b60c3]
+  - @palmares/logging@0.1.15
+
 ## 0.1.8
 
 ### Patch Changes

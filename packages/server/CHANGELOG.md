@@ -1,5 +1,12 @@
 # @palmares/server
 
+## 0.1.15
+
+### Patch Changes
+
+- Updated dependencies [80b60c3]
+  - @palmares/logging@0.1.15
+
 ## 0.1.14
 
 ### Patch Changes

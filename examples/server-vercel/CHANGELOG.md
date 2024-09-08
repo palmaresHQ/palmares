@@ -1,5 +1,16 @@
 # @palmares/server-vercel
 
+## 0.0.19
+
+### Patch Changes
+
+- Updated dependencies [80b60c3]
+  - @palmares/console-logging@0.1.9
+  - @palmares/logging@0.1.15
+  - @palmares/node-std@0.1.15
+  - @palmares/server@0.1.15
+  - @palmares/vercel-adapter@0.0.19
+
 ## 0.0.18
 
 ### Patch Changes

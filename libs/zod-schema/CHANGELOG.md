@@ -1,5 +1,13 @@
 # @palmares/zod-schema
 
+## 0.1.24
+
+### Patch Changes
+
+- 80b60c3: Go back to dependencies from peerDependencies, should work fine now
+- Updated dependencies [80b60c3]
+  - @palmares/schemas@0.1.22
+
 ## 0.1.23
 
 ### Patch Changes

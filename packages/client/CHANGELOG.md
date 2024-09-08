@@ -1,5 +1,12 @@
 # @palmares/client
 
+## 0.1.15
+
+### Patch Changes
+
+- 80b60c3: Go back to dependencies from peerDependencies, should work fine now
+  - @palmares/server@0.1.15
+
 ## 0.1.14
 
 ### Patch Changes

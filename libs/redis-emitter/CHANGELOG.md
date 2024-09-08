@@ -1,5 +1,13 @@
 # @palmares/redis-emitter
 
+## 0.0.11
+
+### Patch Changes
+
+- 80b60c3: Go back to dependencies from peerDependencies, should work fine now
+- Updated dependencies [80b60c3]
+  - @palmares/events@0.0.18
+
 ## 0.0.10
 
 ### Patch Changes

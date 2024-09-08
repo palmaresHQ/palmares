@@ -1,5 +1,13 @@
 # @palmares/events
 
+## 0.0.18
+
+### Patch Changes
+
+- 80b60c3: Go back to dependencies from peerDependencies, should work fine now
+- Updated dependencies [80b60c3]
+  - @palmares/logging@0.1.15
+
 ## 0.0.17
 
 ### Patch Changes

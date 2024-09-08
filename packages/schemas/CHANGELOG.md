@@ -1,5 +1,14 @@
 # @palmares/schemas
 
+## 0.1.22
+
+### Patch Changes
+
+- 80b60c3: Go back to dependencies from peerDependencies, should work fine now
+- Updated dependencies [80b60c3]
+  - @palmares/databases@0.1.18
+  - @palmares/server@0.1.15
+
 ## 0.1.21
 
 ### Patch Changes
