@@ -106,7 +106,16 @@ export const models = adapterModels({
           : ''
       });\n\n`;
       fileContent += modelContent;
-      models[i] = [modelName, Function('require', `return require('${locationToRequire}').${modelName}`)];
+      models[i] = [
+        modelName,
+        async () => {
+          try {
+            return Promise.resolve(require(locationToRequire)[modelName]);
+          } catch (e) {
+            return (await import(locationToRequire))[modelName];
+          }
+        }
+      ];
     }
 
     if (relationships.size > 0) imports.add(`import * as drzl from 'drizzle-orm';`);
@@ -122,8 +131,7 @@ export const models = adapterModels({
     await std.files.makeDirectory(folderName);
     await std.files.writeFile(locationToRequire, `${Array.from(imports).join('\n')}\n\n${fileContent}`);
 
-    // eslint-disable-next-line ts/require-await
-    const modelsImported = await Promise.all(models.map(async ([modelName, model]) => [modelName, model(require)]));
+    const modelsImported = await Promise.all(models.map(async ([modelName, model]) => [modelName, await model()]));
     return modelsImported as [string, any][];
   }
 });

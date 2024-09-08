@@ -7,7 +7,7 @@ export const User = define('User', {
   fields: {},
   abstracts: [AbstractUser],
   options: {
-    tableName: 'user',
-    instance: DUser
+    tableName: 'user'
+    //instance: DUser
   }
 });

@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "help": "tsx manage.ts help",
-    "dev": "tsx watch --clear-screen=false manage.ts runserver",
+    "dev": "tsx watch --clear-screen=false --ignore \"./drizzle/**/*\" manage.ts runserver",
     "test": "tsx test.ts",
     "load": "tsx manage.tests.ts load-models",
     "makemigrations": "drizzle-kit generate",

@@ -17,7 +17,6 @@ export const InventoryItem = define('InventoryItem', {
   },
   abstracts: [AbstractInventoryItem],
   options: {
-    tableName: 'inventory_item',
-    instance: DInventoryItem
+    tableName: 'inventory_item'
   }
 });

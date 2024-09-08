@@ -1,5 +1,11 @@
 # @palmares/sequelize-engine
 
+## 0.1.24
+
+### Patch Changes
+
+- require only is failing on esbuild, so now it tries require and then goes tries to use import
+
 ## 0.1.23
 
 ### Patch Changes
