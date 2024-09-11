@@ -34,7 +34,7 @@ export class BaseModel {
     }
   >();
   static associations: {
-    [modelName: string]: ForeignKeyField<any, any, any, any, any, any, any, any, any>[];
+    [modelName: string]: ForeignKeyField<any, any>[];
   } = {};
   // This model uses other models as ForeignKey
   static directlyRelatedTo: { [modelName: string]: string[] } = {};
@@ -596,7 +596,7 @@ export function model<TModel>() {
       }
     >();
     static associations: {
-      [modelName: string]: ForeignKeyField<any, any, any, any, any, any, any, any, any>[];
+      [modelName: string]: ForeignKeyField<any, any>[];
     } = {};
     // This model uses other models as ForeignKey
     static directlyRelatedTo: { [modelName: string]: string[] } = {};
@@ -710,7 +710,7 @@ export function initialize<
       }
     >();
     static associations: {
-      [modelName: string]: ForeignKeyField<any, any, any, any, any, any, any, any, any>[];
+      [modelName: string]: ForeignKeyField<any, any>[];
     } = {};
     // This model uses other models as ForeignKey
     static directlyRelatedTo: { [modelName: string]: string[] } = {};

@@ -1,13 +1,15 @@
+import { AutoField } from './auto';
 import { ForeignKeyFieldRequiredParamsMissingError } from './exceptions';
-import { UnopinionatedField } from './field';
+import { Field } from './field';
+import { ClassConstructor, ForeignKeyFieldParamsType, MaybeNull, ON_DELETE } from './types';
+import { define } from '../..';
 import { generateUUID } from '../../utils';
+import { type Model, initialize, model } from '../model';
 
-import type { Field } from './field';
-import type { ClassConstructor, ForeignKeyFieldParamsType, MaybeNull, ON_DELETE } from './types';
-import type { ModelType } from '../..';
+import type { CustomImportsForFieldType } from './types';
+import type { NewInstanceArgumentsCallback, TCompareCallback, TOptionsCallback, ToStringCallback } from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { This } from '../../types';
-import type { Model } from '../model';
 
 /**
  * This allows us to create a foreign key field on the database.
@@ -33,7 +35,7 @@ import type { Model } from '../model';
  *   relationName: 'userProfile'
  * })
  * ```
- */
+ * /
 export function foreignKey<
   TDefaultValue extends MaybeNull<
     | (TCustomType extends undefined
@@ -98,7 +100,7 @@ export function foreignKey<
  *   relationName: 'userProfile'
  * });
  * ```
- */
+ * /
 export function foreignKeyLazy<TRelatedModel>() {
   return <
     TDefaultValue extends MaybeNull<
@@ -162,7 +164,7 @@ export function foreignKeyLazy<TRelatedModel>() {
  * Usually in relational databases like postgres we can have related fields like `user_id` inside of the table `posts`.
  * What this means that each value in the column `user_id` is one of the ids of the `users` table. This means that we
  * can use this value to join them together.
- */
+ * /
 export class ForeignKeyField<
   TType extends {
     input: TCustomType extends undefined
@@ -305,7 +307,7 @@ export class ForeignKeyField<
    * ```
    *
    * With that we can lazy load the relation while still maintaining the type of the related model.
-   */
+   * /
   // eslint-disable-next-line no-shadow
   static lazy<TRelatedModel>() {
     return <
@@ -562,7 +564,7 @@ export class ForeignKeyField<
    *
    * @returns - Returns an array where the first item is if the relatedmodel is
    * from the engine instance (false if not) and the field it should change to.
-   */
+   * /
   async isRelatedModelFromEngineInstance(engineInstance: DatabaseAdapter): Promise<[boolean, Field?]> {
     const relatedToAsString = this.relatedTo as string;
     const relatedModel = engineInstance.__modelsOfEngine[relatedToAsString] as any;
@@ -606,7 +608,7 @@ export class ForeignKeyField<
    * to keep it simple to develop engines.
    *
    * @return - Returns a random relatedName if it is a state model, otherwise returns the normal related name.
-   */
+   * /
   get relatedName() {
     const isModelDefined = (this.model as any) !== undefined;
     const modelConstructor = this.model.constructor as ModelType;
@@ -641,7 +643,7 @@ export class ForeignKeyField<
    * @param customParams - Custom parameters to append to the stringified field.
    *
    * @returns The stringified field.
-   */
+   * /
   async toString(indentation = 0, _customParams: string | undefined = undefined) {
     const ident = '  '.repeat(indentation + 1);
     return super.toString(
@@ -679,7 +681,7 @@ export class ForeignKeyField<
    * @param field - The field to compare.
    *
    * @returns A promise that resolves to a boolean indicating if the field is equal to the other field.
-   */
+   * /
   async compare(field: Field): Promise<[boolean, string[]]> {
     const fieldAsForeignKey = field as ForeignKeyField;
     const fieldAsForeignKeyRelatedToAsString = fieldAsForeignKey.relatedTo as string;
@@ -724,7 +726,7 @@ export class ForeignKeyField<
    * @param field - The field to get the constructor options from. If not provided it will use the current field.
    *
    * @returns The constructor options of the field.
-   */
+   * /
   async constructorOptions(field?: ForeignKeyField) {
     if (!field) field = this as ForeignKeyField;
     const defaultConstructorOptions = await super.constructorOptions(field);
@@ -739,3 +741,884 @@ export class ForeignKeyField<
     };
   }
 }
+*/
+
+export class ForeignKeyField<
+  TType extends { create: any; read: any; update: any } = { create: any; read: any; update: any },
+  TDefinitions extends {
+    unique: boolean;
+    auto: boolean;
+    allowNull: boolean;
+    dbIndex: boolean;
+    isPrimaryKey: boolean;
+    defaultValue: any;
+    underscored: boolean;
+    typeName: string;
+    databaseName: string | null | undefined;
+    engineInstance: DatabaseAdapter;
+    customAttributes: any;
+    relatedTo: any;
+    onDelete: ON_DELETE;
+    relatedName: string;
+    relationName: string;
+    toField: string;
+  } = {
+    unique: boolean;
+    auto: boolean;
+    allowNull: boolean;
+    dbIndex: boolean;
+    isPrimaryKey: boolean;
+    defaultValue: any;
+    underscored: boolean;
+    typeName: string;
+    databaseName: string | null | undefined;
+    engineInstance: DatabaseAdapter;
+    customAttributes: any;
+    relatedTo: any;
+    onDelete: ON_DELETE;
+    relatedName: string;
+    relationName: string;
+    toField: string;
+  }
+> extends Field<TType, TDefinitions> {
+  protected $$type = '$PForeignKeyField';
+  protected static __typeName = 'ForeignKeyField';
+  protected __relatedTo: TDefinitions['relatedTo'];
+  protected __onDelete: TDefinitions['onDelete'];
+  protected __relatedName: TDefinitions['relatedName'];
+  protected __relationName: TDefinitions['relationName'];
+  protected __toField: TDefinitions['toField'];
+
+  constructor(params: Pick<TDefinitions, 'relatedTo' | 'onDelete' | 'relatedName' | 'relationName' | 'toField'>) {
+    super(params);
+    this.__relatedTo = params.relatedTo;
+    this.__onDelete = params.onDelete;
+    this.__relatedName = params.relatedName;
+    this.__relationName = params.relationName;
+    this.__toField = params.toField;
+  }
+
+  setCustomAttributes<
+    const TCustomAttributes extends Parameters<
+      TDefinitions['engineInstance']['fields']['autoFieldParser']['translate']
+    >[0]['customAttributes']
+  >(
+    customAttributes: TCustomAttributes
+  ): ForeignKeyField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TCustomAttributes;
+    }
+  > {
+    (this.__customAttributes as any) = customAttributes as any;
+
+    return this as unknown as ForeignKeyField<
+      TType,
+      {
+        [TKey in Exclude<
+          keyof TDefinitions,
+          | 'underscored'
+          | 'allowNull'
+          | 'dbIndex'
+          | 'unique'
+          | 'isPrimaryKey'
+          | 'auto'
+          | 'defaultValue'
+          | 'databaseName'
+          | 'typeName'
+          | 'engineInstance'
+          | 'customAttributes'
+        >]: TDefinitions[TKey];
+      } & {
+        unique: TDefinitions['unique'];
+        allowNull: TDefinitions['allowNull'];
+        dbIndex: TDefinitions['dbIndex'];
+        underscored: TDefinitions['underscored'];
+        isPrimaryKey: TDefinitions['isPrimaryKey'];
+        auto: TDefinitions['auto'];
+        defaultValue: TDefinitions['defaultValue'];
+        databaseName: TDefinitions['databaseName'];
+        typeName: TDefinitions['typeName'];
+        engineInstance: TDefinitions['engineInstance'];
+        customAttributes: TCustomAttributes;
+      }
+    >;
+  }
+
+  unique<TUnique extends boolean = true>(
+    isUnique?: TUnique
+  ): ForeignKeyField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TUnique;
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    }
+  > {
+    return super.unique(isUnique) as unknown as ForeignKeyField<
+      TType,
+      {
+        [TKey in Exclude<
+          keyof TDefinitions,
+          | 'underscored'
+          | 'allowNull'
+          | 'dbIndex'
+          | 'unique'
+          | 'isPrimaryKey'
+          | 'auto'
+          | 'defaultValue'
+          | 'databaseName'
+          | 'typeName'
+          | 'engineInstance'
+          | 'customAttributes'
+        >]: TDefinitions[TKey];
+      } & {
+        unique: TUnique;
+        allowNull: TDefinitions['allowNull'];
+        dbIndex: TDefinitions['dbIndex'];
+        underscored: TDefinitions['underscored'];
+        isPrimaryKey: TDefinitions['isPrimaryKey'];
+        auto: TDefinitions['auto'];
+        defaultValue: TDefinitions['defaultValue'];
+        databaseName: TDefinitions['databaseName'];
+        typeName: TDefinitions['typeName'];
+        engineInstance: TDefinitions['engineInstance'];
+        customAttributes: TDefinitions['customAttributes'];
+      }
+    >;
+  }
+
+  allowNull<TNull extends boolean = true>(
+    isNull?: TNull
+  ): ForeignKeyField<
+    {
+      create: TType['create'] | null | undefined;
+      read: TType['read'] | null | undefined;
+      update: TType['update'] | null | undefined;
+    },
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TNull;
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    }
+  > {
+    return super.allowNull(isNull) as unknown as ForeignKeyField<
+      {
+        create: TType['create'] | null | undefined;
+        read: TType['read'] | null | undefined;
+        update: TType['update'] | null | undefined;
+      },
+      {
+        [TKey in Exclude<
+          keyof TDefinitions,
+          | 'underscored'
+          | 'allowNull'
+          | 'dbIndex'
+          | 'unique'
+          | 'isPrimaryKey'
+          | 'auto'
+          | 'defaultValue'
+          | 'databaseName'
+          | 'typeName'
+          | 'engineInstance'
+          | 'customAttributes'
+        >]: TDefinitions[TKey];
+      } & {
+        unique: TDefinitions['unique'];
+        allowNull: TNull;
+        dbIndex: TDefinitions['dbIndex'];
+        underscored: TDefinitions['underscored'];
+        isPrimaryKey: TDefinitions['isPrimaryKey'];
+        auto: TDefinitions['auto'];
+        defaultValue: TDefinitions['defaultValue'];
+        databaseName: TDefinitions['databaseName'];
+        typeName: TDefinitions['typeName'];
+        engineInstance: TDefinitions['engineInstance'];
+        customAttributes: TDefinitions['customAttributes'];
+      }
+    >;
+  }
+
+  /**
+   * This method is used to create an index on the database for this field.
+   */
+  dbIndex<TDbIndex extends boolean = true>(
+    isDbIndex: TDbIndex
+  ): ForeignKeyField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDbIndex;
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    }
+  > {
+    return super.dbIndex(isDbIndex) as unknown as ForeignKeyField<
+      TType,
+      {
+        [TKey in Exclude<
+          keyof TDefinitions,
+          | 'underscored'
+          | 'allowNull'
+          | 'dbIndex'
+          | 'unique'
+          | 'isPrimaryKey'
+          | 'auto'
+          | 'defaultValue'
+          | 'databaseName'
+          | 'typeName'
+          | 'engineInstance'
+          | 'customAttributes'
+        >]: TDefinitions[TKey];
+      } & {
+        unique: TDefinitions['unique'];
+        allowNull: TDefinitions['allowNull'];
+        dbIndex: TDbIndex;
+        underscored: TDefinitions['underscored'];
+        isPrimaryKey: TDefinitions['isPrimaryKey'];
+        auto: TDefinitions['auto'];
+        defaultValue: TDefinitions['defaultValue'];
+        databaseName: TDefinitions['databaseName'];
+        typeName: TDefinitions['typeName'];
+        engineInstance: TDefinitions['engineInstance'];
+        customAttributes: TDefinitions['customAttributes'];
+      }
+    >;
+  }
+
+  underscored<TUnderscored extends boolean = true>(
+    isUnderscored?: TUnderscored
+  ): ForeignKeyField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TUnderscored;
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    }
+  > {
+    return super.underscored(isUnderscored) as unknown as ForeignKeyField<
+      TType,
+      {
+        [TKey in Exclude<
+          keyof TDefinitions,
+          | 'underscored'
+          | 'allowNull'
+          | 'dbIndex'
+          | 'unique'
+          | 'isPrimaryKey'
+          | 'auto'
+          | 'defaultValue'
+          | 'databaseName'
+          | 'typeName'
+          | 'engineInstance'
+          | 'customAttributes'
+        >]: TDefinitions[TKey];
+      } & {
+        unique: TDefinitions['unique'];
+        allowNull: TDefinitions['allowNull'];
+        dbIndex: TDefinitions['dbIndex'];
+        underscored: TUnderscored;
+        isPrimaryKey: TDefinitions['isPrimaryKey'];
+        auto: TDefinitions['auto'];
+        defaultValue: TDefinitions['defaultValue'];
+        databaseName: TDefinitions['databaseName'];
+        typeName: TDefinitions['typeName'];
+        engineInstance: TDefinitions['engineInstance'];
+        customAttributes: TDefinitions['customAttributes'];
+      }
+    >;
+  }
+
+  primaryKey<TIsPrimaryKey extends boolean = true>(
+    isPrimaryKey?: TIsPrimaryKey
+  ): ForeignKeyField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TIsPrimaryKey;
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    }
+  > {
+    return super.primaryKey(isPrimaryKey) as unknown as ForeignKeyField<
+      TType,
+      {
+        [TKey in Exclude<
+          keyof TDefinitions,
+          | 'underscored'
+          | 'allowNull'
+          | 'dbIndex'
+          | 'unique'
+          | 'isPrimaryKey'
+          | 'auto'
+          | 'defaultValue'
+          | 'databaseName'
+          | 'typeName'
+          | 'engineInstance'
+          | 'customAttributes'
+        >]: TDefinitions[TKey];
+      } & {
+        unique: TDefinitions['unique'];
+        allowNull: TDefinitions['allowNull'];
+        dbIndex: TDefinitions['dbIndex'];
+        underscored: TDefinitions['underscored'];
+        isPrimaryKey: TIsPrimaryKey;
+        auto: TDefinitions['auto'];
+        defaultValue: TDefinitions['defaultValue'];
+        databaseName: TDefinitions['databaseName'];
+        typeName: TDefinitions['typeName'];
+        engineInstance: TDefinitions['engineInstance'];
+        customAttributes: TDefinitions['customAttributes'];
+      }
+    >;
+  }
+
+  auto<TIsAuto extends boolean = true>(
+    isAuto?: TIsAuto
+  ): ForeignKeyField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TIsAuto;
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    }
+  > {
+    return super.auto(isAuto) as unknown as ForeignKeyField<
+      TType,
+      {
+        [TKey in Exclude<
+          keyof TDefinitions,
+          | 'underscored'
+          | 'allowNull'
+          | 'dbIndex'
+          | 'unique'
+          | 'isPrimaryKey'
+          | 'auto'
+          | 'defaultValue'
+          | 'databaseName'
+          | 'typeName'
+          | 'engineInstance'
+          | 'customAttributes'
+        >]: TDefinitions[TKey];
+      } & {
+        unique: TDefinitions['unique'];
+        allowNull: TDefinitions['allowNull'];
+        dbIndex: TDefinitions['dbIndex'];
+        underscored: TDefinitions['underscored'];
+        isPrimaryKey: TDefinitions['isPrimaryKey'];
+        auto: TIsAuto;
+        defaultValue: TDefinitions['defaultValue'];
+        typeName: TDefinitions['typeName'];
+        databaseName: TDefinitions['databaseName'];
+        engineInstance: TDefinitions['engineInstance'];
+        customAttributes: TDefinitions['customAttributes'];
+      }
+    >;
+  }
+
+  default<TDefault extends TType['create']>(
+    defaultValue: TDefault
+  ): ForeignKeyField<
+    {
+      create: TDefault | null | undefined;
+      read: TType['read'];
+      update: TType['update'];
+    },
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefault;
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    }
+  > {
+    return super.default(defaultValue) as unknown as ForeignKeyField<
+      {
+        create: TDefault | null | undefined;
+        read: TType['read'];
+        update: TType['update'];
+      },
+      {
+        [TKey in Exclude<
+          keyof TDefinitions,
+          | 'underscored'
+          | 'allowNull'
+          | 'dbIndex'
+          | 'unique'
+          | 'isPrimaryKey'
+          | 'auto'
+          | 'defaultValue'
+          | 'databaseName'
+          | 'typeName'
+          | 'engineInstance'
+          | 'customAttributes'
+        >]: TDefinitions[TKey];
+      } & {
+        unique: TDefinitions['unique'];
+        allowNull: TDefinitions['allowNull'];
+        dbIndex: TDefinitions['dbIndex'];
+        underscored: TDefinitions['underscored'];
+        isPrimaryKey: TDefinitions['isPrimaryKey'];
+        auto: TDefinitions['auto'];
+        defaultValue: TDefault;
+        databaseName: TDefinitions['databaseName'];
+        typeName: TDefinitions['typeName'];
+        engineInstance: TDefinitions['engineInstance'];
+        customAttributes: TDefinitions['customAttributes'];
+      }
+    >;
+  }
+
+  databaseName<TDatabaseName extends string>(
+    databaseName: TDatabaseName
+  ): ForeignKeyField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDatabaseName;
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    }
+  > {
+    return super.databaseName(databaseName) as unknown as ForeignKeyField<
+      TType,
+      {
+        [TKey in Exclude<
+          keyof TDefinitions,
+          | 'underscored'
+          | 'allowNull'
+          | 'dbIndex'
+          | 'unique'
+          | 'isPrimaryKey'
+          | 'auto'
+          | 'defaultValue'
+          | 'databaseName'
+          | 'typeName'
+          | 'engineInstance'
+          | 'customAttributes'
+        >]: TDefinitions[TKey];
+      } & {
+        unique: TDefinitions['unique'];
+        allowNull: TDefinitions['allowNull'];
+        dbIndex: TDefinitions['dbIndex'];
+        underscored: TDefinitions['underscored'];
+        isPrimaryKey: TDefinitions['isPrimaryKey'];
+        auto: TDefinitions['auto'];
+        defaultValue: TDefinitions['defaultValue'];
+        databaseName: TDatabaseName;
+        typeName: TDefinitions['typeName'];
+        engineInstance: TDefinitions['engineInstance'];
+        customAttributes: TDefinitions['customAttributes'];
+      }
+    >;
+  }
+
+  /**
+   * This method can be used to override the type of a field. This is useful for library
+   * maintainers that want to support the field type but the default type provided by palmares
+   * is not the one that the user want to use.
+   *
+   * ### Note
+   *
+   * Your library should provide documentation of the fields that are supported.
+   */
+  static overrideType<
+    TDefinitions extends {
+      customAttributes: any;
+      unique: boolean;
+      auto: boolean;
+      allowNull: boolean;
+      dbIndex: boolean;
+      isPrimaryKey: boolean;
+      defaultValue: any;
+      typeName: string;
+      engineInstance: DatabaseAdapter;
+    }
+  >(args?: {
+    typeName: string;
+    toStringCallback?: ToStringCallback;
+    compareCallback?: TCompareCallback;
+    optionsCallback?: TOptionsCallback;
+    newInstanceCallback?: NewInstanceArgumentsCallback;
+    customImports?: CustomImportsForFieldType[];
+  }): TDefinitions['customAttributes'] extends undefined
+    ? {
+        new: <
+          const TRelatedTo extends any | (() => any) | ((_: { create: any; read: any; update: any }) => any),
+          const TForeignKeyParams extends {
+            toField: ExtractFieldNameOptionsOfModel<TRelatedTo>;
+            onDelete: ON_DELETE;
+            relatedName: string;
+            relationName: string;
+          }
+        >(
+          params: TForeignKeyParams & {
+            relatedTo: TRelatedTo;
+          }
+        ) => ForeignKeyField<
+          {
+            create: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'create'>;
+            read: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'read'>;
+            update: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'update'>;
+          },
+          {
+            unique: TDefinitions['unique'];
+            auto: TDefinitions['auto'];
+            allowNull: TDefinitions['allowNull'];
+            dbIndex: TDefinitions['dbIndex'];
+            isPrimaryKey: TDefinitions['isPrimaryKey'];
+            defaultValue: TDefinitions['defaultValue'];
+            underscored: boolean;
+            databaseName: string | undefined;
+            engineInstance: TDefinitions['engineInstance'];
+            customAttributes: TDefinitions['customAttributes'];
+            typeName: TDefinitions['typeName'];
+            relatedTo: TRelatedTo;
+            onDelete: TForeignKeyParams['onDelete'];
+            relatedName: TForeignKeyParams['relatedName'];
+            relationName: TForeignKeyParams['relationName'];
+            toField: TForeignKeyParams['toField'];
+          }
+        >;
+      }
+    : {
+        new: <
+          const TRelatedTo extends any | (() => any) | ((_: { create: any; read: any; update: any }) => any),
+          const TForeignKeyParams extends {
+            toField: ExtractFieldNameOptionsOfModel<TRelatedTo>;
+            onDelete: ON_DELETE;
+            relatedName: string;
+            relationName: string;
+          }
+        >(
+          params: TForeignKeyParams & {
+            relatedTo: TRelatedTo;
+          } & TDefinitions['customAttributes']
+        ) => ForeignKeyField<
+          {
+            create: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'create'>;
+            read: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'read'>;
+            update: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'update'>;
+          },
+          {
+            unique: TDefinitions['unique'];
+            auto: TDefinitions['auto'];
+            allowNull: TDefinitions['allowNull'];
+            dbIndex: TDefinitions['dbIndex'];
+            isPrimaryKey: TDefinitions['isPrimaryKey'];
+            defaultValue: TDefinitions['defaultValue'];
+            underscored: boolean;
+            databaseName: string | undefined;
+            engineInstance: TDefinitions['engineInstance'];
+            customAttributes: TDefinitions['customAttributes'];
+            typeName: TDefinitions['typeName'];
+            relatedTo: TRelatedTo;
+            onDelete: TForeignKeyParams['onDelete'];
+            relatedName: TForeignKeyParams['relatedName'];
+            relationName: TForeignKeyParams['relationName'];
+            toField: TForeignKeyParams['toField'];
+          }
+        >;
+      } {
+    const newField = super.overrideType(args) as any;
+    /** We remove the data needed for ForeignKeyField */
+    newField.new = (params: any) => {
+      const newInstance = new this(params);
+      const keysOfForeignKeyAttributes = new Set(['relatedTo', 'toField', 'onDelete', 'relatedName', 'relationName']);
+      const customAttributes = Object.keys(params).reduce((acc, key) => {
+        if (keysOfForeignKeyAttributes.has(key)) return acc;
+        acc[key] = params[key];
+        return acc;
+      }, {} as any);
+      (newInstance as any)['__customAttributes'] = customAttributes;
+
+      return newInstance;
+    };
+    return super.overrideType(args) as any;
+  }
+
+  static new<
+    const TRelatedTo extends any | (() => any) | ((_: { create: any; read: any; update: any }) => any),
+    const TForeignKeyParams extends {
+      toField: ExtractFieldNameOptionsOfModel<TRelatedTo>;
+      onDelete: ON_DELETE;
+      relatedName: string;
+      relationName: string;
+    }
+  >(
+    params: TForeignKeyParams & {
+      relatedTo: TRelatedTo;
+    }
+  ): ForeignKeyField<
+    {
+      create: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'create'>;
+      read: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'read'>;
+      update: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'update'>;
+    },
+    {
+      unique: boolean;
+      auto: boolean;
+      allowNull: boolean;
+      dbIndex: boolean;
+      isPrimaryKey: boolean;
+      defaultValue: any;
+      underscored: boolean;
+      typeName: string;
+      databaseName: string | null | undefined;
+      engineInstance: DatabaseAdapter;
+      customAttributes: any;
+      relatedTo: TRelatedTo;
+      onDelete: TForeignKeyParams['onDelete'];
+      relatedName: TForeignKeyParams['relatedName'];
+      relationName: TForeignKeyParams['relationName'];
+      toField: TForeignKeyParams['toField'];
+    }
+  > {
+    return new this(params);
+  }
+}
+
+type ExtractFieldNameOptionsOfModel<TProbablyAModel> = TProbablyAModel extends {
+  new (...args: any): { fields: infer TFields };
+}
+  ? keyof TFields
+  : string;
+
+type ExtractTypeFromFieldOfAModel<
+  TProbablyAModel,
+  TToFieldName extends string,
+  TTypeToExtract extends 'create' | 'update' | 'read' = 'create'
+> = TProbablyAModel extends
+  | { new (...args: any): { fields: infer TFields } }
+  | (() => { new (...args: any): { fields: infer TFields } })
+  ? TFields extends Record<any, Field<any, any> | AutoField<any, any> | ForeignKeyField<any, any>>
+    ? TFields[TToFieldName] extends
+        | Field<infer TType, any>
+        | AutoField<infer TType, any>
+        | ForeignKeyField<infer TType, any>
+      ? TType[TTypeToExtract]
+      : any
+    : any
+  : TProbablyAModel extends (args: infer TType) => { new (...args: any): any }
+    ? TTypeToExtract extends keyof TType
+      ? TType[TTypeToExtract]
+      : any
+    : any;
+
+const BaseModel = define('BaseModel', {
+  fields: {
+    id: AutoField.new()
+  }
+});
+
+const test = ForeignKeyField.new({
+  relatedTo: () => BaseModel,
+  toField: 'id',
+  onDelete: ON_DELETE.CASCADE,
+  relatedName: 'test',
+  relationName: 'test'
+});

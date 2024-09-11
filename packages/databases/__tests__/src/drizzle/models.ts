@@ -29,6 +29,8 @@ export class CompanyAbstract extends Model<CompanyAbstract>() {
   static auth = new Authentication()
 }
 
+CompanyAbstract.auth.test()
+
 export const Company = define('Company', {
   fields:  {
     id: AutoField.new(),

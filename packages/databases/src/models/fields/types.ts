@@ -49,15 +49,18 @@ export type FieldDefaultParamsType<
    */
   unique?: TUnique;
   /**
-   * On relational database we can create an index. This specifies if we should create an index for this field on the database (default: false). Be aware, this is mostly for relational databases.
+   * On relational database we can create an index. This specifies if we should create an index for this field on the
+   * database (default: false). Be aware, this is mostly for relational databases.
    */
   dbIndex?: boolean;
   /**
-   * If the field name should be underscored on the database or not. Like `firstName` will be converted to `first_name` on the database. This is ignored if `databaseName` is set. (default: true)
+   * If the field name should be underscored on the database or not. Like `firstName` will be converted to `first_name`
+   * on the database. This is ignored if `databaseName` is set. (default: true)
    */
   underscored?: boolean;
   /**
-   *  The name of the field on the database. If this is not set, we will use either the field name or the underscored version of the field name.
+   *   The name of the field on the database. If this is not set, we will use either the field name or the underscored
+   * version of the field name.
    */
   databaseName?: TDatabaseName;
   /**
