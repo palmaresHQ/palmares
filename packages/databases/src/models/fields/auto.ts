@@ -1,17 +1,9 @@
 import { Field } from './field';
-import {
-  defaultCompareCallback,
-  defaultNewInstanceArgumentsCallback,
-  defaultOptionsCallback,
-  defaultToStringCallback
-} from './utils';
 
-import type { CustomImportsForFieldType, FieldDefaultParamsType, MaybeNull } from './types';
+import type { CustomImportsForFieldType } from './types';
 import type { NewInstanceArgumentsCallback, TCompareCallback, TOptionsCallback, ToStringCallback } from './utils';
-import type { DatabaseAdapter } from '../..';
-import type { This } from '../../types';
+import type { AdapterFieldParser, DatabaseAdapter } from '../..';
 
-type Test = Exclude<keyof AutoField, 'new' | 'overrideType'>;
 /**
  * Functional approach for the creation of an AutoField instance. An AutoField is a field that
  * is used as the primary key of the database.
@@ -82,7 +74,7 @@ export class AutoField<
     defaultValue: undefined;
     underscored: boolean;
     typeName: string;
-    databaseName: string | null | undefined;
+    databaseName: string | undefined;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
   } & Record<string, any> = {
@@ -108,6 +100,8 @@ export class AutoField<
   protected __allowNull = true;
   protected __unique = true;
   protected __dbIndex = true;
+  protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
+  protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
 
   unique!: never;
   auto!: never;
@@ -115,6 +109,178 @@ export class AutoField<
   primaryKey!: never;
   dbIndex!: never;
   default!: never;
+
+  /**
+   * Supposed to be used by library maintainers.
+   *
+   * When you custom create a field, you might want to take advantage of the builder pattern we already support.
+   * This let's you create functions that can be chained together to create a new field. It should be used
+   * alongside the `_setPartialAttributes` method like
+   *
+   * @example
+   * ```ts
+   * const customBigInt = TextField.overrideType<
+   *   { create: bigint; read: bigint; update: bigint },
+   *   {
+   *       customAttributes: { name: string };
+   *       unique: boolean;
+   *       auto: boolean;
+   *       allowNull: true;
+   *       dbIndex: boolean;
+   *       isPrimaryKey: boolean;
+   *       defaultValue: any;
+   *       typeName: string;
+   *       engineInstance: DatabaseAdapter;
+   *   }
+   * >({
+   *   typeName: 'CustomBigInt'
+   * });
+   *
+   * const customBuilder = () => {
+   *   const field = textField.new();
+   *   class Builder {
+   *     test<TTest extends { age: number }>(param: TTest) {
+   *       return field
+   *         ._setPartialAttributes<{ create: TTest }, { create: 'union' }>()(param)
+   *         ._setNewBuilderMethods<Builder>();
+   *     }
+   *     value<const TValue extends string>(value: TValue) {
+   *       return field
+   *         ._setPartialAttributes<{ create: TValue }, { create: 'replace' }>()(value)
+   *         ._setNewBuilderMethods<Builder>();
+   *     }
+   *   }
+   *
+   *   const builder = new Builder();
+   *   return field._setNewBuilderMethods(builder);
+   * };
+   *
+   * // Then your user can use it like:
+   *
+   * const field = customBuilder({ name: 'test' }).test({ age: 2 });
+   * ```
+   *
+   * **Important**: `customBuilder` will be used by the end user and you are responsible for documenting it.
+   */
+  _setNewBuilderMethods<const TFunctions extends InstanceType<any>>(
+    functions?: TFunctions
+  ): AutoField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    }
+  > &
+    TFunctions {
+    if (functions === undefined) return this as any;
+    const propertiesOfBase = Object.getOwnPropertyNames(Object.getPrototypeOf(functions));
+    for (const key of propertiesOfBase) {
+      if (key === 'constructor') continue;
+      (this as any)[key] = (functions as any)[key].bind(this);
+    }
+
+    return this as any;
+  }
+
+  /**
+   * FOR LIBRARY MAINTAINERS ONLY
+   *
+   * Focused for library maintainers that want to support a custom field type not supported by palmares.
+   * This let's them partially update the custom attributes of the field. By default setCustomAttributes
+   * will override the custom attributes entirely.
+   */
+  _setPartialAttributes<
+    TNewType extends { create?: any; read?: any; update?: any },
+    TActions extends {
+      create?: 'merge' | 'union' | 'replace';
+      read?: 'merge' | 'union' | 'replace';
+      update?: 'merge' | 'union' | 'replace';
+    }
+  >(): <const TCustomPartialAttributes>(partialCustomAttributes: TCustomPartialAttributes) => AutoField<
+    {
+      create: TActions['create'] extends 'merge'
+        ? TType['create'] & TNewType['create']
+        : TActions['create'] extends 'union'
+          ? TType['create'] | TNewType['create']
+          : TActions['create'] extends 'replace'
+            ? TNewType['create']
+            : TType['create'];
+      read: TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read'];
+      update: TActions['update'] extends 'merge'
+        ? TType['update'] & TNewType['update']
+        : TActions['update'] extends 'union'
+          ? TType['update'] | TNewType['update']
+          : TActions['update'] extends 'replace'
+            ? TNewType['update']
+            : TType['update'];
+    },
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'] & TCustomPartialAttributes;
+    }
+  > {
+    return (partialCustomAttributes) => {
+      if (partialCustomAttributes !== undefined) {
+        if ((this.__customAttributes as any) === undefined) this.__customAttributes = {} as any;
+        this.__customAttributes = { ...this.__customAttributes, ...partialCustomAttributes };
+      }
+      return this as any;
+    };
+  }
 
   setCustomAttributes<
     const TCustomAttributes extends Parameters<
@@ -315,6 +481,7 @@ export class AutoField<
     optionsCallback?: TOptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
     customImports?: CustomImportsForFieldType[];
+    definitions?: Omit<TDefinitions, 'typeName' | 'engineInstance' | 'customAttributes'>;
   }): TDefinitions['customAttributes'] extends undefined
     ? {
         new: () => AutoField<
@@ -433,5 +600,3 @@ export class AutoField<
     >;
   }
 }
-
-const test = auto().underscored(false).setCustomAttributes({ user: 'aqui' });

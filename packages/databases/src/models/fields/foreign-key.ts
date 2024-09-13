@@ -1,15 +1,23 @@
-import { AutoField } from './auto';
 import { ForeignKeyFieldRequiredParamsMissingError } from './exceptions';
 import { Field } from './field';
-import { ClassConstructor, ForeignKeyFieldParamsType, MaybeNull, ON_DELETE } from './types';
-import { define } from '../..';
+import {
+  type NewInstanceArgumentsCallback,
+  type TCompareCallback,
+  type TOptionsCallback,
+  type ToStringCallback
+} from './utils';
+import { BigAutoField, IntegerField, define } from '../..';
 import { generateUUID } from '../../utils';
-import { type Model, initialize, model } from '../model';
 
-import type { CustomImportsForFieldType } from './types';
-import type { NewInstanceArgumentsCallback, TCompareCallback, TOptionsCallback, ToStringCallback } from './utils';
+import type {
+  ClassConstructor,
+  CustomImportsForFieldType,
+  ExtractFieldNameOptionsOfModel,
+  ExtractTypeFromFieldOfAModel,
+  ON_DELETE
+} from './types';
+import type { AdapterFieldParser, ModelType } from '../..';
 import type { DatabaseAdapter } from '../../engine';
-import type { This } from '../../types';
 
 /**
  * This allows us to create a foreign key field on the database.
@@ -35,489 +43,210 @@ import type { This } from '../../types';
  *   relationName: 'userProfile'
  * })
  * ```
- * /
+ */
 export function foreignKey<
-  TDefaultValue extends MaybeNull<
-    | (TCustomType extends undefined
-        ? TRelatedModel extends typeof Model
-          ? InstanceType<TRelatedModel>['fields'][TRelatedField] extends Field<any, any, any, any, any, any, any, any>
-            ? InstanceType<TRelatedModel>['fields'][TRelatedField]['_type']['input']
-            : TCustomType
-          : TCustomType
-        : TCustomType)
-    | undefined,
-    TNull
-  > = undefined,
-  TUnique extends boolean = false,
-  TNull extends boolean = false,
-  TAuto extends boolean = false,
-  TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any,
-  TCustomType = undefined,
-  TRelatedModel = any,
-  TRelatedField extends string = any,
-  TRelatedName extends string = any,
-  TRelationName extends string = any
+  const TRelatedTo extends any | (() => any) | ((_: { create: any; read: any; update: any }) => any),
+  const TForeignKeyParams extends {
+    toField: ExtractFieldNameOptionsOfModel<TRelatedTo>;
+    onDelete: ON_DELETE;
+    relatedName: string;
+    relationName: string;
+  }
 >(
-  params: ForeignKeyFieldParamsType<
-    ForeignKeyField,
-    TDefaultValue,
-    TUnique,
-    TNull,
-    TAuto,
-    TDatabaseName,
-    TCustomAttributes,
-    TCustomType,
-    TRelatedModel,
-    TRelatedField,
-    TRelatedName,
-    TRelationName
-  >
-) {
+  params: TForeignKeyParams & {
+    relatedTo: TRelatedTo;
+  }
+): ForeignKeyField<
+  {
+    create: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'create'>;
+    read: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'read'>;
+    update: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'update'>;
+  },
+  {
+    unique: boolean;
+    auto: boolean;
+    allowNull: boolean;
+    dbIndex: boolean;
+    isPrimaryKey: boolean;
+    defaultValue: any;
+    underscored: boolean;
+    typeName: string;
+    databaseName: string | undefined;
+    engineInstance: DatabaseAdapter;
+    customAttributes: any;
+    relatedTo: TRelatedTo;
+    onDelete: TForeignKeyParams['onDelete'];
+    relatedName: TForeignKeyParams['relatedName'];
+    relationName: TForeignKeyParams['relationName'];
+    toField: TForeignKeyParams['toField'];
+  }
+> {
   return ForeignKeyField.new(params);
 }
 
-/**
- * The lazy version of the foreign key field. This is useful when you want to create a
- * foreign key field to a model that is not defined yet.
- * With that you will be only working with types directly and you will be able to define the `relatedTo` as string.
- *
- * @example
- * ```ts
- * class User extends models.Model<User>() {
- *   fields = {
- *     id: models.AutoField.new(),
- *     firstName: models.CharField.new(),
- *     lastName: models.CharField.new(),
- *    }
- * }
- *
- * const userId = foreignKeyLazy<typeof User>()({
- *   relatedTo: 'User',
- *   toField: 'id',
- *   onDelete: models.fields.ON_DELETE.CASCADE,
- *   relatedName: 'user',
- *   relationName: 'userProfile'
- * });
- * ```
- * /
-export function foreignKeyLazy<TRelatedModel>() {
-  return <
-    TDefaultValue extends MaybeNull<
-      | (TCustomType extends undefined
-          ? TRelatedModel extends typeof Model
-            ? InstanceType<TRelatedModel>['fields'][TRelatedField] extends Field<any, any, any, any, any, any, any, any>
-              ? InstanceType<TRelatedModel>['fields'][TRelatedField]['_type']['input']
-              : TCustomType
-            : TCustomType
-          : TCustomType)
-      | undefined,
-      TNull
-    > = undefined,
-    TUnique extends boolean = false,
-    TNull extends boolean = false,
-    TAuto extends boolean = false,
-    TDatabaseName extends string | null | undefined = undefined,
-    TCustomAttributes = any,
-    TCustomType = undefined,
-    TRelatedField extends string = any,
-    TRelatedName extends string = any,
-    TRelationName extends string = any
-  >(
-    params: Omit<
-      ForeignKeyFieldParamsType<
-        ForeignKeyField,
-        TDefaultValue,
-        TUnique,
-        TNull,
-        TAuto,
-        TDatabaseName,
-        TCustomAttributes,
-        TCustomType,
-        TRelatedModel,
-        TRelatedField,
-        TRelatedName,
-        TRelationName
-      >,
-      'relatedTo'
-    > & {
-      relatedTo: string;
-    }
-  ) => {
-    return ForeignKeyField.lazy<TRelatedModel>()<
-      TDefaultValue,
-      TUnique,
-      TNull,
-      TAuto,
-      TDatabaseName,
-      TCustomAttributes,
-      TCustomType,
-      TRelatedField,
-      TRelatedName,
-      TRelationName
-    >(params);
-  };
-}
+const getRelatedToAsString = (field: ForeignKeyField<any, any>) => {
+  const relatedTo = field['__relatedTo'];
+  const relatedToAsString = field['__relatedToAsString'];
+
+  if (typeof relatedToAsString !== 'string') {
+    if (typeof relatedTo === 'function') field['__relatedToAsString'] = relatedTo().getName();
+    else if (typeof relatedTo === 'string') field['__relatedToAsString'] = relatedTo;
+    else field['__relatedToAsString'] = relatedTo.getName();
+  }
+};
 
 /**
  * This type of field is special and is supposed to hold foreign key references to another field of another model.
  * Usually in relational databases like postgres we can have related fields like `user_id` inside of the table `posts`.
  * What this means that each value in the column `user_id` is one of the ids of the `users` table. This means that we
  * can use this value to join them together.
- * /
+ *
+ * We don't offer stuff like Many-to-many or many-to-one or one-to-one relations by default, the user needs to model it
+ * themselves. This is because we want to keep the library as simple as possible.
+ */
 export class ForeignKeyField<
-  TType extends {
-    input: TCustomType extends undefined
-      ? TRelatedModel extends abstract new (...args: any) => any
-        ? InstanceType<TRelatedModel> extends {
-            fields: infer TModelFields;
-          }
-          ? TRelatedField extends keyof TModelFields
-            ? TModelFields[TRelatedField] extends Field<any, any, any, any, any, any, any, any>
-              ? TModelFields[TRelatedField]['_type']['input']
-              : never
-            : never
-          : never
-        : never
-      : TCustomType;
-    output: TCustomType extends undefined
-      ? TRelatedModel extends abstract new (...args: any) => any
-        ? InstanceType<TRelatedModel> extends {
-            fields: infer TModelFields;
-          }
-          ? TRelatedField extends keyof TModelFields
-            ? TModelFields[TRelatedField] extends Field<any, any, any, any, any, any, any, any>
-              ? TModelFields[TRelatedField]['_type']['output']
-              : never
-            : never
-          : never
-        : never
-      : TCustomType;
+  TType extends { create: any; read: any; update: any } = { create: any; read: any; update: any },
+  TDefinitions extends {
+    unique: boolean;
+    auto: boolean;
+    allowNull: boolean;
+    dbIndex: boolean;
+    isPrimaryKey: boolean;
+    defaultValue: any;
+    underscored: boolean;
+    typeName: string;
+    databaseName: string | undefined;
+    engineInstance: DatabaseAdapter;
+    customAttributes: any;
+    relatedTo: any;
+    onDelete: ON_DELETE;
+    relatedName: string;
+    relationName: string;
+    toField: string;
   } = {
-    input: any;
-    output: any;
-  },
-  TField extends Field = any,
-  TDefaultValue extends MaybeNull<
-    | (TCustomType extends undefined
-        ? TRelatedModel extends typeof Model
-          ? InstanceType<TRelatedModel>['fields'][TRelatedField] extends Field<any, any, any, any, any, any, any, any>
-            ? InstanceType<TRelatedModel>['fields'][TRelatedField]['_type']['input']
-            : TCustomType
-          : TCustomType
-        : TCustomType)
-    | undefined,
-    TNull
-  > = undefined,
-  TUnique extends boolean = false,
-  TNull extends boolean = false,
-  TAuto extends boolean = false,
-  TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any,
-  TCustomType = undefined,
-  TRelatedModel = any,
-  TRelatedField extends string = any,
-  TRelatedName extends string = any,
-  TRelationName extends string = any
-> extends UnopinionatedField<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
-  protected $$type = '$PForeignKeyField';
-  declare _type: TType;
-  modelRelatedTo!: TRelatedModel;
-  typeName: string = ForeignKeyField.name;
-  customName?: string;
-  relatedTo: TRelatedModel;
-  onDelete!: ON_DELETE;
-  toField: TRelatedField;
-  relationName: TRelationName;
-  _originalRelatedName?: string;
-  protected _fieldOfRelation?: Field<any, any, any, any, any, any, any, any>;
-
-  constructor(
-    params: ForeignKeyFieldParamsType<
-      TField,
-      TDefaultValue,
-      TUnique,
-      TNull,
-      TAuto,
-      TDatabaseName,
-      TCustomAttributes,
-      TCustomType,
-      TRelatedModel,
-      TRelatedField,
-      TRelatedName,
-      TRelationName
-    >
-  ) {
-    super(params);
-
-    let relatedToAsString: string = params.relatedTo as string;
-    const isRelatedToNotAString: boolean = typeof params.relatedTo !== 'string';
-    if (isRelatedToNotAString) relatedToAsString = (params.relatedTo as any).getName();
-
-    const isRelationNameDefined = typeof params.relationName === 'string';
-
-    if (isRelationNameDefined) this.relationName = params.relationName;
-    else this.relationName = (relatedToAsString.charAt(0).toLowerCase() + relatedToAsString.slice(1)) as TRelationName;
-
-    this.relatedTo = relatedToAsString as unknown as TRelatedModel;
-    this.customName = params.customName;
-    this._originalRelatedName = params.relatedName;
-    this.onDelete = params.onDelete;
-    this.toField = params.toField;
+    unique: boolean;
+    auto: boolean;
+    allowNull: boolean;
+    dbIndex: boolean;
+    isPrimaryKey: boolean;
+    defaultValue: any;
+    underscored: boolean;
+    typeName: string;
+    databaseName: string | undefined;
+    engineInstance: DatabaseAdapter;
+    customAttributes: any;
+    relatedTo: any;
+    onDelete: ON_DELETE;
+    relatedName: string;
+    relationName: string;
+    toField: string;
   }
+> extends Field<TType, TDefinitions> {
+  protected $$type = '$PForeignKeyField';
+  protected static __typeName = 'ForeignKeyField';
+  protected __relatedToAsString?: string;
+  protected __relatedTo: TDefinitions['relatedTo'];
+  /** Preferably use __relatedTo, this is just to cache the model if `__relatedTo` is either a function or a string */
+  protected __modelRelatedTo?: ClassConstructor<any>;
+  protected __onDelete: TDefinitions['onDelete'];
+  protected __relatedName: TDefinitions['relatedName'];
+  protected __relationName: TDefinitions['relationName'];
+  protected __toField: TDefinitions['toField'];
+  protected __originalRelatedName?: string;
+  protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
+  protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
 
   /**
-   * This is used for lazy loading the type of the related model. By default you will do something like
-   *
-   * @example
-   * ```ts
-   * class User extends models.Model<User>() {
-   *   fields = {
-   *      id: models.AutoField.new(),
-   *      firstName: models.CharField.new(),
-   *      profile: models.ForeignKeyField.new({
-   *        relatedTo: Profile,
-   *        onDelete: models.fields.ON_DELETE.CASCADE,
-   *        toField: 'id',
-   *        relatedName: 'profile',
-   *        relationName: 'userProfile'
-   *      })
-   *   }
-   * }
-   * ```
-   *
-   * That's great, but can be a bit annoying if the Profile model is defined another
-   * time or lazily. So we offer the option to do something like:
-   *
-   * @example
-   * ```ts
-   * class User extends models.Model<User>() {
-   *   fields = {
-   *      id: models.AutoField.new(),
-   *      firstName: models.CharField.new(),
-   *      profile: models.ForeignKeyField.lazy<typeof Profile>()({
-   *        relatedTo: 'Profile', // Here we are defining profile as a string.
-   *        onDelete: models.fields.ON_DELETE.CASCADE,
-   *        toField: 'id',
-   *        relatedName: 'profile',
-   *        relationName: 'userProfile'
-   *      })
-   *   }
-   * }
-   * ```
-   *
-   * With that we can lazy load the relation while still maintaining the type of the related model.
-   * /
-  // eslint-disable-next-line no-shadow
-  static lazy<TRelatedModel>() {
-    return <
-      // eslint-disable-next-line no-shadow
-      TDefaultValue extends MaybeNull<
-        | (TCustomType extends undefined
-            ? TRelatedModel extends typeof Model
-              ? InstanceType<TRelatedModel>['fields'][TRelatedField] extends Field<
-                  any,
-                  any,
-                  any,
-                  any,
-                  any,
-                  any,
-                  any,
-                  any
-                >
-                ? InstanceType<TRelatedModel>['fields'][TRelatedField]['_type']['input']
-                : TCustomType
-              : TCustomType
-            : TCustomType)
-        | undefined,
-        TNull
-      > = undefined,
-      // eslint-disable-next-line no-shadow
-      TUnique extends boolean = false,
-      // eslint-disable-next-line no-shadow
-      TNull extends boolean = false,
-      // eslint-disable-next-line no-shadow
-      TAuto extends boolean = false,
-      // eslint-disable-next-line no-shadow
-      TDatabaseName extends string | null | undefined = undefined,
-      // eslint-disable-next-line no-shadow
-      TCustomAttributes = any,
-      // eslint-disable-next-line no-shadow
-      TCustomType = undefined,
-      // eslint-disable-next-line no-shadow
-      TRelatedField extends string = any,
-      // eslint-disable-next-line no-shadow
-      TRelatedName extends string = any,
-      // eslint-disable-next-line no-shadow
-      TRelationName extends string = any
-    >(
-      params: Omit<
-        ForeignKeyFieldParamsType<
-          ForeignKeyField,
-          TDefaultValue,
-          TUnique,
-          TNull,
-          TAuto,
-          TDatabaseName,
-          TCustomAttributes,
-          TCustomType,
-          TRelatedModel,
-          TRelatedField,
-          TRelatedName,
-          TRelationName
-        >,
-        'relatedTo'
-      > & {
-        relatedTo: string;
-      }
-    ) => new this(params as any);
-  }
+   * This is used internally by the engine to compare if the field is equal to another field.
+   * You can override this if you want to extend the ForeignKeyField class.
+   */
+  protected static __compareCallback: TCompareCallback = (oldField, newField, defaultCompareCallback) => {
+    const oldFieldAsForeignKey = oldField as ForeignKeyField<any, any>;
+    const newFieldAsForeignKey = newField as ForeignKeyField<any, any>;
+    getRelatedToAsString(oldFieldAsForeignKey);
+    getRelatedToAsString(newFieldAsForeignKey);
+    const isRelatedToEqual =
+      oldFieldAsForeignKey['__relatedToAsString'] === newFieldAsForeignKey['__relatedToAsString'];
+    const isToFieldEqual = oldFieldAsForeignKey['__toField'] === newFieldAsForeignKey['__toField'];
+    const isOnDeleteEqual = oldFieldAsForeignKey['__onDelete'] === newFieldAsForeignKey['__onDelete'];
+    const isRelationNameEqual = oldFieldAsForeignKey['__relationName'] === newFieldAsForeignKey['__relationName'];
+    const isRelatedNameEqual = oldFieldAsForeignKey['__relatedName'] === newFieldAsForeignKey['__relatedName'];
 
-  static new<
-    // eslint-disable-next-line no-shadow
-    TField extends This<typeof ForeignKeyField>,
-    // eslint-disable-next-line no-shadow
-    TDefaultValue extends MaybeNull<
-      | (TCustomType extends undefined
-          ? TRelatedModel extends typeof Model
-            ? InstanceType<TRelatedModel>['fields'][TRelatedField] extends Field<any, any, any, any, any, any, any, any>
-              ? InstanceType<TRelatedModel>['fields'][TRelatedField]['_type']['input']
-              : TCustomType
-            : TCustomType
-          : TCustomType)
-      | undefined,
-      TNull
-    > = undefined,
-    // eslint-disable-next-line no-shadow
-    TUnique extends boolean = false,
-    // eslint-disable-next-line no-shadow
-    TNull extends boolean = false,
-    // eslint-disable-next-line no-shadow
-    TAuto extends boolean = false,
-    // eslint-disable-next-line no-shadow
-    TDatabaseName extends string | null | undefined = undefined,
-    // eslint-disable-next-line no-shadow
-    TCustomAttributes = any,
-    // eslint-disable-next-line no-shadow
-    TCustomType = undefined,
-    // eslint-disable-next-line no-shadow
-    TRelatedModel = any,
-    // eslint-disable-next-line no-shadow
-    TRelatedField extends string = any,
-    // eslint-disable-next-line no-shadow
-    TRelatedName extends string = any,
-    // eslint-disable-next-line no-shadow
-    TRelationName extends string = any
-  >(
-    this: TField,
-    params: ForeignKeyFieldParamsType<
-      InstanceType<TField>,
-      TDefaultValue,
-      TUnique,
-      TNull,
-      TAuto,
-      TDatabaseName,
-      TCustomAttributes,
-      TCustomType,
-      TRelatedModel,
-      TRelatedField,
-      TRelatedName,
-      TRelationName
-    >
-  ) {
-    return new this(params) as ForeignKeyField<
+    const [isEqual, changedAttributes] = defaultCompareCallback(oldField, newField, defaultCompareCallback);
+    if (!isRelatedToEqual) changedAttributes.push('relatedTo');
+    if (!isToFieldEqual) changedAttributes.push('toField');
+    if (!isOnDeleteEqual) changedAttributes.push('onDelete');
+    if (!isRelationNameEqual) changedAttributes.push('relationName');
+    if (!isRelatedNameEqual) changedAttributes.push('relatedName');
+
+    return [
+      isRelatedNameEqual && isRelatedToEqual && isToFieldEqual && isOnDeleteEqual && isRelationNameEqual && isEqual,
+      changedAttributes
+    ];
+  };
+  /**
+   * This is used internally by the engine for cloning the field to a new instance.
+   * By doing that you are able to get the constructor options of the field when using Field.new(<instanceArguments>)
+   */
+  protected static __newInstanceCallback: NewInstanceArgumentsCallback = (
+    oldField,
+    defaultNewInstanceArgumentsCallback
+  ) => {
+    const defaultData = defaultNewInstanceArgumentsCallback(oldField, defaultNewInstanceArgumentsCallback);
+    const position0 = defaultData[0] || {};
+    const otherPositions = defaultData.slice(1);
+    const asForeignKeyField = oldField as ForeignKeyField<any, any>;
+    return [
       {
-        input: TCustomType extends undefined
-          ? TRelatedModel extends abstract new (...args: any) => any
-            ? InstanceType<TRelatedModel> extends {
-                fields: infer TModelFields;
-              }
-              ? TRelatedField extends keyof TModelFields
-                ? TModelFields[TRelatedField] extends Field<any, any, any, any, any, any, any, any>
-                  ? TModelFields[TRelatedField]['_type']['input']
-                  : never
-                : never
-              : never
-            : never
-          : TCustomType;
-        output: TCustomType extends undefined
-          ? TRelatedModel extends abstract new (...args: any) => any
-            ? InstanceType<TRelatedModel> extends {
-                fields: infer TModelFields;
-              }
-              ? TRelatedField extends keyof TModelFields
-                ? TModelFields[TRelatedField] extends Field<any, any, any, any, any, any, any, any>
-                  ? TModelFields[TRelatedField]['_type']['output']
-                  : never
-                : never
-              : never
-            : never
-          : TCustomType;
+        ...position0,
+        relatedTo: asForeignKeyField['__relatedTo'],
+        onDelete: asForeignKeyField['__onDelete'],
+        relatedName: asForeignKeyField['__relatedName'],
+        relationName: asForeignKeyField['__relationName'],
+        toField: asForeignKeyField['__toField']
       },
-      InstanceType<TField>,
-      TDefaultValue,
-      TUnique,
-      TNull,
-      TAuto,
-      TDatabaseName,
-      TCustomAttributes,
-      TCustomType,
-      TRelatedModel,
-      TRelatedField,
-      TRelatedName,
-      TRelationName
-    >;
-  }
+      ...otherPositions
+    ];
+  };
+  /**
+   * This is used internally by the engine to convert the field to string.
+   * You can override this if you want to extend the ForeignKeyField class.
+   */
+  protected static __toStringCallback: ToStringCallback = async (
+    field,
+    defaultToStringCallback,
+    indentation = 0,
+    _customParams = undefined
+  ) => {
+    const fieldAsForeignKey = field as ForeignKeyField<any, any>;
+    const ident = '  '.repeat(indentation + 1);
+    getRelatedToAsString(fieldAsForeignKey);
+    return await defaultToStringCallback(
+      field,
+      defaultToStringCallback,
+      indentation,
+      `${ident}relatedTo: "${fieldAsForeignKey['__relatedToAsString']}",\n` +
+        `${ident}toField: "${fieldAsForeignKey['__toField']}",\n` +
+        `${ident}onDelete: models.fields.ON_DELETE.${fieldAsForeignKey['__onDelete'].toUpperCase()},\n` +
+        `${ident}relationName: "${fieldAsForeignKey['__relationName']}",\n` +
+        `${ident}relatedName: "${fieldAsForeignKey['__originalRelatedName']}",`
+    );
+  };
 
-  init(fieldName: string, model: ModelType) {
-    const isRelatedToAndOnDeleteNotDefined = typeof this.relatedTo !== 'string' && typeof this.onDelete !== 'string';
-    const relatedToAsString = this.relatedTo as string;
-    const originalNameOfModel = model.originalName();
-
-    if (isRelatedToAndOnDeleteNotDefined) throw new ForeignKeyFieldRequiredParamsMissingError(this.fieldName);
-
-    const modelAssociations = model.associations as any;
-    const hasNotIncludesAssociation =
-      (modelAssociations[relatedToAsString] || []).some(
-        (association: Field<any, any, any, any, any, any, any>) => association.fieldName === fieldName
-      ) === false;
-    if (hasNotIncludesAssociation) {
-      model.associations[relatedToAsString] = modelAssociations[relatedToAsString] || [];
-      model.associations[relatedToAsString].push(this);
-    }
-
-    const modelDirectlyRelatedTo = model.directlyRelatedTo as any;
-    // Appends to the model the other models this model is related to.
-    model.directlyRelatedTo[relatedToAsString] = modelDirectlyRelatedTo[relatedToAsString] || [];
-    model.directlyRelatedTo[relatedToAsString].push(this.relationName);
-
-    // this will update the indirectly related models of the engine instance.
-    // This means that for example, if the Post model has a foreign key to the User model
-    // There is no way for the User model to know that it is related to the Post model.
-    // Because of this we update this value on the engine instance. Updating the array on the engine instance
-    // will also reflect on the `relatedTo` array in the model instance.
-    if (this._originalRelatedName) {
-      // eslint-disable-next-line ts/no-unnecessary-condition
-      model.indirectlyRelatedModels[relatedToAsString] = model.indirectlyRelatedModels?.[relatedToAsString] || {};
-      model.indirectlyRelatedModels[relatedToAsString][originalNameOfModel] =
-        (model.indirectlyRelatedModels as any)?.[relatedToAsString]?.[originalNameOfModel] || [];
-      model.indirectlyRelatedModels[relatedToAsString][originalNameOfModel].push(this._originalRelatedName);
-    }
-
-    super.init(fieldName, model);
-
-    const wasRelatedNameDefined: boolean = typeof this.relatedName === 'string';
-
-    if (wasRelatedNameDefined === false) {
-      const relatedToWithFirstStringLower: string =
-        relatedToAsString.charAt(0).toLowerCase() + relatedToAsString.slice(1);
-      const originalModelNameWithFirstStringUpper: string =
-        originalNameOfModel.charAt(0).toUpperCase() + originalNameOfModel.slice(1);
-      this._originalRelatedName = `${relatedToWithFirstStringLower}${originalModelNameWithFirstStringUpper}s`;
-    }
-
-    // eslint-disable-next-line ts/no-unnecessary-condition
-    model.indirectlyRelatedModels.$set?.[relatedToAsString]?.();
+  constructor({
+    onDelete,
+    relatedName,
+    relatedTo,
+    relationName,
+    toField,
+    ...rest
+  }: Pick<TDefinitions, 'relatedTo' | 'onDelete' | 'relatedName' | 'relationName' | 'toField'>) {
+    super(rest);
+    this.__relatedTo = relatedTo;
+    this.__onDelete = onDelete;
+    this.__relatedName = relatedName;
+    this.__relationName = relationName;
+    this.__toField = toField;
   }
 
   /**
@@ -562,35 +291,45 @@ export class ForeignKeyField<
    *
    * @param engineInstance - Needs the engine instance to check if the model exists in the engine instance or not.
    *
-   * @returns - Returns an array where the first item is if the relatedmodel is
+   * @returns - Returns an array where the first item is if the relatedModel is
    * from the engine instance (false if not) and the field it should change to.
-   * /
+   */
   async isRelatedModelFromEngineInstance(engineInstance: DatabaseAdapter): Promise<[boolean, Field?]> {
-    const relatedToAsString = this.relatedTo as string;
+    getRelatedToAsString(this);
+    const relatedToAsString = this['__relatedToAsString'] as string;
     const relatedModel = engineInstance.__modelsOfEngine[relatedToAsString] as any;
-    if (relatedModel !== undefined) {
-      (this.modelRelatedTo as any) = relatedModel;
-      return [true, undefined];
-    } else {
+    let modelRelatedTo;
+
+    if (typeof this['__relatedTo'] === 'function') modelRelatedTo = this['__relatedTo']();
+    else if (typeof this['__relatedTo'] === 'string')
+      modelRelatedTo = engineInstance.__modelsOfEngine[this['__relatedTo']];
+    else modelRelatedTo = this['__relatedTo'];
+
+    if (this['__modelRelatedTo'] === undefined) this['__modelRelatedTo'] = modelRelatedTo;
+
+    if (relatedModel !== undefined) return [true, undefined];
+    else {
       const modelRelatedTo = engineInstance.__modelsFilteredOutOfEngine[relatedToAsString] as any;
       if (modelRelatedTo === undefined) return [true, undefined];
       else {
         const modelInstance = new modelRelatedTo();
-        const fieldRelatedTo = modelInstance.fields[this.toField];
-        const clonedField = await fieldRelatedTo.clone();
-
-        clonedField.model = this.model;
-        clonedField.fieldName = this.fieldName;
-        clonedField.databaseName = this.databaseName as undefined;
-        clonedField.defaultValue = this.defaultValue;
-        clonedField.allowNull = this.allowNull;
-        clonedField.dbIndex = this.dbIndex;
-        clonedField.hasDefaultValue = this.hasDefaultValue;
-        clonedField.underscored = this.underscored;
-        clonedField.unique = this.unique;
-        clonedField.isAuto = false;
-        clonedField.primaryKey = false;
-        modelInstance.fields[this.fieldName] = clonedField;
+        const fieldRelatedTo = modelInstance.fields[this['__toField']];
+        let clonedField: Field<any, any>;
+        if (fieldRelatedTo.$$type === '$PAutoField') clonedField = IntegerField.new() as unknown as Field<any, any>;
+        if (fieldRelatedTo.$$type === '$PBigAutoField') clonedField = BigAutoField.new() as unknown as Field<any, any>;
+        else clonedField = (await fieldRelatedTo.clone()) as Field<any, any>;
+        clonedField['__model'] = this['__model'];
+        clonedField['__fieldName'] = this['__fieldName'];
+        clonedField['__databaseName'] = this['__databaseName'] as undefined;
+        clonedField['__defaultValue'] = this['__defaultValue'];
+        clonedField['__allowNull'] = this['__allowNull'];
+        clonedField['__dbIndex'] = this['__dbIndex'];
+        clonedField['__hasDefaultValue'] = this['__hasDefaultValue'];
+        clonedField['__underscored'] = this['__underscored'];
+        clonedField['__unique'] = this['__unique'];
+        clonedField['__isAuto'] = false;
+        clonedField['__primaryKey'] = false;
+        modelInstance.fields[this['__fieldName']] = clonedField;
         return [false, clonedField];
       }
     }
@@ -608,199 +347,180 @@ export class ForeignKeyField<
    * to keep it simple to develop engines.
    *
    * @return - Returns a random relatedName if it is a state model, otherwise returns the normal related name.
-   * /
-  get relatedName() {
-    const isModelDefined = (this.model as any) !== undefined;
-    const modelConstructor = this.model.constructor as ModelType;
-    const isModelAStateModel = isModelDefined && modelConstructor.isState === true;
-    if (isModelAStateModel) return `${generateUUID()}-${this._originalRelatedName}`;
-    else return this._originalRelatedName;
+   */
+  protected get _relatedName() {
+    const isModelDefined = (this['__model'] as any) !== undefined;
+    const modelConstructor = this['__model'] !== undefined ? (this['__model'].constructor as ModelType) : undefined;
+    const isModelAStateModel = isModelDefined && modelConstructor?.isState === true;
+    if (isModelAStateModel) return `${generateUUID()}-${this.__originalRelatedName}`;
+    else return this.__originalRelatedName;
   }
 
   /**
-   * This is mostly used internally by the engine to stringify the contents of the
-   * field on migrations. But you can override this if you want to
-   * extend the ForeignKeyField class.
+   * Supposed to be used by library maintainers.
+   *
+   * When you custom create a field, you might want to take advantage of the builder pattern we already support.
+   * This let's you create functions that can be chained together to create a new field. It should be used
+   * alongside the `_setPartialAttributes` method like
    *
    * @example
-   * ```
-   * class CustomForeignKeyField extends ForeignKeyField {
-   *   aCustomValue: string;
-   *
-   *   async toString(indentation = 0, customParams: string | undefined = undefined) {
-   *    const ident = '  '.repeat(indentation + 1);
-   *    const customParamsString = customParams ? `\n${customParams}` : '';
-   *    return super.toString(indentation, `${ident}aCustomValue: ${this.aCustomValue},` + `${customParamsString}`);
+   * ```ts
+   * const customBigInt = TextField.overrideType<
+   *   { create: bigint; read: bigint; update: bigint },
+   *   {
+   *       customAttributes: { name: string };
+   *       unique: boolean;
+   *       auto: boolean;
+   *       allowNull: true;
+   *       dbIndex: boolean;
+   *       isPrimaryKey: boolean;
+   *       defaultValue: any;
+   *       typeName: string;
+   *       engineInstance: DatabaseAdapter;
    *   }
-   * }
+   * >({
+   *   typeName: 'CustomBigInt'
+   * });
+   *
+   * const customBuilder = <TParams extends { name: string }>(params: TParams) => {
+   *   const field = customBigInt.new(params);
+   *   return field._setNewBuilderMethods({
+   *     test: <TTest extends { age: number }>(param: TTest) =>
+   *        // This will union the type `string` with what already exists in the field 'create' type
+   *        field._setPartialAttributes<{ create: string }, { create: 'union' }>(param)
+   *   });
+   * };
+   *
+   * // Then your user can use it like:
+   *
+   * const field = customBuilder({ name: 'test' }).test({ age: 2 });
    * ```
    *
-   * On this example, your custom ForeignKeyField instance defines a `aCustomValue`
-   * property that will be added on the migrations. It is useful if
-   * you have created a custom field and wants to implement a custom logic during migrations.
-   *
-   * @param indentation - The number of spaces to use for indentation. Use `'  '.repeat(indentation + 1);`
-   * @param customParams - Custom parameters to append to the stringified field.
-   *
-   * @returns The stringified field.
-   * /
-  async toString(indentation = 0, _customParams: string | undefined = undefined) {
-    const ident = '  '.repeat(indentation + 1);
-    return super.toString(
-      indentation,
-      `${ident}relatedTo: "${this.relatedTo}",\n` +
-        `${ident}toField: "${this.toField}",\n` +
-        `${ident}onDelete: models.fields.ON_DELETE.${this.onDelete.toUpperCase()},\n` +
-        `${ident}customName: ${typeof this.customName === 'string' ? `"${this.customName}"` : this.customName},\n` +
-        `${ident}relationName: "${this.relationName}",\n` +
-        `${ident}relatedName: ${
-          typeof this._originalRelatedName === 'string' ? `"${this._originalRelatedName}",` : this._originalRelatedName
-        }`
-    );
+   * **Important**: `customBuilder` will be used by the end user and you are responsible for documenting it.
+   */
+  _setNewBuilderMethods<const TFunctions extends InstanceType<any>>(
+    functions?: TFunctions
+  ): ForeignKeyField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    }
+  > &
+    TFunctions {
+    if (functions === undefined) return this as any;
+    const propertiesOfBase = Object.getOwnPropertyNames(Object.getPrototypeOf(functions));
+    for (const key of propertiesOfBase) {
+      if (key === 'constructor') continue;
+      (this as any)[key] = (functions as any)[key].bind(this);
+    }
+
+    return this as any;
   }
 
   /**
-   * This is used internally by the engine to compare if the field is equal to another field.
-   * You can override this if you want to extend the ForeignKeyField class.
+   * FOR LIBRARY MAINTAINERS ONLY
    *
-   * @example
-   * ```
-   * class CustomForeignKeyField extends ForeignKeyField {
-   *   aCustomValue: string;
-   *
-   *   compare(field:Field) {
-   *      const fieldAsText = field as TextField;
-   *      const isCustomValueEqual = fieldAsText.aCustomValue === this.aCustomValue;
-   *      const [isEqual, changedAttributes] = await super.compare(field);
-   *      if (!isCustomValueEqual) changedAttributes.push('aCustomValue');
-   *      return [isCustomValueEqual && isEqual, changedAttributes]
-   *   }
-   * }
-   * ```
-   *
-   * @param field - The field to compare.
-   *
-   * @returns A promise that resolves to a boolean indicating if the field is equal to the other field.
-   * /
-  async compare(field: Field): Promise<[boolean, string[]]> {
-    const fieldAsForeignKey = field as ForeignKeyField;
-    const fieldAsForeignKeyRelatedToAsString = fieldAsForeignKey.relatedTo as string;
-    const isCustomNameEqual = fieldAsForeignKey.customName === this.customName;
-    const isRelatedToEqual = fieldAsForeignKeyRelatedToAsString === this.relatedTo;
-    const isToFieldEqual = fieldAsForeignKey.toField === this.toField;
-    const isOnDeleteEqual = fieldAsForeignKey.onDelete === this.onDelete;
-    const isRelationNameEqual = fieldAsForeignKey.relationName === this.relationName;
-
-    const [isEqual, changedAttributes] = await super.compare(field);
-    if (!isCustomNameEqual) changedAttributes.push('customName');
-    if (!isRelatedToEqual) changedAttributes.push('relatedTo');
-    if (!isToFieldEqual) changedAttributes.push('toField');
-    if (!isOnDeleteEqual) changedAttributes.push('onDelete');
-    if (!isRelationNameEqual) changedAttributes.push('relationName');
-
-    return [
-      isCustomNameEqual && isRelatedToEqual && isToFieldEqual && isOnDeleteEqual && isRelationNameEqual && isEqual,
-      changedAttributes
-    ];
-  }
-
-  /**
-   * This is used internally by the engine for cloning the field to a new instance.
-   * By doing that you are able to get the constructor options of the field.
-   *
-   * @example
-   * ```
-   * class CustomForeignKeyField extends ForeignKeyField {
-   *  aCustomValue: string;
-   *
-   * async constructorOptions(field?: ForeignKeyField) {
-   *   if (!field) field = this as ForeignKeyField;
-   *   const defaultConstructorOptions = await super.constructorOptions(field);
-   *   return {
-   *     ...defaultConstructorOptions,
-   *     aCustomValue: field.aCustomValue,
-   *   };
-   * }
-   * ```
-   *
-   * @param field - The field to get the constructor options from. If not provided it will use the current field.
-   *
-   * @returns The constructor options of the field.
-   * /
-  async constructorOptions(field?: ForeignKeyField) {
-    if (!field) field = this as ForeignKeyField;
-    const defaultConstructorOptions = await super.constructorOptions(field);
-    return {
-      ...defaultConstructorOptions,
-      relatedTo: field.relatedTo,
-      toField: field.toField,
-      onDelete: field.onDelete,
-      customName: field.customName,
-      relationName: field.relationName,
-      relatedName: field.relatedName as string
+   * Focused for library maintainers that want to support a custom field type not supported by palmares.
+   * This let's them partially update the custom attributes of the field. By default setCustomAttributes
+   * will override the custom attributes entirely.
+   */
+  _setPartialAttributes<
+    TNewType extends { create?: any; read?: any; update?: any },
+    TActions extends {
+      create?: 'merge' | 'union' | 'replace';
+      read?: 'merge' | 'union' | 'replace';
+      update?: 'merge' | 'union' | 'replace';
+    }
+  >(): <const TCustomPartialAttributes>(partialCustomAttributes: TCustomPartialAttributes) => ForeignKeyField<
+    {
+      create: TActions['create'] extends 'merge'
+        ? TType['create'] & TNewType['create']
+        : TActions['create'] extends 'union'
+          ? TType['create'] | TNewType['create']
+          : TActions['create'] extends 'replace'
+            ? TNewType['create']
+            : TType['create'];
+      read: TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read'];
+      update: TActions['update'] extends 'merge'
+        ? TType['update'] & TNewType['update']
+        : TActions['update'] extends 'union'
+          ? TType['update'] | TNewType['update']
+          : TActions['update'] extends 'replace'
+            ? TNewType['update']
+            : TType['update'];
+    },
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'] & TCustomPartialAttributes;
+    }
+  > {
+    return (partialCustomAttributes) => {
+      if (partialCustomAttributes !== undefined) {
+        if ((this.__customAttributes as any) === undefined) this.__customAttributes = {} as any;
+        this.__customAttributes = { ...this.__customAttributes, ...partialCustomAttributes };
+      }
+      return this as any;
     };
-  }
-}
-*/
-
-export class ForeignKeyField<
-  TType extends { create: any; read: any; update: any } = { create: any; read: any; update: any },
-  TDefinitions extends {
-    unique: boolean;
-    auto: boolean;
-    allowNull: boolean;
-    dbIndex: boolean;
-    isPrimaryKey: boolean;
-    defaultValue: any;
-    underscored: boolean;
-    typeName: string;
-    databaseName: string | null | undefined;
-    engineInstance: DatabaseAdapter;
-    customAttributes: any;
-    relatedTo: any;
-    onDelete: ON_DELETE;
-    relatedName: string;
-    relationName: string;
-    toField: string;
-  } = {
-    unique: boolean;
-    auto: boolean;
-    allowNull: boolean;
-    dbIndex: boolean;
-    isPrimaryKey: boolean;
-    defaultValue: any;
-    underscored: boolean;
-    typeName: string;
-    databaseName: string | null | undefined;
-    engineInstance: DatabaseAdapter;
-    customAttributes: any;
-    relatedTo: any;
-    onDelete: ON_DELETE;
-    relatedName: string;
-    relationName: string;
-    toField: string;
-  }
-> extends Field<TType, TDefinitions> {
-  protected $$type = '$PForeignKeyField';
-  protected static __typeName = 'ForeignKeyField';
-  protected __relatedTo: TDefinitions['relatedTo'];
-  protected __onDelete: TDefinitions['onDelete'];
-  protected __relatedName: TDefinitions['relatedName'];
-  protected __relationName: TDefinitions['relationName'];
-  protected __toField: TDefinitions['toField'];
-
-  constructor(params: Pick<TDefinitions, 'relatedTo' | 'onDelete' | 'relatedName' | 'relationName' | 'toField'>) {
-    super(params);
-    this.__relatedTo = params.relatedTo;
-    this.__onDelete = params.onDelete;
-    this.__relatedName = params.relatedName;
-    this.__relationName = params.relationName;
-    this.__toField = params.toField;
   }
 
   setCustomAttributes<
     const TCustomAttributes extends Parameters<
-      TDefinitions['engineInstance']['fields']['autoFieldParser']['translate']
+      TDefinitions['engineInstance']['fields']['foreignKeyFieldParser']['translate']
     >[0]['customAttributes']
   >(
     customAttributes: TCustomAttributes
@@ -1529,6 +1249,7 @@ export class ForeignKeyField<
     newField.new = (params: any) => {
       const newInstance = new this(params);
       const keysOfForeignKeyAttributes = new Set(['relatedTo', 'toField', 'onDelete', 'relatedName', 'relationName']);
+
       const customAttributes = Object.keys(params).reduce((acc, key) => {
         if (keysOfForeignKeyAttributes.has(key)) return acc;
         acc[key] = params[key];
@@ -1538,9 +1259,61 @@ export class ForeignKeyField<
 
       return newInstance;
     };
-    return super.overrideType(args) as any;
+    return newField;
   }
 
+  init(fieldName: string, model: ModelType) {
+    getRelatedToAsString(this);
+    const isRelatedToAndOnDeleteNotDefined =
+      typeof this['__relatedToAsString'] !== 'string' && typeof this['__onDelete'] !== 'string';
+    const relatedToAsString = this['__relatedToAsString'] as string;
+    const originalNameOfModel = model.originalName();
+
+    if (isRelatedToAndOnDeleteNotDefined) throw new ForeignKeyFieldRequiredParamsMissingError(this['__fieldName']);
+
+    const modelAssociations = model.associations as any;
+    const hasNotIncludesAssociation =
+      (modelAssociations[relatedToAsString] || []).some(
+        (association: Field<any, any>) => association['__fieldName'] === fieldName
+      ) === false;
+    if (hasNotIncludesAssociation) {
+      model.associations[relatedToAsString] = modelAssociations[relatedToAsString] || [];
+      model.associations[relatedToAsString].push(this);
+    }
+
+    const modelDirectlyRelatedTo = model.directlyRelatedTo as any;
+    // Appends to the model the other models this model is related to.
+    model.directlyRelatedTo[relatedToAsString] = modelDirectlyRelatedTo[relatedToAsString] || [];
+    model.directlyRelatedTo[relatedToAsString].push(this['__relationName']);
+
+    // this will update the indirectly related models of the engine instance.
+    // This means that for example, if the Post model has a foreign key to the User model
+    // There is no way for the User model to know that it is related to the Post model.
+    // Because of this we update this value on the engine instance. Updating the array on the engine instance
+    // will also reflect on the `relatedTo` array in the model instance.
+    if (this['__originalRelatedName']) {
+      // eslint-disable-next-line ts/no-unnecessary-condition
+      model.indirectlyRelatedModels[relatedToAsString] = model.indirectlyRelatedModels?.[relatedToAsString] || {};
+      model.indirectlyRelatedModels[relatedToAsString][originalNameOfModel] =
+        (model.indirectlyRelatedModels as any)?.[relatedToAsString]?.[originalNameOfModel] || [];
+      model.indirectlyRelatedModels[relatedToAsString][originalNameOfModel].push(this['__originalRelatedName']);
+    }
+
+    super.init(fieldName, model);
+
+    const wasRelatedNameDefined: boolean = typeof this['__relatedName'] === 'string';
+
+    if (wasRelatedNameDefined === false) {
+      const relatedToWithFirstStringLower: string =
+        relatedToAsString.charAt(0).toLowerCase() + relatedToAsString.slice(1);
+      const originalModelNameWithFirstStringUpper: string =
+        originalNameOfModel.charAt(0).toUpperCase() + originalNameOfModel.slice(1);
+      this['__originalRelatedName'] = `${relatedToWithFirstStringLower}${originalModelNameWithFirstStringUpper}s`;
+    }
+
+    // eslint-disable-next-line ts/no-unnecessary-condition
+    model.indirectlyRelatedModels.$set?.[relatedToAsString]?.();
+  }
   static new<
     const TRelatedTo extends any | (() => any) | ((_: { create: any; read: any; update: any }) => any),
     const TForeignKeyParams extends {
@@ -1568,7 +1341,7 @@ export class ForeignKeyField<
       defaultValue: any;
       underscored: boolean;
       typeName: string;
-      databaseName: string | null | undefined;
+      databaseName: string | undefined;
       engineInstance: DatabaseAdapter;
       customAttributes: any;
       relatedTo: TRelatedTo;
@@ -1581,44 +1354,3 @@ export class ForeignKeyField<
     return new this(params);
   }
 }
-
-type ExtractFieldNameOptionsOfModel<TProbablyAModel> = TProbablyAModel extends {
-  new (...args: any): { fields: infer TFields };
-}
-  ? keyof TFields
-  : string;
-
-type ExtractTypeFromFieldOfAModel<
-  TProbablyAModel,
-  TToFieldName extends string,
-  TTypeToExtract extends 'create' | 'update' | 'read' = 'create'
-> = TProbablyAModel extends
-  | { new (...args: any): { fields: infer TFields } }
-  | (() => { new (...args: any): { fields: infer TFields } })
-  ? TFields extends Record<any, Field<any, any> | AutoField<any, any> | ForeignKeyField<any, any>>
-    ? TFields[TToFieldName] extends
-        | Field<infer TType, any>
-        | AutoField<infer TType, any>
-        | ForeignKeyField<infer TType, any>
-      ? TType[TTypeToExtract]
-      : any
-    : any
-  : TProbablyAModel extends (args: infer TType) => { new (...args: any): any }
-    ? TTypeToExtract extends keyof TType
-      ? TType[TTypeToExtract]
-      : any
-    : any;
-
-const BaseModel = define('BaseModel', {
-  fields: {
-    id: AutoField.new()
-  }
-});
-
-const test = ForeignKeyField.new({
-  relatedTo: () => BaseModel,
-  toField: 'id',
-  onDelete: ON_DELETE.CASCADE,
-  relatedName: 'test',
-  relationName: 'test'
-});

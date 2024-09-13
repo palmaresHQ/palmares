@@ -70,7 +70,7 @@ export function databaseAdapter<
 export class DatabaseAdapter<
   TInstanceType = any,
   TFieldsAdapter extends AdapterFields = AdapterFields,
-  TModelsAdapter extends AdapterModels = AdapterModels,
+  TModelsAdapter extends AdapterModels<TInstanceType> = AdapterModels<TInstanceType>,
   TQueryAdapter extends AdapterQuery = AdapterQuery,
   TMigrationsAdapter extends AdapterMigrations = AdapterMigrations
 > {

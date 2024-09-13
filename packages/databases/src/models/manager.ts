@@ -15,7 +15,9 @@ import type {
   IncludesValidated,
   ManagerEngineInstancesType,
   ManagerInstancesType,
+  ModelFieldsType,
   ModelFieldsWithIncludes,
+  ModelOptionsType,
   ModelType,
   OrderingOfModelsType
 } from './types';
@@ -68,29 +70,35 @@ import type { Narrow, SettingsType2 } from '@palmares/core';
  * For example: one could create a framework that enables `bull.js` tasks to be defined on the database instead
  * of the code. This way we could update the tasks dynamically.
  */
-export class Manager<TModel = Model, TEI extends DatabaseAdapter | null = null> {
-  $$type = '$PManager';
-  instances: ManagerInstancesType;
-  engineInstances: ManagerEngineInstancesType;
-  defaultEngineInstanceName: string;
-  models: { [engineName: string]: TModel };
-  modelKls!: { new (...args: unknown[]): any };
-  isLazyInitializing = false as boolean;
+export class Manager<
+  TModel = Model,
+  TDefinitions extends {
+    engineInstance: DatabaseAdapter;
+    customOptions: any;
+  } = {
+    engineInstance: DatabaseAdapter;
+    customOptions: any;
+  }
+> {
+  protected $$type = '$PManager';
+  protected __instances: ManagerInstancesType;
+  protected __engineInstances: ManagerEngineInstancesType;
+  protected __defaultEngineInstanceName: string;
+  protected __models: { [engineName: string]: TModel };
+  protected __modelKls!: { new (...args: unknown[]): any };
+  protected __isLazyInitializing = false as boolean;
 
   constructor() {
     //this.modelKls = modelKls;
-    this.instances = {};
-    this.engineInstances = {};
-    this.models = {};
-    this.defaultEngineInstanceName = '';
+    this.__instances = {};
+    this.__engineInstances = {};
+    this.__models = {};
+    this.__defaultEngineInstanceName = '';
+    this.__isLazyInitializing = false;
   }
 
-  _setModel(engineName: string, initializedModel: TModel) {
-    this.models[engineName] = initializedModel;
-  }
-
-  getModel(engineName: string) {
-    return this.models[engineName];
+  protected __setModel(engineName: string, initializedModel: TModel) {
+    this.__models[engineName] = initializedModel;
   }
 
   /**
@@ -101,12 +109,12 @@ export class Manager<TModel = Model, TEI extends DatabaseAdapter | null = null> 
    * doesn't exist, load the settings from where we can find them and initialize the domains. After that we are able to
    * retrieve the data from the model
    */
-  async verifyIfNotInitializedAndInitializeModels(engineName: string) {
+  protected async __verifyIfNotInitializedAndInitializeModels(engineName: string) {
     const database = new Databases();
 
     const canInitializeTheModels =
-      this.isLazyInitializing === false && database.isInitialized === false && database.isInitializing === false;
-    this.isLazyInitializing = true;
+      this.__isLazyInitializing === false && database.isInitialized === false && database.isInitializing === false;
+    this.__isLazyInitializing = true;
 
     if (canInitializeTheModels) {
       const settings = getSettings() as unknown as DatabaseSettingsType;
@@ -117,12 +125,16 @@ export class Manager<TModel = Model, TEI extends DatabaseAdapter | null = null> 
 
     return await await new Promise((resolve) => {
       const verifyIfInitialized = () => {
-        const doesInstanceExists = (this.instances as any)[engineName] !== undefined;
+        const doesInstanceExists = (this.__instances as any)[engineName] !== undefined;
         if (doesInstanceExists) return resolve(true);
         setTimeout(() => verifyIfInitialized(), 100);
       };
       verifyIfInitialized();
     });
+  }
+
+  getModel(engineName: string): TModel {
+    return this.__models[engineName];
   }
 
   /**
@@ -136,44 +148,46 @@ export class Manager<TModel = Model, TEI extends DatabaseAdapter | null = null> 
    *
    * @return - The instance of the the model inside that engine instance
    */
-  async getInstance<T extends DatabaseAdapter = DatabaseAdapter>(
+  async getInstance<TDatabaseAdapter extends DatabaseAdapter = TDefinitions['engineInstance']>(
     engineName?: string
-  ): Promise<TEI extends DatabaseAdapter ? TEI['ModelType'] : T['ModelType']> {
-    const engineInstanceName = engineName || this.defaultEngineInstanceName;
-    const doesInstanceExists = (this.instances as any)[engineInstanceName] !== undefined;
-    if (doesInstanceExists) return this.instances[engineInstanceName].instance;
+  ): Promise<
+    TDatabaseAdapter['models']['getTranslatedModels'] extends (...args: any[]) => infer TResult ? TResult : never
+  > {
+    const engineInstanceName = engineName || this.__defaultEngineInstanceName;
+    const doesInstanceExists = (this.__instances as any)[engineInstanceName] !== undefined;
+    if (doesInstanceExists) return this.__instances[engineInstanceName].instance;
 
-    const hasLazilyInitialized = await this.verifyIfNotInitializedAndInitializeModels(engineInstanceName);
+    const hasLazilyInitialized = await this.__verifyIfNotInitializedAndInitializeModels(engineInstanceName);
     if (!hasLazilyInitialized) return this.getInstance(engineName);
 
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }
 
-  _setInstance(engineName: string, instance: any) {
-    const isDefaultEngineInstanceNameEmpty = this.defaultEngineInstanceName === '';
-    if (isDefaultEngineInstanceNameEmpty) this.defaultEngineInstanceName = engineName;
+  protected __setInstance(engineName: string, instance: any) {
+    const isDefaultEngineInstanceNameEmpty = this.__defaultEngineInstanceName === '';
+    if (isDefaultEngineInstanceNameEmpty) this.__defaultEngineInstanceName = engineName;
 
-    this.instances[engineName] = instance;
+    this.__instances[engineName] = instance;
   }
 
-  async getEngineInstance<T extends DatabaseAdapter = DatabaseAdapter>(
+  async getEngineInstance<TDatabaseAdapter extends DatabaseAdapter = TDefinitions['engineInstance']>(
     engineName?: string
-  ): Promise<TEI extends DatabaseAdapter ? TEI : T> {
-    const engineInstanceName: string = engineName || this.defaultEngineInstanceName;
-    const doesInstanceExists = (this.engineInstances as any)[engineInstanceName] !== undefined;
-    if (doesInstanceExists) return this.engineInstances[engineInstanceName] as TEI extends DatabaseAdapter ? TEI : T;
-    const hasLazilyInitialized = await this.verifyIfNotInitializedAndInitializeModels(engineInstanceName);
+  ): Promise<TDatabaseAdapter> {
+    const engineInstanceName: string = engineName || this.__defaultEngineInstanceName;
+    const doesInstanceExists = (this.__engineInstances as any)[engineInstanceName] !== undefined;
+    if (doesInstanceExists) return this.__engineInstances[engineInstanceName] as TDatabaseAdapter;
+    const hasLazilyInitialized = await this.__verifyIfNotInitializedAndInitializeModels(engineInstanceName);
     if (hasLazilyInitialized) return this.getEngineInstance(engineName);
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }
 
-  _setEngineInstance(engineName: string, instance: DatabaseAdapter) {
-    const isDefaultEngineInstanceNameEmpty = this.defaultEngineInstanceName === '';
-    if (isDefaultEngineInstanceNameEmpty) this.defaultEngineInstanceName = engineName;
-    this.engineInstances[engineName] = instance;
+  protected __setEngineInstance(engineName: string, instance: DatabaseAdapter) {
+    const isDefaultEngineInstanceNameEmpty = this.__defaultEngineInstanceName === '';
+    if (isDefaultEngineInstanceNameEmpty) this.__defaultEngineInstanceName = engineName;
+    this.__engineInstances[engineName] = instance;
   }
 
-  async #getIncludeInstancesRecursively(
+  protected async __getIncludeInstancesRecursively(
     engineName: string,
     includes: Includes,
     modelInstancesByModelName: { [modelName: string]: any } = {},
@@ -201,7 +215,7 @@ export class Manager<TModel = Model, TEI extends DatabaseAdapter | null = null> 
           };
           includesInstances.push(includeInstanceForModel);
           if (includesOfModel)
-            await this.#getIncludeInstancesRecursively(
+            await this.__getIncludeInstancesRecursively(
               engineName,
               includesOfModel,
               modelInstancesByModelName,
@@ -254,13 +268,13 @@ export class Manager<TModel = Model, TEI extends DatabaseAdapter | null = null> 
     engineName?: string
   ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]> {
     const isValidEngineName = typeof engineName === 'string' && engineName !== '';
-    const engineInstanceName = isValidEngineName ? engineName : this.defaultEngineInstanceName;
+    const engineInstanceName = isValidEngineName ? engineName : this.__defaultEngineInstanceName;
     // Promise.all here will not work, we need to do this sequentially.
     const engineInstance = await this.getEngineInstance(engineInstanceName);
 
     const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName = isValidEngineName
       ? engineName
-      : this.defaultEngineInstanceName;
+      : this.__defaultEngineInstanceName;
 
     const modelInstance = this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName) as Model;
     const modelConstructor = modelInstance.constructor as ModelType;
@@ -274,7 +288,7 @@ export class Manager<TModel = Model, TEI extends DatabaseAdapter | null = null> 
         offset: args?.offset
       },
       {
-        model: this.models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName],
+        model: this.__models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName],
         engine: engineInstance,
         includes: (args?.includes || []) as TIncludes
       }
@@ -343,10 +357,10 @@ export class Manager<TModel = Model, TEI extends DatabaseAdapter | null = null> 
     engineName?: string
   ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]> {
     const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
-    let engineInstanceName = engineName || this.defaultEngineInstanceName;
+    let engineInstanceName = engineName || this.__defaultEngineInstanceName;
     // Promise.all here will not work, we need to do this sequentially.
     const engineInstance = await this.getEngineInstance(engineName);
-    engineInstanceName = engineName || this.defaultEngineInstanceName;
+    engineInstanceName = engineName || this.__defaultEngineInstanceName;
     const dataAsAnArray = Array.isArray(data)
       ? data
       : ([data] as ModelFieldsWithIncludes<
@@ -413,14 +427,14 @@ export class Manager<TModel = Model, TEI extends DatabaseAdapter | null = null> 
     const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
     const shouldRemove = typeof args?.shouldRemove === 'boolean' ? args.shouldRemove : true;
     const isValidEngineName = typeof engineName === 'string' && engineName !== '';
-    let engineInstanceName = isValidEngineName ? engineName : this.defaultEngineInstanceName;
+    let engineInstanceName = isValidEngineName ? engineName : this.__defaultEngineInstanceName;
     // Promise.all here will not work, we need to do this sequentially.
     const engineInstance = await this.getEngineInstance(engineInstanceName);
-    engineInstanceName = engineName || this.defaultEngineInstanceName;
+    engineInstanceName = engineName || this.__defaultEngineInstanceName;
 
     const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName = isValidEngineName
       ? engineName
-      : this.defaultEngineInstanceName;
+      : this.__defaultEngineInstanceName;
 
     return removeQuery<
       TModel,
@@ -443,7 +457,7 @@ export class Manager<TModel = Model, TEI extends DatabaseAdapter | null = null> 
         shouldRemove: shouldRemove
       },
       {
-        model: this.models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName],
+        model: this.__models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName],
         engine: engineInstance,
         includes: (args?.includes || []) as TIncludes
       }
@@ -451,4 +465,16 @@ export class Manager<TModel = Model, TEI extends DatabaseAdapter | null = null> 
   }
 }
 
-export class DefaultManager<TModel extends Model> extends Manager<TModel, null> {}
+export class DefaultManager<
+  TModel extends {
+    fields: ModelFieldsType;
+    options?: ModelOptionsType<any>;
+  },
+  TDefinitions extends {
+    engineInstance: DatabaseAdapter;
+    customOptions: any;
+  } = {
+    engineInstance: DatabaseAdapter;
+    customOptions: any;
+  }
+> extends Manager<TModel, TDefinitions> {}

@@ -1,9 +1,11 @@
+import test from 'node:test';
+
 import { ModelCircularAbstractError, ModelNoUniqueFieldsError } from './exceptions';
+import { CharField, type Field, type ForeignKeyField } from './fields';
 import { DefaultManager, Manager } from './manager';
 import { factoryFunctionForModelTranslate, getDefaultModelOptions, indirectlyRelatedModels } from './utils';
 import { getUniqueCustomImports, hashString } from '../utils';
 
-import type { Field, ForeignKeyField } from './fields';
 import type { CustomImportsForFieldType } from './fields/types';
 import type {
   ManagersOfInstanceType,
@@ -17,35 +19,35 @@ import type { DatabaseAdapter } from '../engine';
 import type { ExtractFieldsFromAbstracts, ExtractManagersFromAbstracts } from '../types';
 
 export class BaseModel {
-  className: string = this.constructor.name;
-  stringfiedArgumentsOfEvents = new Set<string>();
-  #eventsUnsubscribers: (() => Promise<void>)[] = [];
+  protected __className = this.constructor.name;
+  protected __stringfiedArgumentsOfEvents = new Set<string>();
+  protected __eventsUnsubscribers: (() => Promise<void>)[] = [];
 
-  static isState = false;
+  protected static __isState = false;
 
   // It would be kinda bad on performance if we always looped through all of the fields of a model to parse them.
   // So we store the fields that have parsers here and we will
   // loop through it here.
-  static fieldParsersByEngine = new Map<
+  protected static __fieldParsersByEngine = new Map<
     string,
     {
       input: string[];
       output: string[];
     }
   >();
-  static associations: {
+  protected static __associations: {
     [modelName: string]: ForeignKeyField<any, any>[];
   } = {};
   // This model uses other models as ForeignKey
-  static directlyRelatedTo: { [modelName: string]: string[] } = {};
+  protected static __directlyRelatedTo: { [modelName: string]: string[] } = {};
   // Other models use this model as ForeignKey
-  static indirectlyRelatedTo: { [modelName: string]: string[] } = {};
-  static indirectlyRelatedModels = indirectlyRelatedModels;
-  static primaryKeys: string[] = [];
-  static domainName: string;
-  static domainPath: string;
+  protected static __indirectlyRelatedTo: { [modelName: string]: string[] } = {};
+  protected static __indirectlyRelatedModels = indirectlyRelatedModels;
+  protected static __primaryKeys: string[] = [];
+  protected static __domainName: string;
+  protected static __domainPath: string;
 
-  static __lazyFields?: ModelFieldsType = {};
+  protected static __lazyFields?: ModelFieldsType = {};
   protected static __cachedHashedName?: string;
   protected static __cachedName: string;
 
@@ -56,7 +58,7 @@ export class BaseModel {
   protected static __cachedManagers: ManagersOfInstanceType | undefined = undefined;
   protected static __hasLoadedAbstracts = false;
   protected static __instance: Model & BaseModel;
-  static _initialized: { [engineName: string]: any } = {};
+  protected static __initialized: { [engineName: string]: any } = {};
 
   constructor() {
     const baseModelConstructor = this.constructor as typeof BaseModel & typeof Model;
@@ -70,7 +72,7 @@ export class BaseModel {
   }
 
   // eslint-disable-next-line ts/require-await
-  async #initializeManagers(
+  protected async __initializeManagers(
     engineInstance: DatabaseAdapter,
     modelInstance: Model & BaseModel,
     translatedModelInstance: {
@@ -99,7 +101,7 @@ export class BaseModel {
    *
    * @param engineInstance - The current engine instance we are initializing this model instance
    */
-  async #initializeEvents(engineInstance: DatabaseAdapter) {
+  protected async __initializeEvents(engineInstance: DatabaseAdapter) {
     // eslint-disable-next-line ts/no-unnecessary-condition
     if (!engineInstance) return;
     // eslint-disable-next-line ts/no-unnecessary-condition
@@ -127,22 +129,22 @@ export class BaseModel {
             ? (modelInstance.options[operationType] as any).preventCallerToBeTheHandled
             : undefined;
 
-      const eventNameToUse = `${modelConstructor.hashedName()}.${operationType}`;
+      const eventNameToUse = `${modelConstructor['__hashedName']()}.${operationType}`;
       const eventEmitter = await Promise.resolve(engineInstance.databaseSettings.events.emitter);
-      this.#eventsUnsubscribers.push(
+      this.__eventsUnsubscribers.push(
         await eventEmitter.addEventListenerWithoutResult(
           eventNameToUse,
           async (engineInstanceName: string, args: Parameters<onSetFunction | onRemoveFunction>) => {
             const isCallerDifferentThanHandler = engineInstanceName !== existingEngineInstanceName;
             const argsAsString = JSON.stringify(args);
             // This will prevent the event to be triggered twice for the same set of arguments.
-            this.stringfiedArgumentsOfEvents.add(argsAsString);
+            this.__stringfiedArgumentsOfEvents.add(argsAsString);
 
             if (isToPreventCallerToBeTheHandled && isCallerDifferentThanHandler)
               await Promise.resolve(eventHandler(args as any));
             else if (!isToPreventCallerToBeTheHandled) await Promise.resolve(eventHandler(args as any));
 
-            this.stringfiedArgumentsOfEvents.delete(argsAsString);
+            this.__stringfiedArgumentsOfEvents.delete(argsAsString);
           }
         )
       );
@@ -152,7 +154,7 @@ export class BaseModel {
   /**
    * Initializes the model and returns the model instance for the current engine instance that is being used.
    */
-  static async _init(
+  protected static async __init(
     engineInstance: DatabaseAdapter,
     domainName: string,
     domainPath: string,
@@ -161,12 +163,12 @@ export class BaseModel {
       forceTranslate?: boolean;
     }
   ) {
-    if (this._initialized[engineInstance.connectionName]) return this._initialized[engineInstance.connectionName];
+    if (this.__initialized[engineInstance.connectionName]) return this.__initialized[engineInstance.connectionName];
 
     const currentPalmaresModelInstance = new this() as Model & BaseModel;
 
-    this.domainName = domainName;
-    this.domainPath = domainPath;
+    this.__domainName = domainName;
+    this.__domainPath = domainPath;
 
     const functionToCallToTranslateModel = factoryFunctionForModelTranslate(
       engineInstance,
@@ -176,7 +178,7 @@ export class BaseModel {
     );
     const [initializedModelInstance, _] = await Promise.all([
       functionToCallToTranslateModel(),
-      currentPalmaresModelInstance.#initializeEvents(engineInstance)
+      currentPalmaresModelInstance.__initializeEvents(engineInstance)
     ]);
     const translated = {
       instance: initializedModelInstance,
@@ -185,8 +187,8 @@ export class BaseModel {
       }
     };
 
-    await currentPalmaresModelInstance.#initializeManagers(engineInstance, currentPalmaresModelInstance, translated);
-    (this.constructor as typeof BaseModel)._initialized = {
+    await currentPalmaresModelInstance.__initializeManagers(engineInstance, currentPalmaresModelInstance, translated);
+    (this.constructor as typeof BaseModel).__initialized = {
       [engineInstance.connectionName]: translated
     };
     return translated;
@@ -204,7 +206,7 @@ export class BaseModel {
    * @returns - Returns true if the models are equal and false otherwise.
    */
   // eslint-disable-next-line ts/require-await
-  async _compareModels(model: Model & BaseModel): Promise<boolean> {
+  protected async __compareModels(model: Model & BaseModel): Promise<boolean> {
     const currentModel = this as unknown as Model & BaseModel;
     return (
       currentModel.options?.abstract === model.options?.abstract &&
@@ -222,7 +224,7 @@ export class BaseModel {
    *
    * This is useful for getting the managers from an abstract model class.
    */
-  static __getManagers() {
+  protected static __getManagers() {
     if (this.__hasLoadedManagers !== true) {
       this.__hasLoadedManagers = true;
       const managers: ManagersOfInstanceType = {};
@@ -320,15 +322,15 @@ export class BaseModel {
    * able to know which models relates to this model.
    */
   protected static __initializeRelatedToModels() {
-    const originalModelName = this.originalName();
-    if (originalModelName in this.indirectlyRelatedModels) {
-      this.indirectlyRelatedTo = this.indirectlyRelatedModels[originalModelName];
+    const originalModelName = this.__originalName();
+    if (originalModelName in this.__indirectlyRelatedModels) {
+      this.__indirectlyRelatedTo = this.__indirectlyRelatedModels[originalModelName];
     } else {
-      this.indirectlyRelatedModels.$set[originalModelName] = this.__initializeRelatedToModels.bind(this);
+      this.__indirectlyRelatedModels.$set[originalModelName] = this.__initializeRelatedToModels.bind(this);
     }
   }
 
-  static _options(modelInstance?: any) {
+  protected static _options(modelInstance?: any) {
     // this and typeof Model means pretty much the same thing here.
     if (!modelInstance) modelInstance = new this() as Model & BaseModel;
 
@@ -350,7 +352,7 @@ export class BaseModel {
     return this.__cachedOptions;
   }
 
-  static _fields(modelInstance?: any) {
+  protected static _fields(modelInstance?: any) {
     // 'this' and typeof Model means pretty much the same thing here.
     if (!modelInstance) modelInstance = new this() as Model & BaseModel;
     const modelInstanceAsModel = modelInstance as Model & BaseModel;
@@ -379,11 +381,12 @@ export class BaseModel {
     return this.__cachedFields;
   }
 
-  static originalName() {
+  protected static __originalName() {
     if (typeof this.__cachedOriginalName === 'string') return this.__cachedOriginalName;
 
-    if (this.isState) this.__cachedOriginalName = this.name;
-    else this.__cachedOriginalName = (typeof this.originalName === 'string' ? this.originalName : this.name) as string;
+    if (this.__isState) this.__cachedOriginalName = this.name;
+    else
+      this.__cachedOriginalName = (typeof this.__originalName === 'string' ? this.__originalName : this.name) as string;
     return this.__cachedOriginalName;
   }
 
@@ -395,10 +398,10 @@ export class BaseModel {
    * 1. The state model, built from the migration files.
    * 2. The original model.
    */
-  static getName() {
+  protected static __getName() {
     if (typeof this.__cachedName === 'string') return this.__cachedName;
 
-    if (this.isState) this.__cachedName = `State${this.name}`;
+    if (this.__isState) this.__cachedName = `State${this.name}`;
     else this.__cachedName = this.name;
     return this.__cachedName;
   }
@@ -410,15 +413,15 @@ export class BaseModel {
    *
    * @returns - The hashed name of the model.
    */
-  static hashedName() {
-    const originalModelName = this.originalName();
+  protected static __hashedName() {
+    const originalModelName = this.__originalName();
     if (this.__cachedHashedName === undefined) {
       this.__cachedHashedName = hashString(originalModelName);
     }
     return this.__cachedHashedName;
   }
 
-  static async _fieldsToString(
+  protected static async __fieldsToString(
     indentation = 0,
     fields: ModelFieldsType
   ): Promise<{ asString: string; customImports: CustomImportsForFieldType[] }> {
@@ -448,7 +451,7 @@ export class BaseModel {
   }
 
   // eslint-disable-next-line ts/require-await
-  static async _optionsToString(indentation = 0, options: ModelOptionsType) {
+  protected static async __optionsToString(indentation = 0, options: ModelOptionsType) {
     const ident = '  '.repeat(indentation);
     const optionsIndent = '  '.repeat(indentation + 1);
 
@@ -569,46 +572,90 @@ const BaseModelWithoutMethods = BaseModel as unknown as { new (): Pick<BaseModel
  * you can have the hole power of linting VSCode and other IDEs give you.
  */
 export class Model extends BaseModelWithoutMethods {
-  $$type = '$PModel';
+  protected $$type = '$PModel';
   static [managers: string]: Manager | ((...args: any) => any) | ModelFieldsType;
   fields: ModelFieldsType = {};
   options: ModelOptionsType<any> | undefined = undefined;
   abstracts: readonly (typeof Model | ReturnType<typeof model>)[] = [] as const;
 }
 
+type ModelType<
+  TModel,
+  TDefinitions extends {
+    engineInstance: DatabaseAdapter;
+    customOptions: any;
+  } = {
+    engineInstance: DatabaseAdapter;
+    customOptions: any;
+  }
+> = {
+  default: DefaultManager<
+    TModel extends { fields: infer TFields } ? (TFields extends ModelFieldsType ? { fields: TFields } : any) : any
+  >;
+
+  appendFields: <TOtherFields extends ModelFieldsType>(
+    fields: TOtherFields
+  ) => ModelType<TModel & { fields: TOtherFields }, TDefinitions>;
+
+  setCustomOptions: <
+    TCustomOptions extends Parameters<TDefinitions['engineInstance']['models']['translate']>[4]['customOptions']
+  >(
+    customOptions: TCustomOptions
+  ) => ModelType<TModel, { engineInstance: TDefinitions['engineInstance']; customOptions: TCustomOptions }>;
+
+  setManagers: <TManagers extends Record<string, Manager<any>>>(
+    managers: TManagers
+  ) => ModelType<TModel, TDefinitions> & TManagers;
+
+  new (): {
+    fields: TModel extends { fields: infer TFields } ? TFields : any;
+    options: ModelOptionsType<any>;
+  };
+};
+
 /**
  * This function is needed so we can add the type to the DefaultManager. This will help keeping the API simple for the
  * end user without complicating too much stuff.
  */
-export function model<TModel>() {
+export function model<
+  TModel,
+  TDefinitions extends {
+    engineInstance: DatabaseAdapter;
+    customOptions: any;
+  } = {
+    engineInstance: DatabaseAdapter;
+    customOptions: any;
+  }
+>(): ModelType<TModel, TDefinitions> {
   let defaultManagerInstance: any = null;
 
-  class DefaultModel extends Model {
-    static isState = false;
+  class BaseDefaultModel extends Model {
+    protected static __isState = false;
     // It would be kinda bad on performance if we always looped through all of the fields of a model to parse them.
     // So we store the fields that have parsers here and we will
     // loop through it here.
-    static fieldParsersByEngine = new Map<
+    protected static __fieldParsersByEngine = new Map<
       string,
       {
         input: string[];
         output: string[];
       }
     >();
-    static associations: {
+    protected static __associations: {
       [modelName: string]: ForeignKeyField<any, any>[];
     } = {};
     // This model uses other models as ForeignKey
-    static directlyRelatedTo: { [modelName: string]: string[] } = {};
+    protected static __directlyRelatedTo: { [modelName: string]: string[] } = {};
     // Other models use this model as ForeignKey
-    static indirectlyRelatedTo: { [modelName: string]: string[] } = {};
-    static primaryKeys: string[] = [];
+    protected static __indirectlyRelatedTo: { [modelName: string]: string[] } = {};
+    protected static __primaryKeys: string[] = [];
 
-    static __lazyFields?: ModelFieldsType = {};
-    static __hasLoadedManagers = false;
-    static __hasLoadedAbstracts = false;
-    static _initialized: { [engineName: string]: any } = {};
-
+    protected static __lazyFields?: ModelFieldsType = {};
+    protected static __hasLoadedManagers = false;
+    protected static __hasLoadedAbstracts = false;
+    protected static __initialized: { [engineName: string]: any } = {};
+  }
+  class DefaultModel extends BaseDefaultModel {
     static get default() {
       if (defaultManagerInstance === null) {
         defaultManagerInstance = new DefaultManager<TModel extends DefaultModel ? TModel : any>();
@@ -625,18 +672,25 @@ export function model<TModel>() {
       const modelConstructor = this as unknown as typeof Model & typeof BaseModel;
       const allFieldEntries = Object.entries(fields);
       for (const [fieldName, field] of allFieldEntries) {
-        if (modelConstructor.__lazyFields?.[fieldName]) {
-          modelConstructor.__lazyFields[fieldName] = field;
+        if (modelConstructor['__lazyFields']?.[fieldName]) {
+          modelConstructor['__lazyFields'][fieldName] = field;
         }
       }
 
-      return this as unknown as ReturnType<typeof model<TModel & { fields: TOtherFields }>> & {
-        new (): TModel & { fields: TOtherFields };
-      };
+      return this as unknown as any;
+    }
+
+    static setManagers<TManagers extends Record<string, Manager<any>>>(
+      managers: TManagers
+    ): ModelType<TModel, TDefinitions> & TManagers {
+      for (const [managerName, managerInstance] of Object.entries(managers)) {
+        (this as any)[managerName] = managerInstance;
+      }
+      return this as any;
     }
   }
 
-  return DefaultModel as unknown as typeof DefaultModel;
+  return DefaultModel as any;
 }
 
 /**
@@ -673,23 +727,21 @@ export function initialize<
     abstracts?: TAbstracts;
     managers?: TManagers;
   }
-) {
+): ModelType<
+  {
+    fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
+  } & (TOptions extends undefined ? unknown : { options: TOptions })
+> &
+  (TManagers extends undefined
+    ? unknown
+    : ExtractManagersFromAbstracts<TAbstracts> & {
+        [TManagerName in keyof TManagers]:
+          | Manager<any>
+          | {
+              [TFunctionName in keyof TManagers[TManagerName]]: TManagers[TManagerName][TFunctionName];
+            };
+      }) {
   type ModelFields = TFields & ExtractFieldsFromAbstracts<TAbstracts>;
-  type AllManager = ExtractManagersFromAbstracts<TAbstracts> & {
-    [TManagerName in keyof TManagers]: Manager<
-      ReturnType<
-        typeof model<{
-          fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
-          options: TOptions;
-        }>
-      > & {
-        fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
-        options: TOptions;
-      }
-    > & {
-      [TFunctionName in keyof TManagers[TManagerName]]: TManagers[TManagerName][TFunctionName];
-    };
-  };
   class ModelConstructor extends model<
     ModelConstructor & {
       fields: ModelFields;
@@ -697,35 +749,35 @@ export function initialize<
     }
   >() {
     // @ts-ignore To function correctly we need this
-    static name = modelName;
-    static isState = false;
+    protected static name = modelName;
+    protected static __isState = false;
     // It would be kinda bad on performance if we always looped through all of the fields of a model to parse them.
     // So we store the fields that have parsers here and we will
     // loop through it here.
-    static fieldParsersByEngine = new Map<
+    protected static __fieldParsersByEngine = new Map<
       string,
       {
         input: string[];
         output: string[];
       }
     >();
-    static associations: {
+    protected static __associations: {
       [modelName: string]: ForeignKeyField<any, any>[];
     } = {};
     // This model uses other models as ForeignKey
-    static directlyRelatedTo: { [modelName: string]: string[] } = {};
+    protected static __directlyRelatedTo: { [modelName: string]: string[] } = {};
     // Other models use this model as ForeignKey
-    static indirectlyRelatedTo: { [modelName: string]: string[] } = {};
-    static primaryKeys: string[] = [];
+    protected static __indirectlyRelatedTo: { [modelName: string]: string[] } = {};
+    protected static __primaryKeys: string[] = [];
 
-    static __lazyFields?: ModelFieldsType = {};
-    static __hasLoadedManagers = false;
-    static __hasLoadedAbstracts = false;
-    static _initialized: { [engineName: string]: any } = {};
+    protected static __lazyFields?: ModelFieldsType = {};
+    protected static __hasLoadedManagers = false;
+    protected static __hasLoadedAbstracts = false;
+    protected static __initialized: { [engineName: string]: any } = {};
 
-    static __cachedName = modelName;
-    static __cachedOriginalName = modelName;
-    static __cachedManagers = {};
+    protected static __cachedName = modelName;
+    protected static __cachedOriginalName = modelName;
+    protected static __cachedManagers = {};
 
     fields = args.fields as ModelFields;
     options = args.options as TOptions;
@@ -744,5 +796,28 @@ export function initialize<
     (ModelConstructor as any).__cachedManagers[managerName] = managerInstance;
   }
 
-  return ModelConstructor as typeof ModelConstructor & AllManager;
+  return ModelConstructor as any;
 }
+
+class Test extends Manager<InstanceType<typeof baseUserInstance>> {
+  createUser(aqui: string) {
+    return this.get({ fields: ['lastName'] });
+  }
+}
+
+class User extends model<User, any>() {
+  fields = {
+    firstName: CharField.new({ maxLen: 12 })
+  };
+
+  static teste = new Test();
+}
+
+const baseUserInstance = initialize('User', {
+  fields: {
+    lastName: CharField.new({ maxLen: 12 })
+  },
+  options: {
+    tableName: 'user'
+  }
+});

@@ -1,4 +1,5 @@
 import type { Field } from './field';
+import type { ForeignKeyField } from './foreign-key';
 
 export type ToStringCallback = (
   field: Field<any, any>,
@@ -35,15 +36,17 @@ export type TCompareCallback = (
   existingField: Field<any, any>,
   newField: Field<any, any>,
   defaultCompareCallback: TCompareCallback
-) => Promise<[boolean, string[]]>;
+) => [boolean, string[]];
 
 // eslint-disable-next-line ts/require-await
-export async function defaultCompareCallback(
+export function defaultCompareCallback(
   existingField: Parameters<TCompareCallback>[0],
   newField: Parameters<TCompareCallback>[1],
   _: Parameters<TCompareCallback>[2]
-): Promise<[boolean, string[]]> {
-  const isTypeNameEqual = existingField['__typeName'] === newField['__typeName'];
+): [boolean, string[]] {
+  const isTypeNameEqual =
+    (existingField.constructor as typeof Field<any, any>)['__typeName'] ===
+    (newField.constructor as typeof Field<any, any>)['__typeName'];
   const isAllowNullEqual = existingField['__allowNull'] === newField['__allowNull'];
   const isCustomAttributesEqual =
     JSON.stringify(existingField['__customAttributes']) === JSON.stringify(newField['__customAttributes']);
@@ -71,10 +74,10 @@ export type TOptionsCallback = (
   oldField: Field<any, any>,
   newField: Field<any, any>,
   defaultOptionsCallback: TOptionsCallback
-) => Promise<void>;
+) => void;
 
 // eslint-disable-next-line ts/require-await
-export async function defaultOptionsCallback(
+export function defaultOptionsCallback(
   oldField: Parameters<TOptionsCallback>[0],
   newField: Parameters<TOptionsCallback>[1],
   _: Parameters<TOptionsCallback>[2]
@@ -88,17 +91,31 @@ export async function defaultOptionsCallback(
   newField['__underscored'] = oldField['__underscored'];
   newField['__unique'] = oldField['__unique'];
   newField['__isAuto'] = oldField['__isAuto'];
+  newField['__fieldName'] = oldField['__fieldName'];
+  newField['__model'] = oldField['__model'];
+  newField['__customAttributes'] = oldField['__customAttributes'];
 }
 
 export type NewInstanceArgumentsCallback = (
   field: Field<any, any>,
   defaultNewInstanceArgumentsCallback: NewInstanceArgumentsCallback
-) => Promise<any[]>;
+) => any[];
 
 // eslint-disable-next-line ts/require-await
-export async function defaultNewInstanceArgumentsCallback(
+export function defaultNewInstanceArgumentsCallback(
   _: Parameters<NewInstanceArgumentsCallback>[0],
   __: Parameters<NewInstanceArgumentsCallback>[1]
-): Promise<any[]> {
+): any[] {
   return [];
+}
+
+export function getRelatedToAsString(field: ForeignKeyField<any, any>) {
+  const relatedTo = field['__relatedTo'];
+  const relatedToAsString = field['__relatedToAsString'];
+
+  if (typeof relatedToAsString !== 'string') {
+    if (typeof relatedTo === 'function') field['__relatedToAsString'] = relatedTo().getName();
+    else if (typeof relatedTo === 'string') field['__relatedToAsString'] = relatedTo;
+    else field['__relatedToAsString'] = relatedTo.getName();
+  }
 }

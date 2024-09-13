@@ -1,16 +1,15 @@
 import { Field } from './field';
 
-import type { FieldDefaultParamsType, MaybeNull } from './types';
-import type { This } from '../../types';
+import type { CustomImportsForFieldType } from './types';
+import type { NewInstanceArgumentsCallback, TCompareCallback, TOptionsCallback, ToStringCallback } from './utils';
+import type { AdapterFieldParser, DatabaseAdapter } from '../..';
 
 /**
- * Functional approach for the creation of an BigAutoField instance. An BigAutoField is a
- * field that is used as the primary key of the database.
+ * Functional approach for the creation of an BigAutoField instance. An BigAutoField is a field that
+ * is used as the primary key of the database.
  *
- * A bigAuto field is similar to an AutoField, except that it should support bigger numbers.
- *
- * We recommend just using one BigAutoField per model (or BigAutoField) because you might face
- * some issues with certain ORM's. For ALL use cases, this
+ * We recommend just using one BigAutoField per model (or AutoField) because you might face some
+ * issues with certain ORM's. For ALL use cases, this
  * field should be an integer.
  *
  * @example
@@ -20,31 +19,35 @@ import type { This } from '../../types';
  *
  * @example
  * ```
- * const bigAutoField = bigAuto({ databaseName: 'user_id' });
+ * const bigAutoField = bigAuto();
  * ```
  */
-export function bigAuto<
-  TDefaultValue extends MaybeNull<BigAutoField['_type']['input'] | undefined, TNull> = undefined,
-  TUnique extends boolean = false,
-  TNull extends boolean = false,
-  TAuto extends boolean = false,
-  TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any
->(
-  params: Omit<
-    FieldDefaultParamsType<BigAutoField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>,
-    'primaryKey' | 'allowNull' | 'unique' | 'dbIndex' | 'isAuto'
-  > = {}
-) {
-  return BigAutoField.new(params);
+export function bigAuto(): BigAutoField<
+  {
+    create: number | undefined | null;
+    read: number;
+    update: number | undefined | null;
+  },
+  {
+    unique: true;
+    allowNull: true;
+    dbIndex: true;
+    underscored: true;
+    isPrimaryKey: true;
+    auto: true;
+    defaultValue: undefined;
+    typeName: string;
+    databaseName: undefined;
+    engineInstance: DatabaseAdapter;
+    customAttributes: any;
+  }
+> {
+  return BigAutoField.new();
 }
 
 /**
- * We recommend just using one BigAutoField per model (or AutoField) because you might face some
- * issues with certain ORM's. For ALL use cases, this
- * field should be an integer.
- *
- * A BigAutoField is similar to an AutoField, except that it should support bigger numbers.
+ * We recommend just using one AutoField per model (or BigAutoField) because you might face some
+ * issues with certain ORM's. For ALL use cases, this field should be an integer.
  *
  * @example
  * ```ts
@@ -57,161 +60,543 @@ export function bigAuto<
  * ```
  */
 export class BigAutoField<
-  TType extends { input: bigint | number; output: bigint | number } = {
-    input: bigint | number;
-    output: bigint | number;
+  TType extends { create: any; read: any; update: any } = {
+    create: bigint | number | undefined | null;
+    read: bigint | number;
+    update: bigint | number | undefined | null;
   },
-  TField extends Field = any,
-  TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,
-  TUnique extends boolean = false,
-  TNull extends boolean = false,
-  TAuto extends boolean = false,
-  TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any
-> extends Field<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
+  TDefinitions extends {
+    unique: boolean;
+    auto: boolean;
+    allowNull: boolean;
+    dbIndex: boolean;
+    isPrimaryKey: boolean;
+    defaultValue: undefined;
+    underscored: boolean;
+    typeName: string;
+    databaseName: string | undefined;
+    engineInstance: DatabaseAdapter;
+    customAttributes: any;
+  } & Record<string, any> = {
+    unique: true;
+    allowNull: true;
+    dbIndex: true;
+    underscored: true;
+    isPrimaryKey: true;
+    auto: true;
+    defaultValue: undefined;
+    typeName: string;
+    databaseName: undefined;
+    engineInstance: DatabaseAdapter;
+    customAttributes: any;
+  }
+> extends Field<TType, TDefinitions> {
   protected $$type = '$PBigAutoField';
-  declare _type: TType;
-  typeName: string = BigAutoField.name;
+  protected static __typeName = 'BigAutoField';
+  protected __isAuto = true;
+  protected __hasDefaultValue = false;
+  protected __primaryKey = true;
+  protected __defaultValue = undefined;
+  protected __allowNull = true;
+  protected __unique = true;
+  protected __dbIndex = true;
+  protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
+  protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+
+  unique!: never;
+  auto!: never;
+  allowNull!: never;
+  primaryKey!: never;
+  dbIndex!: never;
+  default!: never;
 
   /**
-   * @deprecated Either use the `bigAuto` function or the `BigAutoField.new` static method.
-   * Never create an instance of this class directly.
+   * Supposed to be used by library maintainers.
+   *
+   * When you custom create a field, you might want to take advantage of the builder pattern we already support.
+   * This let's you create functions that can be chained together to create a new field. It should be used
+   * alongside the `_setPartialAttributes` method like
+   *
+   * @example
+   * ```ts
+   * const customBigInt = TextField.overrideType<
+   *   { create: bigint; read: bigint; update: bigint },
+   *   {
+   *       customAttributes: { name: string };
+   *       unique: boolean;
+   *       auto: boolean;
+   *       allowNull: true;
+   *       dbIndex: boolean;
+   *       isPrimaryKey: boolean;
+   *       defaultValue: any;
+   *       typeName: string;
+   *       engineInstance: DatabaseAdapter;
+   *   }
+   * >({
+   *   typeName: 'CustomBigInt'
+   * });
+   *
+   * const customBuilder = () => {
+   *   const field = textField.new();
+   *   class Builder {
+   *     test<TTest extends { age: number }>(param: TTest) {
+   *       return field
+   *         ._setPartialAttributes<{ create: TTest }, { create: 'union' }>()(param)
+   *         ._setNewBuilderMethods<Builder>();
+   *     }
+   *     value<const TValue extends string>(value: TValue) {
+   *       return field
+   *         ._setPartialAttributes<{ create: TValue }, { create: 'replace' }>()(value)
+   *         ._setNewBuilderMethods<Builder>();
+   *     }
+   *   }
+   *
+   *   const builder = new Builder();
+   *   return field._setNewBuilderMethods(builder);
+   * };
+   *
+   * // Then your user can use it like:
+   *
+   * const field = customBuilder({ name: 'test' }).test({ age: 2 });
+   * ```
+   *
+   * **Important**: `customBuilder` will be used by the end user and you are responsible for documenting it.
    */
-  constructor(
-    params: Omit<
-      FieldDefaultParamsType<BigAutoField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>,
-      'defaultValue' | 'primaryKey' | 'allowNull' | 'unique' | 'dbIndex' | 'isAuto'
-    > = {}
-  ) {
-    super({
-      ...params,
-      primaryKey: true,
-      allowNull: false as TNull,
-      unique: true as TUnique,
-      dbIndex: true,
-      isAuto: true as TAuto
-    });
+  _setNewBuilderMethods<const TFunctions extends InstanceType<any>>(
+    functions?: TFunctions
+  ): BigAutoField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    }
+  > &
+    TFunctions {
+    if (functions === undefined) return this as any;
+    const propertiesOfBase = Object.getOwnPropertyNames(Object.getPrototypeOf(functions));
+    for (const key of propertiesOfBase) {
+      if (key === 'constructor') continue;
+      (this as any)[key] = (functions as any)[key].bind(this);
+    }
+
+    return this as any;
   }
 
-  // eslint-disable-next-line ts/require-await
-  async toString(indentation = 0, customParams: string | undefined = undefined): Promise<string> {
-    const ident = '  '.repeat(indentation);
-    const fieldParamsIdent = '  '.repeat(indentation + 1);
-    return (
-      `${ident}models.fields.${this.constructor.name}.new({` +
-      `${customParams ? `\n${customParams}` : ''}\n` +
-      `${fieldParamsIdent}databaseName: "${this.databaseName}",\n` +
-      `${fieldParamsIdent}underscored: ${this.underscored},\n` +
-      `${fieldParamsIdent}customAttributes: ${JSON.stringify(this.customAttributes)}\n` +
-      `${ident}})`
-    );
+  /**
+   * FOR LIBRARY MAINTAINERS ONLY
+   *
+   * Focused for library maintainers that want to support a custom field type not supported by palmares.
+   * This let's them partially update the custom attributes of the field. By default setCustomAttributes
+   * will override the custom attributes entirely.
+   */
+  _setPartialAttributes<
+    TNewType extends { create?: any; read?: any; update?: any },
+    TActions extends {
+      create?: 'merge' | 'union' | 'replace';
+      read?: 'merge' | 'union' | 'replace';
+      update?: 'merge' | 'union' | 'replace';
+    }
+  >(): <const TCustomPartialAttributes>(partialCustomAttributes: TCustomPartialAttributes) => BigAutoField<
+    {
+      create: TActions['create'] extends 'merge'
+        ? TType['create'] & TNewType['create']
+        : TActions['create'] extends 'union'
+          ? TType['create'] | TNewType['create']
+          : TActions['create'] extends 'replace'
+            ? TNewType['create']
+            : TType['create'];
+      read: TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read'];
+      update: TActions['update'] extends 'merge'
+        ? TType['update'] & TNewType['update']
+        : TActions['update'] extends 'union'
+          ? TType['update'] | TNewType['update']
+          : TActions['update'] extends 'replace'
+            ? TNewType['update']
+            : TType['update'];
+    },
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'] & TCustomPartialAttributes;
+    }
+  > {
+    return (partialCustomAttributes) => {
+      if (partialCustomAttributes !== undefined) {
+        if ((this.__customAttributes as any) === undefined) this.__customAttributes = {} as any;
+        this.__customAttributes = { ...this.__customAttributes, ...partialCustomAttributes };
+      }
+      return this as any;
+    };
+  }
+
+  setCustomAttributes<
+    const TCustomAttributes extends Parameters<
+      TDefinitions['engineInstance']['fields']['bigAutoFieldParser']['translate']
+    >[0]['customAttributes']
+  >(customAttributes: TCustomAttributes) {
+    return super.setCustomAttributes(customAttributes) as unknown as BigAutoField<
+      TType,
+      {
+        [TKey in Exclude<
+          keyof TDefinitions,
+          | 'underscored'
+          | 'allowNull'
+          | 'dbIndex'
+          | 'unique'
+          | 'isPrimaryKey'
+          | 'auto'
+          | 'defaultValue'
+          | 'databaseName'
+          | 'typeName'
+          | 'engineInstance'
+          | 'customAttributes'
+        >]: TDefinitions[TKey];
+      } & {
+        unique: TDefinitions['unique'];
+        allowNull: TDefinitions['allowNull'];
+        dbIndex: TDefinitions['dbIndex'];
+        underscored: TDefinitions['underscored'];
+        isPrimaryKey: TDefinitions['isPrimaryKey'];
+        auto: TDefinitions['auto'];
+        defaultValue: TDefinitions['defaultValue'];
+        databaseName: TDefinitions['databaseName'];
+        typeName: TDefinitions['typeName'];
+        engineInstance: TDefinitions['engineInstance'];
+        customAttributes: TCustomAttributes;
+      }
+    >;
+  }
+
+  underscored<TUnderscored extends boolean = true>(
+    isUnderscored?: TUnderscored
+  ): BigAutoField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TUnderscored;
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    }
+  > {
+    return super.underscored(isUnderscored) as unknown as BigAutoField<
+      TType,
+      {
+        [TKey in Exclude<
+          keyof TDefinitions,
+          | 'underscored'
+          | 'allowNull'
+          | 'dbIndex'
+          | 'unique'
+          | 'isPrimaryKey'
+          | 'auto'
+          | 'defaultValue'
+          | 'databaseName'
+          | 'typeName'
+          | 'engineInstance'
+          | 'customAttributes'
+        >]: TDefinitions[TKey];
+      } & {
+        unique: TDefinitions['unique'];
+        allowNull: TDefinitions['allowNull'];
+        dbIndex: TDefinitions['dbIndex'];
+        underscored: TUnderscored;
+        isPrimaryKey: TDefinitions['isPrimaryKey'];
+        auto: TDefinitions['auto'];
+        defaultValue: TDefinitions['defaultValue'];
+        databaseName: TDefinitions['databaseName'];
+        typeName: TDefinitions['typeName'];
+        engineInstance: TDefinitions['engineInstance'];
+        customAttributes: TDefinitions['customAttributes'];
+      }
+    >;
+  }
+
+  databaseName<TDatabaseName extends string>(
+    databaseName: TDatabaseName
+  ): BigAutoField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDatabaseName;
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    }
+  > {
+    return super.databaseName(databaseName) as unknown as BigAutoField<
+      TType,
+      {
+        [TKey in Exclude<
+          keyof TDefinitions,
+          | 'underscored'
+          | 'allowNull'
+          | 'dbIndex'
+          | 'unique'
+          | 'isPrimaryKey'
+          | 'auto'
+          | 'defaultValue'
+          | 'databaseName'
+          | 'typeName'
+          | 'engineInstance'
+          | 'customAttributes'
+        >]: TDefinitions[TKey];
+      } & {
+        unique: TDefinitions['unique'];
+        allowNull: TDefinitions['allowNull'];
+        dbIndex: TDefinitions['dbIndex'];
+        underscored: TDefinitions['underscored'];
+        isPrimaryKey: TDefinitions['isPrimaryKey'];
+        auto: TDefinitions['auto'];
+        defaultValue: TDefinitions['defaultValue'];
+        databaseName: TDatabaseName;
+        typeName: TDefinitions['typeName'];
+        engineInstance: TDefinitions['engineInstance'];
+        customAttributes: TDefinitions['customAttributes'];
+      }
+    >;
   }
 
   /**
    * This method can be used to override the type of a field. This is useful for library
    * maintainers that want to support the field type but the default type provided by palmares
-   * is not the one that the database engine supports.
-   *
-   * @example
-   * ```ts
-   * const MyCustomDatabaseAutoField = BigAutoField.overrideType<string>();
-   *
-   * // then the user can use as normal:
-   *
-   * const bigAutoField = MyCustomDatabaseAutoField.new();
-   *
-   * // now the type inferred for the field will be a string instead of a number.
-   * ```
-   *
-   * @example
-   * ```ts
-   * class MyCustomDatabaseEngineBigAutoFieldParser extends EngineBigAutoFieldParser {
-   *    static getFieldClass() {
-   *       return BigAutoField.overrideType<string>();
-   *    }
-   * }
-   *
-   * // then the user can use like:
-   *
-   * const bigAutoField = MyCustomDatabaseEngineBigAutoFieldParser.getFieldClass().new();
-   * ```
+   * is not the one that the user want to use.
    *
    * ### Note
    *
    * Your library should provide documentation of the fields that are supported.
    */
-  static overrideType<TNewType extends { input: any; output: any }>() {
-    return this as unknown as {
-      new: <
-        // eslint-disable-next-line no-shadow
-        TDefaultValue extends MaybeNull<TNewType['input'] | undefined, TNull> = undefined,
-        // eslint-disable-next-line no-shadow
-        TUnique extends boolean = false,
-        // eslint-disable-next-line no-shadow
-        TNull extends boolean = false,
-        // eslint-disable-next-line no-shadow
-        TAuto extends boolean = false,
-        // eslint-disable-next-line no-shadow
-        TDatabaseName extends string | null | undefined = undefined,
-        // eslint-disable-next-line no-shadow
-        TCustomAttributes = any
-      >(
-        params?: Omit<
-          FieldDefaultParamsType<BigAutoField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>,
-          'defaultValue' | 'primaryKey' | 'allowNull' | 'unique' | 'dbIndex' | 'isAuto'
-        >
-      ) => BigAutoField<TNewType, BigAutoField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;
-    };
+  static overrideType<
+    TNewType extends { create: any; update: any; read: any },
+    TDefinitions extends {
+      customAttributes: any;
+      unique: boolean;
+      auto: boolean;
+      allowNull: boolean;
+      dbIndex: boolean;
+      isPrimaryKey: boolean;
+      defaultValue: any;
+      typeName: string;
+      engineInstance: DatabaseAdapter;
+    }
+  >(args?: {
+    typeName: string;
+    toStringCallback?: ToStringCallback;
+    compareCallback?: TCompareCallback;
+    optionsCallback?: TOptionsCallback;
+    newInstanceCallback?: NewInstanceArgumentsCallback;
+    customImports?: CustomImportsForFieldType[];
+    definitions?: Omit<TDefinitions, 'typeName' | 'engineInstance' | 'customAttributes'>;
+  }): TDefinitions['customAttributes'] extends undefined
+    ? {
+        new: () => BigAutoField<
+          TNewType,
+          {
+            unique: TDefinitions['unique'];
+            auto: TDefinitions['auto'];
+            allowNull: TDefinitions['allowNull'];
+            dbIndex: TDefinitions['dbIndex'];
+            isPrimaryKey: TDefinitions['isPrimaryKey'];
+            defaultValue: TDefinitions['defaultValue'];
+            underscored: boolean;
+            databaseName: string | undefined;
+            engineInstance: TDefinitions['engineInstance'];
+            customAttributes: TDefinitions['customAttributes'];
+            typeName: TDefinitions['typeName'];
+          }
+        >;
+      }
+    : {
+        new: (params: TDefinitions['customAttributes']) => BigAutoField<
+          TNewType,
+          {
+            unique: TDefinitions['unique'];
+            auto: TDefinitions['auto'];
+            allowNull: TDefinitions['allowNull'];
+            dbIndex: TDefinitions['dbIndex'];
+            isPrimaryKey: TDefinitions['isPrimaryKey'];
+            defaultValue: TDefinitions['defaultValue'];
+            underscored: boolean;
+            databaseName: string | undefined;
+            engineInstance: TDefinitions['engineInstance'];
+            customAttributes: TDefinitions['customAttributes'];
+            typeName: TDefinitions['typeName'];
+          }
+        >;
+      } {
+    return super.overrideType(args) as unknown as TDefinitions['customAttributes'] extends undefined
+      ? {
+          new: () => BigAutoField<
+            TNewType,
+            {
+              unique: TDefinitions['unique'];
+              auto: TDefinitions['auto'];
+              allowNull: TDefinitions['allowNull'];
+              dbIndex: TDefinitions['dbIndex'];
+              isPrimaryKey: TDefinitions['isPrimaryKey'];
+              defaultValue: TDefinitions['defaultValue'];
+              underscored: boolean;
+              databaseName: string | undefined;
+              engineInstance: TDefinitions['engineInstance'];
+              typeName: TDefinitions['typeName'];
+              customAttributes: TDefinitions['customAttributes'];
+            }
+          >;
+        }
+      : {
+          new: (params: TDefinitions['customAttributes']) => BigAutoField<
+            TNewType,
+            {
+              unique: TDefinitions['unique'];
+              auto: TDefinitions['auto'];
+              allowNull: TDefinitions['allowNull'];
+              dbIndex: TDefinitions['dbIndex'];
+              isPrimaryKey: TDefinitions['isPrimaryKey'];
+              defaultValue: TDefinitions['defaultValue'];
+              underscored: boolean;
+              databaseName: string | undefined;
+              engineInstance: TDefinitions['engineInstance'];
+              typeName: TDefinitions['typeName'];
+              customAttributes: TDefinitions['customAttributes'];
+            }
+          >;
+        };
   }
 
-  static new<
-    TFieldInstance extends This<typeof BigAutoField>,
-    // eslint-disable-next-line no-shadow
-    TDefaultValue extends MaybeNull<InstanceType<TFieldInstance>['_type']['input'] | undefined, TNull> = undefined,
-    // eslint-disable-next-line no-shadow
-    TUnique extends boolean = true,
-    // eslint-disable-next-line no-shadow
-    TNull extends boolean = false,
-    // eslint-disable-next-line no-shadow
-    TAuto extends boolean = true,
-    // eslint-disable-next-line no-shadow
-    TDatabaseName extends string | null | undefined = undefined,
-    // eslint-disable-next-line no-shadow
-    TCustomAttributes = any
-  >(
-    this: TFieldInstance,
-    params:
-      | Omit<
-          FieldDefaultParamsType<
-            InstanceType<TFieldInstance>,
-            TDefaultValue,
-            TUnique,
-            TNull,
-            TAuto,
-            TDatabaseName,
-            TCustomAttributes
-          >,
-          'defaultValue' | 'primaryKey' | 'allowNull' | 'unique' | 'dbIndex' | 'isAuto'
-        >
-      | FieldDefaultParamsType<
-          InstanceType<TFieldInstance>,
-          TDefaultValue,
-          TUnique,
-          TNull,
-          TAuto,
-          TDatabaseName,
-          TCustomAttributes
-        > = {}
-  ) {
-    return new this(params) as BigAutoField<
-      { input: bigint | number; output: bigint | number },
-      InstanceType<TFieldInstance>,
-      TDefaultValue,
-      TUnique,
-      TNull,
-      TAuto,
-      TDatabaseName,
-      TCustomAttributes
+  static new(..._args: any[]): BigAutoField<
+    {
+      create: number | undefined | null;
+      read: number;
+      update: number | undefined | null;
+    },
+    {
+      unique: true;
+      allowNull: true;
+      dbIndex: true;
+      underscored: true;
+      isPrimaryKey: true;
+      auto: true;
+      defaultValue: undefined;
+      typeName: string;
+      databaseName: undefined;
+      engineInstance: DatabaseAdapter;
+      customAttributes: any;
+    }
+  > {
+    return new this(..._args) as unknown as BigAutoField<
+      {
+        create: number | undefined | null;
+        read: number;
+        update: number | undefined | null;
+      },
+      {
+        unique: true;
+        allowNull: true;
+        dbIndex: true;
+        underscored: true;
+        isPrimaryKey: true;
+        auto: true;
+        defaultValue: undefined;
+        typeName: string;
+        databaseName: undefined;
+        engineInstance: DatabaseAdapter;
+        customAttributes: any;
+      }
     >;
   }
 }

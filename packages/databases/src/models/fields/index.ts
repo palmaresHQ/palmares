@@ -1,7 +1,7 @@
 export { Field } from './field';
 export { DateField, date } from './date';
 export { DecimalField, decimal } from './decimal';
-export { IntegerField, integer } from './integer';
+export { IntegerField, int } from './integer';
 export { BigIntegerField, bigInt } from './big-integer';
 export { CharField, char } from './char';
 export { TextField, text } from './text';
@@ -9,7 +9,7 @@ export { UuidField, uuid } from './uuid';
 export { ForeignKeyField, foreignKey } from './foreign-key';
 export { AutoField, auto } from './auto';
 export { BigAutoField, bigAuto } from './big-auto';
-export { TranslatableField } from './translatable';
+//export { TranslatableField } from './translatable';
 export { BooleanField, bool } from './boolean';
 export { EnumField, choice } from './enum';
 export { ON_DELETE } from './types';

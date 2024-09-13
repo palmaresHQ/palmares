@@ -26,7 +26,7 @@ export const arrayInventorySchema = p.modelSchema(AbstractInventoryItem, {
 export const inventorySchema = p
   .modelSchema(AbstractInventoryItem, {
     fields: {
-      id: p.number().optional().nullable(),
+      id: p.number().optional(),
       imageUrl: p
         .string()
         .minLength(1)
