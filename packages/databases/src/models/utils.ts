@@ -16,8 +16,7 @@ import {
   EnumField,
   ForeignKeyField,
   IntegerField,
-  TextField,
-  TranslatableField
+  TextField
 } from './fields';
 import { UuidField } from './fields/uuid';
 
@@ -89,45 +88,51 @@ async function foreignKeyFieldParser(engine: DatabaseAdapter, field: ForeignKeyF
   const [isRelatedModelFromEngine, fieldToChangeRelationTo] = await field.isRelatedModelFromEngineInstance(engine);
   if (isRelatedModelFromEngine === false) {
     if (fieldToChangeRelationTo) return fieldToChangeRelationTo;
-    else
+    else {
       throw new RelatedModelFromForeignKeyIsNotFromEngineException(
         engine.connectionName,
-        field.relatedTo,
-        field.fieldName,
-        field.model.name,
-        field.toField
+        field['__relatedToAsString'] || '',
+        field['__fieldName'],
+        field['__model']?.['name'] || '',
+        field['__toField']
       );
+    }
   } else return field;
 }
 
 function callTranslateAndAppendInputAndOutputParsersToField(
   connectionName: string,
-  field: Field,
+  field: Field<any, any>,
   engineFieldParser: EngineFieldParser,
   args: Parameters<EngineFieldParser['translate']>[0]
 ) {
   // eslint-disable-next-line ts/no-unnecessary-condition
   if (engineFieldParser) {
     if (engineFieldParser.inputParser) {
-      field.inputParsers.set(connectionName, engineFieldParser.inputParser);
-      const inputParserFieldsOfEngine = field.model.fieldParsersByEngine.get(connectionName)?.input || [];
-      inputParserFieldsOfEngine.push(field.fieldName);
-      field.model.fieldParsersByEngine.set(connectionName, {
+      const fieldConstructor = field.constructor as typeof Field;
+      fieldConstructor['__inputParsers'].set(connectionName, engineFieldParser.inputParser);
+      const inputParserFieldsOfEngine = field['__model']?.['__fieldParsersByEngine'].get(connectionName)?.input || [];
+      inputParserFieldsOfEngine.push(field['__fieldName']);
+      field['__model']?.['__fieldParsersByEngine'].set(connectionName, {
         input: inputParserFieldsOfEngine,
-        output: field.model.fieldParsersByEngine.get(connectionName)?.output || []
+        output: field['__model']['__fieldParsersByEngine'].get(connectionName)?.output || []
       });
     }
     if (engineFieldParser.outputParser) {
-      field.outputParsers.set(connectionName, engineFieldParser.outputParser);
-      const outputParserFieldsOfEngine = field.model.fieldParsersByEngine.get(connectionName)?.output || [];
-      outputParserFieldsOfEngine.push(field.fieldName);
-      field.model.fieldParsersByEngine.set(connectionName, {
-        input: field.model.fieldParsersByEngine.get(connectionName)?.input || [],
+      const fieldConstructor = field.constructor as typeof Field;
+      fieldConstructor['__outputParsers'].set(connectionName, engineFieldParser.outputParser);
+      const outputParserFieldsOfEngine = field['__model']?.['__fieldParsersByEngine'].get(connectionName)?.output || [];
+      outputParserFieldsOfEngine.push(field['__fieldName']);
+      field['__model']?.['__fieldParsersByEngine'].set(connectionName, {
+        input: field['__model']['__fieldParsersByEngine'].get(connectionName)?.input || [],
         output: outputParserFieldsOfEngine
       });
     }
     return engineFieldParser.translate(args);
-  } else throw new EngineDoesNotSupportFieldTypeException(connectionName, field.typeName);
+  } else {
+    const fieldConstructor = field.constructor as typeof Field;
+    throw new EngineDoesNotSupportFieldTypeException(connectionName, fieldConstructor['__typeName']);
+  }
 }
 
 /**
@@ -164,58 +169,64 @@ export async function parse(
     callbackForLazyEvaluation(translatedField, shouldReturnData, field);
   };
 
-  const modelName = field.model.getName();
+  const modelName = field['__model']?.['__getName']() as string;
+  const fieldData = field['__getArguments']();
+  const customAttributes = fieldData['customAttributes'];
+  delete fieldData['customAttributes'];
+  const modelAsBaseModel = model as BaseModel & Model;
 
   const args = {
-    engine,
-    field,
+    engine: engine as any,
+    field: fieldData,
+    customAttributes,
     fieldParser: engineFields.fieldsParser,
     modelName,
-    model,
+    model: modelAsBaseModel['__getModelAttributes'](),
     lazyEvaluate: callbackForLazyEvaluationInsideDefaultParse
   };
 
-  switch (field.typeName) {
+  const fieldConstructor = field.constructor as typeof Field;
+  switch (fieldConstructor['__typeName']) {
     case AutoField.name:
       return callTranslateAndAppendInputAndOutputParsersToField(
         engine.connectionName,
         field,
-        engineFields.autoFieldParser,
+        engineFields.autoFieldParser as any,
         args
       );
     case BigAutoField.name:
       return callTranslateAndAppendInputAndOutputParsersToField(
         engine.connectionName,
         field,
-        engineFields.bigAutoFieldParser,
+        engineFields.bigAutoFieldParser as any,
         args
       );
     case BigIntegerField.name:
       return callTranslateAndAppendInputAndOutputParsersToField(
         engine.connectionName,
         field,
-        engineFields.bigIntegerFieldParser,
+        engineFields.bigIntegerFieldParser as any,
         args
       );
     case CharField.name:
       return callTranslateAndAppendInputAndOutputParsersToField(
         engine.connectionName,
         field,
-        engineFields.charFieldParser,
+        engineFields.charFieldParser as any,
         args
       );
     case DateField.name:
       return callTranslateAndAppendInputAndOutputParsersToField(
         engine.connectionName,
         field,
-        engineFields.dateFieldParser,
+        engineFields.dateFieldParser as any,
         args
       );
     case DecimalField.name:
       return callTranslateAndAppendInputAndOutputParsersToField(
         engine.connectionName,
         field,
-        engineFields.decimalFieldParser,
+        engineFields.decimalFieldParser as any,
         args
       );
     case ForeignKeyField.name: {
@@ -226,51 +237,57 @@ export async function parse(
           return callTranslateAndAppendInputAndOutputParsersToField(
             engine.connectionName,
             fieldToParse as Field,
-            engineFields.foreignKeyFieldParser,
+            engineFields.foreignKeyFieldParser as any,
             args
           );
         } else return parse(engine, engineFields, model, fieldToParse as Field, callbackForLazyEvaluation);
-      } else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
+      } else {
+        const fieldConstructor = field.constructor as typeof Field;
+        throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, fieldConstructor['__typeName']);
+      }
     }
     case IntegerField.name:
       return callTranslateAndAppendInputAndOutputParsersToField(
         engine.connectionName,
         field,
-        engineFields.integerFieldParser,
+        engineFields.integerFieldParser as any,
         args
       );
     case TextField.name:
       return callTranslateAndAppendInputAndOutputParsersToField(
         engine.connectionName,
         field,
-        engineFields.textFieldParser,
+        engineFields.textFieldParser as any,
         args
       );
     case UuidField.name:
       return callTranslateAndAppendInputAndOutputParsersToField(
         engine.connectionName,
         field,
-        engineFields.uuidFieldParser,
+        engineFields.uuidFieldParser as any,
         args
       );
     case EnumField.name:
       return callTranslateAndAppendInputAndOutputParsersToField(
         engine.connectionName,
         field,
-        engineFields.enumFieldParser,
+        engineFields.enumFieldParser as any,
         args
       );
     case BooleanField.name:
       return callTranslateAndAppendInputAndOutputParsersToField(
         engine.connectionName,
         field,
-        engineFields.booleanFieldParser,
+        engineFields.booleanFieldParser as any,
         args
       );
-    case TranslatableField.name:
-      return await (field as TranslatableField).translate();
     default:
-      throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
+      return callTranslateAndAppendInputAndOutputParsersToField(
+        engine.connectionName,
+        field,
+        engineFields.fieldsParser as any,
+        args
+      );
   }
 }
 
@@ -282,10 +299,7 @@ export async function parse(
  * That's exactly what this does is that it takes the Palmares models and, with the
  * engine, we translate them to something that the engine can understand.
  */
-export async function initializeModels(
-  engine: DatabaseAdapter,
-  models: (typeof BaseModel & ReturnType<typeof model>)[]
-) {
+export async function initializeModels(engine: DatabaseAdapter, models: (typeof BaseModel & typeof Model)[]) {
   const recursiveOptionsToEvaluateModels: {
     forceTranslation?: boolean;
   }[] = [{}];
@@ -296,7 +310,7 @@ export async function initializeModels(
     const options = recursiveOptionsToEvaluateModels.shift();
     const initializedModels: (InitializedModelsType & { modifyItself: (newModel: any) => void })[] = [];
     let fieldsToEvaluateAfter: {
-      model: InstanceType<ReturnType<typeof model>> & BaseModel;
+      model: BaseModel & Model;
       field: Field;
       translatedField: any;
       getInitialized: () => {
@@ -308,22 +322,22 @@ export async function initializeModels(
     // Initialize the models and add it to the initialized models array, we need to keep
     // track of the index of the model so that we can update it later
     // When we set to evaluate the fields later we will update the initialized model.
-    const initializeModelPromises = models.map(async (modelClass, index) => {
-      const modelInstance = new modelClass();
+    const initializeModelPromises = (models as any[]).map(async (modelClass, index) => {
+      const modelInstance = new modelClass() as BaseModel & Model;
       const doesModelIncludesTheConnection =
         Array.isArray((modelInstance as any).options?.databases) && typeof engine.connectionName === 'string'
           ? (modelInstance as any).databases.includes(engine.connectionName)
           : true;
 
-      const domainName = modelClass.domainName;
-      const domainPath = modelClass.domainPath;
+      const domainName = modelClass['__domainName'];
+      const domainPath = modelClass['__domainPath'];
 
       if (doesModelIncludesTheConnection) {
-        const initializedModel = await modelClass._init(
+        const initializedModel = await modelClass['__init'](
           engine,
           domainName,
           domainPath,
-          (field, translatedField) =>
+          (field: Field<any, any>, translatedField: any) =>
             fieldsToEvaluateAfter.push({
               model: modelInstance as any,
               field,
@@ -359,7 +373,7 @@ export async function initializeModels(
         const modelConstructor = model.constructor as ModelType;
         const lazyEvaluatedFieldResult = await engine.fields.lazyEvaluateField(
           engine,
-          modelConstructor.getName(),
+          modelConstructor['__getName'](),
           initialized.instance,
           field,
           translatedField,
@@ -378,7 +392,7 @@ export async function initializeModels(
       const { modelEntries, modelsByName } = initializedModels.reduce(
         (acc, model) => {
           if (model.original.options?.instance && options?.forceTranslation !== true) return acc;
-          const modelName = model.class.getName();
+          const modelName = model.class['__getName']();
           acc.modelsByName[modelName] = model;
           acc.modelEntries.push([modelName, model.initialized]);
           return acc;
@@ -438,8 +452,8 @@ export function factoryFunctionForModelTranslate(
   }
 ) {
   const modelConstructor = model.constructor as ModelType;
-  const modelOptions = modelConstructor._options(model) as ModelOptionsType;
-  const fieldEntriesOfModel = Object.entries(modelConstructor._fields(model));
+  const modelOptions = modelConstructor['_options'](model) as ModelOptionsType;
+  const fieldEntriesOfModel = Object.entries(modelConstructor['_fields'](model));
 
   const defaultParseFieldCallback = (field: Field) => {
     return parse(engine, engine.fields, model, field, (translatedField, _, originalField) => {
@@ -463,7 +477,7 @@ export function factoryFunctionForModelTranslate(
   };
 
   return async () => {
-    const modelName = modelConstructor.getName();
+    const modelName = modelConstructor['__getName']();
     const alreadyHasAnInstance =
       options.forceTranslate !== true &&
       (engine.initializedModels[modelName] !== undefined || model.options?.instance !== undefined);
@@ -477,6 +491,7 @@ export function factoryFunctionForModelTranslate(
           model,
           fieldEntriesOfModel,
           modelOptions,
+          modelOptions.customOptions,
           async () => {
             const options = await engine.models.translateOptions.bind(engine.models)(engine, modelName, modelOptions);
             const fields =
@@ -500,7 +515,7 @@ export function factoryFunctionForModelTranslate(
           defaultTranslateFieldsCallback
         );
 
-    engine.initializedModels[modelConstructor.getName()] = modelInstance;
+    engine.initializedModels[modelConstructor['__getName']()] = modelInstance;
 
     // This lets you apply custom hooks to your translated model directly.
     // Something like that: https://www.prisma.io/docs/concepts/components/prisma-client/middleware

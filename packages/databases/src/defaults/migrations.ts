@@ -15,40 +15,9 @@ export const defaultMigrations: MigrationFileType[] = [
       new CreateModel(
         'PalmaresMigrations',
         {
-          id: BigAutoField.new({
-            primaryKey: true,
-            defaultValue: undefined,
-            allowNull: false,
-            unique: true,
-            dbIndex: true,
-            databaseName: 'id',
-            underscored: false,
-            customAttributes: {}
-          }),
-          migrationName: CharField.new({
-            allowBlank: true,
-            maxLength: 150,
-            primaryKey: false,
-            defaultValue: undefined,
-            allowNull: false,
-            unique: false,
-            dbIndex: false,
-            databaseName: 'migration_name',
-            underscored: false,
-            customAttributes: {}
-          }),
-          engineName: CharField.new({
-            allowBlank: true,
-            maxLength: 150,
-            primaryKey: false,
-            defaultValue: undefined,
-            allowNull: false,
-            unique: false,
-            dbIndex: false,
-            databaseName: 'engine_name',
-            underscored: false,
-            customAttributes: {}
-          })
+          id: BigAutoField.new().databaseName('id').underscored(),
+          migrationName: CharField.new({ maxLen: 150 }).databaseName('migration_name').underscored().allowBlank(),
+          engineName: CharField.new({ maxLen: 150 }).databaseName('engine_name').underscored().allowBlank()
         },
         {
           abstract: false,

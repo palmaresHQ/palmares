@@ -1,7 +1,13 @@
 import { TextField } from '.';
 
 import type { CustomImportsForFieldType } from './types';
-import type { NewInstanceArgumentsCallback, TCompareCallback, TOptionsCallback, ToStringCallback } from './utils';
+import type {
+  CompareCallback,
+  GetArgumentsCallback,
+  NewInstanceArgumentsCallback,
+  OptionsCallback,
+  ToStringCallback
+} from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
 
@@ -54,6 +60,7 @@ export class CharField<
     defaultValue: undefined;
     underscored: boolean;
     typeName: string;
+    hasDefaultValue: boolean;
     databaseName: string | undefined;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
@@ -66,6 +73,7 @@ export class CharField<
     underscored: true;
     isPrimaryKey: false;
     auto: false;
+    hasDefaultValue: false;
     defaultValue: undefined;
     typeName: string;
     databaseName: undefined;
@@ -80,7 +88,16 @@ export class CharField<
 
   protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
   protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
-  protected static __compareCallback: TCompareCallback = (oldField, newField, defaultCompareCallback) => {
+  protected static __getArgumentsCallback: GetArgumentsCallback = (field, defaultGetArgumentsCallback) => {
+    const fieldAsTextField = field as CharField<any, any>;
+    const defaultData = defaultGetArgumentsCallback(field, defaultGetArgumentsCallback);
+    return {
+      ...defaultData,
+      defaultValue: fieldAsTextField['__defaultValue'] as string | undefined,
+      maxLength: fieldAsTextField['__maxLength'] as number
+    };
+  };
+  protected static __compareCallback: CompareCallback = (oldField, newField, defaultCompareCallback) => {
     const oldFieldAsTextField = oldField as CharField<any, any>;
     const newFieldAsTextField = newField as CharField<any, any>;
     const isAllowBlankEqual = oldFieldAsTextField['__allowBlank'] === newFieldAsTextField['__allowBlank'];
@@ -89,7 +106,7 @@ export class CharField<
     if (!isAllowBlankEqual) changedAttributes.push('allowBlank');
     return [isAllowBlankEqual && isEqual, changedAttributes];
   };
-  protected static __optionsCallback: TOptionsCallback = (oldField, newField, defaultOptionsCallback) => {
+  protected static __optionsCallback: OptionsCallback = (oldField, newField, defaultOptionsCallback) => {
     const oldFieldAsTextField = oldField as CharField<any, any>;
     const newFieldAsTextField = newField as CharField<any, any>;
 
@@ -127,7 +144,7 @@ export class CharField<
    *
    * @example
    * ```ts
-   * const customBigInt = CharField.overrideType<
+   * const customBigInt = CharField._overrideType<
    *   { create: bigint; read: bigint; update: bigint },
    *   {
    *       customAttributes: { name: string };
@@ -186,6 +203,7 @@ export class CharField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -264,6 +282,7 @@ export class CharField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -309,6 +328,7 @@ export class CharField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -347,6 +367,7 @@ export class CharField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -424,6 +445,7 @@ export class CharField<
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
       allowBlank: TBlank;
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -496,6 +518,7 @@ export class CharField<
         underscored: TDefinitions['underscored'];
         isPrimaryKey: TDefinitions['isPrimaryKey'];
         auto: TDefinitions['auto'];
+        hasDefaultValue: TDefinitions['hasDefaultValue'];
         defaultValue: TDefinitions['defaultValue'];
         databaseName: TDefinitions['databaseName'];
         typeName: TDefinitions['typeName'];
@@ -531,6 +554,7 @@ export class CharField<
       underscored: TUnderscored;
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -597,6 +621,7 @@ export class CharField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TIsPrimaryKey;
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -628,6 +653,7 @@ export class CharField<
         underscored: TDefinitions['underscored'];
         isPrimaryKey: TIsPrimaryKey;
         auto: TDefinitions['auto'];
+        hasDefaultValue: TDefinitions['hasDefaultValue'];
         defaultValue: TDefinitions['defaultValue'];
         databaseName: TDefinitions['databaseName'];
         typeName: TDefinitions['typeName'];
@@ -641,9 +667,9 @@ export class CharField<
     isAuto?: TIsAuto
   ): CharField<
     {
-      create: TType['create'] | null | undefined;
+      create: TType['create'] | undefined;
       read: TType['read'];
-      update: TType['update'] | null | undefined;
+      update: TType['update'] | undefined;
     },
     {
       [TKey in Exclude<
@@ -667,6 +693,7 @@ export class CharField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TIsAuto;
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -707,6 +734,7 @@ export class CharField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: true;
       defaultValue: TDefault;
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -743,6 +771,7 @@ export class CharField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDatabaseName;
       typeName: TDefinitions['typeName'];
@@ -765,7 +794,7 @@ export class CharField<
    * - TDefinitions exists on type-level only, in runtime, it's not a guarantee of nothing. If TDefinitions
    * sets unique to true, it's up to you to do `NameOfYourField.new().unique()`, because otherwise it will be false
    */
-  static overrideType<
+  static _overrideType<
     const TNewType extends { create: any; update: any; read: any },
     const TDefinitions extends {
       customAttributes: any;
@@ -776,14 +805,15 @@ export class CharField<
       isPrimaryKey: boolean;
       defaultValue: any;
       typeName: string;
+      hasDefaultValue: boolean;
       engineInstance: DatabaseAdapter;
       allowBlank: boolean;
     }
   >(args?: {
     typeName: string;
     toStringCallback?: ToStringCallback;
-    compareCallback?: TCompareCallback;
-    optionsCallback?: TOptionsCallback;
+    compareCallback?: CompareCallback;
+    optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
     customImports?: CustomImportsForFieldType[];
   }): TDefinitions['customAttributes'] extends undefined
@@ -801,6 +831,7 @@ export class CharField<
             defaultValue: TDefinitions['defaultValue'];
             underscored: boolean;
             databaseName: string | undefined;
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
@@ -825,6 +856,7 @@ export class CharField<
             defaultValue: TDefinitions['defaultValue'];
             underscored: boolean;
             databaseName: string | undefined;
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
@@ -833,7 +865,7 @@ export class CharField<
           }
         >;
       } {
-    const newField = super.overrideType(args) as any;
+    const newField = super._overrideType(args) as any;
     /** We remove the data needed for ForeignKeyField */
     newField.new = (params: any) => {
       const newInstance = new this(params);
@@ -869,6 +901,7 @@ export class CharField<
       auto: false;
       defaultValue: undefined;
       typeName: string;
+      hasDefaultValue: false;
       databaseName: undefined;
       engineInstance: DatabaseAdapter;
       customAttributes: any;

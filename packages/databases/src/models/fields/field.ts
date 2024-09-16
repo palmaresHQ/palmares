@@ -2,13 +2,20 @@ import { utils } from '@palmares/core';
 
 import {
   defaultCompareCallback,
+  defaultGetArgumentsCallback,
   defaultNewInstanceArgumentsCallback,
   defaultOptionsCallback,
   defaultToStringCallback
 } from './utils';
 
 import type { CustomImportsForFieldType } from './types';
-import type { NewInstanceArgumentsCallback, TCompareCallback, TOptionsCallback, ToStringCallback } from './utils';
+import type {
+  CompareCallback,
+  GetArgumentsCallback,
+  NewInstanceArgumentsCallback,
+  OptionsCallback,
+  ToStringCallback
+} from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
 import type { ModelType } from '../types';
@@ -26,6 +33,7 @@ export class Field<
     allowNull: boolean;
     dbIndex: boolean;
     isPrimaryKey: boolean;
+    hasDefaultValue: boolean;
     defaultValue: any;
     underscored: boolean;
     typeName: string;
@@ -37,6 +45,7 @@ export class Field<
     allowNull: false;
     dbIndex: false;
     underscored: true;
+    hasDefaultValue: false;
     isPrimaryKey: false;
     auto: false;
     defaultValue: undefined;
@@ -63,10 +72,11 @@ export class Field<
   // eslint-disable-next-line ts/require-await
   protected static __toStringCallback: ToStringCallback = defaultToStringCallback;
   // eslint-disable-next-line ts/require-await
-  protected static __compareCallback: TCompareCallback = defaultCompareCallback;
-  protected static __optionsCallback: TOptionsCallback = defaultOptionsCallback;
+  protected static __compareCallback: CompareCallback = defaultCompareCallback;
+  protected static __optionsCallback: OptionsCallback = defaultOptionsCallback;
   protected static __newInstanceCallback: NewInstanceArgumentsCallback = defaultNewInstanceArgumentsCallback;
   protected static __customImports: CustomImportsForFieldType[] = [];
+  protected static __getArgumentsCallback: GetArgumentsCallback = defaultGetArgumentsCallback;
   protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
   protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
   protected __model?: ModelType;
@@ -139,6 +149,7 @@ export class Field<
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
@@ -220,6 +231,7 @@ export class Field<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -266,6 +278,7 @@ export class Field<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -304,6 +317,7 @@ export class Field<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -347,6 +361,7 @@ export class Field<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -389,6 +404,7 @@ export class Field<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -428,6 +444,7 @@ export class Field<
       underscored: TUnderscored;
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -467,6 +484,7 @@ export class Field<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TIsPrimaryKey;
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -484,9 +502,9 @@ export class Field<
     isAuto?: TIsAuto
   ): Field<
     {
-      create: TType['create'] | null | undefined;
+      create: TType['create'] | undefined;
       read: TType['read'];
-      update: TType['update'] | null | undefined;
+      update: TType['update'] | undefined;
     },
     {
       [TKey in Exclude<
@@ -510,6 +528,7 @@ export class Field<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TIsAuto;
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -527,9 +546,9 @@ export class Field<
     defaultValue: TDefault
   ): Field<
     {
-      create: TType['create'] | TDefault | null | undefined;
+      create: TType['create'] | TDefault | undefined;
       read: TType['read'];
-      update: TType['update'] | null | undefined;
+      update: TType['update'] | undefined;
     },
     {
       [TKey in Exclude<
@@ -554,6 +573,7 @@ export class Field<
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
       defaultValue: TDefault;
+      hasDefaultValue: true;
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
@@ -592,6 +612,7 @@ export class Field<
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
       defaultValue: TDefinitions['defaultValue'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       databaseName: TDatabaseName;
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
@@ -623,7 +644,7 @@ export class Field<
    *
    * Your library should provide documentation of the fields that are supported.
    */
-  static overrideType<
+  static _overrideType<
     const TNewType extends { create: any; update: any; read: any },
     const TDefinitions extends {
       customAttributes: any;
@@ -639,8 +660,8 @@ export class Field<
   >(args?: {
     typeName: string;
     toStringCallback?: ToStringCallback;
-    compareCallback?: TCompareCallback;
-    optionsCallback?: TOptionsCallback;
+    compareCallback?: CompareCallback;
+    optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
     customImports?: CustomImportsForFieldType[];
   }): TDefinitions['customAttributes'] extends undefined
@@ -654,6 +675,7 @@ export class Field<
             dbIndex: TDefinitions['dbIndex'];
             isPrimaryKey: TDefinitions['isPrimaryKey'];
             defaultValue: TDefinitions['defaultValue'];
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
             underscored: boolean;
             databaseName: string | undefined;
             engineInstance: TDefinitions['engineInstance'];
@@ -672,6 +694,7 @@ export class Field<
             dbIndex: TDefinitions['dbIndex'];
             isPrimaryKey: TDefinitions['isPrimaryKey'];
             defaultValue: TDefinitions['defaultValue'];
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
             underscored: boolean;
             databaseName: string | undefined;
             engineInstance: TDefinitions['engineInstance'];
@@ -707,6 +730,7 @@ export class Field<
               underscored: boolean;
               databaseName: string | undefined;
               engineInstance: TDefinitions['engineInstance'];
+              hasDefaultValue: TDefinitions['hasDefaultValue'];
               typeName: TDefinitions['typeName'];
               customAttributes: TDefinitions['customAttributes'];
             }
@@ -724,6 +748,7 @@ export class Field<
               defaultValue: TDefinitions['defaultValue'];
               underscored: boolean;
               databaseName: string | undefined;
+              hasDefaultValue: TDefinitions['hasDefaultValue'];
               engineInstance: TDefinitions['engineInstance'];
               typeName: TDefinitions['typeName'];
               customAttributes: TDefinitions['customAttributes'];
@@ -740,7 +765,7 @@ export class Field<
    * @return - Returns a list of packages that we want to import in the migration file.
    */
   // eslint-disable-next-line ts/require-await
-  protected async customImports(): Promise<CustomImportsForFieldType[]> {
+  protected async __customImports(): Promise<CustomImportsForFieldType[]> {
     return (this.constructor as typeof Field<any, any>)['__customImports'];
   }
 
@@ -752,14 +777,23 @@ export class Field<
     this.__fieldName = fieldName;
     this.__model = model;
 
-    if (this.__primaryKey) model.primaryKeys.push(this.__fieldName);
+    if (this.__primaryKey) model['__primaryKeys'].push(this.__fieldName);
     if (isUnderscored)
       this.__databaseName = utils.camelCaseToHyphenOrSnakeCase(this.__fieldName) as TDefinitions['databaseName'];
     else this.__databaseName = this.__fieldName as TDefinitions['databaseName'];
   }
 
+  /**
+   * Gets all of the arguments to pass to the field during migration, translation, etc.
+   *
+   * Everything in the field is protected, this way end users don't access the internal implementation.
+   */
+  protected __getArguments(): ReturnType<(typeof Field)['__getArgumentsCallback']> {
+    return (this.constructor as typeof Field<any, any>).__getArgumentsCallback(this, defaultGetArgumentsCallback);
+  }
+
   // eslint-disable-next-line ts/require-await
-  protected async toString(indentation = 0, customParams: string | undefined = undefined): Promise<string> {
+  protected async __toString(indentation = 0, customParams: string | undefined = undefined): Promise<string> {
     return (this.constructor as typeof Field<any, any>).__toStringCallback(
       this,
       defaultToStringCallback,
@@ -780,7 +814,7 @@ export class Field<
    * @return - Returns true if the fields are equal and false otherwise
    */
   // eslint-disable-next-line ts/require-await
-  protected compare(field: Field<any, any>): [boolean, string[]] {
+  protected __compare(field: Field<any, any>): [boolean, string[]] {
     return (this.constructor as typeof Field<any, any>).__compareCallback(this, field, defaultCompareCallback);
   }
 
@@ -791,7 +825,7 @@ export class Field<
    *
    * @returns - Returns the cloned field.
    */
-  protected clone(oldField: Field<any, any>): Field<any, any> {
+  protected __clone(oldField: Field<any, any>): Field<any, any> {
     const argumentsToPass = (oldField.constructor as typeof Field<any, any>).__newInstanceCallback(
       oldField,
       defaultNewInstanceArgumentsCallback
@@ -826,6 +860,7 @@ export class Field<
       databaseName: string | undefined;
       engineInstance: DatabaseAdapter;
       customAttributes: any;
+      hasDefaultValue: boolean;
     }
   >(..._args: any[]) {
     return new this(..._args) as unknown as Field<TType, TDefinitions>;

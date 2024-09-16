@@ -32,17 +32,17 @@ export async function defaultToStringCallback(
   );
 }
 
-export type TCompareCallback = (
+export type CompareCallback = (
   existingField: Field<any, any>,
   newField: Field<any, any>,
-  defaultCompareCallback: TCompareCallback
+  defaultCompareCallback: CompareCallback
 ) => [boolean, string[]];
 
 // eslint-disable-next-line ts/require-await
 export function defaultCompareCallback(
-  existingField: Parameters<TCompareCallback>[0],
-  newField: Parameters<TCompareCallback>[1],
-  _: Parameters<TCompareCallback>[2]
+  existingField: Parameters<CompareCallback>[0],
+  newField: Parameters<CompareCallback>[1],
+  _: Parameters<CompareCallback>[2]
 ): [boolean, string[]] {
   const isTypeNameEqual =
     (existingField.constructor as typeof Field<any, any>)['__typeName'] ===
@@ -70,17 +70,17 @@ export function defaultCompareCallback(
   return [changedAttributes.length === 0, changedAttributes];
 }
 
-export type TOptionsCallback = (
+export type OptionsCallback = (
   oldField: Field<any, any>,
   newField: Field<any, any>,
-  defaultOptionsCallback: TOptionsCallback
+  defaultOptionsCallback: OptionsCallback
 ) => void;
 
 // eslint-disable-next-line ts/require-await
 export function defaultOptionsCallback(
-  oldField: Parameters<TOptionsCallback>[0],
-  newField: Parameters<TOptionsCallback>[1],
-  _: Parameters<TOptionsCallback>[2]
+  oldField: Parameters<OptionsCallback>[0],
+  newField: Parameters<OptionsCallback>[1],
+  _: Parameters<OptionsCallback>[2]
 ) {
   newField['__allowNull'] = oldField['__allowNull'];
   newField['__customAttributes'] = oldField['__customAttributes'];
@@ -118,4 +118,26 @@ export function getRelatedToAsString(field: ForeignKeyField<any, any>) {
     else if (typeof relatedTo === 'string') field['__relatedToAsString'] = relatedTo;
     else field['__relatedToAsString'] = relatedTo.getName();
   }
+}
+
+export type GetArgumentsCallback = (
+  field: Field<any, any>,
+  defaultOptionsCallback: typeof defaultGetArgumentsCallback
+) => any;
+
+// eslint-disable-next-line ts/require-await
+export function defaultGetArgumentsCallback(
+  field: Parameters<GetArgumentsCallback>[0],
+  _: Parameters<GetArgumentsCallback>[1]
+) {
+  return {
+    primaryKey: field['__primaryKey'] as boolean,
+    defaultValue: field['__defaultValue'],
+    allowNull: field['__allowNull'] as boolean,
+    unique: field['__unique'] as boolean,
+    dbIndex: field['__dbIndex'] as boolean,
+    databaseName: field['__databaseName'] as string | undefined,
+    underscored: field['__underscored'] as boolean,
+    customAttributes: field['__customAttributes']
+  };
 }

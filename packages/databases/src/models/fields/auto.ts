@@ -1,7 +1,7 @@
 import { Field } from './field';
 
 import type { CustomImportsForFieldType } from './types';
-import type { NewInstanceArgumentsCallback, TCompareCallback, TOptionsCallback, ToStringCallback } from './utils';
+import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
 import type { AdapterFieldParser, DatabaseAdapter } from '../..';
 
 /**
@@ -34,6 +34,7 @@ export function auto(): AutoField<
     dbIndex: true;
     underscored: true;
     isPrimaryKey: true;
+    hasDefaultValue: false;
     auto: true;
     defaultValue: undefined;
     typeName: string;
@@ -66,6 +67,7 @@ export class AutoField<
     update: number | undefined | null;
   },
   TDefinitions extends {
+    hasDefaultValue: boolean;
     unique: boolean;
     auto: boolean;
     allowNull: boolean;
@@ -78,6 +80,7 @@ export class AutoField<
     engineInstance: DatabaseAdapter;
     customAttributes: any;
   } & Record<string, any> = {
+    hasDefaultValue: false;
     unique: true;
     allowNull: true;
     dbIndex: true;
@@ -182,6 +185,7 @@ export class AutoField<
         | 'customAttributes'
       >]: TDefinitions[TKey];
     } & {
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
@@ -260,6 +264,7 @@ export class AutoField<
         | 'customAttributes'
       >]: TDefinitions[TKey];
     } & {
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
@@ -305,6 +310,7 @@ export class AutoField<
           | 'customAttributes'
         >]: TDefinitions[TKey];
       } & {
+        hasDefaultValue: TDefinitions['hasDefaultValue'];
         unique: TDefinitions['unique'];
         allowNull: TDefinitions['allowNull'];
         dbIndex: TDefinitions['dbIndex'];
@@ -340,6 +346,7 @@ export class AutoField<
         | 'customAttributes'
       >]: TDefinitions[TKey];
     } & {
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
@@ -353,37 +360,7 @@ export class AutoField<
       customAttributes: TDefinitions['customAttributes'];
     }
   > {
-    return super.underscored(isUnderscored) as unknown as AutoField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDefinitions['dbIndex'];
-        underscored: TUnderscored;
-        isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TDefinitions['auto'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TDefinitions['customAttributes'];
-      }
-    >;
+    return super.underscored(isUnderscored) as unknown as any;
   }
 
   databaseName<TDatabaseName extends string>(
@@ -406,6 +383,7 @@ export class AutoField<
         | 'customAttributes'
       >]: TDefinitions[TKey];
     } & {
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
@@ -419,37 +397,7 @@ export class AutoField<
       customAttributes: TDefinitions['customAttributes'];
     }
   > {
-    return super.databaseName(databaseName) as unknown as AutoField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDefinitions['dbIndex'];
-        underscored: TDefinitions['underscored'];
-        isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TDefinitions['auto'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDatabaseName;
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TDefinitions['customAttributes'];
-      }
-    >;
+    return super.databaseName(databaseName) as unknown as any;
   }
 
   /**
@@ -461,7 +409,7 @@ export class AutoField<
    *
    * Your library should provide documentation of the fields that are supported.
    */
-  static overrideType<
+  static _overrideType<
     TNewType extends { create: any; update: any; read: any },
     TDefinitions extends {
       customAttributes: any;
@@ -472,13 +420,14 @@ export class AutoField<
       isPrimaryKey: boolean;
       defaultValue: any;
       typeName: string;
+      hasDefaultValue: boolean;
       engineInstance: DatabaseAdapter;
     }
   >(args?: {
     typeName: string;
     toStringCallback?: ToStringCallback;
-    compareCallback?: TCompareCallback;
-    optionsCallback?: TOptionsCallback;
+    compareCallback?: CompareCallback;
+    optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
     customImports?: CustomImportsForFieldType[];
     definitions?: Omit<TDefinitions, 'typeName' | 'engineInstance' | 'customAttributes'>;
@@ -487,6 +436,7 @@ export class AutoField<
         new: () => AutoField<
           TNewType,
           {
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
             unique: TDefinitions['unique'];
             auto: TDefinitions['auto'];
             allowNull: TDefinitions['allowNull'];
@@ -513,13 +463,14 @@ export class AutoField<
             defaultValue: TDefinitions['defaultValue'];
             underscored: boolean;
             databaseName: string | undefined;
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
           }
         >;
       } {
-    return super.overrideType(args) as unknown as TDefinitions['customAttributes'] extends undefined
+    return super._overrideType(args) as unknown as TDefinitions['customAttributes'] extends undefined
       ? {
           new: () => AutoField<
             TNewType,
@@ -532,6 +483,7 @@ export class AutoField<
               defaultValue: TDefinitions['defaultValue'];
               underscored: boolean;
               databaseName: string | undefined;
+              hasDefaultValue: TDefinitions['hasDefaultValue'];
               engineInstance: TDefinitions['engineInstance'];
               typeName: TDefinitions['typeName'];
               customAttributes: TDefinitions['customAttributes'];
@@ -550,6 +502,7 @@ export class AutoField<
               defaultValue: TDefinitions['defaultValue'];
               underscored: boolean;
               databaseName: string | undefined;
+              hasDefaultValue: TDefinitions['hasDefaultValue'];
               engineInstance: TDefinitions['engineInstance'];
               typeName: TDefinitions['typeName'];
               customAttributes: TDefinitions['customAttributes'];
@@ -571,6 +524,7 @@ export class AutoField<
       underscored: true;
       isPrimaryKey: true;
       auto: true;
+      hasDefaultValue: false;
       defaultValue: undefined;
       typeName: string;
       databaseName: undefined;
@@ -593,6 +547,7 @@ export class AutoField<
         auto: true;
         defaultValue: undefined;
         typeName: string;
+        hasDefaultValue: false;
         databaseName: undefined;
         engineInstance: DatabaseAdapter;
         customAttributes: any;

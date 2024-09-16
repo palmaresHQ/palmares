@@ -1,7 +1,7 @@
 import { Field } from './field';
 
 import type { CustomImportsForFieldType } from './types';
-import type { NewInstanceArgumentsCallback, TCompareCallback, TOptionsCallback, ToStringCallback } from './utils';
+import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
 
@@ -96,7 +96,7 @@ export class UuidField<
   protected static __typeName = 'UuidField';
   protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
   protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
-  protected static __compareCallback: TCompareCallback = (oldField, newField, defaultCompareCallback) => {
+  protected static __compareCallback: CompareCallback = (oldField, newField, defaultCompareCallback) => {
     const oldFieldAsUuidField = oldField as UuidField<any, any>;
     const newFieldAsUuidField = newField as UuidField<any, any>;
     const isAllowBlankEqual = oldFieldAsUuidField['__autoGenerate'] === newFieldAsUuidField['__autoGenerate'];
@@ -105,7 +105,7 @@ export class UuidField<
     if (!isAllowBlankEqual) changedAttributes.push('autoGenerate');
     return [isAllowBlankEqual && isEqual, changedAttributes];
   };
-  protected static __optionsCallback: TOptionsCallback = (oldField, newField, defaultOptionsCallback) => {
+  protected static __optionsCallback: OptionsCallback = (oldField, newField, defaultOptionsCallback) => {
     const oldFieldAsUuidField = oldField as UuidField<any, any>;
     const newFieldAsUuidField = newField as UuidField<any, any>;
 
@@ -398,7 +398,11 @@ export class UuidField<
   autoGenerate<TIsAutoGenerate extends boolean = true>(
     isAutoGenerate?: TIsAutoGenerate
   ): UuidField<
-    TType,
+    {
+      create: TType['create'] | undefined;
+      read: TType['read'];
+      update: TType['update'] | undefined;
+    },
     {
       [TKey in Exclude<
         keyof TDefinitions,
@@ -470,37 +474,7 @@ export class UuidField<
       customAttributes: TDefinitions['customAttributes'];
     }
   > {
-    return super.dbIndex(isDbIndex) as unknown as UuidField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDbIndex;
-        underscored: TDefinitions['underscored'];
-        isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TDefinitions['auto'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TDefinitions['customAttributes'];
-      }
-    >;
+    return super.dbIndex(isDbIndex) as unknown as any;
   }
 
   underscored<TUnderscored extends boolean = true>(
@@ -536,37 +510,7 @@ export class UuidField<
       customAttributes: TDefinitions['customAttributes'];
     }
   > {
-    return super.underscored(isUnderscored) as unknown as UuidField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDefinitions['dbIndex'];
-        underscored: TUnderscored;
-        isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TDefinitions['auto'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TDefinitions['customAttributes'];
-      }
-    >;
+    return super.underscored(isUnderscored) as unknown as any;
   }
 
   primaryKey<TIsPrimaryKey extends boolean = true>(
@@ -639,9 +583,9 @@ export class UuidField<
     isAuto?: TIsAuto
   ): UuidField<
     {
-      create: TType['create'] | null | undefined;
+      create: TType['create'] | undefined;
       read: TType['read'];
-      update: TType['update'] | null | undefined;
+      update: TType['update'] | undefined;
     },
     {
       [TKey in Exclude<
@@ -679,9 +623,9 @@ export class UuidField<
     defaultValue: TDefault
   ): UuidField<
     {
-      create: TType['create'] | TDefault | null | undefined;
+      create: TType['create'] | TDefault | undefined;
       read: TType['read'];
-      update: TType['update'] | null | undefined;
+      update: TType['update'] | undefined;
     },
     {
       [TKey in Exclude<
@@ -763,7 +707,7 @@ export class UuidField<
    * - TDefinitions exists on type-level only, in runtime, it's not a guarantee of nothing. If TDefinitions
    * sets unique to true, it's up to you to do `NameOfYourField.new().unique()`, because otherwise it will be false
    */
-  static overrideType<
+  static _overrideType<
     const TNewType extends { create: any; update: any; read: any },
     const TDefinitions extends {
       customAttributes: any;
@@ -780,8 +724,8 @@ export class UuidField<
   >(args?: {
     typeName: string;
     toStringCallback?: ToStringCallback;
-    compareCallback?: TCompareCallback;
-    optionsCallback?: TOptionsCallback;
+    compareCallback?: CompareCallback;
+    optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
     customImports?: CustomImportsForFieldType[];
   }): TDefinitions['customAttributes'] extends undefined
@@ -823,45 +767,7 @@ export class UuidField<
           }
         >;
       } {
-    return super.overrideType(args) as unknown as TDefinitions['customAttributes'] extends undefined
-      ? {
-          new: (...args: any[]) => UuidField<
-            TNewType,
-            {
-              unique: TDefinitions['unique'];
-              auto: TDefinitions['auto'];
-              allowNull: TDefinitions['allowNull'];
-              dbIndex: TDefinitions['dbIndex'];
-              isPrimaryKey: TDefinitions['isPrimaryKey'];
-              defaultValue: TDefinitions['defaultValue'];
-              underscored: boolean;
-              databaseName: string | undefined;
-              engineInstance: TDefinitions['engineInstance'];
-              typeName: TDefinitions['typeName'];
-              customAttributes: TDefinitions['customAttributes'];
-              autoGenerate: TDefinitions['autoGenerate'];
-            }
-          >;
-        }
-      : {
-          new: (params: TDefinitions['customAttributes']) => UuidField<
-            TNewType,
-            {
-              unique: TDefinitions['unique'];
-              auto: TDefinitions['auto'];
-              allowNull: TDefinitions['allowNull'];
-              dbIndex: TDefinitions['dbIndex'];
-              isPrimaryKey: TDefinitions['isPrimaryKey'];
-              defaultValue: TDefinitions['defaultValue'];
-              underscored: boolean;
-              databaseName: string | undefined;
-              engineInstance: TDefinitions['engineInstance'];
-              typeName: TDefinitions['typeName'];
-              customAttributes: TDefinitions['customAttributes'];
-              autoGenerate: TDefinitions['autoGenerate'];
-            }
-          >;
-        };
+    return super._overrideType(args) as unknown as any;
   }
 
   static new(..._args: any[]): UuidField<

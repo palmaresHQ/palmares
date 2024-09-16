@@ -282,13 +282,7 @@ export class AdapterAutoFieldParser {
    * @returns - The translated field.
    */
   // eslint-disable-next-line ts/require-await
-  async translate(
-    args: Omit<AdapterFieldParserTranslateArgs<'auto'>, 'customAttributes'> & {
-      customAttributes: {
-        user: string;
-      };
-    }
-  ): Promise<any> {
+  async translate(args: AdapterFieldParserTranslateArgs<'auto'>): Promise<any> {
     throw new EngineDoesNotSupportFieldTypeException(args.engine.constructor.name, AutoField.name);
   }
 

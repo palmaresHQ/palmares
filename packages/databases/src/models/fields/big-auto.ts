@@ -1,7 +1,7 @@
 import { Field } from './field';
 
 import type { CustomImportsForFieldType } from './types';
-import type { NewInstanceArgumentsCallback, TCompareCallback, TOptionsCallback, ToStringCallback } from './utils';
+import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
 import type { AdapterFieldParser, DatabaseAdapter } from '../..';
 
 /**
@@ -461,7 +461,7 @@ export class BigAutoField<
    *
    * Your library should provide documentation of the fields that are supported.
    */
-  static overrideType<
+  static _overrideType<
     TNewType extends { create: any; update: any; read: any },
     TDefinitions extends {
       customAttributes: any;
@@ -477,8 +477,8 @@ export class BigAutoField<
   >(args?: {
     typeName: string;
     toStringCallback?: ToStringCallback;
-    compareCallback?: TCompareCallback;
-    optionsCallback?: TOptionsCallback;
+    compareCallback?: CompareCallback;
+    optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
     customImports?: CustomImportsForFieldType[];
     definitions?: Omit<TDefinitions, 'typeName' | 'engineInstance' | 'customAttributes'>;
@@ -519,7 +519,7 @@ export class BigAutoField<
           }
         >;
       } {
-    return super.overrideType(args) as unknown as TDefinitions['customAttributes'] extends undefined
+    return super._overrideType(args) as unknown as TDefinitions['customAttributes'] extends undefined
       ? {
           new: () => BigAutoField<
             TNewType,

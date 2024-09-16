@@ -1,7 +1,7 @@
 import { Field } from './field';
 
 import type { CustomImportsForFieldType } from './types';
-import type { NewInstanceArgumentsCallback, TCompareCallback, TOptionsCallback, ToStringCallback } from './utils';
+import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
 
@@ -35,6 +35,7 @@ export function text(): TextField<
     allowBlank: true;
     isPrimaryKey: false;
     auto: false;
+    hasDefaultValue: false;
     defaultValue: undefined;
     typeName: string;
     databaseName: undefined;
@@ -75,6 +76,7 @@ export class TextField<
     underscored: boolean;
     typeName: string;
     databaseName: string | undefined;
+    hasDefaultValue: boolean;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
   } = {
@@ -84,6 +86,7 @@ export class TextField<
     dbIndex: false;
     underscored: true;
     isPrimaryKey: false;
+    hasDefaultValue: false;
     auto: false;
     defaultValue: undefined;
     typeName: string;
@@ -96,7 +99,7 @@ export class TextField<
   protected static __typeName = 'TextField';
   protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
   protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
-  protected static __compareCallback: TCompareCallback = (oldField, newField, defaultCompareCallback) => {
+  protected static __compareCallback: CompareCallback = (oldField, newField, defaultCompareCallback) => {
     const oldFieldAsTextField = oldField as TextField<any, any>;
     const newFieldAsTextField = newField as TextField<any, any>;
     const isAllowBlankEqual = oldFieldAsTextField['__allowBlank'] === newFieldAsTextField['__allowBlank'];
@@ -105,7 +108,7 @@ export class TextField<
     if (!isAllowBlankEqual) changedAttributes.push('allowBlank');
     return [isAllowBlankEqual && isEqual, changedAttributes];
   };
-  protected static __optionsCallback: TOptionsCallback = (oldField, newField, defaultOptionsCallback) => {
+  protected static __optionsCallback: OptionsCallback = (oldField, newField, defaultOptionsCallback) => {
     const oldFieldAsTextField = oldField as TextField<any, any>;
     const newFieldAsTextField = newField as TextField<any, any>;
 
@@ -182,6 +185,7 @@ export class TextField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -260,6 +264,7 @@ export class TextField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -306,6 +311,7 @@ export class TextField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -344,6 +350,7 @@ export class TextField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -384,6 +391,7 @@ export class TextField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -421,6 +429,7 @@ export class TextField<
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
       allowBlank: TBlank;
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -469,37 +478,7 @@ export class TextField<
       customAttributes: TDefinitions['customAttributes'];
     }
   > {
-    return super.dbIndex(isDbIndex) as unknown as TextField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDbIndex;
-        underscored: TDefinitions['underscored'];
-        isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TDefinitions['auto'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TDefinitions['customAttributes'];
-      }
-    >;
+    return super.dbIndex(isDbIndex) as unknown as any;
   }
 
   underscored<TUnderscored extends boolean = true>(
@@ -528,6 +507,7 @@ export class TextField<
       underscored: TUnderscored;
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -535,37 +515,7 @@ export class TextField<
       customAttributes: TDefinitions['customAttributes'];
     }
   > {
-    return super.underscored(isUnderscored) as unknown as TextField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDefinitions['dbIndex'];
-        underscored: TUnderscored;
-        isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TDefinitions['auto'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TDefinitions['customAttributes'];
-      }
-    >;
+    return super.underscored(isUnderscored) as unknown as any;
   }
 
   primaryKey<TIsPrimaryKey extends boolean = true>(
@@ -625,6 +575,7 @@ export class TextField<
         underscored: TDefinitions['underscored'];
         isPrimaryKey: TIsPrimaryKey;
         auto: TDefinitions['auto'];
+        hasDefaultValue: TDefinitions['hasDefaultValue'];
         defaultValue: TDefinitions['defaultValue'];
         databaseName: TDefinitions['databaseName'];
         typeName: TDefinitions['typeName'];
@@ -638,9 +589,9 @@ export class TextField<
     isAuto?: TIsAuto
   ): TextField<
     {
-      create: TType['create'] | null | undefined;
+      create: TType['create'] | undefined;
       read: TType['read'];
-      update: TType['update'] | null | undefined;
+      update: TType['update'] | undefined;
     },
     {
       [TKey in Exclude<
@@ -664,6 +615,7 @@ export class TextField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TIsAuto;
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -678,9 +630,9 @@ export class TextField<
     defaultValue: TDefault
   ): TextField<
     {
-      create: TType['create'] | TDefault | null | undefined;
+      create: TType['create'] | TDefault | undefined;
       read: TType['read'];
-      update: TType['update'] | null | undefined;
+      update: TType['update'] | undefined;
     },
     {
       [TKey in Exclude<
@@ -704,6 +656,7 @@ export class TextField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: true;
       defaultValue: TDefault;
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -740,6 +693,7 @@ export class TextField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDatabaseName;
       typeName: TDefinitions['typeName'];
@@ -773,14 +727,15 @@ export class TextField<
       isPrimaryKey: boolean;
       defaultValue: any;
       typeName: string;
+      hasDefaultValue: boolean;
       engineInstance: DatabaseAdapter;
       allowBlank: boolean;
     } & Record<string, any>
   >(args?: {
     typeName: string;
     toStringCallback?: ToStringCallback;
-    compareCallback?: TCompareCallback;
-    optionsCallback?: TOptionsCallback;
+    compareCallback?: CompareCallback;
+    optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
     customImports?: CustomImportsForFieldType[];
   }): TDefinitions['customAttributes'] extends undefined
@@ -796,6 +751,7 @@ export class TextField<
             defaultValue: TDefinitions['defaultValue'];
             underscored: boolean;
             databaseName: string | undefined;
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
@@ -815,6 +771,7 @@ export class TextField<
             defaultValue: TDefinitions['defaultValue'];
             underscored: boolean;
             databaseName: string | undefined;
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
@@ -822,7 +779,7 @@ export class TextField<
           }
         >;
       } {
-    return super.overrideType(args) as unknown as TDefinitions['customAttributes'] extends undefined
+    return super._overrideType(args) as unknown as TDefinitions['customAttributes'] extends undefined
       ? {
           new: (...args: any[]) => TextField<
             TNewType,
@@ -835,6 +792,7 @@ export class TextField<
               defaultValue: TDefinitions['defaultValue'];
               underscored: boolean;
               databaseName: string | undefined;
+              hasDefaultValue: TDefinitions['hasDefaultValue'];
               engineInstance: TDefinitions['engineInstance'];
               typeName: TDefinitions['typeName'];
               customAttributes: TDefinitions['customAttributes'];
@@ -851,6 +809,7 @@ export class TextField<
               allowNull: TDefinitions['allowNull'];
               dbIndex: TDefinitions['dbIndex'];
               isPrimaryKey: TDefinitions['isPrimaryKey'];
+              hasDefaultValue: TDefinitions['hasDefaultValue'];
               defaultValue: TDefinitions['defaultValue'];
               underscored: boolean;
               databaseName: string | undefined;
@@ -877,6 +836,7 @@ export class TextField<
       allowBlank: true;
       isPrimaryKey: false;
       auto: false;
+      hasDefaultValue: false;
       defaultValue: undefined;
       typeName: string;
       databaseName: undefined;

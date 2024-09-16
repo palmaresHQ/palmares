@@ -1,5 +1,5 @@
 import type { DatabaseAdapter } from './engine';
-import type { BaseModel, Manager, model } from './models';
+import type { BaseModel, Manager, Model, model } from './models';
 import type { EventEmitter } from '@palmares/events';
 
 export interface DatabaseConfigurationType {
@@ -42,15 +42,15 @@ export type InitializedEngineInstanceWithModelsType = {
 export type FoundModelType = {
   domainName: string;
   domainPath: string;
-  model: ReturnType<typeof model> & typeof BaseModel;
+  model: typeof Model & typeof BaseModel;
 };
 
 export type InitializedModelsType<TModel = any> = {
   domainName: string;
   domainPath: string;
-  class: ReturnType<typeof model> & typeof BaseModel;
+  class: typeof Model & typeof BaseModel;
   initialized: TModel;
-  original: InstanceType<ReturnType<typeof model>> & BaseModel;
+  original: Model & BaseModel;
 };
 
 export type DatabaseSettingsType = {

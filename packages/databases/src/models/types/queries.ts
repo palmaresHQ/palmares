@@ -1,5 +1,18 @@
-import type { Field, ForeignKeyField } from '../fields';
-import type { model } from '../model';
+import type {
+  AutoField,
+  BigAutoField,
+  BooleanField,
+  CharField,
+  DateField,
+  DecimalField,
+  EnumField,
+  Field,
+  ForeignKeyField,
+  IntegerField,
+  TextField,
+  UuidField
+} from '../fields';
+import type { BaseModel, Model, ModelType, model } from '../model';
 
 export type PalmaresTransactionsType = {
   isSetOrRemoveOperation: 'set' | 'remove';
@@ -51,39 +64,62 @@ export type ExtractRelationsNames<TParentModel, TChildModel> = readonly ValueOf<
     // eslint-disable-next-line max-len
     [TFieldName in keyof AllFieldsOfModel<TParentModel> as AllFieldsOfModel<TParentModel>[TFieldName] extends ForeignKeyField<
       any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
       any
     >
       ? AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<
-          InstanceType<AllFieldsOfModel<TParentModel>[TFieldName]['modelRelatedTo']>,
+          InstanceType<
+            AllFieldsOfModel<TParentModel>[TFieldName] extends ForeignKeyField<
+              any,
+              {
+                unique: any;
+                auto: any;
+                hasDefaultValue: any;
+                allowNull: any;
+                dbIndex: any;
+                isPrimaryKey: any;
+                defaultValue: any;
+                underscored: any;
+                typeName: any;
+                databaseName: any;
+                engineInstance: any;
+                customAttributes: any;
+                relatedTo: infer TRelatedToModel | (() => infer TRelatedToModel);
+                onDelete: any;
+                relatedName: any;
+                relationName: any;
+                toField: any;
+              }
+            >
+              ? TRelatedToModel extends abstract new (...args: any) => any
+                ? TRelatedToModel
+                : never
+              : never
+          >,
           TChildModel
         > extends true
         ? TFieldName
         : never
       : never]: AllFieldsOfModel<TParentModel>[TFieldName] extends ForeignKeyField<
       any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      infer TRelationName
+      {
+        unique: any;
+        auto: any;
+        hasDefaultValue: any;
+        allowNull: any;
+        dbIndex: any;
+        isPrimaryKey: any;
+        defaultValue: any;
+        underscored: any;
+        typeName: any;
+        databaseName: any;
+        engineInstance: any;
+        customAttributes: any;
+        relatedTo: any;
+        onDelete: any;
+        relatedName: any;
+        relationName: infer TRelationName extends string;
+        toField: any;
+      }
     >
       ? TRelationName
       : unknown;
@@ -91,39 +127,62 @@ export type ExtractRelationsNames<TParentModel, TChildModel> = readonly ValueOf<
     // eslint-disable-next-line max-len
     [TFieldName in keyof AllFieldsOfModel<TChildModel> as AllFieldsOfModel<TChildModel>[TFieldName] extends ForeignKeyField<
       any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
       any
     >
       ? AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<
-          InstanceType<AllFieldsOfModel<TChildModel>[TFieldName]['modelRelatedTo']>,
+          InstanceType<
+            AllFieldsOfModel<TChildModel>[TFieldName] extends ForeignKeyField<
+              any,
+              {
+                unique: any;
+                auto: any;
+                hasDefaultValue: any;
+                allowNull: any;
+                dbIndex: any;
+                isPrimaryKey: any;
+                defaultValue: any;
+                underscored: any;
+                typeName: any;
+                databaseName: any;
+                engineInstance: any;
+                customAttributes: any;
+                relatedTo: infer TRelatedToModel | (() => infer TRelatedToModel);
+                onDelete: any;
+                relatedName: any;
+                relationName: any;
+                toField: any;
+              }
+            >
+              ? TRelatedToModel extends abstract new (...args: any) => any
+                ? TRelatedToModel
+                : never
+              : never
+          >,
           TParentModel
         > extends true
         ? TFieldName
         : never
       : never]: AllFieldsOfModel<TChildModel>[TFieldName] extends ForeignKeyField<
       any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      infer TRelatedName,
-      any
+      {
+        unique: any;
+        auto: any;
+        hasDefaultValue: any;
+        allowNull: any;
+        dbIndex: any;
+        isPrimaryKey: any;
+        defaultValue: any;
+        underscored: any;
+        typeName: any;
+        databaseName: any;
+        engineInstance: any;
+        customAttributes: any;
+        relatedTo: any;
+        onDelete: any;
+        relatedName: infer TRelatedName extends string;
+        relationName: any;
+        toField: any;
+      }
     >
       ? TRelatedName
       : unknown;
@@ -132,7 +191,7 @@ export type ExtractRelationsNames<TParentModel, TChildModel> = readonly ValueOf<
 
 // --------- INCLUDES ----------- //
 export type Include<TCustomData extends object = object> = {
-  model: ReturnType<typeof model>;
+  model: ModelType<any>;
   includes?: Includes<TCustomData>;
   engineName?: string;
   relationNames?: readonly string[];
@@ -154,7 +213,7 @@ export type IncludesValidated<
   },
   ...infer TInferedRestIncludes
 ]
-  ? TInferedModel extends ReturnType<typeof model>
+  ? TInferedModel extends ModelType<any>
     ? ValidateModelsOfIncludes<TParentModel, TInferedModel> extends never
       ? readonly []
       : readonly [
@@ -222,9 +281,37 @@ export type ValidateModelsOfIncludes<TParentModel, TChildModel extends new (...a
   {
     [TFieldName in keyof AllFieldsOfModel<InstanceType<TChildModel>> as AllFieldsOfModel<
       InstanceType<TChildModel>
-    >[TFieldName] extends ForeignKeyField<any, any, any, any, any, any, any, any, any, any, any, any, any>
+    >[TFieldName] extends ForeignKeyField<any, any>
       ? AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<
-          InstanceType<AllFieldsOfModel<InstanceType<TChildModel>>[TFieldName]['modelRelatedTo']>,
+          InstanceType<
+            AllFieldsOfModel<TChildModel>[TFieldName] extends ForeignKeyField<
+              any,
+              {
+                unique: any;
+                auto: any;
+                hasDefaultValue: any;
+                allowNull: any;
+                dbIndex: any;
+                isPrimaryKey: any;
+                defaultValue: any;
+                underscored: any;
+                typeName: any;
+                databaseName: any;
+                engineInstance: any;
+                customAttributes: any;
+                relatedTo: infer TRelatedToModel | (() => infer TRelatedToModel);
+                onDelete: any;
+                relatedName: any;
+                relationName: any;
+                toField: any;
+              }
+            >
+              ? TRelatedToModel extends abstract new (...args: any) => any
+                ? TRelatedToModel
+                : never
+              : never
+          >,
+          //InstanceType<AllFieldsOfModel<InstanceType<TChildModel>>[TFieldName]['modelRelatedTo']>,
           TParentModel
         > extends true
         ? TFieldName
@@ -234,21 +321,38 @@ export type ValidateModelsOfIncludes<TParentModel, TChildModel extends new (...a
     // eslint-disable-next-line max-len
     [TFieldName in keyof AllFieldsOfModel<TParentModel> as AllFieldsOfModel<TParentModel>[TFieldName] extends ForeignKeyField<
       any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
-      any,
       any
     >
       ? AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<
-          InstanceType<AllFieldsOfModel<TParentModel>[TFieldName]['modelRelatedTo']>,
+          InstanceType<
+            AllFieldsOfModel<TParentModel>[TFieldName] extends ForeignKeyField<
+              any,
+              {
+                unique: any;
+                auto: any;
+                hasDefaultValue: any;
+                allowNull: any;
+                dbIndex: any;
+                isPrimaryKey: any;
+                defaultValue: any;
+                underscored: any;
+                typeName: any;
+                databaseName: any;
+                engineInstance: any;
+                customAttributes: any;
+                relatedTo: infer TRelatedToModel | (() => infer TRelatedToModel);
+                onDelete: any;
+                relatedName: any;
+                relationName: any;
+                toField: any;
+              }
+            >
+              ? TRelatedToModel extends abstract new (...args: any) => any
+                ? TRelatedToModel
+                : never
+              : never
+          >,
+          //InstanceType<AllFieldsOfModel<TParentModel>[TFieldName]['modelRelatedTo']>,
           InstanceType<TChildModel>
         > extends true
         ? TFieldName
@@ -270,40 +374,164 @@ export type ExtractModelFromIncludesType<
   : TOnlyModels;
 
 type HasDefaultValueFieldsOrIsAuto<TModel> = {
-  [TFieldName in keyof AllFieldsOfModel<TModel> as AllFieldsOfModel<TModel>[TFieldName] extends Field<
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any
-  >
-    ? AllFieldsOfModel<TModel>[TFieldName]['allowNull'] extends true
+  [TFieldName in keyof AllFieldsOfModel<TModel> as AllFieldsOfModel<TModel>[TFieldName] extends
+    | AutoField<
+        any,
+        {
+          unique: any;
+          auto: infer TIsAuto extends boolean;
+          allowNull: infer TAllowNull extends boolean;
+          dbIndex: any;
+          isPrimaryKey: any;
+          hasDefaultValue: infer THasDefaultValue extends boolean;
+          defaultValue: any;
+          underscored: any;
+          typeName: any;
+          databaseName: any;
+          engineInstance: any;
+          customAttributes: any;
+        }
+      >
+    | TextField<
+        any,
+        {
+          unique: any;
+          auto: infer TIsAuto extends boolean;
+          allowNull: infer TAllowNull extends boolean;
+          dbIndex: any;
+          isPrimaryKey: any;
+          hasDefaultValue: infer THasDefaultValue extends boolean;
+          allowBlank: any;
+          defaultValue: any;
+          underscored: any;
+          typeName: any;
+          databaseName: any;
+          engineInstance: any;
+          customAttributes: any;
+        }
+      >
+    | CharField<
+        any,
+        {
+          unique: any;
+          auto: infer TIsAuto extends boolean;
+          allowNull: infer TAllowNull extends boolean;
+          dbIndex: any;
+          isPrimaryKey: any;
+          hasDefaultValue: infer THasDefaultValue extends boolean;
+          maxLength: any;
+          allowBlank: any;
+          defaultValue: any;
+          underscored: any;
+          typeName: any;
+          databaseName: any;
+          engineInstance: any;
+          customAttributes: any;
+        }
+      >
+    | Field<
+        any,
+        {
+          unique: any;
+          auto: infer TIsAuto extends boolean;
+          allowNull: infer TAllowNull extends boolean;
+          dbIndex: any;
+          isPrimaryKey: any;
+          hasDefaultValue: infer THasDefaultValue extends boolean;
+          defaultValue: any;
+          underscored: any;
+          typeName: any;
+          databaseName: any;
+          engineInstance: any;
+          customAttributes: any;
+        }
+      >
+    ? TAllowNull extends true
       ? TFieldName
-      : AllFieldsOfModel<TModel>[TFieldName]['hasDefaultValue'] extends true
+      : TIsAuto extends true
         ? TFieldName
-        : AllFieldsOfModel<TModel>[TFieldName]['isAuto'] extends true
+        : THasDefaultValue extends true
           ? TFieldName
           : never
     : never]: AllFieldsOfModel<TModel>[TFieldName];
 };
 
 type DoNotHaveDefaultValueFieldsOrIsNotAuto<TModel> = {
-  [TFieldName in keyof AllFieldsOfModel<TModel> as AllFieldsOfModel<TModel>[TFieldName] extends Field<
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any
-  >
-    ? AllFieldsOfModel<TModel>[TFieldName]['allowNull'] extends false
-      ? AllFieldsOfModel<TModel>[TFieldName]['hasDefaultValue'] extends false
-        ? AllFieldsOfModel<TModel>[TFieldName]['isAuto'] extends false
+  [TFieldName in keyof AllFieldsOfModel<TModel> as AllFieldsOfModel<TModel>[TFieldName] extends
+    | AutoField<
+        any,
+        {
+          unique: any;
+          auto: infer TIsAuto extends boolean;
+          allowNull: infer TAllowNull extends boolean;
+          dbIndex: any;
+          isPrimaryKey: any;
+          hasDefaultValue: infer THasDefaultValue extends boolean;
+          defaultValue: any;
+          underscored: any;
+          typeName: any;
+          databaseName: any;
+          engineInstance: any;
+          customAttributes: any;
+        }
+      >
+    | TextField<
+        any,
+        {
+          unique: any;
+          auto: infer TIsAuto extends boolean;
+          allowNull: infer TAllowNull extends boolean;
+          dbIndex: any;
+          isPrimaryKey: any;
+          hasDefaultValue: infer THasDefaultValue extends boolean;
+          allowBlank: any;
+          defaultValue: any;
+          underscored: any;
+          typeName: any;
+          databaseName: any;
+          engineInstance: any;
+          customAttributes: any;
+        }
+      >
+    | CharField<
+        any,
+        {
+          unique: any;
+          auto: infer TIsAuto extends boolean;
+          allowNull: infer TAllowNull extends boolean;
+          dbIndex: any;
+          isPrimaryKey: any;
+          hasDefaultValue: infer THasDefaultValue extends boolean;
+          maxLength: any;
+          allowBlank: any;
+          defaultValue: any;
+          underscored: any;
+          typeName: any;
+          databaseName: any;
+          engineInstance: any;
+          customAttributes: any;
+        }
+      >
+    | Field<
+        any,
+        {
+          unique: any;
+          auto: infer TIsAuto extends boolean;
+          allowNull: infer TAllowNull extends boolean;
+          dbIndex: any;
+          isPrimaryKey: any;
+          hasDefaultValue: infer THasDefaultValue extends boolean;
+          defaultValue: any;
+          underscored: any;
+          typeName: any;
+          databaseName: any;
+          engineInstance: any;
+          customAttributes: any;
+        }
+      >
+    ? TAllowNull extends false
+      ? THasDefaultValue extends false
+        ? TIsAuto extends false
           ? TFieldName
           : never
         : never
@@ -312,34 +540,158 @@ type DoNotHaveDefaultValueFieldsOrIsNotAuto<TModel> = {
 };
 
 type HasNullFields<TModel> = {
-  [TFieldName in keyof AllFieldsOfModel<TModel> as AllFieldsOfModel<TModel>[TFieldName] extends Field<
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any
-  >
-    ? AllFieldsOfModel<TModel>[TFieldName]['allowNull'] extends true
+  [TFieldName in keyof AllFieldsOfModel<TModel> as AllFieldsOfModel<TModel>[TFieldName] extends
+    | AutoField<
+        any,
+        {
+          unique: any;
+          auto: any;
+          allowNull: infer TAllowNull extends boolean;
+          dbIndex: any;
+          isPrimaryKey: any;
+          hasDefaultValue: any;
+          defaultValue: any;
+          underscored: any;
+          typeName: any;
+          databaseName: any;
+          engineInstance: any;
+          customAttributes: any;
+        }
+      >
+    | TextField<
+        any,
+        {
+          unique: any;
+          auto: any;
+          allowNull: infer TAllowNull extends boolean;
+          dbIndex: any;
+          isPrimaryKey: any;
+          hasDefaultValue: any;
+          allowBlank: any;
+          defaultValue: any;
+          underscored: any;
+          typeName: any;
+          databaseName: any;
+          engineInstance: any;
+          customAttributes: any;
+        }
+      >
+    | CharField<
+        any,
+        {
+          unique: any;
+          auto: any;
+          allowNull: infer TAllowNull extends boolean;
+          dbIndex: any;
+          isPrimaryKey: any;
+          hasDefaultValue: any;
+          maxLength: any;
+          allowBlank: any;
+          defaultValue: any;
+          underscored: any;
+          typeName: any;
+          databaseName: any;
+          engineInstance: any;
+          customAttributes: any;
+        }
+      >
+    | Field<
+        any,
+        {
+          unique: any;
+          auto: any;
+          allowNull: infer TAllowNull extends boolean;
+          dbIndex: any;
+          isPrimaryKey: any;
+          hasDefaultValue: any;
+          defaultValue: any;
+          underscored: any;
+          typeName: any;
+          databaseName: any;
+          engineInstance: any;
+          customAttributes: any;
+        }
+      >
+    ? TAllowNull extends true
       ? TFieldName
       : never
     : never]: AllFieldsOfModel<TModel>[TFieldName];
 };
 
 type DoesNotHaveNullFields<TModel> = {
-  [TFieldName in keyof AllFieldsOfModel<TModel> as AllFieldsOfModel<TModel>[TFieldName] extends Field<
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any
-  >
-    ? AllFieldsOfModel<TModel>[TFieldName]['allowNull'] extends true
+  [TFieldName in keyof AllFieldsOfModel<TModel> as AllFieldsOfModel<TModel>[TFieldName] extends
+    | AutoField<
+        any,
+        {
+          unique: any;
+          auto: any;
+          allowNull: infer TAllowNull extends boolean;
+          dbIndex: any;
+          isPrimaryKey: any;
+          hasDefaultValue: any;
+          defaultValue: any;
+          underscored: any;
+          typeName: any;
+          databaseName: any;
+          engineInstance: any;
+          customAttributes: any;
+        }
+      >
+    | TextField<
+        any,
+        {
+          unique: any;
+          auto: any;
+          allowNull: infer TAllowNull extends boolean;
+          dbIndex: any;
+          isPrimaryKey: any;
+          hasDefaultValue: any;
+          allowBlank: any;
+          defaultValue: any;
+          underscored: any;
+          typeName: any;
+          databaseName: any;
+          engineInstance: any;
+          customAttributes: any;
+        }
+      >
+    | CharField<
+        any,
+        {
+          unique: any;
+          auto: any;
+          allowNull: infer TAllowNull extends boolean;
+          dbIndex: any;
+          isPrimaryKey: any;
+          hasDefaultValue: any;
+          maxLength: any;
+          allowBlank: any;
+          defaultValue: any;
+          underscored: any;
+          typeName: any;
+          databaseName: any;
+          engineInstance: any;
+          customAttributes: any;
+        }
+      >
+    | Field<
+        any,
+        {
+          unique: any;
+          auto: any;
+          allowNull: infer TAllowNull extends boolean;
+          dbIndex: any;
+          isPrimaryKey: any;
+          hasDefaultValue: any;
+          defaultValue: any;
+          underscored: any;
+          typeName: any;
+          databaseName: any;
+          engineInstance: any;
+          customAttributes: any;
+        }
+      >
+    ? TAllowNull extends true
       ? never
       : TFieldName
     : never]: AllFieldsOfModel<TModel>[TFieldName];
@@ -354,34 +706,43 @@ type OptionalFields<
 > = {
   [TFieldName in TIsCreateOrUpdate extends true
     ? keyof HasDefaultValueFieldsOrIsAuto<TModel>
-    : keyof HasNullFields<TModel> as TFieldName extends TFieldsToConsider[number] | undefined
+    : never as TFieldName extends TFieldsToConsider[number] | undefined
     ? TRelationsToIgnore extends readonly any[]
       ? AllFieldsOfModel<TModel>[TFieldName] extends ForeignKeyField<
           any,
-          any,
-          any,
-          any,
-          any,
-          any,
-          any,
-          any,
-          any,
-          any,
-          any,
-          any,
-          any
+          {
+            hasDefaultValue: any;
+            unique: any;
+            auto: any;
+            allowNull: any;
+            dbIndex: any;
+            isPrimaryKey: any;
+            defaultValue: any;
+            underscored: any;
+            typeName: any;
+            databaseName: any;
+            engineInstance: any;
+            customAttributes: any;
+            relatedTo: infer TRelatedToModel | (() => infer TRelatedToModel);
+            onDelete: any;
+            relatedName: any;
+            relationName: any;
+            toField: any;
+          }
         >
         ? AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<
-            InstanceType<AllFieldsOfModel<TModel>[TFieldName]['modelRelatedTo']>,
+            InstanceType<TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never>,
             TRelationsToIgnore[number]
           > extends true
           ? never
           : TFieldName
         : TFieldName
       : TFieldName
-    : never]?: AllFieldsOfModel<TModel>[TFieldName] extends Field<any, any, any, any, any, any, any, any>
-    ? AddNull<AllFieldsOfModel<TModel>[TFieldName], TIsForSearch, TIsCreateOrUpdate>
-    : never;
+    : never]?: GetField<
+    AllFieldsOfModel<TModel>[TFieldName] extends Field<any, any> ? AllFieldsOfModel<TModel>[TFieldName] : never,
+    TIsForSearch,
+    TIsCreateOrUpdate
+  >;
 };
 
 type RequiredFields<
@@ -393,34 +754,43 @@ type RequiredFields<
 > = {
   [TFieldName in TIsCreateOrUpdate extends true
     ? keyof DoNotHaveDefaultValueFieldsOrIsNotAuto<TModel>
-    : keyof DoesNotHaveNullFields<TModel> as TFieldName extends TFieldsToConsider[number] | undefined
+    : keyof AllFieldsOfModel<TModel> as TFieldName extends TFieldsToConsider[number] | undefined
     ? TRelationsToIgnore extends readonly any[]
       ? AllFieldsOfModel<TModel>[TFieldName] extends ForeignKeyField<
           any,
-          any,
-          any,
-          any,
-          any,
-          any,
-          any,
-          any,
-          any,
-          any,
-          any,
-          any,
-          any
+          {
+            hasDefaultValue: any;
+            unique: any;
+            auto: any;
+            allowNull: any;
+            dbIndex: any;
+            isPrimaryKey: any;
+            defaultValue: any;
+            underscored: any;
+            typeName: any;
+            databaseName: any;
+            engineInstance: any;
+            customAttributes: any;
+            relatedTo: infer TRelatedToModel | (() => infer TRelatedToModel);
+            onDelete: any;
+            relatedName: any;
+            relationName: any;
+            toField: any;
+          }
         >
         ? AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<
-            InstanceType<AllFieldsOfModel<TModel>[TFieldName]['modelRelatedTo']>,
+            InstanceType<TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never>,
             TRelationsToIgnore[number]
           > extends true
           ? never
           : TFieldName
         : TFieldName
       : TFieldName
-    : never]: AllFieldsOfModel<TModel>[TFieldName] extends Field<any, any, any, any, any, any, any, any>
-    ? AddNull<AllFieldsOfModel<TModel>[TFieldName], TIsForSearch, TIsCreateOrUpdate>
-    : never;
+    : never]: GetField<
+    AllFieldsOfModel<TModel>[TFieldName] extends Field<any, any> ? AllFieldsOfModel<TModel>[TFieldName] : never,
+    TIsForSearch,
+    TIsCreateOrUpdate
+  >;
 };
 
 export type OperatorsOfQuery =
@@ -467,76 +837,42 @@ export type FieldWithOperationType<TFieldType> = {
     | NonNullable<TFieldType>;
 };
 
-type AddOperation<TFieldType, TIsSearch extends boolean = true> =
-  | TFieldType
-  | (TIsSearch extends true
-      ? Pick<
-          FieldWithOperationType<TFieldType>,
-          | 'is'
-          | 'or'
-          | 'and'
-          | 'in'
-          | (TFieldType extends number | Date
-              ? 'greaterThan' | 'greaterThanOrEqual' | 'lessThan' | 'lessThanOrEqual' | 'between'
-              : TFieldType extends string
-                ? 'like'
-                : never)
-        >
-      : never);
-
-type AddNull<
-  TField extends Field<any, any, any, any, any, any, any, any>,
-  TIsSearch extends boolean = true,
-  TIsCreateOrUpdate extends boolean = false
-> = AddOperation<
-  TField extends Field<any, any, any, any, infer TNull, any, any, any>
-    ? TNull extends true
-      ? GetFieldType<TField, TIsCreateOrUpdate> | null
-      : GetFieldType<TField, TIsCreateOrUpdate>
-    : GetFieldType<TField, TIsCreateOrUpdate>,
-  TIsSearch
+type AddOperation<TFieldType> = Pick<
+  FieldWithOperationType<TFieldType>,
+  | 'is'
+  | 'or'
+  | 'and'
+  | 'in'
+  | (TFieldType extends number | Date
+      ? 'greaterThan' | 'greaterThanOrEqual' | 'lessThan' | 'lessThanOrEqual' | 'between'
+      : TFieldType extends string
+        ? 'like'
+        : never)
 >;
 
-/**
- * Retrieves the field type depending if it is for create or update or for search.
- */
-type GetFieldType<
-  TField extends Field<any, any, any, any, any, any, any, any>,
-  TIsCreateOrUpdate extends boolean = false,
-  TIsSearch extends boolean = false
-> = TIsCreateOrUpdate extends true
-  ? TField['_type']['input']
-  : TIsSearch extends true
-    ? TField['_type']['input']
-    : TField['_type']['output'];
-
-/** This will extract all of the abstract fields from an abstracts array. In other words, this takes the  */
-type AbstractsAsFields<
-  TAbstracts, // Should be an array of model classes (NOT INSTANCES)
-  TFieldsToConsider extends FieldsOFModelType<TAbstracts extends any[] ? TAbstracts[number] : any> = FieldsOFModelType<
-    TAbstracts extends any[] ? TAbstracts[number] : any
-  >,
-  TRelationsToIgnore extends any[] | undefined = undefined,
-  TIsCreateOrUpdate extends boolean = false,
-  TIsForSearch extends boolean = false
-> = TAbstracts extends readonly [infer TAbstract, ...infer TRestAbstracts]
-  ? TAbstract extends abstract new (...args: any) => any
-    ? OptionalFields<
-        InstanceType<TAbstract>,
-        FieldsOFModelType<TAbstract>,
-        TRelationsToIgnore,
-        TIsCreateOrUpdate,
-        TIsForSearch
-      > &
-        RequiredFields<
-          InstanceType<TAbstract>,
-          FieldsOFModelType<TAbstract>,
-          TRelationsToIgnore,
-          TIsCreateOrUpdate,
-          TIsForSearch
-        >
-    : unknown
-  : unknown;
+type GetField<
+  TField extends Field<any, any>,
+  TIsSearch extends boolean = true,
+  TIsCreateOrUpdate extends boolean = false
+> = TField extends
+  | Field<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
+  | AutoField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
+  | BigAutoField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
+  | TextField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
+  | CharField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
+  | UuidField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
+  | IntegerField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
+  | DecimalField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
+  | DateField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
+  | EnumField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
+  | BooleanField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
+  | ForeignKeyField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
+  ? TIsSearch extends true
+    ? AddOperation<TRead> | TRead
+    : TIsCreateOrUpdate extends true
+      ? TCreate | TUpdate
+      : TRead
+  : never;
 
 type BaseModelFieldsInQueries<
   TModel,
@@ -575,22 +911,29 @@ type RelatedFieldOfModelOptional<
 > = {
   [TFieldName in keyof AllFieldsOfModel<TModel> as AllFieldsOfModel<TModel>[TFieldName] extends ForeignKeyField<
     any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    infer TRelationName
+    {
+      hasDefaultValue: infer THasDefaultValue extends boolean;
+      unique: any;
+      auto: any;
+      allowNull: any;
+      dbIndex: any;
+      isPrimaryKey: any;
+      defaultValue: any;
+      underscored: any;
+      typeName: any;
+      databaseName: any;
+      engineInstance: any;
+      customAttributes: any;
+      relatedTo: infer TRelatedToModel | (() => infer TRelatedToModel);
+      onDelete: any;
+      relatedName: any;
+      relationName: infer TRelationName extends string;
+      toField: any;
+    }
   >
-    ? AllFieldsOfModel<TModel>[TFieldName]['hasDefaultValue'] extends true
+    ? THasDefaultValue extends true
       ? AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<
-          InstanceType<AllFieldsOfModel<TModel>[TFieldName]['modelRelatedTo']>,
+          InstanceType<TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never>,
           TRelatedModel
         > extends true
         ? TRelationName extends TRelationNamesOfModel[number]
@@ -598,21 +941,7 @@ type RelatedFieldOfModelOptional<
           : never
         : never
       : never
-    : never]?: AllFieldsOfModel<TModel>[TFieldName] extends ForeignKeyField<
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any
-  >
+    : never]?: AllFieldsOfModel<TModel>[TFieldName] extends ForeignKeyField<any, any>
     ? IncludesRelatedModels<
         ModelFieldsInQueries<
           TRelatedModel,
@@ -647,22 +976,29 @@ type RelatedFieldOfModelRequired<
 > = {
   [TFieldName in keyof AllFieldsOfModel<TModel> as AllFieldsOfModel<TModel>[TFieldName] extends ForeignKeyField<
     any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    infer TRelationName
+    {
+      hasDefaultValue: infer THasDefaultValue extends boolean;
+      unique: any;
+      auto: any;
+      allowNull: any;
+      dbIndex: any;
+      isPrimaryKey: any;
+      defaultValue: any;
+      underscored: any;
+      typeName: any;
+      databaseName: any;
+      engineInstance: any;
+      customAttributes: any;
+      relatedTo: infer TRelatedToModel | (() => infer TRelatedToModel);
+      onDelete: any;
+      relatedName: any;
+      relationName: infer TRelationName extends string;
+      toField: any;
+    }
   >
-    ? AllFieldsOfModel<TModel>[TFieldName]['hasDefaultValue'] extends false
+    ? THasDefaultValue extends false
       ? AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<
-          InstanceType<AllFieldsOfModel<TModel>[TFieldName]['modelRelatedTo']>,
+          InstanceType<TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never>,
           TRelatedModel
         > extends true
         ? TRelationName extends TRelationNamesOfModel[number]
@@ -674,22 +1010,29 @@ type RelatedFieldOfModelRequired<
 } & {
   [TFieldName in keyof AllFieldsOfModel<TModel> as AllFieldsOfModel<TModel>[TFieldName] extends ForeignKeyField<
     any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    infer TRelationName
+    {
+      hasDefaultValue: infer THasDefaultValue extends boolean;
+      unique: any;
+      auto: any;
+      allowNull: any;
+      dbIndex: any;
+      isPrimaryKey: any;
+      defaultValue: any;
+      underscored: any;
+      typeName: any;
+      databaseName: any;
+      engineInstance: any;
+      customAttributes: any;
+      relatedTo: infer TRelatedToModel | (() => infer TRelatedToModel);
+      onDelete: any;
+      relatedName: any;
+      relationName: infer TRelationName extends string;
+      toField: any;
+    }
   >
-    ? AllFieldsOfModel<TModel>[TFieldName]['hasDefaultValue'] extends false
+    ? THasDefaultValue extends false
       ? AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<
-          InstanceType<AllFieldsOfModel<TModel>[TFieldName]['modelRelatedTo']>,
+          InstanceType<TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never>,
           TRelatedModel
         > extends true
         ? TRelationName extends TRelationNamesOfModel[number]
@@ -697,21 +1040,7 @@ type RelatedFieldOfModelRequired<
           : never
         : never
       : never
-    : never]: AllFieldsOfModel<TModel>[TFieldName] extends ForeignKeyField<
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any
-  >
+    : never]: AllFieldsOfModel<TModel>[TFieldName] extends ForeignKeyField<any, any>
     ? IncludesRelatedModels<
         ModelFieldsInQueries<
           TRelatedModel,
@@ -732,7 +1061,6 @@ type RelatedFieldOfModelRequired<
       >
     : never;
 };
-
 // Those are related to indirect relations. For example, the relation Post -> User: So Post will contain a userId field
 // and it'll be related to User.
 // ON this relation, the User model will contain a userPosts field which will be all of the posts related to the user.
@@ -781,21 +1109,28 @@ export type RelatedFieldToModel<
   // eslint-disable-next-line max-len
   [TFieldName in keyof AllFieldsOfModel<TRelatedModel> as AllFieldsOfModel<TRelatedModel>[TFieldName] extends ForeignKeyField<
     any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    any,
-    infer TRelatedName,
-    any
+    {
+      hasDefaultValue: any;
+      unique: any;
+      auto: any;
+      allowNull: any;
+      dbIndex: any;
+      isPrimaryKey: any;
+      defaultValue: any;
+      underscored: any;
+      typeName: any;
+      databaseName: any;
+      engineInstance: any;
+      customAttributes: any;
+      relatedTo: infer TRelatedToModel | (() => infer TRelatedToModel);
+      onDelete: any;
+      relatedName: infer TRelatedName extends string;
+      relationName: any;
+      toField: any;
+    }
   >
     ? AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<
-        InstanceType<AllFieldsOfModel<TRelatedModel>[TFieldName]['modelRelatedTo']>,
+        InstanceType<TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never>,
         TModel
       > extends true
       ? TRelatedName extends TRelationNamesOfModel[number]
@@ -813,8 +1148,24 @@ export type RelatedFieldToModel<
         TIsAllOptional,
         TIsForSearch
       >
-    : AllFieldsOfModel<TRelatedModel>[TFieldName] extends Field<any, any, any, any, any, any, any, any>
-      ? AllFieldsOfModel<TRelatedModel>[TFieldName]['unique'] extends true
+    : AllFieldsOfModel<TRelatedModel>[TFieldName] extends Field<
+          any,
+          {
+            hasDefaultValue: any;
+            unique: infer TUnique extends boolean;
+            auto: any;
+            allowNull: any;
+            dbIndex: any;
+            isPrimaryKey: any;
+            defaultValue: any;
+            underscored: any;
+            typeName: any;
+            databaseName: any;
+            engineInstance: any;
+            customAttributes: any;
+          }
+        >
+      ? TUnique extends true
         ? BaseRelatedFieldToModel<
             TModel,
             TRelatedModel,

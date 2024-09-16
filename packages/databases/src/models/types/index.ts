@@ -19,7 +19,7 @@ export type ManagerEngineInstancesType = {
 };
 
 export type ModelFieldsType = {
-  [fieldName: string | symbol]: Field<any, any, any, any, any, any, any, any>;
+  [fieldName: string | symbol]: Field<any, any>;
 };
 
 export type ManagersOfInstanceType = {
@@ -113,7 +113,8 @@ export type ModelOptionsType<TModel = any> = {
   indexes?: ModelIndexType<FieldsOFModelType<TModel>>[];
   ordering?: OrderingOfModelOptions<FieldsOFModelType<TModel>>;
   /**
-   * Sometimes a ORM can let you define custom hooks to be fired for example on certain lifecycle events, or for example, sequelize let's you define relations on the model after it was defined.
+   * Sometimes a ORM can let you define custom hooks to be fired for example on certain lifecycle events,
+   * or for example, sequelize let's you define relations on the model after it was defined.
    * This is a function that will be called after the model is translated so you can apply your custom hooks.
    */
   applyToTranslatedModel?: (translatedModel: any) => void;

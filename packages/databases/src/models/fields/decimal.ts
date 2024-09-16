@@ -1,7 +1,7 @@
 import { Field } from './field';
 
 import type { CustomImportsForFieldType } from './types';
-import type { NewInstanceArgumentsCallback, TCompareCallback, TOptionsCallback, ToStringCallback } from './utils';
+import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
 
@@ -87,7 +87,7 @@ export class DecimalField<
   protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
   protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
 
-  protected static __compareCallback: TCompareCallback = (oldField, newField, defaultCompareCallback) => {
+  protected static __compareCallback: CompareCallback = (oldField, newField, defaultCompareCallback) => {
     const oldFieldAsTextField = oldField as DecimalField<any, any>;
     const newFieldAsTextField = newField as DecimalField<any, any>;
     const isMaxDigitsEqual = oldFieldAsTextField['__maxDigits'] === newFieldAsTextField['__maxDigits'];
@@ -101,7 +101,7 @@ export class DecimalField<
     return [isMaxDigitsEqual && isDecimalPlacesEqual && isEqual, changedAttributes];
   };
 
-  protected static __optionsCallback: TOptionsCallback = (oldField, newField, defaultOptionsCallback) => {
+  protected static __optionsCallback: OptionsCallback = (oldField, newField, defaultOptionsCallback) => {
     const oldFieldAsTextField = oldField as DecimalField<any, any>;
     const newFieldAsTextField = newField as DecimalField<any, any>;
 
@@ -510,9 +510,9 @@ export class DecimalField<
     isAuto?: TIsAuto
   ): DecimalField<
     {
-      create: TType['create'] | null | undefined;
+      create: TType['create'] | undefined;
       read: TType['read'];
-      update: TType['update'] | null | undefined;
+      update: TType['update'] | undefined;
     },
     {
       [TKey in Exclude<
@@ -550,9 +550,9 @@ export class DecimalField<
     defaultValue: TDefault
   ): DecimalField<
     {
-      create: TType['create'] | TDefault | null | undefined;
+      create: TType['create'] | TDefault | undefined;
       read: TType['read'];
-      update: TType['update'] | null | undefined;
+      update: TType['update'] | undefined;
     },
     {
       [TKey in Exclude<
@@ -634,7 +634,7 @@ export class DecimalField<
    * - TDefinitions exists on type-level only, in runtime, it's not a guarantee of nothing. If TDefinitions
    * sets unique to true, it's up to you to do `NameOfYourField.new().unique()`, because otherwise it will be false
    */
-  static overrideType<
+  static _overrideType<
     const TNewType extends { create: any; update: any; read: any },
     const TDefinitions extends {
       customAttributes: any;
@@ -650,8 +650,8 @@ export class DecimalField<
   >(args?: {
     typeName: string;
     toStringCallback?: ToStringCallback;
-    compareCallback?: TCompareCallback;
-    optionsCallback?: TOptionsCallback;
+    compareCallback?: CompareCallback;
+    optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
     customImports?: CustomImportsForFieldType[];
   }): TDefinitions['customAttributes'] extends undefined
@@ -703,7 +703,7 @@ export class DecimalField<
           }
         >;
       } {
-    return super.overrideType(args) as any;
+    return super._overrideType(args) as any;
   }
 
   static new<const TMaxDigits extends number, const TDecimalPlaces extends number>(params: {

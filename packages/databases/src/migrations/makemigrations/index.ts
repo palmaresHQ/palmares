@@ -3,11 +3,13 @@ import { FRAMEWORK_NAME, getDefaultStd, retrieveDomains } from '@palmares/core';
 
 import { asker as Asker } from './asker';
 import { databaseLogger } from '../../logging';
+
 import { PACKAGE_NAME, getUniqueCustomImports } from '../../utils';
 import * as actions from '../actions';
 import { State } from '../state';
 
 import type { EmptyOptionsOnGenerateFilesType, FieldOrModelParamType } from './types';
+import type { BaseModel, Model } from '../../models';
 import type { Field } from '../../models/fields';
 import type { CustomImportsForFieldType } from '../../models/fields/types';
 import type { ModelFieldsType } from '../../models/types';
@@ -67,11 +69,11 @@ export class MakeMigrations {
     this.#stateModelsByName = {};
 
     for (const originalModel of originalModels) {
-      this.#originalModelsByName[originalModel.class.originalName()] = originalModel;
+      this.#originalModelsByName[originalModel.class['__originalName']()] = originalModel;
     }
 
     for (const stateModel of stateModels) {
-      this.#stateModelsByName[stateModel.class.originalName()] = stateModel;
+      this.#stateModelsByName[stateModel.class['__originalName']()] = stateModel;
     }
   }
 
@@ -300,11 +302,11 @@ export class MakeMigrations {
       case 'field':
         const originalField = originalModelOrField as Field;
         return actions.RenameField.toGenerate(
-          originalField.model.domainName,
-          originalField.model.domainPath,
-          originalField.model.originalName(),
+          originalField['__model']?.['__domainName'] as string,
+          originalField['__model']?.['__domainPath'] as string,
+          originalField['__model']?.['__originalName']() as string,
           {
-            fieldDefinition: originalField,
+            fieldDefinition: originalField['getArguments'](),
             fieldNameAfter: renamedTo,
             fieldNameBefore: fieldOrModelName
           }
@@ -332,9 +334,9 @@ export class MakeMigrations {
       case 'field':
         const stateField = stateFieldOrModel as Field;
         return actions.DeleteField.toGenerate(
-          stateField.model.domainName,
-          stateField.model.domainPath,
-          stateField.model.originalName(),
+          stateField['__model']?.['__domainName'] as string,
+          stateField['__model']?.['__domainPath'] as string,
+          stateField['__model']?.['__originalName']() as string,
           {
             fieldName: fieldOrModelName
           }
@@ -421,7 +423,9 @@ export class MakeMigrations {
     originalInitializedModel: InitializedModelsType
   ) {
     let response = undefined;
-    const areModelsEqual = await originalInitializedModel.original._compareModels(stateInitializedModel.original);
+    const areModelsEqual = await originalInitializedModel.original['__compareModels'](
+      stateInitializedModel.original as Model & BaseModel
+    );
     if (!areModelsEqual) {
       response = actions.ChangeModel.toGenerate(
         originalInitializedModel.domainName,
@@ -496,11 +500,11 @@ export class MakeMigrations {
           this.#originalModelsByName[operationToProcess.modelName] !== undefined
             ? this.#originalModelsByName[operationToProcess.modelName]
             : this.#stateModelsByName[operationToProcess.modelName];
-        const hasNoDependencies = Object.keys(modelOfOperationToProcess.class.directlyRelatedTo).length === 0;
+        const hasNoDependencies = Object.keys(modelOfOperationToProcess.class['__directlyRelatedTo']).length === 0;
 
         const addedModels = new Set(reorderedOperations.map((operation) => operation.modelName));
 
-        const dependenciesAlreadyAdded = Object.keys(modelOfOperationToProcess.class.directlyRelatedTo).every(
+        const dependenciesAlreadyAdded = Object.keys(modelOfOperationToProcess.class['__directlyRelatedTo']).every(
           (dependencyOfModel: string) =>
             // For circular relations.
             addedModels.has(dependencyOfModel) || dependencyOfModel === modelOfOperationToProcess.class.originalName()

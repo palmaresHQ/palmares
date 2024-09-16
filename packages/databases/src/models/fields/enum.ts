@@ -1,7 +1,7 @@
 import { Field } from './field';
 
 import type { CustomImportsForFieldType } from './types';
-import type { NewInstanceArgumentsCallback, TCompareCallback, TOptionsCallback, ToStringCallback } from './utils';
+import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
 
@@ -75,7 +75,7 @@ export class EnumField<
 
   protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
   protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
-  protected static __compareCallback: TCompareCallback = (oldField, newField, defaultCompareCallback) => {
+  protected static __compareCallback: CompareCallback = (oldField, newField, defaultCompareCallback) => {
     const oldFieldAsTextField = oldField as EnumField<any, any>;
     const newFieldAsTextField = newField as EnumField<any, any>;
     const newFieldChoices = Array.isArray(newFieldAsTextField['__choices']) ? newFieldAsTextField['__choices'] : [];
@@ -595,9 +595,9 @@ export class EnumField<
     isAuto?: TIsAuto
   ): EnumField<
     {
-      create: TType['create'] | null | undefined;
+      create: TType['create'] | undefined;
       read: TType['read'];
-      update: TType['update'] | null | undefined;
+      update: TType['update'] | undefined;
     },
     {
       [TKey in Exclude<
@@ -635,9 +635,9 @@ export class EnumField<
     defaultValue: TDefault
   ): EnumField<
     {
-      create: TType['create'] | TDefault | null | undefined;
+      create: TType['create'] | TDefault | undefined;
       read: TType['read'];
-      update: TType['update'] | null | undefined;
+      update: TType['update'] | undefined;
     },
     {
       [TKey in Exclude<
@@ -719,7 +719,7 @@ export class EnumField<
    * - TDefinitions exists on type-level only, in runtime, it's not a guarantee of nothing. If TDefinitions
    * sets unique to true, it's up to you to do `NameOfYourField.new().unique()`, because otherwise it will be false
    */
-  static overrideType<
+  static _overrideType<
     const TNewType extends { create: any; update: any; read: any },
     const TDefinitions extends {
       customAttributes: any;
@@ -736,8 +736,8 @@ export class EnumField<
   >(args?: {
     typeName: string;
     toStringCallback?: ToStringCallback;
-    compareCallback?: TCompareCallback;
-    optionsCallback?: TOptionsCallback;
+    compareCallback?: CompareCallback;
+    optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
     customImports?: CustomImportsForFieldType[];
   }): TDefinitions['customAttributes'] extends undefined
@@ -785,7 +785,7 @@ export class EnumField<
           }
         >;
       } {
-    const newField = super.overrideType(args) as any;
+    const newField = super._overrideType(args) as any;
     /** We remove the data needed for ForeignKeyField */
     newField.new = (params: any) => {
       const newInstance = new this(params);

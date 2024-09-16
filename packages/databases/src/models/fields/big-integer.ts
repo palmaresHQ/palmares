@@ -3,7 +3,7 @@ import { Field } from './field';
 import { model } from '..';
 
 import type { CustomImportsForFieldType } from './types';
-import type { NewInstanceArgumentsCallback, TCompareCallback, TOptionsCallback, ToStringCallback } from './utils';
+import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
 
@@ -684,9 +684,9 @@ export class BigIntegerField<
     isAuto?: TIsAuto
   ): BigIntegerField<
     {
-      create: TType['create'] | null | undefined;
+      create: TType['create'] | undefined;
       read: TType['read'];
-      update: TType['update'] | null | undefined;
+      update: TType['update'] | undefined;
     },
     {
       [TKey in Exclude<
@@ -724,9 +724,9 @@ export class BigIntegerField<
     defaultValue: TDefault
   ): BigIntegerField<
     {
-      create: TType['create'] | TDefault | null | undefined;
+      create: TType['create'] | TDefault | undefined;
       read: TType['read'];
-      update: TType['update'];
+      update: TType['update'] | undefined;
     },
     {
       [TKey in Exclude<
@@ -833,7 +833,7 @@ export class BigIntegerField<
    * ### Note
    * Your library should provide documentation of the fields that are supported.
    */
-  static overrideType<
+  static _overrideType<
     const TNewType extends { create: any; update: any; read: any },
     const TDefinitions extends {
       customAttributes: any;
@@ -849,8 +849,8 @@ export class BigIntegerField<
   >(args?: {
     typeName: string;
     toStringCallback?: ToStringCallback;
-    compareCallback?: TCompareCallback;
-    optionsCallback?: TOptionsCallback;
+    compareCallback?: CompareCallback;
+    optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
     customImports?: CustomImportsForFieldType[];
     definitions?: Omit<TDefinitions, 'typeName' | 'engineInstance' | 'customAttributes'>;
@@ -891,7 +891,7 @@ export class BigIntegerField<
           }
         >;
       } {
-    return super.overrideType(args) as unknown as TDefinitions['customAttributes'] extends undefined
+    return super._overrideType(args) as unknown as TDefinitions['customAttributes'] extends undefined
       ? {
           new: () => BigIntegerField<
             TNewType,

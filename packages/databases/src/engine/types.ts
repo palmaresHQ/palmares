@@ -17,7 +17,7 @@ import type {
   UuidField,
   adapterFieldParser
 } from '..';
-import type { model } from '../models';
+import type { BaseModel, model } from '../models';
 
 export type EngineInitializedModels<TModel = unknown> = {
   [key: string]: TModel | undefined;
@@ -52,42 +52,42 @@ export type AdapterFieldParserTranslateArgs<
   /**The {@link Field} instance that you need to translate. */
   field: TFieldType extends 'field'
     ?
-        | Field
-        | AutoField
-        | BigAutoField
-        | BigIntegerField
-        | BooleanField
-        | CharField
-        | DateField
-        | DecimalField
-        | EnumField
-        | ForeignKeyField
-        | IntegerField
-        | TextField
-        | UuidField
+        | Omit<(typeof Field)['__getArgumentsCallback'], 'customAttributes'>
+        | Omit<(typeof AutoField)['__getArgumentsCallback'], 'customAttributes'>
+        | Omit<(typeof BigAutoField)['__getArgumentsCallback'], 'customAttributes'>
+        | Omit<(typeof BigIntegerField)['__getArgumentsCallback'], 'customAttributes'>
+        | Omit<(typeof BooleanField)['__getArgumentsCallback'], 'customAttributes'>
+        | Omit<(typeof CharField)['__getArgumentsCallback'], 'customAttributes'>
+        | Omit<(typeof DateField)['__getArgumentsCallback'], 'customAttributes'>
+        | Omit<(typeof DecimalField)['__getArgumentsCallback'], 'customAttributes'>
+        | Omit<(typeof EnumField)['__getArgumentsCallback'], 'customAttributes'>
+        | Omit<(typeof ForeignKeyField)['__getArgumentsCallback'], 'customAttributes'>
+        | Omit<(typeof IntegerField)['__getArgumentsCallback'], 'customAttributes'>
+        | Omit<(typeof TextField)['__getArgumentsCallback'], 'customAttributes'>
+        | Omit<(typeof UuidField)['__getArgumentsCallback'], 'customAttributes'>
     : TFieldType extends 'auto'
-      ? AutoField
+      ? Omit<(typeof AutoField)['__getArgumentsCallback'], 'customAttributes'>
       : TFieldType extends 'big-auto'
-        ? BigAutoField
+        ? Omit<(typeof BigAutoField)['__getArgumentsCallback'], 'customAttributes'>
         : TFieldType extends 'big-integer'
-          ? BigIntegerField
+          ? Omit<(typeof BigIntegerField)['__getArgumentsCallback'], 'customAttributes'>
           : TFieldType extends 'boolean'
-            ? BooleanField
+            ? Omit<(typeof BooleanField)['__getArgumentsCallback'], 'customAttributes'>
             : TFieldType extends 'char'
-              ? CharField
+              ? Omit<(typeof CharField)['__getArgumentsCallback'], 'customAttributes'>
               : TFieldType extends 'date'
-                ? DateField
+                ? Omit<(typeof DateField)['__getArgumentsCallback'], 'customAttributes'>
                 : TFieldType extends 'decimal'
-                  ? DecimalField
+                  ? Omit<(typeof DecimalField)['__getArgumentsCallback'], 'customAttributes'>
                   : TFieldType extends 'enum'
-                    ? EnumField
+                    ? Omit<(typeof EnumField)['__getArgumentsCallback'], 'customAttributes'>
                     : TFieldType extends 'foreign-key'
-                      ? ForeignKeyField
+                      ? Omit<(typeof ForeignKeyField)['__getArgumentsCallback'], 'customAttributes'>
                       : TFieldType extends 'integer'
-                        ? IntegerField
+                        ? Omit<(typeof IntegerField)['__getArgumentsCallback'], 'customAttributes'>
                         : TFieldType extends 'text'
-                          ? TextField
-                          : UuidField;
+                          ? Omit<(typeof TextField)['__getArgumentsCallback'], 'customAttributes'>
+                          : Omit<(typeof UuidField)['__getArgumentsCallback'], 'customAttributes'>;
   /** The custom attributes that you can pass to the field. */
   customAttributes: any;
   /** The field parser instance so we can call the `translate` method on other field types. */
@@ -95,7 +95,7 @@ export type AdapterFieldParserTranslateArgs<
   /** The name of the model */
   modelName: string;
   /** The Palmares model instance. */
-  model: InstanceType<ReturnType<typeof model>>;
+  model: ReturnType<BaseModel['__getModelAttributes']>;
   /** The lazy evaluate function that you can call to evaluate something after the model was translated. */
   lazyEvaluate: (translatedField: TLazyTranslatedFieldArg) => void;
 };

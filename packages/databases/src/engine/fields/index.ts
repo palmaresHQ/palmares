@@ -37,7 +37,8 @@ export function adapterFields<
   TLazyEvaluateField extends AdapterFields['lazyEvaluateField'],
   TTranslateField extends AdapterFields['translateField']
 >(args: {
-  /** An {@link AdapterFieldParser}, it allows you to have a default translate function for all fields. By default, the translate function will receive the fields parser */
+  /** An {@link AdapterFieldParser}, it allows you to have a default translate function for all fields.
+   * By default, the translate function will receive the fields parser */
   fieldsParser: TFieldsParser;
   /** If you do not want to define it, we fallback to {@link AdapterIntegerFieldParser} as the parser */
   autoFieldParser?: TAutoFieldParser;
@@ -54,19 +55,23 @@ export function adapterFields<
   enumFieldParser: TEnumFieldParser;
   booleanFieldParser: TBooleanFieldParser;
   /**
-   * Stuff like `foreignKeys` can be a little cumbersome to implement. Specially when you are doing a translation from one ORM to another. We don't really know how your ORM
-   * handles stuff. So instead of you trying to get around our implementation, we already offer you a way to define your own custom implementation of lazy evaluation of fields.
+   * Stuff like `foreignKeys` can be a little cumbersome to implement. Specially when you are doing a translation
+   * from one ORM to another. We don't really know how your ORM handles stuff. So instead of you trying to get
+   * around our implementation, we already offer you a way to define your own custom implementation of lazy
+   * evaluation of fields.
    *
    * This is used alongside the `lazyEvaluate` parameter on the `translate` method of your field parser.
    *
    * ### Some examples
    *
-   * On Sequelize you need to define relations using the `hasOne`, `hasMany`, `belongsTo`, `belongsToMany` methods. You do not define foreign keys directly on the model.
+   * On Sequelize you need to define relations using the `hasOne`, `hasMany`, `belongsTo`, `belongsToMany` methods.
+   * You do not define foreign keys directly on the model.
    *
    * So what you need to do is:
    * @example
    * ```ts
-   * // First, on your FieldParser you need to call the `lazyEvaluate` function, what you pass to it, will be passed to this method on `_fieldTranslated`.
+   * // First, on your FieldParser you need to call the `lazyEvaluate` function, what you pass to it, will
+   * // be passed to this method on `_fieldTranslated`.
    *
    * export class SequelizeAdapterForeignKeyFieldParser extends AdapterForeignKeyFieldParser {
    *   async translate(args: {
@@ -113,24 +118,31 @@ export function adapterFields<
    * }
    * ```
    *
-   * So as you can see, you can use the `lazyEvaluate` function to pass any data you want to the `lazyEvaluateField` method. This method already gives you the model translated
-   * so if you want to do any custom logic with the model, you can do it here.
+   * So as you can see, you can use the `lazyEvaluate` function to pass any data you want to the `lazyEvaluateField`
+   * method. This method already gives you the model translated so if you want to do any custom logic with the model,
+   * you can do it here.
    *
    * @param Adapter - The Adapter that is being used. That's your own custom Adapter implementation.
    * @param modelName - The name of the model that is being translated.
    * @param translatedModel - The model translated to something that the ORM can understand.
    * @param field - The field of the model that is being translated.
-   * @param fieldTranslated - The data that is sent when you call `lazyEvaluate` on the `translate` method of your {@link AdapterFieldParser}.
+   * @param fieldTranslated - The data that is sent when you call `lazyEvaluate` on the `translate` method of
+   * your {@link AdapterFieldParser}.
    *
-   * @returns - Should return the model translated and modified, even if you do not modify the model, you should return the translated model.
+   * @returns - Should return the model translated and modified, even if you do not modify the model, you should
+   * return the translated model.
    */
   lazyEvaluateField: TLazyEvaluateField;
   /**
-   * This method is completely optional, by default we offer a default implementation that is able to bypass that and calls the `translate` methods directly.
+   * This method is completely optional, by default we offer a default implementation that is able to bypass that and
+   * calls the `translate` methods directly.
    *
    * This method is used to retrieve the field translated to something that your custom ORM can understand.
    *
-   * For drizzleORM, that would be something like this: `integer('int1').default(10)` or `integer('int2').default(sql`'10'::int`)`
+   * For drizzleORM, that would be something like this:
+   * `integer('int1').default(10)`
+   * or
+   * `integer('int2').default(sql`'10'::int`)`
    * (It's on their docs: https://orm.drizzle.team/docs/column-types/pg#integer).
    *
    * So you are pretty much translating the Palmares model Field to your own ORM field.
@@ -139,7 +151,11 @@ export function adapterFields<
    *
    * @example
    * ```ts
-   * async translateField(Adapter: Adapter, field: Field, defaultTranslateFieldCallback: (field: Field) => Promise<any>) {
+   * async translateField(
+   *   Adapter: Adapter,
+   *   field: Field,
+   *   defaultTranslateFieldCallback: (field: Field) => Promise<any>
+   * ) {
    *   switch (field.typeName) {
    *      case 'IntegerField':
    *         return integer(field.name).default(field.defaultValue);
@@ -149,14 +165,20 @@ export function adapterFields<
    * }
    * ```
    *
-   * - **If you want to call the `translate` methods on each field parser. But you do not want to call the `translate` method by hand you can use the `defaultTranslateFieldCallback`:**
+   * - **If you want to call the `translate` methods on each field parser. But you do not want to call the `translate`
+   * method by hand you can use the `defaultTranslateFieldCallback`:**
    *
    * @example
    * ```ts
-   * async translateField(Adapter: Adapter, field: Field, defaultTranslateFieldCallback: (field: Field) => Promise<any>) {
+   * async translateField(
+   *    Adapter: Adapter,
+   *    field: Field,
+   *    defaultTranslateFieldCallback: (field: Field) => Promise<any>
+   * ) {
    *    const translatedField = await defaultTranslateFieldCallback(field);
    *
-   *    // Do any custom logic that you want to do with the translated field. Or translated other field types we do not support by default.
+   *    // Do any custom logic that you want to do with the translated field.
+   *    // Or translated other field types we do not support by default.
    *    translatedField.default(field.defaultValue);
    *    return translatedField;
    * }
@@ -166,7 +188,8 @@ export function adapterFields<
    *
    * @param Adapter - The Adapter that is being used. That's your own custom Adapter implementation.
    * @param field - The field of the model that is being translated.
-   * @param defaultTranslateFieldCallback - The default callback that you can call to translate the field. It will use the `translate` method of the field parser.
+   * @param defaultTranslateFieldCallback - The default callback that you can call to translate the field.
+   * It will use the `translate` method of the field parser.
    *
    * @returns The field translated to something that the ORM can understand.
    */
@@ -221,7 +244,10 @@ export function adapterFields<
  * the fields translated to a way that the ORM can understand.
  */
 export class AdapterFields {
-  /** An {@link AdapterFieldParser}, it allows you to have a default translate function for all fields. By default, the translate function will receive the fields parser */
+  /**
+   * An {@link AdapterFieldParser}, it allows you to have a default translate function for all fields.
+   * By default, the translate function will receive the fields parser
+   */
   fieldsParser: AdapterFieldParser = new AdapterFieldParser();
   autoFieldParser: AdapterAutoFieldParser = new AdapterAutoFieldParser();
   bigAutoFieldParser: AdapterBigAutoFieldParser = new AdapterBigAutoFieldParser();
@@ -237,19 +263,23 @@ export class AdapterFields {
   booleanFieldParser: AdapterBooleanFieldParser = new AdapterBooleanFieldParser();
 
   /**
-   * Stuff like `foreignKeys` can be a little cumbersome to implement. Specially when you are doing a translation from one ORM to another. We don't really know how your ORM
-   * handles stuff. So instead of you trying to get around our implementation, we already offer you a way to define your own custom implementation of lazy evaluation of fields.
+   * Stuff like `foreignKeys` can be a little cumbersome to implement. Specially when you are doing a translation
+   * from one ORM to another. We don't really know how your ORM handles stuff. So instead of you trying to get
+   * around our implementation, we already offer you a way to define your own custom implementation of lazy
+   * evaluation of fields.
    *
    * This is used alongside the `lazyEvaluate` parameter on the `translate` method of your field parser.
    *
    * ### Some examples
    *
-   * On Sequelize you need to define relations using the `hasOne`, `hasMany`, `belongsTo`, `belongsToMany` methods. You do not define foreign keys directly on the model.
+   * On Sequelize you need to define relations using the `hasOne`, `hasMany`, `belongsTo`, `belongsToMany` methods.
+   * You do not define foreign keys directly on the model.
    *
    * So what you need to do is:
    * @example
    * ```ts
-   * // First, on your FieldParser you need to call the `lazyEvaluate` function, what you pass to it, will be passed to this method on `_fieldTranslated`.
+   * // First, on your FieldParser you need to call the `lazyEvaluate` function, what you pass to it, will be passed
+   * // to this method on `_fieldTranslated`.
    *
    * export class SequelizeAdapterForeignKeyFieldParser extends AdapterForeignKeyFieldParser {
    *   async translate(args: {
@@ -296,16 +326,20 @@ export class AdapterFields {
    * }
    * ```
    *
-   * So as you can see, you can use the `lazyEvaluate` function to pass any data you want to the `lazyEvaluateField` method. This method already gives you the model translated
-   * so if you want to do any custom logic with the model, you can do it here.
+   * So as you can see, you can use the `lazyEvaluate` function to pass any data you want to the `lazyEvaluateField`
+   * method.
+   * This method already gives you the model translated so if you want to do any custom logic with the model,
+   * you can do it here.
    *
    * @param Adapter - The Adapter that is being used. That's your own custom Adapter implementation.
    * @param modelName - The name of the model that is being translated.
    * @param translatedModel - The model translated to something that the ORM can understand.
    * @param field - The field of the model that is being translated.
-   * @param fieldTranslated - The data that is sent when you call `lazyEvaluate` on the `translate` method of your {@link AdapterFieldParser}.
+   * @param fieldTranslated - The data that is sent when you call `lazyEvaluate` on the `translate` method of
+   * your {@link AdapterFieldParser}.
    *
-   * @returns - Should return the model translated and modified, even if you do not modify the model, you should return the translated model.
+   * @returns - Should return the model translated and modified, even if you do not modify the model, you should
+   * return the translated model.
    */
   // eslint-disable-next-line ts/require-await
   async lazyEvaluateField(
@@ -314,17 +348,21 @@ export class AdapterFields {
     _translatedModel: any,
     _field: Field,
     _fieldTranslated: any,
-    _parse: (model: Model, field: Field<any, any, any, any, any, any, any, any>) => Promise<any>
+    _parse: (model: Model, field: Field<any, any>) => Promise<any>
   ): Promise<any> {
     throw new NotImplementedAdapterFieldsException('lazyEvaluateField');
   }
 
   /**
-   * This method is completely optional, by default we offer a default implementation that is able to bypass that and calls the `translate` methods directly.
+   * This method is completely optional, by default we offer a default implementation that is able to bypass that and
+   * calls the `translate` methods directly.
    *
    * This method is used to retrieve the field translated to something that your custom ORM can understand.
    *
-   * For drizzleORM, that would be something like this: `integer('int1').default(10)` or `integer('int2').default(sql`'10'::int`)`
+   * For drizzleORM, that would be something like this:
+   * `integer('int1').default(10)`
+   * or
+   * `integer('int2').default(sql`'10'::int`)`
    * (It's on their docs: https://orm.drizzle.team/docs/column-types/pg#integer).
    *
    * So you are pretty much translating the Palmares model Field to your own ORM field.
@@ -333,7 +371,11 @@ export class AdapterFields {
    *
    * @example
    * ```ts
-   * async translateField(Adapter: Adapter, field: Field, defaultTranslateFieldCallback: (field: Field) => Promise<any>) {
+   * async translateField(
+   *   adapter: Adapter,
+   *   field: Field,
+   *   defaultTranslateFieldCallback: (field: Field) => Promise<any>
+   * ) {
    *   switch (field.typeName) {
    *      case 'IntegerField':
    *         return integer(field.name).default(field.defaultValue);
@@ -343,14 +385,20 @@ export class AdapterFields {
    * }
    * ```
    *
-   * - **If you want to call the `translate` methods on each field parser. But you do not want to call the `translate` method by hand you can use the `defaultTranslateFieldCallback`:**
+   * - **If you want to call the `translate` methods on each field parser. But you do not want to call the
+   * `translate` method by hand you can use the `defaultTranslateFieldCallback`:**
    *
    * @example
    * ```ts
-   * async translateField(Adapter: Adapter, field: Field, defaultTranslateFieldCallback: (field: Field) => Promise<any>) {
+   * async translateField(
+   *    adapter: Adapter,
+   *    field: Field,
+   *    defaultTranslateFieldCallback: (field: Field) => Promise<any>
+   * ) {
    *    const translatedField = await defaultTranslateFieldCallback(field);
    *
-   *    // Do any custom logic that you want to do with the translated field. Or translated other field types we do not support by default.
+   *    // Do any custom logic that you want to do with the translated field.
+   *    // Or translated other field types we do not support by default.
    *    translatedField.default(field.defaultValue);
    *    return translatedField;
    * }
@@ -360,7 +408,8 @@ export class AdapterFields {
    *
    * @param Adapter - The Adapter that is being used. That's your own custom Adapter implementation.
    * @param field - The field of the model that is being translated.
-   * @param defaultTranslateFieldCallback - The default callback that you can call to translate the field. It will use the `translate` method of the field parser.
+   * @param defaultTranslateFieldCallback - The default callback that you can call to translate the field. It will
+   * use the `translate` method of the field parser.
    *
    * @returns The field translated to something that the ORM can understand.
    */

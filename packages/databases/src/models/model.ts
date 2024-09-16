@@ -1,7 +1,7 @@
-import test from 'node:test';
+import { profile } from 'console';
 
 import { ModelCircularAbstractError, ModelNoUniqueFieldsError } from './exceptions';
-import { CharField, type Field, type ForeignKeyField } from './fields';
+import { AutoField, CharField, type Field, ForeignKeyField, ON_DELETE, TextField } from './fields';
 import { DefaultManager, Manager } from './manager';
 import { factoryFunctionForModelTranslate, getDefaultModelOptions, indirectlyRelatedModels } from './utils';
 import { getUniqueCustomImports, hashString } from '../utils';
@@ -11,7 +11,6 @@ import type {
   ManagersOfInstanceType,
   ModelFieldsType,
   ModelOptionsType,
-  ModelType,
   onRemoveFunction,
   onSetFunction
 } from './types';
@@ -53,6 +52,7 @@ export class BaseModel {
 
   protected static __cachedOriginalName: string;
   protected static __cachedFields: ModelFieldsType | undefined = undefined;
+  protected static __customOptions: any = undefined;
   protected static __cachedOptions: ModelOptionsType<any> | undefined = undefined;
   protected static __hasLoadedManagers = false;
   protected static __cachedManagers: ManagersOfInstanceType | undefined = undefined;
@@ -80,14 +80,14 @@ export class BaseModel {
       modifyItself: (newTranslation: any) => void;
     }
   ) {
-    const modelConstructor = this.constructor as ModelType;
-    const managers: ManagersOfInstanceType = modelConstructor.__getManagers();
+    const modelConstructor = this.constructor as unknown as typeof Model & typeof BaseModel;
+    const managers: ManagersOfInstanceType = modelConstructor['__getManagers']();
     const managerValues = Object.values(managers);
 
     for (const manager of managerValues) {
-      manager._setModel(engineInstance.connectionName, modelInstance);
-      manager._setInstance(engineInstance.connectionName, translatedModelInstance);
-      manager._setEngineInstance(engineInstance.connectionName, engineInstance);
+      manager['__setModel'](engineInstance.connectionName, modelInstance);
+      manager['__setInstance'](engineInstance.connectionName, translatedModelInstance);
+      manager['__setEngineInstance'](engineInstance.connectionName, engineInstance);
     }
   }
 
@@ -220,6 +220,30 @@ export class BaseModel {
   }
 
   /**
+   * Since most data is private, we use this to extract all the data that the model has that might be useful for engine
+   * instances. This way we don't need to expose the model to the engine
+   */
+  protected __getModelAttributes() {
+    const modelConstructor = this.constructor as unknown as typeof Model & typeof BaseModel;
+    const fields = modelConstructor._fields();
+    const options = modelConstructor._options();
+
+    const fieldsWithAttributes = Object.entries(fields).reduce(
+      (accumulator, [fieldName, field]) => {
+        accumulator[fieldName] = field['__getArguments']();
+        return accumulator;
+      },
+      {} as Record<string, ReturnType<(typeof Field<any, any>)['__getArgumentsCallback']>>
+    );
+
+    return {
+      modelName: modelConstructor.__originalName(),
+      fields: fieldsWithAttributes,
+      options
+    };
+  }
+
+  /**
    * Retrieves the managers from the model constructor.
    *
    * This is useful for getting the managers from an abstract model class.
@@ -286,9 +310,18 @@ export class BaseModel {
 
     // Handle options of the abstract
     const areAbstractInstanceOptionsDefined = Object.keys(abstractInstance.options || {}).length > 1;
-    if (modelConstructor.__cachedOptions === undefined && areAbstractInstanceOptionsDefined) {
-      modelConstructor.__cachedOptions = abstractConstructor._options();
-      //if (modelInstance.options) modelInstance.options.abstract = false;
+    if (areAbstractInstanceOptionsDefined) {
+      const optionsFromAbstract = abstractConstructor._options();
+      if (optionsFromAbstract) {
+        const duplicatedOptions = structuredClone(optionsFromAbstract);
+        delete duplicatedOptions.abstract;
+        delete duplicatedOptions.managed;
+
+        modelConstructor.__cachedOptions = {
+          ...duplicatedOptions,
+          ...(modelConstructor.__cachedOptions || {})
+        };
+      }
     }
 
     for (const [managerName, managerInstance] of abstractManagers) {
@@ -310,8 +343,8 @@ export class BaseModel {
     const modelInstance = new this() as Model & BaseModel;
     const alreadyComposedAbstracts = [this.name];
 
-    for (const abstractModelConstructor of modelInstance.abstracts)
-      this.__loadAbstract(abstractModelConstructor as typeof Model & typeof BaseModel, alreadyComposedAbstracts);
+    for (const abstractModelConstructor of (modelInstance as any)['abstracts'] as (typeof Model & typeof BaseModel)[])
+      this.__loadAbstract(abstractModelConstructor, alreadyComposedAbstracts);
     this.__hasLoadedAbstracts = true;
   }
 
@@ -344,9 +377,13 @@ export class BaseModel {
           modelInstance.options[defaultModelOptionKey] = (defaultOptions as any)[defaultModelOptionKey];
       }
       this.__cachedOptions = {
-        ...(modelInstance.options || {}),
         // eslint-disable-next-line ts/no-unnecessary-condition
-        ...(this.__cachedOptions || {})
+        ...(this.__cachedOptions || {}),
+        ...(modelInstance.options || {}),
+        customOptions:
+          this.__customOptions ||
+          modelInstance.options?.customOptions ||
+          ((this.__cachedOptions as any) || ({} as any)).customOptions
       };
     }
     return this.__cachedOptions;
@@ -365,8 +402,8 @@ export class BaseModel {
       const allFields = Object.entries(fieldsDefinedOnModel);
 
       for (const [fieldName, field] of allFields) {
-        if (field.unique) modelHasNoUniqueFields = false;
-        field.init(fieldName, this as ModelType);
+        if (field['__unique']) modelHasNoUniqueFields = false;
+        field['init'](fieldName, this as typeof BaseModel & typeof Model);
       }
 
       if (modelHasNoUniqueFields && this._options()?.abstract !== true) {
@@ -435,9 +472,9 @@ export class BaseModel {
       const fieldName = allFields[i][0];
       const field = allFields[i][1];
       const isLastField = i === allFields.length - 1;
-      const customImportsOfField = await field.customImports();
+      const customImportsOfField = await field['__customImports']();
       stringifiedFields.push(
-        `${fieldsIdent}${fieldName}: ${(await field.toString(indentation + 1)).replace(
+        `${fieldsIdent}${fieldName}: ${(await field['__toString'](indentation + 1)).replace(
           new RegExp(`^${fieldsIdent}`),
           ''
         )},${isLastField ? '' : '\n'}`
@@ -576,10 +613,13 @@ export class Model extends BaseModelWithoutMethods {
   static [managers: string]: Manager | ((...args: any) => any) | ModelFieldsType;
   fields: ModelFieldsType = {};
   options: ModelOptionsType<any> | undefined = undefined;
-  abstracts: readonly (typeof Model | ReturnType<typeof model>)[] = [] as const;
+  abstracts: readonly (typeof Model & typeof BaseModel)[] = [] as const;
 }
 
-type ModelType<
+/**
+ * Actual model returned
+ */
+export type ModelType<
   TModel,
   TDefinitions extends {
     engineInstance: DatabaseAdapter;
@@ -598,7 +638,7 @@ type ModelType<
   ) => ModelType<TModel & { fields: TOtherFields }, TDefinitions>;
 
   setCustomOptions: <
-    TCustomOptions extends Parameters<TDefinitions['engineInstance']['models']['translate']>[4]['customOptions']
+    TCustomOptions extends Parameters<TDefinitions['engineInstance']['models']['translate']>[5]['customOptions']
   >(
     customOptions: TCustomOptions
   ) => ModelType<TModel, { engineInstance: TDefinitions['engineInstance']; customOptions: TCustomOptions }>;
@@ -680,6 +720,15 @@ export function model<
       return this as unknown as any;
     }
 
+    static setCustomOptions<
+      TCustomOptions extends Parameters<TDefinitions['engineInstance']['models']['translate']>[5]['customOptions']
+    >(
+      customOptions: TCustomOptions
+    ): ModelType<TModel, { engineInstance: TDefinitions['engineInstance']; customOptions: TCustomOptions }> {
+      (this as unknown as typeof Model & typeof BaseModel)['__customOptions'] = customOptions;
+      return this as any;
+    }
+
     static setManagers<TManagers extends Record<string, Manager<any>>>(
       managers: TManagers
     ): ModelType<TModel, TDefinitions> & TManagers {
@@ -698,7 +747,12 @@ export function model<
  */
 export function initialize<
   TFields extends ModelFieldsType,
-  const TAbstracts extends readonly ReturnType<typeof model>[],
+  const TAbstracts extends readonly {
+    new (): {
+      fields: any;
+      options?: ModelOptionsType<any>;
+    };
+  }[],
   TOptions extends ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>,
   TManagers extends {
     [managerName: string]: {
@@ -790,7 +844,7 @@ export function initialize<
     }
     const managerInstance = new NewManagerInstance();
     for (const [managerFunctionName, managerFunction] of Object.entries(managerFunctions)) {
-      (managerInstance as any)[managerFunctionName] = managerFunction.bind(managerInstance);
+      (managerInstance as any)[managerFunctionName] = (managerFunction as any).bind(managerInstance);
     }
     (ModelConstructor as any)[managerName] = managerInstance;
     (ModelConstructor as any).__cachedManagers[managerName] = managerInstance;
@@ -799,25 +853,60 @@ export function initialize<
   return ModelConstructor as any;
 }
 
-class Test extends Manager<InstanceType<typeof baseUserInstance>> {
+class Test extends Manager<User> {
   createUser(aqui: string) {
-    return this.get({ fields: ['lastName'] });
+    return this.get({ fields: ['firstName'] });
   }
 }
 
+const Profile = initialize('Profile', {
+  fields: {
+    id: AutoField.new(),
+    type: CharField.new({ maxLen: 12 })
+  },
+  options: {
+    tableName: 'profile'
+  }
+});
+
 class User extends model<User, any>() {
   fields = {
-    firstName: CharField.new({ maxLen: 12 })
+    firstName: TextField.new()
   };
-
-  static teste = new Test();
 }
 
 const baseUserInstance = initialize('User', {
   fields: {
-    lastName: CharField.new({ maxLen: 12 })
+    lastName: CharField.new({ maxLen: 12 }).allowNull(),
+    profileId: ForeignKeyField.new({
+      onDelete: ON_DELETE.CASCADE,
+      relatedName: 'usersOfProfile',
+      relationName: 'profile',
+      relatedTo: () => Profile,
+      toField: 'id'
+    })
   },
   options: {
     tableName: 'user'
-  }
+  },
+  abstracts: [User]
 });
+/*
+Profile.default
+  .get({
+    search: {
+
+    }
+  })
+  .then((resp) => {
+    resp[0].
+  });
+
+Profile.default
+.set({
+  type: 'aqui'
+})
+.then((resp) => {
+  resp[0].
+});
+*/

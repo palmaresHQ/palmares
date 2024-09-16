@@ -549,6 +549,7 @@ export class AdapterModels<TModel> {
    * @param fieldEntriesOfModel - The field entries of the model. It's an array of tuples where the first element is
    * the field name and the second is the field.
    * @param modelOptions - The options of the model that is being translated.
+   * @param customOptions - Custom options that you can pass for your model.
    * @param defaultTranslateCallback - Instead of manually calling the `translateFields` and `translateOptions` methods,
    * you can call this function and it will do that for you. It will return an object
    * with the `options` and `fields` keys. The `options` key will be the return of the `translateOptions` method and the
@@ -566,7 +567,8 @@ export class AdapterModels<TModel> {
     _modelName: string,
     _model: Model,
     _fieldEntriesOfModel: [string, Field][],
-    _modelOptions: ModelOptionsType,
+    _modelOptions: Omit<ModelOptionsType, 'customOptions'>,
+    _customOptions: any,
     _defaultTranslateCallback: () => Promise<{ options: any; fields: { [key: string]: any } }>,
     _defaultTranslateFieldCallback: (_field: Field) => Promise<any>,
     _defaultTranslateFieldsCallback: () => Promise<{ [key: string]: any }>

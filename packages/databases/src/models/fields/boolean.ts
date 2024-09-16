@@ -1,7 +1,7 @@
 import { Field } from './field';
 
 import type { CustomImportsForFieldType } from './types';
-import type { NewInstanceArgumentsCallback, TCompareCallback, TOptionsCallback, ToStringCallback } from './utils';
+import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
 
@@ -103,7 +103,7 @@ export class BooleanField<
    *
    * @example
    * ```ts
-   * const customBigInt = TextField.overrideType<
+   * const customBigInt = TextField._overrideType<
    *   { create: bigint; read: bigint; update: bigint },
    *   {
    *       customAttributes: { name: string };
@@ -441,41 +441,7 @@ export class BooleanField<
       customAttributes: TDefinitions['customAttributes'];
     }
   > {
-    return super.allowNull(isNull) as unknown as BooleanField<
-      {
-        create: TType['create'] | null | undefined;
-        read: TType['read'] | null | undefined;
-        update: TType['update'] | null | undefined;
-      },
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TNull;
-        dbIndex: TDefinitions['dbIndex'];
-        underscored: TDefinitions['underscored'];
-        isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TDefinitions['auto'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TDefinitions['customAttributes'];
-      }
-    >;
+    return super.allowNull(isNull) as unknown as any;
   }
 
   /**
@@ -683,9 +649,9 @@ export class BooleanField<
     isAuto?: TIsAuto
   ): BooleanField<
     {
-      create: TType['create'] | null | undefined;
+      create: TType['create'] | undefined;
       read: TType['read'];
-      update: TType['update'] | null | undefined;
+      update: TType['update'] | undefined;
     },
     {
       [TKey in Exclude<
@@ -723,9 +689,9 @@ export class BooleanField<
     defaultValue: TDefault
   ): BooleanField<
     {
-      create: TType['create'] | TDefault | null | undefined;
+      create: TType['create'] | TDefault | undefined;
       read: TType['read'];
-      update: TType['update'] | null | undefined;
+      update: TType['update'] | undefined;
     },
     {
       [TKey in Exclude<
@@ -866,7 +832,7 @@ export class BooleanField<
    * ### Note
    * Your library should provide documentation of the fields that are supported.
    */
-  static overrideType<
+  static _overrideType<
     const TNewType extends { create: any; update: any; read: any },
     const TDefinitions extends {
       customAttributes: any;
@@ -882,8 +848,8 @@ export class BooleanField<
   >(args?: {
     typeName: string;
     toStringCallback?: ToStringCallback;
-    compareCallback?: TCompareCallback;
-    optionsCallback?: TOptionsCallback;
+    compareCallback?: CompareCallback;
+    optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
     customImports?: CustomImportsForFieldType[];
     definitions?: Omit<TDefinitions, 'typeName' | 'engineInstance' | 'customAttributes'>;
@@ -924,7 +890,7 @@ export class BooleanField<
           }
         >;
       } {
-    return super.overrideType(args) as unknown as TDefinitions['customAttributes'] extends undefined
+    return super._overrideType(args) as unknown as TDefinitions['customAttributes'] extends undefined
       ? {
           new: () => BooleanField<
             TNewType,
