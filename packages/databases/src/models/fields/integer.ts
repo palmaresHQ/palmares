@@ -34,6 +34,7 @@ export function int(): IntegerField<
     underscored: true;
     isPrimaryKey: false;
     auto: false;
+    hasDefaultValue: false;
     defaultValue: undefined;
     typeName: string;
     databaseName: undefined;
@@ -69,6 +70,7 @@ export class IntegerField<
     allowNull: boolean;
     dbIndex: boolean;
     isPrimaryKey: boolean;
+    hasDefaultValue: boolean;
     defaultValue: undefined;
     underscored: boolean;
     typeName: string;
@@ -80,6 +82,7 @@ export class IntegerField<
     allowNull: true;
     dbIndex: true;
     underscored: true;
+    hasDefaultValue: false;
     isPrimaryKey: true;
     auto: true;
     defaultValue: undefined;
@@ -172,6 +175,7 @@ export class IntegerField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -250,6 +254,7 @@ export class IntegerField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -296,6 +301,7 @@ export class IntegerField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -329,6 +335,7 @@ export class IntegerField<
         underscored: TDefinitions['underscored'];
         isPrimaryKey: TDefinitions['isPrimaryKey'];
         auto: TDefinitions['auto'];
+        hasDefaultValue: TDefinitions['hasDefaultValue'];
         defaultValue: TDefinitions['defaultValue'];
         databaseName: TDefinitions['databaseName'];
         typeName: TDefinitions['typeName'];
@@ -364,6 +371,7 @@ export class IntegerField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -395,6 +403,7 @@ export class IntegerField<
         underscored: TDefinitions['underscored'];
         isPrimaryKey: TDefinitions['isPrimaryKey'];
         auto: TDefinitions['auto'];
+        hasDefaultValue: TDefinitions['hasDefaultValue'];
         defaultValue: TDefinitions['defaultValue'];
         databaseName: TDefinitions['databaseName'];
         typeName: TDefinitions['typeName'];
@@ -429,11 +438,12 @@ export class IntegerField<
       >]: TDefinitions[TKey];
     } & {
       unique: TDefinitions['unique'];
-      allowNull: TNull;
+      allowNull: TNull extends false ? false : true;
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -441,41 +451,7 @@ export class IntegerField<
       customAttributes: TDefinitions['customAttributes'];
     }
   > {
-    return super.allowNull(isNull) as unknown as IntegerField<
-      {
-        create: TType['create'] | null | undefined;
-        read: TType['read'] | null | undefined;
-        update: TType['update'] | null | undefined;
-      },
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TNull;
-        dbIndex: TDefinitions['dbIndex'];
-        underscored: TDefinitions['underscored'];
-        isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TDefinitions['auto'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TDefinitions['customAttributes'];
-      }
-    >;
+    return super.allowNull(isNull) as unknown as any;
   }
 
   /**
@@ -507,6 +483,7 @@ export class IntegerField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -538,6 +515,7 @@ export class IntegerField<
         underscored: TDefinitions['underscored'];
         isPrimaryKey: TDefinitions['isPrimaryKey'];
         auto: TDefinitions['auto'];
+        hasDefaultValue: TDefinitions['hasDefaultValue'];
         defaultValue: TDefinitions['defaultValue'];
         databaseName: TDefinitions['databaseName'];
         typeName: TDefinitions['typeName'];
@@ -573,6 +551,7 @@ export class IntegerField<
       underscored: TUnderscored;
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -604,6 +583,7 @@ export class IntegerField<
         underscored: TUnderscored;
         isPrimaryKey: TDefinitions['isPrimaryKey'];
         auto: TDefinitions['auto'];
+        hasDefaultValue: TDefinitions['hasDefaultValue'];
         defaultValue: TDefinitions['defaultValue'];
         databaseName: TDefinitions['databaseName'];
         typeName: TDefinitions['typeName'];
@@ -639,6 +619,7 @@ export class IntegerField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TIsPrimaryKey;
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -679,6 +660,7 @@ export class IntegerField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TIsAuto;
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -719,6 +701,7 @@ export class IntegerField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: true;
       defaultValue: TDefault;
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -749,6 +732,7 @@ export class IntegerField<
         | 'customAttributes'
       >]: TDefinitions[TKey];
     } & {
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
@@ -778,6 +762,7 @@ export class IntegerField<
       customAttributes: any;
       unique: boolean;
       auto: boolean;
+      hasDefaultValue: boolean;
       allowNull: boolean;
       dbIndex: boolean;
       isPrimaryKey: boolean;
@@ -800,6 +785,7 @@ export class IntegerField<
           {
             unique: TDefinitions['unique'];
             auto: TDefinitions['auto'];
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
             allowNull: TDefinitions['allowNull'];
             dbIndex: TDefinitions['dbIndex'];
             isPrimaryKey: TDefinitions['isPrimaryKey'];
@@ -818,6 +804,7 @@ export class IntegerField<
           {
             unique: TDefinitions['unique'];
             auto: TDefinitions['auto'];
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
             allowNull: TDefinitions['allowNull'];
             dbIndex: TDefinitions['dbIndex'];
             isPrimaryKey: TDefinitions['isPrimaryKey'];
@@ -847,6 +834,7 @@ export class IntegerField<
       isPrimaryKey: false;
       auto: false;
       defaultValue: undefined;
+      hasDefaultValue: false;
       typeName: string;
       databaseName: undefined;
       engineInstance: DatabaseAdapter;

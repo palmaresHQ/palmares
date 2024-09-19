@@ -1,5 +1,3 @@
-import { profile } from 'console';
-
 import { ModelCircularAbstractError, ModelNoUniqueFieldsError } from './exceptions';
 import { AutoField, CharField, type Field, ForeignKeyField, ON_DELETE, TextField } from './fields';
 import { DefaultManager, Manager } from './manager';
@@ -326,10 +324,10 @@ export class BaseModel {
 
     for (const [managerName, managerInstance] of abstractManagers) {
       // eslint-disable-next-line ts/no-unnecessary-condition
-      if (modelConstructor[managerName]) continue;
+      if ((modelConstructor as any)[managerName]) continue;
 
       //throw new ModelInvalidAbstractManagerError(this.name, abstractInstanceName, managerName);
-      modelConstructor[managerName] = managerInstance;
+      (modelConstructor as any)[managerName] = managerInstance;
     }
   }
 
@@ -610,7 +608,7 @@ const BaseModelWithoutMethods = BaseModel as unknown as { new (): Pick<BaseModel
  */
 export class Model extends BaseModelWithoutMethods {
   protected $$type = '$PModel';
-  static [managers: string]: Manager | ((...args: any) => any) | ModelFieldsType;
+  //static [managers: string]: Manager | ((...args: any) => any) | ModelFieldsType;
   fields: ModelFieldsType = {};
   options: ModelOptionsType<any> | undefined = undefined;
   abstracts: readonly (typeof Model & typeof BaseModel)[] = [] as const;
@@ -629,9 +627,7 @@ export type ModelType<
     customOptions: any;
   }
 > = {
-  default: DefaultManager<
-    TModel extends { fields: infer TFields } ? (TFields extends ModelFieldsType ? { fields: TFields } : any) : any
-  >;
+  default: DefaultManager<TModel>;
 
   appendFields: <TOtherFields extends ModelFieldsType>(
     fields: TOtherFields
@@ -746,6 +742,7 @@ export function model<
  * Used for creating a model from a function instead of needing to define a class.
  */
 export function initialize<
+  TTypeName extends string,
   TFields extends ModelFieldsType,
   const TAbstracts extends readonly {
     new (): {
@@ -753,49 +750,45 @@ export function initialize<
       options?: ModelOptionsType<any>;
     };
   }[],
-  TOptions extends ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>,
+  const TOptions extends ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>,
   TManagers extends {
-    [managerName: string]: {
-      [functionName: string]: (
-        this: Manager<
-          ReturnType<
-            typeof model<{
-              fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
-              options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
-            }>
-          > & {
-            fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
-            options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
-            // eslint-disable-next-line no-shadow
-          }
-        >,
-        ...args: any
-      ) => any;
-    };
+    [managerName: string]:
+      | Manager<any>
+      | {
+          [functionName: string]: (
+            this: Manager<
+              ReturnType<
+                typeof model<{
+                  fields: ExtractFieldsFromAbstracts<TFields, TAbstracts>;
+                  options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
+                }>
+              > & {
+                fields: ExtractFieldsFromAbstracts<TFields, TAbstracts>;
+                options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
+                // eslint-disable-next-line no-shadow
+              }
+            >,
+            ...args: any
+          ) => any;
+        };
   }
 >(
-  modelName: string,
+  modelName: TTypeName,
   args: {
     fields: TFields;
     options?: TOptions;
     abstracts?: TAbstracts;
     managers?: TManagers;
   }
-): ModelType<
-  {
-    fields: TFields & ExtractFieldsFromAbstracts<TAbstracts>;
-  } & (TOptions extends undefined ? unknown : { options: TOptions })
-> &
-  (TManagers extends undefined
-    ? unknown
-    : ExtractManagersFromAbstracts<TAbstracts> & {
-        [TManagerName in keyof TManagers]:
-          | Manager<any>
-          | {
-              [TFunctionName in keyof TManagers[TManagerName]]: TManagers[TManagerName][TFunctionName];
-            };
-      }) {
-  type ModelFields = TFields & ExtractFieldsFromAbstracts<TAbstracts>;
+): (TManagers extends undefined
+  ? unknown
+  : ExtractManagersFromAbstracts<TAbstracts> & {
+      [TManagerName in keyof TManagers]: Manager<any> & {
+        [TFunctionName in keyof TManagers[TManagerName]]: TManagers[TManagerName][TFunctionName];
+      };
+    }) &
+  ModelType<{ fields: ExtractFieldsFromAbstracts<TFields, TAbstracts>; options: TOptions }> {
+  type ModelFields = ExtractFieldsFromAbstracts<TFields, TAbstracts>;
   class ModelConstructor extends model<
     ModelConstructor & {
       fields: ModelFields;
@@ -844,7 +837,7 @@ export function initialize<
     }
     const managerInstance = new NewManagerInstance();
     for (const [managerFunctionName, managerFunction] of Object.entries(managerFunctions)) {
-      (managerInstance as any)[managerFunctionName] = (managerFunction as any).bind(managerInstance);
+      (managerInstance as any)[managerFunctionName] = managerFunction.bind(managerInstance);
     }
     (ModelConstructor as any)[managerName] = managerInstance;
     (ModelConstructor as any).__cachedManagers[managerName] = managerInstance;
@@ -853,19 +846,30 @@ export function initialize<
   return ModelConstructor as any;
 }
 
-class Test extends Manager<User> {
+class Test extends Manager {
   createUser(aqui: string) {
-    return this.get({ fields: ['firstName'] });
+    //return this.get({ fields: ['firstName'] });
   }
 }
 
-const Profile = initialize('Profile', {
-  fields: {
+class Profile extends model<Profile>() {
+  fields = {
     id: AutoField.new(),
     type: CharField.new({ maxLen: 12 })
+  };
+
+  options = {
+    tableName: 'profile'
+  };
+}
+
+const Contract = initialize('Contract', {
+  fields: {
+    id: AutoField.new(),
+    name: CharField.new({ maxLen: 12 })
   },
   options: {
-    tableName: 'profile'
+    tableName: 'contract'
   }
 });
 
@@ -873,7 +877,18 @@ class User extends model<User, any>() {
   fields = {
     firstName: TextField.new()
   };
+
+  static test = new Test();
 }
+
+const User2 = initialize('User', {
+  fields: {
+    firstName: TextField.new()
+  },
+  managers: {
+    test: new Test()
+  }
+});
 
 const baseUserInstance = initialize('User', {
   fields: {
@@ -885,26 +900,105 @@ const baseUserInstance = initialize('User', {
       relatedTo: () => Profile,
       toField: 'id'
     })
+      .allowNull(true)
+      .unique(true),
+    contractId: ForeignKeyField.new({
+      onDelete: ON_DELETE.CASCADE,
+      relatedName: 'usersOfContract',
+      relationName: 'contract',
+      relatedTo: () => Contract,
+      toField: 'id'
+    }),
+    contractorId: ForeignKeyField.new({
+      onDelete: ON_DELETE.CASCADE,
+      relatedName: 'usersOfContractor',
+      relationName: 'contractor',
+      relatedTo: () => Contract,
+      toField: 'id'
+    })
   },
   options: {
     tableName: 'user'
   },
-  abstracts: [User]
+  abstracts: [User2]
 });
-/*
-Profile.default
-  .get({
-    search: {
 
-    }
+const test = Profile.default.get
+  .includes(baseUserInstance, 'usersOfProfile', (qb) => qb.fields(['firstName']))
+  .result();
+
+const test2 = baseUserInstance.default.get
+  .includes(Profile, 'profile', (qb) => qb.fields(['type']))
+  .includes(Contract, 'contractor')
+  .includes(Contract, 'contract')
+  .result();
+
+test.usersOfProfile?.firstName;
+test2.contract.id;
+//Profile.default.get.fields(['id']);
+/*
+baseUserInstance.default
+  .get({
+    fields: [''],
+    includes: [
+      {
+        model: Profile
+      },
+      {
+        model: Contract,
+        relationNames: ['contract']
+      }
+    ]
   })
   .then((resp) => {
-    resp[0].
+    resp[0].contract.id;
   });
 
+baseUserInstance.default
+  .get({
+    includes: [
+      {
+        model: Profile
+      }
+    ]
+  })
+  .then((resp) => {
+    resp[0].contractor.id;
+  });
+
+Profile.default.set({
+  type: 'test',
+  id: 1
+});
+
 Profile.default
+  .get({
+    fields: ['id']
+  })
+  .then((resp) => {
+    resp[0].id;
+  });
+
+Profile.default.get().then((resp) => {
+  resp[0].type;
+});
+
+Profile.default
+  .get({
+    includes: [
+      {
+        model: baseUserInstance
+      }
+    ]
+  })
+  .then((resp) => {
+    resp[0].type;
+  });
+  */
+/*
+baseUserInstance.default
 .set({
-  type: 'aqui'
+
 })
 .then((resp) => {
   resp[0].

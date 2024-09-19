@@ -915,7 +915,7 @@ type RelatedFieldOfModelOptional<
       hasDefaultValue: infer THasDefaultValue extends boolean;
       unique: any;
       auto: any;
-      allowNull: any;
+      allowNull: infer TAllowNull extends boolean;
       dbIndex: any;
       isPrimaryKey: any;
       defaultValue: any;
@@ -931,12 +931,12 @@ type RelatedFieldOfModelOptional<
       toField: any;
     }
   >
-    ? THasDefaultValue extends true
-      ? AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<
-          InstanceType<TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never>,
-          TRelatedModel
-        > extends true
-        ? TRelationName extends TRelationNamesOfModel[number]
+    ? AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<
+        InstanceType<TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never>,
+        TRelatedModel
+      > extends true
+      ? TRelationName extends TRelationNamesOfModel[number]
+        ? TAllowNull extends true
           ? TRelationName
           : never
         : never
@@ -980,7 +980,7 @@ type RelatedFieldOfModelRequired<
       hasDefaultValue: infer THasDefaultValue extends boolean;
       unique: any;
       auto: any;
-      allowNull: any;
+      allowNull: infer TAllowNull extends boolean;
       dbIndex: any;
       isPrimaryKey: any;
       defaultValue: any;
@@ -996,47 +996,15 @@ type RelatedFieldOfModelRequired<
       toField: any;
     }
   >
-    ? THasDefaultValue extends false
-      ? AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<
-          InstanceType<TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never>,
-          TRelatedModel
-        > extends true
-        ? TRelationName extends TRelationNamesOfModel[number]
-          ? TFieldName
-          : never
-        : never
-      : never
-    : never]: never;
-} & {
-  [TFieldName in keyof AllFieldsOfModel<TModel> as AllFieldsOfModel<TModel>[TFieldName] extends ForeignKeyField<
-    any,
-    {
-      hasDefaultValue: infer THasDefaultValue extends boolean;
-      unique: any;
-      auto: any;
-      allowNull: any;
-      dbIndex: any;
-      isPrimaryKey: any;
-      defaultValue: any;
-      underscored: any;
-      typeName: any;
-      databaseName: any;
-      engineInstance: any;
-      customAttributes: any;
-      relatedTo: infer TRelatedToModel | (() => infer TRelatedToModel);
-      onDelete: any;
-      relatedName: any;
-      relationName: infer TRelationName extends string;
-      toField: any;
-    }
-  >
-    ? THasDefaultValue extends false
-      ? AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<
-          InstanceType<TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never>,
-          TRelatedModel
-        > extends true
-        ? TRelationName extends TRelationNamesOfModel[number]
-          ? TRelationName
+    ? AreTwoModelsThatWeDoNotKnowThatAreModelsEqual<
+        InstanceType<TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never>,
+        TRelatedModel
+      > extends true
+      ? THasDefaultValue extends false
+        ? TRelationName extends TRelationNamesOfModel[number] | undefined
+          ? TAllowNull extends true
+            ? never
+            : TRelationName
           : never
         : never
       : never

@@ -55,6 +55,7 @@ export class DateField<
     underscored: boolean;
     typeName: string;
     databaseName: string | undefined;
+    hasDefaultValue: boolean;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
     autoNow: boolean;
@@ -66,6 +67,7 @@ export class DateField<
     underscored: true;
     isPrimaryKey: false;
     auto: false;
+    hasDefaultValue: false;
     defaultValue: undefined;
     typeName: string;
     databaseName: undefined;
@@ -370,7 +372,7 @@ export class DateField<
       >]: TDefinitions[TKey];
     } & {
       unique: TDefinitions['unique'];
-      allowNull: TNull;
+      allowNull: TNull extends false ? false : true;
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];

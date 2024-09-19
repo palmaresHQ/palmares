@@ -386,7 +386,7 @@ export class TextField<
       >]: TDefinitions[TKey];
     } & {
       unique: TDefinitions['unique'];
-      allowNull: TNull;
+      allowNull: TNull extends false ? false : true;
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];

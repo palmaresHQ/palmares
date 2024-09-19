@@ -1,6 +1,7 @@
 import { getSettings, initializeDomains } from '@palmares/core';
 
 import { ManagerEngineInstanceNotFoundError } from './exceptions';
+import GetQueryBuilder from './query-builder';
 import { Databases } from '../databases';
 import { getQuery } from '../queries/get';
 import { removeQuery } from '../queries/remove';
@@ -228,6 +229,10 @@ export class Manager<
     return includesInstances;
   }
 
+  get get() {
+    return new GetQueryBuilder<TModel>();
+  }
+
   /**
    * A simple get method for retrieving the data of a model. It will ALWAYS be an array, it's
    * the programmers responsibility
@@ -238,7 +243,7 @@ export class Manager<
    * `default` one.
    *
    * @return - An array of instances retrieved by this query.
-   */
+   * /
   async get<
     TIncludes extends Includes<{
       fields?: readonly string[];
@@ -252,7 +257,7 @@ export class Manager<
       /**
        * Includes is used for making relations. Because everything is inferred and you define your relationName
        * directly on the ForeignKeyField
-       */
+       * /
       includes?: Narrow<IncludesValidated<TModel, TIncludes>>;
       fields?: Narrow<TFields>;
       search?:
@@ -293,7 +298,7 @@ export class Manager<
         includes: (args?.includes || []) as TIncludes
       }
     ) as Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]>;
-  }
+  }*/
 
   /**
    * A Simple `set` method for creating or updating a model. All of the types here are conditional.
@@ -466,10 +471,7 @@ export class Manager<
 }
 
 export class DefaultManager<
-  TModel extends {
-    fields: ModelFieldsType;
-    options?: ModelOptionsType<any>;
-  },
+  TModel,
   TDefinitions extends {
     engineInstance: DatabaseAdapter;
     customOptions: any;

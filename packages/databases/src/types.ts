@@ -10,23 +10,30 @@ export interface DatabaseConfigurationType {
   };
 }
 
-export type ExtractFieldsFromAbstracts<TAbstracts extends readonly any[]> = TAbstracts extends readonly [
+export type ExtractFieldsFromAbstracts<TRootFields, TAbstracts extends readonly any[]> = TAbstracts extends readonly [
   infer TAbstract,
   ...infer TRest
 ]
   ? TAbstract extends {
       new (): { fields: infer TFields };
     }
-    ? TFields & ExtractFieldsFromAbstracts<TRest extends readonly any[] ? TRest : []>
-    : unknown
-  : unknown;
+    ? Omit<
+        ExtractFieldsFromAbstracts<unknown, TRest extends readonly any[] ? TRest : []> & TFields & TRootFields,
+        never
+      >
+    : TRootFields
+  : TRootFields;
 
 export type ExtractManagersFromAbstracts<TAbstracts extends readonly any[]> = TAbstracts extends readonly [
   infer TAbstract,
   ...infer TRest
 ]
   ? {
-      [TKey in keyof TAbstract as TAbstract[TKey] extends Manager<any> ? TKey : never]: TAbstract[TKey];
+      [TKey in keyof TAbstract as TAbstract[TKey] extends Manager<any>
+        ? TKey extends 'default'
+          ? never
+          : TKey
+        : never]: TAbstract[TKey];
     } & ExtractManagersFromAbstracts<TRest extends readonly any[] ? TRest : []>
   : unknown;
 

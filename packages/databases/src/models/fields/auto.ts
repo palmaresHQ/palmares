@@ -24,9 +24,9 @@ import type { AdapterFieldParser, DatabaseAdapter } from '../..';
  */
 export function auto(): AutoField<
   {
-    create: number | undefined | null;
+    create: number | undefined;
     read: number;
-    update: number | undefined | null;
+    update: number | undefined;
   },
   {
     unique: true;
@@ -513,9 +513,9 @@ export class AutoField<
 
   static new(..._args: any[]): AutoField<
     {
-      create: number | undefined | null;
+      create: number | undefined;
       read: number;
-      update: number | undefined | null;
+      update: number | undefined;
     },
     {
       unique: true;
@@ -534,9 +534,9 @@ export class AutoField<
   > {
     return new this(..._args) as unknown as AutoField<
       {
-        create: number | undefined | null;
+        create: number | undefined;
         read: number;
-        update: number | undefined | null;
+        update: number | undefined;
       },
       {
         unique: true;

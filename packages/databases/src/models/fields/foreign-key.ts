@@ -126,13 +126,13 @@ export class ForeignKeyField<
     hasDefaultValue: boolean;
     toField: string;
   } = {
-    unique: boolean;
-    auto: boolean;
-    allowNull: boolean;
-    dbIndex: boolean;
-    isPrimaryKey: boolean;
+    unique: false;
+    auto: false;
+    allowNull: false;
+    dbIndex: false;
+    isPrimaryKey: false;
     defaultValue: any;
-    underscored: boolean;
+    underscored: false;
     typeName: string;
     hasDefaultValue: false;
     databaseName: string | undefined;
@@ -608,6 +608,19 @@ export class ForeignKeyField<
       update: TType['update'] | null | undefined;
     },
     {
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      unique: TDefinitions['unique'];
+      allowNull: TNull extends false ? false : true;
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    } & {
       [TKey in Exclude<
         keyof TDefinitions,
         | 'underscored'
@@ -622,18 +635,6 @@ export class ForeignKeyField<
         | 'engineInstance'
         | 'customAttributes'
       >]: TDefinitions[TKey];
-    } & {
-      unique: TDefinitions['unique'];
-      allowNull: TNull;
-      dbIndex: TDefinitions['dbIndex'];
-      underscored: TDefinitions['underscored'];
-      isPrimaryKey: TDefinitions['isPrimaryKey'];
-      auto: TDefinitions['auto'];
-      defaultValue: TDefinitions['defaultValue'];
-      databaseName: TDefinitions['databaseName'];
-      typeName: TDefinitions['typeName'];
-      engineInstance: TDefinitions['engineInstance'];
-      customAttributes: TDefinitions['customAttributes'];
     }
   > {
     return super.allowNull(isNull) as unknown as any;
@@ -1036,7 +1037,7 @@ export class ForeignKeyField<
 
     if (isRelatedToAndOnDeleteNotDefined) throw new ForeignKeyFieldRequiredParamsMissingError(this['__fieldName']);
 
-    const modelAssociations = model.associations as any;
+    const modelAssociations = model['__associations'] as any;
     const hasNotIncludesAssociation =
       (modelAssociations[relatedToAsString] || []).some(
         (association: Field<any, any>) => association['__fieldName'] === fieldName
@@ -1099,18 +1100,18 @@ export class ForeignKeyField<
       update: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'update'>;
     },
     {
-      unique: boolean;
-      auto: boolean;
-      allowNull: boolean;
-      dbIndex: boolean;
-      isPrimaryKey: boolean;
+      unique: false;
+      auto: false;
+      allowNull: false;
+      dbIndex: false;
+      isPrimaryKey: false;
       defaultValue: any;
-      underscored: boolean;
+      hasDefaultValue: false;
+      underscored: true;
       typeName: string;
       databaseName: string | undefined;
       engineInstance: DatabaseAdapter;
       customAttributes: any;
-      hasDefaultValue: false;
       relatedTo: TRelatedTo;
       onDelete: TForeignKeyParams['onDelete'];
       relatedName: TForeignKeyParams['relatedName'];
