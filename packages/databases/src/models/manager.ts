@@ -7,7 +7,7 @@ import { removeQuery } from '../queries/remove';
 import { setQuery } from '../queries/set';
 
 import type { Model, model } from './model';
-import type GetQueryBuilder from './query-builder';
+import type { QuerySet } from './queryset';
 import type {
   FieldsOFModelType,
   FieldsOfModelOptionsType,
@@ -231,11 +231,15 @@ export class Manager<
 
   get<
     TQueryBuilder extends (
-      queryBuilder: GetQueryBuilder<'get', TModel>
-    ) => GetQueryBuilder<'get', TModel, any, any, any, any, any, any>
+      queryBuilder: QuerySet<'get', TModel> & {
+        update: never;
+        remove: never;
+        create: never;
+      }
+    ) => QuerySet<'get', TModel, any, any, any, any, any, any>
   >(
     callback: TQueryBuilder
-  ): Promise<ReturnType<TQueryBuilder> extends GetQueryBuilder<'get', TModel, infer TResult> ? TResult : never> {
+  ): Promise<ReturnType<TQueryBuilder> extends QuerySet<'get', TModel, infer TResult> ? TResult : never> {
     return {} as any;
   }
 

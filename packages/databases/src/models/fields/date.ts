@@ -176,6 +176,7 @@ export class DateField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -254,6 +255,7 @@ export class DateField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -299,6 +301,7 @@ export class DateField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -377,6 +380,7 @@ export class DateField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -416,6 +420,7 @@ export class DateField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -452,6 +457,7 @@ export class DateField<
       underscored: TUnderscored;
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -488,6 +494,7 @@ export class DateField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TIsPrimaryKey;
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -528,6 +535,7 @@ export class DateField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TIsAuto;
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -568,6 +576,7 @@ export class DateField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: true;
       defaultValue: TDefault;
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -644,6 +653,7 @@ export class DateField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TAutoNow;
+      hasDefaultValue: true;
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -687,6 +697,7 @@ export class DateField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TAutoNowAdd;
+      hasDefaultValue: true;
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -723,6 +734,7 @@ export class DateField<
       isPrimaryKey: boolean;
       defaultValue: any;
       typeName: string;
+      hasDefaultValue: boolean;
       engineInstance: DatabaseAdapter;
       autoNow: boolean;
       autoNowAdd: boolean;
@@ -743,6 +755,7 @@ export class DateField<
             auto: TDefinitions['auto'];
             allowNull: TDefinitions['allowNull'];
             dbIndex: TDefinitions['dbIndex'];
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
             isPrimaryKey: TDefinitions['isPrimaryKey'];
             defaultValue: TDefinitions['defaultValue'];
             underscored: boolean;
@@ -764,6 +777,7 @@ export class DateField<
             allowNull: TDefinitions['allowNull'];
             dbIndex: TDefinitions['dbIndex'];
             isPrimaryKey: TDefinitions['isPrimaryKey'];
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
             defaultValue: TDefinitions['defaultValue'];
             underscored: boolean;
             databaseName: string | undefined;
@@ -791,6 +805,7 @@ export class DateField<
       underscored: true;
       isPrimaryKey: false;
       auto: false;
+      hasDefaultValue: false;
       defaultValue: undefined;
       typeName: string;
       databaseName: undefined;

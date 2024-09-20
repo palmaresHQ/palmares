@@ -2,7 +2,7 @@ import { Manager } from '../models';
 
 import type { PalmaresMigrations } from './models';
 
-export class PalmaresMigrationsManager extends Manager<PalmaresMigrations> {
+export class PalmaresMigrationsManager {
   /**
    * Creates a new migration in the database. This way we can know what migrations have was evaluated and what migration
    * still needs to be evaluated.

@@ -1,9 +1,9 @@
 import { ModelCircularAbstractError, ModelNoUniqueFieldsError } from './exceptions';
 import { AutoField, CharField, type Field, ForeignKeyField, ON_DELETE, TextField } from './fields';
 import { DefaultManager, Manager } from './manager';
+import { QuerySet } from './queryset';
 import { factoryFunctionForModelTranslate, getDefaultModelOptions, indirectlyRelatedModels } from './utils';
 import { getUniqueCustomImports, hashString } from '../utils';
-
 import type { CustomImportsForFieldType } from './fields/types';
 import type {
   ManagersOfInstanceType,
@@ -832,13 +832,17 @@ export function initialize<
   }
 
   for (const [managerName, managerFunctions] of Object.entries(args.managers || {})) {
-    class NewManagerInstance extends Manager<any> {
-      static __lazyFields?: ModelFieldsType = {};
-    }
-    const managerInstance = new NewManagerInstance();
-    for (const [managerFunctionName, managerFunction] of Object.entries(managerFunctions)) {
-      (managerInstance as any)[managerFunctionName] = managerFunction.bind(managerInstance);
-    }
+    let managerInstance: Manager<any>;
+    if ((managerFunctions as any)?.['$$type'] !== '$PManager') {
+      class NewManagerInstance extends Manager<any> {
+        static __lazyFields?: ModelFieldsType = {};
+      }
+      managerInstance = new NewManagerInstance();
+      for (const [managerFunctionName, managerFunction] of Object.entries(managerFunctions)) {
+        (managerInstance as any)[managerFunctionName] = managerFunction.bind(managerInstance);
+      }
+    } else managerInstance = managerFunctions as Manager<any>;
+
     (ModelConstructor as any)[managerName] = managerInstance;
     (ModelConstructor as any).__cachedManagers[managerName] = managerInstance;
   }
@@ -846,6 +850,7 @@ export function initialize<
   return ModelConstructor as any;
 }
 
+/*
 class Test extends Manager {
   createUser(aqui: string) {
     //return this.get({ fields: ['firstName'] });
@@ -921,30 +926,30 @@ const baseUserInstance = initialize('User', {
     tableName: 'user'
   },
   abstracts: [User2]
-});
+});*/
 // API 1
 
+/*
 const test = await Profile.default.get((qs) =>
   qs.join(baseUserInstance, 'usersOfProfile', (qs) => qs.select(['firstName']))
 );
 //.includes(baseUserInstance, 'usersOfProfile', (qb) => qb.fields(['firstName']))
 //.result();
 
-const test2 = await baseUserInstance.default.get((qs) =>
-  qs
-    .join(Profile, 'profile', (qs) => qs.select(['type']))
-    .join(Contract, 'contractor')
-    .join(Contract, 'contract')
+const test2 = await baseUserInstance.default.get((qs) => {
+  const newQs = qs
     .select(['firstName'])
     .orderBy(['firstName'])
     .where({
       firstName: {
         in: ['asdas', 'test']
       }
-    })
-);
-test.usersOfProfile?.firstName;
-test2.;
+    });
+
+  return newQs;
+});
+test.usersOfProfile.firstName;
+*/
 //Profile.default.get.fields(['id']);
 /*
 baseUserInstance.default

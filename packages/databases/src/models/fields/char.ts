@@ -1,4 +1,4 @@
-import { TextField } from '.';
+import { TextField } from './text';
 
 import type { CustomImportsForFieldType } from './types';
 import type {

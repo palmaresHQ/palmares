@@ -214,11 +214,7 @@ type GetDataFromModel<TModel, TType extends 'create' | 'update' | 'read' = 'read
     : never;
 };
 
-
-type OrderingOfFields<TFields extends string> = readonly (TFields extends string
-  ? TFields | `-${TFields}`
-  : never)[];
-
+type OrderingOfFields<TFields extends string> = readonly (TFields extends string ? TFields | `-${TFields}` : never)[];
 
 type QuerySetQueryData = {
   fields?: () => string[];
@@ -226,13 +222,16 @@ type QuerySetQueryData = {
   limit?: () => number;
   offset?: () => number;
   where?: () => Record<string, any | OrderingOfFields<any>>;
-  joins?: () => Record<string, {
-    model: any;
-    query?: QuerySetQueryData;
-  }>;
-}
+  joins?: () => Record<
+    string,
+    {
+      model: any;
+      querySet: QuerySet<any, any, any, any, any, any, any>;
+    }
+  >;
+};
 
-export default class QuerySet<
+export class QuerySet<
   TType extends 'get' | 'set' | 'remove',
   TModel,
   TResult = GetDataFromModel<TModel>,
@@ -260,7 +259,7 @@ export default class QuerySet<
     TNestedQuerySet extends (
       querySet: QuerySet<TType, TIncludedModel, GetDataFromModel<TIncludedModel>>
     ) => QuerySet<TType, TIncludedModel, any> = (
-      querySet: QuerySet<TType,TIncludedModel, GetDataFromModel<TIncludedModel>>
+      querySet: QuerySet<TType, TIncludedModel, GetDataFromModel<TIncludedModel>>
     ) => QuerySet<TType, TIncludedModel, GetDataFromModel<TIncludedModel>>
   >(
     model: TIncludedModel,
@@ -271,111 +270,79 @@ export default class QuerySet<
     TModel,
     TResult & {
       [TKey in TRelationName]: ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName] extends undefined[]
-        ? (ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult> ? TResult : never)[] | undefined
+        ?
+            | (ReturnType<TNestedQuerySet> extends
+                | QuerySet<any, any, infer TResult>
+                | Omit<QuerySet<any, any, infer TResult>, any>
+                ? TResult
+                : never)[]
+            | undefined
         : ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName] extends unknown[]
-          ? (ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult> ? TResult : never)[]
-          : ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName] extends undefined
-            ? ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult>
+          ? (ReturnType<TNestedQuerySet> extends
+              | QuerySet<any, any, infer TResult>
+              | Omit<QuerySet<any, any, infer TResult>, any>
+              ? TResult
+              : never)[]
+          :
+                | ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName]
+                | ForeignKeyModelsRelationName<TModel, TIncludedModel>[TRelationName] extends undefined
+            ? ReturnType<TNestedQuerySet> extends
+                | QuerySet<any, any, infer TResult>
+                | Omit<QuerySet<any, any, infer TResult>, any>
               ? TResult | undefined
               : never
-            : ForeignKeyModelsRelationName<TModel, TIncludedModel>[TRelationName] extends undefined
-              ? ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult>
-                ? TResult | undefined
-                : never
-              : ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult>
-                ? TResult
-                : never;
+            : ReturnType<TNestedQuerySet> extends
+                  | QuerySet<any, any, infer TResult>
+                  | Omit<QuerySet<any, any, infer TResult>, any>
+              ? TResult
+              : never;
     },
-    TUpdate & (
-      ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName]
-      | ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName]
-      | ForeignKeyModelsRelationName<TModel, TIncludedModel>[TRelationName] extends undefined[] | undefined
-      ? {
-        [TKey in TRelationName]?: (ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult> ? TResult : never)[]
-      }
-      : {
-        [TKey in TRelationName]: (ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult> ? TResult : never)[]
-      }
-    ),
-    TCreate & (
-      ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName]
-      | ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName]
-      | ForeignKeyModelsRelationName<TModel, TIncludedModel>[TRelationName] extends undefined[] | undefined
-      ? {
-        [TKey in TRelationName]?: (ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult> ? TResult : never)[]
-      }
-      : {
-        [TKey in TRelationName]: (ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult> ? TResult : never)[]
-      }
-    ),
+    TUpdate & {
+      [TKey in TRelationName]?: Partial<
+        ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult> ? TResult : never
+      >[];
+    },
+    TCreate &
+      (
+        | ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName]
+        | ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName]
+        | ForeignKeyModelsRelationName<TModel, TIncludedModel>[TRelationName] extends undefined[] | undefined
+        ? {
+            [TKey in TRelationName]?: (ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult>
+              ? TResult
+              : never)[];
+          }
+        : {
+            [TKey in TRelationName]: (ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult>
+              ? TResult
+              : never)[];
+          }),
     TSearch,
     TOrder,
     TAlreadyDefinedRelations | TRelationName
-  > {
-    const newQuerySet = new QuerySet<
-      TType,
-      TModel,
-      TResult & {
-        [TKey in TRelationName]: ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName] extends undefined[]
-          ? (ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult> ? TResult : never)[] | undefined
-          : ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName] extends unknown[]
-            ? (ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult> ? TResult : never)[]
-            : ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName] extends undefined
-              ? ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult>
-                ? TResult | undefined
-                : never
-              : ForeignKeyModelsRelationName<TModel, TIncludedModel>[TRelationName] extends undefined
-                ? ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult>
-                  ? TResult | undefined
-                  : never
-                : ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult>
-                  ? TResult
-                  : never;
-      },
-      TUpdate & (
-        ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName]
-        | ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName]
-        | ForeignKeyModelsRelationName<TModel, TIncludedModel>[TRelationName] extends undefined[] | undefined
-        ? {
-          [TKey in TRelationName]?: (ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult> ? TResult : never)[]
-        }
-        : {
-          [TKey in TRelationName]: (ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult> ? TResult : never)[]
-        }
-      ),
-      TCreate & (
-        ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName]
-        | ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName]
-        | ForeignKeyModelsRelationName<TModel, TIncludedModel>[TRelationName] extends undefined[] | undefined
-        ? {
-          [TKey in TRelationName]?: (ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult> ? TResult : never)[]
-        }
-        : {
-          [TKey in TRelationName]: (ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult> ? TResult : never)[]
-        }
-      ),
-      TSearch,
-      TOrder,
-      TAlreadyDefinedRelations | TRelationName
-    >(this.__type);
+  > & {
+    remove: never;
+  } {
+    const newQuerySet = new QuerySet(this.__type);
 
-    const queryCallbackResult = queryCallback ? queryCallback(new QuerySet<TType, TIncludedModel, GetDataFromModel<TIncludedModel>>(this.__type)) : undefined;
-    if (queryCallbackResult)
-      newQuerySet['__query'].joins = () => ({
-        ...(this.__query.joins?.() || {}),
-        [relationName]: {
-          model,
-          query: queryCallbackResult['__query']
-        }
-      });
-    else
-      newQuerySet['__query'].joins = () => ({
-        ...(this.__query.joins?.() || {}),
-        [relationName]: {
-          model,
-        }
-      });
-    return newQuerySet;
+    const queryCallbackResult = queryCallback
+      ? queryCallback(new QuerySet<TType, TIncludedModel, GetDataFromModel<TIncludedModel>>(this.__type))
+      : new QuerySet(this.__type);
+
+    for (const field of Object.keys(this.__query)) {
+      if (field === 'joins') continue;
+      (newQuerySet['__query'] as any)[field] = (this.__query as any)[field];
+    }
+
+    newQuerySet['__query'].joins = () => ({
+      ...(this.__query.joins?.() || {}),
+      [relationName]: {
+        model,
+        querySet: queryCallbackResult
+      }
+    });
+
+    return newQuerySet as any;
   }
 
   select<const TFields extends (keyof GetDataFromModel<TModel>)[]>(
@@ -383,17 +350,31 @@ export default class QuerySet<
   ): QuerySet<
     TType,
     TModel,
-    Pick<TResult, TFields[number] | TAlreadyDefinedRelations extends keyof TResult ? TFields[number] | TAlreadyDefinedRelations: never>,
+    Pick<
+      TResult,
+      TFields[number] | TAlreadyDefinedRelations extends keyof TResult
+        ? TFields[number] | TAlreadyDefinedRelations
+        : never
+    >,
     TUpdate,
     TCreate,
     TSearch,
     Pick<TOrder, TFields[number] extends keyof TOrder ? TFields[number] : never>,
     TAlreadyDefinedRelations
-  > {
+  > & {
+    update: never;
+    remove: never;
+    create: never;
+  } {
     const newQuerySet = new QuerySet<
       TType,
       TModel,
-      Pick<TResult, TFields[number] | TAlreadyDefinedRelations extends keyof TResult ? TFields[number] | TAlreadyDefinedRelations: never>,
+      Pick<
+        TResult,
+        TFields[number] | TAlreadyDefinedRelations extends keyof TResult
+          ? TFields[number] | TAlreadyDefinedRelations
+          : never
+      >,
       TUpdate,
       TCreate,
       TSearch,
@@ -401,12 +382,16 @@ export default class QuerySet<
       TAlreadyDefinedRelations
     >(this.__type);
 
+    for (const field of Object.keys(this.__query)) {
+      if (field === 'fields') continue;
+      (newQuerySet['__query'] as any)[field] = (this.__query as any)[field];
+    }
     if (this.__query.fields) {
-      newQuerySet['__query'].fields = () => [...this.__query.fields!(), ...fields as string[]];
+      newQuerySet['__query'].fields = () => [...this.__query.fields!(), ...(fields as string[])];
     } else {
       newQuerySet['__query'].fields = () => fields as string[];
     }
-    return newQuerySet;
+    return newQuerySet as any;
   }
 
   limit(limit: number): QuerySet<
@@ -418,7 +403,11 @@ export default class QuerySet<
     TSearch,
     TOrder,
     TAlreadyDefinedRelations
-  > {
+  > & {
+    update: never;
+    remove: never;
+    create: never;
+  } {
     const newQuerySet = new QuerySet<
       TType,
       TModel,
@@ -430,8 +419,12 @@ export default class QuerySet<
       TAlreadyDefinedRelations
     >(this.__type);
 
+    for (const field of Object.keys(this.__query)) {
+      (newQuerySet['__query'] as any)[field] = (this.__query as any)[field];
+    }
+
     newQuerySet['__query'].limit = () => limit;
-    return newQuerySet;
+    return newQuerySet as any;
   }
 
   offset(offset: number): QuerySet<
@@ -443,7 +436,11 @@ export default class QuerySet<
     TSearch,
     TOrder,
     TAlreadyDefinedRelations
-  > {
+  > & {
+    update: never;
+    remove: never;
+    create: never;
+  } {
     const newQuerySet = new QuerySet<
       TType,
       TModel,
@@ -455,8 +452,12 @@ export default class QuerySet<
       TAlreadyDefinedRelations
     >(this.__type);
 
+    for (const field of Object.keys(this.__query)) {
+      (newQuerySet['__query'] as any)[field] = (this.__query as any)[field];
+    }
+
     newQuerySet['__query'].offset = () => offset;
-    return newQuerySet;
+    return newQuerySet as any;
   }
 
   update(data: TUpdate): QuerySet<
@@ -468,8 +469,16 @@ export default class QuerySet<
     TSearch,
     TOrder,
     TAlreadyDefinedRelations
-  > {
-    return {} as any
+  > & {
+    create: never;
+    remove: never;
+    select: never;
+    search: never;
+    orderBy: never;
+    limit: never;
+    offset: never;
+  } {
+    return {} as any;
   }
 
   create(data: TCreate): QuerySet<
@@ -481,23 +490,24 @@ export default class QuerySet<
     TSearch,
     TOrder,
     TAlreadyDefinedRelations
-  > {
-    return {} as any
+  > & {
+    update: never;
+    remove: never;
+    select: never;
+    search: never;
+    orderBy: never;
+    limit: never;
+    offset: never;
+  } {
+    return {} as any;
   }
 
   /**
    * You can combine as many where clauses as you want. This way you can reuse the same query.
    */
-  where(search: TSearch): QuerySet<
-    TType,
-    TModel,
-    TResult,
-    TUpdate,
-    TCreate,
-    TSearch,
-    TOrder,
-    TAlreadyDefinedRelations
-  > {
+  where(
+    search: TSearch
+  ): QuerySet<TType, TModel, TResult, TUpdate, TCreate, TSearch, TOrder, TAlreadyDefinedRelations> & { create: never } {
     const newQuerySet = new QuerySet<
       TType,
       TModel,
@@ -509,6 +519,11 @@ export default class QuerySet<
       TAlreadyDefinedRelations
     >(this.__type);
 
+    for (const field of Object.keys(this.__query)) {
+      if (field === 'where') continue;
+      (newQuerySet['__query'] as any)[field] = (this.__query as any)[field];
+    }
+
     if (this.__query.where) {
       newQuerySet['__query'].where = () => ({
         ...this.__query.where!(),
@@ -518,7 +533,7 @@ export default class QuerySet<
       newQuerySet['__query'].where = () => search as any;
     }
 
-    return newQuerySet;
+    return newQuerySet as any;
   }
 
   orderBy(ordering: OrderingOfFields<keyof TOrder extends string ? keyof TOrder : never>): QuerySet<
@@ -530,7 +545,11 @@ export default class QuerySet<
     TSearch,
     TOrder,
     TAlreadyDefinedRelations
-  > {
+  > & {
+    update: never;
+    remove: never;
+    create: never;
+  } {
     const newQuerySet = new QuerySet<
       TType,
       TModel,
@@ -542,12 +561,42 @@ export default class QuerySet<
       TAlreadyDefinedRelations
     >(this.__type);
 
-    newQuerySet['__query'].orderBy = () => ordering as unknown as string[];
-    return newQuerySet;
+    for (const field of Object.keys(this.__query)) {
+      if (field === 'where') continue;
+      (newQuerySet['__query'] as any)[field] = (this.__query as any)[field];
+    }
+
+    if (this.__query.orderBy) newQuerySet['__query'].orderBy = () => [...this.__query.orderBy!(), ...ordering];
+    else newQuerySet['__query'].orderBy = () => ordering as unknown as string[];
+
+    return newQuerySet as any;
+  }
+
+  static new<TModel>(): QuerySet<'get', TModel> {
+    return new QuerySet('get');
   }
 
   protected __getQueryFormatted() {
-    let joins = this.__query.joins?.();
-    return {} as any;
+    const query: any = {};
+    const rootQuery = {};
+    const joins = this.__query.joins?.();
+
+    if (this.__query.fields) query['fields'] = this.__query.fields();
+    if (this.__query.orderBy) query['ordering'] = this.__query.orderBy();
+    if (this.__query.limit) query['limit'] = this.__query.limit();
+    if (this.__query.offset) query['offset'] = this.__query.offset();
+    if (this.__query.where) query['search'] = this.__query.where();
+
+    const joinsEntries = joins ? Object.entries(joins) : [];
+    while (joinsEntries.length > 0) {
+      const [key, { model, querySet }] = joinsEntries.shift();
+      if (Array.isArray(query['includes']) === false) query.includes = [];
+
+      console.log(key, model, querySet);
+      const nestedQueryData = querySet.__getQueryFormatted();
+      console.log(nestedQueryData);
+      console.log(key, query);
+    }
+    return query;
   }
 }
