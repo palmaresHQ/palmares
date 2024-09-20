@@ -922,19 +922,29 @@ const baseUserInstance = initialize('User', {
   },
   abstracts: [User2]
 });
+// API 1
 
-const test = Profile.default.get
-  .includes(baseUserInstance, 'usersOfProfile', (qb) => qb.fields(['firstName']))
-  .result();
+const test = await Profile.default.get((qs) =>
+  qs.join(baseUserInstance, 'usersOfProfile', (qs) => qs.select(['firstName']))
+);
+//.includes(baseUserInstance, 'usersOfProfile', (qb) => qb.fields(['firstName']))
+//.result();
 
-const test2 = baseUserInstance.default.get
-  .includes(Profile, 'profile', (qb) => qb.fields(['type']))
-  .includes(Contract, 'contractor')
-  .includes(Contract, 'contract')
-  .result();
-
+const test2 = await baseUserInstance.default.get((qs) =>
+  qs
+    .join(Profile, 'profile', (qs) => qs.select(['type']))
+    .join(Contract, 'contractor')
+    .join(Contract, 'contract')
+    .select(['firstName'])
+    .orderBy(['firstName'])
+    .where({
+      firstName: {
+        in: ['asdas', 'test']
+      }
+    })
+);
 test.usersOfProfile?.firstName;
-test2.contract.id;
+test2.;
 //Profile.default.get.fields(['id']);
 /*
 baseUserInstance.default

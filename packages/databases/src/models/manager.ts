@@ -1,13 +1,13 @@
 import { getSettings, initializeDomains } from '@palmares/core';
 
 import { ManagerEngineInstanceNotFoundError } from './exceptions';
-import GetQueryBuilder from './query-builder';
 import { Databases } from '../databases';
 import { getQuery } from '../queries/get';
 import { removeQuery } from '../queries/remove';
 import { setQuery } from '../queries/set';
 
 import type { Model, model } from './model';
+import type GetQueryBuilder from './query-builder';
 import type {
   FieldsOFModelType,
   FieldsOfModelOptionsType,
@@ -229,8 +229,14 @@ export class Manager<
     return includesInstances;
   }
 
-  get get() {
-    return new GetQueryBuilder<TModel>();
+  get<
+    TQueryBuilder extends (
+      queryBuilder: GetQueryBuilder<'get', TModel>
+    ) => GetQueryBuilder<'get', TModel, any, any, any, any, any, any>
+  >(
+    callback: TQueryBuilder
+  ): Promise<ReturnType<TQueryBuilder> extends GetQueryBuilder<'get', TModel, infer TResult> ? TResult : never> {
+    return {} as any;
   }
 
   /**
