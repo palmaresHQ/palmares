@@ -1,9 +1,9 @@
 import { ModelCircularAbstractError, ModelNoUniqueFieldsError } from './exceptions';
-import { AutoField, CharField, type Field, ForeignKeyField, ON_DELETE, TextField } from './fields';
 import { DefaultManager, Manager } from './manager';
-import { QuerySet } from './queryset';
 import { factoryFunctionForModelTranslate, getDefaultModelOptions, indirectlyRelatedModels } from './utils';
 import { getUniqueCustomImports, hashString } from '../utils';
+
+import type { Field, ForeignKeyField } from './fields';
 import type { CustomImportsForFieldType } from './fields/types';
 import type {
   ManagersOfInstanceType,

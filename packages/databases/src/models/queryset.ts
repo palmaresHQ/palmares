@@ -320,9 +320,7 @@ export class QuerySet<
     TSearch,
     TOrder,
     TAlreadyDefinedRelations | TRelationName
-  > & {
-    remove: never;
-  } {
+  > {
     const newQuerySet = new QuerySet(this.__type);
 
     const queryCallbackResult = queryCallback
@@ -361,11 +359,7 @@ export class QuerySet<
     TSearch,
     Pick<TOrder, TFields[number] extends keyof TOrder ? TFields[number] : never>,
     TAlreadyDefinedRelations
-  > & {
-    update: never;
-    remove: never;
-    create: never;
-  } {
+  > {
     const newQuerySet = new QuerySet<
       TType,
       TModel,
@@ -588,7 +582,7 @@ export class QuerySet<
     if (this.__query.where) query['search'] = this.__query.where();
 
     const joinsEntries = joins ? Object.entries(joins) : [];
-    while (joinsEntries.length > 0) {
+    /*while (joinsEntries.length > 0) {
       const [key, { model, querySet }] = joinsEntries.shift();
       if (Array.isArray(query['includes']) === false) query.includes = [];
 
@@ -596,7 +590,7 @@ export class QuerySet<
       const nestedQueryData = querySet.__getQueryFormatted();
       console.log(nestedQueryData);
       console.log(key, query);
-    }
+    }*/
     return query;
   }
 }

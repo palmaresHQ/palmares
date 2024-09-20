@@ -160,4 +160,3 @@ const newQs = qs
   .where({
     lastName: 'aqui'
   });
-console.log(newQs['__getQueryFormatted']());
