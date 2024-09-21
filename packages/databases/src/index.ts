@@ -150,7 +150,11 @@ const baseUserInstance = initialize('User', {
 
 const qs = QuerySet.new<InstanceType<typeof baseUserInstance>>();
 const newQs = qs
-  .join(Profile, 'profile', (qs) => qs.where({ type: 'admin' }))
+  .join(Profile, 'profile', (qs) =>
+    qs
+      .where({ type: 'admin' })
+      .join(baseUserInstance, 'usersOfProfile', (qs) => qs.where({ firstName: 'test', lastName: 'hey' }))
+  )
   .orderBy(['firstName'])
   .where({
     firstName: {
@@ -160,3 +164,10 @@ const newQs = qs
   .where({
     lastName: 'aqui'
   });
+console.log(newQs['__getQueryFormatted']());
+/*
+const test = await Profile.default.get((qs) =>
+  qs.join(baseUserInstance, 'usersOfProfile', (qs) => qs.select(['firstName']))
+);
+test.usersOfProfile.firstName;
+*/

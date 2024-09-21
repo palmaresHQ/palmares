@@ -239,7 +239,7 @@ export class Manager<
     ) => QuerySet<'get', TModel, any, any, any, any, any, any>
   >(
     callback: TQueryBuilder
-  ): Promise<ReturnType<TQueryBuilder> extends QuerySet<'get', TModel, infer TResult> ? TResult : never> {
+  ): Promise<ReturnType<TQueryBuilder> extends QuerySet<'get', any, infer TResult> ? TResult : never> {
     return {} as any;
   }
 

@@ -221,6 +221,7 @@ type QuerySetQueryData = {
   orderBy?: () => string[];
   limit?: () => number;
   offset?: () => number;
+  update?: () => Record<string, any>;
   where?: () => Record<string, any | OrderingOfFields<any>>;
   joins?: () => Record<
     string,
@@ -234,7 +235,7 @@ type QuerySetQueryData = {
 export class QuerySet<
   TType extends 'get' | 'set' | 'remove',
   TModel,
-  TResult = GetDataFromModel<TModel>,
+  TResult = GetDataFromModel<TModel, 'read'>,
   TUpdate = Partial<GetDataFromModel<TModel, 'update'>>,
   TCreate = GetDataFromModel<TModel, 'create'>,
   TSearch = Partial<GetDataFromModel<TModel, 'read', true>>,
@@ -333,7 +334,6 @@ export class QuerySet<
     }
 
     newQuerySet['__query'].joins = () => ({
-      ...(this.__query.joins?.() || {}),
       [relationName]: {
         model,
         querySet: queryCallbackResult
@@ -472,7 +472,32 @@ export class QuerySet<
     limit: never;
     offset: never;
   } {
-    return {} as any;
+    const newQuerySet = new QuerySet<
+      TType,
+      TModel,
+      TResult,
+      TUpdate,
+      TCreate,
+      TSearch,
+      TOrder,
+      TAlreadyDefinedRelations
+    >(this.__type);
+
+    for (const field of Object.keys(this.__query)) {
+      if (field === 'update') continue;
+      (newQuerySet['__query'] as any)[field] = (this.__query as any)[field];
+    }
+
+    if (this.__query.where) {
+      newQuerySet['__query'].update = () => ({
+        ...this.__query.update!(),
+        ...data
+      });
+    } else {
+      newQuerySet['__query'].where = () => data as any;
+    }
+
+    return newQuerySet as any;
   }
 
   create(data: TCreate): QuerySet<
@@ -485,6 +510,18 @@ export class QuerySet<
     TOrder,
     TAlreadyDefinedRelations
   > & {
+    update: never;
+    remove: never;
+    select: never;
+    search: never;
+    orderBy: never;
+    limit: never;
+    offset: never;
+  } {
+    return {} as any;
+  }
+
+  remove(): QuerySet<'remove', TModel, TResult, TUpdate, TCreate, TSearch, TOrder, TAlreadyDefinedRelations> & {
     update: never;
     remove: never;
     select: never;
@@ -572,7 +609,6 @@ export class QuerySet<
 
   protected __getQueryFormatted() {
     const query: any = {};
-    const rootQuery = {};
     const joins = this.__query.joins?.();
 
     if (this.__query.fields) query['fields'] = this.__query.fields();
@@ -582,15 +618,50 @@ export class QuerySet<
     if (this.__query.where) query['search'] = this.__query.where();
 
     const joinsEntries = joins ? Object.entries(joins) : [];
-    /*while (joinsEntries.length > 0) {
-      const [key, { model, querySet }] = joinsEntries.shift();
-      if (Array.isArray(query['includes']) === false) query.includes = [];
+    const formattedJoins = joinsEntries.map(([key, value]) => {
+      return [
+        key,
+        value,
+        {
+          appendToSearchQuery: (key: string, value: any) => {
+            if (query.search) query.search[key] = value;
+            else query.search = { [key]: value };
+          },
+          appendIncludes: (
+            key: string,
+            model: any,
+            nestedIncludes?: any,
+            orderBy?: string[],
+            fields?: string[],
+            offset?: number,
+            limit?: number
+          ) => {
+            if (query.includes)
+              query.includes.push({
+                model,
+                relationNames: [key],
+                fields,
+                ordering: orderBy,
+                offset,
+                limit,
+                includes: nestedIncludes
+              });
+            else
+              query.includes = [
+                { model, relationNames: [key], fields, ordering: orderBy, offset, limit, includes: nestedIncludes }
+              ];
+          }
+        }
+      ] as const;
+    });
 
-      console.log(key, model, querySet);
+    for (const joinsData of formattedJoins) {
+      const [key, { model, querySet }, { appendToSearchQuery, appendIncludes }] = joinsData;
+
       const nestedQueryData = querySet.__getQueryFormatted();
-      console.log(nestedQueryData);
-      console.log(key, query);
-    }*/
+      if (nestedQueryData.search) appendToSearchQuery(key, nestedQueryData.search);
+      appendIncludes(key, model, nestedQueryData.includes, nestedQueryData.fields);
+    }
     return query;
   }
 }
