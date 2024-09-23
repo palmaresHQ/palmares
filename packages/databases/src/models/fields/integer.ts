@@ -365,7 +365,7 @@ export class IntegerField<
         | 'customAttributes'
       >]: TDefinitions[TKey];
     } & {
-      unique: TUnique;
+      unique: TUnique extends false ? false : true;
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
@@ -379,38 +379,7 @@ export class IntegerField<
       customAttributes: TDefinitions['customAttributes'];
     }
   > {
-    return super.unique(isUnique) as unknown as IntegerField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TUnique;
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDefinitions['dbIndex'];
-        underscored: TDefinitions['underscored'];
-        isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TDefinitions['auto'];
-        hasDefaultValue: TDefinitions['hasDefaultValue'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TDefinitions['customAttributes'];
-      }
-    >;
+    return super.unique(isUnique) as unknown as any;
   }
 
   allowNull<TNull extends boolean = true>(
@@ -479,7 +448,7 @@ export class IntegerField<
     } & {
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
-      dbIndex: TDbIndex;
+      dbIndex: TDbIndex extends false ? false : true;
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
@@ -491,38 +460,7 @@ export class IntegerField<
       customAttributes: TDefinitions['customAttributes'];
     }
   > {
-    return super.dbIndex(isDbIndex) as unknown as IntegerField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDbIndex;
-        underscored: TDefinitions['underscored'];
-        isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TDefinitions['auto'];
-        hasDefaultValue: TDefinitions['hasDefaultValue'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TDefinitions['customAttributes'];
-      }
-    >;
+    return super.dbIndex(isDbIndex) as unknown as any;
   }
 
   underscored<TUnderscored extends boolean = true>(
@@ -548,7 +486,7 @@ export class IntegerField<
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
-      underscored: TUnderscored;
+      underscored: TUnderscored extends false ? false : true;
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
       hasDefaultValue: TDefinitions['hasDefaultValue'];
@@ -559,38 +497,7 @@ export class IntegerField<
       customAttributes: TDefinitions['customAttributes'];
     }
   > {
-    return super.underscored(isUnderscored) as unknown as IntegerField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDefinitions['dbIndex'];
-        underscored: TUnderscored;
-        isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TDefinitions['auto'];
-        hasDefaultValue: TDefinitions['hasDefaultValue'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TDefinitions['customAttributes'];
-      }
-    >;
+    return super.underscored(isUnderscored) as unknown as any;
   }
 
   primaryKey<TIsPrimaryKey extends boolean = true>(
@@ -617,7 +524,7 @@ export class IntegerField<
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
-      isPrimaryKey: TIsPrimaryKey;
+      isPrimaryKey: TIsPrimaryKey extends false ? false : true;
       auto: TDefinitions['auto'];
       hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
@@ -659,7 +566,7 @@ export class IntegerField<
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
-      auto: TIsAuto;
+      auto: TIsAuto extends false ? false : true;
       hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];

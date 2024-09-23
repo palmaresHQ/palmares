@@ -350,7 +350,7 @@ export class AutoField<
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
-      underscored: TUnderscored;
+      underscored: TUnderscored extends false ? false : true;
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
       defaultValue: TDefinitions['defaultValue'];

@@ -35,6 +35,7 @@ export function uuid(): UuidField<
     autoGenerate: false;
     isPrimaryKey: false;
     auto: false;
+    hasDefaultValue: false;
     defaultValue: undefined;
     typeName: string;
     databaseName: undefined;
@@ -71,6 +72,7 @@ export class UuidField<
     autoGenerate: boolean;
     dbIndex: boolean;
     isPrimaryKey: boolean;
+    hasDefaultValue: boolean;
     defaultValue: undefined;
     underscored: boolean;
     typeName: string;
@@ -85,6 +87,7 @@ export class UuidField<
     underscored: true;
     isPrimaryKey: false;
     auto: false;
+    hasDefaultValue: false;
     defaultValue: undefined;
     typeName: string;
     databaseName: undefined;
@@ -261,6 +264,7 @@ export class UuidField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -307,6 +311,7 @@ export class UuidField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -339,12 +344,13 @@ export class UuidField<
         | 'customAttributes'
       >]: TDefinitions[TKey];
     } & {
-      unique: TUnique;
+      unique: TUnique extends false ? false : true;
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -380,11 +386,12 @@ export class UuidField<
       >]: TDefinitions[TKey];
     } & {
       unique: TDefinitions['unique'];
-      allowNull: TNull;
+      allowNull: TNull extends false ? false : true;
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -424,8 +431,9 @@ export class UuidField<
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
-      auto: TDefinitions['auto'];
-      autoGenerate: TIsAutoGenerate;
+      auto: TIsAutoGenerate extends false ? false : true;
+      autoGenerate: TIsAutoGenerate extends false ? false : true;
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -463,10 +471,11 @@ export class UuidField<
     } & {
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
-      dbIndex: TDbIndex;
+      dbIndex: TDbIndex extends false ? false : true;
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -500,7 +509,7 @@ export class UuidField<
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
-      underscored: TUnderscored;
+      underscored: TUnderscored extends false ? false : true;
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
       defaultValue: TDefinitions['defaultValue'];
@@ -537,7 +546,7 @@ export class UuidField<
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
-      isPrimaryKey: TIsPrimaryKey;
+      isPrimaryKey: TIsPrimaryKey extends false ? false : true;
       auto: TDefinitions['auto'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
@@ -546,37 +555,7 @@ export class UuidField<
       customAttributes: TDefinitions['customAttributes'];
     }
   > {
-    return super.primaryKey(isPrimaryKey) as unknown as UuidField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDefinitions['dbIndex'];
-        underscored: TDefinitions['underscored'];
-        isPrimaryKey: TIsPrimaryKey;
-        auto: TDefinitions['auto'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TDefinitions['customAttributes'];
-      }
-    >;
+    return super.primaryKey(isPrimaryKey) as unknown as any;
   }
 
   auto<TIsAuto extends boolean = true>(
@@ -608,7 +587,7 @@ export class UuidField<
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
-      auto: TIsAuto;
+      auto: TIsAuto extends false ? false : true;
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -649,6 +628,7 @@ export class UuidField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: true;
       defaultValue: TDefault;
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -685,6 +665,7 @@ export class UuidField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDatabaseName;
       typeName: TDefinitions['typeName'];
@@ -716,6 +697,7 @@ export class UuidField<
       allowNull: boolean;
       dbIndex: boolean;
       isPrimaryKey: boolean;
+      hasDefaultValue: boolean;
       defaultValue: any;
       typeName: string;
       engineInstance: DatabaseAdapter;
@@ -738,6 +720,7 @@ export class UuidField<
             allowNull: TDefinitions['allowNull'];
             dbIndex: TDefinitions['dbIndex'];
             isPrimaryKey: TDefinitions['isPrimaryKey'];
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
             defaultValue: TDefinitions['defaultValue'];
             underscored: boolean;
             databaseName: string | undefined;
@@ -757,6 +740,7 @@ export class UuidField<
             allowNull: TDefinitions['allowNull'];
             dbIndex: TDefinitions['dbIndex'];
             isPrimaryKey: TDefinitions['isPrimaryKey'];
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
             defaultValue: TDefinitions['defaultValue'];
             underscored: boolean;
             databaseName: string | undefined;
@@ -784,6 +768,7 @@ export class UuidField<
       autoGenerate: false;
       isPrimaryKey: false;
       auto: false;
+      hasDefaultValue: false;
       defaultValue: undefined;
       typeName: string;
       databaseName: undefined;

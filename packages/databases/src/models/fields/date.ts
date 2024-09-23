@@ -334,7 +334,7 @@ export class DateField<
         | 'customAttributes'
       >]: TDefinitions[TKey];
     } & {
-      unique: TUnique;
+      unique: TUnique extends false ? false : true;
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
@@ -416,7 +416,7 @@ export class DateField<
     } & {
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
-      dbIndex: TDbIndex;
+      dbIndex: TDbIndex extends false ? false : true;
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
@@ -454,7 +454,7 @@ export class DateField<
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
-      underscored: TUnderscored;
+      underscored: TUnderscored extends false ? false : true;
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
       hasDefaultValue: TDefinitions['hasDefaultValue'];
@@ -492,7 +492,7 @@ export class DateField<
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
-      isPrimaryKey: TIsPrimaryKey;
+      isPrimaryKey: TIsPrimaryKey extends false ? false : true;
       auto: TDefinitions['auto'];
       hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
@@ -534,7 +534,7 @@ export class DateField<
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
-      auto: TIsAuto;
+      auto: TIsAuto extends false ? false : true;
       hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
@@ -624,7 +624,7 @@ export class DateField<
   }
 
   autoNow<TAutoNow extends boolean = true>(
-    isAutoNow: TAutoNow
+    isAutoNow?: TAutoNow
   ): DateField<
     {
       create: TType['create'] | null | undefined;
@@ -652,23 +652,23 @@ export class DateField<
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
-      auto: TAutoNow;
+      auto: TAutoNow extends false ? false : true;
       hasDefaultValue: true;
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-      autoNow: TAutoNow;
+      autoNow: TAutoNow extends false ? false : true;
     }
   > & { autoNow: never; autoNowAdd: never } {
     isAutoNow = typeof isAutoNow === 'boolean' ? isAutoNow : (true as any);
-    this.__autoNow = isAutoNow;
+    this.__autoNow = isAutoNow as TAutoNow;
     return this as unknown as any;
   }
 
   autoNowAdd<TAutoNowAdd extends boolean = true>(
-    isAutoNowAdd: TAutoNowAdd
+    isAutoNowAdd?: TAutoNowAdd
   ): DateField<
     {
       create: TType['create'] | null | undefined;
@@ -696,18 +696,18 @@ export class DateField<
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
-      auto: TAutoNowAdd;
+      auto: TAutoNowAdd extends false ? false : true;
       hasDefaultValue: true;
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-      autoNowAdd: TAutoNowAdd;
+      autoNowAdd: TAutoNowAdd extends false ? false : true;
     }
   > & { autoNow: never; autoNowAdd: never } {
     isAutoNowAdd = typeof isAutoNowAdd === 'boolean' ? isAutoNowAdd : (true as any);
-    this.__autoNowAdd = isAutoNowAdd;
+    this.__autoNowAdd = isAutoNowAdd as TAutoNowAdd;
     return this as unknown as any;
   }
 

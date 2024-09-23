@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "declaration": true,
+    "noErrorTruncation": false,
     "outDir": "./dist",
     "types": ["node"]
   },

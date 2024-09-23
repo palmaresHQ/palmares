@@ -18,7 +18,30 @@ import type { AdapterFieldParser } from '../../engine/fields/field';
  * const status = choice({ choices: ['active', 'inactive', 'in-progress'] });
  * ```
  */
-export function choice<const TChoices extends string[]>(params: { choices: TChoices }) {
+export function choice<const TChoices extends string[]>(params: {
+  choices: TChoices;
+}): EnumField<
+  {
+    create: TChoices[number];
+    read: TChoices[number];
+    update: TChoices[number];
+  },
+  {
+    unique: false;
+    allowNull: false;
+    dbIndex: false;
+    underscored: true;
+    isPrimaryKey: false;
+    auto: false;
+    defaultValue: undefined;
+    typeName: string;
+    hasDefaultValue: false;
+    databaseName: undefined;
+    engineInstance: DatabaseAdapter;
+    customAttributes: any;
+    choices: TChoices;
+  }
+> {
   return EnumField.new(params);
 }
 
@@ -47,6 +70,7 @@ export class EnumField<
     allowNull: boolean;
     dbIndex: boolean;
     isPrimaryKey: boolean;
+    hasDefaultValue: boolean;
     defaultValue: undefined;
     underscored: boolean;
     typeName: string;
@@ -61,6 +85,7 @@ export class EnumField<
     underscored: true;
     isPrimaryKey: false;
     auto: false;
+    hasDefaultValue: false;
     defaultValue: undefined;
     typeName: string;
     databaseName: undefined;
@@ -179,6 +204,7 @@ export class EnumField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -257,6 +283,7 @@ export class EnumField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -302,6 +329,7 @@ export class EnumField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -334,12 +362,13 @@ export class EnumField<
         | 'customAttributes'
       >]: TDefinitions[TKey];
     } & {
-      unique: TUnique;
+      unique: TUnique extends false ? false : true;
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -375,11 +404,12 @@ export class EnumField<
       >]: TDefinitions[TKey];
     } & {
       unique: TDefinitions['unique'];
-      allowNull: TNull;
+      allowNull: TNull extends false ? false : true;
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -415,10 +445,11 @@ export class EnumField<
     } & {
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
-      dbIndex: TDbIndex;
+      dbIndex: TDbIndex extends false ? false : true;
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -426,37 +457,7 @@ export class EnumField<
       customAttributes: TDefinitions['customAttributes'];
     }
   > {
-    return super.dbIndex(isDbIndex) as unknown as EnumField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDbIndex;
-        underscored: TDefinitions['underscored'];
-        isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TDefinitions['auto'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TDefinitions['customAttributes'];
-      }
-    >;
+    return super.dbIndex(isDbIndex) as unknown as any;
   }
 
   underscored<TUnderscored extends boolean = true>(
@@ -482,7 +483,7 @@ export class EnumField<
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
-      underscored: TUnderscored;
+      underscored: TUnderscored extends false ? false : true;
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
       defaultValue: TDefinitions['defaultValue'];
@@ -492,37 +493,7 @@ export class EnumField<
       customAttributes: TDefinitions['customAttributes'];
     }
   > {
-    return super.underscored(isUnderscored) as unknown as EnumField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDefinitions['dbIndex'];
-        underscored: TUnderscored;
-        isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TDefinitions['auto'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TDefinitions['customAttributes'];
-      }
-    >;
+    return super.underscored(isUnderscored) as unknown as any;
   }
 
   primaryKey<TIsPrimaryKey extends boolean = true>(
@@ -549,8 +520,9 @@ export class EnumField<
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
-      isPrimaryKey: TIsPrimaryKey;
+      isPrimaryKey: TIsPrimaryKey extends false ? false : true;
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -558,37 +530,7 @@ export class EnumField<
       customAttributes: TDefinitions['customAttributes'];
     }
   > {
-    return super.primaryKey(isPrimaryKey) as unknown as EnumField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDefinitions['dbIndex'];
-        underscored: TDefinitions['underscored'];
-        isPrimaryKey: TIsPrimaryKey;
-        auto: TDefinitions['auto'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TDefinitions['customAttributes'];
-      }
-    >;
+    return super.primaryKey(isPrimaryKey) as unknown as any;
   }
 
   auto<TIsAuto extends boolean = true>(
@@ -620,7 +562,7 @@ export class EnumField<
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
-      auto: TIsAuto;
+      auto: TIsAuto extends false ? false : true;
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -661,6 +603,7 @@ export class EnumField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: true;
       defaultValue: TDefault;
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -697,6 +640,7 @@ export class EnumField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDatabaseName;
       typeName: TDefinitions['typeName'];
@@ -728,6 +672,7 @@ export class EnumField<
       allowNull: boolean;
       dbIndex: boolean;
       isPrimaryKey: boolean;
+      hasDefaultValue: boolean;
       defaultValue: any;
       typeName: string;
       engineInstance: DatabaseAdapter;
@@ -752,6 +697,7 @@ export class EnumField<
             allowNull: TDefinitions['allowNull'];
             dbIndex: TDefinitions['dbIndex'];
             isPrimaryKey: TDefinitions['isPrimaryKey'];
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
             defaultValue: TDefinitions['defaultValue'];
             underscored: boolean;
             databaseName: string | undefined;
@@ -775,6 +721,7 @@ export class EnumField<
             allowNull: TDefinitions['allowNull'];
             dbIndex: TDefinitions['dbIndex'];
             isPrimaryKey: TDefinitions['isPrimaryKey'];
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
             defaultValue: TDefinitions['defaultValue'];
             underscored: boolean;
             databaseName: string | undefined;
@@ -820,6 +767,7 @@ export class EnumField<
       auto: false;
       defaultValue: undefined;
       typeName: string;
+      hasDefaultValue: false;
       databaseName: undefined;
       engineInstance: DatabaseAdapter;
       customAttributes: any;

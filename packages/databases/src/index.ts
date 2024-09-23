@@ -6,6 +6,8 @@ import { Manager } from './models/manager';
 import { initialize, model } from './models/model';
 import { QuerySet } from './models/queryset';
 
+import type { DatabaseAdapter } from './engine';
+
 export { Manager };
 export { ON_DELETE } from './models/fields';
 export * from './types';
@@ -58,7 +60,6 @@ export { TextField, text } from './models/fields/text';
 export { UuidField, uuid } from './models/fields/uuid';
 export { EnumField, choice } from './models/fields/enum';
 export { BooleanField, bool } from './models/fields/boolean';
-export { TranslatableField } from './models/fields/translatable';
 
 export * from './models/types';
 export * as actions from './migrations/actions';
@@ -71,6 +72,7 @@ export { generateUUID } from './utils/index';
 export { DatabasesDomain };
 export default DatabasesDomain;
 
+/*
 class Test extends Manager {
   createUser(aqui: string) {
     //return this.get({ fields: ['firstName'] });
@@ -148,26 +150,20 @@ const baseUserInstance = initialize('User', {
   abstracts: [User2]
 });
 
-const qs = QuerySet.new<InstanceType<typeof baseUserInstance>>();
-const newQs = qs
-  .join(Profile, 'profile', (qs) =>
-    qs
-      .where({ type: 'admin' })
-      .join(baseUserInstance, 'usersOfProfile', (qs) => qs.where({ firstName: 'test', lastName: 'hey' }))
-  )
-  .orderBy(['firstName'])
-  .where({
+const qs = QuerySet.new<InstanceType<typeof baseUserInstance>, 'set'>('set');
+const newQs = qs.join(Profile, 'profile', (qs) => qs.where({ type: 'admin' }));
+
+const modelOfDA = await baseUserInstance.default.getInstance<DatabaseAdapter<InstanceType<typeof baseUserInstance>>>();
+const test2 = await baseUserInstance.default.get((qs) =>
+  qs.where({
     firstName: {
-      in: ['asdas', 'test']
+      and: ['a', 'b']
     }
   })
-  .where({
-    lastName: 'aqui'
-  });
-console.log(newQs['__getQueryFormatted']());
-/*
-const test = await Profile.default.get((qs) =>
+);
+test2.firstName;
+//test2.profile.type;
+/*const test = await Profile.default.get((qs) =>
   qs.join(baseUserInstance, 'usersOfProfile', (qs) => qs.select(['firstName']))
 );
-test.usersOfProfile.firstName;
 */

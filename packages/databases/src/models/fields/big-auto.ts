@@ -35,6 +35,7 @@ export function bigAuto(): BigAutoField<
     underscored: true;
     isPrimaryKey: true;
     auto: true;
+    hasDefaultValue: false;
     defaultValue: undefined;
     typeName: string;
     databaseName: undefined;
@@ -61,9 +62,9 @@ export function bigAuto(): BigAutoField<
  */
 export class BigAutoField<
   TType extends { create: any; read: any; update: any } = {
-    create: bigint | number | undefined | null;
+    create: bigint | number | undefined;
     read: bigint | number;
-    update: bigint | number | undefined | null;
+    update: bigint | number | undefined;
   },
   TDefinitions extends {
     unique: boolean;
@@ -71,6 +72,7 @@ export class BigAutoField<
     allowNull: boolean;
     dbIndex: boolean;
     isPrimaryKey: boolean;
+    hasDefaultValue: boolean;
     defaultValue: undefined;
     underscored: boolean;
     typeName: string;
@@ -84,6 +86,7 @@ export class BigAutoField<
     underscored: true;
     isPrimaryKey: true;
     auto: true;
+    hasDefaultValue: false;
     defaultValue: undefined;
     typeName: string;
     databaseName: undefined;
@@ -188,6 +191,7 @@ export class BigAutoField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -266,6 +270,7 @@ export class BigAutoField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -311,6 +316,7 @@ export class BigAutoField<
         underscored: TDefinitions['underscored'];
         isPrimaryKey: TDefinitions['isPrimaryKey'];
         auto: TDefinitions['auto'];
+        hasDefaultValue: TDefinitions['hasDefaultValue'];
         defaultValue: TDefinitions['defaultValue'];
         databaseName: TDefinitions['databaseName'];
         typeName: TDefinitions['typeName'];
@@ -343,9 +349,10 @@ export class BigAutoField<
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
-      underscored: TUnderscored;
+      underscored: TUnderscored extends false ? false : true;
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
@@ -353,37 +360,7 @@ export class BigAutoField<
       customAttributes: TDefinitions['customAttributes'];
     }
   > {
-    return super.underscored(isUnderscored) as unknown as BigAutoField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDefinitions['dbIndex'];
-        underscored: TUnderscored;
-        isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TDefinitions['auto'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TDefinitions['customAttributes'];
-      }
-    >;
+    return super.underscored(isUnderscored) as unknown as any;
   }
 
   databaseName<TDatabaseName extends string>(
@@ -412,6 +389,7 @@ export class BigAutoField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDatabaseName;
       typeName: TDefinitions['typeName'];
@@ -419,37 +397,7 @@ export class BigAutoField<
       customAttributes: TDefinitions['customAttributes'];
     }
   > {
-    return super.databaseName(databaseName) as unknown as BigAutoField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDefinitions['dbIndex'];
-        underscored: TDefinitions['underscored'];
-        isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TDefinitions['auto'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDatabaseName;
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TDefinitions['customAttributes'];
-      }
-    >;
+    return super.databaseName(databaseName) as unknown as any;
   }
 
   /**
@@ -471,6 +419,7 @@ export class BigAutoField<
       dbIndex: boolean;
       isPrimaryKey: boolean;
       defaultValue: any;
+      hasDefaultValue: boolean;
       typeName: string;
       engineInstance: DatabaseAdapter;
     }
@@ -492,6 +441,7 @@ export class BigAutoField<
             allowNull: TDefinitions['allowNull'];
             dbIndex: TDefinitions['dbIndex'];
             isPrimaryKey: TDefinitions['isPrimaryKey'];
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
             defaultValue: TDefinitions['defaultValue'];
             underscored: boolean;
             databaseName: string | undefined;
@@ -510,6 +460,7 @@ export class BigAutoField<
             allowNull: TDefinitions['allowNull'];
             dbIndex: TDefinitions['dbIndex'];
             isPrimaryKey: TDefinitions['isPrimaryKey'];
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
             defaultValue: TDefinitions['defaultValue'];
             underscored: boolean;
             databaseName: string | undefined;
@@ -529,6 +480,7 @@ export class BigAutoField<
               allowNull: TDefinitions['allowNull'];
               dbIndex: TDefinitions['dbIndex'];
               isPrimaryKey: TDefinitions['isPrimaryKey'];
+              hasDefaultValue: TDefinitions['hasDefaultValue'];
               defaultValue: TDefinitions['defaultValue'];
               underscored: boolean;
               databaseName: string | undefined;
@@ -547,6 +499,7 @@ export class BigAutoField<
               allowNull: TDefinitions['allowNull'];
               dbIndex: TDefinitions['dbIndex'];
               isPrimaryKey: TDefinitions['isPrimaryKey'];
+              hasDefaultValue: TDefinitions['hasDefaultValue'];
               defaultValue: TDefinitions['defaultValue'];
               underscored: boolean;
               databaseName: string | undefined;
@@ -571,6 +524,7 @@ export class BigAutoField<
       underscored: true;
       isPrimaryKey: true;
       auto: true;
+      hasDefaultValue: false;
       defaultValue: undefined;
       typeName: string;
       databaseName: undefined;
@@ -591,6 +545,7 @@ export class BigAutoField<
         underscored: true;
         isPrimaryKey: true;
         auto: true;
+        hasDefaultValue: false;
         defaultValue: undefined;
         typeName: string;
         databaseName: undefined;

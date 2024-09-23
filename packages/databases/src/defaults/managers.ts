@@ -2,7 +2,7 @@ import { Manager } from '../models';
 
 import type { PalmaresMigrations } from './models';
 
-export class PalmaresMigrationsManager {
+export class PalmaresMigrationsManager extends Manager<PalmaresMigrations> {
   /**
    * Creates a new migration in the database. This way we can know what migrations have was evaluated and what migration
    * still needs to be evaluated.
@@ -11,16 +11,10 @@ export class PalmaresMigrationsManager {
    * @param engineName - The name of the engine from which this migration was created.
    */
   async createMigration(migrationName: string, engineName: string) {
-    return this.set(
-      {
-        migrationName,
-        engineName
-      },
-      {
-        useTransaction: true
-      },
+    return this.set((qs) => qs.data({ id: undefined, migrationName, engineName }), {
+      useTransaction: true,
       engineName
-    );
+    });
   }
 
   /**
@@ -31,7 +25,7 @@ export class PalmaresMigrationsManager {
    * @return - An empty '' string or the name of the last migration.
    */
   async getLastMigrationName(engineName: string) {
-    const allMigrations = await this.get({ search: { engineName } }, engineName);
+    const allMigrations = await this.get((qs) => qs.where({ engineName }).select(['migrationName']), { engineName });
     return allMigrations.length > 0 ? allMigrations[0].migrationName : '';
   }
 }

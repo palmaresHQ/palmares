@@ -361,6 +361,10 @@ export class BaseModel {
     }
   }
 
+  /**
+   * Get the options of the model. Use this to get the options of the model since here we will use the cached data
+   * if it exists.
+   */
   protected static _options(modelInstance?: any) {
     // this and typeof Model means pretty much the same thing here.
     if (!modelInstance) modelInstance = new this() as Model & BaseModel;
@@ -401,7 +405,7 @@ export class BaseModel {
 
       for (const [fieldName, field] of allFields) {
         if (field['__unique']) modelHasNoUniqueFields = false;
-        field['init'](fieldName, this as typeof BaseModel & typeof Model);
+        field['__init'](fieldName, this as ModelType<any, any> & typeof BaseModel & typeof Model);
       }
 
       if (modelHasNoUniqueFields && this._options()?.abstract !== true) {

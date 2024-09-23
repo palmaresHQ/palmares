@@ -1,6 +1,6 @@
 import type { Operation } from './actions';
 import type { BaseModel } from '../models';
-import type { model } from '../models/model';
+import type { Model, ModelType, model } from '../models/model';
 import type { InitializedModelsType } from '../types';
 
 export type StateModelsType = {
@@ -12,7 +12,7 @@ export type OriginalOrStateModelsByNameType = {
 };
 
 export type StateModelsConstructorType = {
-  [modelName: string]: ReturnType<typeof model>;
+  [modelName: string]: ModelType<any, any> & typeof Model & typeof BaseModel;
 };
 
 export type MigrationFileType = {

@@ -344,7 +344,7 @@ export class TextField<
         | 'customAttributes'
       >]: TDefinitions[TKey];
     } & {
-      unique: TUnique;
+      unique: TUnique extends false ? false : true;
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
@@ -428,7 +428,7 @@ export class TextField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
-      allowBlank: TBlank;
+      allowBlank: TBlank extends false ? false : true;
       hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
@@ -467,7 +467,7 @@ export class TextField<
     } & {
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
-      dbIndex: TDbIndex;
+      dbIndex: TDbIndex extends false ? false : true;
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
@@ -504,7 +504,7 @@ export class TextField<
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
-      underscored: TUnderscored;
+      underscored: TUnderscored extends false ? false : true;
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
       hasDefaultValue: TDefinitions['hasDefaultValue'];
@@ -542,7 +542,7 @@ export class TextField<
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
-      isPrimaryKey: TIsPrimaryKey;
+      isPrimaryKey: TIsPrimaryKey extends false ? false : true;
       auto: TDefinitions['auto'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
@@ -551,38 +551,7 @@ export class TextField<
       customAttributes: TDefinitions['customAttributes'];
     }
   > {
-    return super.primaryKey(isPrimaryKey) as unknown as TextField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDefinitions['dbIndex'];
-        underscored: TDefinitions['underscored'];
-        isPrimaryKey: TIsPrimaryKey;
-        auto: TDefinitions['auto'];
-        hasDefaultValue: TDefinitions['hasDefaultValue'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TDefinitions['customAttributes'];
-      }
-    >;
+    return super.primaryKey(isPrimaryKey) as unknown as any;
   }
 
   auto<TIsAuto extends boolean = true>(
@@ -614,7 +583,7 @@ export class TextField<
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
-      auto: TIsAuto;
+      auto: TIsAuto extends false ? false : true;
       hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
@@ -847,53 +816,3 @@ export class TextField<
     return new this(..._args);
   }
 }
-
-/*
-const textField = TextField.overrideType<
-  {
-    create: string;
-    read: string;
-    update: string;
-  },
-  {
-    customAttributes: {
-      enum?: string[];
-      length?: number;
-    };
-    unique: true;
-    auto: boolean;
-    allowNull: true;
-    dbIndex: boolean;
-    isPrimaryKey: boolean;
-    defaultValue: any;
-    typeName: string;
-    engineInstance: DatabaseAdapter;
-    allowBlank: boolean;
-  }
->({
-  typeName: 'CustomTextField'
-});
-
-const varchar = () => {
-  const field = textField.new({}).unique();
-  class Builder {
-    enum<const TEnum extends string[]>(choices: TEnum) {
-      return field
-        ._setPartialAttributes<
-          { create: 'ola'; read: number | TEnum[number]; update: TEnum[number] },
-          { create: 'replace'; read: 'union'; update: 'union' }
-        >()({ enum: choices })
-        ._setNewBuilderMethods<Builder>();
-    }
-
-    length(value: number) {
-      return field._setPartialAttributes()({ length: value })._setNewBuilderMethods<Builder>();
-    }
-  }
-
-  const builder = new Builder();
-  return field._setNewBuilderMethods(builder);
-};
-
-const value = varchar().enum(['test', 'test2']);
-*/

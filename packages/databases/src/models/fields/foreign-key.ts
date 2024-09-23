@@ -16,8 +16,9 @@ import type {
   ExtractTypeFromFieldOfAModel,
   ON_DELETE
 } from './types';
-import type { AdapterFieldParser, ModelType } from '../..';
 import type { DatabaseAdapter } from '../../engine';
+import type { AdapterFieldParser } from '../../engine/fields/field';
+import type { BaseModel, Model, ModelType } from '../model';
 
 /**
  * This allows us to create a foreign key field on the database.
@@ -353,7 +354,10 @@ export class ForeignKeyField<
    */
   protected get _relatedName() {
     const isModelDefined = (this['__model'] as any) !== undefined;
-    const modelConstructor = this['__model'] !== undefined ? (this['__model'].constructor as ModelType) : undefined;
+    const modelConstructor =
+      this['__model'] !== undefined
+        ? (this['__model'].constructor as ModelType<any, any> & typeof BaseModel & typeof Model)
+        : undefined;
     const isModelAStateModel = isModelDefined && modelConstructor?.['__isState'] === true;
     if (isModelAStateModel) return `${generateUUID()}-${this.__originalRelatedName}`;
     else return this.__originalRelatedName;
@@ -583,7 +587,7 @@ export class ForeignKeyField<
         | 'customAttributes'
       >]: TDefinitions[TKey];
     } & {
-      unique: TUnique;
+      unique: TUnique extends false ? false : true;
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
@@ -665,7 +669,7 @@ export class ForeignKeyField<
     } & {
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
-      dbIndex: TDbIndex;
+      dbIndex: TDbIndex extends false ? false : true;
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
@@ -702,7 +706,7 @@ export class ForeignKeyField<
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
-      underscored: TUnderscored;
+      underscored: TUnderscored extends false ? false : true;
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
       defaultValue: TDefinitions['defaultValue'];
@@ -739,7 +743,7 @@ export class ForeignKeyField<
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
-      isPrimaryKey: TIsPrimaryKey;
+      isPrimaryKey: TIsPrimaryKey extends false ? false : true;
       auto: TDefinitions['auto'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
@@ -780,7 +784,7 @@ export class ForeignKeyField<
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
-      auto: TIsAuto;
+      auto: TIsAuto extends false ? false : true;
       hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
@@ -812,7 +816,7 @@ export class ForeignKeyField<
         dbIndex: TDefinitions['dbIndex'];
         underscored: TDefinitions['underscored'];
         isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TIsAuto;
+        auto: TIsAuto extends false ? false : true;
         hasDefaultValue: TDefinitions['hasDefaultValue'];
         defaultValue: TDefinitions['defaultValue'];
         typeName: TDefinitions['typeName'];
@@ -1028,7 +1032,7 @@ export class ForeignKeyField<
     return newField;
   }
 
-  init(fieldName: string, model: ModelType) {
+  protected __init(fieldName: string, model: ModelType<any, any> & typeof Model & typeof BaseModel): void {
     getRelatedToAsString(this);
     const isRelatedToAndOnDeleteNotDefined =
       typeof this['__relatedToAsString'] !== 'string' && typeof this['__onDelete'] !== 'string';
@@ -1066,7 +1070,7 @@ export class ForeignKeyField<
       model['__indirectlyRelatedModels'][relatedToAsString][originalNameOfModel].push(this['__originalRelatedName']);
     }
 
-    super.init(fieldName, model);
+    super.__init(fieldName, model);
 
     const wasRelatedNameDefined: boolean = typeof this['__relatedName'] === 'string';
 
@@ -1081,6 +1085,7 @@ export class ForeignKeyField<
     // eslint-disable-next-line ts/no-unnecessary-condition
     model['__indirectlyRelatedModels'].$set?.[relatedToAsString]?.();
   }
+
   static new<
     const TRelatedTo extends any | (() => any) | ((_: { create: any; read: any; update: any }) => any),
     const TForeignKeyParams extends {

@@ -5,7 +5,7 @@ import { initializeModels } from '../models/utils';
 
 import type { FoundMigrationsFileType, OriginalOrStateModelsByNameType, StateModelsType } from './types';
 import type { DatabaseAdapter } from '../engine';
-import type { BaseModel } from '../models/model';
+import type { BaseModel, ModelType } from '../models/model';
 import type { InitializedModelsType } from '../types';
 
 /**
@@ -106,16 +106,20 @@ export class State {
       engineInstance,
       modelsInState.map((stateModel) => {
         const ModelClass = class StateModel extends model() {
-          static isState = true;
+          static __isState = true;
           static __stateNumber = stateNumber;
           static _initialized = {};
-          static domainName = (stateModel.constructor as any).domainName;
-          static domainPath = (stateModel.constructor as any).domainPath;
-          static __cachedOriginalName: string = (stateModel.constructor as any).__cachedName;
-          static __cachedName: string = (stateModel.constructor as any).__cachedName;
+          static __domainName = (stateModel.constructor as ModelType<any, any> & typeof BaseModel)['__domainName'];
+          static __domainPath = (stateModel.constructor as ModelType<any, any> & typeof BaseModel)['__domainPath'];
+          static __cachedOriginalName: string = (stateModel.constructor as ModelType<any, any> & typeof BaseModel)[
+            '__cachedName'
+          ];
+          static __cachedName: string = (stateModel.constructor as ModelType<any, any> & typeof BaseModel)[
+            '__cachedName'
+          ];
 
-          fields = stateModel.fields;
-          options = stateModel.options;
+          fields = (stateModel.constructor as ModelType<any, any> & typeof BaseModel)['_fields']();
+          options = (stateModel.constructor as ModelType<any, any> & typeof BaseModel)['_options']() as any;
         };
         return ModelClass as any;
       })
@@ -160,7 +164,7 @@ export class State {
     const initializedModels = await this.initializeStateModels(duplicatedEngineInstance);
 
     for (const initializedModel of initializedModels) {
-      this.initializedModelsByName[initializedModel.class.originalName()] = initializedModel;
+      this.initializedModelsByName[initializedModel.class['__originalName']()] = initializedModel;
     }
     return {
       initializedModels: this.initializedModelsByName,

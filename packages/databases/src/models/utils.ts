@@ -21,8 +21,8 @@ import {
 import { UuidField } from './fields/uuid';
 
 import type { Field } from './fields';
-import type { BaseModel, Model, model } from './model';
-import type { ModelOptionsType, ModelType } from './types';
+import type { BaseModel, Model, ModelType, model } from './model';
+import type { ModelOptionsType } from './types';
 import type { DatabaseAdapter } from '../engine';
 import type { AdapterFields } from '../engine/fields';
 import type { AdapterFieldParser as EngineFieldParser } from '../engine/fields/field';
@@ -299,7 +299,7 @@ export async function parse(
  * That's exactly what this does is that it takes the Palmares models and, with the
  * engine, we translate them to something that the engine can understand.
  */
-export async function initializeModels(engine: DatabaseAdapter, models: (typeof BaseModel & typeof Model)[]) {
+export async function initializeModels(engine: DatabaseAdapter, models: (ModelType<any, any> & typeof BaseModel)[]) {
   const recursiveOptionsToEvaluateModels: {
     forceTranslation?: boolean;
   }[] = [{}];
@@ -370,7 +370,7 @@ export async function initializeModels(engine: DatabaseAdapter, models: (typeof 
     const evaluateLaterFieldsPromises = fieldsToEvaluateAfter.map(
       async ({ model, field, translatedField, getInitialized }, index) => {
         const initialized = getInitialized();
-        const modelConstructor = model.constructor as ModelType;
+        const modelConstructor = model.constructor as ModelType<any, any> & typeof BaseModel & typeof Model;
         const lazyEvaluatedFieldResult = await engine.fields.lazyEvaluateField(
           engine,
           modelConstructor['__getName'](),
@@ -391,7 +391,7 @@ export async function initializeModels(engine: DatabaseAdapter, models: (typeof 
     if (engine.models.afterModelsTranslation) {
       const { modelEntries, modelsByName } = initializedModels.reduce(
         (acc, model) => {
-          if (model.original.options?.instance && options?.forceTranslation !== true) return acc;
+          if (model.original.options.instance && options?.forceTranslation !== true) return acc;
           const modelName = model.class['__getName']();
           acc.modelsByName[modelName] = model;
           acc.modelEntries.push([modelName, model.initialized]);
@@ -451,7 +451,7 @@ export function factoryFunctionForModelTranslate(
     forceTranslate?: boolean;
   }
 ) {
-  const modelConstructor = model.constructor as ModelType;
+  const modelConstructor = model.constructor as ModelType<any, any> & typeof BaseModel & typeof Model;
   const modelOptions = modelConstructor['_options'](model) as ModelOptionsType;
   const fieldEntriesOfModel = Object.entries(modelConstructor['_fields'](model));
 

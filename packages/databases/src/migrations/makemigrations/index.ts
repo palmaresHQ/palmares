@@ -3,7 +3,6 @@ import { FRAMEWORK_NAME, getDefaultStd, retrieveDomains } from '@palmares/core';
 
 import { asker as Asker } from './asker';
 import { databaseLogger } from '../../logging';
-
 import { PACKAGE_NAME, getUniqueCustomImports } from '../../utils';
 import * as actions from '../actions';
 import { State } from '../state';
@@ -306,7 +305,7 @@ export class MakeMigrations {
           originalField['__model']?.['__domainPath'] as string,
           originalField['__model']?.['__originalName']() as string,
           {
-            fieldDefinition: originalField['getArguments'](),
+            fieldDefinition: originalField['__getArguments'](),
             fieldNameAfter: renamedTo,
             fieldNameBefore: fieldOrModelName
           }
@@ -382,10 +381,10 @@ export class MakeMigrations {
         const fieldName = fieldOrModelName;
         const isDefaultValueNotDefinedAndFieldDoesNotAllowNull =
           // eslint-disable-next-line ts/no-unnecessary-condition
-          originalField.defaultValue === undefined && originalField.allowNull === false;
+          originalField['__defaultValue'] === undefined && originalField['__allowNull'] === false;
         if (isDefaultValueNotDefinedAndFieldDoesNotAllowNull) {
           const answer = await Asker.theNewAttributeCantHaveNullDoYouWishToContinue(
-            originalField.model.originalName(),
+            originalField['__model']?.['__originalName']?.() as string,
             fieldName
           );
           if (answer === false) {
@@ -393,9 +392,9 @@ export class MakeMigrations {
           }
         }
         return actions.CreateField.toGenerate(
-          originalField.model.domainName,
-          originalField.model.domainPath,
-          originalField.model.originalName(),
+          originalField['__model']?.['__domainName'] as string,
+          originalField['__model']?.['__domainPath'] as string,
+          originalField['__model']?.['__originalName']?.() as string,
           {
             fieldDefinition: originalField,
             fieldName: fieldName
@@ -405,12 +404,12 @@ export class MakeMigrations {
         // eslint-disable-next-line no-case-declarations
         const originalInitializedModel = originalFieldOrModel as InitializedModelsType;
         return actions.CreateModel.toGenerate(
-          originalInitializedModel.domainName,
-          originalInitializedModel.domainPath,
+          originalInitializedModel['domainName'],
+          originalInitializedModel['domainPath'],
           fieldOrModelName,
           {
-            fields: originalInitializedModel.original.fields,
-            options: originalInitializedModel.original.options || {}
+            fields: originalInitializedModel.class['_fields'](),
+            options: originalInitializedModel.class['_options']() || {}
           }
         );
     }
@@ -432,8 +431,8 @@ export class MakeMigrations {
         originalInitializedModel.domainPath,
         modelName,
         {
-          optionsAfter: originalInitializedModel.original.options || {},
-          optionsBefore: stateInitializedModel.original.options || {}
+          optionsAfter: originalInitializedModel.class['_options']() || {},
+          optionsBefore: stateInitializedModel.class['_options']() || {}
         }
       );
     }
@@ -446,18 +445,14 @@ export class MakeMigrations {
     return response;
   }
 
-  async #fieldWasUpdated(
-    fieldName: string,
-    stateField: Field<any, any, any, any, any, any, any, any>,
-    originalField: Field<any, any, any, any, any, any, any, any>
-  ) {
-    const [areFieldsEqual, changedAttributes] = await originalField.compare(stateField);
+  async #fieldWasUpdated(fieldName: string, stateField: Field<any, any>, originalField: Field<any, any>) {
+    const [areFieldsEqual, changedAttributes] = originalField['__compare'](stateField);
 
     if (areFieldsEqual === false) {
       return actions.ChangeField.toGenerate(
-        originalField.model.domainName,
-        originalField.model.domainPath,
-        originalField.model.originalName(),
+        originalField['__model']?.['__domainName'] as string,
+        originalField['__model']?.['__domainPath'] as string,
+        originalField['__model']?.['__originalName']?.() as string,
         {
           fieldDefinitionAfter: originalField,
           fieldDefinitionBefore: stateField,
@@ -507,7 +502,8 @@ export class MakeMigrations {
         const dependenciesAlreadyAdded = Object.keys(modelOfOperationToProcess.class['__directlyRelatedTo']).every(
           (dependencyOfModel: string) =>
             // For circular relations.
-            addedModels.has(dependencyOfModel) || dependencyOfModel === modelOfOperationToProcess.class.originalName()
+            addedModels.has(dependencyOfModel) ||
+            dependencyOfModel === modelOfOperationToProcess.class['__originalName']()
         );
 
         // this means it is the last run so we must add any pending migrations.

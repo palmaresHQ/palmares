@@ -18,7 +18,7 @@ import type {
 } from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
-import type { ModelType } from '../types';
+import type { BaseModel, Model, ModelType } from '../model';
 
 /**
  * This is the default field of the model, every other field type should override this
@@ -79,7 +79,7 @@ export class Field<
   protected static __getArgumentsCallback: GetArgumentsCallback = defaultGetArgumentsCallback;
   protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
   protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
-  protected __model?: ModelType;
+  protected __model?: ModelType<any, any> & typeof Model & typeof BaseModel;
   protected __fieldName!: string;
 
   constructor(..._args: any[]) {}
@@ -311,7 +311,7 @@ export class Field<
         | 'customAttributes'
       >]: TDefinitions[TKey];
     } & {
-      unique: TUnique;
+      unique: TUnique extends false ? false : true;
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
@@ -400,7 +400,7 @@ export class Field<
     } & {
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
-      dbIndex: TDbIndex;
+      dbIndex: TDbIndex extends false ? false : true;
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
@@ -441,7 +441,7 @@ export class Field<
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
-      underscored: TUnderscored;
+      underscored: TUnderscored extends false ? false : true;
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
       hasDefaultValue: TDefinitions['hasDefaultValue'];
@@ -482,7 +482,7 @@ export class Field<
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
-      isPrimaryKey: TIsPrimaryKey;
+      isPrimaryKey: TIsPrimaryKey extends false ? false : true;
       auto: TDefinitions['auto'];
       hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
@@ -527,7 +527,7 @@ export class Field<
       dbIndex: TDefinitions['dbIndex'];
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
-      auto: TIsAuto;
+      auto: TIsAuto extends false ? false : true;
       hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
@@ -769,7 +769,7 @@ export class Field<
     return (this.constructor as typeof Field<any, any>)['__customImports'];
   }
 
-  protected init(fieldName: string, model: ModelType) {
+  protected __init(fieldName: string, model: ModelType<any, any> & typeof Model & typeof BaseModel) {
     const isAlreadyInitialized = (this.__model as any) !== undefined && typeof this.__fieldName === 'string';
     if (isAlreadyInitialized) return;
 

@@ -76,3 +76,12 @@ export class RelatedModelFromForeignKeyIsNotFromEngineException extends Error {
     this.name = RelatedModelFromForeignKeyIsNotFromEngineException.name;
   }
 }
+
+export class MissingWhereClauseException extends Error {
+  constructor(fun: string) {
+    super(
+      `You must provide a '.where()' clause query to update a model or use 'force' as true on the '.${fun}()' action.`
+    );
+    this.name = MissingWhereClauseException.name;
+  }
+}

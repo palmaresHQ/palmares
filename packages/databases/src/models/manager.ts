@@ -1,13 +1,14 @@
 import { getSettings, initializeDomains } from '@palmares/core';
 
 import { ManagerEngineInstanceNotFoundError } from './exceptions';
+import { GetQuerySet, SetQuerySet } from './queryset';
 import { Databases } from '../databases';
 import { getQuery } from '../queries/get';
 import { removeQuery } from '../queries/remove';
 import { setQuery } from '../queries/set';
 
 import type { Model, model } from './model';
-import type { QuerySet } from './queryset';
+import type { QuerySet, RemoveQuerySet } from './queryset';
 import type {
   FieldsOFModelType,
   FieldsOfModelOptionsType,
@@ -229,17 +230,140 @@ export class Manager<
     return includesInstances;
   }
 
-  get<
+  async get<
     TQueryBuilder extends (
-      queryBuilder: QuerySet<'get', TModel> & {
+      queryBuilder: GetQuerySet<'get', TModel>
+    ) =>
+      | QuerySet<'get', TModel, any, any, any, any, any, any>
+      | GetQuerySet<'get', TModel, any, any, any, any, any, any>
+  >(
+    callback: TQueryBuilder,
+    args?: {
+      engineName?: string;
+    }
+  ): Promise<
+    ReturnType<TQueryBuilder> extends
+      | QuerySet<'get', TModel, infer TResult, any, any, any, any, any, any>
+      | GetQuerySet<'get', TModel, infer TResult, any, any, any, any, any, any>
+      ? TResult[]
+      : never
+  > {
+    const isValidEngineName = typeof args?.engineName === 'string' && args.engineName !== '';
+    const engineInstanceName = isValidEngineName ? args.engineName : this.__defaultEngineInstanceName;
+    const engineInstance = await this.getEngineInstance(engineInstanceName);
+
+    const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName = (
+      isValidEngineName ? args.engineName : this.__defaultEngineInstanceName
+    ) as string;
+
+    const modelInstance = this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName) as Model;
+    const modelConstructor = modelInstance.constructor as ModelType;
+    const allFieldsOfModel = Object.keys((modelConstructor as any)._fields(modelInstance));
+    const data = callback(new GetQuerySet('get'))['__getQueryFormatted']();
+
+    return getQuery(
+      {
+        fields: data?.fields || allFieldsOfModel,
+        search: data?.search || {},
+        ordering: data?.ordering || (modelInstance.options?.ordering as any),
+        limit: data?.limit,
+        offset: data?.offset
+      },
+      {
+        model: this.__models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName],
+        engine: engineInstance,
+        includes: data?.includes || []
+      }
+    ) as any;
+  }
+
+  async set<
+    TQueryBuilder extends (
+      queryBuilder: SetQuerySet<'set', TModel>
+    ) => QuerySet<'set', TModel, any, any, any, any, any, any>
+  >(
+    callback: TQueryBuilder,
+    args?: {
+      engineName?: string;
+      isToPreventEvents?: boolean;
+      transaction?: any;
+      /**
+       * This is enabled by default if you are inserting more than one element or if you use includes, it can make
+       * your code slower, but it will guarantee that the data is consistent.
+       */
+      useTransaction?: boolean;
+      usePalmaresTransaction?: boolean;
+    }
+  ): Promise<
+    ReturnType<TQueryBuilder> extends
+      | QuerySet<'set', TModel, infer TResult, any, any, any, any, any>
+      | SetQuerySet<'set', TModel, infer TResult, any, any, any, any, any, any>
+      ? TResult[]
+      : never
+  > {
+    const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
+    let engineInstanceName = args?.engineName || this.__defaultEngineInstanceName;
+    // Promise.all here will not work, we need to do this sequentially.
+    const engineInstance = await this.getEngineInstance(engineInstanceName);
+    engineInstanceName = args?.engineName || this.__defaultEngineInstanceName;
+    const data = callback(new SetQuerySet('set'))['__getQueryFormatted']();
+
+    const dataAsAnArray = Array.isArray(args?.engineName)
+      ? data
+      : ([data] as ModelFieldsWithIncludes<
+          TModel,
+          TIncludes,
+          FieldsOFModelType<TModel>,
+          true,
+          false,
+          TSearch extends undefined ? false : true,
+          false
+        >[]);
+    return setQuery(
+      dataAsAnArray,
+      {
+        isToPreventEvents,
+        useTransaction: args?.useTransaction,
+        search: args?.search
+      },
+      {
+        model: this.getModel(engineInstanceName) as unknown as TModel,
+        engine: engineInstance,
+        transaction: args?.transaction,
+        includes: (args?.includes || []) as TIncludes
+      }
+    );
+    return {} as any;
+  }
+
+  async remove<
+    TQueryBuilder extends (
+      queryBuilder: RemoveQuerySet<'remove', TModel> & {
         update: never;
-        remove: never;
         create: never;
       }
-    ) => QuerySet<'get', TModel, any, any, any, any, any, any>
+    ) =>
+      | RemoveQuerySet<'remove', TModel, any, any, any, any, any, any, any>
+      | QuerySet<'remove', TModel, any, any, any, any, any, true, any>
+      | QuerySet<'get', TModel, any, any, any, any, any, true, any>
+      | GetQuerySet<'get', TModel, any, any, any, any, any, true, any>
   >(
-    callback: TQueryBuilder
-  ): Promise<ReturnType<TQueryBuilder> extends QuerySet<'get', any, infer TResult> ? TResult : never> {
+    callback: TQueryBuilder,
+    args?: {
+      usePalmaresTransaction?: boolean;
+      transaction?: any;
+      useTransaction?: boolean;
+      isToPreventEvents?: boolean;
+    }
+  ): Promise<
+    ReturnType<TQueryBuilder> extends
+      | RemoveQuerySet<'remove', TModel, infer TResult, any, any, any, any, any, any>
+      | QuerySet<'remove', TModel, infer TResult, any, any, any, any, true, any>
+      | QuerySet<'get', TModel, infer TResult, any, any, any, any, any, any>
+      | GetQuerySet<'get', TModel, infer TResult, any, any, any, any, true, any>
+      ? TResult[]
+      : never
+  > {
     return {} as any;
   }
 
@@ -331,7 +455,7 @@ export class Manager<
    * `default` one.
    *
    * @return - Return the created instance or undefined if something went wrong, or boolean if it's an update.
-   */
+   * /
   async set<
     TIncludes extends Includes = undefined,
     TSearch extends
@@ -363,7 +487,7 @@ export class Manager<
       /**
        * This is enabled by default if you are inserting more than one element or if you use includes, it can make
        * your code slower, but it will guarantee that the data is consistent.
-       */
+       * /
       useTransaction?: boolean;
       usePalmaresTransaction?: boolean;
       includes?: Narrow<IncludesValidated<TModel, TIncludes, true>>;
@@ -401,7 +525,7 @@ export class Manager<
         includes: (args?.includes || []) as TIncludes
       }
     );
-  }
+  }*/
 
   /**
    * Simple query to remove one or more instances from the database. Be aware that not defining a search
@@ -412,7 +536,7 @@ export class Manager<
    * `default` one.
    *
    * @return - Returns true if everything went fine and false otherwise.
-   */
+   * /
   async remove<
     TIncludes extends Includes<{
       isToPreventRemove?: true;
@@ -477,7 +601,7 @@ export class Manager<
         includes: (args?.includes || []) as TIncludes
       }
     ) as Promise<ModelFieldsWithIncludes<TModel, TIncludes>[]>;
-  }
+  }*/
 }
 
 export class DefaultManager<
