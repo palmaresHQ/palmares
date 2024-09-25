@@ -16,6 +16,7 @@ import type { DatabaseAdapter } from '../engine';
 import type { ExtractFieldsFromAbstracts, ExtractManagersFromAbstracts } from '../types';
 
 export class BaseModel {
+  protected static $$type = '$PModel';
   protected __className = this.constructor.name;
   protected __stringfiedArgumentsOfEvents = new Set<string>();
   protected __eventsUnsubscribers: (() => Promise<void>)[] = [];
@@ -611,7 +612,7 @@ const BaseModelWithoutMethods = BaseModel as unknown as { new (): Pick<BaseModel
  * you can have the hole power of linting VSCode and other IDEs give you.
  */
 export class Model extends BaseModelWithoutMethods {
-  protected $$type = '$PModel';
+  protected static $$type = '$PModel';
   //static [managers: string]: Manager | ((...args: any) => any) | ModelFieldsType;
   fields: ModelFieldsType = {};
   options: ModelOptionsType<any> | undefined = undefined;
@@ -670,6 +671,7 @@ export function model<
   let defaultManagerInstance: any = null;
 
   class BaseDefaultModel extends Model {
+    protected static $$type = '$PModel';
     protected static __isState = false;
     // It would be kinda bad on performance if we always looped through all of the fields of a model to parse them.
     // So we store the fields that have parsers here and we will
@@ -696,6 +698,8 @@ export function model<
     protected static __initialized: { [engineName: string]: any } = {};
   }
   class DefaultModel extends BaseDefaultModel {
+    protected static $$type = '$PModel';
+
     static get default() {
       if (defaultManagerInstance === null) {
         defaultManagerInstance = new DefaultManager<TModel extends DefaultModel ? TModel : any>();

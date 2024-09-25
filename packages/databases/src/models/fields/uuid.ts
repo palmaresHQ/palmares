@@ -1,7 +1,13 @@
-import { Field } from './field';
+import { TextField } from './text';
 
 import type { CustomImportsForFieldType } from './types';
-import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
+import type {
+  CompareCallback,
+  GetArgumentsCallback,
+  NewInstanceArgumentsCallback,
+  OptionsCallback,
+  ToStringCallback
+} from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
 
@@ -30,6 +36,7 @@ export function uuid(): UuidField<
   {
     unique: false;
     allowNull: false;
+    allowBlank: true;
     dbIndex: false;
     underscored: true;
     autoGenerate: false;
@@ -69,6 +76,7 @@ export class UuidField<
     unique: boolean;
     auto: boolean;
     allowNull: boolean;
+    allowBlank: boolean;
     autoGenerate: boolean;
     dbIndex: boolean;
     isPrimaryKey: boolean;
@@ -82,6 +90,7 @@ export class UuidField<
   } = {
     unique: false;
     allowNull: false;
+    allowBlank: true;
     autoGenerate: false;
     dbIndex: false;
     underscored: true;
@@ -94,12 +103,15 @@ export class UuidField<
     engineInstance: DatabaseAdapter;
     customAttributes: any;
   }
-> extends Field<TType, TDefinitions> {
+> extends TextField<TType, TDefinitions> {
   protected $$type = '$PUuidField';
   protected static __typeName = 'UuidField';
+  protected __autoGenerate: TDefinitions['autoGenerate'] = false;
+
   protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
   protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
-  protected static __compareCallback: CompareCallback = (oldField, newField, defaultCompareCallback) => {
+
+  protected static __compareCallback = ((oldField, newField, defaultCompareCallback) => {
     const oldFieldAsUuidField = oldField as UuidField<any, any>;
     const newFieldAsUuidField = newField as UuidField<any, any>;
     const isAllowBlankEqual = oldFieldAsUuidField['__autoGenerate'] === newFieldAsUuidField['__autoGenerate'];
@@ -107,16 +119,24 @@ export class UuidField<
 
     if (!isAllowBlankEqual) changedAttributes.push('autoGenerate');
     return [isAllowBlankEqual && isEqual, changedAttributes];
-  };
-  protected static __optionsCallback: OptionsCallback = (oldField, newField, defaultOptionsCallback) => {
+  }) satisfies CompareCallback;
+
+  protected static __optionsCallback = ((setFieldValue, oldField, defaultOptionsCallback) => {
     const oldFieldAsUuidField = oldField as UuidField<any, any>;
-    const newFieldAsUuidField = newField as UuidField<any, any>;
 
-    defaultOptionsCallback(oldFieldAsUuidField, newFieldAsUuidField, defaultOptionsCallback);
-    newFieldAsUuidField['__autoGenerate'] = oldFieldAsUuidField['__autoGenerate'];
-  };
+    setFieldValue('__autoGenerate', 'autoGenerate', oldFieldAsUuidField['__autoGenerate']);
+    setFieldValue('__allowBlank', 'allowBlank', oldFieldAsUuidField['__allowBlank']);
+    defaultOptionsCallback(setFieldValue, oldFieldAsUuidField, defaultOptionsCallback);
+  }) satisfies OptionsCallback;
 
-  protected __autoGenerate: TDefinitions['autoGenerate'] = false;
+  protected static __getArgumentsCallback = ((field, defaultCallback) => {
+    const fieldAsDateField = field as UuidField<any, any>;
+    const autoGenerate = fieldAsDateField['__autoGenerate'] as boolean;
+    return {
+      ...defaultCallback(field, defaultCallback),
+      autoGenerate
+    };
+  }) satisfies GetArgumentsCallback;
 
   /**
    * Supposed to be used by library maintainers.
@@ -402,6 +422,44 @@ export class UuidField<
     return super.allowNull(isNull) as unknown as any;
   }
 
+  allowBlank<TBlank extends boolean = true>(
+    isBlank?: TBlank
+  ): UuidField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      allowBlank: TBlank extends false ? false : true;
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    }
+  > {
+    return super.allowBlank(isBlank) as unknown as any;
+  }
+
   autoGenerate<TIsAutoGenerate extends boolean = true>(
     isAutoGenerate?: TIsAutoGenerate
   ): UuidField<
@@ -450,7 +508,7 @@ export class UuidField<
    * This method is used to create an index on the database for this field.
    */
   dbIndex<TDbIndex extends boolean = true>(
-    isDbIndex: TDbIndex
+    isDbIndex?: TDbIndex
   ): UuidField<
     TType,
     {
@@ -700,6 +758,7 @@ export class UuidField<
       hasDefaultValue: boolean;
       defaultValue: any;
       typeName: string;
+      allowBlank: boolean;
       engineInstance: DatabaseAdapter;
       autoGenerate: boolean;
     } & Record<string, any>
@@ -728,6 +787,7 @@ export class UuidField<
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
             autoGenerate: TDefinitions['autoGenerate'];
+            allowBlank: TDefinitions['allowBlank'];
           }
         >;
       }
@@ -748,6 +808,7 @@ export class UuidField<
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
             autoGenerate: TDefinitions['autoGenerate'];
+            allowBlank: TDefinitions['allowBlank'];
           }
         >;
       } {
@@ -763,6 +824,7 @@ export class UuidField<
     {
       unique: false;
       allowNull: false;
+      allowBlank: true;
       dbIndex: false;
       underscored: true;
       autoGenerate: false;

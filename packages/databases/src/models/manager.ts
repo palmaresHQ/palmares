@@ -1,32 +1,19 @@
 import { getSettings, initializeDomains } from '@palmares/core';
 
 import { ManagerEngineInstanceNotFoundError } from './exceptions';
-import { GetQuerySet, SetQuerySet } from './queryset';
+import { GetQuerySet, RemoveQuerySet, SetQuerySet } from './queryset';
 import { Databases } from '../databases';
 import { getQuery } from '../queries/get';
 import { removeQuery } from '../queries/remove';
 import { setQuery } from '../queries/set';
 
-import type { Model, model } from './model';
-import type { QuerySet, RemoveQuerySet } from './queryset';
-import type {
-  FieldsOFModelType,
-  FieldsOfModelOptionsType,
-  Includes,
-  IncludesInstances,
-  IncludesValidated,
-  ManagerEngineInstancesType,
-  ManagerInstancesType,
-  ModelFieldsType,
-  ModelFieldsWithIncludes,
-  ModelOptionsType,
-  ModelType,
-  OrderingOfModelsType
-} from './types';
+import type { Model, ModelType } from './model';
+import type { QuerySet } from './queryset';
+import type { ManagerEngineInstancesType, ManagerInstancesType } from './types';
 import type { DatabaseAdapter } from '../engine';
 import type { DatabaseDomainInterface } from '../interfaces';
 import type { DatabaseSettingsType } from '../types';
-import type { Narrow, SettingsType2 } from '@palmares/core';
+import type { SettingsType2 } from '@palmares/core';
 
 /**
  * Managers define how you make queries on the database. Instead of making queries everywhere in your application
@@ -189,47 +176,32 @@ export class Manager<
     this.__engineInstances[engineName] = instance;
   }
 
-  protected async __getIncludeInstancesRecursively(
-    engineName: string,
-    includes: Includes,
-    modelInstancesByModelName: { [modelName: string]: any } = {},
-    includesInstances: IncludesInstances[] = []
-  ) {
-    const doesIncludesExists = Array.isArray(includes);
-    if (doesIncludesExists) {
-      const includesAsArray = includes as readonly {
-        model: ReturnType<typeof model>;
-        includes?: Includes;
-      }[];
-      const promises: Promise<void>[] = includesAsArray.map(
-        async ({ model: initializedModel, includes: includesOfModel }) => {
-          const modelName = initializedModel.name;
-          const isModelAlreadyGot = modelInstancesByModelName[modelName] !== undefined;
-
-          const modelInstance = isModelAlreadyGot
-            ? modelInstancesByModelName[modelName]
-            : await initializedModel.default.getInstance(engineName);
-
-          if (isModelAlreadyGot === false) modelInstancesByModelName[modelName] = modelInstance;
-
-          const includeInstanceForModel: IncludesInstances = {
-            model: modelInstance
-          };
-          includesInstances.push(includeInstanceForModel);
-          if (includesOfModel)
-            await this.__getIncludeInstancesRecursively(
-              engineName,
-              includesOfModel,
-              modelInstancesByModelName,
-              includeInstanceForModel.includes || []
-            );
-        }
-      );
-      await Promise.all(promises);
-    }
-    return includesInstances;
-  }
-
+  /**
+   * A simple get method for retrieving the data of a model. The result will ALWAYS be an array.
+   *
+   * To query you must pass a callback that receives and returns a QuerySet instance. A QuerySet
+   * is an object that contains all of the parameters that you can use to query the database.
+   *
+   * IMPORTANT: `It's not a **REAL** query builder, because there is no way to guarantee where
+   * the data is coming from. It's just a simple and convenient way to make queries across different engines.`
+   *
+   * @example
+   * ```ts
+   * const users = await User.default.get((qs) => qs.fields(['id', 'name']).where({ name: 'John' }));
+   *
+   * // Or you can use like
+   *
+   *
+   * const qs = QuerySet<typeof User>.new('get').fields(['id', 'name']).where({ name: 'John' });
+   *
+   * const users = await User.default.get(() => qs);
+   * ```
+   *
+   * @param callback - A callback that receives a QuerySet instance and returns a QuerySet instance.
+   * @param args - Arguments that can be passed to the query.
+   *
+   * @return - An array of instances retrieved by this query.
+   */
   async get<
     TQueryBuilder extends (
       queryBuilder: GetQuerySet<'get', TModel>
@@ -257,7 +229,7 @@ export class Manager<
     ) as string;
 
     const modelInstance = this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName) as Model;
-    const modelConstructor = modelInstance.constructor as ModelType;
+    const modelConstructor = modelInstance.constructor as ModelType<any, any>;
     const allFieldsOfModel = Object.keys((modelConstructor as any)._fields(modelInstance));
     const data = callback(new GetQuerySet('get'))['__getQueryFormatted']();
 
@@ -308,40 +280,26 @@ export class Manager<
     engineInstanceName = args?.engineName || this.__defaultEngineInstanceName;
     const data = callback(new SetQuerySet('set'))['__getQueryFormatted']();
 
-    const dataAsAnArray = Array.isArray(args?.engineName)
-      ? data
-      : ([data] as ModelFieldsWithIncludes<
-          TModel,
-          TIncludes,
-          FieldsOFModelType<TModel>,
-          true,
-          false,
-          TSearch extends undefined ? false : true,
-          false
-        >[]);
+    const dataAsAnArray = Array.isArray(data?.data) ? data.data : ([data.data] as any);
     return setQuery(
       dataAsAnArray,
       {
         isToPreventEvents,
         useTransaction: args?.useTransaction,
-        search: args?.search
+        search: data?.search
       },
       {
         model: this.getModel(engineInstanceName) as unknown as TModel,
         engine: engineInstance,
         transaction: args?.transaction,
-        includes: (args?.includes || []) as TIncludes
+        includes: data?.includes || []
       }
-    );
-    return {} as any;
+    ) as any;
   }
 
   async remove<
     TQueryBuilder extends (
-      queryBuilder: RemoveQuerySet<'remove', TModel> & {
-        update: never;
-        create: never;
-      }
+      queryBuilder: RemoveQuerySet<'remove', TModel>
     ) =>
       | RemoveQuerySet<'remove', TModel, any, any, any, any, any, any, any>
       | QuerySet<'remove', TModel, any, any, any, any, any, true, any>
@@ -350,6 +308,7 @@ export class Manager<
   >(
     callback: TQueryBuilder,
     args?: {
+      engineName?: string;
       usePalmaresTransaction?: boolean;
       transaction?: any;
       useTransaction?: boolean;
@@ -364,244 +323,33 @@ export class Manager<
       ? TResult[]
       : never
   > {
-    return {} as any;
-  }
-
-  /**
-   * A simple get method for retrieving the data of a model. It will ALWAYS be an array, it's
-   * the programmers responsibility
-   * to filter it accordingly if he want to retrieve an instance.
-   *
-   * @param search - All of the parameters of a model that can be optional for querying.
-   * @param engineName - The name of the engine to use defined in the DATABASES object. By default we use the
-   * `default` one.
-   *
-   * @return - An array of instances retrieved by this query.
-   * /
-  async get<
-    TIncludes extends Includes<{
-      fields?: readonly string[];
-      ordering?: readonly (string | `-${string}`)[];
-      limit?: number;
-      offset?: number | string;
-    }>,
-    TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>
-  >(
-    args?: {
-      /**
-       * Includes is used for making relations. Because everything is inferred and you define your relationName
-       * directly on the ForeignKeyField
-       * /
-      includes?: Narrow<IncludesValidated<TModel, TIncludes>>;
-      fields?: Narrow<TFields>;
-      search?:
-        | ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true>
-        | ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true>[]
-        | undefined;
-      ordering?: OrderingOfModelsType<
-        FieldsOfModelOptionsType<TModel> extends string ? FieldsOfModelOptionsType<TModel> : string
-      >;
-      limit?: number;
-      offset?: string | number;
-    },
-    engineName?: string
-  ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]> {
-    const isValidEngineName = typeof engineName === 'string' && engineName !== '';
-    const engineInstanceName = isValidEngineName ? engineName : this.__defaultEngineInstanceName;
+    const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
+    const isValidEngineName = typeof args?.engineName === 'string' && args.engineName !== '';
+    let engineInstanceName = isValidEngineName ? args.engineName : this.__defaultEngineInstanceName;
     // Promise.all here will not work, we need to do this sequentially.
     const engineInstance = await this.getEngineInstance(engineInstanceName);
+    engineInstanceName = args?.engineName || this.__defaultEngineInstanceName;
 
     const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName = isValidEngineName
-      ? engineName
+      ? args.engineName
       : this.__defaultEngineInstanceName;
+    const data = callback(new RemoveQuerySet('remove'))['__getQueryFormatted']();
 
-    const modelInstance = this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName) as Model;
-    const modelConstructor = modelInstance.constructor as ModelType;
-    const allFieldsOfModel = Object.keys((modelConstructor as any)._fields(modelInstance));
-    return getQuery(
+    return removeQuery(
       {
-        fields: (args?.fields || allFieldsOfModel) as unknown as TFields,
-        search: (args?.search || {}) as ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true>,
-        ordering: args?.ordering || (modelInstance.options?.ordering as any),
-        limit: args?.limit,
-        offset: args?.offset
-      },
-      {
-        model: this.__models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName],
-        engine: engineInstance,
-        includes: (args?.includes || []) as TIncludes
-      }
-    ) as Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]>;
-  }*/
-
-  /**
-   * A Simple `set` method for creating or updating a model. All of the types here are conditional.
-   * If you define a `search` argument as an object we will automatically return the data with all of the
-   * values. Otherwise we return just a boolean.
-   *
-   * Because stuff might fail we recommend a pipeline of operations something like this:
-   * ```
-   * const user = await User.default.set({firstName: 'John', lastName: 'Doe'});
-   *
-   * // We add the if here to check if the instance actually exists. So we can proceed with the operation.
-   * if (user) await Post.default.set({ userId: user.id, title: 'New Post' });
-   * ```
-   *
-   * @param data - The data is conditional, if you pass the `search` argument this means you are updating,
-   * then all parameters will be optional, otherwise some of the parameters will be obligatory because you are
-   * creating an instance.
-   * @param search - All of the parameters of a model that can be optional for querying.
-   * @param engineName - The name of the engine to use defined in the DATABASES object. By default we use the
-   * `default` one.
-   *
-   * @return - Return the created instance or undefined if something went wrong, or boolean if it's an update.
-   * /
-  async set<
-    TIncludes extends Includes = undefined,
-    TSearch extends
-      | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
-      | undefined = undefined
-  >(
-    data:
-      | ModelFieldsWithIncludes<
-          TModel,
-          TIncludes,
-          FieldsOFModelType<TModel>,
-          true,
-          false,
-          TSearch extends undefined ? false : true,
-          false
-        >[]
-      | ModelFieldsWithIncludes<
-          TModel,
-          TIncludes,
-          FieldsOFModelType<TModel>,
-          true,
-          false,
-          TSearch extends undefined ? false : true,
-          false
-        >,
-    args?: {
-      isToPreventEvents?: boolean;
-      transaction?: any;
-      /**
-       * This is enabled by default if you are inserting more than one element or if you use includes, it can make
-       * your code slower, but it will guarantee that the data is consistent.
-       * /
-      useTransaction?: boolean;
-      usePalmaresTransaction?: boolean;
-      includes?: Narrow<IncludesValidated<TModel, TIncludes, true>>;
-      search?: TSearch;
-    },
-    engineName?: string
-  ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]> {
-    const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
-    let engineInstanceName = engineName || this.__defaultEngineInstanceName;
-    // Promise.all here will not work, we need to do this sequentially.
-    const engineInstance = await this.getEngineInstance(engineName);
-    engineInstanceName = engineName || this.__defaultEngineInstanceName;
-    const dataAsAnArray = Array.isArray(data)
-      ? data
-      : ([data] as ModelFieldsWithIncludes<
-          TModel,
-          TIncludes,
-          FieldsOFModelType<TModel>,
-          true,
-          false,
-          TSearch extends undefined ? false : true,
-          false
-        >[]);
-    return setQuery(
-      dataAsAnArray,
-      {
-        isToPreventEvents,
-        useTransaction: args?.useTransaction,
-        search: args?.search
-      },
-      {
-        model: this.getModel(engineInstanceName) as unknown as TModel,
-        engine: engineInstance,
-        transaction: args?.transaction,
-        includes: (args?.includes || []) as TIncludes
-      }
-    );
-  }*/
-
-  /**
-   * Simple query to remove one or more instances from the database. Be aware that not defining a search
-   * might mean removing all of the instances of your database.
-   *
-   * @param search - All of the parameters of a model that can be used for querying.
-   * @param engineName - The name of the engine to use defined in the DATABASES object. By default we use the
-   * `default` one.
-   *
-   * @return - Returns true if everything went fine and false otherwise.
-   * /
-  async remove<
-    TIncludes extends Includes<{
-      isToPreventRemove?: true;
-    }> = undefined
-  >(
-    args?: {
-      usePalmaresTransaction?: boolean;
-      useTransaction?: boolean;
-      isToPreventEvents?: boolean;
-      includes?: Narrow<
-        IncludesValidated<
-          TModel,
-          TIncludes,
-          false,
-          {
-            shouldRemove?: boolean;
-          }
-        >
-      >;
-      search?:
-        | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
-        | undefined;
-      shouldRemove?: boolean;
-    },
-    engineName?: string
-  ): Promise<ModelFieldsWithIncludes<TModel, TIncludes>[]> {
-    const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
-    const shouldRemove = typeof args?.shouldRemove === 'boolean' ? args.shouldRemove : true;
-    const isValidEngineName = typeof engineName === 'string' && engineName !== '';
-    let engineInstanceName = isValidEngineName ? engineName : this.__defaultEngineInstanceName;
-    // Promise.all here will not work, we need to do this sequentially.
-    const engineInstance = await this.getEngineInstance(engineInstanceName);
-    engineInstanceName = engineName || this.__defaultEngineInstanceName;
-
-    const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName = isValidEngineName
-      ? engineName
-      : this.__defaultEngineInstanceName;
-
-    return removeQuery<
-      TModel,
-      TIncludes,
-      ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
-    >(
-      {
-        search: (args?.search || {}) as ModelFieldsWithIncludes<
-          TModel,
-          TIncludes,
-          FieldsOFModelType<TModel>,
-          false,
-          false,
-          true,
-          true
-        >,
+        search: data?.search || {},
         isToPreventEvents,
         useTransaction: args?.useTransaction,
         usePalmaresTransaction: args?.usePalmaresTransaction,
-        shouldRemove: shouldRemove
+        shouldRemove: true
       },
       {
-        model: this.__models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName],
+        model: this.__models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName as string],
         engine: engineInstance,
-        includes: (args?.includes || []) as TIncludes
+        includes: data?.includes || []
       }
-    ) as Promise<ModelFieldsWithIncludes<TModel, TIncludes>[]>;
-  }*/
+    ) as any;
+  }
 }
 
 export class DefaultManager<

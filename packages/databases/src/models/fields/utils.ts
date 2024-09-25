@@ -71,29 +71,41 @@ export function defaultCompareCallback(
 }
 
 export type OptionsCallback = (
+  /**
+   * This will set the value of an old field to a new field.
+   *
+   * By default we let the Author/Maintainer of the package override the values of the old field if they
+   * want to. Because of that. We have to pass the hiddenFieldName and getArgumentsFieldName to the function.
+   *
+   * @param hiddenFieldName - The hidden field name that is the argument that lives inside of your class, it's
+   * hidden from the end user and from the author/maintainer of the package. Just you have access to it.
+   * @param getArgumentsFieldName - On `getArgumentsCallback` we show some data (originally private) to the Author
+   * /Maintainer. The Author should never have access to our internal implementation. This string maps each key
+   * from that object. If set to undefined, the Author cannot override this value.
+   * @param value - The value that you want to set to the field.
+   */
+  setFieldValue: (hiddenFieldName: string, getArgumentsFieldName: string | undefined, value: any) => void,
   oldField: Field<any, any>,
-  newField: Field<any, any>,
   defaultOptionsCallback: OptionsCallback
 ) => void;
 
 // eslint-disable-next-line ts/require-await
 export function defaultOptionsCallback(
-  oldField: Parameters<OptionsCallback>[0],
-  newField: Parameters<OptionsCallback>[1],
+  setFieldValue: Parameters<OptionsCallback>[0],
+  oldField: Parameters<OptionsCallback>[1],
   _: Parameters<OptionsCallback>[2]
 ) {
-  newField['__allowNull'] = oldField['__allowNull'];
-  newField['__customAttributes'] = oldField['__customAttributes'];
-  newField['__defaultValue'] = oldField['__defaultValue'];
-  newField['__dbIndex'] = oldField['__dbIndex'];
-  newField['__databaseName'] = oldField['__databaseName'];
-  newField['__primaryKey'] = oldField['__primaryKey'];
-  newField['__underscored'] = oldField['__underscored'];
-  newField['__unique'] = oldField['__unique'];
-  newField['__isAuto'] = oldField['__isAuto'];
-  newField['__fieldName'] = oldField['__fieldName'];
-  newField['__model'] = oldField['__model'];
-  newField['__customAttributes'] = oldField['__customAttributes'];
+  setFieldValue('__allowNull', 'allowNull', oldField['__allowNull']);
+  setFieldValue('__customAttributes', 'customAttributes', oldField['__customAttributes']);
+  setFieldValue('__defaultValue', 'defaultValue', oldField['__defaultValue']);
+  setFieldValue('__dbIndex', 'dbIndex', oldField['__dbIndex']);
+  setFieldValue('__databaseName', 'databaseName', oldField['__databaseName']);
+  setFieldValue('__primaryKey', 'primaryKey', oldField['__primaryKey']);
+  setFieldValue('__underscored', 'underscored', oldField['__underscored']);
+  setFieldValue('__unique', 'unique', oldField['__unique']);
+  setFieldValue('__isAuto', 'isAuto', oldField['__isAuto']);
+  setFieldValue('__fieldName', 'fieldName', oldField['__fieldName']);
+  setFieldValue('__model', undefined, oldField['__model']);
 }
 
 export type NewInstanceArgumentsCallback = (
@@ -103,8 +115,8 @@ export type NewInstanceArgumentsCallback = (
 
 // eslint-disable-next-line ts/require-await
 export function defaultNewInstanceArgumentsCallback(
-  _: Parameters<NewInstanceArgumentsCallback>[0],
-  __: Parameters<NewInstanceArgumentsCallback>[1]
+  _field: Parameters<NewInstanceArgumentsCallback>[0],
+  _defaultNewInstanceArgumentsCallback: Parameters<NewInstanceArgumentsCallback>[1]
 ): any[] {
   return [];
 }
@@ -114,9 +126,10 @@ export function getRelatedToAsString(field: ForeignKeyField<any, any>) {
   const relatedToAsString = field['__relatedToAsString'];
 
   if (typeof relatedToAsString !== 'string') {
-    if (typeof relatedTo === 'function') field['__relatedToAsString'] = relatedTo().getName();
+    if (typeof relatedTo === 'function' && relatedTo['$$type'] !== '$PModel')
+      field['__relatedToAsString'] = relatedTo()['__getName']();
     else if (typeof relatedTo === 'string') field['__relatedToAsString'] = relatedTo;
-    else field['__relatedToAsString'] = relatedTo.getName();
+    else field['__relatedToAsString'] = relatedTo['__getName']();
   }
 }
 
@@ -130,7 +143,13 @@ export function defaultGetArgumentsCallback(
   field: Parameters<GetArgumentsCallback>[0],
   _: Parameters<GetArgumentsCallback>[1]
 ) {
+  const fieldConstructor = field.constructor as typeof Field<any, any>;
   return {
+    $field: field,
+    $model: field['__model'],
+    typeName: fieldConstructor['__typeName'],
+    fieldName: field['__fieldName'],
+    isAuto: field['__isAuto'] as boolean,
     primaryKey: field['__primaryKey'] as boolean,
     defaultValue: field['__defaultValue'],
     allowNull: field['__allowNull'] as boolean,

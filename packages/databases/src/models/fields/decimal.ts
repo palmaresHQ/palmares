@@ -1,7 +1,13 @@
 import { Field } from './field';
 
 import type { CustomImportsForFieldType } from './types';
-import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
+import type {
+  CompareCallback,
+  GetArgumentsCallback,
+  NewInstanceArgumentsCallback,
+  OptionsCallback,
+  ToStringCallback
+} from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
 
@@ -111,7 +117,7 @@ export class DecimalField<
   protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
   protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
 
-  protected static __compareCallback: CompareCallback = (oldField, newField, defaultCompareCallback) => {
+  protected static __compareCallback = ((oldField, newField, defaultCompareCallback) => {
     const oldFieldAsTextField = oldField as DecimalField<any, any>;
     const newFieldAsTextField = newField as DecimalField<any, any>;
     const isMaxDigitsEqual = oldFieldAsTextField['__maxDigits'] === newFieldAsTextField['__maxDigits'];
@@ -123,16 +129,37 @@ export class DecimalField<
     if (!isDecimalPlacesEqual) changedAttributes.push('decimalPlaces');
 
     return [isMaxDigitsEqual && isDecimalPlacesEqual && isEqual, changedAttributes];
-  };
+  }) satisfies CompareCallback;
 
-  protected static __optionsCallback: OptionsCallback = (oldField, newField, defaultOptionsCallback) => {
-    const oldFieldAsTextField = oldField as DecimalField<any, any>;
-    const newFieldAsTextField = newField as DecimalField<any, any>;
+  /**
+   * This is used internally by the engine for cloning the field to a new instance.
+   * By doing that you are able to get the constructor options of the field when using Field.new(<instanceArguments>)
+   */
+  protected static __newInstanceCallback = ((oldField, defaultNewInstanceArgumentsCallback) => {
+    const defaultData = defaultNewInstanceArgumentsCallback(oldField, defaultNewInstanceArgumentsCallback);
+    const position0 = defaultData[0] || {};
+    const otherPositions = defaultData.slice(1);
+    const asDecimalField = oldField as DecimalField<any, any>;
+    return [
+      {
+        ...position0,
+        maxDigits: asDecimalField['__maxDigits'],
+        decimalPlaces: asDecimalField['__decimalPlaces']
+      },
+      ...otherPositions
+    ];
+  }) satisfies NewInstanceArgumentsCallback;
 
-    defaultOptionsCallback(oldFieldAsTextField, newFieldAsTextField, defaultOptionsCallback);
-    newFieldAsTextField['__maxDigits'] = oldFieldAsTextField['__maxDigits'];
-    newFieldAsTextField['__decimalPlaces'] = oldFieldAsTextField['__decimalPlaces'];
-  };
+  protected static __getArgumentsCallback = ((field, defaultCallback) => {
+    const fieldAsDateField = field as DecimalField<any, any>;
+    const maxDigits = fieldAsDateField['__maxDigits'];
+    const decimalPlaces = fieldAsDateField['__decimalPlaces'];
+    return {
+      ...defaultCallback(field, defaultCallback),
+      decimalPlaces,
+      maxDigits
+    };
+  }) satisfies GetArgumentsCallback;
 
   constructor(params: { maxDigits: number; decimalPlaces: number }) {
     super(params);
@@ -427,7 +454,7 @@ export class DecimalField<
    * This method is used to create an index on the database for this field.
    */
   dbIndex<TDbIndex extends boolean = true>(
-    isDbIndex: TDbIndex
+    isDbIndex?: TDbIndex
   ): DecimalField<
     TType,
     {

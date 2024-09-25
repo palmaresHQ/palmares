@@ -1,7 +1,13 @@
 import { Field } from './field';
 
 import type { CustomImportsForFieldType } from './types';
-import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
+import type {
+  CompareCallback,
+  GetArgumentsCallback,
+  NewInstanceArgumentsCallback,
+  OptionsCallback,
+  ToStringCallback
+} from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
 
@@ -99,6 +105,7 @@ export class TextField<
   protected static __typeName = 'TextField';
   protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
   protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+
   protected static __compareCallback: CompareCallback = (oldField, newField, defaultCompareCallback) => {
     const oldFieldAsTextField = oldField as TextField<any, any>;
     const newFieldAsTextField = newField as TextField<any, any>;
@@ -108,13 +115,22 @@ export class TextField<
     if (!isAllowBlankEqual) changedAttributes.push('allowBlank');
     return [isAllowBlankEqual && isEqual, changedAttributes];
   };
-  protected static __optionsCallback: OptionsCallback = (oldField, newField, defaultOptionsCallback) => {
-    const oldFieldAsTextField = oldField as TextField<any, any>;
-    const newFieldAsTextField = newField as TextField<any, any>;
 
-    defaultOptionsCallback(oldFieldAsTextField, newFieldAsTextField, defaultOptionsCallback);
-    newFieldAsTextField['__allowBlank'] = oldFieldAsTextField['__allowBlank'];
+  protected static __optionsCallback: OptionsCallback = (setFieldValue, oldField, defaultOptionsCallback) => {
+    const oldFieldAsTextField = oldField as TextField<any, any>;
+    defaultOptionsCallback(setFieldValue, oldField, defaultOptionsCallback);
+    setFieldValue('__allowBlank', 'allowBlank', oldFieldAsTextField['__allowBlank']);
   };
+
+  protected static __getArgumentsCallback = ((field, defaultGetArgumentsCallback) => {
+    const fieldAsTextField = field as TextField<any, any>;
+    const defaultData = defaultGetArgumentsCallback(field, defaultGetArgumentsCallback);
+    return {
+      ...defaultData,
+      allowBlank: fieldAsTextField['__allowBlank'] as boolean
+    };
+  }) satisfies GetArgumentsCallback;
+
   protected __allowBlank: TDefinitions['allowBlank'] = false;
 
   /**
@@ -446,7 +462,7 @@ export class TextField<
    * This method is used to create an index on the database for this field.
    */
   dbIndex<TDbIndex extends boolean = true>(
-    isDbIndex: TDbIndex
+    isDbIndex?: TDbIndex
   ): TextField<
     TType,
     {

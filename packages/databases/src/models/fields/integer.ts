@@ -427,7 +427,7 @@ export class IntegerField<
    * This method is used to create an index on the database for this field.
    */
   dbIndex<TDbIndex extends boolean = true>(
-    isDbIndex: TDbIndex
+    isDbIndex?: TDbIndex
   ): IntegerField<
     TType,
     {

@@ -70,13 +70,13 @@ export class Field<
     TDefinitions['engineInstance']['fields']['autoFieldParser']['translate']
   >[0]['customAttributes'];
   // eslint-disable-next-line ts/require-await
-  protected static __toStringCallback: ToStringCallback = defaultToStringCallback;
+  protected static __toStringCallback = defaultToStringCallback satisfies ToStringCallback;
   // eslint-disable-next-line ts/require-await
-  protected static __compareCallback: CompareCallback = defaultCompareCallback;
-  protected static __optionsCallback: OptionsCallback = defaultOptionsCallback;
-  protected static __newInstanceCallback: NewInstanceArgumentsCallback = defaultNewInstanceArgumentsCallback;
+  protected static __compareCallback = defaultCompareCallback satisfies CompareCallback;
+  protected static __optionsCallback = defaultOptionsCallback satisfies OptionsCallback;
+  protected static __newInstanceCallback = defaultNewInstanceArgumentsCallback satisfies NewInstanceArgumentsCallback;
   protected static __customImports: CustomImportsForFieldType[] = [];
-  protected static __getArgumentsCallback: GetArgumentsCallback = defaultGetArgumentsCallback;
+  protected static __getArgumentsCallback = defaultGetArgumentsCallback satisfies GetArgumentsCallback;
   protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
   protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
   protected __model?: ModelType<any, any> & typeof Model & typeof BaseModel;
@@ -379,7 +379,7 @@ export class Field<
    * This method is used to create an index on the database for this field.
    */
   dbIndex<TDbIndex extends boolean = true>(
-    dbIndex: TDbIndex
+    dbIndex?: TDbIndex
   ): Field<
     TType,
     {
@@ -825,19 +825,37 @@ export class Field<
    *
    * @returns - Returns the cloned field.
    */
-  protected __clone(oldField: Field<any, any>): Field<any, any> {
+  protected __clone(
+    oldField: Field<any, any>,
+    args?: {
+      newInstanceOverrideCallback?: (args: any[]) => any[];
+      optionsOverrideCallback?: Partial<Record<keyof ReturnType<Field['__getArguments']>, (oldValue: any) => any>>;
+    }
+  ): Field<any, any> {
     const argumentsToPass = (oldField.constructor as typeof Field<any, any>).__newInstanceCallback(
       oldField,
       defaultNewInstanceArgumentsCallback
     );
+    const overridenArguments = args?.newInstanceOverrideCallback?.(argumentsToPass) || argumentsToPass;
     const newInstanceOfField = (oldField.constructor as typeof Field).new(
-      ...(Array.isArray(argumentsToPass) ? argumentsToPass : [])
+      ...(Array.isArray(overridenArguments) ? overridenArguments : [])
     );
+
     (oldField.constructor as typeof Field<any, any>).__optionsCallback(
+      (hiddenAttributeName, getAttributesAttributeName, value) => {
+        let actualValueToSet = value;
+        if (
+          getAttributesAttributeName &&
+          (args?.optionsOverrideCallback as any)?.[getAttributesAttributeName] !== undefined
+        )
+          actualValueToSet = (args?.optionsOverrideCallback as any)[getAttributesAttributeName](value);
+
+        (newInstanceOfField as any)[hiddenAttributeName] = actualValueToSet;
+      },
       oldField,
-      newInstanceOfField,
       defaultOptionsCallback
     );
+
     return newInstanceOfField;
   }
 

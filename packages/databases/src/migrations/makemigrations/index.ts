@@ -305,7 +305,7 @@ export class MakeMigrations {
           originalField['__model']?.['__domainPath'] as string,
           originalField['__model']?.['__originalName']() as string,
           {
-            fieldDefinition: originalField['__getArguments'](),
+            fieldDefinition: originalField['__getArguments']() as any,
             fieldNameAfter: renamedTo,
             fieldNameBefore: fieldOrModelName
           }

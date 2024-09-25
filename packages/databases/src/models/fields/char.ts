@@ -88,31 +88,36 @@ export class CharField<
 
   protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
   protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
-  protected static __getArgumentsCallback: GetArgumentsCallback = (field, defaultGetArgumentsCallback) => {
+
+  protected static __getArgumentsCallback = ((field, defaultGetArgumentsCallback) => {
     const fieldAsTextField = field as CharField<any, any>;
     const defaultData = defaultGetArgumentsCallback(field, defaultGetArgumentsCallback);
     return {
       ...defaultData,
-      defaultValue: fieldAsTextField['__defaultValue'] as string | undefined,
+      allowBlank: fieldAsTextField['__allowBlank'] as boolean,
       maxLength: fieldAsTextField['__maxLength'] as number
     };
-  };
+  }) satisfies GetArgumentsCallback;
+
   protected static __compareCallback: CompareCallback = (oldField, newField, defaultCompareCallback) => {
     const oldFieldAsTextField = oldField as CharField<any, any>;
     const newFieldAsTextField = newField as CharField<any, any>;
     const isAllowBlankEqual = oldFieldAsTextField['__allowBlank'] === newFieldAsTextField['__allowBlank'];
+    const isMaxLengthEqual = oldFieldAsTextField['__maxLength'] === newFieldAsTextField['__maxLength'];
+
     const [isEqual, changedAttributes] = defaultCompareCallback(oldField, newField, defaultCompareCallback);
 
     if (!isAllowBlankEqual) changedAttributes.push('allowBlank');
-    return [isAllowBlankEqual && isEqual, changedAttributes];
-  };
-  protected static __optionsCallback: OptionsCallback = (oldField, newField, defaultOptionsCallback) => {
-    const oldFieldAsTextField = oldField as CharField<any, any>;
-    const newFieldAsTextField = newField as CharField<any, any>;
+    if (!isMaxLengthEqual) changedAttributes.push('maxLength');
 
-    defaultOptionsCallback(oldFieldAsTextField, newFieldAsTextField, defaultOptionsCallback);
-    newFieldAsTextField['__allowBlank'] = oldFieldAsTextField['__allowBlank'];
+    return [isAllowBlankEqual && isMaxLengthEqual && isEqual, changedAttributes];
   };
+  protected static __optionsCallback: OptionsCallback = (setFieldValue, oldField, defaultOptionsCallback) => {
+    const oldFieldAsTextField = oldField as CharField<any, any>;
+    defaultOptionsCallback(setFieldValue, oldField, defaultOptionsCallback);
+    setFieldValue('__allowBlank', 'allowBlank', oldFieldAsTextField['__allowBlank']);
+  };
+
   protected static __newInstanceCallback: NewInstanceArgumentsCallback = (
     field,
     defaultNewInstanceArgumentsCallback
@@ -462,7 +467,7 @@ export class CharField<
    * This method is used to create an index on the database for this field.
    */
   dbIndex<TDbIndex extends boolean = true>(
-    isDbIndex: TDbIndex
+    isDbIndex?: TDbIndex
   ): CharField<
     TType,
     {

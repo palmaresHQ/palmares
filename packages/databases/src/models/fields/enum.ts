@@ -1,7 +1,13 @@
 import { Field } from './field';
 
 import type { CustomImportsForFieldType } from './types';
-import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
+import type {
+  CompareCallback,
+  GetArgumentsCallback,
+  NewInstanceArgumentsCallback,
+  OptionsCallback,
+  ToStringCallback
+} from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
 
@@ -100,7 +106,8 @@ export class EnumField<
 
   protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
   protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
-  protected static __compareCallback: CompareCallback = (oldField, newField, defaultCompareCallback) => {
+
+  protected static __compareCallback = ((oldField, newField, defaultCompareCallback) => {
     const oldFieldAsTextField = oldField as EnumField<any, any>;
     const newFieldAsTextField = newField as EnumField<any, any>;
     const newFieldChoices = Array.isArray(newFieldAsTextField['__choices']) ? newFieldAsTextField['__choices'] : [];
@@ -113,11 +120,9 @@ export class EnumField<
 
     if (!isChoicesEqual) changedAttributes.push('choices');
     return [isChoicesEqual && isEqual, changedAttributes];
-  };
-  protected static __newInstanceCallback: NewInstanceArgumentsCallback = (
-    field,
-    defaultNewInstanceArgumentsCallback
-  ) => {
+  }) satisfies CompareCallback;
+
+  protected static __newInstanceCallback = ((field, defaultNewInstanceArgumentsCallback) => {
     const fieldAsEnumField = field as EnumField<any, any>;
     const defaultData = defaultNewInstanceArgumentsCallback(field, defaultNewInstanceArgumentsCallback);
     const position0 = defaultData[0] || {};
@@ -125,11 +130,20 @@ export class EnumField<
     return [
       {
         ...position0,
-        choices: fieldAsEnumField['__choices']
+        choices: fieldAsEnumField['__choices'] as string[]
       },
       ...otherPositions
     ];
-  };
+  }) satisfies NewInstanceArgumentsCallback;
+
+  protected static __getArgumentsCallback = ((field, defaultCallback) => {
+    const fieldAsDateField = field as EnumField<any, any>;
+    const choices = fieldAsDateField['__choices'] as string[];
+    return {
+      ...defaultCallback(field, defaultCallback),
+      choices
+    };
+  }) satisfies GetArgumentsCallback;
 
   constructor(params: { choices: string[] }) {
     super(params);
@@ -424,7 +438,7 @@ export class EnumField<
    * This method is used to create an index on the database for this field.
    */
   dbIndex<TDbIndex extends boolean = true>(
-    isDbIndex: TDbIndex
+    isDbIndex?: TDbIndex
   ): EnumField<
     TType,
     {

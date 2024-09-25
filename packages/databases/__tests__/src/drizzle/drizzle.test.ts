@@ -8,18 +8,19 @@ import type JestTestAdapter from '@palmares/jest-tests';
 
 describe<JestTestAdapter>('drizzle models', ({ test }) => {
   test('its limiting the query', async ({ expect }) => {
-    await Company.default.set({ name: 'test', address: 'test' })
-    await Company.default.set({ name: 'test', address: 'test' })
+    await Company.default.set((qs) => qs.data({ id: undefined, name: 'test', address: 'test' }))
+    await Company.default.set((qs) => qs.data({ id: undefined, name: 'test', address: 'test' }))
 
-    const companies = await Company.default.get({
-      search: {
-        name: {
-          like: '%te%'
-        }
-      },
-      limit: 1,
-      ordering: ['-id']
-    });
+    const companies = await Company.default.get((qs) =>
+      qs
+        .where({
+          name: {
+            like: '%te%'??
+          }
+        })
+      .limit(1)
+      .orderBy(['-id'])
+  );
 
     expect(companies.length === 1).toBe(true);
   });
@@ -56,6 +57,8 @@ describe<JestTestAdapter>('drizzle models', ({ test }) => {
     }]});
 
     const user = await User.default.get({ search: { companyId: company[0].id as number }, limit: 1});
+    const user = await User.default.get((qs) => qs.where({ companyId: company[0].id as number }).limit(1));
+
     expect(company[0].usersOfCompany.length > 0).toBe(true);
     expect(user[0].companyId).toBe(company[0].id as number);
   })

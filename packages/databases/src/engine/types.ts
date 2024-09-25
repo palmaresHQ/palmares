@@ -28,6 +28,7 @@ export type EngineType = {
   fields: EngineFields;
 };
 
+type Test = AdapterFieldParserTranslateArgs<'date', any, AdapterFieldParser, any>;
 export type AdapterFieldParserTranslateArgs<
   TFieldType extends
     | 'field'
@@ -52,42 +53,42 @@ export type AdapterFieldParserTranslateArgs<
   /**The {@link Field} instance that you need to translate. */
   field: TFieldType extends 'field'
     ?
-        | Omit<(typeof Field)['__getArgumentsCallback'], 'customAttributes'>
-        | Omit<(typeof AutoField)['__getArgumentsCallback'], 'customAttributes'>
-        | Omit<(typeof BigAutoField)['__getArgumentsCallback'], 'customAttributes'>
-        | Omit<(typeof BigIntegerField)['__getArgumentsCallback'], 'customAttributes'>
-        | Omit<(typeof BooleanField)['__getArgumentsCallback'], 'customAttributes'>
-        | Omit<(typeof CharField)['__getArgumentsCallback'], 'customAttributes'>
-        | Omit<(typeof DateField)['__getArgumentsCallback'], 'customAttributes'>
-        | Omit<(typeof DecimalField)['__getArgumentsCallback'], 'customAttributes'>
-        | Omit<(typeof EnumField)['__getArgumentsCallback'], 'customAttributes'>
-        | Omit<(typeof ForeignKeyField)['__getArgumentsCallback'], 'customAttributes'>
-        | Omit<(typeof IntegerField)['__getArgumentsCallback'], 'customAttributes'>
-        | Omit<(typeof TextField)['__getArgumentsCallback'], 'customAttributes'>
-        | Omit<(typeof UuidField)['__getArgumentsCallback'], 'customAttributes'>
+        | Omit<ReturnType<(typeof Field)['__getArgumentsCallback']>, 'customAttributes'>
+        | Omit<ReturnType<(typeof AutoField)['__getArgumentsCallback']>, 'customAttributes'>
+        | Omit<ReturnType<(typeof BigAutoField)['__getArgumentsCallback']>, 'customAttributes'>
+        | Omit<ReturnType<(typeof BigIntegerField)['__getArgumentsCallback']>, 'customAttributes'>
+        | Omit<ReturnType<(typeof BooleanField)['__getArgumentsCallback']>, 'customAttributes'>
+        | Omit<ReturnType<(typeof CharField)['__getArgumentsCallback']>, 'customAttributes'>
+        | Omit<ReturnType<(typeof DateField)['__getArgumentsCallback']>, 'customAttributes'>
+        | Omit<ReturnType<(typeof DecimalField)['__getArgumentsCallback']>, 'customAttributes'>
+        | Omit<ReturnType<(typeof EnumField)['__getArgumentsCallback']>, 'customAttributes'>
+        | Omit<ReturnType<(typeof ForeignKeyField)['__getArgumentsCallback']>, 'customAttributes'>
+        | Omit<ReturnType<(typeof IntegerField)['__getArgumentsCallback']>, 'customAttributes'>
+        | Omit<ReturnType<(typeof TextField)['__getArgumentsCallback']>, 'customAttributes'>
+        | Omit<ReturnType<(typeof UuidField)['__getArgumentsCallback']>, 'customAttributes'>
     : TFieldType extends 'auto'
-      ? Omit<(typeof AutoField)['__getArgumentsCallback'], 'customAttributes'>
+      ? Omit<ReturnType<(typeof AutoField)['__getArgumentsCallback']>, 'customAttributes'>
       : TFieldType extends 'big-auto'
-        ? Omit<(typeof BigAutoField)['__getArgumentsCallback'], 'customAttributes'>
+        ? Omit<ReturnType<(typeof BigAutoField)['__getArgumentsCallback']>, 'customAttributes'>
         : TFieldType extends 'big-integer'
-          ? Omit<(typeof BigIntegerField)['__getArgumentsCallback'], 'customAttributes'>
+          ? Omit<ReturnType<(typeof BigIntegerField)['__getArgumentsCallback']>, 'customAttributes'>
           : TFieldType extends 'boolean'
-            ? Omit<(typeof BooleanField)['__getArgumentsCallback'], 'customAttributes'>
+            ? Omit<ReturnType<(typeof BooleanField)['__getArgumentsCallback']>, 'customAttributes'>
             : TFieldType extends 'char'
-              ? Omit<(typeof CharField)['__getArgumentsCallback'], 'customAttributes'>
+              ? Omit<ReturnType<(typeof CharField)['__getArgumentsCallback']>, 'customAttributes'>
               : TFieldType extends 'date'
-                ? Omit<(typeof DateField)['__getArgumentsCallback'], 'customAttributes'>
+                ? Omit<ReturnType<(typeof DateField)['__getArgumentsCallback']>, 'customAttributes'>
                 : TFieldType extends 'decimal'
-                  ? Omit<(typeof DecimalField)['__getArgumentsCallback'], 'customAttributes'>
+                  ? Omit<ReturnType<(typeof DecimalField)['__getArgumentsCallback']>, 'customAttributes'>
                   : TFieldType extends 'enum'
-                    ? Omit<(typeof EnumField)['__getArgumentsCallback'], 'customAttributes'>
+                    ? Omit<ReturnType<(typeof EnumField)['__getArgumentsCallback']>, 'customAttributes'>
                     : TFieldType extends 'foreign-key'
-                      ? Omit<(typeof ForeignKeyField)['__getArgumentsCallback'], 'customAttributes'>
+                      ? Omit<ReturnType<(typeof ForeignKeyField)['__getArgumentsCallback']>, 'customAttributes'>
                       : TFieldType extends 'integer'
-                        ? Omit<(typeof IntegerField)['__getArgumentsCallback'], 'customAttributes'>
+                        ? Omit<ReturnType<(typeof IntegerField)['__getArgumentsCallback']>, 'customAttributes'>
                         : TFieldType extends 'text'
-                          ? Omit<(typeof TextField)['__getArgumentsCallback'], 'customAttributes'>
-                          : Omit<(typeof UuidField)['__getArgumentsCallback'], 'customAttributes'>;
+                          ? Omit<ReturnType<(typeof TextField)['__getArgumentsCallback']>, 'customAttributes'>
+                          : Omit<ReturnType<(typeof UuidField)['__getArgumentsCallback']>, 'customAttributes'>;
   /** The custom attributes that you can pass to the field. */
   customAttributes: any;
   /** The field parser instance so we can call the `translate` method on other field types. */

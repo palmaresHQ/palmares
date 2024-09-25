@@ -1,24 +1,25 @@
 import { ForeignKeyFieldRequiredParamsMissingError } from './exceptions';
 import { Field } from './field';
-import {
-  type CompareCallback,
-  type NewInstanceArgumentsCallback,
-  type OptionsCallback,
-  type ToStringCallback
-} from './utils';
-import { BigAutoField, IntegerField, define } from '../..';
+import { getRelatedToAsString } from './utils';
+import { BigAutoField, IntegerField } from '../..';
 import { generateUUID } from '../../utils';
+import { type BaseModel, type Model, type ModelType, model } from '../model';
 
 import type {
-  ClassConstructor,
   CustomImportsForFieldType,
   ExtractFieldNameOptionsOfModel,
   ExtractTypeFromFieldOfAModel,
   ON_DELETE
 } from './types';
+import type {
+  CompareCallback,
+  GetArgumentsCallback,
+  NewInstanceArgumentsCallback,
+  OptionsCallback,
+  ToStringCallback
+} from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
-import type { BaseModel, Model, ModelType } from '../model';
 
 /**
  * This allows us to create a foreign key field on the database.
@@ -86,17 +87,6 @@ export function foreignKey<
   return ForeignKeyField.new(params);
 }
 
-const getRelatedToAsString = (field: ForeignKeyField<any, any>) => {
-  const relatedTo = field['__relatedTo'];
-  const relatedToAsString = field['__relatedToAsString'];
-
-  if (typeof relatedToAsString !== 'string') {
-    if (typeof relatedTo === 'function') field['__relatedToAsString'] = relatedTo().getName();
-    else if (typeof relatedTo === 'string') field['__relatedToAsString'] = relatedTo;
-    else field['__relatedToAsString'] = relatedTo.getName();
-  }
-};
-
 /**
  * This type of field is special and is supposed to hold foreign key references to another field of another model.
  * Usually in relational databases like postgres we can have related fields like `user_id` inside of the table `posts`.
@@ -151,7 +141,9 @@ export class ForeignKeyField<
   protected __relatedToAsString?: string;
   protected __relatedTo: TDefinitions['relatedTo'];
   /** Preferably use __relatedTo, this is just to cache the model if `__relatedTo` is either a function or a string */
-  protected __modelRelatedTo?: ClassConstructor<any>;
+  protected __modelRelatedTo?: {
+    new (...args: unknown[]): any;
+  };
   protected __onDelete: TDefinitions['onDelete'];
   protected __relatedName: TDefinitions['relatedName'];
   protected __relationName: TDefinitions['relationName'];
@@ -164,7 +156,7 @@ export class ForeignKeyField<
    * This is used internally by the engine to compare if the field is equal to another field.
    * You can override this if you want to extend the ForeignKeyField class.
    */
-  protected static __compareCallback: CompareCallback = (oldField, newField, defaultCompareCallback) => {
+  protected static __compareCallback = ((oldField, newField, defaultCompareCallback) => {
     const oldFieldAsForeignKey = oldField as ForeignKeyField<any, any>;
     const newFieldAsForeignKey = newField as ForeignKeyField<any, any>;
     getRelatedToAsString(oldFieldAsForeignKey);
@@ -187,15 +179,12 @@ export class ForeignKeyField<
       isRelatedNameEqual && isRelatedToEqual && isToFieldEqual && isOnDeleteEqual && isRelationNameEqual && isEqual,
       changedAttributes
     ];
-  };
+  }) satisfies CompareCallback;
   /**
    * This is used internally by the engine for cloning the field to a new instance.
    * By doing that you are able to get the constructor options of the field when using Field.new(<instanceArguments>)
    */
-  protected static __newInstanceCallback: NewInstanceArgumentsCallback = (
-    oldField,
-    defaultNewInstanceArgumentsCallback
-  ) => {
+  protected static __newInstanceCallback = ((oldField, defaultNewInstanceArgumentsCallback) => {
     const defaultData = defaultNewInstanceArgumentsCallback(oldField, defaultNewInstanceArgumentsCallback);
     const position0 = defaultData[0] || {};
     const otherPositions = defaultData.slice(1);
@@ -211,12 +200,13 @@ export class ForeignKeyField<
       },
       ...otherPositions
     ];
-  };
+  }) satisfies NewInstanceArgumentsCallback;
+
   /**
    * This is used internally by the engine to convert the field to string.
    * You can override this if you want to extend the ForeignKeyField class.
    */
-  protected static __toStringCallback: ToStringCallback = async (
+  protected static __toStringCallback = (async (
     field,
     defaultToStringCallback,
     indentation = 0,
@@ -235,7 +225,25 @@ export class ForeignKeyField<
         `${ident}relationName: "${fieldAsForeignKey['__relationName']}",\n` +
         `${ident}relatedName: "${fieldAsForeignKey['__originalRelatedName']}",`
     );
-  };
+  }) satisfies ToStringCallback;
+
+  protected static __getArgumentsCallback = ((field, defaultCallback) => {
+    const fieldAsForeignKeyField = field as ForeignKeyField<any, any>;
+    const relatedTo = fieldAsForeignKeyField['__relatedToAsString'];
+    const toField = fieldAsForeignKeyField['__toField'];
+    const relationName = fieldAsForeignKeyField['__relationName'];
+    const relatedName = fieldAsForeignKeyField['__relatedName'];
+    const onDelete = fieldAsForeignKeyField['__onDelete'];
+
+    return {
+      ...defaultCallback(field, defaultCallback),
+      toField,
+      relatedTo: relatedTo as string,
+      relationName,
+      relatedName,
+      onDelete
+    };
+  }) satisfies GetArgumentsCallback;
 
   constructor({
     onDelete,
@@ -304,7 +312,8 @@ export class ForeignKeyField<
     const relatedModel = engineInstance.__modelsOfEngine[relatedToAsString] as any;
     let modelRelatedTo;
 
-    if (typeof this['__relatedTo'] === 'function') modelRelatedTo = this['__relatedTo']();
+    if (typeof this['__relatedTo'] === 'function' && this['__relatedTo']?.['$$type'] !== '$PModel')
+      modelRelatedTo = this['__relatedTo']();
     else if (typeof this['__relatedTo'] === 'string')
       modelRelatedTo = engineInstance.__modelsOfEngine[this['__relatedTo']];
     else modelRelatedTo = this['__relatedTo'];
@@ -648,7 +657,7 @@ export class ForeignKeyField<
    * This method is used to create an index on the database for this field.
    */
   dbIndex<TDbIndex extends boolean = true>(
-    isDbIndex: TDbIndex
+    isDbIndex?: TDbIndex
   ): ForeignKeyField<
     TType,
     {

@@ -1,7 +1,13 @@
 import { Field } from './field';
 
 import type { CustomImportsForFieldType } from './types';
-import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
+import type {
+  CompareCallback,
+  GetArgumentsCallback,
+  NewInstanceArgumentsCallback,
+  OptionsCallback,
+  ToStringCallback
+} from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
 /**
@@ -81,11 +87,10 @@ export class DateField<
   protected static __typeName = 'DateField';
   protected __autoNow: TDefinitions['autoNow'] = false;
   protected __autoNowAdd: TDefinitions['autoNowAdd'] = false;
-
   protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
   protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
 
-  protected static __compareCallback: CompareCallback = (oldField, newField, defaultCompareCallback) => {
+  protected static __compareCallback = ((oldField, newField, defaultCompareCallback) => {
     const oldFieldAsTextField = oldField as DateField<any, any>;
     const newFieldAsTextField = newField as DateField<any, any>;
     const isAutoNowEqual = oldFieldAsTextField['__autoNow'] === newFieldAsTextField['__autoNow'];
@@ -97,16 +102,26 @@ export class DateField<
     if (!isAutoNowAddEqual) changedAttributes.push('autoNowAdd');
 
     return [isAutoNowAddEqual && isAutoNowEqual && isEqual, changedAttributes];
-  };
+  }) satisfies CompareCallback;
 
-  protected static __optionsCallback: OptionsCallback = (oldField, newField, defaultOptionsCallback) => {
+  protected static __optionsCallback = ((setFieldValue, oldField, defaultOptionsCallback) => {
     const oldFieldAsTextField = oldField as DateField<any, any>;
-    const newFieldAsTextField = newField as DateField<any, any>;
 
-    defaultOptionsCallback(oldFieldAsTextField, newFieldAsTextField, defaultOptionsCallback);
-    newFieldAsTextField['__autoNow'] = oldFieldAsTextField['__autoNow'];
-    newFieldAsTextField['__autoNowAdd'] = oldFieldAsTextField['__autoNowAdd'];
-  };
+    defaultOptionsCallback(setFieldValue, oldField, defaultOptionsCallback);
+    setFieldValue('__autoNow', 'autoNow', oldFieldAsTextField['__autoNow']);
+    setFieldValue('__autoNowAdd', 'autoNowAdd', oldFieldAsTextField['__autoNowAdd']);
+  }) satisfies OptionsCallback;
+
+  protected static __getArgumentsCallback = ((field, defaultCallback) => {
+    const fieldAsDateField = field as DateField<any, any>;
+    const autoNow = fieldAsDateField['__autoNow'];
+    const autoNowAdd = fieldAsDateField['__autoNowAdd'];
+    return {
+      ...defaultCallback(field, defaultCallback),
+      autoNow,
+      autoNowAdd
+    };
+  }) satisfies GetArgumentsCallback;
 
   /**
    * Supposed to be used by library maintainers.
@@ -395,7 +410,7 @@ export class DateField<
    * This method is used to create an index on the database for this field.
    */
   dbIndex<TDbIndex extends boolean = true>(
-    isDbIndex: TDbIndex
+    isDbIndex?: TDbIndex
   ): DateField<
     TType,
     {

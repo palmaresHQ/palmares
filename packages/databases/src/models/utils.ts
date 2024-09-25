@@ -146,8 +146,8 @@ export async function parse(
   engine: DatabaseAdapter,
   engineFields: AdapterFields,
   model: Model,
-  field: Field,
-  callbackForLazyEvaluation: (translatedField: any, shouldReturnData?: boolean, field?: Field) => void
+  field: Field<any, any>,
+  callbackForLazyEvaluation: (translatedField: any, shouldReturnData?: boolean, field?: Field<any, any>) => void
 ): Promise<any> {
   let shouldReturnData = true;
   /**
@@ -181,7 +181,7 @@ export async function parse(
     customAttributes,
     fieldParser: engineFields.fieldsParser,
     modelName,
-    model: modelAsBaseModel['__getModelAttributes'](),
+    model: modelAsBaseModel,
     lazyEvaluate: callbackForLazyEvaluationInsideDefaultParse
   };
 
@@ -238,7 +238,10 @@ export async function parse(
             engine.connectionName,
             fieldToParse as Field,
             engineFields.foreignKeyFieldParser as any,
-            args
+            {
+              ...args,
+              field: fieldToParse['__getArguments']()
+            }
           );
         } else return parse(engine, engineFields, model, fieldToParse as Field, callbackForLazyEvaluation);
       } else {
@@ -299,7 +302,10 @@ export async function parse(
  * That's exactly what this does is that it takes the Palmares models and, with the
  * engine, we translate them to something that the engine can understand.
  */
-export async function initializeModels(engine: DatabaseAdapter, models: (ModelType<any, any> & typeof BaseModel)[]) {
+export async function initializeModels(
+  engine: DatabaseAdapter,
+  models: (ModelType<any, any> & typeof BaseModel & typeof Model)[]
+) {
   const recursiveOptionsToEvaluateModels: {
     forceTranslation?: boolean;
   }[] = [{}];
@@ -322,7 +328,7 @@ export async function initializeModels(engine: DatabaseAdapter, models: (ModelTy
     // Initialize the models and add it to the initialized models array, we need to keep
     // track of the index of the model so that we can update it later
     // When we set to evaluate the fields later we will update the initialized model.
-    const initializeModelPromises = (models as any[]).map(async (modelClass, index) => {
+    const initializeModelPromises = models.map(async (modelClass, index) => {
       const modelInstance = new modelClass() as BaseModel & Model;
       const doesModelIncludesTheConnection =
         Array.isArray((modelInstance as any).options?.databases) && typeof engine.connectionName === 'string'
@@ -337,13 +343,14 @@ export async function initializeModels(engine: DatabaseAdapter, models: (ModelTy
           engine,
           domainName,
           domainPath,
-          (field: Field<any, any>, translatedField: any) =>
+          (field: Field<any, any>, translatedField: any) => {
             fieldsToEvaluateAfter.push({
               model: modelInstance as any,
               field,
               translatedField,
               getInitialized: () => initializedModel
-            }),
+            });
+          },
           {
             forceTranslate: options?.forceTranslation === true
           }
@@ -371,13 +378,41 @@ export async function initializeModels(engine: DatabaseAdapter, models: (ModelTy
       async ({ model, field, translatedField, getInitialized }, index) => {
         const initialized = getInitialized();
         const modelConstructor = model.constructor as ModelType<any, any> & typeof BaseModel & typeof Model;
+
         const lazyEvaluatedFieldResult = await engine.fields.lazyEvaluateField(
           engine,
           modelConstructor['__getName'](),
           initialized.instance,
-          field,
+          field['__getArguments'](),
           translatedField,
-          (model, field) => parse(engine, engine.fields, model, field, () => {})
+          (args) => {
+            let modelToUse = model;
+            let fieldToUse = field;
+            if (args) {
+              const modelConstructor = engine['__modelsOfEngine'][args.modelName] as ModelType<any, any> &
+                typeof BaseModel &
+                typeof Model;
+
+              // eslint-disable-next-line ts/no-unnecessary-condition
+              if (modelConstructor === undefined)
+                throw new Error(`The model ${args.modelName} was not found in the engine`);
+
+              const modelInstance = new modelConstructor() as BaseModel & Model;
+              const fields = modelConstructor['_fields']();
+              const field = fields[args.fieldName];
+              // eslint-disable-next-line ts/no-unnecessary-condition
+              if (field === undefined) {
+                throw new Error(`The field ${args.fieldName} was not found in the model ${args.modelName}`);
+              }
+
+              fieldToUse = field['__clone'](field, {
+                newInstanceOverrideCallback: args.newInstanceOverrideCallback,
+                optionsOverrideCallback: args.optionsOverrideCallback
+              });
+              modelToUse = modelInstance;
+            }
+            return parse(engine, engine.fields, modelToUse, fieldToUse, () => {});
+          }
         );
         if (lazyEvaluatedFieldResult !== undefined && lazyEvaluatedFieldResult !== null) {
           initialized.modifyItself(lazyEvaluatedFieldResult);

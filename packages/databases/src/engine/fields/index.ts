@@ -14,8 +14,8 @@ import { AdapterUuidFieldParser } from './uuid';
 import { NotImplementedAdapterFieldsException } from '../exceptions';
 
 import type { DatabaseAdapter as Adapter } from '..';
-import type { Model } from '../../models';
-import type { Field } from '../../models/fields';
+import type { CharField, DateField, Field, ForeignKeyField, TextField, UuidField } from '../../models/fields';
+import type { AdapterFieldParserTranslateArgs } from '../types';
 
 /**
  * Functional approach to create a custom {@link AdapterFields} class.
@@ -337,6 +337,10 @@ export class AdapterFields {
    * @param field - The field of the model that is being translated.
    * @param fieldTranslated - The data that is sent when you call `lazyEvaluate` on the `translate` method of
    * your {@link AdapterFieldParser}.
+   * @param parseAgain - A function that you can call to parse an specific field again. For example,
+   * your engine creates a field that is a foreign key by attaching `.relation()` to the end of the field type.
+   * but the field type is a normal int() or varchar() field. Parsing the field again will call the `translate`
+   * method of the field parser again.
    *
    * @returns - Should return the model translated and modified, even if you do not modify the model, you should
    * return the translated model.
@@ -346,9 +350,23 @@ export class AdapterFields {
     _Adapter: Adapter,
     _modelName: string,
     _translatedModel: any,
-    _field: Field,
+    _field: AdapterFieldParserTranslateArgs['field'],
     _fieldTranslated: any,
-    _parse: (model: Model, field: Field<any, any>) => Promise<any>
+    _parseAgain: (args?: {
+      modelName: string;
+      fieldName: string;
+      newInstanceOverrideCallback?: (args: any[]) => any[];
+      optionsOverrideCallback?: Partial<
+        Record<
+          | keyof ReturnType<(typeof Field)['__getArgumentsCallback']>
+          | keyof ReturnType<(typeof UuidField)['__getArgumentsCallback']>
+          | keyof ReturnType<(typeof DateField)['__getArgumentsCallback']>
+          | keyof ReturnType<(typeof TextField)['__getArgumentsCallback']>
+          | keyof ReturnType<(typeof CharField)['__getArgumentsCallback']>,
+          (oldValue: any) => any
+        >
+      >;
+    }) => Promise<any>
   ): Promise<any> {
     throw new NotImplementedAdapterFieldsException('lazyEvaluateField');
   }

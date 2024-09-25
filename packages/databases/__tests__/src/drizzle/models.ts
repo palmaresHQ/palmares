@@ -1,6 +1,6 @@
 import {
   AutoField, BooleanField, CharField, DateField, DecimalField, EnumField,
-  ForeignKeyField, IntegerField, Manager, Model, ON_DELETE, TranslatableField, UuidField, define
+  ForeignKeyField, IntegerField, Manager, Model, ON_DELETE, UuidField, define
 } from '@palmares/databases';
 
 import { Company as DCompany, User as DUser } from '../../.drizzle/schema';
@@ -14,12 +14,7 @@ class Authentication extends Manager<CompanyAbstract> {
 }
 export class CompanyAbstract extends Model<CompanyAbstract>() {
   fields = {
-    address: CharField.new({ maxLength: 255, allowNull: true }),
-    translatable: TranslatableField.new({
-      translate: async () => {
-        return `d.real('translatable')`
-      }
-    })
+    address: CharField.new({ maxLen: 255 }).allowNull(),
   }
   options = {
     tableName: 'companies',
@@ -29,12 +24,13 @@ export class CompanyAbstract extends Model<CompanyAbstract>() {
   static auth = new Authentication()
 }
 
-CompanyAbstract.auth.test()
+
 
 export const Company = define('Company', {
   fields:  {
     id: AutoField.new(),
-    name: CharField.new({ maxLength: 255 }),
+    uuid: UuidField.new().autoGenerate(),
+    name: CharField.new({ maxLen: 255 }),
   },
   options: {
     tableName: 'companies',
@@ -44,23 +40,24 @@ export const Company = define('Company', {
   managers: {
     test: {
       async test(name: string) {
-        return this.get({ search: { name }})
+        return this.get((qs) => qs.where({ name}))
       }
     }
   }
 });
 
+//*********************************/
+//**      Modelos Palmares       **/
+//*********************************/
 export class User extends Model<User>() {
   fields = {
     id: AutoField.new(),
-    uuid: UuidField.new({
-      autoGenerate: true
-    }),
-    name: CharField.new({ maxLength: 255, dbIndex: true, allowNull: true }),
-    age: IntegerField.new({ dbIndex: true }),
-    userType: EnumField.new({ choices: ['admin', 'user'], defaultValue: 'admin' }),
-    price: DecimalField.new({ maxDigits: 5, decimalPlaces: 2, allowNull: true }),
-    isActive: BooleanField.new({ defaultValue: true }),
+    uuid: UuidField.new(),
+    name: CharField.new({ maxLen: 280 }).allowNull().dbIndex(),
+    age: IntegerField.new().dbIndex(),
+    userType: EnumField.new({ choices: ['admin', 'user'] }),
+    price: DecimalField.new({ maxDigits: 5, decimalPlaces: 2 }).allowNull(),
+    isActive: BooleanField.new().default(true),
     companyId: ForeignKeyField.new({
       onDelete: ON_DELETE.CASCADE,
       relatedName: 'usersOfCompany',
@@ -68,8 +65,8 @@ export class User extends Model<User>() {
       toField: 'id',
       relatedTo: Company
     }),
-    updatedAt: DateField.new({ autoNow: true }),
-    createdAt: DateField.new({ autoNowAdd: true }),
+    updatedAt: DateField.new().autoNow(),
+    createdAt: DateField.new().autoNowAdd(),
   }
 
   options: ModelOptionsType<User> = {
