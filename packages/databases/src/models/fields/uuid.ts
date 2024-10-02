@@ -130,10 +130,13 @@ export class UuidField<
   }) satisfies OptionsCallback;
 
   protected static __getArgumentsCallback = ((field, defaultCallback) => {
-    const fieldAsDateField = field as UuidField<any, any>;
-    const autoGenerate = fieldAsDateField['__autoGenerate'] as boolean;
+    const fieldAsUuidField = field as UuidField<any, any>;
+    const allowBlank = fieldAsUuidField['__allowBlank'] as boolean;
+    const autoGenerate = fieldAsUuidField['__autoGenerate'] as boolean;
+
     return {
       ...defaultCallback(field, defaultCallback),
+      allowBlank,
       autoGenerate
     };
   }) satisfies GetArgumentsCallback;

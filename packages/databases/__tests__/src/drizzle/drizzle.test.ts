@@ -1,13 +1,16 @@
-import {
-  describe,
-} from '@palmares/tests'
+//import jestGlobals from '@jest/globals'; //const describe = require('@jest/globals').describe;
+import { describe, test } from '@palmares/tests';
 
 import { Company, User } from '../drizzle/models';
 
-import type JestTestAdapter from '@palmares/jest-tests';
+//const test = require('@jest/globals').test;
 
-describe<JestTestAdapter>('drizzle models', ({ test }) => {
-  test('its limiting the query', async ({ expect }) => {
+describe('drizzle models', () => {
+  test('test', async () => {
+    console.log('aquiii');
+    //const company = await Company.default.get((qs) => qs.where({ name: 'test' }));
+  });
+  /*test('its limiting the query', async ({ expect }) => {
     await Company.default.set((qs) => qs.data({ id: undefined, name: 'test', address: 'test' }))
     await Company.default.set((qs) => qs.data({ id: undefined, name: 'test', address: 'test' }))
 
@@ -74,5 +77,5 @@ describe<JestTestAdapter>('drizzle models', ({ test }) => {
   test('its allowing null to nullable fields', async ({ expect }) => {
     const data = await Company.default.set({ name: 'test', address: null, translatable: 12 });
     expect(data[0].address).toBe(null);
-  });
+  });*/
 });

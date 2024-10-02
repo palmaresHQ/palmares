@@ -63,6 +63,7 @@ export async function setSettings(
   }
 
   if (!settings) throw new SettingsNotFoundException();
+  if ((settings as any)?.default) settings = (settings as any).default;
   globalThis.$PCachedSettings = settings;
   setDefaultStd(new settings.std());
   return settings;

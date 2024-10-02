@@ -34,7 +34,10 @@ export class BaseModel {
     }
   >();
   protected static __associations: {
-    [modelName: string]: ForeignKeyField<any, any>[];
+    [modelName: string]: {
+      byRelationName: Map<string, ForeignKeyField<any, any>>;
+      byRelatedName: Map<string, ForeignKeyField<any, any>>;
+    };
   } = {};
   // This model uses other models as ForeignKey
   protected static __directlyRelatedTo: { [modelName: string]: string[] } = {};
@@ -44,7 +47,10 @@ export class BaseModel {
   protected static __primaryKeys: string[] = [];
   protected static __domainName: string;
   protected static __domainPath: string;
-
+  protected static __callAfterAllModelsAreLoadedToSetupRelations: Map<
+    string,
+    (engineInstance: DatabaseAdapter) => void
+  > = new Map();
   protected static __lazyFields?: ModelFieldsType = {};
   protected static __cachedHashedName?: string;
   protected static __cachedName: string;
@@ -179,6 +185,7 @@ export class BaseModel {
       functionToCallToTranslateModel(),
       currentPalmaresModelInstance.__initializeEvents(engineInstance)
     ]);
+    // Use the reference to modify itself.
     const translated = {
       instance: initializedModelInstance,
       modifyItself: (newTranslatedInstance: any) => {
@@ -354,12 +361,12 @@ export class BaseModel {
    * able to know which models relates to this model.
    */
   protected static __initializeRelatedToModels() {
-    const originalModelName = this.__originalName();
+    /*const originalModelName = this.__originalName();
     if (originalModelName in this.__indirectlyRelatedModels) {
       this.__indirectlyRelatedTo = this.__indirectlyRelatedModels[originalModelName];
     } else {
       this.__indirectlyRelatedModels.$set[originalModelName] = this.__initializeRelatedToModels.bind(this);
-    }
+    }*/
   }
 
   /**
@@ -376,8 +383,10 @@ export class BaseModel {
     if (this.__cachedOptions === undefined) {
       const keysOfDefaultOptions = Object.keys(defaultOptions);
       for (const defaultModelOptionKey of keysOfDefaultOptions) {
-        if (defaultModelOptionKey in (modelInstance.options || {}) === false)
+        if (defaultModelOptionKey in (modelInstance.options || {}) === false) {
+          if (typeof modelInstance.options !== 'object') modelInstance.options = {};
           modelInstance.options[defaultModelOptionKey] = (defaultOptions as any)[defaultModelOptionKey];
+        }
       }
       this.__cachedOptions = {
         // eslint-disable-next-line ts/no-unnecessary-condition
@@ -404,13 +413,16 @@ export class BaseModel {
       if (this.__lazyFields) fieldsDefinedOnModel = { ...fieldsDefinedOnModel, ...this.__lazyFields };
       const allFields = Object.entries(fieldsDefinedOnModel);
 
-      for (const [fieldName, field] of allFields) {
-        if (field['__unique']) modelHasNoUniqueFields = false;
-        field['__init'](fieldName, this as ModelType<any, any> & typeof BaseModel & typeof Model);
-      }
+      // We just need to initialize the fields if the model is not abstract
+      if (this._options()?.abstract !== true) {
+        for (const [fieldName, field] of allFields) {
+          if (field['__unique']) modelHasNoUniqueFields = false;
+          field['__init'](fieldName, this as ModelType<any, any> & typeof BaseModel & typeof Model);
+        }
 
-      if (modelHasNoUniqueFields && this._options()?.abstract !== true) {
-        throw new ModelNoUniqueFieldsError(this.constructor.name);
+        if (modelHasNoUniqueFields) {
+          throw new ModelNoUniqueFieldsError(this.__cachedName);
+        }
       }
 
       modelInstance.fields = fieldsDefinedOnModel;
@@ -691,6 +703,7 @@ export function model<
     // Other models use this model as ForeignKey
     protected static __indirectlyRelatedTo: { [modelName: string]: string[] } = {};
     protected static __primaryKeys: string[] = [];
+    protected static __callAfterAllModelsAreLoadedToSetupRelations: ((engineInstance: DatabaseAdapter) => void)[] = [];
 
     protected static __lazyFields?: ModelFieldsType = {};
     protected static __hasLoadedManagers = false;
@@ -824,6 +837,7 @@ export function initialize<
     // Other models use this model as ForeignKey
     protected static __indirectlyRelatedTo: { [modelName: string]: string[] } = {};
     protected static __primaryKeys: string[] = [];
+    protected static __callAfterAllModelsAreLoadedToSetupRelations: ((engineInstance: DatabaseAdapter) => void)[] = [];
 
     protected static __lazyFields?: ModelFieldsType = {};
     protected static __hasLoadedManagers = false;

@@ -310,6 +310,7 @@ export async function initializeModels(
     forceTranslation?: boolean;
   }[] = [{}];
 
+  const relationsToCallAfterModelsTranslation: Map<string, (engineInstance: DatabaseAdapter) => void> = new Map();
   // It is a loop so we can evaluate the models again if needed.
   // eslint-disable-next-line ts/no-unnecessary-condition
   while (recursiveOptionsToEvaluateModels) {
@@ -337,6 +338,7 @@ export async function initializeModels(
 
       const domainName = modelClass['__domainName'];
       const domainPath = modelClass['__domainPath'];
+      modelClass['__callAfterAllModelsAreLoadedToSetupRelations'] = relationsToCallAfterModelsTranslation;
 
       if (doesModelIncludesTheConnection) {
         const initializedModel = await modelClass['__init'](
@@ -369,6 +371,7 @@ export async function initializeModels(
           original: modelInstance as any
         });
       }
+      modelClass['__callAfterAllModelsAreLoadedToSetupRelations'] = undefined as any;
     });
     await Promise.all(initializeModelPromises);
 
@@ -468,6 +471,9 @@ export async function initializeModels(
         }
       }
     }
+
+    for (const setRelationToCall of relationsToCallAfterModelsTranslation.values()) setRelationToCall(engine);
+
     if (recursiveOptionsToEvaluateModels.length <= 0) return initializedModels;
   }
   return [];

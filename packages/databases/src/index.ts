@@ -71,7 +71,6 @@ export { generateUUID } from './utils/index';
 
 export { DatabasesDomain };
 export default DatabasesDomain;
-
 /*
 class Test extends Manager {
   createUser(aqui: string) {
@@ -82,7 +81,14 @@ class Test extends Manager {
 class Profile extends Model<Profile>() {
   fields = {
     id: AutoField.new(),
-    type: CharField.new({ maxLen: 12 })
+    type: CharField.new({ maxLen: 12 }),
+    userId: ForeignKeyField.new({
+      relatedName: 'profilesOfUser',
+      relationName: 'user',
+      relatedTo: (_: { create: string; read: string; update: string }) => baseUserInstance,
+      toField: 'id',
+      onDelete: ON_DELETE.CASCADE
+    })
   };
 
   options = {
@@ -100,17 +106,12 @@ const Contract = initialize('Contract', {
   }
 });
 
-class User extends model<User, any>() {
-  fields = {
-    firstName: TextField.new()
-  };
-
-  static test = new Test();
-}
-
-const User2 = initialize('User', {
+const User2 = initialize('AbstractUser', {
   fields: {
     firstName: TextField.new()
+  },
+  options: {
+    abstract: true
   },
   managers: {
     test: new Test()
@@ -125,7 +126,7 @@ const baseUserInstance = initialize('User', {
       relatedName: 'usersOfProfile',
       relationName: 'profile',
       relatedTo: () => Profile,
-      toField: 'id'
+      toField: 'type'
     })
       .allowNull(true)
       .unique(true),
@@ -149,10 +150,26 @@ const baseUserInstance = initialize('User', {
   },
   abstracts: [User2]
 });
+*/
+//const qs = QuerySet.new<InstanceType<typeof baseUserInstance>, 'set'>('set');
+/*
+const newQs = QuerySet.new<Profile, 'get'>('get').join(baseUserInstance, 'usersOfProfile', (qs) =>
+  qs.where({ firstName: 'a' })
+);
+newQs['__queryTheData'](Profile, undefined as any);
 
-const qs = QuerySet.new<InstanceType<typeof baseUserInstance>, 'set'>('set');
-const newQs = qs.join(Profile, 'profile', (qs) => qs.where({ type: 'admin' }));
-
+const qs = QuerySet.new<InstanceType<typeof baseUserInstance>, 'set'>('set').join(Profile, 'profile', (qs) =>
+  qs.where({ type: 'admin' })
+);
+qs['__queryTheData'](baseUserInstance, undefined as any);
+*/
+/*
+const newQs2 = QuerySet.new<Profile, 'set'>('set').join(baseUserInstance, 'usersOfProfile', (qs) =>
+  qs.where({ firstName: 'a' })
+);
+newQs2['__queryTheData'](Profile, undefined as any);
+*/
+/*
 const modelOfDA = await baseUserInstance.default.getInstance<DatabaseAdapter<InstanceType<typeof baseUserInstance>>>();
 const test2 = await baseUserInstance.default.get((qs) =>
   qs.where({

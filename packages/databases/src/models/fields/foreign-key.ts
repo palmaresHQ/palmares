@@ -1,4 +1,8 @@
-import { ForeignKeyFieldRequiredParamsMissingError } from './exceptions';
+import {
+  ForeignKeyFieldInvalidRelatedToError,
+  ForeignKeyFieldRelatedOrRelationNameAlreadyExistsError,
+  ForeignKeyFieldRequiredParamsMissingError
+} from './exceptions';
 import { Field } from './field';
 import { getRelatedToAsString } from './utils';
 import { BigAutoField, IntegerField } from '../..';
@@ -1041,6 +1045,129 @@ export class ForeignKeyField<
     return newField;
   }
 
+  /**
+   * This is quite confusing, i know.
+   *
+   * This method is used to keep track of the relation on models. I won't go too far. Let's use an example:
+   *
+   * @example ```typescript
+   * const User = models.initialize('User', {
+   *   fields: {
+   *     id: AutoField.new(),
+   *     name: CharField.new(),
+   *     email: CharField.new(),
+   *     profileId: ForeignKeyField.new({
+   *       relatedTo: 'Profile',
+   *       toField: 'id',
+   *       relatedName: 'profileOfUsers',
+   *       relationName: 'profile',
+   *       onDelete: 'CASCADE'
+   *     })
+   *  }
+   * });
+   *
+   * const Profile = models.initialize('Profile', {
+   *  fields: {
+   *   id: AutoField.new(),
+   *   name: CharField.new(),
+   *  }
+   * });
+   * ```
+   *
+   * On this example, the `profileId` field on the `User` model is related to the `Profile` model.
+   * __directlyRelatedTo is an object that keeps track of the models that are directly related to the model.
+   * In this case, the `User` model is directly related to the `Profile` model.
+   * This means we should update the `User` model to keep track of the `Profile` model.
+   *
+   * __indirectlyRelatedTo is an object that keeps track of the models that are indirectly related to the model.
+   * In this case, the `Profile` model is indirectly related to the `User` model.
+   * This means we should update the `Profile` model to keep track of the `User` model.
+   *
+   * __associations is an object that keeps track of the fields that are related to the model. It's two way.
+   * So the `Profile` model keeps track of all it's associations with other models. Wether Profile defined the
+   * relation or not.
+   *
+   * With this configuration, no matter which model we have "in hands" we can always keep track of all of the relations.
+   * It's confusing because at the end of the day it'll look like a complex graph.
+   */
+  protected __attachRelationsToModel(
+    field: ForeignKeyField<any, any>,
+    fieldName: string,
+    modelOfField: ModelType<any, any> & typeof Model & typeof BaseModel,
+    relatedModel: string | (ModelType<any, any> & typeof Model & typeof BaseModel)
+  ) {
+    const modelOfFieldName = modelOfField['__originalName']();
+    const relatedModelName = typeof relatedModel === 'string' ? relatedModel : relatedModel['__originalName']();
+    const modelAssociations = modelOfField['__associations'];
+    if (typeof modelAssociations !== 'object') modelOfField['__associations'] = {};
+
+    // eslint-disable-next-line ts/no-unnecessary-condition
+    modelOfField['__associations'][relatedModelName] = modelAssociations[relatedModelName] || {
+      byRelatedName: new Map(),
+      byRelationName: new Map()
+    };
+    const doesRelationAlreadyExistForRelatedName = modelOfField['__associations'][relatedModelName].byRelatedName.has(
+      this['__relatedName']
+    );
+    const doesRelationAlreadyExistForRelationName = modelOfField['__associations'][relatedModelName].byRelationName.has(
+      this['__relationName']
+    );
+    const doesRelatedTiesToADifferentField =
+      modelOfField['__associations'][relatedModelName].byRelatedName.get(this['__relatedName']) !== this;
+    const doesRelationTiesToADifferentField =
+      modelOfField['__associations'][relatedModelName].byRelationName.get(this['__relationName']) !== this;
+
+    if (doesRelationAlreadyExistForRelatedName && doesRelatedTiesToADifferentField) {
+      const relatedField = modelOfField['__associations'][relatedModelName].byRelatedName.get(
+        this['__relatedName']
+      ) as ForeignKeyField<any, any>;
+      throw new ForeignKeyFieldRelatedOrRelationNameAlreadyExistsError(
+        modelOfFieldName,
+        fieldName,
+        this['__relatedName'],
+        relatedField['__fieldName'],
+        relatedField['__model']?.['__getName']?.() as string,
+        true
+      );
+    }
+    if (doesRelationAlreadyExistForRelationName && doesRelationTiesToADifferentField) {
+      const relatedField = modelOfField['__associations'][relatedModelName].byRelationName.get(
+        this['__relationName']
+      ) as ForeignKeyField<any, any>;
+      throw new ForeignKeyFieldRelatedOrRelationNameAlreadyExistsError(
+        modelOfFieldName,
+        fieldName,
+        this['__relationName'],
+        relatedField['__fieldName'],
+        relatedField['__model']?.['__getName']?.() as string,
+        false
+      );
+    }
+    modelOfField['__associations'][relatedModelName].byRelatedName.set(this['__relatedName'], this);
+    modelOfField['__associations'][relatedModelName].byRelationName.set(this['__relationName'], this);
+
+    if (typeof modelOfField['__directlyRelatedTo'] !== 'object') modelOfField['__directlyRelatedTo'] = {};
+    const modelDirectlyRelatedTo = modelOfField['__directlyRelatedTo'] as any;
+    // Appends to the model the other models this model is related to.
+    modelOfField['__directlyRelatedTo'][relatedModelName] = modelDirectlyRelatedTo[relatedModelName] || [];
+    modelOfField['__directlyRelatedTo'][relatedModelName].push(this['__relationName']);
+
+    if (typeof relatedModel !== 'string') {
+      if (typeof relatedModel['__indirectlyRelatedTo'] !== 'object') relatedModel['__indirectlyRelatedTo'] = {};
+      const modelDirectlyRelatedTo = relatedModel['__indirectlyRelatedTo'] as any;
+      // Appends to the model the other models this model is related to.
+      relatedModel['__indirectlyRelatedTo'][relatedModelName] = modelDirectlyRelatedTo[relatedModelName] || [];
+      relatedModel['__indirectlyRelatedTo'][relatedModelName].push(this['__relatedName']);
+
+      if (typeof relatedModel['__associations'] !== 'object') relatedModel['__associations'] = {};
+      const relatedModelAssociations = relatedModel['__associations'] as any;
+      if (typeof relatedModelAssociations[modelOfFieldName] !== 'object')
+        relatedModelAssociations[modelOfFieldName] = { byRelatedName: new Map(), byRelationName: new Map() };
+      relatedModelAssociations[modelOfFieldName].byRelatedName.set(this['__relatedName'], this);
+      relatedModelAssociations[modelOfFieldName].byRelationName.set(this['__relationName'], this);
+    }
+  }
+
   protected __init(fieldName: string, model: ModelType<any, any> & typeof Model & typeof BaseModel): void {
     getRelatedToAsString(this);
     const isRelatedToAndOnDeleteNotDefined =
@@ -1048,36 +1175,30 @@ export class ForeignKeyField<
     const relatedToAsString = this['__relatedToAsString'] as string;
     const originalNameOfModel = model['__originalName']();
 
+    if (typeof this['__relatedTo'] === 'function' && this['__relatedTo']?.['$$type'] !== '$PModel')
+      this.__attachRelationsToModel(this, fieldName, model, this['__relatedTo']());
+    else if (typeof this['__relatedTo'] === 'string') {
+      // If it's a string we attach a callback to the model to attach the relations after all models are loaded.
+      // This is tied to the `initializeModels` function.
+      // Why don't use a global callback? Two engines might have the same model name.
+      // It'll be a lot harder to debug. This just let us keep track while the model is being translated.
+      // So, one engine at a time
+      model['__callAfterAllModelsAreLoadedToSetupRelations'].set(
+        `${fieldName}${model['__getName']()}`,
+        (engineInstance) => {
+          this.__attachRelationsToModel(
+            this,
+            fieldName,
+            model,
+            // eslint-disable-next-line ts/no-unnecessary-type-assertion
+            engineInstance['__modelsOfEngine'][this['__relatedTo'] as string] as any
+          );
+        }
+      );
+    } else if (this['$$type'] === '$PModel') this.__attachRelationsToModel(this, fieldName, model, this['__relatedTo']);
+    else throw new ForeignKeyFieldInvalidRelatedToError(fieldName, model['__originalName']());
+
     if (isRelatedToAndOnDeleteNotDefined) throw new ForeignKeyFieldRequiredParamsMissingError(this['__fieldName']);
-
-    const modelAssociations = model['__associations'] as any;
-    const hasNotIncludesAssociation =
-      (modelAssociations[relatedToAsString] || []).some(
-        (association: Field<any, any>) => association['__fieldName'] === fieldName
-      ) === false;
-    if (hasNotIncludesAssociation) {
-      model['__associations'][relatedToAsString] = modelAssociations[relatedToAsString] || [];
-      model['__associations'][relatedToAsString].push(this);
-    }
-
-    const modelDirectlyRelatedTo = model['__directlyRelatedTo'] as any;
-    // Appends to the model the other models this model is related to.
-    model['__directlyRelatedTo'][relatedToAsString] = modelDirectlyRelatedTo[relatedToAsString] || [];
-    model['__directlyRelatedTo'][relatedToAsString].push(this['__relationName']);
-
-    // this will update the indirectly related models of the engine instance.
-    // This means that for example, if the Post model has a foreign key to the User model
-    // There is no way for the User model to know that it is related to the Post model.
-    // Because of this we update this value on the engine instance. Updating the array on the engine instance
-    // will also reflect on the `relatedTo` array in the model instance.
-    if (this['__originalRelatedName']) {
-      model['__indirectlyRelatedModels'][relatedToAsString] =
-        // eslint-disable-next-line ts/no-unnecessary-condition
-        model['__indirectlyRelatedModels']?.[relatedToAsString] || {};
-      model['__indirectlyRelatedModels'][relatedToAsString][originalNameOfModel] =
-        (model['__indirectlyRelatedModels'] as any)?.[relatedToAsString]?.[originalNameOfModel] || [];
-      model['__indirectlyRelatedModels'][relatedToAsString][originalNameOfModel].push(this['__originalRelatedName']);
-    }
 
     super.__init(fieldName, model);
 
@@ -1090,9 +1211,6 @@ export class ForeignKeyField<
         originalNameOfModel.charAt(0).toUpperCase() + originalNameOfModel.slice(1);
       this['__originalRelatedName'] = `${relatedToWithFirstStringLower}${originalModelNameWithFirstStringUpper}s`;
     }
-
-    // eslint-disable-next-line ts/no-unnecessary-condition
-    model['__indirectlyRelatedModels'].$set?.[relatedToAsString]?.();
   }
 
   static new<
@@ -1109,9 +1227,21 @@ export class ForeignKeyField<
     }
   ): ForeignKeyField<
     {
-      create: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'create'>;
-      read: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'read'>;
-      update: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'update'>;
+      create: TRelatedTo extends (_: { create: any; read: any; update: any }) => any
+        ? TRelatedTo extends (_: { create: infer TCreate; read: any; update: any }) => any
+          ? TCreate
+          : never
+        : ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'create'>;
+      read: TRelatedTo extends (_: { create: any; read: any; update: any }) => any
+        ? TRelatedTo extends (_: { create: any; read: infer TRead; update: any }) => any
+          ? TRead
+          : never
+        : ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'read'>;
+      update: TRelatedTo extends (_: { create: any; read: any; update: any }) => any
+        ? TRelatedTo extends (_: { create: any; read: any; update: infer TUpdate }) => any
+          ? TUpdate
+          : never
+        : ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'update'>;
     },
     {
       unique: false;

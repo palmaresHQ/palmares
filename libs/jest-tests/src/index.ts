@@ -1,9 +1,9 @@
 /* eslint-disable ts/consistent-type-imports */
 import { TestAdapter } from '@palmares/tests';
-import { run as runJest } from 'jest';
 
 import { JestExpectAdapter } from './expect';
 import { JestTestFunctionsAdapter } from './functions';
+import { CustomData } from './types';
 
 let defaultConfig: import('jest').Config = {
   preset: 'ts-jest',
@@ -17,26 +17,39 @@ class JestTestAdapter extends TestAdapter {
   functions = new JestTestFunctionsAdapter();
   expect = new JestExpectAdapter();
 
-  getCustomProps(): {
-    expect: (typeof import('@jest/globals'))['expect'];
-    describe: (typeof import('@jest/globals'))['describe'];
-    beforeAll: (typeof import('@jest/globals'))['beforeAll'];
-    beforeEach: (typeof import('@jest/globals'))['beforeEach'];
-    afterEach: (typeof import('@jest/globals'))['afterEach'];
-    afterAll: (typeof import('@jest/globals'))['afterAll'];
-    jest: (typeof import('@jest/globals'))['jest'];
-  } {
-    const { expect, describe, jest, beforeAll, beforeEach, afterAll, afterEach } = require('@jest/globals');
+  static setGlobals(globals: any) {
+    Object.assign(global, globals);
+  }
 
-    return {
-      expect,
-      describe,
-      beforeAll,
-      beforeEach,
-      afterAll,
-      afterEach,
-      jest
-    };
+  async getCustomProps(): Promise<CustomData> {
+    try {
+      const { expect, describe, jest, beforeAll, beforeEach, afterAll, afterEach, test } = require('@jest/globals');
+
+      return {
+        expect,
+        describe,
+        beforeAll,
+        beforeEach,
+        afterAll,
+        afterEach,
+        test,
+        jest
+      };
+    } catch (e) {
+      const { expect, describe, jest, beforeAll, beforeEach, afterAll, afterEach, test } = await import(
+        '@jest/globals'
+      );
+      return {
+        test,
+        expect,
+        describe,
+        beforeAll,
+        beforeEach,
+        afterAll,
+        afterEach,
+        jest
+      };
+    }
   }
 
   async run(
@@ -49,18 +62,41 @@ class JestTestAdapter extends TestAdapter {
       removeFile: (path: string | string[]) => Promise<void>;
     }
   ) {
+    let dirnameToCreate = '';
+    try {
+      dirnameToCreate = __dirname;
+    } catch (e) {
+      try {
+        // @ts-ignore because i don't care
+        dirnameToCreate = import.meta.dirname;
+      } catch (e) {
+        try {
+          // @ts-ignore because i don't care
+          dirnameToCreate = import.meta.url;
+          dirnameToCreate = dirnameToCreate.replace('file://', '');
+        } catch (e) {
+          throw new Error('Could not get dirname');
+        }
+      }
+    }
+    let jest;
+    try {
+      jest = require('jest');
+    } catch (e) {
+      jest = await import('jest');
+    }
     const [_, __, whereToCreateJestConfig, whereToCreateGlobalSetup] = await Promise.all([
-      std.mkdir(await std.join(__dirname, '.jest')),
-      std.mkdir(await std.join(__dirname, '.jest')),
-      std.join(__dirname, '.jest', 'jest.config.js'),
-      std.join(__dirname, '.jest', 'setup-jest.js')
+      std.mkdir(await std.join(dirnameToCreate, '.jest')),
+      std.mkdir(await std.join(dirnameToCreate, '.jest')),
+      std.join(dirnameToCreate, '.jest', 'jest.config.js'),
+      std.join(dirnameToCreate, '.jest', 'setup-jest.js')
     ]);
     await std.writeFile(whereToCreateGlobalSetup, globalSetupFunctionBody);
     defaultConfig.testRegex = filesToRun.concat(defaultConfig.testRegex || []);
     defaultConfig.setupFiles = [whereToCreateGlobalSetup].concat(defaultConfig.setupFiles || []);
     const defaultConfigAsString = JSON.stringify(defaultConfig, null, 2);
     await std.writeFile(whereToCreateJestConfig, `module.exports = ${defaultConfigAsString};`);
-    await runJest(['--config', whereToCreateJestConfig].concat(cliOptions));
+    await jest.run(['--config', whereToCreateJestConfig].concat(cliOptions));
     await Promise.all([std.removeFile(whereToCreateJestConfig), std.removeFile(whereToCreateGlobalSetup)]);
   }
 

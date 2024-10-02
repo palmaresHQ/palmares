@@ -1,6 +1,9 @@
 export class ModelNoUniqueFieldsError extends Error {
   constructor(modelName: string) {
-    super(`Model ${modelName} has no unique fields, it should have at least one unique field for `);
+    super(
+      `Model ${modelName} has no unique fields, it should have at least one unique field. ` +
+        `If it's an abstract model, you need to set "abstract" to true in the model options.`
+    );
     this.name = ModelNoUniqueFieldsError.name;
   }
 }

@@ -22,9 +22,12 @@ export const integerFieldParser = adapterIntegerFieldParser({
           defaultOptions.nullable !== true ? `.notNull()` : ''
         }${defaultOptions.unique ? `.unique()` : ''}`;
       case 'postgres':
-        return `d.${defaultOptions.autoincrement ? 'serial' : 'integer'}('${field.databaseName}')${defaultOptions.primaryKey ? '.primaryKey()' : ''}${
-          defaultOptions.default ? `.default(${defaultOptions.default})` : ''
-        }${defaultOptions.nullable !== true ? `.notNull()` : ''}${defaultOptions.unique ? `.unique()` : ''}`;
+        return (
+          `d.${defaultOptions.autoincrement ? 'serial' : 'integer'}` +
+          `('${field.databaseName}')${defaultOptions.primaryKey ? '.primaryKey()' : ''}${
+            defaultOptions.default ? `.default(${defaultOptions.default})` : ''
+          }${defaultOptions.nullable !== true ? `.notNull()` : ''}${defaultOptions.unique ? `.unique()` : ''}`
+        );
       default:
         return `d.int('${field.databaseName}')${
           defaultOptions.autoincrement ? '.autoIncrement()' : ''

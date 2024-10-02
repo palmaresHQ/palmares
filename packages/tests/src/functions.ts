@@ -1,5 +1,5 @@
 import { getExpect } from './expect';
-import { getTestAdapter } from './utils';
+import { getTestAdapter, getTestAdapterCustomProps } from './utils';
 
 import type { TestAdapter } from './adapter';
 import type { Expect } from './expect';
@@ -20,7 +20,7 @@ import type { Expect } from './expect';
  * @param callback The callback to run the tests, the callback will for convenience receive the
  * `test` function to run tests and the `custom` object that was passed to the test adapter
  */
-export function describe<TTestAdapter extends TestAdapter = TestAdapter>(
+export async function describe<TTestAdapter extends TestAdapter = TestAdapter>(
   descriptionName: string,
   callback: (
     args: {
@@ -28,19 +28,24 @@ export function describe<TTestAdapter extends TestAdapter = TestAdapter>(
       beforeEach: typeof beforeEach<TTestAdapter>;
       afterEach: typeof afterEach<TTestAdapter>;
     } & {
-      custom: ReturnType<TTestAdapter['getCustomProps']>;
+      custom: Awaited<ReturnType<TTestAdapter['getCustomProps']>>;
     }
   ) => void
 ) {
   const defaultTestAdapter = getTestAdapter();
-  defaultTestAdapter.functions.getDescribe(descriptionName, () => {
-    return callback({
-      test,
-      beforeEach,
-      afterEach,
-      custom: defaultTestAdapter.getCustomProps() as any
-    });
-  });
+  const custom = getTestAdapterCustomProps();
+  defaultTestAdapter.functions.getDescribe(
+    descriptionName,
+    () => {
+      return callback({
+        test,
+        beforeEach,
+        afterEach,
+        custom: custom
+      });
+    },
+    custom
+  );
 }
 
 /**
@@ -63,7 +68,7 @@ export function test<TTestAdapter extends TestAdapter = TestAdapter>(
     args: {
       expect: typeof expect;
     } & {
-      custom: ReturnType<TTestAdapter['getCustomProps']>;
+      custom: Awaited<ReturnType<TTestAdapter['getCustomProps']>>;
     }
   ) => Promise<void> | void
 ) {
@@ -93,13 +98,13 @@ export function test<TTestAdapter extends TestAdapter = TestAdapter>(
  * `custom` object that was passed to the test adapter
  */
 export function beforeEach<TTestAdapter extends TestAdapter = TestAdapter>(
-  callback: (args: { custom: ReturnType<TTestAdapter['getCustomProps']> }) => Promise<void> | void
+  callback: (args: { custom: Awaited<ReturnType<TTestAdapter['getCustomProps']>> }) => Promise<void> | void
 ) {
   const defaultTestAdapter = getTestAdapter();
   defaultTestAdapter.functions.getBeforeEach(async () =>
     Promise.resolve(
       callback({
-        custom: defaultTestAdapter.getCustomProps() as any
+        custom: (await defaultTestAdapter.getCustomProps()) as any
       })
     )
   );
@@ -119,7 +124,7 @@ export function beforeEach<TTestAdapter extends TestAdapter = TestAdapter>(
  * `custom` object that was passed to the test adapter
  */
 export function afterEach<TTestAdapter extends TestAdapter = TestAdapter>(
-  callback: (args: { custom: ReturnType<TTestAdapter['getCustomProps']> }) => Promise<void> | void
+  callback: (args: { custom: Awaited<ReturnType<TTestAdapter['getCustomProps']>> }) => Promise<void> | void
 ) {
   const defaultTestAdapter = getTestAdapter();
   defaultTestAdapter.functions.getAfterEach(async () =>
@@ -145,7 +150,7 @@ export function afterEach<TTestAdapter extends TestAdapter = TestAdapter>(
  * `custom` object that was passed to the test adapter
  */
 export function beforeAll<TTestAdapter extends TestAdapter = TestAdapter>(
-  callback: (args: { custom: ReturnType<TTestAdapter['getCustomProps']> }) => Promise<void> | void
+  callback: (args: { custom: Awaited<ReturnType<TTestAdapter['getCustomProps']>> }) => Promise<void> | void
 ) {
   const defaultTestAdapter = getTestAdapter();
   defaultTestAdapter.functions.getBeforeAll(async () =>
@@ -171,7 +176,7 @@ export function beforeAll<TTestAdapter extends TestAdapter = TestAdapter>(
  * `custom` object that was passed to the test adapter
  */
 export function afterAll<TTestAdapter extends TestAdapter = TestAdapter>(
-  callback: (args: { custom: ReturnType<TTestAdapter['getCustomProps']> }) => Promise<void> | void
+  callback: (args: { custom: Awaited<ReturnType<TTestAdapter['getCustomProps']>> }) => Promise<void> | void
 ) {
   const defaultTestAdapter = getTestAdapter();
   defaultTestAdapter.functions.getAfterAll(async () =>

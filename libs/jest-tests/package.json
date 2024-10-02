@@ -21,11 +21,13 @@
   "scripts": {
     "clear": "rimraf ./dist",
     "build:types": "tsc --project tsconfig.types.json",
-    "build:cjs:esm": "tsup ./src --out-dir ./dist/src --format cjs,esm --external jest --silent --no-splitting",
+    "build:cjs": "tsup ./src --out-dir ./dist/src --format cjs --external jest --silent --no-splitting",
+    "build:esm": "tsup ./src --config tsup.esm.config.ts --out-dir ./dist/src --format esm --external jest --silent --no-splitting",
     "build": "pnpm run clear && pnpm run build:cjs:esm && pnpm run build:types",
     "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
-    "build:cjs:esm:watch": "tsup ./src --out-dir ./dist/src --format cjs,esm --external jest --watch --silent --no-splitting",
-    "build:watch": "pnpm run build:cjs:esm:watch & pnpm run build:types:watch"
+    "build:cjs:watch": "tsup ./src --out-dir ./dist/src --format cjs --watch --silent --no-splitting",
+    "build:esm:watch": "tsup ./src  --config tsup.esm.config.ts --out-dir ./dist/src --format esm --watch --silent --no-splitting",
+    "build:watch": "pnpm run build:esm:watch & pnpm run build:cjs:watch & pnpm run build:types:watch"
   },
   "type": "module",
   "repository": {
@@ -44,12 +46,10 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
-    "@types/jest": "^29.5.12",
-    "@palmares/tests": "workspace:*"
-  },
-  "devDependencies": {
-    "@babel/preset-env": "^7.25.0",
+    "@palmares/tests": "workspace:*",
     "@jest/globals": "^29.7.0",
+    "@babel/preset-env": "^7.25.0",
+    "@types/jest": "^29.5.12",
     "babel-jest": "^29.7.0",
     "jest": "^29.7.0",
     "ts-jest": "^29.2.3"

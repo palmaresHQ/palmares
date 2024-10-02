@@ -95,8 +95,6 @@ export type AdapterFieldParserTranslateArgs<
   fieldParser: TFieldParser;
   /** The name of the model */
   modelName: string;
-  /** The Palmares model instance. */
-  model: ReturnType<BaseModel['__getModelAttributes']>;
   /** The lazy evaluate function that you can call to evaluate something after the model was translated. */
   lazyEvaluate: (translatedField: TLazyTranslatedFieldArg) => void;
 };
