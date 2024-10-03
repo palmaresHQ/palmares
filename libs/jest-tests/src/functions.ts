@@ -1,16 +1,14 @@
 import { TestFunctionsAdapter } from '@palmares/tests';
 
-import type { CustomData } from './types';
-
 export class JestTestFunctionsAdapter extends TestFunctionsAdapter {
-  getDescribe(descriptionName: string, callback: () => void, custom: CustomData) {
+  getDescribe(descriptionName: string, callback: () => void) {
     const describe = require('@jest/globals').describe;
     describe(descriptionName, () => {
       callback();
     });
   }
 
-  getTest(testName: string, callback: () => Promise<void>, custom: CustomData): void {
+  getTest(testName: string, callback: () => Promise<void>): void {
     const test = require('@jest/globals').test;
     test(testName, async () => {
       await callback();

@@ -41,11 +41,11 @@ export const Company = define('Company', {
     uuid: UuidField.new().autoGenerate(),
     name: CharField.new({ maxLen: 255 })
   },
+  abstracts: [CompanyAbstract],
   options: {
     tableName: 'companies'
     //instance: DCompany
   },
-  abstracts: [CompanyAbstract],
   managers: {
     test: {
       async test(name: string) {
@@ -70,13 +70,6 @@ export class User extends Model<User>() {
     companyId: ForeignKeyField.new({
       onDelete: ON_DELETE.CASCADE,
       relatedName: 'usersOfCompany',
-      relationName: 'company',
-      toField: 'id',
-      relatedTo: 'Company'
-    }),
-    company2Id: ForeignKeyField.new({
-      onDelete: ON_DELETE.CASCADE,
-      relatedName: 'usersOfCompany2',
       relationName: 'company',
       toField: 'id',
       relatedTo: 'Company'

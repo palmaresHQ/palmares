@@ -7,7 +7,7 @@ import { getQuery } from '../queries/get';
 import { removeQuery } from '../queries/remove';
 import { setQuery } from '../queries/set';
 
-import type { Model, ModelType } from './model';
+import type { BaseModel, Model, ModelType } from './model';
 import type { QuerySet } from './queryset';
 import type { ManagerEngineInstancesType, ManagerInstancesType } from './types';
 import type { DatabaseAdapter } from '../engine';
@@ -70,7 +70,7 @@ export class Manager<
   }
 > {
   protected $$type = '$PManager';
-  protected __instances: ManagerInstancesType;
+  protected __instances: ManagerInstancesType = {};
   protected __engineInstances: ManagerEngineInstancesType;
   protected __defaultEngineInstanceName: string;
   protected __models: { [engineName: string]: TModel };
@@ -107,12 +107,20 @@ export class Manager<
 
     if (canInitializeTheModels) {
       const settings = getSettings() as unknown as DatabaseSettingsType;
-      const { domains } = await initializeDomains(settings as unknown as SettingsType2);
+      // Testing environments does not share the same global data. So we need to refetch it again.
+      const { domains } = await initializeDomains(
+        settings as unknown as SettingsType2,
+        (settings as any)?.$$test
+          ? {
+              ignoreCache: true,
+              ignoreCommands: true
+            }
+          : undefined
+      );
       await database.lazyInitializeEngine(engineName, settings, domains as DatabaseDomainInterface[]);
       return true;
     }
-
-    return await await new Promise((resolve) => {
+    return new Promise((resolve) => {
       const verifyIfInitialized = () => {
         const doesInstanceExists = (this.__instances as any)[engineName] !== undefined;
         if (doesInstanceExists) return resolve(true);
@@ -165,7 +173,9 @@ export class Manager<
     const engineInstanceName: string = engineName || this.__defaultEngineInstanceName;
     const doesInstanceExists = (this.__engineInstances as any)[engineInstanceName] !== undefined;
     if (doesInstanceExists) return this.__engineInstances[engineInstanceName] as TDatabaseAdapter;
+
     const hasLazilyInitialized = await this.__verifyIfNotInitializedAndInitializeModels(engineInstanceName);
+
     if (hasLazilyInitialized) return this.getEngineInstance(engineName);
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }
@@ -223,30 +233,14 @@ export class Manager<
     const isValidEngineName = typeof args?.engineName === 'string' && args.engineName !== '';
     const engineInstanceName = isValidEngineName ? args.engineName : this.__defaultEngineInstanceName;
     const engineInstance = await this.getEngineInstance(engineInstanceName);
-
     const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName = (
       isValidEngineName ? args.engineName : this.__defaultEngineInstanceName
     ) as string;
 
     const modelInstance = this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName) as Model;
-    const modelConstructor = modelInstance.constructor as ModelType<any, any>;
-    const allFieldsOfModel = Object.keys((modelConstructor as any)._fields(modelInstance));
-    const data = callback(new GetQuerySet('get'))['__getQueryFormatted']();
-
-    return getQuery(
-      {
-        fields: data?.fields || allFieldsOfModel,
-        search: data?.search || {},
-        ordering: data?.ordering || (modelInstance.options?.ordering as any),
-        limit: data?.limit,
-        offset: data?.offset
-      },
-      {
-        model: this.__models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName],
-        engine: engineInstance,
-        includes: data?.includes || []
-      }
-    ) as any;
+    const modelConstructor = modelInstance.constructor as typeof Model & typeof BaseModel & ModelType<any, any>;
+    const data = callback(new GetQuerySet('get'))['__queryTheData'](modelConstructor, engineInstance);
+    return data as any;
   }
 
   async set<

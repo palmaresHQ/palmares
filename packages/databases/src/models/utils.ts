@@ -306,6 +306,7 @@ export async function initializeModels(
   engine: DatabaseAdapter,
   models: (ModelType<any, any> & typeof BaseModel & typeof Model)[]
 ) {
+  console.log('Initialize Models out of Database');
   const recursiveOptionsToEvaluateModels: {
     forceTranslation?: boolean;
   }[] = [{}];

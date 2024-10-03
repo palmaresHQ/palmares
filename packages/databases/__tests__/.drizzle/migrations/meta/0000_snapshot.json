@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "7e0c5f10-006e-43b6-9beb-d589600960e4",
+  "id": "ba18f2e0-9367-47b6-bf4b-830d43771bb0",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "companies": {
@@ -13,6 +13,13 @@
           "primaryKey": true,
           "notNull": true,
           "autoincrement": true
+        },
+        "uuid": {
+          "name": "uuid",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
         },
         "name": {
           "name": "name",
@@ -68,7 +75,7 @@
         },
         "name": {
           "name": "name",
-          "type": "text(255)",
+          "type": "text(280)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -85,8 +92,7 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "'admin'"
+          "autoincrement": false
         },
         "price": {
           "name": "price",
@@ -117,13 +123,6 @@
           "notNull": true,
           "autoincrement": false
         },
-        "address": {
-          "name": "address",
-          "type": "text(255)",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "company_id": {
           "name": "company_id",
           "type": "integer",
@@ -137,13 +136,6 @@
           "name": "users_id_unique",
           "columns": [
             "id"
-          ],
-          "isUnique": true
-        },
-        "users_uuid_unique": {
-          "name": "users_uuid_unique",
-          "columns": [
-            "uuid"
           ],
           "isUnique": true
         },

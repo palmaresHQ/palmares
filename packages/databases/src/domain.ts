@@ -79,9 +79,10 @@ export const databasesDomain = domain('@palmares/database', '', {
   },
   // eslint-disable-next-line ts/require-await
   load: async (_: DatabaseSettingsType) => {
+    // eslint-disable-next-line ts/require-await
     return async (options: DomainReadyFunctionArgs<DatabaseSettingsType, any>) => {
       const databaseDomains = options.domains as DatabaseDomainInterface[];
-      await loadDatabases(databaseDomains);
+      loadDatabases(databaseDomains);
     };
   },
   ready: async (options: DomainReadyFunctionArgs<DatabaseSettingsType, any>) => {

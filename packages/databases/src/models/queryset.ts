@@ -1,4 +1,5 @@
 import { MissingWhereClauseException } from './exceptions';
+import { parseSearch } from '../queries/search';
 
 import type {
   AutoField,
@@ -16,7 +17,6 @@ import type {
 } from './fields';
 import type { BaseModel, Model, ModelType } from './model';
 import type { DatabaseAdapter } from '../engine';
-import { parseSearch } from '../queries/search';
 
 type ModelsFields<TModel> = TModel extends ModelType<{ fields: infer TFields }, any> | { fields: infer TFields }
   ? TFields
@@ -249,15 +249,69 @@ type ReturnTypeOfBaseQuerySetMethods<
   TIsJoin extends boolean = false,
   TAlreadyDefinedRelations = never
 > = TType extends 'set'
-  ? SetQuerySet<TType, TModel, TResult, TUpdate, TCreate, TSearch, TOrder, THasSearch, TIsJoin, TAlreadyDefinedRelations>
+  ? SetQuerySet<
+      TType,
+      TModel,
+      TResult,
+      TUpdate,
+      TCreate,
+      TSearch,
+      TOrder,
+      THasSearch,
+      TIsJoin,
+      TAlreadyDefinedRelations
+    >
   : TType extends 'remove'
-    ? RemoveQuerySet<TType, TModel, TResult, TUpdate, TCreate, TSearch, TOrder, THasSearch, TIsJoin, TAlreadyDefinedRelations>
+    ? RemoveQuerySet<
+        TType,
+        TModel,
+        TResult,
+        TUpdate,
+        TCreate,
+        TSearch,
+        TOrder,
+        THasSearch,
+        TIsJoin,
+        TAlreadyDefinedRelations
+      >
     : TIsJoin extends true
-    ? THasSearch extends true
-      ? GetQuerySetIfSearchOnJoin<TType, TModel, TResult, TUpdate, TCreate, TSearch, TOrder, THasSearch, TIsJoin, TAlreadyDefinedRelations>
-    : GetQuerySet<TType, TModel, TResult, TUpdate, TCreate, TSearch, TOrder, THasSearch, TIsJoin, TAlreadyDefinedRelations>
-    : GetQuerySet<TType, TModel, TResult, TUpdate, TCreate, TSearch, TOrder, THasSearch, TIsJoin, TAlreadyDefinedRelations>;
-
+      ? THasSearch extends true
+        ? GetQuerySetIfSearchOnJoin<
+            TType,
+            TModel,
+            TResult,
+            TUpdate,
+            TCreate,
+            TSearch,
+            TOrder,
+            THasSearch,
+            TIsJoin,
+            TAlreadyDefinedRelations
+          >
+        : GetQuerySet<
+            TType,
+            TModel,
+            TResult,
+            TUpdate,
+            TCreate,
+            TSearch,
+            TOrder,
+            THasSearch,
+            TIsJoin,
+            TAlreadyDefinedRelations
+          >
+      : GetQuerySet<
+          TType,
+          TModel,
+          TResult,
+          TUpdate,
+          TCreate,
+          TSearch,
+          TOrder,
+          THasSearch,
+          TIsJoin,
+          TAlreadyDefinedRelations
+        >;
 
 export class QuerySet<
   TType extends 'get' | 'set' | 'remove',
@@ -562,6 +616,36 @@ export class QuerySet<
   ) {
     const baseModelAsModel = model as typeof BaseModel & typeof Model & ModelType<any, any>;
     baseModelAsModel['_fields']();
+
+    const queryTheDatabase = async (
+      model: typeof BaseModel & typeof Model & ModelType<any, any>,
+      queryset: QuerySet<any, any, any, any, any, any, any, any, any, any>
+    ) => {
+      const query: any = {};
+
+      const translatedModel = await model.default.getInstance(engine.connectionName);
+      if (queryset['__query'].fields) query['fields'] = queryset['__query'].fields();
+      if (queryset['__query'].orderBy) query['ordering'] = queryset['__query'].orderBy();
+      if (queryset['__query'].limit) query['limit'] = queryset['__query'].limit();
+      if (queryset['__query'].offset) query['offset'] = queryset['__query'].offset();
+      if (queryset['__query'].where) {
+        query['search'] = await parseSearch(
+          engine,
+          new baseModelAsModel() as any,
+          translatedModel,
+          queryset['__query'].where()
+        );
+      }
+
+      return engine.query.get.queryData(engine, {
+        modelOfEngineInstance: translatedModel,
+        search: query['search'],
+        fields: query['fields'],
+        ordering: query['ordering'],
+        limit: query['limit'],
+        offset: query['offset']
+      });
+    };
     const toQueryAfterBase = [];
     const toQueryBeforeBase = [];
     const indirectlyRelatedToRun = [];
@@ -610,8 +694,8 @@ export class QuerySet<
         ? baseModelAsModel['__associations'][joinedModelName].byRelationName.get(relationOrRelatedName)?.['__toField']
         : baseModelAsModel['__associations'][joinedModelName].byRelatedName.get(relationOrRelatedName)?.['__fieldName'];
       const fromCurrentModelsFieldData = isDirectlyRelated
-      ? baseModelAsModel['__associations'][joinedModelName].byRelationName.get(relationOrRelatedName)?.['__fieldName']
-      : baseModelAsModel['__associations'][joinedModelName].byRelatedName.get(relationOrRelatedName)?.['__toField'];
+        ? baseModelAsModel['__associations'][joinedModelName].byRelationName.get(relationOrRelatedName)?.['__fieldName']
+        : baseModelAsModel['__associations'][joinedModelName].byRelatedName.get(relationOrRelatedName)?.['__toField'];
 
       const hasSearch = typeof querySet['__query'].where === 'function';
       if (hasSearch)
@@ -632,32 +716,13 @@ export class QuerySet<
         });
     }
 
-    const query: any = {};
-
     if (toQueryBeforeBase.length > 0) {
-      const {
-        relationOrRelatedName,
-        fieldNameOnRelationToFilter,
-        fromCurrentModelsFieldData,
-        joinedModel,
-        querySet
-      } = toQueryBeforeBase[0];
+      const { relationOrRelatedName, fieldNameOnRelationToFilter, fromCurrentModelsFieldData, joinedModel, querySet } =
+        toQueryBeforeBase[0];
       const nestedQueryData = await querySet.__queryTheData(joinedModel, engine);
     }
-    if (this.__query.fields) query['fields'] = this.__query.fields();
-    if (this.__query.orderBy) query['ordering'] = this.__query.orderBy();
-    if (this.__query.limit) query['limit'] = this.__query.limit();
-    if (this.__query.offset) query['offset'] = this.__query.offset();
-    if (this.__query.where) {
-      query['search'] = await parseSearch(
-        engine,
-        new baseModelAsModel() as any,
-        await baseModelAsModel.default.getInstance(engine.connectionName),
-        this.__query.where(),
-      );
-    }
 
-
+    return queryTheDatabase(baseModelAsModel, this);
   }
 
   protected __getQueryFormatted() {
@@ -732,18 +797,28 @@ export class QuerySet<
 }
 
 export class GetQuerySetIfSearchOnJoin<
-TType extends 'get' | 'set' | 'remove',
-TModel,
-TResult = GetDataFromModel<TModel, 'read'>,
-TUpdate = Partial<GetDataFromModel<TModel, 'update'>>,
-TCreate = GetDataFromModel<TModel, 'create'>,
-TSearch = Partial<GetDataFromModel<TModel, 'read', true>>,
-TOrder = GetDataFromModel<TModel>,
-THasSearch extends boolean = false,
-TIsJoin extends boolean = false,
-TAlreadyDefinedRelations = never
-> extends QuerySet<TType, TModel, TResult, TUpdate, TCreate, TSearch, TOrder, THasSearch, TIsJoin, TAlreadyDefinedRelations> {
-
+  TType extends 'get' | 'set' | 'remove',
+  TModel,
+  TResult = GetDataFromModel<TModel, 'read'>,
+  TUpdate = Partial<GetDataFromModel<TModel, 'update'>>,
+  TCreate = GetDataFromModel<TModel, 'create'>,
+  TSearch = Partial<GetDataFromModel<TModel, 'read', true>>,
+  TOrder = GetDataFromModel<TModel>,
+  THasSearch extends boolean = false,
+  TIsJoin extends boolean = false,
+  TAlreadyDefinedRelations = never
+> extends QuerySet<
+  TType,
+  TModel,
+  TResult,
+  TUpdate,
+  TCreate,
+  TSearch,
+  TOrder,
+  THasSearch,
+  TIsJoin,
+  TAlreadyDefinedRelations
+> {
   select<const TFields extends (keyof GetDataFromModel<TModel>)[]>(
     fields: TFields
   ): ReturnTypeOfBaseQuerySetMethods<
@@ -813,10 +888,22 @@ export class GetQuerySet<
   TOrder,
   THasSearch,
   TIsJoin,
-  TAlreadyDefinedRelations> {
+  TAlreadyDefinedRelations
+> {
   orderBy(
     ordering: OrderingOfFields<keyof TOrder extends string ? keyof TOrder : never>
-  ): GetQuerySet<TType, TModel, TResult, TUpdate, TCreate, TSearch, TOrder, THasSearch, TIsJoin, TAlreadyDefinedRelations> {
+  ): GetQuerySet<
+    TType,
+    TModel,
+    TResult,
+    TUpdate,
+    TCreate,
+    TSearch,
+    TOrder,
+    THasSearch,
+    TIsJoin,
+    TAlreadyDefinedRelations
+  > {
     const newQuerySet = new GetQuerySet<
       TType,
       TModel,
@@ -843,7 +930,18 @@ export class GetQuerySet<
 
   limit(
     limit: number
-  ): GetQuerySet<TType, TModel, TResult, TUpdate, TCreate, TSearch, TOrder, THasSearch, TIsJoin, TAlreadyDefinedRelations> {
+  ): GetQuerySet<
+    TType,
+    TModel,
+    TResult,
+    TUpdate,
+    TCreate,
+    TSearch,
+    TOrder,
+    THasSearch,
+    TIsJoin,
+    TAlreadyDefinedRelations
+  > {
     const newQuerySet = new GetQuerySet<
       TType,
       TModel,
@@ -867,7 +965,18 @@ export class GetQuerySet<
 
   offset(
     offset: number
-  ): GetQuerySet<TType, TModel, TResult, TUpdate, TCreate, TSearch, TOrder, THasSearch, TIsJoin, TAlreadyDefinedRelations> {
+  ): GetQuerySet<
+    TType,
+    TModel,
+    TResult,
+    TUpdate,
+    TCreate,
+    TSearch,
+    TOrder,
+    THasSearch,
+    TIsJoin,
+    TAlreadyDefinedRelations
+  > {
     const newQuerySet = new GetQuerySet<
       TType,
       TModel,
@@ -901,11 +1010,33 @@ export class SetQuerySet<
   THasSearch extends boolean = false,
   TIsJoin extends boolean = false,
   TAlreadyDefinedRelations = never
-> extends QuerySet<TType, TModel, TResult, TUpdate, TCreate, TSearch, TOrder, THasSearch, TIsJoin, TAlreadyDefinedRelations> {
+> extends QuerySet<
+  TType,
+  TModel,
+  TResult,
+  TUpdate,
+  TCreate,
+  TSearch,
+  TOrder,
+  THasSearch,
+  TIsJoin,
+  TAlreadyDefinedRelations
+> {
   data(
     data: THasSearch extends true ? TUpdate : TCreate,
     force?: boolean
-  ): SetQuerySet<'set', TModel, TResult, TUpdate, TCreate, TSearch, TOrder, THasSearch, TIsJoin, TAlreadyDefinedRelations> {
+  ): SetQuerySet<
+    'set',
+    TModel,
+    TResult,
+    TUpdate,
+    TCreate,
+    TSearch,
+    TOrder,
+    THasSearch,
+    TIsJoin,
+    TAlreadyDefinedRelations
+  > {
     const newQuerySet = new SetQuerySet<
       TType,
       TModel,
@@ -968,7 +1099,18 @@ export class RemoveQuerySet<
   THasSearch extends boolean = false,
   TIsJoin extends boolean = false,
   TAlreadyDefinedRelations = never
-> extends QuerySet<TType, TModel, TResult, TUpdate, TCreate, TSearch, TOrder, THasSearch, TIsJoin, TAlreadyDefinedRelations> {
+> extends QuerySet<
+  TType,
+  TModel,
+  TResult,
+  TUpdate,
+  TCreate,
+  TSearch,
+  TOrder,
+  THasSearch,
+  TIsJoin,
+  TAlreadyDefinedRelations
+> {
   remove(
     force?: boolean
   ): RemoveQuerySet<

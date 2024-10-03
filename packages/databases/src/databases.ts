@@ -20,7 +20,7 @@ import type { EventEmitter } from '@palmares/events';
 
 declare global {
   // eslint-disable-next-line no-var
-  var $PDatabaseInstance: Databases;
+  var $PDatabaseInstance: Databases | undefined;
 }
 
 export class Databases {
@@ -29,13 +29,14 @@ export class Databases {
   isInitialized = false;
   initializedEngineInstances: Partial<InitializedEngineInstancesType> = {};
   obligatoryModels: ReturnType<typeof model>[] = [];
+  managers = new Map<any, any>();
   #cachedModelsByModelName: {
     [modelName: string]: FoundModelType;
   } = {};
 
   constructor() {
-    // eslint-disable-next-line ts/no-unnecessary-condition
     if (globalThis.$PDatabaseInstance) return globalThis.$PDatabaseInstance;
+    // eslint-disable-next-line ts/no-unnecessary-condition
     globalThis.$PDatabaseInstance = this;
   }
 
@@ -61,7 +62,6 @@ export class Databases {
     if (this.isInitialized === false && this.isInitializing === false) {
       // eslint-disable-next-line ts/no-unnecessary-condition
       const isDatabaseDefined: boolean = settings.databases !== undefined && typeof settings.databases === 'object';
-
       const engineNameToUse: string | undefined =
         // eslint-disable-next-line ts/no-unnecessary-condition
         engineName === '' ? Object.keys(settings.databases || {})[0] : engineName;

@@ -1,6 +1,9 @@
+import { getSettings, initializeDomains } from 'packages/core/dist/src';
+
 import { ModelCircularAbstractError, ModelNoUniqueFieldsError } from './exceptions';
 import { DefaultManager, Manager } from './manager';
 import { factoryFunctionForModelTranslate, getDefaultModelOptions, indirectlyRelatedModels } from './utils';
+import { Databases } from '..';
 import { getUniqueCustomImports, hashString } from '../utils';
 
 import type { Field, ForeignKeyField } from './fields';
@@ -14,6 +17,11 @@ import type {
 } from './types';
 import type { DatabaseAdapter } from '../engine';
 import type { ExtractFieldsFromAbstracts, ExtractManagersFromAbstracts } from '../types';
+
+declare global {
+  // eslint-disable-next-line no-var
+  var $PManagers: Map<string, Manager<any, any>> | undefined;
+}
 
 export class BaseModel {
   protected static $$type = '$PModel';
@@ -87,9 +95,9 @@ export class BaseModel {
   ) {
     const modelConstructor = this.constructor as unknown as typeof Model & typeof BaseModel;
     const managers: ManagersOfInstanceType = modelConstructor['__getManagers']();
-    const managerValues = Object.values(managers);
+    const managerEntries = Object.entries(managers);
 
-    for (const manager of managerValues) {
+    for (const [managerName, manager] of managerEntries) {
       manager['__setModel'](engineInstance.connectionName, modelInstance);
       manager['__setInstance'](engineInstance.connectionName, translatedModelInstance);
       manager['__setEngineInstance'](engineInstance.connectionName, engineInstance);
@@ -168,6 +176,7 @@ export class BaseModel {
       forceTranslate?: boolean;
     }
   ) {
+    console.log('Model init');
     if (this.__initialized[engineInstance.connectionName]) return this.__initialized[engineInstance.connectionName];
 
     const currentPalmaresModelInstance = new this() as Model & BaseModel;
@@ -265,8 +274,9 @@ export class BaseModel {
         if (!(prototype.prototype instanceof Model)) break;
         const propertyNamesOfModel = Object.getOwnPropertyNames(prototype);
         for (const propName of propertyNamesOfModel) {
-          const value = (prototype as any)[propName];
-          if ((value as Manager)['$$type'] === '$PManager') managers[propName] = value;
+          const value = (this as any)[propName];
+
+          if (value && (value as Manager)['$$type'] === '$PManager') managers[propName] = value;
         }
         prototype = Object.getPrototypeOf(prototype);
       }
@@ -680,9 +690,7 @@ export function model<
     customOptions: any;
   }
 >(): ModelType<TModel, TDefinitions> {
-  let defaultManagerInstance: any = null;
-
-  class BaseDefaultModel extends Model {
+  class DefaultModel extends Model {
     protected static $$type = '$PModel';
     protected static __isState = false;
     // It would be kinda bad on performance if we always looped through all of the fields of a model to parse them.
@@ -709,17 +717,8 @@ export function model<
     protected static __hasLoadedManagers = false;
     protected static __hasLoadedAbstracts = false;
     protected static __initialized: { [engineName: string]: any } = {};
-  }
-  class DefaultModel extends BaseDefaultModel {
-    protected static $$type = '$PModel';
 
-    static get default() {
-      if (defaultManagerInstance === null) {
-        defaultManagerInstance = new DefaultManager<TModel extends DefaultModel ? TModel : any>();
-        defaultManagerInstance.modelKls = this;
-      }
-      return defaultManagerInstance as DefaultManager<TModel extends DefaultModel ? TModel : any>;
-    }
+    static default = new DefaultManager<TModel extends DefaultModel ? TModel : any>();
 
     /**
      * This will append fields to the current model. It is useful for extending the models so you can
@@ -756,9 +755,19 @@ export function model<
     }
   }
 
-  return DefaultModel as any;
+  return new Proxy(DefaultModel, {
+    get: (_, prop, receiver) => {
+      const dataToGet = (DefaultModel as any)[prop] as unknown as any;
+      if (dataToGet && dataToGet['$$type'] === '$PManager') {
+        /*if (databases.managers.has(`${modelName}/${prop as string}`))
+          return databases.managers.get(`${modelName}/${prop as string}`);
+        databases.managers.set(`${modelName}/${prop as string}`, dataToGet);*/
+        return dataToGet;
+      }
+      return (DefaultModel as any)[prop] as unknown as any;
+    }
+  }) as any;
 }
-
 /**
  * Used for creating a model from a function instead of needing to define a class.
  */
@@ -816,8 +825,6 @@ export function initialize<
       options: TOptions;
     }
   >() {
-    // @ts-ignore To function correctly we need this
-    protected static name = modelName;
     protected static __isState = false;
     // It would be kinda bad on performance if we always looped through all of the fields of a model to parse them.
     // So we store the fields that have parsers here and we will
@@ -848,6 +855,33 @@ export function initialize<
     protected static __cachedOriginalName = modelName;
     protected static __cachedManagers = {};
 
+    protected static __originalName() {
+      if (typeof this.__cachedOriginalName === 'string') return this.__cachedOriginalName;
+
+      if (this.__isState) this.__cachedOriginalName = modelName;
+      else
+        (this as any).__cachedOriginalName = (typeof this.__originalName === 'string'
+          ? this.__originalName
+          : modelName) as unknown as string;
+      return this.__cachedOriginalName;
+    }
+
+    /**
+     * We use this so the name of the models does not clash with the original ones during migration.
+     * During migration we will have 2 instances of the same model running at the
+     * same time:
+     *
+     * 1. The state model, built from the migration files.
+     * 2. The original model.
+     */
+    protected static __getName() {
+      if (typeof this.__cachedName === 'string') return this.__cachedName;
+
+      if (this.__isState) (this as any).__cachedName = `State${modelName}`;
+      else this.__cachedName = modelName;
+      return this.__cachedName;
+    }
+
     fields = args.fields as ModelFields;
     options = args.options as TOptions;
     abstracts = args.abstracts || [];
@@ -871,173 +905,3 @@ export function initialize<
 
   return ModelConstructor as any;
 }
-
-/*
-class Test extends Manager {
-  createUser(aqui: string) {
-    //return this.get({ fields: ['firstName'] });
-  }
-}
-
-class Profile extends model<Profile>() {
-  fields = {
-    id: AutoField.new(),
-    type: CharField.new({ maxLen: 12 })
-  };
-
-  options = {
-    tableName: 'profile'
-  };
-}
-
-const Contract = initialize('Contract', {
-  fields: {
-    id: AutoField.new(),
-    name: CharField.new({ maxLen: 12 })
-  },
-  options: {
-    tableName: 'contract'
-  }
-});
-
-class User extends model<User, any>() {
-  fields = {
-    firstName: TextField.new()
-  };
-
-  static test = new Test();
-}
-
-const User2 = initialize('User', {
-  fields: {
-    firstName: TextField.new()
-  },
-  managers: {
-    test: new Test()
-  }
-});
-
-const baseUserInstance = initialize('User', {
-  fields: {
-    lastName: CharField.new({ maxLen: 12 }).allowNull(),
-    profileId: ForeignKeyField.new({
-      onDelete: ON_DELETE.CASCADE,
-      relatedName: 'usersOfProfile',
-      relationName: 'profile',
-      relatedTo: () => Profile,
-      toField: 'id'
-    })
-      .allowNull(true)
-      .unique(true),
-    contractId: ForeignKeyField.new({
-      onDelete: ON_DELETE.CASCADE,
-      relatedName: 'usersOfContract',
-      relationName: 'contract',
-      relatedTo: () => Contract,
-      toField: 'id'
-    }),
-    contractorId: ForeignKeyField.new({
-      onDelete: ON_DELETE.CASCADE,
-      relatedName: 'usersOfContractor',
-      relationName: 'contractor',
-      relatedTo: () => Contract,
-      toField: 'id'
-    })
-  },
-  options: {
-    tableName: 'user'
-  },
-  abstracts: [User2]
-});*/
-// API 1
-
-/*
-const test = await Profile.default.get((qs) =>
-  qs.join(baseUserInstance, 'usersOfProfile', (qs) => qs.select(['firstName']))
-);
-//.includes(baseUserInstance, 'usersOfProfile', (qb) => qb.fields(['firstName']))
-//.result();
-
-const test2 = await baseUserInstance.default.get((qs) => {
-  const newQs = qs
-    .select(['firstName'])
-    .orderBy(['firstName'])
-    .where({
-      firstName: {
-        in: ['asdas', 'test']
-      }
-    });
-
-  return newQs;
-});
-test.usersOfProfile.firstName;
-*/
-//Profile.default.get.fields(['id']);
-/*
-baseUserInstance.default
-  .get({
-    fields: [''],
-    includes: [
-      {
-        model: Profile
-      },
-      {
-        model: Contract,
-        relationNames: ['contract']
-      }
-    ]
-  })
-  .then((resp) => {
-    resp[0].contract.id;
-  });
-
-baseUserInstance.default
-  .get({
-    includes: [
-      {
-        model: Profile
-      }
-    ]
-  })
-  .then((resp) => {
-    resp[0].contractor.id;
-  });
-
-Profile.default.set({
-  type: 'test',
-  id: 1
-});
-
-Profile.default
-  .get({
-    fields: ['id']
-  })
-  .then((resp) => {
-    resp[0].id;
-  });
-
-Profile.default.get().then((resp) => {
-  resp[0].type;
-});
-
-Profile.default
-  .get({
-    includes: [
-      {
-        model: baseUserInstance
-      }
-    ]
-  })
-  .then((resp) => {
-    resp[0].type;
-  });
-  */
-/*
-baseUserInstance.default
-.set({
-
-})
-.then((resp) => {
-  resp[0].
-});
-*/

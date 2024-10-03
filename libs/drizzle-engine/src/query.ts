@@ -32,9 +32,16 @@ import {
 const getQuery = adapterGetQuery({
   // eslint-disable-next-line ts/require-await
   queryData: async (engine, args) => {
-    const searchAsObjectValues = Object.values(args.search) as any;
-    let query = engine.instance.instance.select().from(args.modelOfEngineInstance);
-    if (searchAsObjectValues.length > 0) query = query.where(and(...(Object.values(args.search) as any)));
+    const selectArgs =
+      Array.isArray(args.fields) && args.fields.length > 0
+        ? args.fields.reduce((acc, field) => ({ ...acc, [field]: args.modelOfEngineInstance[field] }), {})
+        : undefined;
+    let query = engine.instance.instance.select(selectArgs).from(args.modelOfEngineInstance);
+
+    if (args.search) {
+      const searchAsObjectValues = Object.values(args.search) as any;
+      if (searchAsObjectValues.length > 0) query = query.where(and(...searchAsObjectValues));
+    }
     if (typeof args.limit === 'number') query = query.limit(args.limit);
     if (typeof args.offset === 'number') query = query.offset(args.offset);
     if ((args.ordering || []).length > 0) query = query.orderBy(...(args.ordering || []));

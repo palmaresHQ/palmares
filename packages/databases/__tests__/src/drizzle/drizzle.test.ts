@@ -1,16 +1,15 @@
-//import jestGlobals from '@jest/globals'; //const describe = require('@jest/globals').describe;
-import { describe, test } from '@palmares/tests';
+import { describe } from '@palmares/tests';
 
 import { Company, User } from '../drizzle/models';
 
 //const test = require('@jest/globals').test;
-
-describe('drizzle models', () => {
-  test('test', async () => {
-    console.log('aquiii');
-    //const company = await Company.default.get((qs) => qs.where({ name: 'test' }));
+describe('drizzle models', ({ test }) => {
+  test('test', async ({ expect }) => {
+    const company = await Company.default.get((qs) => qs.select(['name', 'address']));
+    console.log(company);
   });
-  /*test('its limiting the query', async ({ expect }) => {
+});
+/*test('its limiting the query', async ({ expect }) => {
     await Company.default.set((qs) => qs.data({ id: undefined, name: 'test', address: 'test' }))
     await Company.default.set((qs) => qs.data({ id: undefined, name: 'test', address: 'test' }))
 
@@ -78,4 +77,4 @@ describe('drizzle models', () => {
     const data = await Company.default.set({ name: 'test', address: null, translatable: 12 });
     expect(data[0].address).toBe(null);
   });*/
-});
+//});

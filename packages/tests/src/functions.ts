@@ -20,7 +20,7 @@ import type { Expect } from './expect';
  * @param callback The callback to run the tests, the callback will for convenience receive the
  * `test` function to run tests and the `custom` object that was passed to the test adapter
  */
-export async function describe<TTestAdapter extends TestAdapter = TestAdapter>(
+export function describe<TTestAdapter extends TestAdapter = TestAdapter>(
   descriptionName: string,
   callback: (
     args: {

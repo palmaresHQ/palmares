@@ -5,13 +5,14 @@ import { PALMARES_SETTINGS_MODULE_ENVIRONMENT_VARIABLE } from '../utils';
 import type { SettingsType2 } from './types';
 import type { Std } from '../std-adapter';
 
+let $PCachedSettings: SettingsType2 | undefined;
 declare global {
   // eslint-disable-next-line no-var
   var $PCachedSettings: SettingsType2 | undefined;
 }
 
 export function getSettings() {
-  if (globalThis.$PCachedSettings) return globalThis.$PCachedSettings;
+  if ($PCachedSettings) return $PCachedSettings;
 }
 
 /**
@@ -27,7 +28,7 @@ async function extractSettingsFromPath(stdToUse: Std, path?: string) {
 
   if (!pathToUse) throw new SettingsNotFoundException();
   try {
-    globalThis.$PCachedSettings = ((await import(pathToUse)) as { default: SettingsType2 }).default;
+    $PCachedSettings = ((await import(pathToUse)) as { default: SettingsType2 }).default;
   } catch (e) {
     throw new SettingsNotFoundException();
   }
@@ -64,7 +65,7 @@ export async function setSettings(
 
   if (!settings) throw new SettingsNotFoundException();
   if ((settings as any)?.default) settings = (settings as any).default;
-  globalThis.$PCachedSettings = settings;
+  $PCachedSettings = settings;
   setDefaultStd(new settings.std());
   return settings;
 }
