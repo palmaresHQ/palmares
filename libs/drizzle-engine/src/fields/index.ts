@@ -48,7 +48,7 @@ async function formatForeignKeyField(
       isAuto: () => foreignData.isAuto,
       primaryKey: () => foreignData.isPrimaryKey,
       unique: () => foreignData.isUnique,
-      allowNull: () => foreignData.all,
+      allowNull: () => foreignData.allowNull,
       defaultValue: () => foreignData.defaultValue,
       customAttributes: () => foreignData.customAttributes,
       databaseName: () => foreignData.databaseName,

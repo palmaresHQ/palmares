@@ -221,7 +221,11 @@ type GetDataFromModel<TModel, TType extends 'create' | 'update' | 'read' = 'read
 type OrderingOfFields<TFields extends string> = readonly (TFields extends string ? TFields | `-${TFields}` : never)[];
 
 type QuerySetQueryData = {
-  fields?: () => string[];
+  fields?: () => {
+    toIncludeAfterQuery: string[];
+    // This will add a callback that removes the field after the data is retrieved
+    toLazyRemoveAfterQuery: string[];
+  };
   orderBy?: () => string[];
   limit?: () => number;
   offset?: () => number;
@@ -329,6 +333,7 @@ export class QuerySet<
   protected __hasSearch!: THasSearch;
   protected __type: TType;
   protected __query: QuerySetQueryData;
+  protected __cachedData: any;
 
   constructor(type: TType) {
     this.__type = type;
@@ -488,16 +493,20 @@ export class QuerySet<
       if (this.__type === 'remove') return new RemoveQuerySet(this.__type);
       else return new GetQuerySet(this.__type);
     };
+
     const newQuerySet = getNewQuerySet();
     newQuerySet['__isJoin'] = true as any;
     const queryCallbackResult = queryCallback ? queryCallback(getNewQuerySet() as any) : getNewQuerySet();
 
+    if (queryCallbackResult['__hasSearch']) newQuerySet['__hasSearch'] = true as any;
     for (const field of Object.keys(this.__query)) {
       if (field === 'joins') continue;
       (newQuerySet['__query'] as any)[field] = (this.__query as any)[field];
     }
 
+    const existingJoins = this.__query.joins ? this.__query.joins() : {};
     newQuerySet['__query'].joins = () => ({
+      ...existingJoins,
       [relationName]: {
         model,
         querySet: queryCallbackResult as any
@@ -608,49 +617,287 @@ export class QuerySet<
     return new GetQuerySet('get') as any;
   }
 
+  /**
+   * The problem: A user select the fields `name` and `address` to be included on the query.
+   *
+   * When we send the query to the engine, we will get just the fields `name` and `address`, as expected.
+   * But if we have a relation, we might need to include the field that relates the data. Let's use the `id` field as
+   * an example.
+   *
+   * So the actual query should include the fields
+   * `name`, `address` and `id`.
+   *
+   * The problem is that the user don't want the `id` field to be included on the query, but we need it to relate the
+   * data.
+   *
+   * What do we do? We lazy remove the field after we use it to relate the data.
+   *
+   * Notice: We just need this if the user is selecting the fields to be included on the query, if the user selected
+   * the field we need to make the relation, that's unnecessary.
+   *
+   * @param queryset - The query set instance that we are going to append the field to be lazy removed on each record
+   * of the retrieved data.
+   * @param fieldName - The name of the field that we are going to lazy remove after the query.
+   */
+  protected __duringQueryAppendFieldToBeLazyRemovedAfterQuery(
+    queryset: QuerySet<any, any, any, any, any, any, any, any, any, any>,
+    fieldName: string
+  ) {
+    if (queryset['__query'].fields) {
+      const fieldsOfQueryset = queryset['__query'].fields();
+      const doesNotContainFieldOnFields =
+        fieldsOfQueryset.toIncludeAfterQuery.concat(fieldsOfQueryset.toLazyRemoveAfterQuery).includes(fieldName) ===
+        false;
+
+      if (doesNotContainFieldOnFields)
+        queryset['__query'].fields = () => ({
+          toIncludeAfterQuery: fieldsOfQueryset.toIncludeAfterQuery,
+          toLazyRemoveAfterQuery: fieldsOfQueryset.toLazyRemoveAfterQuery.concat([fieldName])
+        });
+    }
+  }
+
+  protected async __duringQueryActuallyQueryTheDatabase(
+    model: typeof BaseModel & typeof Model & ModelType<any, any>,
+    engine: DatabaseAdapter,
+    queryset: QuerySet<any, any, any, any, any, any, any, any, any, any>,
+    args: {
+      cachedData: any;
+      relations?: {
+        /**
+         * When the join contains a queryset WITHOUT a where clause, we should query the parent
+         * first and then query the Child.
+         *
+         * There are two maps:
+         * ```newMap``` - This assigns each data to the value of `fieldNameToGetRelationData` from each record.
+         * ```mapTo``` - On the related model, this assigns each data to the array or object value of
+         * `relationOrRelatedName`
+         */
+        mappingsFromJoinsWithoutWhereClause: {
+          newMap?: Map<string, any[]>;
+          mapTo?: Map<string, any[]>;
+        };
+        /**
+         * When the join contains a queryset WITH a where clause, we should query the child first and then query the
+         * parent.
+         */
+        relationsFromJoinsWithWhereClause: {
+          newMap?: Map<string, Map<string, any>>;
+          mapTo?: Map<string, Map<string, any>>;
+        };
+        /**
+         * The actual relationName or relatedName from the ForeignKeyField.
+         */
+        relationOrRelatedName: string;
+        /**
+         * If isUnique is true we append an object, otherwise we append an array. For direct relation this should
+         * always be true.
+         */
+        isUnique: boolean;
+        /**
+         * The name of the field on the current model that relates the data. For example if we have a `User` model
+         * that relates to the `Company` model, through the `companyId` field that exists on the `User` model.
+         *
+         * For a query like:
+         * ```
+         *  const company = await Company.default.get((qs) => qs.join(User, 'usersOfCompany', (qs) => qs.where({
+         *    name: 'test'
+         *  }));
+         * ```
+         *
+         * Notice that we have a `where` clause on the join. This means we should query User first, and after
+         * we should query Company. So the `fieldNameToGetRelationData` should be `companyId`.
+         *
+         * If we have a query like:
+         * ```
+         * const company = await Company.default.get((qs) => qs.join(User, 'usersOfCompany'));
+         * ```
+         *
+         * We should query Company first, and after we should query User. So the `fieldNameToGetRelationData` should
+         * be `id`.
+         */
+        fieldNameToGetRelationData: string;
+        /**
+         * Kinda the same as `fieldNameToGetRelationData`, but the other way around.
+         *
+         * On the example gave on `fieldNameToGetRelationData`, the
+         * `fieldNameThatMustBeIncludedInTheQueryToRelateTheData`would be `id` on the first example, and `companyId`
+         * on the second example.
+         */
+        fieldNameThatMustBeIncludedInTheQueryToRelateTheData: string;
+        /**
+         * This set is transformed to an array and appended to an `in` clause on the query.
+         */
+        valuesToFilterOnRelatedModelAsSet?: Set<any>;
+      };
+    }
+  ) {
+    if (this.__cachedData instanceof Promise) return this.__cachedData;
+    const query: any = {};
+
+    const translatedModel = await model.default.getInstance(engine.connectionName);
+    let fieldsToLazyRemoveAfterQuery: string[] = [];
+    if (queryset['__query'].fields) {
+      const existingFields = queryset['__query'].fields();
+      fieldsToLazyRemoveAfterQuery = existingFields.toLazyRemoveAfterQuery;
+      query['fields'] = existingFields.toIncludeAfterQuery.concat(existingFields.toLazyRemoveAfterQuery);
+    }
+    if (queryset['__query'].orderBy) query['ordering'] = queryset['__query'].orderBy();
+    if (queryset['__query'].limit) query['limit'] = queryset['__query'].limit();
+    if (queryset['__query'].offset) query['offset'] = queryset['__query'].offset();
+    if (queryset['__query'].where) {
+      query['search'] = await parseSearch(engine, new model() as any, translatedModel, queryset['__query'].where());
+    }
+
+    this.__cachedData = args.cachedData
+      ? args.cachedData
+      : engine.query.get.queryData(engine, {
+          modelOfEngineInstance: translatedModel,
+          search: query['search'],
+          fields: query['fields'],
+          ordering: query['ordering'],
+          limit: query['limit'],
+          offset: query['offset']
+        });
+
+    const shouldLoopThroughData =
+      fieldsToLazyRemoveAfterQuery.length > 0 ||
+      // eslint-disable-next-line ts/no-unnecessary-condition
+      args.relations?.mappingsFromJoinsWithoutWhereClause?.mapTo instanceof Map ||
+      // eslint-disable-next-line ts/no-unnecessary-condition
+      args.relations?.mappingsFromJoinsWithoutWhereClause?.newMap instanceof Map ||
+      // eslint-disable-next-line ts/no-unnecessary-condition
+      args.relations?.relationsFromJoinsWithWhereClause?.mapTo instanceof Map ||
+      // eslint-disable-next-line ts/no-unnecessary-condition
+      args.relations?.relationsFromJoinsWithWhereClause?.newMap instanceof Map;
+    const awaitedCachedData = await this.__cachedData;
+
+    if (shouldLoopThroughData) {
+      for (const dataItem of awaitedCachedData) {
+        // Instead of the actual field, we cache the value of the field, and the field is transformed to a getter
+        // When we get the value of the field, it's automatically removed from the object.
+        for (const fieldToLazyRemove of fieldsToLazyRemoveAfterQuery) {
+          const existingPropertyValue = dataItem[fieldToLazyRemove];
+          Object.defineProperty(dataItem, fieldToLazyRemove, {
+            get() {
+              delete dataItem[fieldToLazyRemove];
+              return existingPropertyValue;
+            }
+          });
+        }
+
+        if (args.relations) {
+          let valueOfFieldOnRelationToFilter = undefined;
+          const relationOrRelatedName = args.relations.relationOrRelatedName;
+
+          if (args.relations.fieldNameToGetRelationData)
+            valueOfFieldOnRelationToFilter = dataItem[args.relations.fieldNameToGetRelationData];
+
+          // Assign unique value to the set so we can filter the data on the related model using the `in` clause.
+          args.relations.valuesToFilterOnRelatedModelAsSet?.add(valueOfFieldOnRelationToFilter);
+
+          // eslint-disable-next-line ts/no-unnecessary-condition
+          if (args.relations?.mappingsFromJoinsWithoutWhereClause?.newMap) {
+            if (!args.relations.mappingsFromJoinsWithoutWhereClause.newMap.has(valueOfFieldOnRelationToFilter))
+              args.relations.mappingsFromJoinsWithoutWhereClause.newMap.set(valueOfFieldOnRelationToFilter, []);
+            args.relations.mappingsFromJoinsWithoutWhereClause.newMap
+              .get(valueOfFieldOnRelationToFilter)
+              ?.push(dataItem);
+          }
+
+          // eslint-disable-next-line ts/no-unnecessary-condition
+          if (args.relations?.mappingsFromJoinsWithoutWhereClause?.mapTo) {
+            const parentDataToAppendRelationTo =
+              args.relations.mappingsFromJoinsWithoutWhereClause.mapTo.get(valueOfFieldOnRelationToFilter) || [];
+
+            for (const toAssign of parentDataToAppendRelationTo) {
+              if (args.relations.isUnique) toAssign[relationOrRelatedName] = dataItem;
+              else {
+                if (Array.isArray(toAssign[relationOrRelatedName]) === false) toAssign[relationOrRelatedName] = [];
+                toAssign[relationOrRelatedName].push(dataItem);
+              }
+            }
+          }
+
+          // eslint-disable-next-line ts/no-unnecessary-condition
+          if (args.relations?.relationsFromJoinsWithWhereClause?.newMap) {
+            const fieldNameWithDataFromCurrentModel =
+              args.relations.fieldNameThatMustBeIncludedInTheQueryToRelateTheData;
+
+            if (!args.relations.relationsFromJoinsWithWhereClause.newMap.has(fieldNameWithDataFromCurrentModel))
+              args.relations.relationsFromJoinsWithWhereClause.newMap.set(fieldNameWithDataFromCurrentModel, new Map());
+
+            if (
+              !args.relations.relationsFromJoinsWithWhereClause.newMap
+                .get(fieldNameWithDataFromCurrentModel)
+                ?.has(valueOfFieldOnRelationToFilter)
+            ) {
+              const relationForFieldName = args.relations.relationsFromJoinsWithWhereClause.newMap.get(
+                fieldNameWithDataFromCurrentModel
+              ) as Map<string, any>;
+
+              relationForFieldName.set(valueOfFieldOnRelationToFilter, {
+                [relationOrRelatedName]: args.relations.isUnique ? undefined : []
+              });
+            }
+
+            if (args.relations.isUnique)
+              (
+                args.relations.relationsFromJoinsWithWhereClause.newMap.get(fieldNameWithDataFromCurrentModel) as Map<
+                  string,
+                  any
+                >
+              ).get(valueOfFieldOnRelationToFilter)[relationOrRelatedName] = dataItem;
+            else
+              args.relations.relationsFromJoinsWithWhereClause.newMap
+                .get(fieldNameWithDataFromCurrentModel)
+                ?.get(valueOfFieldOnRelationToFilter)
+                [relationOrRelatedName].push(dataItem);
+          }
+
+          // eslint-disable-next-line ts/no-unnecessary-condition
+          if (args.relations?.relationsFromJoinsWithWhereClause?.mapTo) {
+            for (const [field, mapOfRelationsOfThatField] of args.relations.relationsFromJoinsWithWhereClause.mapTo) {
+              const valueOfField = dataItem[field];
+              const dataToAdd = mapOfRelationsOfThatField.get(valueOfField);
+              if (dataToAdd) {
+                for (const [relationName, data] of Object.entries(dataToAdd)) {
+                  dataItem[relationName] = data;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return this.__cachedData;
+  }
+
   protected async __queryTheData(
     model: {
       new (...args: any[]): any;
     },
-    engine: DatabaseAdapter
+    engine: DatabaseAdapter,
+    args?: {
+      relations: Parameters<
+        QuerySet<any, any, any, any, any, any, any, any, any, any>['__duringQueryActuallyQueryTheDatabase']
+      >[3]['relations'];
+    }
   ) {
+    const toFilterOnChildModelAsSet = new Set();
+    const mappings = new Map<string, any>();
+
     const baseModelAsModel = model as typeof BaseModel & typeof Model & ModelType<any, any>;
     baseModelAsModel['_fields']();
 
-    const queryTheDatabase = async (
-      model: typeof BaseModel & typeof Model & ModelType<any, any>,
-      queryset: QuerySet<any, any, any, any, any, any, any, any, any, any>
-    ) => {
-      const query: any = {};
+    const relations = new Map<string, any>();
 
-      const translatedModel = await model.default.getInstance(engine.connectionName);
-      if (queryset['__query'].fields) query['fields'] = queryset['__query'].fields();
-      if (queryset['__query'].orderBy) query['ordering'] = queryset['__query'].orderBy();
-      if (queryset['__query'].limit) query['limit'] = queryset['__query'].limit();
-      if (queryset['__query'].offset) query['offset'] = queryset['__query'].offset();
-      if (queryset['__query'].where) {
-        query['search'] = await parseSearch(
-          engine,
-          new baseModelAsModel() as any,
-          translatedModel,
-          queryset['__query'].where()
-        );
-      }
-
-      return engine.query.get.queryData(engine, {
-        modelOfEngineInstance: translatedModel,
-        search: query['search'],
-        fields: query['fields'],
-        ordering: query['ordering'],
-        limit: query['limit'],
-        offset: query['offset']
-      });
-    };
     const toQueryAfterBase = [];
     const toQueryBeforeBase = [];
-    const indirectlyRelatedToRun = [];
-    const directlyRelatedToRun = [];
+
     const joins = this.__query.joins?.();
+
     const joinsEntries = joins ? Object.entries(joins) : [];
     for (const joinsData of joinsEntries) {
       const [relationOrRelatedName, { model, querySet }] = joinsData;
@@ -696,33 +943,120 @@ export class QuerySet<
       const fromCurrentModelsFieldData = isDirectlyRelated
         ? baseModelAsModel['__associations'][joinedModelName].byRelationName.get(relationOrRelatedName)?.['__fieldName']
         : baseModelAsModel['__associations'][joinedModelName].byRelatedName.get(relationOrRelatedName)?.['__toField'];
+      const isUnique = isDirectlyRelated
+        ? true
+        : baseModelAsModel['__associations'][joinedModelName].byRelatedName.get(relationOrRelatedName)?.['__unique'] ||
+          false;
 
       const hasSearch = typeof querySet['__query'].where === 'function';
       if (hasSearch)
-        toQueryBeforeBase.push({
-          relationOrRelatedName,
-          fieldNameOnRelationToFilter,
-          fromCurrentModelsFieldData,
-          joinedModel,
-          querySet
+        toQueryBeforeBase.push(async () => {
+          this.__duringQueryAppendFieldToBeLazyRemovedAfterQuery(querySet, fieldNameOnRelationToFilter);
+
+          const parentWhereClause = this['__query'].where ? this['__query'].where() : {};
+          const toFilterOnParentModelAsSet = new Set();
+          const hasTheInFilterOnFieldNameOnRelationToFilter =
+            (parentWhereClause[fromCurrentModelsFieldData]?.['in'] || []).length > 0;
+          if (hasTheInFilterOnFieldNameOnRelationToFilter) {
+            querySet['__query'].where = () => ({
+              ...(querySet['__query'].where?.() || {}),
+              [fieldNameOnRelationToFilter]: { in: parentWhereClause[fromCurrentModelsFieldData]['in'] }
+            });
+          }
+
+          await querySet['__queryTheData'](joinedModel, engine, {
+            relations: {
+              isUnique,
+              fieldNameToGetRelationData: fieldNameOnRelationToFilter,
+              relationOrRelatedName,
+              fieldNameThatMustBeIncludedInTheQueryToRelateTheData: fromCurrentModelsFieldData,
+              valuesToFilterOnRelatedModelAsSet: toFilterOnParentModelAsSet,
+              relationsFromJoinsWithWhereClause: {
+                newMap: relations,
+                mapTo: args?.relations?.relationsFromJoinsWithWhereClause.mapTo
+              },
+              mappingsFromJoinsWithoutWhereClause: {
+                mapTo: args?.relations?.mappingsFromJoinsWithoutWhereClause.mapTo
+              }
+            }
+          });
+
+          const doesNotHaveADifferentWhereClauseForField =
+            parentWhereClause[fromCurrentModelsFieldData] === undefined ||
+            Array.isArray(parentWhereClause[fromCurrentModelsFieldData]?.['in']);
+
+          this.__duringQueryAppendFieldToBeLazyRemovedAfterQuery(this, fromCurrentModelsFieldData);
+
+          if (doesNotHaveADifferentWhereClauseForField)
+            this['__query'].where = () => ({
+              ...parentWhereClause,
+              [fromCurrentModelsFieldData]: { in: Array.from(toFilterOnParentModelAsSet) }
+            });
         });
-      else
-        toQueryAfterBase.push({
-          relationOrRelatedName,
-          fieldNameOnRelationToFilter,
-          fromCurrentModelsFieldData,
-          joinedModel,
-          querySet
+      else {
+        this.__duringQueryAppendFieldToBeLazyRemovedAfterQuery(this, fromCurrentModelsFieldData);
+
+        toQueryAfterBase.push(async () => {
+          await this.__duringQueryActuallyQueryTheDatabase(baseModelAsModel, engine, this, {
+            cachedData: undefined,
+            relations: {
+              fieldNameThatMustBeIncludedInTheQueryToRelateTheData: fieldNameOnRelationToFilter,
+              fieldNameToGetRelationData: fromCurrentModelsFieldData,
+              isUnique: isUnique,
+              mappingsFromJoinsWithoutWhereClause: {
+                newMap: mappings,
+                mapTo: args?.relations?.mappingsFromJoinsWithoutWhereClause.mapTo
+              },
+              relationsFromJoinsWithWhereClause: {
+                newMap: args?.relations?.relationsFromJoinsWithWhereClause.newMap,
+                mapTo: relations
+              },
+              valuesToFilterOnRelatedModelAsSet: toFilterOnChildModelAsSet,
+              relationOrRelatedName: (args?.relations?.relationOrRelatedName || undefined) as string
+            }
+          });
+
+          const existingWhereClauseOnChild = querySet['__query'].where?.() || {};
+          querySet['__query'].where = () => ({
+            ...existingWhereClauseOnChild,
+            [fieldNameOnRelationToFilter]: { in: Array.from(toFilterOnChildModelAsSet) }
+          });
+
+          this.__duringQueryAppendFieldToBeLazyRemovedAfterQuery(querySet, fieldNameOnRelationToFilter);
+
+          await querySet['__queryTheData'](joinedModel, engine, {
+            relations: {
+              fieldNameThatMustBeIncludedInTheQueryToRelateTheData: fromCurrentModelsFieldData,
+              fieldNameToGetRelationData: fieldNameOnRelationToFilter,
+              isUnique,
+              relationOrRelatedName,
+              mappingsFromJoinsWithoutWhereClause: {
+                mapTo: mappings
+              },
+              relationsFromJoinsWithWhereClause: {
+                mapTo: args?.relations?.relationsFromJoinsWithWhereClause.mapTo
+              }
+            }
+          });
         });
+      }
     }
 
-    if (toQueryBeforeBase.length > 0) {
-      const { relationOrRelatedName, fieldNameOnRelationToFilter, fromCurrentModelsFieldData, joinedModel, querySet } =
-        toQueryBeforeBase[0];
-      const nestedQueryData = await querySet.__queryTheData(joinedModel, engine);
-    }
+    if (toQueryBeforeBase.length > 0) for (const queryBeforeBase of toQueryBeforeBase) await queryBeforeBase();
+    if (toQueryAfterBase.length > 0) for (const queryAfterBase of toQueryAfterBase) await queryAfterBase();
+    else
+      await this.__duringQueryActuallyQueryTheDatabase(baseModelAsModel, engine, this, {
+        cachedData: undefined,
+        relations: {
+          ...(args?.relations || {}),
+          relationsFromJoinsWithWhereClause: {
+            mapTo: relations,
+            newMap: args?.relations?.relationsFromJoinsWithWhereClause.newMap
+          } as any
+        } as any
+      });
 
-    return queryTheDatabase(baseModelAsModel, this);
+    return this.__cachedData;
   }
 
   protected __getQueryFormatted() {
@@ -820,7 +1154,7 @@ export class GetQuerySetIfSearchOnJoin<
   TAlreadyDefinedRelations
 > {
   select<const TFields extends (keyof GetDataFromModel<TModel>)[]>(
-    fields: TFields
+    ...fields: TFields
   ): ReturnTypeOfBaseQuerySetMethods<
     TType,
     TModel,
@@ -860,8 +1194,18 @@ export class GetQuerySetIfSearchOnJoin<
       if (field === 'fields') continue;
       (newQuerySet['__query'] as any)[field] = (this.__query as any)[field];
     }
-    if (this.__query.fields) newQuerySet['__query'].fields = () => [...this.__query.fields!(), ...(fields as string[])];
-    else newQuerySet['__query'].fields = () => fields as string[];
+    if (this.__query.fields) {
+      const existingFields = this.__query.fields();
+
+      newQuerySet['__query'].fields = () => ({
+        toIncludeAfterQuery: [...existingFields['toIncludeAfterQuery'], ...(fields as string[])],
+        toLazyRemoveAfterQuery: existingFields['toLazyRemoveAfterQuery']
+      });
+    } else
+      newQuerySet['__query'].fields = () => ({
+        toIncludeAfterQuery: fields as string[],
+        toLazyRemoveAfterQuery: []
+      });
 
     return newQuerySet as any;
   }

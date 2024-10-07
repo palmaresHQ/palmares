@@ -1,9 +1,6 @@
-import { getSettings, initializeDomains } from 'packages/core/dist/src';
-
 import { ModelCircularAbstractError, ModelNoUniqueFieldsError } from './exceptions';
 import { DefaultManager, Manager } from './manager';
 import { factoryFunctionForModelTranslate, getDefaultModelOptions, indirectlyRelatedModels } from './utils';
-import { Databases } from '..';
 import { getUniqueCustomImports, hashString } from '../utils';
 
 import type { Field, ForeignKeyField } from './fields';
@@ -176,7 +173,6 @@ export class BaseModel {
       forceTranslate?: boolean;
     }
   ) {
-    console.log('Model init');
     if (this.__initialized[engineInstance.connectionName]) return this.__initialized[engineInstance.connectionName];
 
     const currentPalmaresModelInstance = new this() as Model & BaseModel;

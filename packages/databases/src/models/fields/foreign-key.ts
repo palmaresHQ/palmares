@@ -1227,18 +1227,18 @@ export class ForeignKeyField<
     }
   ): ForeignKeyField<
     {
-      create: TRelatedTo extends (_: { create: any; read: any; update: any }) => any
-        ? TRelatedTo extends (_: { create: infer TCreate; read: any; update: any }) => any
+      create: TRelatedTo extends (_?: { create: any; read: any; update: any }) => any
+        ? TRelatedTo extends (_?: { create: infer TCreate; read: any; update: any }) => any
           ? TCreate
           : never
         : ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'create'>;
-      read: TRelatedTo extends (_: { create: any; read: any; update: any }) => any
-        ? TRelatedTo extends (_: { create: any; read: infer TRead; update: any }) => any
+      read: TRelatedTo extends (_?: { create: any; read: any; update: any }) => any
+        ? TRelatedTo extends (_?: { create: any; read: infer TRead; update: any }) => any
           ? TRead
           : never
         : ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'read'>;
-      update: TRelatedTo extends (_: { create: any; read: any; update: any }) => any
-        ? TRelatedTo extends (_: { create: any; read: any; update: infer TUpdate }) => any
+      update: TRelatedTo extends (_?: { create: any; read: any; update: any }) => any
+        ? TRelatedTo extends (_?: { create: any; read: any; update: infer TUpdate }) => any
           ? TUpdate
           : never
         : ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'update'>;

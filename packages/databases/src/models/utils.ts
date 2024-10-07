@@ -441,14 +441,16 @@ export async function initializeModels(
           modelEntries: [] as [string, InitializedModelsType][]
         }
       );
+
+      console.log(modelEntries.length, initializeModels.length);
       if (
         modelEntries.length > 0 &&
-        modelEntries.length !== initializeModels.length &&
+        modelEntries.length < initializeModels.length &&
         options?.forceTranslation !== true
       ) {
         const std = getDefaultStd();
         const answer = await std.asker.ask(
-          `\nYou have translated the model before. And you have assigned 'instance' to` +
+          `\nYou have translated the model before. And you have assigned 'instance' to ` +
             `the model options. Should we refresh all of the model instances?` +
             `\n\nType either: 'y' and press Enter to accept or Ctrl+C to make` +
             ` changes before continuing\n\n` +

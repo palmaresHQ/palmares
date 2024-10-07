@@ -32,6 +32,7 @@ import {
 const getQuery = adapterGetQuery({
   // eslint-disable-next-line ts/require-await
   queryData: async (engine, args) => {
+    console.log('hitting the DB');
     const selectArgs =
       Array.isArray(args.fields) && args.fields.length > 0
         ? args.fields.reduce((acc, field) => ({ ...acc, [field]: args.modelOfEngineInstance[field] }), {})

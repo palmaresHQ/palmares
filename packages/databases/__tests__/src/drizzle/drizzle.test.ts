@@ -1,14 +1,31 @@
 import { describe } from '@palmares/tests';
 
-import { Company, User } from '../drizzle/models';
+import { Company, ProfileType, User } from '../drizzle/models';
 
 //const test = require('@jest/globals').test;
 describe('drizzle models', ({ test }) => {
   test('test', async ({ expect }) => {
-    const company = await Company.default.get((qs) => qs.select(['name', 'address']));
-    console.log(company);
+    const user = await User.default.get((qs) =>
+      qs
+        .join(Company, 'company', (qs) => qs.where({ name: 'test' }))
+        .join(ProfileType, 'profileType', (qs) => qs.where({ name: 'admin' }))
+    );
+    console.log(JSON.stringify(user, null, 2));
   });
+
+  /*
+  test('test2', async ({ expect }) => {
+    const company = await Company.default.get((qs) =>
+      qs
+        .join(User, 'usersOfCompany', (qs) =>
+          qs.select('name', 'uuid', 'age').join(Company, 'company', (qs) => qs.select('name', 'uuid', 'address'))
+        )
+        .where({ id: 1 })
+    );
+    console.log(JSON.stringify(company, null, 2));
+  });*/
 });
+
 /*test('its limiting the query', async ({ expect }) => {
     await Company.default.set((qs) => qs.data({ id: undefined, name: 'test', address: 'test' }))
     await Company.default.set((qs) => qs.data({ id: undefined, name: 'test', address: 'test' }))
