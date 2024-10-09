@@ -849,21 +849,6 @@ export class ForeignKeyField<
       update: TType['update'] | undefined;
     },
     {
-      [TKey in Exclude<
-        keyof TDefinitions,
-        | 'underscored'
-        | 'allowNull'
-        | 'dbIndex'
-        | 'unique'
-        | 'isPrimaryKey'
-        | 'auto'
-        | 'defaultValue'
-        | 'databaseName'
-        | 'typeName'
-        | 'engineInstance'
-        | 'customAttributes'
-      >]: TDefinitions[TKey];
-    } & {
       unique: TDefinitions['unique'];
       allowNull: TDefinitions['allowNull'];
       dbIndex: TDefinitions['dbIndex'];
@@ -872,6 +857,11 @@ export class ForeignKeyField<
       auto: TDefinitions['auto'];
       hasDefaultValue: true;
       defaultValue: TDefault;
+      relatedTo: TDefinitions['relatedTo'];
+      onDelete: TDefinitions['onDelete'];
+      relatedName: TDefinitions['relatedName'];
+      relationName: TDefinitions['relationName'];
+      toField: TDefinitions['toField'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
@@ -1227,21 +1217,27 @@ export class ForeignKeyField<
     }
   ): ForeignKeyField<
     {
-      create: TRelatedTo extends (_?: { create: any; read: any; update: any }) => any
-        ? TRelatedTo extends (_?: { create: infer TCreate; read: any; update: any }) => any
-          ? TCreate
-          : never
-        : ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'create'>;
-      read: TRelatedTo extends (_?: { create: any; read: any; update: any }) => any
-        ? TRelatedTo extends (_?: { create: any; read: infer TRead; update: any }) => any
-          ? TRead
-          : never
-        : ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'read'>;
-      update: TRelatedTo extends (_?: { create: any; read: any; update: any }) => any
-        ? TRelatedTo extends (_?: { create: any; read: any; update: infer TUpdate }) => any
-          ? TUpdate
-          : never
-        : ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'update'>;
+      create: TRelatedTo extends () => any
+        ? ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'create'>
+        : TRelatedTo extends (_: { create: any; read: any; update: any }) => any
+          ? TRelatedTo extends (_: { create: infer TCreate; read: any; update: any }) => any
+            ? TCreate
+            : never
+          : ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'create'>;
+      read: TRelatedTo extends () => any
+        ? ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'read'>
+        : TRelatedTo extends (_: { create: any; read: any; update: any }) => any
+          ? TRelatedTo extends (_: { create: any; read: infer TRead; update: any }) => any
+            ? TRead
+            : never
+          : ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'read'>;
+      update: TRelatedTo extends () => any
+        ? ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'update'>
+        : TRelatedTo extends (_: { create: any; read: any; update: any }) => any
+          ? TRelatedTo extends (_: { create: any; read: any; update: infer TUpdate }) => any
+            ? TUpdate
+            : never
+          : ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'update'>;
     },
     {
       unique: false;

@@ -55,16 +55,15 @@ export const Company = define('Company', {
   }
 });
 
-export class ProfileType extends Model<ProfileType>() {
-  fields = {
+export const ProfileType = define('ProfileType', {
+  fields: {
     id: AutoField.new(),
     name: CharField.new({ maxLen: 255 })
-  };
-
-  options: ModelOptionsType<ProfileType> = {
+  },
+  options: {
     tableName: 'profile_type'
-  };
-}
+  }
+});
 
 //*********************************/
 //**      Modelos Palmares       **/
@@ -83,7 +82,7 @@ export class User extends Model<User>() {
       relatedName: 'usersOfCompany',
       relationName: 'company',
       toField: 'id',
-      relatedTo: 'Company'
+      relatedTo: () => Company
     }),
     profileTypeId: ForeignKeyField.new({
       relatedName: 'usersByProfileType',
@@ -98,8 +97,8 @@ export class User extends Model<User>() {
     createdAt: DateField.new().autoNowAdd()
   };
 
-  options: ModelOptionsType<User> = {
+  options = {
     tableName: 'users'
     // instance: DUser
-  };
+  } satisfies ModelOptionsType<User>;
 }

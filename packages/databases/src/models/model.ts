@@ -668,7 +668,7 @@ export type ModelType<
 
   new (): {
     fields: TModel extends { fields: infer TFields } ? TFields : any;
-    options: ModelOptionsType<any>;
+    options: TModel extends { options: infer TOptions } ? TOptions : any;
   };
 };
 
@@ -773,7 +773,7 @@ export function initialize<
   const TAbstracts extends readonly {
     new (): {
       fields: any;
-      options?: ModelOptionsType<any>;
+      options?: any;
     };
   }[],
   const TOptions extends ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>,
@@ -786,11 +786,11 @@ export function initialize<
               ReturnType<
                 typeof model<{
                   fields: ExtractFieldsFromAbstracts<TFields, TAbstracts>;
-                  options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
+                  options: TOptions;
                 }>
               > & {
                 fields: ExtractFieldsFromAbstracts<TFields, TAbstracts>;
-                options: ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>;
+                options: TOptions;
                 // eslint-disable-next-line no-shadow
               }
             >,

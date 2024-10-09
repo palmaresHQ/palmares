@@ -239,8 +239,7 @@ export class Manager<
 
     const modelInstance = this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName) as Model;
     const modelConstructor = modelInstance.constructor as typeof Model & typeof BaseModel & ModelType<any, any>;
-    const data = callback(new GetQuerySet('get'))['__queryTheData'](modelConstructor, engineInstance);
-    return data as any;
+    return callback(new GetQuerySet('get'))['__queryTheData'](modelConstructor, engineInstance);
   }
 
   async set<
@@ -267,28 +266,18 @@ export class Manager<
       ? TResult[]
       : never
   > {
-    const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
-    let engineInstanceName = args?.engineName || this.__defaultEngineInstanceName;
-    // Promise.all here will not work, we need to do this sequentially.
-    const engineInstance = await this.getEngineInstance(engineInstanceName);
-    engineInstanceName = args?.engineName || this.__defaultEngineInstanceName;
-    const data = callback(new SetQuerySet('set'))['__getQueryFormatted']();
+    //const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
 
-    const dataAsAnArray = Array.isArray(data?.data) ? data.data : ([data.data] as any);
-    return setQuery(
-      dataAsAnArray,
-      {
-        isToPreventEvents,
-        useTransaction: args?.useTransaction,
-        search: data?.search
-      },
-      {
-        model: this.getModel(engineInstanceName) as unknown as TModel,
-        engine: engineInstance,
-        transaction: args?.transaction,
-        includes: data?.includes || []
-      }
-    ) as any;
+    const isValidEngineName = typeof args?.engineName === 'string' && args.engineName !== '';
+    const engineInstanceName = isValidEngineName ? args.engineName : this.__defaultEngineInstanceName;
+    const engineInstance = await this.getEngineInstance(engineInstanceName);
+    const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName = (
+      isValidEngineName ? args.engineName : this.__defaultEngineInstanceName
+    ) as string;
+
+    const modelInstance = this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName) as Model;
+    const modelConstructor = modelInstance.constructor as typeof Model & typeof BaseModel & ModelType<any, any>;
+    return callback(new SetQuerySet('set'))['__queryTheData'](modelConstructor, engineInstance);
   }
 
   async remove<
@@ -317,32 +306,17 @@ export class Manager<
       ? TResult[]
       : never
   > {
-    const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
+    //const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
     const isValidEngineName = typeof args?.engineName === 'string' && args.engineName !== '';
-    let engineInstanceName = isValidEngineName ? args.engineName : this.__defaultEngineInstanceName;
-    // Promise.all here will not work, we need to do this sequentially.
+    const engineInstanceName = isValidEngineName ? args.engineName : this.__defaultEngineInstanceName;
     const engineInstance = await this.getEngineInstance(engineInstanceName);
-    engineInstanceName = args?.engineName || this.__defaultEngineInstanceName;
+    const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName = (
+      isValidEngineName ? args.engineName : this.__defaultEngineInstanceName
+    ) as string;
 
-    const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName = isValidEngineName
-      ? args.engineName
-      : this.__defaultEngineInstanceName;
-    const data = callback(new RemoveQuerySet('remove'))['__getQueryFormatted']();
-
-    return removeQuery(
-      {
-        search: data?.search || {},
-        isToPreventEvents,
-        useTransaction: args?.useTransaction,
-        usePalmaresTransaction: args?.usePalmaresTransaction,
-        shouldRemove: true
-      },
-      {
-        model: this.__models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName as string],
-        engine: engineInstance,
-        includes: data?.includes || []
-      }
-    ) as any;
+    const modelInstance = this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName) as Model;
+    const modelConstructor = modelInstance.constructor as typeof Model & typeof BaseModel & ModelType<any, any>;
+    return callback(new RemoveQuerySet('remove'))['__queryTheData'](modelConstructor, engineInstance);
   }
 }
 

@@ -32,7 +32,6 @@ import {
 const getQuery = adapterGetQuery({
   // eslint-disable-next-line ts/require-await
   queryData: async (engine, args) => {
-    console.log('hitting the DB');
     const selectArgs =
       Array.isArray(args.fields) && args.fields.length > 0
         ? args.fields.reduce((acc, field) => ({ ...acc, [field]: args.modelOfEngineInstance[field] }), {})
@@ -53,23 +52,24 @@ const getQuery = adapterGetQuery({
 const setQuery = adapterSetQuery({
   queryData: async (engine, args) => {
     const engineInstanceOrTransaction = args.transaction || engine.instance.instance;
+    if (args.search && Object.keys(args.search).length > 0)
+      return (
+        (await engineInstanceOrTransaction
+          .update(args.modelOfEngineInstance)
+          .set(args.data[0])
+          .where(and(...(Object.values(args.search) as any)))
+          .returning()) || ([] as any)
+      ).map((data: any) => {
+        return [false, data];
+      });
+
     return Promise.all(
       args.data.map(async (eachData: any) => {
         if (engine.instance.mainType === 'sqlite' || engine.instance.mainType === 'postgres') {
-          if (Object.keys(args.search).length > 0)
-            return [
-              false,
-              await engineInstanceOrTransaction
-                .update(args.modelOfEngineInstance)
-                .set(eachData)
-                .where(and(...(Object.values(args.search) as any)))
-                .returning()
-            ];
-          else
-            return [
-              true,
-              await engineInstanceOrTransaction.insert(args.modelOfEngineInstance).values(eachData).returning()
-            ];
+          return [
+            true,
+            (await engineInstanceOrTransaction.insert(args.modelOfEngineInstance).values(eachData).returning())[0]
+          ];
         }
       })
     );
