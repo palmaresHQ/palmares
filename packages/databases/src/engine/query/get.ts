@@ -52,14 +52,19 @@ export function adapterGetQuery<TFunctionQueryData extends AdapterGetQuery['quer
    *
    * @param _engine - The engine instance that is running the query.
    * @param _args - The arguments of the query.
-   * @param _args.modelOfEngineInstance - The model instance to query, this is what your ORM has translated on `AdapterModel.translate` function.
-   * @param _args.fields - The fields to retrieve from the database, sometimes the user doesn't want to retrieve all of the fields from the database.
-   * @param _args.ordering - The ordering to use on the query, this ordering is translated from the `parseOrdering` inside {@link AdapterQueryOrdering}
-   * @param _args.search - The search argument to search on the database. This was translated from the `parseSearch` inside {@link AdapterQuerySearch}
+   * @param _args.modelOfEngineInstance - The model instance to query, this is what your ORM has translated on
+   * `AdapterModel.translate` function.
+   * @param _args.fields - The fields to retrieve from the database, sometimes the user doesn't want to retrieve
+   * all of the fields from the database.
+   * @param _args.ordering - The ordering to use on the query, this ordering is translated from the `parseOrdering`
+   * inside {@link AdapterQueryOrdering}
+   * @param _args.search - The search argument to search on the database. This was translated from the `parseSearch`
+   * inside {@link AdapterQuerySearch}
    * @param _args.limit - The limit of the query, this is used for pagination.
    * @param _args.offset - The offset of the query, this is used for pagination.
    *
-   * @returns - Returns an array, always should return an array, if the data doesn't exist, return an empty array instead of undefined or null.
+   * @returns - Returns an array, always should return an array, if the data doesn't exist, return an empty array
+   * instead of undefined or null.
    */
   queryData: TFunctionQueryData;
 }) {
@@ -114,14 +119,19 @@ export class AdapterGetQuery {
    *
    * @param _engine - The engine instance that is running the query.
    * @param _args - The arguments of the query.
-   * @param _args.modelOfEngineInstance - The model instance to query, this is what your ORM has translated on `AdapterModel.translate` function.
-   * @param _args.fields - The fields to retrieve from the database, sometimes the user doesn't want to retrieve all of the fields from the database.
-   * @param _args.ordering - The ordering to use on the query, this ordering is translated from the `parseOrdering` inside {@link AdapterQueryOrdering}
-   * @param _args.search - The search argument to search on the database. This was translated from the `parseSearch` inside {@link AdapterQuerySearch}
+   * @param _args.modelOfEngineInstance - The model instance to query, this is what your ORM has translated on
+   * `AdapterModel.translate` function.
+   * @param _args.fields - The fields to retrieve from the database, sometimes the user doesn't want to retrieve
+   * all of the fields from the database.
+   * @param _args.ordering - The ordering to use on the query, this ordering is translated from the `parseOrdering`
+   * inside {@link AdapterQueryOrdering}
+   * @param _args.search - The search argument to search on the database. This was translated from the `parseSearch`
+   * inside {@link AdapterQuerySearch}
    * @param _args.limit - The limit of the query, this is used for pagination.
    * @param _args.offset - The offset of the query, this is used for pagination.
    *
-   * @returns - Returns an array, always should return an array, if the data doesn't exist, return an empty array instead of undefined or null.
+   * @returns - Returns an array, always should return an array, if the data doesn't exist, return an empty array
+   * instead of undefined or null.
    */
   // eslint-disable-next-line ts/require-await
   async queryData(

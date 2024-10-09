@@ -1,7 +1,7 @@
 import { adapterForeignKeyFieldParser } from '@palmares/databases';
 
 import type { fieldParser as DrizzleEngineFieldParser } from './field';
-import type { AdapterFieldParserTranslateArgs } from '@palmares/databases';
+import type { AdapterFieldParserTranslateArgs, ForeignKeyField } from '@palmares/databases';
 
 export const foreignKeyFieldParser = adapterForeignKeyFieldParser({
   translate: async (
@@ -14,8 +14,7 @@ export const foreignKeyFieldParser = adapterForeignKeyFieldParser({
       fieldAttributes: {
         ...defaultOptions,
         foreignData: {
-          palmaresModel: args.field.modelRelatedTo,
-          palmaresField: args.field.modelRelatedTo._fields()[args.field.toField],
+          ...args.field,
           toField: args.field.toField,
           relatedToModelName: args.field.relatedTo,
           relatedName: args.field.relatedName,

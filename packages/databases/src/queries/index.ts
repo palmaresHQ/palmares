@@ -37,9 +37,10 @@ async function parseResults(
         const field = fields[key];
         // eslint-disable-next-line ts/no-unnecessary-condition
         if (field) {
-          const fieldHasOutputParser = field.outputParsers.has(engine.connectionName);
+          const fieldConstructor = field.constructor as typeof Field;
+          const fieldHasOutputParser = fieldConstructor['__outputParsers'].has(engine.connectionName);
           if (fieldHasOutputParser) {
-            const parsedValue = await field.outputParsers.get(engine.connectionName)?.({
+            const parsedValue = await fieldConstructor['__outputParsers'].get(engine.connectionName)?.({
               value,
               field,
               engine,
@@ -242,7 +243,7 @@ async function fireEventsAfterQueryDataFn<
       shouldReturnData: args.shouldReturnData
     });
 
-    const isDataTheSameReceivedThroughEvent = modelInstanceAsModel.stringfiedArgumentsOfEvents.has(
+    const isDataTheSameReceivedThroughEvent = modelInstanceAsModel['__stringfiedArgumentsOfEvents'].has(
       JSON.stringify(dataForFunction)
     );
 
@@ -385,7 +386,7 @@ async function callQueryDataFn<
   }
 
   async function fetchFromExternalSource() {
-    if (args.isSetOperation && modelInstanceAsModel.options?.onSet) {
+    if (args.isSetOperation && modelInstanceAsModel.options.onSet) {
       const onSetHandler = extractDefaultEventsHandlerFromModel(modelInstanceAsModel, 'onSet');
       if (onSetHandler) {
         const dataForFunction = await getDataForOnSetOrOnRemoveOptionFunctions('onSet', {
@@ -396,7 +397,7 @@ async function callQueryDataFn<
         });
         return onSetHandler(dataForFunction as any);
       }
-    } else if (args.isRemoveOperation && modelInstanceAsModel.options?.onRemove) {
+    } else if (args.isRemoveOperation && modelInstanceAsModel.options.onRemove) {
       const onRemoveHandler = extractDefaultEventsHandlerFromModel(modelInstanceAsModel, 'onRemove');
       if (onRemoveHandler) {
         const dataForFunction = await getDataForOnSetOrOnRemoveOptionFunctions('onRemove', {
@@ -407,7 +408,7 @@ async function callQueryDataFn<
         });
         return onRemoveHandler(dataForFunction);
       }
-    } else if (modelInstanceAsModel.options?.onGet)
+    } else if (modelInstanceAsModel.options.onGet)
       return modelInstanceAsModel.options.onGet({
         search: mergedSearchForData as any,
         fields: fields as any,
@@ -422,7 +423,7 @@ async function callQueryDataFn<
       );
   }
 
-  const isToFetchExternally = modelInstanceAsModel.options?.managed === false;
+  const isToFetchExternally = modelInstanceAsModel.options.managed === false;
   const queryDataResults = isToFetchExternally ? await fetchFromExternalSource() : await fetchFromDatabase();
 
   // TODO: Not working anymore, should check
@@ -527,7 +528,28 @@ function getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName<
   TRelationName extends string,
   TIsDirectlyRelated extends boolean | undefined = undefined
 >(
-  relatedField: ForeignKeyField<any, any, any, any, any, any, any, any, any, TToField, TRelatedName, TRelationName>,
+  relatedField: ForeignKeyField<
+    any,
+    {
+      unique: any;
+      auto: any;
+      allowNull: any;
+      dbIndex: any;
+      isPrimaryKey: any;
+      defaultValue: any;
+      underscored: any;
+      typeName: any;
+      databaseName: any;
+      engineInstance: any;
+      customAttributes: any;
+      relatedTo: any;
+      onDelete: any;
+      relatedName: TRelatedName;
+      relationName: TRelationName;
+      hasDefaultValue: any;
+      toField: TToField;
+    }
+  >,
   isDirectlyRelated?: TIsDirectlyRelated
 ): {
   relationName: TIsDirectlyRelated extends true ? TRelationName : TRelatedName;
@@ -536,14 +558,14 @@ function getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName<
 } {
   return {
     relationName: (isDirectlyRelated
-      ? relatedField.relationName
-      : relatedField.relatedName) as TIsDirectlyRelated extends true ? TRelationName : TRelatedName,
+      ? relatedField['__relatedName']
+      : relatedField['__relatedName']) as TIsDirectlyRelated extends true ? TRelationName : TRelatedName,
     parentFieldName: (isDirectlyRelated
-      ? relatedField.fieldName
-      : relatedField.toField) as TIsDirectlyRelated extends true ? string : TToField,
+      ? relatedField['__fieldName']
+      : relatedField['__toField']) as TIsDirectlyRelated extends true ? string : TToField,
     fieldNameOfRelationInIncludedModel: (isDirectlyRelated
-      ? relatedField.toField
-      : relatedField.fieldName) as TIsDirectlyRelated extends true ? TToField : string
+      ? relatedField['__toField']
+      : relatedField['__fieldName']) as TIsDirectlyRelated extends true ? TToField : string
   };
 }
 
@@ -609,10 +631,10 @@ async function resultsFromRelatedModelWithSearch<
 
   const resultOfIncludes: ModelFieldsWithIncludes<TIncludedModel, TIncludesOfIncludes, TFieldsOfIncluded>[] = [];
   const [hasIncludedField, fieldsOfIncludedModelWithFieldsFromRelation] = args.fieldsOfIncludedModel.includes(
-    fieldNameOfRelationInIncludedModel
+    fieldNameOfRelationInIncludedModel as any
   )
     ? [false, args.fieldsOfIncludedModel]
-    : [true, args.fieldsOfIncludedModel.concat([fieldNameOfRelationInIncludedModel])];
+    : [true, args.fieldsOfIncludedModel.concat([fieldNameOfRelationInIncludedModel as any])];
   const isARemoveOperationAndShouldGetResultsBeforeRemove = args.isRemoveOperation && args.isDirectlyRelated === true;
 
   await getResultsWithIncludes(
@@ -677,7 +699,7 @@ async function resultsFromRelatedModelWithSearch<
 
       (args.results as any)[args.results.length - 1][relationName] =
         // eslint-disable-next-line ts/no-unnecessary-condition
-        args.relatedField.unique || args.isDirectlyRelated
+        args.relatedField['__unique'] || args.isDirectlyRelated
           ? resultByUniqueFieldValue[uniqueFieldValueOnRelation][0]
           : resultByUniqueFieldValue[uniqueFieldValueOnRelation];
     }
@@ -780,9 +802,9 @@ async function resultsFromRelatedModelsWithoutSearch<
     getFieldNameOfRelationInIncludedModelRelationNameAndParentFieldName(args.relatedField, args.isDirectlyRelated);
 
   // Get the results of the parent model and then get the results of the children (included) models
-  const [hasIncludedField, fieldsOfModelWithFieldsFromRelations] = args.fieldsOfModel.includes(parentFieldName)
+  const [hasIncludedField, fieldsOfModelWithFieldsFromRelations] = args.fieldsOfModel.includes(parentFieldName as any)
     ? [false, args.fieldsOfModel]
-    : [true, args.fieldsOfModel.concat([parentFieldName])];
+    : [true, args.fieldsOfModel.concat([parentFieldName as any])];
   const isARemoveOperationAndShouldGetResultsBeforeRemove = args.isRemoveOperation && args.isDirectlyRelated === false;
 
   /**
@@ -904,7 +926,7 @@ async function resultsFromRelatedModelsWithoutSearch<
 
       (result as any)[relationName] =
         // eslint-disable-next-line ts/no-unnecessary-condition
-        args.relatedField.unique || args.isDirectlyRelated ? resultOfIncludes[0] : resultOfIncludes;
+        args.relatedField['__unique'] || args.isDirectlyRelated ? resultOfIncludes[0] : resultOfIncludes;
     }
   });
   await Promise.all(promises);

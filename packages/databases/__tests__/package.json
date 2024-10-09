@@ -4,12 +4,12 @@
   "description": "testing the tests",
   "main": "manage.drizzle.ts",
   "scripts": {
-    "test": "tsx manage.ts test",
+    "test": "tsx test.ts",
     "test:watch": "WATCH=true tsx manage.ts test",
     "load": "tsx manage.drizzle.ts load-models",
     "makemigrations": "drizzle-kit generate",
     "migrate": "tsx manage.drizzle.ts drizzleMigrate",
-    "drzle:test": "tsx manage.drizzle.ts test",
+    "drzle:test": "tsx --experimental-vm-modules manage.drizzle.ts test",
     "drzle:makemigrations": "drizzle-kit generate",
     "drzle:migrate": "tsx manage.drizzle.ts drizzleMigrate",
     "sqlize:test": "tsx manage.sequelize.ts test",
@@ -18,6 +18,7 @@
   },
   "keywords": [],
   "author": "",
+  "type": "module",
   "license": "ISC",
   "dependencies": {
     "@palmares/console-logging": "workspace:*",
@@ -37,6 +38,7 @@
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.11",
+    "ts-jest-mock-import-meta": "^1.2.0",
     "tsx": "^4.16.2",
     "typescript": "^5.5.4"
   }

@@ -4,15 +4,16 @@ import type { AdapterFieldParser } from '../fields/field';
 /**
  * Functional approach to the search query adapter.
  *
- * This engine query interface is used for the search arguments of a query, when making a query we should parse the search so we support stuff like
- * `like`, `in`, `is`, `between` and so on.
+ * This engine query interface is used for the search arguments of a query, when making a query we should parse the
+ * search so we support stuff like `like`, `in`, `is`, `between` and so on.
  */
 export function adapterSearchQuery<
   TFunctionParseSearchFieldValue extends AdapterSearchQuery['parseSearchFieldValue']
 >(args: {
   /**
-   * This will pretty much receive the search value and parse it and translate that into an object for each field..
-   * The nicest thing is that we send you the `result`. This way you can organize the `search` object the way that you want and makes sense for your engine.
+   * This will pretty much receive the search value and parse it and translate that into an object for each field.
+   * The nicest thing is that we send you the `result`. This way you can organize the `search` object the way that
+   * you want and makes sense for your engine.
    *
    * @example
    * ```ts
@@ -68,11 +69,14 @@ export function adapterSearchQuery<
    * ```
    *
    * @param operationType - The operation type of the query, this can be `like`, `in`, `is`, `between` and so on.
-   * @param value - The value of the query, if the operation is `or`, `and`, `in` or `between` this will be an array of values, otherwise this can be a string, a number and such. Be aware that
-   * this respects the `inputParser` of the field if you have implemented it on {@link AdapterFieldParser}. This is nice because we can maintain the types of the fields through the framework
-   * and you can parse the way that makes sense for your engine.
-   * @param result - This is the result we will use on the query. It's an object that you can append the result of the parsing.
-   * @param options - This is an object with some options that you can use to parse the query, like if it's a negative query, if it's case insensitive and so on.
+   * @param value - The value of the query, if the operation is `or`, `and`, `in` or `between` this will be an array of
+   * values, otherwise this can be a string, a number and such. Be aware that this respects the `inputParser` of the
+   * field if you have implemented on {@link AdapterFieldParser}. This is nice because we can maintain the types of
+   * the fields through the framework and you can parse the way that makes sense for your engine.
+   * @param result - This is the result we will use on the query. It's an object that you can append the result
+   * of the parsing.
+   * @param options - This is an object with some options that you can use to parse the query, like if it's a negative
+   * query, if it's case insensitive and so on.
    *
    * @returns - Values are changed in-place, so you should not return anything.
    */
@@ -87,13 +91,14 @@ export function adapterSearchQuery<
   };
 }
 /**
- * This engine query interface is used for the search arguments of a query, when making a query we should parse the search so we support stuff like
- * `like`, `in`, `is`, `between` and so on.
+ * This engine query interface is used for the search arguments of a query, when making a query we should parse the
+ * search so we support stuff like `like`, `in`, `is`, `between` and so on.
  */
 export class AdapterSearchQuery {
   /**
-   * This will pretty much receive the search value and parse it and translate that into an object for each field..
-   * The nicest thing is that we send you the `result`. This way you can organize the `search` object the way that you want and makes sense for your engine.
+   * This will pretty much receive the search value and parse it and translate that into an object for each field.
+   * The nicest thing is that we send you the `result`. This way you can organize the `search` object the way that
+   * you want and makes sense for your engine.
    *
    * @example
    * ```ts
@@ -151,11 +156,14 @@ export class AdapterSearchQuery {
    * @param operationType - The operation type of the query, this can be `like`, `in`, `is`, `between` and so on.
    * @param key - The key of the query, this is the field name that we are querying.
    * @param modelInstance - The model instance that we are querying.
-   * @param value - The value of the query, if the operation is `or`, `and`, `in` or `between` this will be an array of values, otherwise this can be a string, a number and such. Be aware that
-   * this respects the `inputParser` of the field if you have implemented it on {@link AdapterFieldParser}. This is nice because we can maintain the types of the fields through the framework
-   * and you can parse the way that makes sense for your engine.
-   * @param result - This is the result we will use on the query. It's an object that you can append the result of the parsing.
-   * @param options - This is an object with some options that you can use to parse the query, like if it's a negative query, if it's case insensitive and so on.
+   * @param value - The value of the query, if the operation is `or`, `and`, `in` or `between` this will be an array of
+   * values, otherwise this can be a string, a number and such. Be aware that this respects the `inputParser` of the
+   * field if you have implemented it on {@link AdapterFieldParser}. This is nice because we can maintain the types of
+   * the fields through the framework and you can parse the way that makes sense for your engine.
+   * @param result - This is the result we will use on the query. It's an object that you can append the result of the
+   * parsing.
+   * @param options - This is an object with some options that you can use to parse the query, like if it's a negative
+   * query, if it's case insensitive and so on.
    *
    * @returns - Values are changed in-place, so you should not return anything.
    */
@@ -167,7 +175,8 @@ export class AdapterSearchQuery {
     /** The model instance that we are querying. */
     _modelInstance: any,
     /**
-     * This is the value of the query, if the operation is `or`, `and`, `in` or `between` this will be an array of values.
+     * This is the value of the query, if the operation is `or`, `and`, `in` or `between` this will be an array of
+     * values.
      */
     _value?: TOperationType extends 'or' | 'and' | 'in' | 'between' ? unknown[] : unknown,
     /**

@@ -38,8 +38,8 @@ export class CreateModel extends Operation {
     const model = await state.get(this.modelName);
     const modelConstructor = model.constructor as typeof BaseModel;
 
-    modelConstructor.domainName = domainName;
-    modelConstructor.domainPath = domainPath;
+    modelConstructor['__domainName'] = domainName;
+    modelConstructor['__domainPath'] = domainPath;
     model.fields = this.fields;
     model.options = this.options;
     state.set(this.modelName, model);
@@ -65,13 +65,16 @@ export class CreateModel extends Operation {
     data: ActionToGenerateType<CreateModelToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
-    const { asString: fieldsAsString, customImports } = await BaseModel._fieldsToString(indentation, data.data.fields);
+    const { asString: fieldsAsString, customImports } = await BaseModel['__fieldsToString'](
+      indentation,
+      data.data.fields
+    );
     return {
       asString: await super.defaultToString(
         indentation - 1,
         `${ident}"${data.modelName}",\n` +
           `${fieldsAsString},\n` +
-          `${await BaseModel._optionsToString(indentation, data.data.options)}`
+          `${await BaseModel['__optionsToString'](indentation, data.data.options)}`
       ),
       customImports: customImports
     };
@@ -150,8 +153,8 @@ export class ChangeModel extends Operation {
     const model = await state.get(this.modelName);
     const modelConstructor = model.constructor as typeof BaseModel;
 
-    modelConstructor.domainName = domainName;
-    modelConstructor.domainPath = domainPath;
+    modelConstructor['__domainName'] = domainName;
+    modelConstructor['__domainPath'] = domainPath;
 
     model.options = this.optionsAfter;
   }
@@ -181,8 +184,8 @@ export class ChangeModel extends Operation {
       asString: await super.defaultToString(
         indentation - 1,
         `${ident}"${data.modelName}",\n` +
-          `${await BaseModel._optionsToString(indentation, data.data.optionsBefore)},\n` +
-          `${await BaseModel._optionsToString(indentation, data.data.optionsAfter)}`
+          `${await BaseModel['__optionsToString'](indentation, data.data.optionsBefore)},\n` +
+          `${await BaseModel['__optionsToString'](indentation, data.data.optionsAfter)}`
       )
     };
   }
@@ -212,8 +215,8 @@ export class RenameModel extends Operation {
     const modelConstructor = model.constructor as typeof BaseModel;
 
     (modelConstructor as any).__cachedName = this.newModelName;
-    modelConstructor.domainName = domainName;
-    modelConstructor.domainPath = domainPath;
+    modelConstructor['__domainName'] = domainName;
+    modelConstructor['__domainPath'] = domainPath;
 
     await Promise.all([state.set(this.newModelName, model), state.remove(this.oldModelName)]);
   }

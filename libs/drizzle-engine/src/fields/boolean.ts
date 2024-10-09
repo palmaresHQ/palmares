@@ -18,18 +18,18 @@ export const booleanFieldParser = adapterBooleanFieldParser({
               ? '.primaryKey({ autoIncrement: true })'
               : '.primaryKey()'
             : ''
-        }${defaultOptions.default ? `.default(${defaultOptions.default})` : ''}${
+        }${typeof defaultOptions.default === 'boolean' ? `.default(${defaultOptions.default})` : ''}${
           defaultOptions.nullable !== true ? `.notNull()` : ''
         }${defaultOptions.unique ? `.unique()` : ''}`;
       case 'postgres':
         return `d.boolean('${field.databaseName}')${defaultOptions.primaryKey ? '.primaryKey()' : ''}${
-          defaultOptions.default ? `.default(${defaultOptions.default})` : ''
+          typeof defaultOptions.default === 'boolean' ? `.default(${defaultOptions.default})` : ''
         }${defaultOptions.nullable !== true ? `.notNull()` : ''}${defaultOptions.unique ? `.unique()` : ''}`;
       default:
         return `d.boolean('${field.databaseName}')${
           defaultOptions.autoincrement ? '.autoIncrement()' : ''
         }${defaultOptions.primaryKey ? '.primaryKey()' : ''}${
-          defaultOptions.default ? `.default(${defaultOptions.default})` : ''
+          typeof defaultOptions.default === 'boolean' ? `.default(${defaultOptions.default})` : ''
         }${defaultOptions.nullable !== true ? `.notNull()` : ''}${defaultOptions.unique ? `.unique()` : ''}`;
     }
   }

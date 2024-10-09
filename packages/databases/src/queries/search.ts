@@ -1,5 +1,6 @@
 import type { DatabaseAdapter } from '../engine';
 import type { BaseModel, model } from '../models';
+import type { Field } from '../models/fields';
 import type { FieldWithOperationType } from '../models/types';
 
 /**
@@ -219,16 +220,17 @@ export async function parseSearch(
 
     const formattedSearch: Record<string, any> = {};
     const promises = fieldsInSearch.map(async (key) => {
-      const modelInstanceFields = modelConstructor._fields();
+      const modelInstanceFields = modelConstructor['_fields']();
+      const fieldAsConstructor = modelInstanceFields[key].constructor as typeof Field;
       const fieldInputParserFunction =
-        useInputParser && modelInstanceFields[key].inputParsers.has(engine.connectionName)
+        useInputParser && fieldAsConstructor['__inputParsers'].has(engine.connectionName)
           ? async (value: any) =>
-              modelInstanceFields[key].inputParsers.get(engine.connectionName)?.({
+              fieldAsConstructor['__inputParsers'].get(engine.connectionName)?.({
                 engine,
                 field: modelInstanceFields[key],
                 fieldParser: engine.fields.fieldsParser,
                 model: modelInstance,
-                modelName: modelConstructor.getName(),
+                modelName: modelConstructor['__getName'](),
                 value
               })
           : // eslint-disable-next-line ts/require-await

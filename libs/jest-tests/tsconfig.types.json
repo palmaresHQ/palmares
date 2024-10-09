@@ -1,6 +1,7 @@
 {
   "extends": "../../build/tsconfig.types.json",
   "compilerOptions": {
+    "module": "ESNext",
     "declaration": true, /* Generate d.ts files */
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,

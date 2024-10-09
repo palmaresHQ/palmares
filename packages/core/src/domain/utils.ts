@@ -67,7 +67,6 @@ export async function retrieveDomains(
       throw new NotAValidDomainDefaultExportedError();
     }
   }
-
   if (isNotDynamicDomains) setCachedDomains(domainClasses);
 
   setSettings(mergedSettings);
@@ -126,7 +125,7 @@ export async function initializeDomains(
   let commands = {} as DefaultCommandType;
   const initializedDomains: Domain<any>[] = [];
   const domainClasses = await retrieveDomains(settings, {
-    ignoreCache: options?.ignoreCache
+    ignoreCache: ignoreCache
   });
   const readyFunctionsToCallAfterAllDomainsAreLoaded = [] as ((
     args: DomainReadyFunctionArgs<any, any>
@@ -136,8 +135,7 @@ export async function initializeDomains(
     const initializedDomain = new domainClass();
 
     const domainIsNotLoadedAndHasLoadFunction =
-      typeof initializedDomain.load === 'function' && !initializedDomain.isLoaded && ignoreCache !== true;
-
+      (typeof initializedDomain.load === 'function' && !initializedDomain.isLoaded) || ignoreCache === true;
     if (domainIsNotLoadedAndHasLoadFunction) {
       if (initializedDomain.load) {
         const readyFunctionToCallOrNot = await initializedDomain.load(settings);

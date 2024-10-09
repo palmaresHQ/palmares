@@ -1,6 +1,9 @@
 export class ModelNoUniqueFieldsError extends Error {
   constructor(modelName: string) {
-    super(`Model ${modelName} has no unique fields, it should have at least one unique field for `);
+    super(
+      `Model ${modelName} has no unique fields, it should have at least one unique field. ` +
+        `If it's an abstract model, you need to set "abstract" to true in the model options.`
+    );
     this.name = ModelNoUniqueFieldsError.name;
   }
 }
@@ -42,7 +45,8 @@ export class ManagerEngineInstanceNotFoundError extends Error {
 export class ShouldAssignAllInstancesException extends Error {
   constructor() {
     super(
-      'You have translated the model before. And you have assigned `instance` to the model options. You should assign `instance` to all model options.'
+      'You have translated the model before. And you have assigned `instance` to the model options.' +
+        ' You should assign `instance` to all model options.'
     );
     this.name = ShouldAssignAllInstancesException.name;
   }
@@ -51,7 +55,8 @@ export class ShouldAssignAllInstancesException extends Error {
 export class EngineDoesNotSupportFieldTypeException extends Error {
   constructor(engineName: string, fieldType: string) {
     super(
-      `The engine '${engineName}' does not support the field of type: '${fieldType}'. If you are using a custom field, make sure that you are using the 'TranslatableField' class.`
+      `The engine '${engineName}' does not support the field of type: '${fieldType}'.` +
+        ` If you are using a custom field, make sure that you are using the 'TranslatableField' class.`
     );
     this.name = EngineDoesNotSupportFieldTypeException.name;
   }
@@ -66,9 +71,20 @@ export class RelatedModelFromForeignKeyIsNotFromEngineException extends Error {
     fieldName: string
   ) {
     super(
-      `The related model '${modelName}' from the foreign key field '${foreignKeyFieldName}' of the model '${foreignKeyFieldModelName}' is not from the engine '${engineName}' that is ` +
-        `being used. This is not a problem, but you need to make sure that the field '${fieldName}' it is relating to exists on the model '${modelName}' it is related to.`
+      `The related model '${modelName}' from the foreign key field '${foreignKeyFieldName}' of the ` +
+        `model '${foreignKeyFieldModelName}' is not from the engine '${engineName}' that is ` +
+        `being used. This is not a problem, but you need to make sure that the field '${fieldName}' it is ` +
+        `relating to exists on the model '${modelName}' it is related to.`
     );
     this.name = RelatedModelFromForeignKeyIsNotFromEngineException.name;
+  }
+}
+
+export class MissingWhereClauseException extends Error {
+  constructor(fun: string) {
+    super(
+      `You must provide a '.where()' clause query to update a model or use 'force' as true on the '.${fun}()' action.`
+    );
+    this.name = MissingWhereClauseException.name;
   }
 }

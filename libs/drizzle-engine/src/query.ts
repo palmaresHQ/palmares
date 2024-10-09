@@ -32,9 +32,16 @@ import {
 const getQuery = adapterGetQuery({
   // eslint-disable-next-line ts/require-await
   queryData: async (engine, args) => {
-    const searchAsObjectValues = Object.values(args.search) as any;
-    let query = engine.instance.instance.select().from(args.modelOfEngineInstance);
-    if (searchAsObjectValues.length > 0) query = query.where(and(...(Object.values(args.search) as any)));
+    const selectArgs =
+      Array.isArray(args.fields) && args.fields.length > 0
+        ? args.fields.reduce((acc, field) => ({ ...acc, [field]: args.modelOfEngineInstance[field] }), {})
+        : undefined;
+    let query = engine.instance.instance.select(selectArgs).from(args.modelOfEngineInstance);
+
+    if (args.search) {
+      const searchAsObjectValues = Object.values(args.search) as any;
+      if (searchAsObjectValues.length > 0) query = query.where(and(...searchAsObjectValues));
+    }
     if (typeof args.limit === 'number') query = query.limit(args.limit);
     if (typeof args.offset === 'number') query = query.offset(args.offset);
     if ((args.ordering || []).length > 0) query = query.orderBy(...(args.ordering || []));
@@ -45,23 +52,24 @@ const getQuery = adapterGetQuery({
 const setQuery = adapterSetQuery({
   queryData: async (engine, args) => {
     const engineInstanceOrTransaction = args.transaction || engine.instance.instance;
+    if (args.search && Object.keys(args.search).length > 0)
+      return (
+        (await engineInstanceOrTransaction
+          .update(args.modelOfEngineInstance)
+          .set(args.data[0])
+          .where(and(...(Object.values(args.search) as any)))
+          .returning()) || ([] as any)
+      ).map((data: any) => {
+        return [false, data];
+      });
+
     return Promise.all(
       args.data.map(async (eachData: any) => {
         if (engine.instance.mainType === 'sqlite' || engine.instance.mainType === 'postgres') {
-          if (Object.keys(args.search).length > 0)
-            return [
-              false,
-              await engineInstanceOrTransaction
-                .update(args.modelOfEngineInstance)
-                .set(eachData)
-                .where(and(...(Object.values(args.search) as any)))
-                .returning()
-            ];
-          else
-            return [
-              true,
-              await engineInstanceOrTransaction.insert(args.modelOfEngineInstance).values(eachData).returning()
-            ];
+          return [
+            true,
+            (await engineInstanceOrTransaction.insert(args.modelOfEngineInstance).values(eachData).returning())[0]
+          ];
         }
       })
     );
@@ -77,20 +85,16 @@ const removeQuery = adapterRemoveQuery({
         .delete(args.modelOfEngineInstance)
         .where(and(...(Object.values(args.search) as any)))
         .returning();
-    else {
-      const dataToBeDeleted =
-        args.shouldReturnData !== false
-          ? await engine.instance.instance
-              .select()
-              .from(args.modelOfEngineInstance)
-              .where(and(...(Object.values(args.search) as any)))
-          : [];
 
-      await engineInstanceOrTransaction
-        .delete(args.modelOfEngineInstance)
-        .where(and(...(Object.values(args.search) as any)));
-      return dataToBeDeleted;
-    }
+    const dataToBeDeleted = await engine.instance.instance
+      .select()
+      .from(args.modelOfEngineInstance)
+      .where(and(...(Object.values(args.search) as any)));
+
+    await engineInstanceOrTransaction
+      .delete(args.modelOfEngineInstance)
+      .where(and(...(Object.values(args.search) as any)));
+    return dataToBeDeleted;
   }
 });
 

@@ -19,9 +19,10 @@ export default adapterFieldParser({
   translate: async ({
     engine,
     field,
+    customAttributes,
     modelName
   }: AdapterFieldParserTranslateArgs<
-    any,
+    'field',
     any,
     any,
     TranslatedFieldToEvaluateAfterType
@@ -43,7 +44,7 @@ export default adapterFieldParser({
     defaultOptions.validate.notNull = !field.allowNull;
     defaultOptions.field = field.databaseName;
 
-    const customAttributesOfFieldEntries = Object.entries(field.customAttributes);
+    const customAttributesOfFieldEntries = Object.entries(customAttributes);
     for (const [key, value] of customAttributesOfFieldEntries) {
       const keyAsTypeofModelColumnOption = key as keyof ModelAttributeColumnOptions;
       defaultOptions[keyAsTypeofModelColumnOption] = value as never;

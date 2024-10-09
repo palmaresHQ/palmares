@@ -1,5 +1,6 @@
 import type { DatabaseAdapter } from './engine';
-import type { BaseModel, Manager, model } from './models';
+import type { BaseModel, Manager, Model, model } from './models';
+import type { ModelType } from './models/model';
 import type { EventEmitter } from '@palmares/events';
 
 export interface DatabaseConfigurationType {
@@ -10,23 +11,30 @@ export interface DatabaseConfigurationType {
   };
 }
 
-export type ExtractFieldsFromAbstracts<TAbstracts extends readonly any[]> = TAbstracts extends readonly [
+export type ExtractFieldsFromAbstracts<TRootFields, TAbstracts extends readonly any[]> = TAbstracts extends readonly [
   infer TAbstract,
   ...infer TRest
 ]
   ? TAbstract extends {
       new (): { fields: infer TFields };
     }
-    ? TFields & ExtractFieldsFromAbstracts<TRest extends readonly any[] ? TRest : []>
-    : unknown
-  : unknown;
+    ? Omit<
+        ExtractFieldsFromAbstracts<unknown, TRest extends readonly any[] ? TRest : []> & TFields & TRootFields,
+        never
+      >
+    : TRootFields
+  : TRootFields;
 
 export type ExtractManagersFromAbstracts<TAbstracts extends readonly any[]> = TAbstracts extends readonly [
   infer TAbstract,
   ...infer TRest
 ]
   ? {
-      [TKey in keyof TAbstract as TAbstract[TKey] extends Manager<any> ? TKey : never]: TAbstract[TKey];
+      [TKey in keyof TAbstract as TAbstract[TKey] extends Manager<any>
+        ? TKey extends 'default'
+          ? never
+          : TKey
+        : never]: TAbstract[TKey];
     } & ExtractManagersFromAbstracts<TRest extends readonly any[] ? TRest : []>
   : unknown;
 
@@ -42,15 +50,15 @@ export type InitializedEngineInstanceWithModelsType = {
 export type FoundModelType = {
   domainName: string;
   domainPath: string;
-  model: ReturnType<typeof model> & typeof BaseModel;
+  model: ModelType<any, any> & typeof Model & typeof BaseModel;
 };
 
 export type InitializedModelsType<TModel = any> = {
   domainName: string;
   domainPath: string;
-  class: ReturnType<typeof model> & typeof BaseModel;
+  class: ModelType<any, any> & typeof Model & typeof BaseModel;
   initialized: TModel;
-  original: InstanceType<ReturnType<typeof model>> & BaseModel;
+  original: InstanceType<ModelType<any, any>> & Model & BaseModel;
 };
 
 export type DatabaseSettingsType = {

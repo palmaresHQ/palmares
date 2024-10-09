@@ -28,8 +28,8 @@ export class Migrate {
    * Because of that, we hold the data to save in PalmaresMigration until it is created in the database so when it is
    * created we can save all of the data.
    *
-   * So what you do is that you append a data to `migrationsToAddAfterIteration`, and only after that you can iterate over.
-   * To save to the database that the migration was added.
+   * So what you do is that you append a data to `migrationsToAddAfterIteration`, and only after that you can iterate
+   * over. To save to the database that the migration was added.
    *
    * @param migrationName - The name of the migration file that was evaluated.
    * @param engineName - The name of the user defined engine that was created in `DATABASES`
@@ -110,7 +110,8 @@ export class Migrate {
       }
 
       let connectionsToClose = [] as (() => Promise<void>)[];
-      // Run the migrations one by one. Default Approach. We always run this because we need to save that the migration file was evaluated to the database.
+      // Run the migrations one by one. Default Approach. We always run this because we need to save that the migration
+      // file was evaluated to the database.
       for (const migrationFile of filteredMigrationsOfDatabase) {
         const migrationName = migrationFile.migration.name;
 
