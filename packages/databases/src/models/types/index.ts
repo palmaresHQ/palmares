@@ -99,9 +99,13 @@ export type onSetFunction<TModel = any> = (args: {
 }) => Promise<any[]>;
 
 export type onRemoveFunction<TModel = any> = (args: {
-  /** Sometimes we just want to return the data but we don't want to remove it. Most of the time you should remove it. */
+  /** Sometimes we just want to return the data but we don't want to remove it.
+   * Most of the time you should remove it.
+   */
   shouldRemove?: boolean;
-  /** Should you return the data that you are removing? By default yes, you should, in case this is false you should not. */
+  /** Should you return the data that you are removing? By default yes, you should, in
+   * case this is false you should not.
+   */
   shouldReturnData?: boolean;
   search: ExtractFieldTypes<TModel, [], true>;
 }) => Promise<any[]>;
@@ -124,8 +128,10 @@ export type ModelOptionsType<TModel = any> = {
   managed?: boolean;
   databases?: string[];
   customOptions?: any;
-  /** The translated instance, with that we bypass the model translation step we just assign it directly to the instance.
-   * P.S.: Make sure that the instance is up to date with the model, otherwise you will have problems (and it'll not be our fault).
+  /** The translated instance, with that we bypass the model translation step we just assign it directly
+   * to the instance.
+   * P.S.: Make sure that the instance is up to date with the model, otherwise you will have problems
+   * (and it'll not be our fault).
    */
   instance?: any;
   onGet?: (args: {
@@ -136,8 +142,10 @@ export type ModelOptionsType<TModel = any> = {
     offset?: number | string;
   }) => Promise<any[]>;
   /**
-   * Can be used either for firing a synchronous call to make changes to a particular model or can use the event handler to fire asyncrhronous
-   * events to set data to this model. This is useful if you want to make your model in sync with the model from another palmares application or
+   * Can be used either for firing a synchronous call to make changes to a particular model or
+   * can use the event handler to fire asyncrhronous
+   * events to set data to this model. This is useful if you want to make your model in sync
+   * with the model from another palmares application or
    * if you want to have hooks attached to this model.
    * */
   onSet?:
@@ -147,8 +155,10 @@ export type ModelOptionsType<TModel = any> = {
         handler: onSetFunction<TModel>;
       };
   /**
-   * Can be used either for firing a synchronous call to make changes to a particular model or can use the event handler to fire asyncrhronous
-   * events to set data to this model. This is useful if you want to make your model in sync with the model from another palmares application or
+   * Can be used either for firing a synchronous call to make changes to a particular model or can
+   * use the event handler to fire asyncrhronous
+   * events to set data to this model. This is useful if you want to make your model in sync with
+   * the model from another palmares application or
    * if you want to have hooks attached to this model.
    * */
   onRemove?:

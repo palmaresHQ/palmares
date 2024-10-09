@@ -85,20 +85,16 @@ const removeQuery = adapterRemoveQuery({
         .delete(args.modelOfEngineInstance)
         .where(and(...(Object.values(args.search) as any)))
         .returning();
-    else {
-      const dataToBeDeleted =
-        args.shouldReturnData !== false
-          ? await engine.instance.instance
-              .select()
-              .from(args.modelOfEngineInstance)
-              .where(and(...(Object.values(args.search) as any)))
-          : [];
 
-      await engineInstanceOrTransaction
-        .delete(args.modelOfEngineInstance)
-        .where(and(...(Object.values(args.search) as any)));
-      return dataToBeDeleted;
-    }
+    const dataToBeDeleted = await engine.instance.instance
+      .select()
+      .from(args.modelOfEngineInstance)
+      .where(and(...(Object.values(args.search) as any)));
+
+    await engineInstanceOrTransaction
+      .delete(args.modelOfEngineInstance)
+      .where(and(...(Object.values(args.search) as any)));
+    return dataToBeDeleted;
   }
 });
 

@@ -1,4 +1,3 @@
-import { MissingWhereClauseException } from './exceptions';
 import { parseSearch } from '../queries/search';
 
 import type {
@@ -249,7 +248,7 @@ type _GetDataFromModel<TModel, TType extends 'create' | 'update' | 'read' = 'rea
     : never;
 };
 
-type GetDataFromModel<TModel, TType extends 'create' | 'update' | 'read' = 'read', TIsSearch = false> = Omit<
+export type GetDataFromModel<TModel, TType extends 'create' | 'update' | 'read' = 'read', TIsSearch = false> = Omit<
   {
     [TKey in keyof _GetDataFromModel<TModel, TType, TIsSearch> as undefined extends _GetDataFromModel<
       TModel,
@@ -282,7 +281,6 @@ type QuerySetQueryData = {
   limit?: () => number;
   offset?: () => number;
   data?: () => Record<string, any>[];
-  remove?: () => [boolean, boolean];
   where?: () => Record<string, any | OrderingOfFields<any>>;
   joins?: () => Record<
     string,
@@ -309,6 +307,8 @@ type ReturnTypeOfBaseQuerySetMethods<
   >,
   TOrder = GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel>,
   THasSearch extends boolean = false,
+  THasData extends boolean = false,
+  THasRemove extends boolean = false,
   TIsJoin extends boolean = false,
   TAlreadyDefinedRelations = never
 > = TType extends 'set'
@@ -321,6 +321,8 @@ type ReturnTypeOfBaseQuerySetMethods<
       TSearch,
       TOrder,
       THasSearch,
+      THasData,
+      THasRemove,
       TIsJoin,
       TAlreadyDefinedRelations
     >
@@ -334,6 +336,8 @@ type ReturnTypeOfBaseQuerySetMethods<
         TSearch,
         TOrder,
         THasSearch,
+        THasData,
+        THasRemove,
         TIsJoin,
         TAlreadyDefinedRelations
       >
@@ -348,6 +352,8 @@ type ReturnTypeOfBaseQuerySetMethods<
             TSearch,
             TOrder,
             THasSearch,
+            THasData,
+            THasRemove,
             TIsJoin,
             TAlreadyDefinedRelations
           >
@@ -360,6 +366,8 @@ type ReturnTypeOfBaseQuerySetMethods<
             TSearch,
             TOrder,
             THasSearch,
+            THasData,
+            THasRemove,
             TIsJoin,
             TAlreadyDefinedRelations
           >
@@ -372,6 +380,8 @@ type ReturnTypeOfBaseQuerySetMethods<
           TSearch,
           TOrder,
           THasSearch,
+          THasData,
+          THasRemove,
           TIsJoin,
           TAlreadyDefinedRelations
         >;
@@ -379,21 +389,31 @@ type ReturnTypeOfBaseQuerySetMethods<
 export class QuerySet<
   TType extends 'get' | 'set' | 'remove',
   TModel,
-  TResult = GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'read'>,
-  TUpdate = Partial<
+  _TResult = GetDataFromModel<
+    TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel,
+    'read'
+  >,
+  _TUpdate = Partial<
     GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'update'>
   >,
-  TCreate = ModelFields<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel>,
-  TSearch = Partial<
+  _TCreate = GetDataFromModel<
+    TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel,
+    'create'
+  >,
+  _TSearch = Partial<
     GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'read', true>
   >,
-  TOrder = GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel>,
+  _TOrder = GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel>,
   THasSearch extends boolean = false,
+  _THasData extends boolean = false,
+  _THasRemove extends boolean = false,
   TIsJoin extends boolean = false,
-  TAlreadyDefinedRelations = never
+  _TAlreadyDefinedRelations = never
 > {
   protected __isJoin!: TIsJoin;
   protected __hasSearch!: THasSearch;
+  protected __markToRemove = false;
+  protected __markToCreateOrUpdate = false;
   protected __type: TType;
   protected __query: QuerySetQueryData;
   protected __cachedData: any;
@@ -401,277 +421,6 @@ export class QuerySet<
   constructor(type: TType) {
     this.__type = type;
     this.__query = {};
-  }
-
-  /**
-   * Join a model with another model, you can also pass a callback to make nested queries.
-   * In other words, this is how you make relations on Palmares.
-   * You can also pass a callback to make nested queries.
-   *
-   * @param model - The model you want to join with.
-   * @param relationName - The name of the relation you want to join. Let's say the model
-   * you are joining with is called `Profile` on the `User` model, and there are two foreignKeyFields on
-   * the `User` model that points to the `Profile` model, one called `profileId` and the other called `profileId2`.
-   * The relationName would be `profileId` or `profileId2`.
-   * @param queryCallback - A callback to make nested queries.
-   */
-  join<
-    TIncludedModel,
-    TRelationName extends
-      | keyof ForeignKeyModelsRelationName<
-          TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel,
-          TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel
-        >
-      | keyof ForeignKeyModelsRelatedName<
-          TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel,
-          TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel
-        >,
-    TNestedQuerySet extends (
-      querySet: ReturnTypeOfBaseQuerySetMethods<
-        TType,
-        TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel,
-        GetDataFromModel<TIncludedModel>,
-        Omit<
-          Partial<GetDataFromModel<TIncludedModel, 'update'>>,
-          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
-        >,
-        Omit<
-          GetDataFromModel<TIncludedModel, 'create'>,
-          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
-        >,
-        Partial<GetDataFromModel<TIncludedModel, 'read', true>>,
-        GetDataFromModel<TIncludedModel>,
-        THasSearch,
-        true,
-        never
-      >
-    ) => ReturnTypeOfBaseQuerySetMethods<
-      TType,
-      TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel,
-      GetDataFromModel<TIncludedModel>,
-      Omit<
-        Partial<GetDataFromModel<TIncludedModel, 'update'>>,
-        | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-        | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
-      >,
-      Omit<
-        GetDataFromModel<TIncludedModel, 'create'>,
-        | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-        | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
-      >,
-      Partial<GetDataFromModel<TIncludedModel, 'read', true>>,
-      GetDataFromModel<TIncludedModel>,
-      boolean,
-      boolean,
-      never
-    > = (
-      querySet: ReturnTypeOfBaseQuerySetMethods<
-        TType,
-        TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel,
-        GetDataFromModel<TIncludedModel>,
-        Omit<
-          Partial<GetDataFromModel<TIncludedModel, 'update'>>,
-          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
-        >,
-        Omit<
-          GetDataFromModel<TIncludedModel, 'create'>,
-          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
-        >,
-        Partial<GetDataFromModel<TIncludedModel, 'read', true>>,
-        GetDataFromModel<TIncludedModel>,
-        THasSearch,
-        true,
-        never
-      >
-    ) => ReturnTypeOfBaseQuerySetMethods<
-      TType,
-      TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel,
-      GetDataFromModel<TIncludedModel>,
-      Omit<
-        Partial<GetDataFromModel<TIncludedModel, 'update'>>,
-        | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-        | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
-      >,
-      Omit<
-        GetDataFromModel<TIncludedModel, 'create'>,
-        | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-        | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
-      >,
-      Partial<GetDataFromModel<TIncludedModel, 'read', true>>,
-      GetDataFromModel<TIncludedModel>,
-      THasSearch,
-      true,
-      never
-    >
-  >(
-    model: TIncludedModel,
-    relationName: TRelationName,
-    queryCallback?: TNestedQuerySet
-  ): ReturnTypeOfBaseQuerySetMethods<
-    TType,
-    TModel,
-    TResult & {
-      [TKey in TRelationName]: ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName] extends undefined[]
-        ? (ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult, any, any, any, any, any, any>
-            ? TResult
-            : never)[]
-        : ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName] extends unknown[]
-          ? (ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult, any, any, any, any, any, any>
-              ? TResult
-              : never)[]
-          :
-                | ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName]
-                | ForeignKeyModelsRelationName<TModel, TIncludedModel>[TRelationName] extends undefined
-            ? ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult, any, any, any, any, any, any>
-              ? TResult | undefined
-              : never
-            : ReturnType<TNestedQuerySet> extends QuerySet<any, any, infer TResult, any, any, any, any, any, any>
-              ? TResult
-              : never;
-    },
-    Omit<
-      TUpdate,
-      | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-      | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
-    >,
-    Omit<
-      TCreate,
-      | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-      | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
-    >,
-    TSearch,
-    TOrder,
-    // If it's a nested search, this means we are still doing a search, so in case of a set, we are
-    // updating the data. And in case of a get, we are getting the data with a search.
-    ReturnType<TNestedQuerySet> extends QuerySet<any, any, any, any, any, any, any, infer THasNestedSearch, any>
-      ? THasNestedSearch
-      : false,
-    TIsJoin,
-    TAlreadyDefinedRelations | TRelationName
-  > {
-    const getNewQuerySet = () => {
-      if (this.__type === 'set') return new SetQuerySet(this.__type);
-      if (this.__type === 'remove') return new RemoveQuerySet(this.__type);
-      else return new GetQuerySet(this.__type);
-    };
-
-    const newParentQuerySet = getNewQuerySet();
-    const newChildQuerySet = getNewQuerySet() as any;
-    newChildQuerySet['__isJoin'] = true as any;
-
-    const queryCallbackResult = queryCallback ? queryCallback(newChildQuerySet) : newChildQuerySet;
-
-    if (queryCallbackResult['__hasSearch']) newParentQuerySet['__hasSearch'] = true as any;
-    if (this['__isJoin']) newParentQuerySet['__isJoin'] = true as any;
-
-    for (const field of Object.keys(this.__query)) {
-      if (field === 'joins') continue;
-      (newParentQuerySet['__query'] as any)[field] = (this.__query as any)[field];
-    }
-
-    const existingJoins = this.__query.joins ? this.__query.joins() : {};
-    newParentQuerySet['__query'].joins = () => ({
-      ...existingJoins,
-      [relationName]: {
-        model,
-        querySet: queryCallbackResult
-      }
-    });
-
-    return newParentQuerySet as any;
-  }
-
-  /**
-   * You can combine as many where clauses as you want. This way you can reuse the same query.
-   */
-  where(
-    search: TSearch
-  ): ReturnTypeOfBaseQuerySetMethods<
-    TType,
-    TModel,
-    TResult,
-    TUpdate,
-    TCreate,
-    TSearch,
-    TOrder,
-    true,
-    TIsJoin,
-    TAlreadyDefinedRelations
-  > {
-    const getNewQuerySet = () => {
-      if (this.__type === 'set')
-        return new SetQuerySet<
-          'set',
-          TModel,
-          TResult,
-          TUpdate,
-          TCreate,
-          TSearch,
-          TOrder,
-          true,
-          TIsJoin,
-          TAlreadyDefinedRelations
-        >(this.__type);
-      if (this.__type === 'remove')
-        return new RemoveQuerySet<
-          'remove',
-          TModel,
-          TResult,
-          TUpdate,
-          TCreate,
-          TSearch,
-          TOrder,
-          true,
-          TIsJoin,
-          TAlreadyDefinedRelations
-        >(this.__type);
-      else if (this.__isJoin)
-        return new GetQuerySetIfSearchOnJoin<
-          'get',
-          TModel,
-          TResult,
-          TUpdate,
-          TCreate,
-          TSearch,
-          TOrder,
-          true,
-          TIsJoin,
-          TAlreadyDefinedRelations
-        >(this.__type);
-      else
-        return new GetQuerySet<
-          'get',
-          TModel,
-          TResult,
-          TUpdate,
-          TCreate,
-          TSearch,
-          TOrder,
-          true,
-          TIsJoin,
-          TAlreadyDefinedRelations
-        >(this.__type);
-    };
-    const newQuerySet = getNewQuerySet();
-
-    for (const field of Object.keys(this.__query)) {
-      if (field === 'where') continue;
-      (newQuerySet as any)['__query'][field] = (this.__query as any)[field];
-    }
-
-    if (this.__query.where)
-      newQuerySet['__query'].where = () => ({
-        ...this.__query.where!(),
-        ...search
-      });
-    else newQuerySet['__query'].where = () => search as any;
-
-    newQuerySet['__hasSearch'] = true;
-    return newQuerySet as any;
   }
 
   static new<TModel, TType extends 'set' | 'remove' | 'get' = 'get'>(
@@ -709,7 +458,7 @@ export class QuerySet<
    * @param fieldName - The name of the field that we are going to lazy remove after the query.
    */
   protected __duringQueryAppendFieldToBeLazyRemovedAfterQuery(
-    queryset: QuerySet<any, any, any, any, any, any, any, any, any, any>,
+    queryset: QuerySet<any, any, any, any, any, any, any, any, any, any, any, any>,
     fieldName: string
   ) {
     if (queryset['__query'].fields) {
@@ -727,13 +476,14 @@ export class QuerySet<
   }
 
   protected __duringQueryAppendInsertedOrUpdatedDataToQuery(
-    queryset: QuerySet<any, any, any, any, any, any, any, any, any, any>,
+    queryset: QuerySet<any, any, any, any, any, any, any, any, any, any, any, any>,
     dataInsertedOnParent: any[],
     fieldNameOnRelationToFilter: string
   ) {
     const hasSearch = queryset['__hasSearch'];
     const existingDataClauseOnChild = queryset['__query'].data?.();
 
+    console.log('existingDataClauseOnChild', existingDataClauseOnChild);
     if (existingDataClauseOnChild && existingDataClauseOnChild.length > 0) {
       queryset['__query'].data = () => {
         // Update clause,
@@ -757,7 +507,7 @@ export class QuerySet<
   protected async __duringQueryActuallyQueryTheDatabase(
     model: typeof BaseModel & typeof Model & ModelType<any, any>,
     engine: DatabaseAdapter,
-    queryset: QuerySet<any, any, any, any, any, any, any, any, any, any>,
+    queryset: QuerySet<any, any, any, any, any, any, any, any, any, any, any, any>,
     args: {
       cachedData: any;
       relations?: {
@@ -848,24 +598,38 @@ export class QuerySet<
     }
 
     const queryPerOperation = async () => {
-      if (this.__type === 'get') {
-        return engine.query.get.queryData(engine, {
-          modelOfEngineInstance: translatedModel,
-          search: query['search'],
-          fields: query['fields'],
-          ordering: query['ordering'],
-          limit: query['limit'],
-          offset: query['offset']
-        });
-      }
-      if (this.__type === 'set') {
+      if (queryset.__type === 'set' && queryset.__markToCreateOrUpdate) {
+        const isUpdate = queryset['__hasSearch'] === true;
+        const dataToSendToEngine = isUpdate
+          ? Array.isArray(query['data'][0])
+            ? query['data'][0]
+            : [query['data'][0]]
+          : Array.isArray(query['data'])
+            ? query['data']
+            : [query['data']];
+
         const allDataAddedOrUpdated = await engine.query.set.queryData(engine, {
           search: query['search'],
           modelOfEngineInstance: translatedModel,
-          data: Array.isArray(query['data'][0]) ? query['data'][0] : [query['data'][0]]
+          data: dataToSendToEngine
         });
         return allDataAddedOrUpdated.map((data: any) => data[1]);
       }
+      if (queryset.__type === 'remove' && queryset.__markToRemove) {
+        return engine.query.remove.queryData(engine, {
+          search: query['search'],
+          modelOfEngineInstance: translatedModel
+        });
+      }
+
+      return engine.query.get.queryData(engine, {
+        modelOfEngineInstance: translatedModel,
+        search: query['search'],
+        fields: query['fields'],
+        ordering: query['ordering'],
+        limit: query['limit'],
+        offset: query['offset']
+      });
     };
 
     this.__cachedData = args.cachedData ? args.cachedData : queryPerOperation();
@@ -1085,9 +849,11 @@ export class QuerySet<
         : baseModelAsModel['__associations'][joinedModelName].byRelatedName.get(relationOrRelatedName)?.['__unique'] ||
           false;
 
-      const hasSearch = querySet['__hasSearch'] as boolean;
+      // We need to check by the `where` clause on the query, because what changes the ordering
       const shouldBeQueriedBeforeBase =
-        hasSearch || (querySet['__query'].data !== undefined && isDirectlyRelated === true);
+        (querySet['__hasSearch'] as boolean) || // For GET queries
+        (querySet['__query'].data !== undefined && (querySet['__hasSearch'] as boolean)) || // For Update SET queries
+        (querySet['__query'].data !== undefined && isDirectlyRelated === true); // For Creates SET queries
 
       if (shouldBeQueriedBeforeBase)
         toQueryBeforeBase.push(async () => {
@@ -1215,86 +981,432 @@ export class QuerySet<
       await this.__duringQueryActuallyQueryTheDatabase(baseModelAsModel, engine, this, {
         cachedData: undefined,
         relations: {
-          ...(args?.relations || {}),
+          ...((args?.relations || {}) as any),
           relationsFromJoinsWithWhereClause: {
             mapTo: relations,
-            newMap: args?.relations?.relationsFromJoinsWithWhereClause.newMap
+            newMap: args?.relations?.relationsFromJoinsWithWhereClause.newMap as any
           } as any
-        } as any
+        }
       });
     }
 
     return this.__cachedData;
   }
+}
+export class CommonQuerySet<
+  TType extends 'get' | 'set' | 'remove',
+  TModel,
+  TResult = GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'read'>,
+  TUpdate = Partial<
+    GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'update'>
+  >,
+  TCreate = ModelFields<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel>,
+  TSearch = Partial<
+    GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'read', true>
+  >,
+  TOrder = GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel>,
+  THasSearch extends boolean = false,
+  THasData extends boolean = false,
+  THasRemove extends boolean = false,
+  TIsJoin extends boolean = false,
+  TAlreadyDefinedRelations = never
+> extends QuerySet<
+  TType,
+  TModel,
+  TResult,
+  TUpdate,
+  TCreate,
+  TSearch,
+  TOrder,
+  THasSearch,
+  THasData,
+  THasRemove,
+  TIsJoin,
+  TAlreadyDefinedRelations
+> {
+  /**
+   * Join a model with another model, you can also pass a callback to make nested queries.
+   *
+   * @param model - The model you want to join with.
+   * @param relationName - The name of the relation you want to join. Let's say the model
+   * you are joining with is called `Profile` on the `User` model, and there are two foreignKeyFields on
+   * the `User` model that points to the `Profile` model, one called `profileId` and the other called `profileId2`.
+   * The relationName would be `profileId` or `profileId2`.
+   * IMPORTANT: If the relationName is not inferred from typescript it's invalid and you cannot relate the data.
+   * @param queryCallback - A callback to make nested queries or to filter through a nested relation
+   */
+  join<
+    TIncludedModel,
+    TRelationName extends
+      | keyof ForeignKeyModelsRelationName<
+          TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel,
+          TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel
+        >
+      | keyof ForeignKeyModelsRelatedName<
+          TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel,
+          TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel
+        >,
+    TNestedQuerySet extends (
+      querySet: ReturnTypeOfBaseQuerySetMethods<
+        TType,
+        TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel,
+        GetDataFromModel<TIncludedModel>,
+        Omit<
+          Partial<GetDataFromModel<TIncludedModel, 'update'>>,
+          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
+          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+        >,
+        Omit<
+          GetDataFromModel<TIncludedModel, 'create'>,
+          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
+          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+        >,
+        Partial<GetDataFromModel<TIncludedModel, 'read', true>>,
+        GetDataFromModel<TIncludedModel>,
+        THasSearch,
+        THasData,
+        THasRemove,
+        true,
+        never
+      >
+    ) =>
+      | ReturnTypeOfBaseQuerySetMethods<
+          TType,
+          TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel,
+          GetDataFromModel<TIncludedModel>,
+          Omit<
+            Partial<GetDataFromModel<TIncludedModel, 'update'>>,
+            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
+            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+          >,
+          Omit<
+            GetDataFromModel<TIncludedModel, 'create'>,
+            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
+            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+          >,
+          Partial<GetDataFromModel<TIncludedModel, 'read', true>>,
+          GetDataFromModel<TIncludedModel>,
+          boolean,
+          boolean,
+          boolean,
+          boolean,
+          never
+        >
+      | QuerySet<
+          TType,
+          TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel,
+          GetDataFromModel<TIncludedModel>,
+          Omit<
+            Partial<GetDataFromModel<TIncludedModel, 'update'>>,
+            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
+            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+          >,
+          Omit<
+            GetDataFromModel<TIncludedModel, 'create'>,
+            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
+            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+          >,
+          Partial<GetDataFromModel<TIncludedModel, 'read', true>>,
+          GetDataFromModel<TIncludedModel>,
+          boolean,
+          boolean,
+          boolean,
+          boolean,
+          never
+        > = (
+      querySet: ReturnTypeOfBaseQuerySetMethods<
+        TType,
+        TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel,
+        GetDataFromModel<TIncludedModel>,
+        Omit<
+          Partial<GetDataFromModel<TIncludedModel, 'update'>>,
+          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
+          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+        >,
+        Omit<
+          GetDataFromModel<TIncludedModel, 'create'>,
+          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
+          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+        >,
+        Partial<GetDataFromModel<TIncludedModel, 'read', true>>,
+        GetDataFromModel<TIncludedModel>,
+        THasSearch,
+        THasData,
+        THasRemove,
+        true,
+        never
+      >
+    ) =>
+      | ReturnTypeOfBaseQuerySetMethods<
+          TType,
+          TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel,
+          GetDataFromModel<TIncludedModel>,
+          Omit<
+            Partial<GetDataFromModel<TIncludedModel, 'update'>>,
+            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
+            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+          >,
+          Omit<
+            GetDataFromModel<TIncludedModel, 'create'>,
+            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
+            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+          >,
+          Partial<GetDataFromModel<TIncludedModel, 'read', true>>,
+          GetDataFromModel<TIncludedModel>,
+          THasSearch,
+          THasData,
+          THasRemove,
+          true,
+          never
+        >
+      | QuerySet<
+          TType,
+          TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel,
+          GetDataFromModel<TIncludedModel>,
+          Omit<
+            Partial<GetDataFromModel<TIncludedModel, 'update'>>,
+            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
+            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+          >,
+          Omit<
+            GetDataFromModel<TIncludedModel, 'create'>,
+            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
+            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+          >,
+          Partial<GetDataFromModel<TIncludedModel, 'read', true>>,
+          GetDataFromModel<TIncludedModel>,
+          THasSearch,
+          THasData,
+          THasRemove,
+          true,
+          never
+        >
+  >(
+    model: TIncludedModel,
+    relationName: TRelationName,
+    queryCallback?: TNestedQuerySet
+  ): ReturnTypeOfBaseQuerySetMethods<
+    TType,
+    TModel,
+    TResult & {
+      [TKey in TRelationName]: ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName] extends undefined[]
+        ? (ReturnType<TNestedQuerySet> extends
+            | QuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
+            | CommonQuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
+            ? TResult
+            : never)[]
+        : ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName] extends unknown[]
+          ? (ReturnType<TNestedQuerySet> extends
+              | QuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
+              | CommonQuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
+              ? TResult
+              : never)[]
+          :
+                | ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName]
+                | ForeignKeyModelsRelationName<TModel, TIncludedModel>[TRelationName] extends undefined
+            ? ReturnType<TNestedQuerySet> extends
+                | QuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
+                | CommonQuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
+              ? TResult | undefined
+              : never
+            : ReturnType<TNestedQuerySet> extends
+                  | CommonQuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
+                  | QuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
+              ? TResult
+              : never;
+    },
+    Omit<
+      TUpdate,
+      | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
+      | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+    >,
+    Omit<
+      TCreate,
+      | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
+      | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+    >,
+    TSearch,
+    TOrder,
+    // If it's a nested search, this means we are still doing a search, so in case of a set, we are
+    // updating the data. And in case of a get, we are getting the data with a search.
+    ReturnType<TNestedQuerySet> extends
+      | CommonQuerySet<any, any, any, any, any, any, any, infer THasNestedSearch, any, any, any, any>
+      | QuerySet<any, any, any, any, any, any, any, infer THasNestedSearch, any, any, any, any>
+      ? THasNestedSearch
+      : false,
+    ReturnType<TNestedQuerySet> extends
+      | CommonQuerySet<any, any, any, any, any, any, any, any, infer THasNestedData, any, any, any>
+      | QuerySet<any, any, any, any, any, any, any, any, infer THasNestedData, any, any, any>
+      ? THasNestedData
+      : false,
+    ReturnType<TNestedQuerySet> extends
+      | CommonQuerySet<any, any, any, any, any, any, any, any, any, infer THasNestedRemove, any, any>
+      | QuerySet<any, any, any, any, any, any, any, any, any, infer THasNestedRemove, any, any>
+      ? THasNestedRemove
+      : false,
+    TIsJoin,
+    TAlreadyDefinedRelations | TRelationName
+  > {
+    const getNewQuerySet = () => {
+      if (this.__type === 'set') return new SetQuerySet(this.__type);
+      if (this.__type === 'remove') return new RemoveQuerySet(this.__type);
+      else return new GetQuerySet(this.__type);
+    };
 
-  protected __getQueryFormatted() {
-    const query: any = {};
-    const joins = this.__query.joins?.();
+    const newParentQuerySet = getNewQuerySet();
+    const newChildQuerySet = getNewQuerySet() as any;
+    newChildQuerySet['__isJoin'] = true as any;
 
-    if (this.__query.fields) query['fields'] = this.__query.fields();
-    if (this.__query.orderBy) query['ordering'] = this.__query.orderBy();
-    if (this.__query.limit) query['limit'] = this.__query.limit();
-    if (this.__query.offset) query['offset'] = this.__query.offset();
-    if (this.__query.where) query['search'] = this.__query.where();
-    if (this.__query.data) query['data'] = this.__query.data();
-    if (this.__query.remove) query['remove'] = this.__query.remove();
+    const queryCallbackResult = queryCallback ? queryCallback(newChildQuerySet) : newChildQuerySet;
 
-    const joinsEntries = joins ? Object.entries(joins) : [];
-    const formattedJoins = joinsEntries.map(([key, value]) => {
-      return [
-        key,
-        value,
-        {
-          appendData: (key: string, data: any, force: boolean) => {
-            if (query.data) query.data[key] = { data, force };
-            else query.data = { [key]: { data, force } };
-          },
-          appendToSearchQuery: (key: string, value: any) => {
-            if (query.search) query.search[key] = value;
-            else query.search = { [key]: value };
-          },
-          appendIncludes: (
-            key: string,
-            model: any,
-            nestedIncludes?: any,
-            orderBy?: string[],
-            fields?: string[],
-            offset?: number,
-            limit?: number
-          ) => {
-            if (query.includes)
-              query.includes.push({
-                model,
-                relationNames: [key],
-                fields,
-                ordering: orderBy,
-                offset,
-                limit,
-                includes: nestedIncludes
-              });
-            else
-              query.includes = [
-                { model, relationNames: [key], fields, ordering: orderBy, offset, limit, includes: nestedIncludes }
-              ];
-          }
-        }
-      ] as const;
+    if (queryCallbackResult['__hasSearch']) newParentQuerySet['__hasSearch'] = true as any;
+    if (this['__isJoin']) newParentQuerySet['__isJoin'] = true as any;
+
+    for (const field of Object.keys(this.__query)) {
+      if (field === 'joins') continue;
+      (newParentQuerySet['__query'] as any)[field] = (this.__query as any)[field];
+    }
+
+    const existingJoins = this.__query.joins ? this.__query.joins() : {};
+    newParentQuerySet['__query'].joins = () => ({
+      ...existingJoins,
+      [relationName]: {
+        model,
+        querySet: queryCallbackResult
+      }
     });
 
-    for (const joinsData of formattedJoins) {
-      const [key, { model, querySet }, { appendToSearchQuery, appendIncludes, appendData }] = joinsData;
+    return newParentQuerySet as any;
+  }
 
-      const nestedQueryData = querySet.__getQueryFormatted();
-      if (nestedQueryData.search) appendToSearchQuery(key, nestedQueryData.search);
-      if (nestedQueryData.data) appendData(key, nestedQueryData.update.data, nestedQueryData.update.force);
+  /**
+   * Used for filtering the data on the database. It will guarantee only a subset of the data is returned.
+   * You can chain as many `.where()` methods as you want. This will append the new data to the previous `.where()`
+   * clause.
+   *
+   * @example
+   * ```ts
+   * const users = await User.objects.get((qs) => qs.where({ age: 20 }).where({ name: 'John' }));
+   * ```
+   *
+   * This will return all users that have the age of '20' and the name of 'John'.
+   *
+   * You can also use some special operators like `in`, `greaterThan`, `lessThan`,
+   * `greaterThanEqual`, etc depending on the data type of the field.
+   *
+   * @example
+   * ```ts
+   * const users = await User.objects.get((qs) => qs.where({ age: { greaterThan: 20 } }));
+   * ```
+   *
+   * When used in a join, it will do a InnerJoin-like query in memory. For example
+   *
+   * @example
+   * ```ts
+   * const users = await User.objects.get((qs) =>
+   *   qs.join(Profile, 'profile', (qs) => qs.where({ type: 'admin' }))
+   * );
+   * ```
+   * This will return all Users that have the Profile type of 'admin'.
+   *
+   * @param search - The search object to filter the data.
+   *
+   * @returns - A new QuerySet with the search appended.
+   */
+  where(
+    search: TSearch
+  ): ReturnTypeOfBaseQuerySetMethods<
+    TType,
+    TModel,
+    TResult,
+    TUpdate,
+    TCreate,
+    TSearch,
+    TOrder,
+    true,
+    THasData,
+    THasRemove,
+    TIsJoin,
+    TAlreadyDefinedRelations
+  > {
+    const getNewQuerySet = () => {
+      if (this.__type === 'set')
+        return new SetQuerySet<
+          'set',
+          TModel,
+          TResult,
+          TUpdate,
+          TCreate,
+          TSearch,
+          TOrder,
+          true,
+          THasData,
+          THasRemove,
+          TIsJoin,
+          TAlreadyDefinedRelations
+        >(this.__type);
+      if (this.__type === 'remove')
+        return new RemoveQuerySet<
+          'remove',
+          TModel,
+          TResult,
+          TUpdate,
+          TCreate,
+          TSearch,
+          TOrder,
+          true,
+          THasData,
+          THasRemove,
+          TIsJoin,
+          TAlreadyDefinedRelations
+        >(this.__type);
+      else if (this.__isJoin)
+        return new GetQuerySetIfSearchOnJoin<
+          'get',
+          TModel,
+          TResult,
+          TUpdate,
+          TCreate,
+          TSearch,
+          TOrder,
+          true,
+          THasData,
+          THasRemove,
+          TIsJoin,
+          TAlreadyDefinedRelations
+        >(this.__type);
+      else
+        return new GetQuerySet<
+          'get',
+          TModel,
+          TResult,
+          TUpdate,
+          TCreate,
+          TSearch,
+          TOrder,
+          true,
+          THasData,
+          THasRemove,
+          TIsJoin,
+          TAlreadyDefinedRelations
+        >(this.__type);
+    };
+    const newQuerySet = getNewQuerySet();
 
-      appendIncludes(key, model, nestedQueryData.includes, nestedQueryData.fields);
+    for (const field of Object.keys(this.__query)) {
+      if (field === 'where') continue;
+      (newQuerySet as any)['__query'][field] = (this.__query as any)[field];
     }
 
-    if (query.remove) {
-      if (!query.search && !query.remove[1]) throw new MissingWhereClauseException('remove');
-    }
-    return query;
+    if (this.__query.where)
+      newQuerySet['__query'].where = () => ({
+        ...this.__query.where!(),
+        ...search
+      });
+    else newQuerySet['__query'].where = () => search as any;
+
+    newQuerySet['__hasSearch'] = true;
+    return newQuerySet as any;
   }
 }
 
@@ -1307,9 +1419,11 @@ export class GetQuerySetIfSearchOnJoin<
   TSearch = Partial<GetDataFromModel<TModel, 'read', true>>,
   TOrder = GetDataFromModel<TModel>,
   THasSearch extends boolean = false,
+  THasData extends boolean = false,
+  THasRemove extends boolean = false,
   TIsJoin extends boolean = false,
   TAlreadyDefinedRelations = never
-> extends QuerySet<
+> extends CommonQuerySet<
   TType,
   TModel,
   TResult,
@@ -1318,9 +1432,28 @@ export class GetQuerySetIfSearchOnJoin<
   TSearch,
   TOrder,
   THasSearch,
+  THasData,
+  THasRemove,
   TIsJoin,
   TAlreadyDefinedRelations
 > {
+  /**
+   * Selects only the fields you want to retrieve from the database. This will probably improve the performance
+   * of your query. This can be chained with other `select` clauses.
+   *
+   * @example
+   * ```ts
+   * const users = await User.objects.get((qs) => qs.select('id', 'name'));
+   *
+   * const users = await User.objects.get((qs) => qs.select('id').select('name'));
+   *
+   * // Both of the above examples are the same thing
+   * ```
+   *
+   * @param fields - The fields you want to retrieve from the database.
+   *
+   * @returns - A new QuerySet with the fields selected.
+   */
   select<const TFields extends (keyof GetDataFromModel<TModel>)[]>(
     ...fields: TFields
   ): ReturnTypeOfBaseQuerySetMethods<
@@ -1337,6 +1470,8 @@ export class GetQuerySetIfSearchOnJoin<
     TSearch,
     Pick<TOrder, TFields[number] extends keyof TOrder ? TFields[number] : never>,
     THasSearch,
+    THasData,
+    THasRemove,
     TIsJoin,
     TAlreadyDefinedRelations
   > {
@@ -1354,6 +1489,8 @@ export class GetQuerySetIfSearchOnJoin<
       TSearch,
       Pick<TOrder, TFields[number] extends keyof TOrder ? TFields[number] : never>,
       THasSearch,
+      THasData,
+      THasRemove,
       TIsJoin,
       TAlreadyDefinedRelations
     >(this.__type);
@@ -1380,33 +1517,25 @@ export class GetQuerySetIfSearchOnJoin<
 
     return newQuerySet as any;
   }
-}
 
-export class GetQuerySet<
-  TType extends 'get' | 'set' | 'remove',
-  TModel,
-  TResult = GetDataFromModel<TModel, 'read'>,
-  TUpdate = Partial<GetDataFromModel<TModel, 'update'>>,
-  TCreate = GetDataFromModel<TModel, 'create'>,
-  TSearch = Partial<GetDataFromModel<TModel, 'read', true>>,
-  TOrder = GetDataFromModel<TModel>,
-  THasSearch extends boolean = false,
-  TIsJoin extends boolean = false,
-  TAlreadyDefinedRelations = never
-> extends GetQuerySetIfSearchOnJoin<
-  TType,
-  TModel,
-  TResult,
-  TUpdate,
-  TCreate,
-  TSearch,
-  TOrder,
-  THasSearch,
-  TIsJoin,
-  TAlreadyDefinedRelations
-> {
+  /**
+   * Allows you to order the data you are retrieving from the database. This can be chained
+   * with other `orderBy` clauses.
+   *
+   * A clause with a `-` in front of the field name means it will order in descending order.
+   * Otherwise it will order in ascending order.
+   *
+   * @example
+   * ```ts
+   * const users = await User.objects.get((qs) => qs.orderBy('-name', 'age'));
+   * ```
+   *
+   * @param ordering - The fields you want to order by.
+   *
+   * @returns - A new QuerySet with the ordering appended.
+   */
   orderBy(
-    ordering: OrderingOfFields<keyof TOrder extends string ? keyof TOrder : never>
+    ...ordering: OrderingOfFields<keyof TOrder extends string ? keyof TOrder : never>
   ): GetQuerySet<
     TType,
     TModel,
@@ -1416,6 +1545,8 @@ export class GetQuerySet<
     TSearch,
     TOrder,
     THasSearch,
+    THasData,
+    THasRemove,
     TIsJoin,
     TAlreadyDefinedRelations
   > {
@@ -1428,6 +1559,8 @@ export class GetQuerySet<
       TSearch,
       TOrder,
       THasSearch,
+      THasData,
+      THasRemove,
       TIsJoin,
       TAlreadyDefinedRelations
     >(this.__type);
@@ -1444,7 +1577,35 @@ export class GetQuerySet<
 
     return newQuerySet as any;
   }
+}
 
+export class GetQuerySet<
+  TType extends 'get' | 'set' | 'remove',
+  TModel,
+  TResult = GetDataFromModel<TModel, 'read'>,
+  TUpdate = Partial<GetDataFromModel<TModel, 'update'>>,
+  TCreate = GetDataFromModel<TModel, 'create'>,
+  TSearch = Partial<GetDataFromModel<TModel, 'read', true>>,
+  TOrder = GetDataFromModel<TModel>,
+  THasSearch extends boolean = false,
+  THasData extends boolean = false,
+  THasRemove extends boolean = false,
+  TIsJoin extends boolean = false,
+  TAlreadyDefinedRelations = never
+> extends GetQuerySetIfSearchOnJoin<
+  TType,
+  TModel,
+  TResult,
+  TUpdate,
+  TCreate,
+  TSearch,
+  TOrder,
+  THasSearch,
+  THasData,
+  THasRemove,
+  TIsJoin,
+  TAlreadyDefinedRelations
+> {
   limit(
     limit: number
   ): GetQuerySet<
@@ -1456,6 +1617,8 @@ export class GetQuerySet<
     TSearch,
     TOrder,
     THasSearch,
+    THasData,
+    THasRemove,
     TIsJoin,
     TAlreadyDefinedRelations
   > {
@@ -1468,6 +1631,8 @@ export class GetQuerySet<
       TSearch,
       TOrder,
       THasSearch,
+      THasData,
+      THasRemove,
       TIsJoin,
       TAlreadyDefinedRelations
     >(this.__type);
@@ -1494,6 +1659,8 @@ export class GetQuerySet<
     TSearch,
     TOrder,
     THasSearch,
+    THasData,
+    THasRemove,
     TIsJoin,
     TAlreadyDefinedRelations
   > {
@@ -1506,6 +1673,8 @@ export class GetQuerySet<
       TSearch,
       TOrder,
       THasSearch,
+      THasData,
+      THasRemove,
       TIsJoin,
       TAlreadyDefinedRelations
     >(this.__type);
@@ -1538,9 +1707,11 @@ export class SetQuerySet<
   >,
   TOrder = GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel>,
   THasSearch extends boolean = false,
+  THasData extends boolean = false,
+  THasRemove extends boolean = false,
   TIsJoin extends boolean = false,
   TAlreadyDefinedRelations = never
-> extends QuerySet<
+> extends CommonQuerySet<
   TType,
   TModel,
   TResult,
@@ -1549,12 +1720,104 @@ export class SetQuerySet<
   TSearch,
   TOrder,
   THasSearch,
+  THasData,
+  THasRemove,
   TIsJoin,
   TAlreadyDefinedRelations
 > {
+  /**
+   * This method is used to set the data to be created or updated. As you've probably seen, we doesn't
+   * offer you too many options, you have `.set`, `remove` and `get` on the Managers. This covers the
+   * `.set` part. A `set` operation creates or updates the data on the database.
+   *
+   * Now you might be asking: How do we know how to differentiate? Easy, by the presence of a `.where()`
+   * clause anywhere on your query (even nested ones).
+   *
+   * If you have a `.where()` clause, it will update the data. If you don't, it will create the data.
+   *
+   * Other differences between the two operations are:
+   * ### Create
+   * - You can set as many data as you want.
+   * - You can set the same data multiple times, it will create multiple entries.
+   * - Obligatory data is required.
+   *
+   * ### Update
+   * - Just one data can be set.
+   * - All fields are optional.
+   *
+   * Here is simple examples:
+   * @example
+   * ```typescript
+   * // CREATING A USER
+   * const user = await User.objects.set((qs) => qs.data({ name: 'John Doe', email: 'johndoe@example.com' }));
+   *
+   * // CREATING MULTIPLE USERS
+   * const user = await User.objects.set((qs) => qs.data(
+   *   { name: 'John Doe', email: 'johndoe@example.com' },
+   *   { name: 'Victor Baptista', email: 'victor@example.com' }
+   * ));
+   *
+   * // UPDATING A USER
+   * const user = await User.objects.set((qs) => qs.where({ id: 1 }).data({ name: 'John Doe' }));
+   * ```
+   *
+   * Great, now comes the cool part: Relations!
+   * Relations are for querying purposes, most of the time, but you can also set data through them. Palmares
+   * takes care of the rest for you. Let's see an example:
+   *
+   * @example
+   * ```typescript
+   *
+   * // CREATING A PROFILE TYPE WITH TWO ASSOCIATED USERS AND ASSIGNING BOTH USERS TO ONE COMPANY
+   * const company = await Company.default.set((qs) =>
+   *   qs
+   *     .join(User, 'usersOfCompany', (qs) =>
+   *       qs
+   *         .join(ProfileType, 'profileType', (qs) =>
+   *           qs.data({
+   *             name: 'admin2'
+   *           })
+   *         )
+   *         .data({
+   *           age: 10,
+   *           name: 'test1',
+   *           uuid: 'a417f723-ddb7-4f8c-a42c-0b5975e4cf5f',
+   *           userType: 'admin'
+   *         }, {
+   *           age: 11,
+   *           name: 'test2',
+   *           uuid: '77ac0c15-09c7-425e-9d77-97c0f973e8e6',
+   *           userType: 'user'
+   *         })
+   *     )
+   *     .data({
+   *       address: 'test',
+   *       name: 'test5'
+   *     })
+   * );
+   *
+   * // UPDATING A COMPANY, AND ONLY THE COMPANY BY QUERYING BY THE PROFILE TYPE
+   * const company = await Company.default.set((qs) =>
+   *   qs
+   *     .join(User, 'usersOfCompany', (qs) =>
+   *       qs
+   *         .join(ProfileType, 'profileType', (qs) =>
+   *           qs.where({ id: 5 })
+   *         )
+   *     )
+   *     .data({
+   *       name: 'hello'
+   *     })
+   * );
+   * ```
+   *
+   * @param data - The data to be set on the database.
+   *
+   * @returns - Returns a new QuerySet. You cannot set any more chaining method after this one.
+   */
   data(
     ...data: THasSearch extends true ? [TUpdate] : TCreate[]
-  ): SetQuerySet<
+  ): QuerySet<
     'set',
     TModel,
     TResult,
@@ -1564,10 +1827,12 @@ export class SetQuerySet<
     TOrder,
     THasSearch,
     TIsJoin,
+    true,
+    THasRemove,
     TAlreadyDefinedRelations
   > {
-    const newQuerySet = new SetQuerySet<
-      TType,
+    const newQuerySet = new QuerySet<
+      'set',
       TModel,
       TResult,
       TUpdate,
@@ -1575,9 +1840,11 @@ export class SetQuerySet<
       TSearch,
       TOrder,
       THasSearch,
+      true,
+      THasRemove,
       TIsJoin,
       TAlreadyDefinedRelations
-    >(this.__type);
+    >('set');
 
     for (const field of Object.keys(this.__query)) {
       if (field === 'data') continue;
@@ -1602,6 +1869,7 @@ export class SetQuerySet<
 
     newQuerySet['__hasSearch'] = this['__hasSearch'];
     newQuerySet['__isJoin'] = this['__isJoin'];
+    newQuerySet['__markToCreateOrUpdate'] = true;
 
     return newQuerySet as any;
   }
@@ -1623,9 +1891,11 @@ export class RemoveQuerySet<
   TSearch = Partial<GetDataFromModel<TModel, 'read', true>>,
   TOrder = GetDataFromModel<TModel>,
   THasSearch extends boolean = false,
+  THasData extends boolean = false,
+  THasRemove extends boolean = false,
   TIsJoin extends boolean = false,
   TAlreadyDefinedRelations = never
-> extends QuerySet<
+> extends CommonQuerySet<
   TType,
   TModel,
   TResult,
@@ -1634,12 +1904,54 @@ export class RemoveQuerySet<
   TSearch,
   TOrder,
   THasSearch,
+  THasData,
+  THasRemove,
   TIsJoin,
   TAlreadyDefinedRelations
 > {
-  remove(
-    force?: boolean
-  ): RemoveQuerySet<
+  /**
+   * This methods sets the data to be removed from the database. You must always use
+   * this, otherwise it will not remove the data. We know it's kinda redundant sometimes
+   * but this makes it explicit that you are removing the data from the database. Sometimes
+   * something being a little more verbose is actually a nice thing!
+   *
+   * A simple example:
+   * @example
+   * ```typescript
+   * const user = await User.objects.remove((qs) => qs.where({ id: 1 }).remove());
+   * ```
+   *
+   * This will remove all users with the id of 1. Now let's go to a more complex example:
+   *
+   * @example
+   * ```typescript
+   * const companies = await Company.default.remove((qs) =>
+   *  qs
+   *    .join(User, 'usersOfCompany', (qs) =>
+   *      qs
+   *        .join(ProfileType, 'profileType', (qs) =>
+   *          qs.where({
+   *            id: 5
+   *          })
+   *        )
+   *        .remove()
+   *    )
+   *    .remove()
+   * );
+   * ```
+   *
+   * This will remove all companies that have a user with a profile type of 5. And all
+   * the companies related with that user.
+   *
+   * "Will ProfileType be removed?" No, it will not. Because you haven't set .remove() on it's
+   * queryset. So ProfileType is just there for querying purposes but will not be removed,
+   * how cool is that?
+   *
+   * Usually you will want to use this method just on the root queryset, not on its children.
+   *
+   * @returns - Returns a new QuerySet. You cannot set any more chaining method after this one.
+   */
+  remove(): QuerySet<
     'remove',
     TModel,
     TResult,
@@ -1648,11 +1960,13 @@ export class RemoveQuerySet<
     TSearch,
     TOrder,
     THasSearch,
+    THasData,
+    true,
     TIsJoin,
     TAlreadyDefinedRelations
   > {
-    const newQuerySet = new RemoveQuerySet<
-      TType,
+    const newQuerySet = new QuerySet<
+      'remove',
       TModel,
       TResult,
       TUpdate,
@@ -1660,17 +1974,19 @@ export class RemoveQuerySet<
       TSearch,
       TOrder,
       THasSearch,
+      THasData,
+      true,
       TIsJoin,
       TAlreadyDefinedRelations
-    >(this.__type);
+    >('remove');
 
     for (const field of Object.keys(this.__query)) {
       (newQuerySet['__query'] as any)[field] = (this.__query as any)[field];
     }
 
-    const forceRemove = force || false;
-    newQuerySet['__query']['remove'] = () => [true, forceRemove];
-
+    newQuerySet['__hasSearch'] = this['__hasSearch'];
+    newQuerySet['__isJoin'] = this['__isJoin'];
+    newQuerySet['__markToRemove'] = true;
     return newQuerySet as any;
   }
 }

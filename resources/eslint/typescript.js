@@ -24,7 +24,7 @@ export const typescript = {
     {
       selector: 'typeParameter',
       format: ['PascalCase'],
-      leadingUnderscore: 'forbid',
+      leadingUnderscore: 'allow',
       trailingUnderscore: 'forbid',
       custom: {
         regex: '^(T|T[A-Z][A-Za-z0-9]+)$',

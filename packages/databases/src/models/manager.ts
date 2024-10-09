@@ -8,7 +8,7 @@ import { removeQuery } from '../queries/remove';
 import { setQuery } from '../queries/set';
 
 import type { BaseModel, Model, ModelType } from './model';
-import type { QuerySet } from './queryset';
+import type { CommonQuerySet, GetDataFromModel, QuerySet } from './queryset';
 import type { ManagerEngineInstancesType, ManagerInstancesType } from './types';
 import type { DatabaseAdapter } from '../engine';
 import type { DatabaseDomainInterface } from '../interfaces';
@@ -244,8 +244,34 @@ export class Manager<
 
   async set<
     TQueryBuilder extends (
-      queryBuilder: SetQuerySet<'set', TModel>
-    ) => QuerySet<'set', TModel, any, any, any, any, any, any>
+      queryBuilder: SetQuerySet<
+        'set',
+        TModel,
+        GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'read'>,
+        Partial<
+          GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'update'>
+        >,
+        GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'create'>,
+        Partial<
+          GetDataFromModel<
+            TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel,
+            'read',
+            true
+          >
+        >,
+        GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel>,
+        false,
+        false,
+        false,
+        false,
+        never
+      >
+    ) =>
+      | RemoveQuerySet<any, TModel, any, any, any, any, any, any, true, any, any, any>
+      | QuerySet<any, TModel, any, any, any, any, any, any, true, any, any, any>
+      | CommonQuerySet<any, TModel, any, any, any, any, any, any, true, any, any, any>
+      | GetQuerySet<any, TModel, any, any, any, any, any, any, true, any, any, any>
+      | SetQuerySet<any, TModel, any, any, any, any, any, any, true, any, any, any>
   >(
     callback: TQueryBuilder,
     args?: {
@@ -261,8 +287,11 @@ export class Manager<
     }
   ): Promise<
     ReturnType<TQueryBuilder> extends
-      | QuerySet<'set', TModel, infer TResult, any, any, any, any, any>
-      | SetQuerySet<'set', TModel, infer TResult, any, any, any, any, any, any>
+      | RemoveQuerySet<any, any, infer TResult, any, any, any, any, any, true, any, any, any>
+      | QuerySet<any, any, infer TResult, any, any, any, any, any, true, any, any, any>
+      | CommonQuerySet<any, any, infer TResult, any, any, any, any, any, true, any, any, any>
+      | GetQuerySet<any, any, infer TResult, any, any, any, any, any, true, any, any, any>
+      | SetQuerySet<any, any, infer TResult, any, any, any, any, any, true, any, any, any>
       ? TResult[]
       : never
   > {
@@ -282,12 +311,34 @@ export class Manager<
 
   async remove<
     TQueryBuilder extends (
-      queryBuilder: RemoveQuerySet<'remove', TModel>
+      queryBuilder: RemoveQuerySet<
+        'remove',
+        TModel,
+        GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'read'>,
+        Partial<
+          GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'update'>
+        >,
+        GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'create'>,
+        Partial<
+          GetDataFromModel<
+            TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel,
+            'read',
+            true
+          >
+        >,
+        GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel>,
+        false,
+        false,
+        false,
+        false,
+        never
+      >
     ) =>
-      | RemoveQuerySet<'remove', TModel, any, any, any, any, any, any, any>
-      | QuerySet<'remove', TModel, any, any, any, any, any, true, any>
-      | QuerySet<'get', TModel, any, any, any, any, any, true, any>
-      | GetQuerySet<'get', TModel, any, any, any, any, any, true, any>
+      | RemoveQuerySet<any, TModel, any, any, any, any, any, true, any, true, any, any>
+      | QuerySet<any, TModel, any, any, any, any, any, true, any, true, any, any>
+      | CommonQuerySet<any, TModel, any, any, any, any, any, true, any, true, any, any>
+      | GetQuerySet<any, TModel, any, any, any, any, any, true, any, true, any, any>
+      | SetQuerySet<any, TModel, any, any, any, any, any, true, any, true, any, any>
   >(
     callback: TQueryBuilder,
     args?: {
@@ -299,10 +350,11 @@ export class Manager<
     }
   ): Promise<
     ReturnType<TQueryBuilder> extends
-      | RemoveQuerySet<'remove', TModel, infer TResult, any, any, any, any, any, any>
-      | QuerySet<'remove', TModel, infer TResult, any, any, any, any, true, any>
-      | QuerySet<'get', TModel, infer TResult, any, any, any, any, any, any>
-      | GetQuerySet<'get', TModel, infer TResult, any, any, any, any, true, any>
+      | RemoveQuerySet<any, any, infer TResult, any, any, any, any, true, any, true, any, any>
+      | QuerySet<any, any, infer TResult, any, any, any, any, true, any, true, any, any>
+      | CommonQuerySet<any, any, infer TResult, any, any, any, any, true, any, true, any, any>
+      | GetQuerySet<any, any, infer TResult, any, any, any, any, true, any, true, any, any>
+      | SetQuerySet<any, any, infer TResult, any, any, any, any, true, any, true, any, any>
       ? TResult[]
       : never
   > {

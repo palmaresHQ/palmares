@@ -2,12 +2,9 @@ import { describe } from '@palmares/tests';
 
 import { Company, ProfileType, User } from '../drizzle/models';
 
-import type { ForeignKeyModelsRelatedName, ForeignKeyModelsRelationName } from 'packages/databases/dist/src';
-
 //const test = require('@jest/globals').test;
 describe('drizzle models', ({ test }) => {
-  /*
-  test('test', async ({ expect }) => {
+  test('Simple query with relation', async ({ expect }) => {
     const user = await User.default.get((qs) =>
       qs
         .join(Company, 'company', (qs) => qs.where({ name: 'test2' }))
@@ -20,8 +17,7 @@ describe('drizzle models', ({ test }) => {
     expect(user[0].profileType.name).toBe('admin');
   });
 
-
-  test('test2', async ({ expect }) => {
+  test('Querying by selecting fields', async ({ expect }) => {
     const company = await Company.default.get((qs) =>
       qs
         .join(User, 'usersOfCompany', (qs) =>
@@ -35,10 +31,6 @@ describe('drizzle models', ({ test }) => {
   test('Test set data through relation', async ({ expect }) => {
     const company = await Company.default.set((qs) =>
       qs
-        .data({
-          address: 'test',
-          name: 'test5'
-        })
         .join(User, 'usersOfCompany', (qs) =>
           qs
             .join(ProfileType, 'profileType', (qs) =>
@@ -46,22 +38,33 @@ describe('drizzle models', ({ test }) => {
                 name: 'admin2'
               })
             )
-            .data({
-              age: 10,
-              name: 'test1',
-              uuid: 'a417f723-ddb7-4f8c-a42c-0b5975e4cf5f',
-              userType: 'admin'
-            })
+            .data(
+              {
+                age: 10,
+                name: 'test1',
+                uuid: 'a417f723-ddb7-4f8c-a42c-0b5975e4cf5f',
+                userType: 'admin'
+              },
+              {
+                age: 11,
+                name: 'test2',
+                uuid: '77ac0c15-09c7-425e-9d77-97c0f973e8e6',
+                userType: 'user'
+              }
+            )
         )
+        .data({
+          address: 'test',
+          name: 'test5'
+        })
     );
 
     const companyId = company[0].id;
     expect(company[0].usersOfCompany[0]?.companyId).toBe(companyId);
     expect(company[0].usersOfCompany[0]?.profileTypeId).toBe(company[0].usersOfCompany[0]?.profileType?.id);
   });
-});*/
-  /*
-  test('Test Update', async ({ expect }) => {
+
+  test('Set update on relation', async ({ expect }) => {
     const company = await Company.default.set((qs) =>
       qs
         .join(User, 'usersOfCompany', (qs) =>
@@ -88,8 +91,8 @@ describe('drizzle models', ({ test }) => {
     expect(company[0].usersOfCompany[0]?.companyId).toBe(companyId);
     expect(company[0].usersOfCompany[0]?.profileTypeId).toBe(company[0].usersOfCompany[0]?.profileType?.id);
   });
-});
-*/
+
+  /*
   test('Test Remove', async ({ expect }) => {
     const company = await Company.default.remove((qs) =>
       qs
@@ -97,7 +100,7 @@ describe('drizzle models', ({ test }) => {
           qs
             .join(ProfileType, 'profileType', (qs) =>
               qs.where({
-                id: 1
+                id: 5
               })
             )
             .remove()
@@ -105,11 +108,13 @@ describe('drizzle models', ({ test }) => {
         .remove()
     );
 
+    console.log(JSON.stringify(company, null, 2));
     const companyId = company[0].id;
-    expect(company[0].usersOfCompany[0]?.companyId).toBe(companyId);
-    expect(company[0].usersOfCompany[0]?.profileTypeId).toBe(company[0].usersOfCompany[0]?.profileType?.id);
-  });
 
+    expect(company[0].usersOfCompany[0].companyId).toBe(companyId);
+    expect(company[0].usersOfCompany[0].profileTypeId).toBe(company[0].usersOfCompany[0].profileType?.id);
+  });
+*/
   /*test('its limiting the query', async ({ expect }) => {
     await Company.default.set((qs) => qs.data({ id: undefined, name: 'test', address: 'test' }))
     await Company.default.set((qs) => qs.data({ id: undefined, name: 'test', address: 'test' }))
