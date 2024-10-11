@@ -39,6 +39,7 @@ type ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationOrRelatedName> 
       engineInstance: any;
       customAttributes: any;
       relatedTo: any;
+      allowedQueryOperations: any;
       onDelete: any;
       relatedName: infer TRelatedName extends string;
       relationName: infer TRelationName extends string;
@@ -74,13 +75,14 @@ export type ForeignKeyModelsRelationName<TModel, TIncludedModel> = {
       relatedName: any;
       relationName: infer TRelationName extends string;
       toField: any;
-    }
+    },
+    any
   >
     ? TIncludedModel extends abstract new (...args: any) => any
       ? InstanceType<
           TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never
         > extends InstanceType<TIncludedModel>
-        ? TRelationName
+        ? '1'
         : never
       : InstanceType<
             TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never
@@ -102,12 +104,14 @@ export type ForeignKeyModelsRelationName<TModel, TIncludedModel> = {
       databaseName: any;
       engineInstance: any;
       customAttributes: any;
+      allowedQueryOperations: any;
       relatedTo: any;
       onDelete: any;
       relatedName: any;
       relationName: any;
       toField: any;
-    }
+    },
+    any
   >
     ? TAllowNull extends true
       ? undefined
@@ -131,6 +135,7 @@ export type ForeignKeyModelsRelatedName<TModel, TIncludedModel> = {
       databaseName: any;
       engineInstance: any;
       customAttributes: any;
+      allowedQueryOperations: any;
       relatedTo: ((_: any) => infer TRelatedToModel) | (() => infer TRelatedToModel) | infer TRelatedToModel;
       onDelete: any;
       relatedName: infer TRelatedName extends string;
@@ -164,6 +169,7 @@ export type ForeignKeyModelsRelatedName<TModel, TIncludedModel> = {
       databaseName: any;
       engineInstance: any;
       customAttributes: any;
+      allowedQueryOperations: any;
       relatedTo: any;
       onDelete: any;
       relatedName: any;
@@ -195,10 +201,16 @@ export type FieldWithOperationType<TFieldType> = {
         not: TFieldType[];
       }
     | TFieldType[];
-  ['greaterThan']?: NonNullable<TFieldType>;
-  ['greaterThanOrEqual']?: NonNullable<TFieldType>;
-  ['lessThan']?: NonNullable<TFieldType>;
-  ['lessThanOrEqual']?: NonNullable<TFieldType>;
+  ['greaterThan']?:
+    | {
+        equal: NonNullable<TFieldType>;
+      }
+    | NonNullable<TFieldType>;
+  ['lessThan']?:
+    | {
+        equal: NonNullable<TFieldType>;
+      }
+    | NonNullable<TFieldType>;
   ['between']?:
     | {
         not: [NonNullable<TFieldType>, NonNullable<TFieldType>];
@@ -212,18 +224,12 @@ export type FieldWithOperationType<TFieldType> = {
     | NonNullable<TFieldType>;
 };
 
-type AddOperation<TFieldType> = Pick<
-  FieldWithOperationType<TFieldType>,
-  | 'is'
-  | 'or'
-  | 'and'
-  | 'in'
-  | (TFieldType extends number | Date
-      ? 'greaterThan' | 'greaterThanOrEqual' | 'lessThan' | 'lessThanOrEqual' | 'between'
-      : TFieldType extends string
-        ? 'like'
-        : never)
->;
+type AddOperation<TField extends Field<any, any, any>> = TField extends
+  | Field<any, any, infer TAllowedQueryOperations>
+  | ForeignKeyField<any, any, infer TAllowedQueryOperations>
+  ? TAllowedQueryOperations
+  : never;
+
 type _GetDataFromModel<TModel, TType extends 'create' | 'update' | 'read' = 'read', TIsSearch = false> = {
   [TKey in keyof ModelsFields<TModel>]: ModelsFields<TModel>[TKey] extends
     | Field<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
@@ -243,7 +249,7 @@ type _GetDataFromModel<TModel, TType extends 'create' | 'update' | 'read' = 'rea
       : TType extends 'update'
         ? TUpdate
         : TIsSearch extends true
-          ? AddOperation<TRead> | TRead
+          ? AddOperation<ModelsFields<TModel>[TKey]> | TRead
           : TRead
     : never;
 };
@@ -820,7 +826,7 @@ export class QuerySet<
         if (isIndirectlyRelated === false) {
           for (const [fieldName, probablyAForeignKeyField] of Object.entries(fieldsOfModel)) {
             const isAForeignKeyFieldAndIsRelatedName =
-              probablyAForeignKeyField['$$type'] === '$PForeignKeyField' &&
+              (probablyAForeignKeyField as any)['$$type'] === '$PForeignKeyField' &&
               (probablyAForeignKeyField as ForeignKeyField<any, any>)['__relatedName'] === relationOrRelatedName;
 
             if (isAForeignKeyFieldAndIsRelatedName) {

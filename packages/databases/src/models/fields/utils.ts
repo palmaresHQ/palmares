@@ -2,7 +2,7 @@ import type { Field } from './field';
 import type { ForeignKeyField } from './foreign-key';
 
 export type ToStringCallback = (
-  field: Field<any, any>,
+  field: Field<any, any, any>,
   defaultToStringCallback: ToStringCallback,
   indentation?: number,
   customParams?: string | undefined
@@ -33,8 +33,8 @@ export async function defaultToStringCallback(
 }
 
 export type CompareCallback = (
-  existingField: Field<any, any>,
-  newField: Field<any, any>,
+  existingField: Field<any, any, any>,
+  newField: Field<any, any, any>,
   defaultCompareCallback: CompareCallback
 ) => [boolean, string[]];
 
@@ -44,9 +44,7 @@ export function defaultCompareCallback(
   newField: Parameters<CompareCallback>[1],
   _: Parameters<CompareCallback>[2]
 ): [boolean, string[]] {
-  const isTypeNameEqual =
-    (existingField.constructor as typeof Field<any, any>)['__typeName'] ===
-    (newField.constructor as typeof Field<any, any>)['__typeName'];
+  const isTypeNameEqual = existingField['__typeName'] === newField['__typeName'];
   const isAllowNullEqual = existingField['__allowNull'] === newField['__allowNull'];
   const isCustomAttributesEqual =
     JSON.stringify(existingField['__customAttributes']) === JSON.stringify(newField['__customAttributes']);
@@ -85,7 +83,7 @@ export type OptionsCallback = (
    * @param value - The value that you want to set to the field.
    */
   setFieldValue: (hiddenFieldName: string, getArgumentsFieldName: string | undefined, value: any) => void,
-  oldField: Field<any, any>,
+  oldField: Field<any, any, any>,
   defaultOptionsCallback: OptionsCallback
 ) => void;
 
@@ -109,7 +107,7 @@ export function defaultOptionsCallback(
 }
 
 export type NewInstanceArgumentsCallback = (
-  field: Field<any, any>,
+  field: Field<any, any, any>,
   defaultNewInstanceArgumentsCallback: NewInstanceArgumentsCallback
 ) => any[];
 
@@ -121,7 +119,7 @@ export function defaultNewInstanceArgumentsCallback(
   return [];
 }
 
-export function getRelatedToAsString(field: ForeignKeyField<any, any>) {
+export function getRelatedToAsString(field: ForeignKeyField<any, any, any>) {
   const relatedTo = field['__relatedTo'];
   const relatedToAsString = field['__relatedToAsString'];
 
@@ -134,7 +132,7 @@ export function getRelatedToAsString(field: ForeignKeyField<any, any>) {
 }
 
 export type GetArgumentsCallback = (
-  field: Field<any, any>,
+  field: Field<any, any, any>,
   defaultOptionsCallback: typeof defaultGetArgumentsCallback
 ) => any;
 
@@ -143,11 +141,10 @@ export function defaultGetArgumentsCallback(
   field: Parameters<GetArgumentsCallback>[0],
   _: Parameters<GetArgumentsCallback>[1]
 ) {
-  const fieldConstructor = field.constructor as typeof Field<any, any>;
   return {
     $field: field,
     $model: field['__model'],
-    typeName: fieldConstructor['__typeName'],
+    typeName: field['__typeName'],
     fieldName: field['__fieldName'],
     isAuto: field['__isAuto'] as boolean,
     primaryKey: field['__primaryKey'] as boolean,

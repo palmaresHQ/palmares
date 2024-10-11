@@ -95,7 +95,7 @@ export class AutoField<
   }
 > extends Field<TType, TDefinitions> {
   protected $$type = '$PAutoField';
-  protected static __typeName = 'AutoField';
+  protected __typeName = 'AutoField';
   protected __isAuto = true;
   protected __hasDefaultValue = false;
   protected __primaryKey = true;
@@ -103,8 +103,8 @@ export class AutoField<
   protected __allowNull = true;
   protected __unique = true;
   protected __dbIndex = true;
-  protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
 
   unique!: never;
   auto!: never;

@@ -39,7 +39,6 @@ export function uuid(): UuidField<
     allowBlank: true;
     dbIndex: false;
     underscored: true;
-    autoGenerate: false;
     isPrimaryKey: false;
     auto: false;
     hasDefaultValue: false;
@@ -63,7 +62,7 @@ export function uuid(): UuidField<
  *
  * @example
  * ```
- * const uuidField = UuidField.new().autoGenerate();
+ * const uuidField = UuidField.new().auto();
  * ```
  */
 export class UuidField<
@@ -77,7 +76,6 @@ export class UuidField<
     auto: boolean;
     allowNull: boolean;
     allowBlank: boolean;
-    autoGenerate: boolean;
     dbIndex: boolean;
     isPrimaryKey: boolean;
     hasDefaultValue: boolean;
@@ -91,7 +89,6 @@ export class UuidField<
     unique: false;
     allowNull: false;
     allowBlank: true;
-    autoGenerate: false;
     dbIndex: false;
     underscored: true;
     isPrimaryKey: false;
@@ -106,7 +103,6 @@ export class UuidField<
 > extends TextField<TType, TDefinitions> {
   protected $$type = '$PUuidField';
   protected static __typeName = 'UuidField';
-  protected __autoGenerate: TDefinitions['autoGenerate'] = false;
 
   protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
   protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
@@ -114,17 +110,16 @@ export class UuidField<
   protected static __compareCallback = ((oldField, newField, defaultCompareCallback) => {
     const oldFieldAsUuidField = oldField as UuidField<any, any>;
     const newFieldAsUuidField = newField as UuidField<any, any>;
-    const isAllowBlankEqual = oldFieldAsUuidField['__autoGenerate'] === newFieldAsUuidField['__autoGenerate'];
+    const isAllowBlankEqual = oldFieldAsUuidField['__allowBlank'] === newFieldAsUuidField['__allowBlank'];
     const [isEqual, changedAttributes] = defaultCompareCallback(oldField, newField, defaultCompareCallback);
 
-    if (!isAllowBlankEqual) changedAttributes.push('autoGenerate');
+    if (!isAllowBlankEqual) changedAttributes.push('allowBlank');
     return [isAllowBlankEqual && isEqual, changedAttributes];
   }) satisfies CompareCallback;
 
   protected static __optionsCallback = ((setFieldValue, oldField, defaultOptionsCallback) => {
     const oldFieldAsUuidField = oldField as UuidField<any, any>;
 
-    setFieldValue('__autoGenerate', 'autoGenerate', oldFieldAsUuidField['__autoGenerate']);
     setFieldValue('__allowBlank', 'allowBlank', oldFieldAsUuidField['__allowBlank']);
     defaultOptionsCallback(setFieldValue, oldFieldAsUuidField, defaultOptionsCallback);
   }) satisfies OptionsCallback;
@@ -132,12 +127,10 @@ export class UuidField<
   protected static __getArgumentsCallback = ((field, defaultCallback) => {
     const fieldAsUuidField = field as UuidField<any, any>;
     const allowBlank = fieldAsUuidField['__allowBlank'] as boolean;
-    const autoGenerate = fieldAsUuidField['__autoGenerate'] as boolean;
 
     return {
       ...defaultCallback(field, defaultCallback),
-      allowBlank,
-      autoGenerate
+      allowBlank
     };
   }) satisfies GetArgumentsCallback;
 
@@ -463,50 +456,6 @@ export class UuidField<
     return super.allowBlank(isBlank) as unknown as any;
   }
 
-  autoGenerate<TIsAutoGenerate extends boolean = true>(
-    isAutoGenerate?: TIsAutoGenerate
-  ): UuidField<
-    {
-      create: TType['create'] | undefined;
-      read: TType['read'];
-      update: TType['update'] | undefined;
-    },
-    {
-      [TKey in Exclude<
-        keyof TDefinitions,
-        | 'underscored'
-        | 'allowNull'
-        | 'dbIndex'
-        | 'unique'
-        | 'isPrimaryKey'
-        | 'auto'
-        | 'defaultValue'
-        | 'databaseName'
-        | 'typeName'
-        | 'engineInstance'
-        | 'customAttributes'
-      >]: TDefinitions[TKey];
-    } & {
-      unique: TDefinitions['unique'];
-      allowNull: TDefinitions['allowNull'];
-      dbIndex: TDefinitions['dbIndex'];
-      underscored: TDefinitions['underscored'];
-      isPrimaryKey: TDefinitions['isPrimaryKey'];
-      auto: TIsAutoGenerate extends false ? false : true;
-      autoGenerate: TIsAutoGenerate extends false ? false : true;
-      hasDefaultValue: TDefinitions['hasDefaultValue'];
-      defaultValue: TDefinitions['defaultValue'];
-      databaseName: TDefinitions['databaseName'];
-      typeName: TDefinitions['typeName'];
-      engineInstance: TDefinitions['engineInstance'];
-      customAttributes: TDefinitions['customAttributes'];
-    }
-  > {
-    if (isAutoGenerate === undefined) (isAutoGenerate as any) = true;
-    this.__autoGenerate = isAutoGenerate as TIsAutoGenerate;
-    return this as unknown as any;
-  }
-
   /**
    * This method is used to create an index on the database for this field.
    */
@@ -763,7 +712,6 @@ export class UuidField<
       typeName: string;
       allowBlank: boolean;
       engineInstance: DatabaseAdapter;
-      autoGenerate: boolean;
     } & Record<string, any>
   >(args?: {
     typeName: string;
@@ -789,7 +737,6 @@ export class UuidField<
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
-            autoGenerate: TDefinitions['autoGenerate'];
             allowBlank: TDefinitions['allowBlank'];
           }
         >;
@@ -810,7 +757,6 @@ export class UuidField<
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
-            autoGenerate: TDefinitions['autoGenerate'];
             allowBlank: TDefinitions['allowBlank'];
           }
         >;
@@ -830,7 +776,6 @@ export class UuidField<
       allowBlank: true;
       dbIndex: false;
       underscored: true;
-      autoGenerate: false;
       isPrimaryKey: false;
       auto: false;
       hasDefaultValue: false;

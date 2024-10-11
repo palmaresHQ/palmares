@@ -8,7 +8,7 @@ import {
   defaultToStringCallback
 } from './utils';
 
-import type { CustomImportsForFieldType } from './types';
+import type { CustomImportsForFieldType, FieldWithOperationTypeForSearch, ON_DELETE } from './types';
 import type {
   CompareCallback,
   GetArgumentsCallback,
@@ -19,6 +19,7 @@ import type {
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
 import type { BaseModel, Model, ModelType } from '../model';
+import { ForeignKeyField } from '.';
 
 /**
  * This is the default field of the model, every other field type should override this
@@ -53,10 +54,11 @@ export class Field<
     databaseName: undefined;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
-  }
+  },
+  TFieldOperationTypes = FieldWithOperationTypeForSearch<any>
 > {
   protected $$type = '$PField';
-  protected static __typeName = 'Field';
+  protected __typeName = 'Field';
   protected __isAuto: TDefinitions['auto'] = false as boolean;
   protected __hasDefaultValue = false as boolean;
   protected __primaryKey: TDefinitions['isPrimaryKey'] = false as boolean;
@@ -69,16 +71,24 @@ export class Field<
   protected __customAttributes!: Parameters<
     TDefinitions['engineInstance']['fields']['autoFieldParser']['translate']
   >[0]['customAttributes'];
+  protected __allowedQueryOperations: Set<keyof Required<any>> = new Set([
+    'eq',
+    'is',
+    'greaterThan',
+    'lessThan',
+    'like',
+    'between'
+  ]);
   // eslint-disable-next-line ts/require-await
-  protected static __toStringCallback = defaultToStringCallback satisfies ToStringCallback;
+  protected __toStringCallback = defaultToStringCallback satisfies ToStringCallback;
   // eslint-disable-next-line ts/require-await
-  protected static __compareCallback = defaultCompareCallback satisfies CompareCallback;
-  protected static __optionsCallback = defaultOptionsCallback satisfies OptionsCallback;
-  protected static __newInstanceCallback = defaultNewInstanceArgumentsCallback satisfies NewInstanceArgumentsCallback;
-  protected static __customImports: CustomImportsForFieldType[] = [];
-  protected static __getArgumentsCallback = defaultGetArgumentsCallback satisfies GetArgumentsCallback;
-  protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __compareCallback = defaultCompareCallback satisfies CompareCallback;
+  protected __optionsCallback = defaultOptionsCallback satisfies OptionsCallback;
+  protected __newInstanceCallback = defaultNewInstanceArgumentsCallback satisfies NewInstanceArgumentsCallback;
+  protected __customImports: CustomImportsForFieldType[] = [];
+  protected __getArgumentsCallback = defaultGetArgumentsCallback satisfies GetArgumentsCallback;
+  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
   protected __model?: ModelType<any, any> & typeof Model & typeof BaseModel;
   protected __fieldName!: string;
 
@@ -144,6 +154,8 @@ export class Field<
         | 'typeName'
         | 'engineInstance'
         | 'customAttributes'
+        | 'hasDefaultValue'
+        | 'allowedQueryOperations'
       >]: TDefinitions[TKey];
     } & {
       unique: TDefinitions['unique'];
@@ -158,7 +170,8 @@ export class Field<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > &
     TFunctions {
     if (functions === undefined) return this as any;
@@ -184,7 +197,24 @@ export class Field<
       create?: 'merge' | 'union' | 'replace';
       read?: 'merge' | 'union' | 'replace';
       update?: 'merge' | 'union' | 'replace';
-    }
+    },
+    TNewAllowedQueryOperations extends FieldWithOperationTypeForSearch<
+      TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read']
+    > = FieldWithOperationTypeForSearch<
+      TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read']
+    >
   >(): <const TCustomPartialAttributes>(partialCustomAttributes: TCustomPartialAttributes) => Field<
     {
       create: TActions['create'] extends 'merge'
@@ -223,6 +253,8 @@ export class Field<
         | 'typeName'
         | 'engineInstance'
         | 'customAttributes'
+        | 'hasDefaultValue'
+        | 'allowedQueryOperations'
       >]: TDefinitions[TKey];
     } & {
       unique: TDefinitions['unique'];
@@ -237,7 +269,8 @@ export class Field<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'] & TCustomPartialAttributes;
-    }
+    },
+    TNewAllowedQueryOperations
   > {
     return (partialCustomAttributes) => {
       if (partialCustomAttributes !== undefined) {
@@ -269,6 +302,8 @@ export class Field<
         | 'databaseName'
         | 'typeName'
         | 'engineInstance'
+        | 'hasDefaultValue'
+        | 'allowedQueryOperations'
         | 'customAttributes'
       >]: TDefinitions[TKey];
     } & {
@@ -284,7 +319,8 @@ export class Field<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TCustomAttributes;
-    }
+    },
+    TFieldOperationTypes
   > {
     (this.__customAttributes as any) = customAttributes as any;
 
@@ -309,6 +345,7 @@ export class Field<
         | 'typeName'
         | 'engineInstance'
         | 'customAttributes'
+        | 'hasDefaultValue'
       >]: TDefinitions[TKey];
     } & {
       unique: TUnique extends false ? false : true;
@@ -323,7 +360,8 @@ export class Field<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     if (typeof isUnique !== 'boolean') isUnique = true as TUnique;
     this.__unique = isUnique;
@@ -353,6 +391,7 @@ export class Field<
         | 'typeName'
         | 'engineInstance'
         | 'customAttributes'
+        | 'hasDefaultValue'
       >]: TDefinitions[TKey];
     } & {
       unique: TDefinitions['unique'];
@@ -364,10 +403,12 @@ export class Field<
       hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
+      allowedQueryOperations: FieldWithOperationTypeForSearch<TType['read'] | null | undefined>;
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     if (typeof isNull !== 'boolean') isNull = true as TNull;
     this.__allowNull = isNull;
@@ -396,6 +437,7 @@ export class Field<
         | 'typeName'
         | 'engineInstance'
         | 'customAttributes'
+        | 'hasDefaultValue'
       >]: TDefinitions[TKey];
     } & {
       unique: TDefinitions['unique'];
@@ -410,7 +452,8 @@ export class Field<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     if (typeof dbIndex !== 'boolean') dbIndex = true as TDbIndex;
     this.__dbIndex = dbIndex;
@@ -436,6 +479,8 @@ export class Field<
         | 'typeName'
         | 'engineInstance'
         | 'customAttributes'
+        | 'hasDefaultValue'
+        | 'allowedQueryOperations'
       >]: TDefinitions[TKey];
     } & {
       unique: TDefinitions['unique'];
@@ -450,7 +495,8 @@ export class Field<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     if (typeof isUnderscored !== 'boolean') isUnderscored = true as TUnderscored;
     this.__underscored = isUnderscored;
@@ -476,6 +522,7 @@ export class Field<
         | 'typeName'
         | 'engineInstance'
         | 'customAttributes'
+        | 'hasDefaultValue'
       >]: TDefinitions[TKey];
     } & {
       unique: TDefinitions['unique'];
@@ -490,7 +537,9 @@ export class Field<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
+
   > {
     if (typeof isPrimaryKey !== 'boolean') isPrimaryKey = true as TIsPrimaryKey;
     this.__primaryKey = isPrimaryKey;
@@ -520,6 +569,7 @@ export class Field<
         | 'typeName'
         | 'engineInstance'
         | 'customAttributes'
+        | 'hasDefaultValue'
       >]: TDefinitions[TKey];
     } & {
       unique: TDefinitions['unique'];
@@ -534,7 +584,8 @@ export class Field<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     if (typeof isAuto !== 'boolean') isAuto = true as TIsAuto;
     this.__isAuto = isAuto;
@@ -564,6 +615,7 @@ export class Field<
         | 'typeName'
         | 'engineInstance'
         | 'customAttributes'
+        | 'hasDefaultValue'
       >]: TDefinitions[TKey];
     } & {
       unique: TDefinitions['unique'];
@@ -578,7 +630,8 @@ export class Field<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     this.__defaultValue = defaultValue;
 
@@ -603,6 +656,7 @@ export class Field<
         | 'typeName'
         | 'engineInstance'
         | 'customAttributes'
+        | 'hasDefaultValue'
       >]: TDefinitions[TKey];
     } & {
       unique: TDefinitions['unique'];
@@ -617,7 +671,8 @@ export class Field<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     this.__databaseName = databaseName;
 
@@ -656,12 +711,14 @@ export class Field<
       defaultValue: any;
       typeName: string;
       engineInstance: DatabaseAdapter;
-    } & Record<string, any>
-  >(args?: {
+    } & Record<string, any>,
+    const TFieldOperationTypes extends FieldWithOperationTypeForSearch<any> | Pick<FieldWithOperationTypeForSearch<any>, any>
+  >(args: {
     typeName: string;
     toStringCallback?: ToStringCallback;
     compareCallback?: CompareCallback;
     optionsCallback?: OptionsCallback;
+    allowedQueryOperations?: (keyof TFieldOperationTypes)[];
     newInstanceCallback?: NewInstanceArgumentsCallback;
     customImports?: CustomImportsForFieldType[];
   }): TDefinitions['customAttributes'] extends undefined
@@ -681,8 +738,9 @@ export class Field<
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
-          }
-        >;
+          },
+          TFieldOperationTypes
+        >
       }
     : {
         new: (params: TDefinitions['customAttributes']) => Field<
@@ -700,61 +758,24 @@ export class Field<
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
-          }
-        >;
+          },
+          TFieldOperationTypes
+        >
       } {
-    this.__customImports = args?.customImports || [];
-    this.__toStringCallback = args?.toStringCallback || defaultToStringCallback;
-    this.__compareCallback = args?.compareCallback || defaultCompareCallback;
-    this.__optionsCallback = args?.optionsCallback || defaultOptionsCallback;
-    this.__newInstanceCallback = args?.newInstanceCallback || defaultNewInstanceArgumentsCallback;
-    this.__typeName = args?.typeName || this.__typeName;
-
     (this as any).new = (params: any) => {
       const newInstance = new this(params);
+      newInstance.__customImports = args.customImports || [];
+      newInstance.__toStringCallback = args.toStringCallback || defaultToStringCallback;
+      newInstance.__compareCallback = args.compareCallback || defaultCompareCallback;
+      newInstance.__optionsCallback = args.optionsCallback || defaultOptionsCallback;
+      newInstance.__newInstanceCallback = args.newInstanceCallback || defaultNewInstanceArgumentsCallback;
+      newInstance.__typeName = args.typeName;
+      newInstance.__allowedQueryOperations = new Set(['is', 'eq', 'greaterThan', 'lessThan', 'like', 'between']);
       (newInstance as any)['__customAttributes'] = params;
-      return newInstance;
+      return newInstance
     };
 
-    return this as unknown as TDefinitions['customAttributes'] extends undefined
-      ? {
-          new: () => Field<
-            TNewType,
-            {
-              unique: TDefinitions['unique'];
-              auto: TDefinitions['auto'];
-              allowNull: TDefinitions['allowNull'];
-              dbIndex: TDefinitions['dbIndex'];
-              isPrimaryKey: TDefinitions['isPrimaryKey'];
-              defaultValue: TDefinitions['defaultValue'];
-              underscored: boolean;
-              databaseName: string | undefined;
-              engineInstance: TDefinitions['engineInstance'];
-              hasDefaultValue: TDefinitions['hasDefaultValue'];
-              typeName: TDefinitions['typeName'];
-              customAttributes: TDefinitions['customAttributes'];
-            }
-          >;
-        }
-      : {
-          new: (params: TDefinitions['customAttributes']) => Field<
-            TNewType,
-            {
-              unique: TDefinitions['unique'];
-              auto: TDefinitions['auto'];
-              allowNull: TDefinitions['allowNull'];
-              dbIndex: TDefinitions['dbIndex'];
-              isPrimaryKey: TDefinitions['isPrimaryKey'];
-              defaultValue: TDefinitions['defaultValue'];
-              underscored: boolean;
-              databaseName: string | undefined;
-              hasDefaultValue: TDefinitions['hasDefaultValue'];
-              engineInstance: TDefinitions['engineInstance'];
-              typeName: TDefinitions['typeName'];
-              customAttributes: TDefinitions['customAttributes'];
-            }
-          >;
-        };
+    return this as unknown as any;
   }
 
   /**
@@ -765,8 +786,8 @@ export class Field<
    * @return - Returns a list of packages that we want to import in the migration file.
    */
   // eslint-disable-next-line ts/require-await
-  protected async __customImports(): Promise<CustomImportsForFieldType[]> {
-    return (this.constructor as typeof Field<any, any>)['__customImports'];
+  protected async __getCustomImports(): Promise<CustomImportsForFieldType[]> {
+    return this['__customImports'];
   }
 
   protected __init(fieldName: string, model: ModelType<any, any> & typeof Model & typeof BaseModel) {
@@ -788,18 +809,13 @@ export class Field<
    *
    * Everything in the field is protected, this way end users don't access the internal implementation.
    */
-  protected __getArguments(): ReturnType<(typeof Field)['__getArgumentsCallback']> {
-    return (this.constructor as typeof Field<any, any>).__getArgumentsCallback(this, defaultGetArgumentsCallback);
+  protected __getArguments(): ReturnType<Field<any, any, any>['__getArgumentsCallback']> {
+    return this.__getArgumentsCallback(this, defaultGetArgumentsCallback);
   }
 
   // eslint-disable-next-line ts/require-await
   protected async __toString(indentation = 0, customParams: string | undefined = undefined): Promise<string> {
-    return (this.constructor as typeof Field<any, any>).__toStringCallback(
-      this,
-      defaultToStringCallback,
-      indentation,
-      customParams
-    );
+    return this.__toStringCallback(this, defaultToStringCallback, indentation, customParams);
   }
 
   /**
@@ -814,8 +830,8 @@ export class Field<
    * @return - Returns true if the fields are equal and false otherwise
    */
   // eslint-disable-next-line ts/require-await
-  protected __compare(field: Field<any, any>): [boolean, string[]] {
-    return (this.constructor as typeof Field<any, any>).__compareCallback(this, field, defaultCompareCallback);
+  protected __compare(field: Field<any, any, any>): [boolean, string[]] {
+    return this.__compareCallback(this, field, defaultCompareCallback);
   }
 
   /**
@@ -826,22 +842,19 @@ export class Field<
    * @returns - Returns the cloned field.
    */
   protected __clone(
-    oldField: Field<any, any>,
+    oldField: Field<any, any, any>,
     args?: {
       newInstanceOverrideCallback?: (args: any[]) => any[];
       optionsOverrideCallback?: Partial<Record<keyof ReturnType<Field['__getArguments']>, (oldValue: any) => any>>;
     }
-  ): Field<any, any> {
-    const argumentsToPass = (oldField.constructor as typeof Field<any, any>).__newInstanceCallback(
-      oldField,
-      defaultNewInstanceArgumentsCallback
-    );
+  ): Field<any, any, any> {
+    const argumentsToPass = oldField.__newInstanceCallback(oldField, defaultNewInstanceArgumentsCallback);
     const overridenArguments = args?.newInstanceOverrideCallback?.(argumentsToPass) || argumentsToPass;
     const newInstanceOfField = (oldField.constructor as typeof Field).new(
       ...(Array.isArray(overridenArguments) ? overridenArguments : [])
     );
 
-    (oldField.constructor as typeof Field<any, any>).__optionsCallback(
+    oldField.__optionsCallback(
       (hiddenAttributeName, getAttributesAttributeName, value) => {
         let actualValueToSet = value;
         if (
@@ -879,8 +892,61 @@ export class Field<
       engineInstance: DatabaseAdapter;
       customAttributes: any;
       hasDefaultValue: boolean;
-    }
-  >(..._args: any[]) {
-    return new this(..._args) as unknown as Field<TType, TDefinitions>;
+    } & Record<string, any>,
+    TFieldOperationTypes extends FieldWithOperationTypeForSearch<any>
+  >(..._args: any[]): Field<TType, TDefinitions, TFieldOperationTypes> {
+    return new this(..._args) as unknown as any
   }
 }
+
+const field = Field._overrideType<
+  { create: string; read: string; update: string },
+  {
+    customAttributes: { name: string };
+    unique: boolean;
+    auto: boolean;
+    allowNull: boolean;
+    dbIndex: boolean;
+    isPrimaryKey: boolean;
+    defaultValue: any;
+    typeName: string;
+    allowedQueryOperations: FieldWithOperationTypeForSearch<string> & {
+      notIn: string;
+    };
+    engineInstance: any;
+  },
+  any
+>({
+  typeName: 'Field'
+});
+/*
+const newField = Field.new({ name: 'hey' })._setPartialAttributes<
+  { create: string; read: string; update: string },
+  { create: 'replace'; read: 'replace'; update: 'replace' },
+  FieldWithOperationTypeForSearch<string> & {
+    notIn: string;
+  }
+>()({});
+
+type AllowedQuery =
+  typeof newField extends Field<
+    any,
+    {
+      unique: any;
+      auto: any;
+      allowNull: any;
+      dbIndex: any;
+      isPrimaryKey: any;
+      defaultValue: any;
+      hasDefaultValue: any;
+      underscored: any;
+      databaseName: any;
+      engineInstance: any;
+      customAttributes: any;
+      typeName: any;
+      allowedQueryOperations: infer TAllowedQueryOperations extends FieldWithOperationTypeForSearch<any>;
+    }
+  >
+    ? TAllowedQueryOperations
+    : 'no';
+*/

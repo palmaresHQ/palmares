@@ -75,7 +75,7 @@ export class CreateField extends Operation {
           `${ident}"${data.data.fieldName}",\n` +
           `${await data.data.fieldDefinition['__toString'](indentation)}`
       ),
-      customImports: await data.data.fieldDefinition['__customImports']()
+      customImports: await data.data.fieldDefinition['__getCustomImports']()
     };
   }
 
@@ -150,8 +150,8 @@ export class ChangeField extends Operation {
           `${await data.data.fieldDefinitionBefore['__toString'](indentation)},\n` +
           `${await data.data.fieldDefinitionAfter['__toString'](indentation)}`
       ),
-      customImports: (await data.data.fieldDefinitionBefore['__customImports']()).concat(
-        await data.data.fieldDefinitionAfter['__customImports']()
+      customImports: (await data.data.fieldDefinitionBefore['__getCustomImports']()).concat(
+        await data.data.fieldDefinitionAfter['__getCustomImports']()
       )
     };
   }
@@ -232,7 +232,7 @@ export class RenameField extends Operation {
           `${ident}"${data.data.fieldNameAfter}",\n` +
           `${await data.data.fieldDefinition['__toString'](indentation)}`
       ),
-      customImports: await data.data.fieldDefinition['__customImports']()
+      customImports: await data.data.fieldDefinition['__getCustomImports']()
     };
   }
 

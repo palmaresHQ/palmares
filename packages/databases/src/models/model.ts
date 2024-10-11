@@ -1,11 +1,12 @@
 import { ModelCircularAbstractError, ModelNoUniqueFieldsError } from './exceptions';
+import { Field, ForeignKeyField, ON_DELETE } from './fields';
 import { DefaultManager, Manager } from './manager';
 import { factoryFunctionForModelTranslate, getDefaultModelOptions, indirectlyRelatedModels } from './utils';
 import { getUniqueCustomImports, hashString } from '../utils';
 
-import type { Field, ForeignKeyField } from './fields';
 import type { CustomImportsForFieldType } from './fields/types';
 import type {
+  FieldWithOperationType,
   ManagersOfInstanceType,
   ModelFieldsType,
   ModelOptionsType,
@@ -40,8 +41,8 @@ export class BaseModel {
   >();
   protected static __associations: {
     [modelName: string]: {
-      byRelationName: Map<string, ForeignKeyField<any, any>>;
-      byRelatedName: Map<string, ForeignKeyField<any, any>>;
+      byRelationName: Map<string, ForeignKeyField<any, any, any>>;
+      byRelatedName: Map<string, ForeignKeyField<any, any, any>>;
     };
   } = {};
   // This model uses other models as ForeignKey
@@ -168,7 +169,7 @@ export class BaseModel {
     engineInstance: DatabaseAdapter,
     domainName: string,
     domainPath: string,
-    lazyLoadFieldsCallback: (field: Field, translatedField: any) => void,
+    lazyLoadFieldsCallback: (field: Field<any, any, any>, translatedField: any) => void,
     options?: {
       forceTranslate?: boolean;
     }
@@ -244,7 +245,7 @@ export class BaseModel {
         accumulator[fieldName] = field['__getArguments']();
         return accumulator;
       },
-      {} as Record<string, ReturnType<(typeof Field<any, any>)['__getArgumentsCallback']>>
+      {} as Record<string, ReturnType<Field<any, any>['__getArgumentsCallback']>>
     );
 
     return {
@@ -493,7 +494,7 @@ export class BaseModel {
       const fieldName = allFields[i][0];
       const field = allFields[i][1];
       const isLastField = i === allFields.length - 1;
-      const customImportsOfField = await field['__customImports']();
+      const customImportsOfField = await field['__getCustomImports']();
       stringifiedFields.push(
         `${fieldsIdent}${fieldName}: ${(await field['__toString'](indentation + 1)).replace(
           new RegExp(`^${fieldsIdent}`),
@@ -901,3 +902,40 @@ export function initialize<
 
   return ModelConstructor as any;
 }
+
+interface NewFieldOperationType extends Pick<FieldWithOperationType<string>, 'in' | 'like'> {
+  newQuery?: string;
+}
+const field = Field._overrideType<{ create: string; read: string; update: string }, any, NewFieldOperationType>({
+  typeName: 'NewField'
+});
+
+const Company = initialize('Company', {
+  fields: {
+    id: field.new({})
+  }
+});
+
+const User = initialize('User', {
+  fields: {
+    companyId: ForeignKeyField.new({
+      onDelete: ON_DELETE.CASCADE,
+      relatedTo: () => Company,
+      relatedName: 'usersOfCompany',
+      relationName: 'company',
+      toField: 'id'
+    })
+  }
+});
+
+User.default
+  .get((qs) =>
+    qs.join(Company, 'company').where({
+      companyId: {
+        newQuery: '1'
+      }
+    })
+  )
+  .then((users) => {
+    users[0].company.id;
+  });
