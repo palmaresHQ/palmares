@@ -76,7 +76,7 @@ export class CreateModel extends Operation {
         indentation - 1,
         `${ident}"${data.modelName}",\n` +
           `${fieldsAsString},\n` +
-          `${await BaseModel['__optionsToString'](indentation, data.data.options)}`
+          `${await BaseModel['__optionsToString'](engine, indentation, data.data.options)}`
       ),
       customImports: customImports
     };
@@ -182,7 +182,7 @@ export class ChangeModel extends Operation {
   }
 
   static async toString(
-    _engine: DatabaseAdapter,
+    engine: DatabaseAdapter,
     indentation = 0,
     data: ActionToGenerateType<ChangeModelToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
@@ -191,8 +191,8 @@ export class ChangeModel extends Operation {
       asString: await super.defaultToString(
         indentation - 1,
         `${ident}"${data.modelName}",\n` +
-          `${await BaseModel['__optionsToString'](indentation, data.data.optionsBefore)},\n` +
-          `${await BaseModel['__optionsToString'](indentation, data.data.optionsAfter)}`
+          `${await BaseModel['__optionsToString'](engine, indentation, data.data.optionsBefore)},\n` +
+          `${await BaseModel['__optionsToString'](engine, indentation, data.data.optionsAfter)}`
       )
     };
   }

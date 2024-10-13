@@ -116,7 +116,7 @@ export class EnumField<
   protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
   protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
 
-  protected __compareCallback = ((oldField, newField, defaultCompareCallback) => {
+  protected __compareCallback = ((engine, oldField, newField, defaultCompareCallback) => {
     const oldFieldAsTextField = oldField as EnumField<any, any>;
     const newFieldAsTextField = newField as EnumField<any, any>;
     const newFieldChoices = Array.isArray(newFieldAsTextField['__choices']) ? newFieldAsTextField['__choices'] : [];
@@ -125,7 +125,7 @@ export class EnumField<
     const isChoicesEqual =
       oldFieldChoices.length === newFieldChoices.length &&
       oldFieldChoices.every((choice: string) => newFieldChoicesAsSet.has(choice));
-    const [isEqual, changedAttributes] = defaultCompareCallback(oldField, newField, defaultCompareCallback);
+    const [isEqual, changedAttributes] = defaultCompareCallback(engine, oldField, newField, defaultCompareCallback);
 
     if (!isChoicesEqual) changedAttributes.push('choices');
     return [isChoicesEqual && isEqual, changedAttributes];

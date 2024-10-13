@@ -29,8 +29,8 @@ export async function defaultToStringCallback(
   let customImports: CustomImportsForFieldType[] = [];
   let stringifiedCustomAttributes = '{}';
 
-  if (engine.fields.toString) {
-    const stringifiedField = engine.fields.toString(field['__customAttributes']);
+  if (engine.fields.fieldToString) {
+    const stringifiedField = engine.fields.fieldToString(field['__customAttributes']);
     customImports = stringifiedField.imports;
     stringifiedCustomAttributes = stringifiedField.result;
   }

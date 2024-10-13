@@ -15,7 +15,7 @@ export function adapterModels<
   TAfterModelsTranslationFunction extends AdapterModels<any>['afterModelsTranslation'],
   TCustomOptionsFunction extends (typeof AdapterModels)['customOptions'],
   TCompare extends AdapterModels<any>['compare'],
-  TToString extends AdapterModels<any>['toString']
+  TToString extends AdapterModels<any>['modelToString']
 >(args: {
   /**
    * Used for translating the options of the model. Options of the model are things like the `tableName`, `indexes`,
@@ -299,7 +299,7 @@ export function adapterModels<
    *
    * This is part of the migration, don't need to implement if you are not using Palmares Migrations.
    */
-  toString?: TToString;
+  modelToString?: TToString;
 }): typeof AdapterModels & {
   customOptions: TCustomOptionsFunction;
   new <TModel>(): AdapterModels<TModel> & {
@@ -307,7 +307,7 @@ export function adapterModels<
     translateFields: TTranslateFieldsFunction;
     translate: TTranslateFunction;
     compare: TCompare;
-    toString: TToString;
+    modelToString: TToString;
     afterModelsTranslation: TAfterModelsTranslationFunction;
     setGetTranslatedModels: <TGetTranslatedModelsFunction extends () => any>(
       getTranslatedModels: TGetTranslatedModelsFunction
@@ -322,7 +322,7 @@ export function adapterModels<
     translate = args.translate;
     afterModelsTranslation = args.afterModelsTranslation as TAfterModelsTranslationFunction;
     compare = args.compare as TCompare;
-    toString = args.toString as TToString;
+    modelToString = args.modelToString as TToString;
 
     static customOptions = args.customOptions as TCustomOptionsFunction;
   }
@@ -334,7 +334,7 @@ export function adapterModels<
       translateFields: TTranslateFieldsFunction;
       translate: TTranslateFunction;
       compare: TCompare;
-      toString: TToString;
+      modelToString: TToString;
       afterModelsTranslation: TAfterModelsTranslationFunction;
       setGetTranslatedModels: <TGetTranslatedModelsFunction extends () => any>(
         getTranslatedModels: TGetTranslatedModelsFunction
@@ -674,14 +674,14 @@ export class AdapterModels<TModel> {
    *
    * This is part of the migration, don't need to implement if you are not using Palmares Migrations.
    */
-  toString?(_customArguments: any): {
+  modelToString?(_customArguments: any): {
     result: string;
     imports: {
       import: string;
       from: string;
     }[];
   } {
-    throw new NotImplementedAdapterException('toString');
+    throw new NotImplementedAdapterException('modelToString');
   }
 
   /**

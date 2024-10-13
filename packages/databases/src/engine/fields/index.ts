@@ -39,7 +39,7 @@ export function adapterFields<
   TLazyEvaluateField extends AdapterFields['lazyEvaluateField'],
   TTranslateField extends AdapterFields['translateField'],
   TCompare extends AdapterFields['compare'],
-  TToString extends AdapterFields['toString']
+  TToString extends AdapterFields['fieldToString']
 >(args: {
   /** An {@link AdapterFieldParser}, it allows you to have a default translate function for all fields.
    * By default, the translate function will receive the fields parser */
@@ -76,7 +76,7 @@ export function adapterFields<
    *
    * This is part of the migration, don't need to implement if you are not using Palmares Migrations.
    */
-  toString?: TToString;
+  fieldToString?: TToString;
   /**
    * Stuff like `foreignKeys` can be a little cumbersome to implement. Specially when you are doing a translation
    * from one ORM to another. We don't really know how your ORM handles stuff. So instead of you trying to get
@@ -221,7 +221,7 @@ export function adapterFields<
   new (): AdapterFields & {
     fieldsParser: TFieldsParser;
     compare: TCompare;
-    toString: TToString;
+    fieldToString: TToString;
     autoFieldParser: TAutoFieldParser;
     bigAutoFieldParser: TBigAutoFieldParser;
     bigIntegerFieldParser: TBigIntegerFieldParser;
@@ -250,7 +250,7 @@ export function adapterFields<
     bigIntegerFieldParser = args.bigIntegerFieldParser;
     charFieldParser = args.charFieldParser;
     compare = args.compare;
-    toString = args.toString;
+    fieldToString = args.fieldToString;
     dateFieldParser = args.dateFieldParser;
     decimalFieldParser = args.decimalFieldParser;
     foreignKeyFieldParser = args.foreignKeyFieldParser;
@@ -283,7 +283,7 @@ export function adapterFields<
       lazyEvaluateField: TLazyEvaluateField;
       translateField: TTranslateField;
       compare: TCompare;
-      toString: TToString;
+      fieldToString: TToString;
     };
   };
 }
@@ -506,10 +506,10 @@ export class AdapterFields {
    *
    * This is part of the migration, don't need to implement if you are not using Palmares Migrations.
    */
-  toString?(_customArguments: any): {
+  fieldToString?(_customArguments: any): {
     result: string;
     imports: CustomImportsForFieldType[];
   } {
-    throw new NotImplementedAdapterFieldsException('toString');
+    throw new NotImplementedAdapterFieldsException('fieldToString');
   }
 }

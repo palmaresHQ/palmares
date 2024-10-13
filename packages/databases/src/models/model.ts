@@ -521,7 +521,7 @@ export class BaseModel {
   }
 
   // eslint-disable-next-line ts/require-await
-  protected static async __optionsToString(indentation = 0, options: ModelOptionsType) {
+  protected static async __optionsToString(engine: DatabaseAdapter, indentation = 0, options: ModelOptionsType) {
     const ident = '  '.repeat(indentation);
     const optionsIndent = '  '.repeat(indentation + 1);
 
@@ -529,6 +529,13 @@ export class BaseModel {
       ...getDefaultModelOptions(),
       ...options
     };
+    let stringfiedCustomOptions = '{}';
+
+    if (engine.models.modelToString) {
+      const { result } = engine.models.modelToString(newOptions);
+      stringfiedCustomOptions = result;
+    }
+
     return (
       `${ident}{\n` +
       `${optionsIndent}abstract: ${newOptions.abstract},\n` +
@@ -550,7 +557,7 @@ export class BaseModel {
       `${optionsIndent}databases: [${
         options.databases ? newOptions.databases.map((database) => `"${database}"`) : ''
       }],\n` +
-      `${optionsIndent}customOptions: ${JSON.stringify(newOptions.customOptions)}\n` +
+      `${optionsIndent}customOptions: ${stringfiedCustomOptions}\n` +
       `${ident}}`
     );
   }
