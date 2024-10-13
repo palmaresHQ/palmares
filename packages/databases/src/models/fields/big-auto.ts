@@ -1,8 +1,8 @@
 import { Field } from './field';
 
-import type { CustomImportsForFieldType } from './types';
+import type { CustomImportsForFieldType, FieldWithOperationTypeForSearch } from './types';
 import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
-import type { AdapterFieldParser, DatabaseAdapter } from '../..';
+import type { AdapterBigAutoFieldParser, AdapterFieldParser, DatabaseAdapter } from '../..';
 
 /**
  * Functional approach for the creation of an BigAutoField instance. An BigAutoField is a field that
@@ -24,9 +24,9 @@ import type { AdapterFieldParser, DatabaseAdapter } from '../..';
  */
 export function bigAuto(): BigAutoField<
   {
-    create: number | undefined | null;
-    read: number;
-    update: number | undefined | null;
+    create: number | bigint | undefined | null;
+    read: number | bigint;
+    update: number | bigint | undefined | null;
   },
   {
     unique: true;
@@ -41,7 +41,11 @@ export function bigAuto(): BigAutoField<
     databaseName: undefined;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
-  }
+  },
+  Pick<
+    FieldWithOperationTypeForSearch<number | bigint>,
+    'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
+  >
 > {
   return BigAutoField.new();
 }
@@ -92,10 +96,24 @@ export class BigAutoField<
     databaseName: undefined;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
-  }
-> extends Field<TType, TDefinitions> {
+  },
+  TFieldOperationTypes = Pick<
+    FieldWithOperationTypeForSearch<number | bigint>,
+    'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
+  >
+> extends Field<TType, TDefinitions, TFieldOperationTypes> {
   protected $$type = '$PBigAutoField';
-  protected static __typeName = 'BigAutoField';
+  protected __typeName = 'BigAutoField';
+  protected __allowedQueryOperations: Set<any> = new Set([
+    'lessThan',
+    'greaterThan',
+    'and',
+    'in',
+    'or',
+    'eq',
+    'is',
+    'between'
+  ] as (keyof Required<TFieldOperationTypes>)[]);
   protected __isAuto = true;
   protected __hasDefaultValue = false;
   protected __primaryKey = true;
@@ -103,8 +121,8 @@ export class BigAutoField<
   protected __allowNull = true;
   protected __unique = true;
   protected __dbIndex = true;
-  protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
 
   unique!: never;
   auto!: never;
@@ -112,6 +130,17 @@ export class BigAutoField<
   primaryKey!: never;
   dbIndex!: never;
   default!: never;
+
+  constructor(...args: any[]) {
+    super(...args);
+    this.__isAuto = true;
+    this.__hasDefaultValue = false;
+    this.__primaryKey = true;
+    this.__defaultValue = undefined;
+    this.__allowNull = true;
+    this.__unique = true;
+    this.__dbIndex = true;
+  }
 
   /**
    * Supposed to be used by library maintainers.
@@ -197,7 +226,8 @@ export class BigAutoField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > &
     TFunctions {
     if (functions === undefined) return this as any;
@@ -223,7 +253,27 @@ export class BigAutoField<
       create?: 'merge' | 'union' | 'replace';
       read?: 'merge' | 'union' | 'replace';
       update?: 'merge' | 'union' | 'replace';
-    }
+    },
+    TNewAllowedQueryOperations extends FieldWithOperationTypeForSearch<
+      TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read']
+    > = Pick<
+      FieldWithOperationTypeForSearch<
+        TActions['read'] extends 'merge'
+          ? TType['read'] & TNewType['read']
+          : TActions['read'] extends 'union'
+            ? TType['read'] | TNewType['read']
+            : TActions['read'] extends 'replace'
+              ? TNewType['read']
+              : TType['read']
+      >,
+      'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
+    >
   >(): <const TCustomPartialAttributes>(partialCustomAttributes: TCustomPartialAttributes) => BigAutoField<
     {
       create: TActions['create'] extends 'merge'
@@ -276,7 +326,8 @@ export class BigAutoField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'] & TCustomPartialAttributes;
-    }
+    },
+    TNewAllowedQueryOperations
   > {
     return (partialCustomAttributes) => {
       if (partialCustomAttributes !== undefined) {
@@ -288,9 +339,12 @@ export class BigAutoField<
   }
 
   setCustomAttributes<
-    const TCustomAttributes extends Parameters<
-      TDefinitions['engineInstance']['fields']['bigAutoFieldParser']['translate']
-    >[0]['customAttributes']
+    const TCustomAttributes extends
+      TDefinitions['engineInstance']['fields']['bigAutoFieldParser'] extends AdapterBigAutoFieldParser
+        ? Parameters<TDefinitions['engineInstance']['fields']['bigAutoFieldParser']['translate']>[0]['customAttributes']
+        : Parameters<
+            TDefinitions['engineInstance']['fields']['bigIntegerFieldParser']['translate']
+          >[0]['customAttributes']
   >(customAttributes: TCustomAttributes) {
     return super.setCustomAttributes(customAttributes) as unknown as BigAutoField<
       TType,
@@ -322,7 +376,8 @@ export class BigAutoField<
         typeName: TDefinitions['typeName'];
         engineInstance: TDefinitions['engineInstance'];
         customAttributes: TCustomAttributes;
-      }
+      },
+      TFieldOperationTypes
     >;
   }
 
@@ -358,7 +413,8 @@ export class BigAutoField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.underscored(isUnderscored) as unknown as any;
   }
@@ -395,7 +451,8 @@ export class BigAutoField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.databaseName(databaseName) as unknown as any;
   }
@@ -422,13 +479,17 @@ export class BigAutoField<
       hasDefaultValue: boolean;
       typeName: string;
       engineInstance: DatabaseAdapter;
-    }
-  >(args?: {
+    },
+    const TFieldOperationTypes extends
+      | FieldWithOperationTypeForSearch<any>
+      | Pick<FieldWithOperationTypeForSearch<any>, any>
+  >(args: {
     typeName: string;
     toStringCallback?: ToStringCallback;
     compareCallback?: CompareCallback;
     optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
+    allowedQueryOperations?: (keyof TFieldOperationTypes)[];
     customImports?: CustomImportsForFieldType[];
     definitions?: Omit<TDefinitions, 'typeName' | 'engineInstance' | 'customAttributes'>;
   }): TDefinitions['customAttributes'] extends undefined
@@ -448,7 +509,8 @@ export class BigAutoField<
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
-          }
+          },
+          TFieldOperationTypes
         >;
       }
     : {
@@ -467,48 +529,11 @@ export class BigAutoField<
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
-          }
+          },
+          TFieldOperationTypes
         >;
       } {
-    return super._overrideType(args) as unknown as TDefinitions['customAttributes'] extends undefined
-      ? {
-          new: () => BigAutoField<
-            TNewType,
-            {
-              unique: TDefinitions['unique'];
-              auto: TDefinitions['auto'];
-              allowNull: TDefinitions['allowNull'];
-              dbIndex: TDefinitions['dbIndex'];
-              isPrimaryKey: TDefinitions['isPrimaryKey'];
-              hasDefaultValue: TDefinitions['hasDefaultValue'];
-              defaultValue: TDefinitions['defaultValue'];
-              underscored: boolean;
-              databaseName: string | undefined;
-              engineInstance: TDefinitions['engineInstance'];
-              typeName: TDefinitions['typeName'];
-              customAttributes: TDefinitions['customAttributes'];
-            }
-          >;
-        }
-      : {
-          new: (params: TDefinitions['customAttributes']) => BigAutoField<
-            TNewType,
-            {
-              unique: TDefinitions['unique'];
-              auto: TDefinitions['auto'];
-              allowNull: TDefinitions['allowNull'];
-              dbIndex: TDefinitions['dbIndex'];
-              isPrimaryKey: TDefinitions['isPrimaryKey'];
-              hasDefaultValue: TDefinitions['hasDefaultValue'];
-              defaultValue: TDefinitions['defaultValue'];
-              underscored: boolean;
-              databaseName: string | undefined;
-              engineInstance: TDefinitions['engineInstance'];
-              typeName: TDefinitions['typeName'];
-              customAttributes: TDefinitions['customAttributes'];
-            }
-          >;
-        };
+    return super._overrideType(args) as unknown as any;
   }
 
   static new(..._args: any[]): BigAutoField<
@@ -530,28 +555,12 @@ export class BigAutoField<
       databaseName: undefined;
       engineInstance: DatabaseAdapter;
       customAttributes: any;
-    }
+    },
+    Pick<
+      FieldWithOperationTypeForSearch<number | bigint>,
+      'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
+    >
   > {
-    return new this(..._args) as unknown as BigAutoField<
-      {
-        create: number | undefined | null;
-        read: number;
-        update: number | undefined | null;
-      },
-      {
-        unique: true;
-        allowNull: true;
-        dbIndex: true;
-        underscored: true;
-        isPrimaryKey: true;
-        auto: true;
-        hasDefaultValue: false;
-        defaultValue: undefined;
-        typeName: string;
-        databaseName: undefined;
-        engineInstance: DatabaseAdapter;
-        customAttributes: any;
-      }
-    >;
+    return new this(..._args) as any;
   }
 }

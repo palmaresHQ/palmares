@@ -71,7 +71,8 @@ export class State {
   async newModel(modelName: string): Promise<StateModelsType[string]> {
     const ModelClass = class StateModel extends model() {
       static isState = true;
-      static __cachedName: string = modelName;
+      static __cachedOriginalName = modelName;
+      static __cachedName = `State${modelName}`;
 
       fields = {};
       options = {};
@@ -111,16 +112,13 @@ export class State {
           static _initialized = {};
           static __domainName = (stateModel.constructor as ModelType<any, any> & typeof BaseModel)['__domainName'];
           static __domainPath = (stateModel.constructor as ModelType<any, any> & typeof BaseModel)['__domainPath'];
-          static __cachedOriginalName: string = (stateModel.constructor as ModelType<any, any> & typeof BaseModel)[
-            '__cachedName'
-          ];
-          static __cachedName: string = (stateModel.constructor as ModelType<any, any> & typeof BaseModel)[
-            '__cachedName'
-          ];
-
-          fields = (stateModel.constructor as ModelType<any, any> & typeof BaseModel)['_fields']();
-          options = (stateModel.constructor as ModelType<any, any> & typeof BaseModel)['_options']() as any;
+          static __cachedOriginalName = (stateModel.constructor as any)['__cachedOriginalName'] as string;
+          static __cachedName = (stateModel.constructor as any)['__cachedName'] as string;
+          static __lazyFields = (stateModel.constructor as ModelType<any, any> & typeof BaseModel)['__lazyFields'];
+          static __lazyOptions = (stateModel.constructor as ModelType<any, any> & typeof BaseModel)['__lazyOptions'];
+          static __cachedOptions = undefined;
         };
+
         return ModelClass as any;
       })
     );

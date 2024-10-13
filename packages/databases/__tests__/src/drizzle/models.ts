@@ -38,7 +38,7 @@ export class CompanyAbstract extends Model<CompanyAbstract>() {
 export const Company = define('Company', {
   fields: {
     id: AutoField.new(),
-    uuid: UuidField.new().autoGenerate(),
+    uuid: UuidField.new().auto(),
     name: CharField.new({ maxLen: 255 })
   },
   abstracts: [CompanyAbstract],

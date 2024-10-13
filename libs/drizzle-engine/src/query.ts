@@ -34,9 +34,9 @@ const getQuery = adapterGetQuery({
   queryData: async (engine, args) => {
     const selectArgs =
       Array.isArray(args.fields) && args.fields.length > 0
-        ? args.fields.reduce((acc, field) => ({ ...acc, [field]: args.modelOfEngineInstance[field] }), {})
-        : undefined;
-    let query = engine.instance.instance.select(selectArgs).from(args.modelOfEngineInstance);
+        ? [args.fields.reduce((acc, field) => ({ ...acc, [field]: args.modelOfEngineInstance[field] }), {})]
+        : [];
+    let query = engine.instance.instance.select(...selectArgs).from(args.modelOfEngineInstance);
 
     if (args.search) {
       const searchAsObjectValues = Object.values(args.search) as any;
@@ -144,16 +144,12 @@ const search = adapterSearchQuery({
         result[key] = or(eq(model[key], value), eq(model[key], value));
         return;
       case 'greaterThan':
-        result[key] = gt(model[key], value);
-        return;
-      case 'greaterThanOrEqual':
-        result[key] = gte(model[key], value);
+        if (options?.equals) result[key] = gte(model[key], value);
+        else result[key] = gt(model[key], value);
         return;
       case 'lessThan':
-        result[key] = lt(model[key], value);
-        return;
-      case 'lessThanOrEqual':
-        result[key] = lte(model[key], value);
+        if (options?.equals) result[key] = lte(model[key], value);
+        else result[key] = lt(model[key], value);
         return;
       default:
         result[key] = eq(model[key], value);

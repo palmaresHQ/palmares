@@ -186,6 +186,7 @@ export class AdapterSearchQuery {
     _options?: {
       isNot?: boolean;
       ignoreCase?: boolean;
+      equals?: boolean;
     }
   ) {
     return Array.isArray(_value) ? _value[0] : _value;

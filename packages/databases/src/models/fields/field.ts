@@ -19,7 +19,6 @@ import type {
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
 import type { BaseModel, Model, ModelType } from '../model';
-import { ForeignKeyField } from '.';
 
 /**
  * This is the default field of the model, every other field type should override this
@@ -69,16 +68,18 @@ export class Field<
   protected __databaseName: TDefinitions['databaseName'] = undefined as string | undefined;
   protected __underscored: TDefinitions['underscored'] = true as boolean;
   protected __customAttributes!: Parameters<
-    TDefinitions['engineInstance']['fields']['autoFieldParser']['translate']
+    TDefinitions['engineInstance']['fields']['fieldsParser']['translate']
   >[0]['customAttributes'];
-  protected __allowedQueryOperations: Set<keyof Required<any>> = new Set([
+  protected __allowedQueryOperations: Set<keyof Required<TFieldOperationTypes>> = new Set([
     'eq',
     'is',
     'greaterThan',
     'lessThan',
     'like',
-    'between'
-  ]);
+    'between',
+    'and',
+    'or'
+  ] as (keyof Required<TFieldOperationTypes>)[]);
   // eslint-disable-next-line ts/require-await
   protected __toStringCallback = defaultToStringCallback satisfies ToStringCallback;
   // eslint-disable-next-line ts/require-await
@@ -87,8 +88,8 @@ export class Field<
   protected __newInstanceCallback = defaultNewInstanceArgumentsCallback satisfies NewInstanceArgumentsCallback;
   protected __customImports: CustomImportsForFieldType[] = [];
   protected __getArgumentsCallback = defaultGetArgumentsCallback satisfies GetArgumentsCallback;
-  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser'] | null>();
+  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser'] | null>();
   protected __model?: ModelType<any, any> & typeof Model & typeof BaseModel;
   protected __fieldName!: string;
 
@@ -403,12 +404,11 @@ export class Field<
       hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
-      allowedQueryOperations: FieldWithOperationTypeForSearch<TType['read'] | null | undefined>;
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
     },
-    TFieldOperationTypes
+    FieldWithOperationTypeForSearch<TType['read'] | null>
   > {
     if (typeof isNull !== 'boolean') isNull = true as TNull;
     this.__allowNull = isNull;
@@ -539,7 +539,6 @@ export class Field<
       customAttributes: TDefinitions['customAttributes'];
     },
     TFieldOperationTypes
-
   > {
     if (typeof isPrimaryKey !== 'boolean') isPrimaryKey = true as TIsPrimaryKey;
     this.__primaryKey = isPrimaryKey;
@@ -712,7 +711,9 @@ export class Field<
       typeName: string;
       engineInstance: DatabaseAdapter;
     } & Record<string, any>,
-    const TFieldOperationTypes extends FieldWithOperationTypeForSearch<any> | Pick<FieldWithOperationTypeForSearch<any>, any>
+    const TFieldOperationTypes extends
+      | FieldWithOperationTypeForSearch<any>
+      | Pick<FieldWithOperationTypeForSearch<any>, any>
   >(args: {
     typeName: string;
     toStringCallback?: ToStringCallback;
@@ -740,7 +741,7 @@ export class Field<
             typeName: TDefinitions['typeName'];
           },
           TFieldOperationTypes
-        >
+        >;
       }
     : {
         new: (params: TDefinitions['customAttributes']) => Field<
@@ -760,7 +761,7 @@ export class Field<
             typeName: TDefinitions['typeName'];
           },
           TFieldOperationTypes
-        >
+        >;
       } {
     (this as any).new = (params: any) => {
       const newInstance = new this(params);
@@ -772,7 +773,7 @@ export class Field<
       newInstance.__typeName = args.typeName;
       newInstance.__allowedQueryOperations = new Set(['is', 'eq', 'greaterThan', 'lessThan', 'like', 'between']);
       (newInstance as any)['__customAttributes'] = params;
-      return newInstance
+      return newInstance;
     };
 
     return this as unknown as any;
@@ -814,8 +815,8 @@ export class Field<
   }
 
   // eslint-disable-next-line ts/require-await
-  protected async __toString(indentation = 0, customParams: string | undefined = undefined): Promise<string> {
-    return this.__toStringCallback(this, defaultToStringCallback, indentation, customParams);
+  protected async __toString(engine: DatabaseAdapter): Promise<ReturnType<typeof defaultToStringCallback>> {
+    return this.__toStringCallback(engine, this, defaultToStringCallback, undefined);
   }
 
   /**
@@ -830,8 +831,8 @@ export class Field<
    * @return - Returns true if the fields are equal and false otherwise
    */
   // eslint-disable-next-line ts/require-await
-  protected __compare(field: Field<any, any, any>): [boolean, string[]] {
-    return this.__compareCallback(this, field, defaultCompareCallback);
+  protected __compare(engine: DatabaseAdapter, field: Field<any, any, any>): [boolean, string[]] {
+    return this.__compareCallback(engine, this, field, defaultCompareCallback);
   }
 
   /**
@@ -895,7 +896,7 @@ export class Field<
     } & Record<string, any>,
     TFieldOperationTypes extends FieldWithOperationTypeForSearch<any>
   >(..._args: any[]): Field<TType, TDefinitions, TFieldOperationTypes> {
-    return new this(..._args) as unknown as any
+    return new this(..._args) as unknown as any;
   }
 }
 

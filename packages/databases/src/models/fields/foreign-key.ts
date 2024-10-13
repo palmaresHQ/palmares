@@ -7,7 +7,7 @@ import { Field } from './field';
 import { getRelatedToAsString } from './utils';
 import { BigAutoField, IntegerField } from '../..';
 import { generateUUID } from '../../utils';
-import { type BaseModel, type Model, type ModelType, model } from '../model';
+import { type BaseModel, type Model, type ModelType } from '../model';
 
 import type {
   CustomImportsForFieldType,
@@ -26,7 +26,6 @@ import type {
 } from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
-import type { FieldWithOperationType } from '../queryset';
 
 /**
  * This allows us to create a foreign key field on the database.
@@ -52,7 +51,7 @@ import type { FieldWithOperationType } from '../queryset';
  *   relationName: 'userProfile'
  * })
  * ```
- * /
+ */
 export function foreignKey<
   const TRelatedTo extends any | (() => any) | ((_: { create: any; read: any; update: any }) => any),
   const TForeignKeyParams extends {
@@ -67,9 +66,27 @@ export function foreignKey<
   }
 ): ForeignKeyField<
   {
-    create: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'create'>;
-    read: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'read'>;
-    update: ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'update'>;
+    create: TRelatedTo extends () => any
+      ? ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'create'>
+      : TRelatedTo extends (_: { create: any; read: any; update: any }) => any
+        ? TRelatedTo extends (_: { create: infer TCreate; read: any; update: any }) => any
+          ? TCreate
+          : never
+        : ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'create'>;
+    read: TRelatedTo extends () => any
+      ? ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'read'>
+      : TRelatedTo extends (_: { create: any; read: any; update: any }) => any
+        ? TRelatedTo extends (_: { create: any; read: infer TRead; update: any }) => any
+          ? TRead
+          : never
+        : ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'read'>;
+    update: TRelatedTo extends () => any
+      ? ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'update'>
+      : TRelatedTo extends (_: { create: any; read: any; update: any }) => any
+        ? TRelatedTo extends (_: { create: any; read: any; update: infer TUpdate }) => any
+          ? TUpdate
+          : never
+        : ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'update'>;
   },
   {
     unique: boolean;
@@ -90,9 +107,10 @@ export function foreignKey<
     relatedName: TForeignKeyParams['relatedName'];
     relationName: TForeignKeyParams['relationName'];
     toField: TForeignKeyParams['toField'];
-  }
+  },
+  ExtractFieldOperationTypeForSearch<TRelatedTo, TForeignKeyParams['toField']>
 > {
-  return ForeignKeyField.new(params);
+  return ForeignKeyField.new(params) as unknown as any;
 }
 
 /**
@@ -153,7 +171,7 @@ export class ForeignKeyField<
   protected __modelRelatedTo?: {
     new (...args: unknown[]): any;
   };
-  protected __allowedQueryOperations: Set<keyof Required<TFieldOperationTypes>> = new Set([]);
+  protected __allowedQueryOperations: Set<any> = new Set([] as (keyof Required<TFieldOperationTypes>)[]);
   protected __onDelete: TDefinitions['onDelete'];
   protected __relatedName: TDefinitions['relatedName'];
   protected __relationName: TDefinitions['relationName'];
@@ -166,7 +184,7 @@ export class ForeignKeyField<
    * This is used internally by the engine to compare if the field is equal to another field.
    * You can override this if you want to extend the ForeignKeyField class.
    */
-  protected __compareCallback = ((oldField, newField, defaultCompareCallback) => {
+  protected __compareCallback = ((engine, oldField, newField, defaultCompareCallback) => {
     const oldFieldAsForeignKey = oldField as ForeignKeyField<any, any>;
     const newFieldAsForeignKey = newField as ForeignKeyField<any, any>;
     getRelatedToAsString(oldFieldAsForeignKey);
@@ -178,7 +196,7 @@ export class ForeignKeyField<
     const isRelationNameEqual = oldFieldAsForeignKey['__relationName'] === newFieldAsForeignKey['__relationName'];
     const isRelatedNameEqual = oldFieldAsForeignKey['__relatedName'] === newFieldAsForeignKey['__relatedName'];
 
-    const [isEqual, changedAttributes] = defaultCompareCallback(oldField, newField, defaultCompareCallback);
+    const [isEqual, changedAttributes] = defaultCompareCallback(engine, oldField, newField, defaultCompareCallback);
     if (!isRelatedToEqual) changedAttributes.push('relatedTo');
     if (!isToFieldEqual) changedAttributes.push('toField');
     if (!isOnDeleteEqual) changedAttributes.push('onDelete');
@@ -217,29 +235,23 @@ export class ForeignKeyField<
    * This is used internally by the engine to convert the field to string.
    * You can override this if you want to extend the ForeignKeyField class.
    */
-  protected __toStringCallback = (async (
-    field,
-    defaultToStringCallback,
-    indentation = 0,
-    _customParams = undefined
-  ) => {
-    const fieldAsForeignKey = field as ForeignKeyField<any, any>;
-    const ident = '  '.repeat(indentation + 1);
+  protected __toStringCallback = (async (engine, field, defaultToStringCallback, _customParams = undefined) => {
+    const fieldAsForeignKey = field as ForeignKeyField<any, any, any>;
     getRelatedToAsString(fieldAsForeignKey);
-    return await defaultToStringCallback(
-      field,
-      defaultToStringCallback,
-      indentation,
-      `${ident}relatedTo: "${fieldAsForeignKey['__relatedToAsString']}",\n` +
-        `${ident}toField: "${fieldAsForeignKey['__toField']}",\n` +
-        `${ident}onDelete: models.fields.ON_DELETE.${fieldAsForeignKey['__onDelete'].toUpperCase()},\n` +
-        `${ident}relationName: "${fieldAsForeignKey['__relationName']}",\n` +
-        `${ident}relatedName: "${fieldAsForeignKey['__originalRelatedName']}",`
-    );
+    return await defaultToStringCallback(engine, field, defaultToStringCallback, {
+      constructorParams:
+        `{` +
+        `relatedTo: "${fieldAsForeignKey['__relatedToAsString']}", ` +
+        `toField: "${fieldAsForeignKey['__toField']}", ` +
+        `onDelete: models.fields.ON_DELETE.${fieldAsForeignKey['__onDelete'].toUpperCase()}, ` +
+        `relationName: "${fieldAsForeignKey['__relationName']}", ` +
+        `relatedName: "${fieldAsForeignKey['__originalRelatedName']}"` +
+        `}`
+    });
   }) satisfies ToStringCallback;
 
   protected __getArgumentsCallback = ((field, defaultCallback) => {
-    const fieldAsForeignKeyField = field as ForeignKeyField<any, any>;
+    const fieldAsForeignKeyField = field as ForeignKeyField<any, any, any>;
     const relatedTo = fieldAsForeignKeyField['__relatedToAsString'];
     const toField = fieldAsForeignKeyField['__toField'];
     const relationName = fieldAsForeignKeyField['__relationName'];
@@ -252,7 +264,7 @@ export class ForeignKeyField<
       relatedTo: relatedTo as string,
       relationName,
       relatedName,
-      onDelete
+      onDelete: onDelete as ON_DELETE
     };
   }) satisfies GetArgumentsCallback;
 

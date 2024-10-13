@@ -9,7 +9,6 @@ export { UuidField, uuid } from './uuid';
 export { ForeignKeyField, foreignKey } from './foreign-key';
 export { AutoField, auto } from './auto';
 export { BigAutoField, bigAuto } from './big-auto';
-//export { TranslatableField } from './translatable';
 export { BooleanField, bool } from './boolean';
 export { EnumField, choice } from './enum';
 export { ON_DELETE } from './types';

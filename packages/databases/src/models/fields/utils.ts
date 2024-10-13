@@ -1,38 +1,63 @@
 import type { Field } from './field';
 import type { ForeignKeyField } from './foreign-key';
+import type { CustomImportsForFieldType } from './types';
+import type { DatabaseAdapter } from '../../engine';
 
 export type ToStringCallback = (
+  engine: DatabaseAdapter<any>,
   field: Field<any, any, any>,
   defaultToStringCallback: ToStringCallback,
-  indentation?: number,
-  customParams?: string | undefined
-) => Promise<string>;
+  customParams?: {
+    constructorParams?: string;
+    builderParams?: string;
+  }
+) => Promise<{
+  stringfied: string;
+  customImports: CustomImportsForFieldType[];
+}>;
 
 // eslint-disable-next-line ts/require-await
 export async function defaultToStringCallback(
-  field: Parameters<ToStringCallback>[0],
-  _: Parameters<ToStringCallback>[1],
-  indentation: Parameters<ToStringCallback>[2] = 0,
+  engine: Parameters<ToStringCallback>[0],
+  field: Parameters<ToStringCallback>[1],
+  _: Parameters<ToStringCallback>[2],
   customParams: Parameters<ToStringCallback>[3] = undefined
-): Promise<string> {
-  const ident = '  '.repeat(indentation);
-  const fieldParamsIdent = '  '.repeat(indentation + 1);
-  return (
-    `${ident}models.fields.${field.constructor.name}.new({` +
-    `${customParams ? `\n${customParams}` : ''}\n` +
-    `${fieldParamsIdent}primaryKey: ${field['__primaryKey']},\n` +
-    `${fieldParamsIdent}defaultValue: ${JSON.stringify(field['__defaultValue'])},\n` +
-    `${fieldParamsIdent}allowNull: ${field['__allowNull']},\n` +
-    `${fieldParamsIdent}unique: ${field['__unique']},\n` +
-    `${fieldParamsIdent}dbIndex: ${field['__dbIndex']},\n` +
-    `${fieldParamsIdent}databaseName: "${field['__databaseName']}",\n` +
-    `${fieldParamsIdent}underscored: ${field['__underscored']},\n` +
-    `${fieldParamsIdent}customAttributes: ${JSON.stringify(field['__customAttributes'])}\n` +
-    `${ident}})`
-  );
+): Promise<{
+  stringfied: string;
+  customImports: CustomImportsForFieldType[];
+}> {
+  let customImports: CustomImportsForFieldType[] = [];
+  let stringifiedCustomAttributes = '{}';
+
+  if (engine.fields.toString) {
+    const stringifiedField = engine.fields.toString(field['__customAttributes']);
+    customImports = stringifiedField.imports;
+    stringifiedCustomAttributes = stringifiedField.result;
+  }
+
+  const stringfieldDefaultValue =
+    field['__defaultValue'] === undefined ? undefined : JSON.stringify(field['__defaultValue']);
+
+  return {
+    stringfied:
+      `models.fields.${field['__typeName']}.new(${
+        customParams?.constructorParams ? `${customParams.constructorParams}` : ''
+      })` +
+      `${typeof field['__primaryKey'] === 'boolean' ? `.primaryKey(${field['__primaryKey']})` : ''}` +
+      `${stringfieldDefaultValue !== undefined ? `.defaultValue(${stringfieldDefaultValue})` : ''}` +
+      `${typeof field['__allowNull'] === 'boolean' ? `.allowNull(${field['__allowNull']})` : ''}` +
+      `${typeof field['__unique'] === 'boolean' ? `.unique(${field['__unique']})` : ''}` +
+      `${typeof field['__dbIndex'] === 'boolean' ? `.dbIndex(${field['__dbIndex']})` : ''}` +
+      `${typeof field['__databaseName'] === 'string' ? `.databaseName("${field['__databaseName']}")` : ''}` +
+      `${typeof field['__underscored'] === 'boolean' ? `.underscored(${field['__underscored']})` : ''}` +
+      `${typeof stringifiedCustomAttributes === 'string' ? `.customAttributes(${stringifiedCustomAttributes})` : ''}` +
+      `${customParams?.builderParams ? `${customParams.builderParams}` : ''}`,
+    customImports: customImports
+  };
 }
 
 export type CompareCallback = (
+  engine: DatabaseAdapter<any>,
   existingField: Field<any, any, any>,
   newField: Field<any, any, any>,
   defaultCompareCallback: CompareCallback
@@ -40,14 +65,22 @@ export type CompareCallback = (
 
 // eslint-disable-next-line ts/require-await
 export function defaultCompareCallback(
-  existingField: Parameters<CompareCallback>[0],
-  newField: Parameters<CompareCallback>[1],
-  _: Parameters<CompareCallback>[2]
+  engine: DatabaseAdapter<any>,
+  existingField: Parameters<CompareCallback>[1],
+  newField: Parameters<CompareCallback>[2],
+  _: Parameters<CompareCallback>[3]
 ): [boolean, string[]] {
+  let isCustomAttributesEqual = true;
+  if (engine.fields.compare) {
+    const areCustomAttributesEqual = engine.fields.compare(
+      existingField['__customAttributes'],
+      newField['__customAttributes']
+    );
+    isCustomAttributesEqual = areCustomAttributesEqual;
+  }
+
   const isTypeNameEqual = existingField['__typeName'] === newField['__typeName'];
   const isAllowNullEqual = existingField['__allowNull'] === newField['__allowNull'];
-  const isCustomAttributesEqual =
-    JSON.stringify(existingField['__customAttributes']) === JSON.stringify(newField['__customAttributes']);
   const isPrimaryKeyEqual = existingField['__primaryKey'] === newField['__primaryKey'];
   const isDefaultValueEqual = existingField['__defaultValue'] === newField['__defaultValue'];
   const isUniqueEqual = existingField['__unique'] === newField['__unique'];
@@ -146,6 +179,7 @@ export function defaultGetArgumentsCallback(
     $model: field['__model'],
     typeName: field['__typeName'],
     fieldName: field['__fieldName'],
+    modelName: field['__model']?.['__getName']?.() || '',
     isAuto: field['__isAuto'] as boolean,
     primaryKey: field['__primaryKey'] as boolean,
     defaultValue: field['__defaultValue'],

@@ -1,6 +1,6 @@
 import { Field } from './field';
 
-import type { CustomImportsForFieldType } from './types';
+import type { CustomImportsForFieldType, FieldWithOperationTypeForSearch } from './types';
 import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
@@ -40,7 +40,8 @@ export function bool(): BooleanField<
     databaseName: undefined;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
-  }
+  },
+  Pick<FieldWithOperationTypeForSearch<boolean>, 'and' | 'in' | 'or' | 'eq' | 'is'>
 > {
   return BooleanField.new();
 }
@@ -90,12 +91,20 @@ export class BooleanField<
     databaseName: undefined;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
-  }
-> extends Field<TType, TDefinitions> {
+  },
+  TFieldOperationTypes = Pick<FieldWithOperationTypeForSearch<boolean>, 'and' | 'in' | 'or' | 'eq' | 'is'>
+> extends Field<TType, TDefinitions, TFieldOperationTypes> {
   protected $$type = '$PBooleanField';
-  protected static __typeName = 'BooleanField';
-  protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __typeName = 'BooleanField';
+  protected __allowedQueryOperations: Set<any> = new Set([
+    'and',
+    'in',
+    'or',
+    'eq',
+    'is'
+  ] as (keyof Required<TFieldOperationTypes>)[]);
+  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
 
   /**
    * Supposed to be used by library maintainers.
@@ -181,7 +190,8 @@ export class BooleanField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > &
     TFunctions {
     if (functions === undefined) return this as any;
@@ -207,7 +217,27 @@ export class BooleanField<
       create?: 'merge' | 'union' | 'replace';
       read?: 'merge' | 'union' | 'replace';
       update?: 'merge' | 'union' | 'replace';
-    }
+    },
+    TNewAllowedQueryOperations extends FieldWithOperationTypeForSearch<
+      TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read']
+    > = Pick<
+      FieldWithOperationTypeForSearch<
+        TActions['read'] extends 'merge'
+          ? TType['read'] & TNewType['read']
+          : TActions['read'] extends 'union'
+            ? TType['read'] | TNewType['read']
+            : TActions['read'] extends 'replace'
+              ? TNewType['read']
+              : TType['read']
+      >,
+      'and' | 'in' | 'or' | 'eq' | 'is'
+    >
   >(): <const TCustomPartialAttributes>(partialCustomAttributes: TCustomPartialAttributes) => BooleanField<
     {
       create: TActions['create'] extends 'merge'
@@ -260,7 +290,8 @@ export class BooleanField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'] & TCustomPartialAttributes;
-    }
+    },
+    TNewAllowedQueryOperations
   > {
     return (partialCustomAttributes) => {
       if (partialCustomAttributes !== undefined) {
@@ -307,7 +338,8 @@ export class BooleanField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TCustomAttributes;
-    }
+    },
+    TFieldOperationTypes
   > {
     (this.__customAttributes as any) = customAttributes as any;
 
@@ -346,7 +378,8 @@ export class BooleanField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.unique(isUnique) as unknown as any;
   }
@@ -387,7 +420,8 @@ export class BooleanField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    Pick<FieldWithOperationTypeForSearch<TType['read'] | null>, 'and' | 'in' | 'or' | 'eq' | 'is'>
   > {
     return super.allowNull(isNull) as unknown as any;
   }
@@ -427,7 +461,8 @@ export class BooleanField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.dbIndex(isDbIndex) as unknown as any;
   }
@@ -464,7 +499,8 @@ export class BooleanField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.underscored(isUnderscored) as unknown as any;
   }
@@ -501,7 +537,8 @@ export class BooleanField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.primaryKey(isPrimaryKey) as unknown as any;
   }
@@ -542,7 +579,8 @@ export class BooleanField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.auto(isAuto) as any;
   }
@@ -583,7 +621,8 @@ export class BooleanField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.default(defaultValue) as unknown as any;
   }
@@ -620,7 +659,8 @@ export class BooleanField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.databaseName(databaseName) as unknown as any;
   }
@@ -645,13 +685,17 @@ export class BooleanField<
       defaultValue: any;
       typeName: string;
       engineInstance: DatabaseAdapter;
-    }
-  >(args?: {
+    },
+    const TFieldOperationTypes extends
+      | FieldWithOperationTypeForSearch<any>
+      | Pick<FieldWithOperationTypeForSearch<any>, any>
+  >(args: {
     typeName: string;
     toStringCallback?: ToStringCallback;
     compareCallback?: CompareCallback;
     optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
+    allowedQueryOperations?: (keyof TFieldOperationTypes)[];
     customImports?: CustomImportsForFieldType[];
     definitions?: Omit<TDefinitions, 'typeName' | 'engineInstance' | 'customAttributes'>;
   }): TDefinitions['customAttributes'] extends undefined
@@ -671,7 +715,8 @@ export class BooleanField<
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
-          }
+          },
+          TFieldOperationTypes
         >;
       }
     : {
@@ -690,48 +735,11 @@ export class BooleanField<
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
-          }
+          },
+          TFieldOperationTypes
         >;
       } {
-    return super._overrideType(args) as unknown as TDefinitions['customAttributes'] extends undefined
-      ? {
-          new: () => BooleanField<
-            TNewType,
-            {
-              unique: TDefinitions['unique'];
-              auto: TDefinitions['auto'];
-              allowNull: TDefinitions['allowNull'];
-              dbIndex: TDefinitions['dbIndex'];
-              isPrimaryKey: TDefinitions['isPrimaryKey'];
-              hasDefaultValue: TDefinitions['hasDefaultValue'];
-              defaultValue: TDefinitions['defaultValue'];
-              underscored: boolean;
-              databaseName: string | undefined;
-              engineInstance: TDefinitions['engineInstance'];
-              typeName: TDefinitions['typeName'];
-              customAttributes: TDefinitions['customAttributes'];
-            }
-          >;
-        }
-      : {
-          new: (params: TDefinitions['customAttributes']) => BooleanField<
-            TNewType,
-            {
-              unique: TDefinitions['unique'];
-              auto: TDefinitions['auto'];
-              allowNull: TDefinitions['allowNull'];
-              dbIndex: TDefinitions['dbIndex'];
-              isPrimaryKey: TDefinitions['isPrimaryKey'];
-              hasDefaultValue: TDefinitions['hasDefaultValue'];
-              defaultValue: TDefinitions['defaultValue'];
-              underscored: boolean;
-              databaseName: string | undefined;
-              engineInstance: TDefinitions['engineInstance'];
-              typeName: TDefinitions['typeName'];
-              customAttributes: TDefinitions['customAttributes'];
-            }
-          >;
-        };
+    return super._overrideType(args) as unknown as any;
   }
 
   static new(..._args: any[]): BooleanField<
@@ -753,7 +761,8 @@ export class BooleanField<
       databaseName: undefined;
       engineInstance: DatabaseAdapter;
       customAttributes: any;
-    }
+    },
+    Pick<FieldWithOperationTypeForSearch<boolean>, 'and' | 'in' | 'or' | 'eq' | 'is'>
   > {
     return new this(..._args);
   }

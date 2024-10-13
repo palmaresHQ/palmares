@@ -1,6 +1,6 @@
 import { TextField } from './text';
 
-import type { CustomImportsForFieldType } from './types';
+import type { CustomImportsForFieldType, FieldWithOperationTypeForSearch } from './types';
 import type {
   CompareCallback,
   GetArgumentsCallback,
@@ -47,7 +47,8 @@ export function uuid(): UuidField<
     databaseName: undefined;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
-  }
+  },
+  Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
 > {
   return UuidField.new();
 }
@@ -99,32 +100,33 @@ export class UuidField<
     databaseName: undefined;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
-  }
-> extends TextField<TType, TDefinitions> {
+  },
+  TFieldOperationTypes = Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
+> extends TextField<TType, TDefinitions, TFieldOperationTypes> {
   protected $$type = '$PUuidField';
-  protected static __typeName = 'UuidField';
+  protected __typeName = 'UuidField';
 
-  protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
 
-  protected static __compareCallback = ((oldField, newField, defaultCompareCallback) => {
+  protected __compareCallback = ((engine, oldField, newField, defaultCompareCallback) => {
     const oldFieldAsUuidField = oldField as UuidField<any, any>;
     const newFieldAsUuidField = newField as UuidField<any, any>;
     const isAllowBlankEqual = oldFieldAsUuidField['__allowBlank'] === newFieldAsUuidField['__allowBlank'];
-    const [isEqual, changedAttributes] = defaultCompareCallback(oldField, newField, defaultCompareCallback);
+    const [isEqual, changedAttributes] = defaultCompareCallback(engine, oldField, newField, defaultCompareCallback);
 
     if (!isAllowBlankEqual) changedAttributes.push('allowBlank');
     return [isAllowBlankEqual && isEqual, changedAttributes];
   }) satisfies CompareCallback;
 
-  protected static __optionsCallback = ((setFieldValue, oldField, defaultOptionsCallback) => {
+  protected __optionsCallback = ((setFieldValue, oldField, defaultOptionsCallback) => {
     const oldFieldAsUuidField = oldField as UuidField<any, any>;
 
     setFieldValue('__allowBlank', 'allowBlank', oldFieldAsUuidField['__allowBlank']);
     defaultOptionsCallback(setFieldValue, oldFieldAsUuidField, defaultOptionsCallback);
   }) satisfies OptionsCallback;
 
-  protected static __getArgumentsCallback = ((field, defaultCallback) => {
+  protected __getArgumentsCallback = ((field, defaultCallback) => {
     const fieldAsUuidField = field as UuidField<any, any>;
     const allowBlank = fieldAsUuidField['__allowBlank'] as boolean;
 
@@ -207,7 +209,8 @@ export class UuidField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > &
     TFunctions {
     if (functions === undefined) return this as any;
@@ -233,7 +236,27 @@ export class UuidField<
       create?: 'merge' | 'union' | 'replace';
       read?: 'merge' | 'union' | 'replace';
       update?: 'merge' | 'union' | 'replace';
-    }
+    },
+    TNewAllowedQueryOperations extends FieldWithOperationTypeForSearch<
+      TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read']
+    > = Pick<
+      FieldWithOperationTypeForSearch<
+        TActions['read'] extends 'merge'
+          ? TType['read'] & TNewType['read']
+          : TActions['read'] extends 'union'
+            ? TType['read'] | TNewType['read']
+            : TActions['read'] extends 'replace'
+              ? TNewType['read']
+              : TType['read']
+      >,
+      'like' | 'and' | 'in' | 'or' | 'eq' | 'is'
+    >
   >(): <const TCustomPartialAttributes>(partialCustomAttributes: TCustomPartialAttributes) => UuidField<
     {
       create: TActions['create'] extends 'merge'
@@ -286,7 +309,8 @@ export class UuidField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'] & TCustomPartialAttributes;
-    }
+    },
+    TNewAllowedQueryOperations
   > {
     return (partialCustomAttributes) => {
       if (partialCustomAttributes !== undefined) {
@@ -333,7 +357,8 @@ export class UuidField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TCustomAttributes;
-    }
+    },
+    TFieldOperationTypes
   > {
     (this.__customAttributes as any) = customAttributes as any;
 
@@ -372,7 +397,8 @@ export class UuidField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.unique(isUnique) as unknown as any;
   }
@@ -413,7 +439,8 @@ export class UuidField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    Pick<FieldWithOperationTypeForSearch<TType['read'] | null>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
   > {
     return super.allowNull(isNull) as unknown as any;
   }
@@ -451,7 +478,8 @@ export class UuidField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.allowBlank(isBlank) as unknown as any;
   }
@@ -491,7 +519,8 @@ export class UuidField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.dbIndex(isDbIndex) as unknown as any;
   }
@@ -527,7 +556,8 @@ export class UuidField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.underscored(isUnderscored) as unknown as any;
   }
@@ -563,7 +593,8 @@ export class UuidField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.primaryKey(isPrimaryKey) as unknown as any;
   }
@@ -603,7 +634,8 @@ export class UuidField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.auto(isAuto) as any;
   }
@@ -644,7 +676,8 @@ export class UuidField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.default(defaultValue) as unknown as any;
   }
@@ -681,7 +714,8 @@ export class UuidField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.databaseName(databaseName) as unknown as any;
   }
@@ -712,13 +746,17 @@ export class UuidField<
       typeName: string;
       allowBlank: boolean;
       engineInstance: DatabaseAdapter;
-    } & Record<string, any>
-  >(args?: {
+    } & Record<string, any>,
+    const TFieldOperationTypes extends
+      | FieldWithOperationTypeForSearch<any>
+      | Pick<FieldWithOperationTypeForSearch<any>, any>
+  >(args: {
     typeName: string;
     toStringCallback?: ToStringCallback;
     compareCallback?: CompareCallback;
     optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
+    allowedQueryOperations?: (keyof TFieldOperationTypes)[];
     customImports?: CustomImportsForFieldType[];
   }): TDefinitions['customAttributes'] extends undefined
     ? {
@@ -738,7 +776,8 @@ export class UuidField<
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
             allowBlank: TDefinitions['allowBlank'];
-          }
+          },
+          TFieldOperationTypes
         >;
       }
     : {
@@ -758,7 +797,8 @@ export class UuidField<
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
             allowBlank: TDefinitions['allowBlank'];
-          }
+          },
+          TFieldOperationTypes
         >;
       } {
     return super._overrideType(args) as unknown as any;
@@ -784,7 +824,8 @@ export class UuidField<
       databaseName: undefined;
       engineInstance: DatabaseAdapter;
       customAttributes: any;
-    }
+    },
+    Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
   > {
     return new this(..._args);
   }

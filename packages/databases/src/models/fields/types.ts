@@ -12,8 +12,6 @@ import type { TextField } from './text';
 import type { UuidField } from './uuid';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFields } from '../../engine/fields';
-import type { Model } from '../model';
-import type { Narrow } from '@palmares/core';
 
 export type DefaultFieldType = Field<any, any>;
 
@@ -30,7 +28,7 @@ export enum ON_DELETE {
 
 export type CustomImportsForFieldType = {
   packageName: string;
-  value: `{ ${string} }` | `* as ${string}` | `{ default as ${string} }`;
+  value: `{ ${string} }` | `* as ${string}` | `{ default as ${string} }` | string;
 };
 
 export interface TranslatableFieldType {
@@ -111,6 +109,16 @@ export type ExtractFieldOperationTypeForSearch<TProbablyAModel, TToFieldName ext
     ? TFields[TToFieldName] extends
         | Field<any, any, infer TAllowedQueryOperations>
         | ForeignKeyField<any, any, infer TAllowedQueryOperations>
+        | AutoField<any, any, infer TAllowedQueryOperations>
+        | BigAutoField<any, any, infer TAllowedQueryOperations>
+        | BigIntegerField<any, any, infer TAllowedQueryOperations>
+        | BooleanField<any, any, infer TAllowedQueryOperations>
+        | EnumField<any, any, infer TAllowedQueryOperations>
+        | CharField<any, any, infer TAllowedQueryOperations>
+        | DateField<any, any, infer TAllowedQueryOperations>
+        | UuidField<any, any, infer TAllowedQueryOperations>
+        | IntegerField<any, any, infer TAllowedQueryOperations>
+        | TextField<any, any, infer TAllowedQueryOperations>
       ? TAllowedQueryOperations
       : FieldWithOperationTypeForSearch<any>
     : FieldWithOperationTypeForSearch<any>

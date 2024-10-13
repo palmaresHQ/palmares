@@ -64,6 +64,7 @@ export class CreateField extends Operation {
   }
 
   static async toString(
+    engine: DatabaseAdapter,
     indentation = 0,
     data: ActionToGenerateType<CreateFieldToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
@@ -73,7 +74,7 @@ export class CreateField extends Operation {
         indentation - 1,
         `${ident}"${data.modelName}",\n` +
           `${ident}"${data.data.fieldName}",\n` +
-          `${await data.data.fieldDefinition['__toString'](indentation)}`
+          `${await data.data.fieldDefinition['__toString'](engine)}`
       ),
       customImports: await data.data.fieldDefinition['__getCustomImports']()
     };
@@ -138,6 +139,7 @@ export class ChangeField extends Operation {
   }
 
   static async toString(
+    engine: DatabaseAdapter,
     indentation = 0,
     data: ActionToGenerateType<ChangeFieldToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
@@ -147,8 +149,8 @@ export class ChangeField extends Operation {
         indentation - 1,
         `${ident}"${data.modelName}",\n` +
           `${ident}"${data.data.fieldName}",\n` +
-          `${await data.data.fieldDefinitionBefore['__toString'](indentation)},\n` +
-          `${await data.data.fieldDefinitionAfter['__toString'](indentation)}`
+          `${await data.data.fieldDefinitionBefore['__toString'](engine)},\n` +
+          `${await data.data.fieldDefinitionAfter['__toString'](engine)}`
       ),
       customImports: (await data.data.fieldDefinitionBefore['__getCustomImports']()).concat(
         await data.data.fieldDefinitionAfter['__getCustomImports']()
@@ -220,6 +222,7 @@ export class RenameField extends Operation {
   }
 
   static async toString(
+    engine: DatabaseAdapter,
     indentation = 0,
     data: ActionToGenerateType<RenameFieldToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
@@ -230,7 +233,7 @@ export class RenameField extends Operation {
         `${ident}"${data.modelName}",\n` +
           `${ident}"${data.data.fieldNameBefore}",\n` +
           `${ident}"${data.data.fieldNameAfter}",\n` +
-          `${await data.data.fieldDefinition['__toString'](indentation)}`
+          `${await data.data.fieldDefinition['__toString'](engine)}`
       ),
       customImports: await data.data.fieldDefinition['__getCustomImports']()
     };
@@ -289,6 +292,8 @@ export class DeleteField extends Operation {
   }
 
   static async toString(
+    _engine: DatabaseAdapter,
+
     indentation = 0,
     data: ActionToGenerateType<DeleteFieldToGenerateData>
   ): Promise<ToStringFunctionReturnType> {

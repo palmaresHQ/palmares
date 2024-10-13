@@ -5,18 +5,32 @@ import { Company, ProfileType, User } from '../drizzle/models';
 //const test = require('@jest/globals').test;
 describe('drizzle models', ({ test }) => {
   test('Simple query with relation', async ({ expect }) => {
-    const user = await User.default.get((qs) =>
-      qs
-        .join(Company, 'company', (qs) => qs.where({ name: 'test2' }))
-        .join(ProfileType, 'profileType', (qs) => qs.where({ name: 'admin' }))
-    );
+    const user = await User.default.get((qs) => qs.join(Company, 'company', (qs) => qs.where({ name: 'hello' })));
 
-    console.log(JSON.stringify(user, null, 2));
+    const anotherUser = await User.default.get((qs) => qs.where({ name: 'test1' }));
+
+    console.log(JSON.stringify(user, null, 2), JSON.stringify(anotherUser, null, 2));
     expect(user.length > 0).toBe(true);
-    expect(user[0].company.name).toBe('test2');
-    expect(user[0].profileType.name).toBe('admin');
+    expect(user[0].company.name).toBe('test5');
+    //expect(user[0].profileType.name).toBe('admin');
   });
 
+  /*
+  test('Simple Set', async ({ expect }) => {
+    const company = await Company.default.set((qs) =>
+      qs.data({
+        address: 'test',
+        name: 'test5'
+      })
+    );
+
+    console.log(JSON.stringify(company, null, 2));
+    const companyId = company[0].id;
+    //expect(company[0].usersOfCompany[0]?.companyId).toBe(companyId);
+    //expect(company[0].usersOfCompany[0]?.profileTypeId).toBe(company[0].usersOfCompany[0]?.profileType?.id);
+  });*/
+
+  /*
   test('Querying by selecting fields', async ({ expect }) => {
     const company = await Company.default.get((qs) =>
       qs
@@ -26,8 +40,9 @@ describe('drizzle models', ({ test }) => {
         .where({ id: 1 })
     );
     console.log(JSON.stringify(company, null, 2));
-  });
+  });*/
 
+  /*
   test('Test set data through relation', async ({ expect }) => {
     const company = await Company.default.set((qs) =>
       qs

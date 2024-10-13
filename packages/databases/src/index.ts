@@ -4,7 +4,7 @@ import * as fields from './models/fields';
 import { AutoField, CharField, ForeignKeyField, ON_DELETE, TextField } from './models/fields';
 import { Manager } from './models/manager';
 import { initialize, model } from './models/model';
-import { type ForeignKeyModelsRelatedName, type ForeignKeyModelsRelationName, QuerySet } from './models/queryset';
+import { type ForeignKeyModelsRelatedName, type ForeignKeyModelsRelationName, QuerySet } from './queries/queryset';
 
 import type { DatabaseAdapter } from './engine';
 
@@ -69,7 +69,7 @@ export type { DatabaseDomainInterface } from './interfaces';
 export { databaseDomainModifier } from './domain';
 export { generateUUID } from './utils/index';
 
-export type { ForeignKeyModelsRelatedName, ForeignKeyModelsRelationName } from './models/queryset';
+export type { ForeignKeyModelsRelatedName, ForeignKeyModelsRelationName } from './queries/queryset';
 export { DatabasesDomain };
 export default DatabasesDomain;
 /*

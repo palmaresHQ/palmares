@@ -13,7 +13,9 @@ export function adapterModels<
   TTranslateFieldsFunction extends AdapterModels<any>['translateFields'],
   TTranslateFunction extends AdapterModels<any>['translate'],
   TAfterModelsTranslationFunction extends AdapterModels<any>['afterModelsTranslation'],
-  TCustomOptionsFunction extends (typeof AdapterModels)['customOptions']
+  TCustomOptionsFunction extends (typeof AdapterModels)['customOptions'],
+  TCompare extends AdapterModels<any>['compare'],
+  TToString extends AdapterModels<any>['toString']
 >(args: {
   /**
    * Used for translating the options of the model. Options of the model are things like the `tableName`, `indexes`,
@@ -284,12 +286,43 @@ export function adapterModels<
    * For example, if you are using sequelize, those would be the `third` argument from `sequelize.define`.
    */
   customOptions?: TCustomOptionsFunction;
-}) {
+  /**
+   * Used for comparing two custom arguments so we can know if we need to update the field or not. It'll default
+   * to false otherwise.
+   *
+   * This is part of the migration, don't need to implement if you are not using Palmares Migrations.
+   */
+  compare?: TCompare;
+  /**
+   * Used for stringfying the custom arguments so we can store them in the database. If you do not implement this
+   * and implement compare we will throw an error, otherwise we will just ignore the custom arguments.
+   *
+   * This is part of the migration, don't need to implement if you are not using Palmares Migrations.
+   */
+  toString?: TToString;
+}): typeof AdapterModels & {
+  customOptions: TCustomOptionsFunction;
+  new <TModel>(): AdapterModels<TModel> & {
+    translateOptions: TTranslateOptionsFunction;
+    translateFields: TTranslateFieldsFunction;
+    translate: TTranslateFunction;
+    compare: TCompare;
+    toString: TToString;
+    afterModelsTranslation: TAfterModelsTranslationFunction;
+    setGetTranslatedModels: <TGetTranslatedModelsFunction extends () => any>(
+      getTranslatedModels: TGetTranslatedModelsFunction
+    ) => Omit<AdapterModels<TModel>, 'getTranslatedModels'> & {
+      getTranslatedModels: TGetTranslatedModelsFunction;
+    };
+  };
+} {
   class CustomAdapterModel<TModel> extends AdapterModels<TModel> {
     translateOptions = args.translateOptions;
     translateFields = args.translateFields as TTranslateFieldsFunction;
     translate = args.translate;
     afterModelsTranslation = args.afterModelsTranslation as TAfterModelsTranslationFunction;
+    compare = args.compare as TCompare;
+    toString = args.toString as TToString;
 
     static customOptions = args.customOptions as TCustomOptionsFunction;
   }
@@ -300,6 +333,8 @@ export function adapterModels<
       translateOptions: TTranslateOptionsFunction;
       translateFields: TTranslateFieldsFunction;
       translate: TTranslateFunction;
+      compare: TCompare;
+      toString: TToString;
       afterModelsTranslation: TAfterModelsTranslationFunction;
       setGetTranslatedModels: <TGetTranslatedModelsFunction extends () => any>(
         getTranslatedModels: TGetTranslatedModelsFunction
@@ -622,6 +657,31 @@ export class AdapterModels<TModel> {
 
   getTranslatedModels(): TModel {
     return undefined as any;
+  }
+
+  /**
+   * Used for comparing two custom arguments so we can know if we need to update the field or not.
+   *
+   * This is part of the migration, don't need to implement if you are not using Palmares Migrations.
+   */
+  compare?(_oldCustomArguments: any, _newCustomArguments: any): boolean {
+    throw new NotImplementedAdapterException('compare');
+  }
+
+  /**
+   * Used for stringfying the custom arguments so we can store them in the database. If you do not implement this
+   * and implement compare we will throw an error, otherwise we will just ignore the custom arguments.
+   *
+   * This is part of the migration, don't need to implement if you are not using Palmares Migrations.
+   */
+  toString?(_customArguments: any): {
+    result: string;
+    imports: {
+      import: string;
+      from: string;
+    }[];
+  } {
+    throw new NotImplementedAdapterException('toString');
   }
 
   /**

@@ -1,8 +1,6 @@
-import { ForeignKeyField, ON_DELETE } from '.';
 import { Field } from './field';
-import { model } from '..';
 
-import type { CustomImportsForFieldType } from './types';
+import type { CustomImportsForFieldType, FieldWithOperationTypeForSearch } from './types';
 import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
@@ -41,7 +39,11 @@ export function bigInt(): BigIntegerField<
     databaseName: undefined;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
-  }
+  },
+  Pick<
+    FieldWithOperationTypeForSearch<bigint | number>,
+    'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
+  >
 > {
   return BigIntegerField.new();
 }
@@ -91,12 +93,26 @@ export class BigIntegerField<
     databaseName: undefined;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
-  }
-> extends Field<TType, TDefinitions> {
+  },
+  TFieldOperationTypes = Pick<
+    FieldWithOperationTypeForSearch<number | bigint>,
+    'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
+  >
+> extends Field<TType, TDefinitions, TFieldOperationTypes> {
   protected $$type = '$PBigIntegerField';
-  protected static __typeName = 'BigIntegerField';
-  protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __typeName = 'BigIntegerField';
+  protected __allowedQueryOperations: Set<any> = new Set([
+    'lessThan',
+    'greaterThan',
+    'and',
+    'in',
+    'or',
+    'eq',
+    'is',
+    'between'
+  ] as (keyof Required<TFieldOperationTypes>)[]);
+  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
 
   /**
    * Supposed to be used by library maintainers.
@@ -182,7 +198,8 @@ export class BigIntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > &
     TFunctions {
     if (functions === undefined) return this as any;
@@ -208,7 +225,27 @@ export class BigIntegerField<
       create?: 'merge' | 'union' | 'replace';
       read?: 'merge' | 'union' | 'replace';
       update?: 'merge' | 'union' | 'replace';
-    }
+    },
+    TNewAllowedQueryOperations extends FieldWithOperationTypeForSearch<
+      TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read']
+    > = Pick<
+      FieldWithOperationTypeForSearch<
+        TActions['read'] extends 'merge'
+          ? TType['read'] & TNewType['read']
+          : TActions['read'] extends 'union'
+            ? TType['read'] | TNewType['read']
+            : TActions['read'] extends 'replace'
+              ? TNewType['read']
+              : TType['read']
+      >,
+      'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
+    >
   >(): <const TCustomPartialAttributes>(partialCustomAttributes: TCustomPartialAttributes) => BigIntegerField<
     {
       create: TActions['create'] extends 'merge'
@@ -261,7 +298,8 @@ export class BigIntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'] & TCustomPartialAttributes;
-    }
+    },
+    TNewAllowedQueryOperations
   > {
     return (partialCustomAttributes) => {
       if (partialCustomAttributes !== undefined) {
@@ -342,7 +380,8 @@ export class BigIntegerField<
         typeName: TDefinitions['typeName'];
         engineInstance: TDefinitions['engineInstance'];
         customAttributes: TCustomAttributes;
-      }
+      },
+      TFieldOperationTypes
     >;
   }
 
@@ -378,7 +417,8 @@ export class BigIntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.unique(isUnique) as any;
   }
@@ -419,7 +459,11 @@ export class BigIntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    Pick<
+      FieldWithOperationTypeForSearch<number | bigint | null>,
+      'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
+    >
   > {
     return super.allowNull(isNull) as any;
   }
@@ -459,7 +503,8 @@ export class BigIntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.dbIndex(isDbIndex) as unknown as any;
   }
@@ -496,7 +541,8 @@ export class BigIntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.underscored(isUnderscored) as unknown as any;
   }
@@ -533,7 +579,8 @@ export class BigIntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.primaryKey(isPrimaryKey) as unknown as any;
   }
@@ -574,7 +621,8 @@ export class BigIntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.auto(isAuto) as unknown as any;
   }
@@ -615,7 +663,8 @@ export class BigIntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.default(defaultValue) as unknown as any;
   }
@@ -652,7 +701,8 @@ export class BigIntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.databaseName(databaseName) as unknown as any;
   }
@@ -677,13 +727,17 @@ export class BigIntegerField<
       defaultValue: any;
       typeName: string;
       engineInstance: DatabaseAdapter;
-    }
-  >(args?: {
+    },
+    const TFieldOperationTypes extends
+      | FieldWithOperationTypeForSearch<any>
+      | Pick<FieldWithOperationTypeForSearch<any>, any>
+  >(args: {
     typeName: string;
     toStringCallback?: ToStringCallback;
     compareCallback?: CompareCallback;
     optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
+    allowedQueryOperations?: (keyof TFieldOperationTypes)[];
     customImports?: CustomImportsForFieldType[];
     definitions?: Omit<TDefinitions, 'typeName' | 'engineInstance' | 'customAttributes'>;
   }): TDefinitions['customAttributes'] extends undefined
@@ -703,7 +757,8 @@ export class BigIntegerField<
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
-          }
+          },
+          TFieldOperationTypes
         >;
       }
     : {
@@ -722,48 +777,11 @@ export class BigIntegerField<
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
-          }
+          },
+          TFieldOperationTypes
         >;
       } {
-    return super._overrideType(args) as unknown as TDefinitions['customAttributes'] extends undefined
-      ? {
-          new: () => BigIntegerField<
-            TNewType,
-            {
-              unique: TDefinitions['unique'];
-              auto: TDefinitions['auto'];
-              allowNull: TDefinitions['allowNull'];
-              dbIndex: TDefinitions['dbIndex'];
-              isPrimaryKey: TDefinitions['isPrimaryKey'];
-              defaultValue: TDefinitions['defaultValue'];
-              hasDefaultValue: TDefinitions['hasDefaultValue'];
-              underscored: boolean;
-              databaseName: string | undefined;
-              engineInstance: TDefinitions['engineInstance'];
-              typeName: TDefinitions['typeName'];
-              customAttributes: TDefinitions['customAttributes'];
-            }
-          >;
-        }
-      : {
-          new: (params: TDefinitions['customAttributes']) => BigIntegerField<
-            TNewType,
-            {
-              unique: TDefinitions['unique'];
-              auto: TDefinitions['auto'];
-              allowNull: TDefinitions['allowNull'];
-              dbIndex: TDefinitions['dbIndex'];
-              isPrimaryKey: TDefinitions['isPrimaryKey'];
-              defaultValue: TDefinitions['defaultValue'];
-              hasDefaultValue: TDefinitions['hasDefaultValue'];
-              underscored: boolean;
-              databaseName: string | undefined;
-              engineInstance: TDefinitions['engineInstance'];
-              typeName: TDefinitions['typeName'];
-              customAttributes: TDefinitions['customAttributes'];
-            }
-          >;
-        };
+    return super._overrideType(args) as unknown as any;
   }
 
   static new(..._args: any[]): BigIntegerField<
@@ -785,7 +803,11 @@ export class BigIntegerField<
       databaseName: undefined;
       engineInstance: DatabaseAdapter;
       customAttributes: any;
-    }
+    },
+    Pick<
+      FieldWithOperationTypeForSearch<bigint | number>,
+      'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
+    >
   > {
     return new this(..._args);
   }

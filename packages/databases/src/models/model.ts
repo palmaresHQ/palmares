@@ -1,9 +1,10 @@
 import { ModelCircularAbstractError, ModelNoUniqueFieldsError } from './exceptions';
-import { Field, ForeignKeyField, ON_DELETE } from './fields';
+import { AutoField, BigAutoField, BooleanField, ON_DELETE, TextField, bigInt } from './fields';
 import { DefaultManager, Manager } from './manager';
 import { factoryFunctionForModelTranslate, getDefaultModelOptions, indirectlyRelatedModels } from './utils';
 import { getUniqueCustomImports, hashString } from '../utils';
 
+import type { Field, ForeignKeyField } from './fields';
 import type { CustomImportsForFieldType } from './fields/types';
 import type {
   FieldWithOperationType,
@@ -30,13 +31,13 @@ export class BaseModel {
   protected static __isState = false;
 
   // It would be kinda bad on performance if we always looped through all of the fields of a model to parse them.
-  // So we store the fields that have parsers here and we will
-  // loop through it here.
+  // So we store the fields that have parsers here.
   protected static __fieldParsersByEngine = new Map<
     string,
     {
-      input: string[];
-      output: string[];
+      input: Set<string>;
+      output: Set<string>;
+      toIgnore: Set<string>;
     }
   >();
   protected static __associations: {
@@ -57,6 +58,7 @@ export class BaseModel {
     string,
     (engineInstance: DatabaseAdapter) => void
   > = new Map();
+  protected static __lazyOptions?: ModelOptionsType<any> = {};
   protected static __lazyFields?: ModelFieldsType = {};
   protected static __cachedHashedName?: string;
   protected static __cachedName: string;
@@ -218,16 +220,26 @@ export class BaseModel {
    * @returns - Returns true if the models are equal and false otherwise.
    */
   // eslint-disable-next-line ts/require-await
-  protected async __compareModels(model: Model & BaseModel): Promise<boolean> {
-    const currentModel = this as unknown as Model & BaseModel;
+  protected static async __compareModels(
+    engine: DatabaseAdapter,
+    originalModel: typeof Model & typeof BaseModel,
+    otherModel: typeof Model & typeof BaseModel
+  ): Promise<boolean> {
+    const currentModelOptions = originalModel['_options']();
+    const otherModelOptions = otherModel['_options']();
+    let areCustomOptionsEqual = true;
+
+    if (engine.models.compare && currentModelOptions?.customOptions && otherModelOptions?.customOptions)
+      areCustomOptionsEqual = engine.models.compare(currentModelOptions.customOptions, otherModelOptions.customOptions);
+
     return (
-      currentModel.options?.abstract === model.options?.abstract &&
-      currentModel.options?.underscored === model.options?.underscored &&
-      currentModel.options?.tableName === model.options?.tableName &&
-      JSON.stringify(currentModel.options?.ordering) === JSON.stringify(model.options?.ordering) &&
-      JSON.stringify(currentModel.options?.indexes) === JSON.stringify(model.options?.indexes) &&
-      JSON.stringify(currentModel.options?.databases) === JSON.stringify(model.options?.databases) &&
-      JSON.stringify(currentModel.options?.customOptions) === JSON.stringify(model.options?.customOptions)
+      currentModelOptions?.abstract === otherModelOptions?.abstract &&
+      currentModelOptions?.underscored === otherModelOptions?.underscored &&
+      currentModelOptions?.tableName === otherModelOptions?.tableName &&
+      JSON.stringify(currentModelOptions?.ordering) === JSON.stringify(otherModelOptions?.ordering) &&
+      JSON.stringify(currentModelOptions?.indexes) === JSON.stringify(otherModelOptions?.indexes) &&
+      JSON.stringify(currentModelOptions?.databases) === JSON.stringify(otherModelOptions?.databases) &&
+      areCustomOptionsEqual
     );
   }
 
@@ -332,7 +344,7 @@ export class BaseModel {
 
         modelConstructor.__cachedOptions = {
           ...duplicatedOptions,
-          ...(modelConstructor.__cachedOptions || {})
+          ...(modelConstructor.__lazyOptions || {})
         };
       }
     }
@@ -395,10 +407,13 @@ export class BaseModel {
           modelInstance.options[defaultModelOptionKey] = (defaultOptions as any)[defaultModelOptionKey];
         }
       }
+
+      // The ordering of the options is quite important.
       this.__cachedOptions = {
         // eslint-disable-next-line ts/no-unnecessary-condition
-        ...(this.__cachedOptions || {}),
         ...(modelInstance.options || {}),
+        ...(this.__lazyOptions || {}),
+
         customOptions:
           this.__customOptions ||
           modelInstance.options?.customOptions ||
@@ -481,27 +496,23 @@ export class BaseModel {
   }
 
   protected static async __fieldsToString(
-    indentation = 0,
-    fields: ModelFieldsType
+    engine: DatabaseAdapter,
+    fields: ModelFieldsType,
+    indentation = 0
   ): Promise<{ asString: string; customImports: CustomImportsForFieldType[] }> {
     const customImportsOfModel: CustomImportsForFieldType[] = [];
     const allFields = Object.entries(fields);
     const ident = '  '.repeat(indentation);
     const fieldsIdent = '  '.repeat(indentation + 1);
-
     const stringifiedFields = [];
+
     for (let i = 0; i < allFields.length; i++) {
       const fieldName = allFields[i][0];
       const field = allFields[i][1];
       const isLastField = i === allFields.length - 1;
-      const customImportsOfField = await field['__getCustomImports']();
-      stringifiedFields.push(
-        `${fieldsIdent}${fieldName}: ${(await field['__toString'](indentation + 1)).replace(
-          new RegExp(`^${fieldsIdent}`),
-          ''
-        )},${isLastField ? '' : '\n'}`
-      );
-      getUniqueCustomImports(customImportsOfField, customImportsOfModel);
+      const { stringfied, customImports } = await field['__toString'](engine);
+      stringifiedFields.push(`${fieldsIdent}${fieldName}: ${stringfied}${isLastField ? '' : ',\n'}`);
+      getUniqueCustomImports(customImports, customImportsOfModel);
     }
     return {
       asString: `${ident}{\n` + `${stringifiedFields.join('')}` + `\n${ident}}`,
@@ -853,6 +864,7 @@ export function initialize<
     protected static __cachedManagers = {};
 
     protected static __originalName() {
+      console.log('this.__isState', this.__isState, this.__cachedOriginalName);
       if (typeof this.__cachedOriginalName === 'string') return this.__cachedOriginalName;
 
       if (this.__isState) this.__cachedOriginalName = modelName;
@@ -903,16 +915,26 @@ export function initialize<
   return ModelConstructor as any;
 }
 
+/*
 interface NewFieldOperationType extends Pick<FieldWithOperationType<string>, 'in' | 'like'> {
   newQuery?: string;
 }
-const field = Field._overrideType<{ create: string; read: string; update: string }, any, NewFieldOperationType>({
-  typeName: 'NewField'
+const field = Field._overrideType<
+  { create: string | Date; read: string; update: string | Date },
+  any,
+  NewFieldOperationType
+>({
+  typeName: 'real',
+  allowedQueryOperations: ['in', 'like', 'newQuery']
 });
 
 const Company = initialize('Company', {
   fields: {
-    id: field.new({})
+    id: field.new({}),
+    auto: AutoField.new(),
+    bigAuto: BigAutoField.new(),
+    bool: BooleanField.new().allowNull(),
+    text: TextField.new().allowNull()
   }
 });
 
@@ -929,13 +951,8 @@ const User = initialize('User', {
 });
 
 User.default
-  .get((qs) =>
-    qs.join(Company, 'company').where({
-      companyId: {
-        newQuery: '1'
-      }
-    })
-  )
+  .set((qs) => qs.join(Company, 'company'))
   .then((users) => {
     users[0].company.id;
   });
+*/

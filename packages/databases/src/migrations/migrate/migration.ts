@@ -39,7 +39,8 @@ export class Migration {
    * @param transaction - The transaction that is being used to run the migration on.
    * @param allMigrations - All of the migrations that are available to be used inside of this database. With
    * this we reconstruct the state AFTER the migration has been run and BEFORE the migration has been run.
-   * @param returnOfInit - The return of the init function that is run before the migration is run. If it's implemented we will pass it to all of the operations.
+   * @param returnOfInit - The return of the init function that is run before the migration is run. If it's
+   * implemented we will pass it to all of the operations.
    */
   async #runOnTransaction(
     transaction: any,

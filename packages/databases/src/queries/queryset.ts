@@ -1,8 +1,11 @@
-import { parseSearch } from '../queries/search';
+import { parseSearchField } from './search';
+import { retrieveInputAndOutputParsersFromFieldAndCache } from '../models/utils';
 
+import type { DatabaseAdapter } from '../engine';
 import type {
   AutoField,
   BigAutoField,
+  BigIntegerField,
   BooleanField,
   CharField,
   DateField,
@@ -13,10 +16,9 @@ import type {
   IntegerField,
   TextField,
   UuidField
-} from './fields';
-import type { BaseModel, Model, ModelType } from './model';
-import type { ModelFields } from './types';
-import type { DatabaseAdapter } from '../engine';
+} from '../models/fields';
+import type { BaseModel, Model, ModelType } from '../models/model';
+import type { ModelFields } from '../models/types';
 
 type ModelsFields<TModel> = TModel extends ModelType<{ fields: infer TFields }, any> | { fields: infer TFields }
   ? TFields
@@ -44,7 +46,8 @@ type ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationOrRelatedName> 
       relatedName: infer TRelatedName extends string;
       relationName: infer TRelationName extends string;
       toField: any;
-    }
+    },
+    any
   >
     ? TRelatedName extends TRelationOrRelatedName
       ? TKey
@@ -82,7 +85,7 @@ export type ForeignKeyModelsRelationName<TModel, TIncludedModel> = {
       ? InstanceType<
           TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never
         > extends InstanceType<TIncludedModel>
-        ? '1'
+        ? TRelationName
         : never
       : InstanceType<
             TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never
@@ -141,7 +144,8 @@ export type ForeignKeyModelsRelatedName<TModel, TIncludedModel> = {
       relatedName: infer TRelatedName extends string;
       relationName: any;
       toField: any;
-    }
+    },
+    any
   >
     ? TIncludedModel extends abstract new (...args: any) => any
       ? InstanceType<
@@ -175,7 +179,8 @@ export type ForeignKeyModelsRelatedName<TModel, TIncludedModel> = {
       relatedName: any;
       relationName: any;
       toField: any;
-    }
+    },
+    any
   >
     ? TAllowNull extends true
       ? TUnique extends true
@@ -187,46 +192,19 @@ export type ForeignKeyModelsRelatedName<TModel, TIncludedModel> = {
     : unknown[];
 };
 
-export type FieldWithOperationType<TFieldType> = {
-  ['eq']?: TFieldType;
-  ['is']?:
-    | {
-        not: TFieldType;
-      }
-    | TFieldType;
-  ['or']?: TFieldType[];
-  ['and']?: TFieldType[];
-  ['in']?:
-    | {
-        not: TFieldType[];
-      }
-    | TFieldType[];
-  ['greaterThan']?:
-    | {
-        equal: NonNullable<TFieldType>;
-      }
-    | NonNullable<TFieldType>;
-  ['lessThan']?:
-    | {
-        equal: NonNullable<TFieldType>;
-      }
-    | NonNullable<TFieldType>;
-  ['between']?:
-    | {
-        not: [NonNullable<TFieldType>, NonNullable<TFieldType>];
-      }
-    | [NonNullable<TFieldType>, NonNullable<TFieldType>];
-  ['like']?:
-    | {
-        not: { ignoreCase: NonNullable<TFieldType> } | NonNullable<TFieldType>;
-      }
-    | { ignoreCase: NonNullable<TFieldType> }
-    | NonNullable<TFieldType>;
-};
-
 type AddOperation<TField extends Field<any, any, any>> = TField extends
   | Field<any, any, infer TAllowedQueryOperations>
   | ForeignKeyField<any, any, infer TAllowedQueryOperations>
+  | AutoField<any, any, infer TAllowedQueryOperations>
+  | BigAutoField<any, any, infer TAllowedQueryOperations>
+  | BigIntegerField<any, any, infer TAllowedQueryOperations>
+  | BooleanField<any, any, infer TAllowedQueryOperations>
+  | EnumField<any, any, infer TAllowedQueryOperations>
+  | CharField<any, any, infer TAllowedQueryOperations>
+  | DateField<any, any, infer TAllowedQueryOperations>
+  | UuidField<any, any, infer TAllowedQueryOperations>
+  | IntegerField<any, any, infer TAllowedQueryOperations>
+  | TextField<any, any, infer TAllowedQueryOperations>
   ? TAllowedQueryOperations
   : never;
 
@@ -244,6 +222,7 @@ type _GetDataFromModel<TModel, TType extends 'create' | 'update' | 'read' = 'rea
     | EnumField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
     | BooleanField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
     | ForeignKeyField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
+    | BigIntegerField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
     ? TType extends 'create'
       ? TCreate
       : TType extends 'update'
@@ -286,7 +265,7 @@ type QuerySetQueryData = {
   orderBy?: () => string[];
   limit?: () => number;
   offset?: () => number;
-  data?: () => Record<string, any>[];
+  data?: () => [Set<string>, Record<string, any>[]];
   where?: () => Record<string, any | OrderingOfFields<any>>;
   joins?: () => Record<
     string,
@@ -481,33 +460,137 @@ export class QuerySet<
     }
   }
 
+  protected async __duringQueryFormatWhereClauseAndDoABasicValidation(
+    model: typeof BaseModel & typeof Model & ModelType<any, any>,
+    translatedModel: any,
+    engine: DatabaseAdapter,
+    search: any
+  ) {
+    if (search) {
+      const invalidFields = new Set();
+      let fieldsInModelInstance = [];
+      const fieldsInSearch = Object.keys(search);
+
+      const formattedSearch: Record<string, any> = {};
+      const promises = fieldsInSearch.map(async (key) => {
+        const modelInstanceFields = model['_fields']();
+        fieldsInModelInstance = Object.keys(modelInstanceFields);
+
+        const field = modelInstanceFields[key];
+        const { input: inputFieldParser } = retrieveInputAndOutputParsersFromFieldAndCache(engine, model, key, field);
+        const fieldInputParserFunction = inputFieldParser
+          ? // eslint-disable-next-line ts/require-await
+            async (value: any) =>
+              inputFieldParser({
+                engine,
+                field: modelInstanceFields[key]['__getArguments'](),
+                fieldParser: engine.fields.fieldsParser,
+                translatedModel,
+                modelName: model['__getName'](),
+                value
+              })
+          : // eslint-disable-next-line ts/require-await
+            async (value: any) => value;
+        if (fieldsInModelInstance.includes(key)) {
+          const isValid = await parseSearchField(
+            engine,
+            key,
+            search[key],
+            fieldInputParserFunction,
+            translatedModel,
+            formattedSearch
+          );
+          if (isValid === false) invalidFields.add(key);
+        }
+      });
+      await Promise.all(promises);
+      return [invalidFields, formattedSearch];
+    }
+    return [new Set(), search || {}];
+  }
+
   protected __duringQueryAppendInsertedOrUpdatedDataToQuery(
     queryset: QuerySet<any, any, any, any, any, any, any, any, any, any, any, any>,
     dataInsertedOnParent: any[],
     fieldNameOnRelationToFilter: string
   ) {
     const hasSearch = queryset['__hasSearch'];
-    const existingDataClauseOnChild = queryset['__query'].data?.();
+    if (queryset['__query'].data) {
+      const [existingFieldNamesOnSet, existingDataClauseOnChild] = queryset['__query'].data();
 
-    console.log('existingDataClauseOnChild', existingDataClauseOnChild);
-    if (existingDataClauseOnChild && existingDataClauseOnChild.length > 0) {
-      queryset['__query'].data = () => {
-        // Update clause,
-        if (hasSearch) {
-          return existingDataClauseOnChild;
-        }
-
-        // Create clause
-        const dataToInsert = [];
-        for (const valueToAddOnRelationField of dataInsertedOnParent) {
-          for (const dataToAddOrUpdate of existingDataClauseOnChild) {
-            dataToAddOrUpdate[fieldNameOnRelationToFilter] = valueToAddOnRelationField;
-            dataToInsert.push({ ...dataToAddOrUpdate });
+      if (existingDataClauseOnChild.length > 0) {
+        queryset['__query'].data = () => {
+          // Update clause,
+          if (hasSearch) {
+            return [existingFieldNamesOnSet, existingDataClauseOnChild];
           }
-        }
-        return dataToInsert as Record<string, any>[];
-      };
+
+          // Create clause
+          const dataToInsert = [];
+          for (const valueToAddOnRelationField of dataInsertedOnParent) {
+            for (const dataToAddOrUpdate of existingDataClauseOnChild) {
+              dataToAddOrUpdate[fieldNameOnRelationToFilter] = valueToAddOnRelationField;
+              dataToInsert.push({ ...dataToAddOrUpdate });
+            }
+          }
+          existingFieldNamesOnSet.add(fieldNameOnRelationToFilter);
+          return [existingFieldNamesOnSet, dataToInsert as Record<string, any>[]];
+        };
+      }
     }
+  }
+
+  /**
+   * The model might not be properly because it's lazy loaded, so we need to check if
+   * we have input and output parsers for all of the fields that we are trying to save or retrieve.
+   *
+   * We load the input and output parsers as we need to use on the fields. This gets appended on searches,
+   * data insertion and data retrieval. It's lazy loaded, this means, we just get the parsers when we are
+   * using the fields. If the search is searching for the 'id' field, we will cache JUST the 'id' field
+   * input and output parsers. You understand? Its progressively adding more data, the more data you need.
+   *
+   * Because of that we need to check if all the data we are trying to save or retrieve has a parser cached.
+   * If not we guarantee to retrieve and cache it.
+   */
+  protected __duringQueryCompareObjectWithInputAndOutputParsersOnModelCache(
+    engine: DatabaseAdapter,
+    model: typeof BaseModel & typeof Model & ModelType<any, any>,
+    keysYouAreTryingToSaveOrRetrieve: Set<string>,
+    inputOrOutput: 'input' | 'output'
+  ) {
+    // When getting the data from the model, we need to check if the field has a parser for the engine.
+    // First we check if all field parsers have been cached, because if not we need to parse and cache them.
+    // Then we can check if the field has an input parser, and if so we need to parse the data before sending it
+    let parsedFieldParsers = model['__fieldParsersByEngine'].get(engine.connectionName) || {
+      input: new Set(),
+      output: new Set(),
+      toIgnore: new Set()
+    };
+    const allFieldParsersAsArray = Array.from(parsedFieldParsers.input)
+      .concat(Array.from(parsedFieldParsers.output))
+      .concat(Array.from(parsedFieldParsers.toIgnore));
+    const allFieldParsers = new Set(allFieldParsersAsArray);
+    const differenceBetweenFieldsOnQueryAndFieldsOnModel = new Set(
+      Array.from(keysYouAreTryingToSaveOrRetrieve).filter((fieldName) => !allFieldParsers.has(fieldName))
+    );
+
+    if (differenceBetweenFieldsOnQueryAndFieldsOnModel.size > 0) {
+      const modelFields = model['_fields']();
+      for (const field of differenceBetweenFieldsOnQueryAndFieldsOnModel) {
+        retrieveInputAndOutputParsersFromFieldAndCache(engine, model, field, modelFields[field]);
+      }
+    }
+    parsedFieldParsers = model['__fieldParsersByEngine'].get(engine.connectionName) || {
+      input: new Set(),
+      output: new Set(),
+      toIgnore: new Set()
+    };
+
+    const fieldsWithInputOrOutputParser = new Set(
+      Array.from(keysYouAreTryingToSaveOrRetrieve).filter((field) => parsedFieldParsers[inputOrOutput].has(field))
+    );
+
+    return fieldsWithInputOrOutputParser;
   }
 
   protected async __duringQueryActuallyQueryTheDatabase(
@@ -595,12 +678,52 @@ export class QuerySet<
       fieldsToLazyRemoveAfterQuery = existingFields.toLazyRemoveAfterQuery;
       query['fields'] = existingFields.toIncludeAfterQuery.concat(existingFields.toLazyRemoveAfterQuery);
     }
-    if (queryset['__query'].data) query['data'] = queryset['__query'].data();
+    if (queryset['__query'].data) {
+      const [allFieldsOnDataAsSet, dataToSaveOrUpdate] = queryset['__query'].data();
+      const fieldsWithInputParser = this.__duringQueryCompareObjectWithInputAndOutputParsersOnModelCache(
+        engine,
+        model,
+        allFieldsOnDataAsSet,
+        'input'
+      );
+
+      if (fieldsWithInputParser.size > 0) {
+        const fieldsOfModel = model['_fields']();
+        for (const field of fieldsWithInputParser) {
+          const { input } = retrieveInputAndOutputParsersFromFieldAndCache(engine, model, field, fieldsOfModel[field]);
+          for (const data of dataToSaveOrUpdate) {
+            data[field] = await input!({
+              engine,
+              field: fieldsOfModel[field]['__getArguments'](),
+              fieldParser: engine.fields.fieldsParser,
+              translatedModel,
+              modelName: model['__getName'](),
+              value: data[field]
+            });
+          }
+        }
+      }
+      query['data'] = dataToSaveOrUpdate;
+    }
     if (queryset['__query'].orderBy) query['ordering'] = queryset['__query'].orderBy();
     if (queryset['__query'].limit) query['limit'] = queryset['__query'].limit();
     if (queryset['__query'].offset) query['offset'] = queryset['__query'].offset();
     if (queryset['__query'].where) {
-      query['search'] = await parseSearch(engine, new model() as any, translatedModel, queryset['__query'].where());
+      const [invalidFields, formattedSearch] = await this.__duringQueryFormatWhereClauseAndDoABasicValidation(
+        model,
+        translatedModel,
+        engine,
+        queryset['__query'].where()
+      );
+
+      // Return the empty array if the search is invalid. We do this because empty `in` clauses will never reach the
+      // Engine, and return early.
+      if (invalidFields.size > 0) {
+        this.__cachedData = Promise.resolve([]);
+        return this.__cachedData;
+      }
+
+      query['search'] = formattedSearch;
     }
 
     const queryPerOperation = async () => {
@@ -640,7 +763,7 @@ export class QuerySet<
 
     this.__cachedData = args.cachedData ? args.cachedData : queryPerOperation();
 
-    const shouldLoopThroughData =
+    let shouldLoopThroughData =
       fieldsToLazyRemoveAfterQuery.length > 0 ||
       // eslint-disable-next-line ts/no-unnecessary-condition
       args.relations?.mappingsFromJoinsWithoutWhereClause?.mapTo instanceof Map ||
@@ -651,9 +774,43 @@ export class QuerySet<
       // eslint-disable-next-line ts/no-unnecessary-condition
       args.relations?.relationsFromJoinsWithWhereClause?.newMap instanceof Map;
     const awaitedCachedData = await this.__cachedData;
+    let fieldsWithOutputParserAsArray = [] as string[];
+
+    // Appending the output parser to the data and rechecking if we need to loop through the data again.
+    if (Array.isArray(awaitedCachedData) && awaitedCachedData.length > 0) {
+      const fieldsWithOutputParser = this.__duringQueryCompareObjectWithInputAndOutputParsersOnModelCache(
+        engine,
+        model,
+        new Set(Object.keys(awaitedCachedData[0])),
+        'output'
+      );
+      if (fieldsWithOutputParser.size > 0) {
+        shouldLoopThroughData = true;
+        fieldsWithOutputParserAsArray = Array.from(fieldsWithOutputParser);
+      }
+    }
 
     if (shouldLoopThroughData) {
       for (const dataItem of awaitedCachedData) {
+        await Promise.all(
+          fieldsWithOutputParserAsArray.map(async (field) => {
+            const { output } = retrieveInputAndOutputParsersFromFieldAndCache(
+              engine,
+              model,
+              field,
+              model['_fields']()[field]
+            );
+            dataItem[field] = await output!({
+              engine,
+              field: model['_fields']()[field]['__getArguments'](),
+              fieldParser: engine.fields.fieldsParser,
+              translatedModel,
+              modelName: model['__getName'](),
+              value: dataItem[field]
+            });
+          })
+        );
+
         // Instead of the actual field, we cache the value of the field, and the field is transformed to a getter
         // When we get the value of the field, it's automatically removed from the object.
         for (const fieldToLazyRemove of fieldsToLazyRemoveAfterQuery) {
@@ -1858,20 +2015,28 @@ export class SetQuerySet<
     }
 
     if (this.__query.data) {
-      const existingData = this.__query.data();
+      const [setOfAllFieldNames, existingData] = this.__query.data();
       newQuerySet['__query'].data = () => {
         const newData = [];
         for (const existingDataToAddOrUpdate of existingData) {
           for (const dataToAddOrUpdate of data) {
+            for (const field of Object.keys(dataToAddOrUpdate as object)) setOfAllFieldNames.add(field);
             newData.push({
               ...dataToAddOrUpdate,
               ...existingDataToAddOrUpdate
             });
           }
         }
-        return newData;
+        return [setOfAllFieldNames, newData];
       };
-    } else newQuerySet['__query'].data = () => data as Record<string, any>[];
+    } else
+      newQuerySet['__query'].data = () => {
+        const fieldNamesOfData = new Set<string>();
+        for (const dataToAddOrUpdate of data) {
+          for (const field of Object.keys(dataToAddOrUpdate as object)) fieldNamesOfData.add(field);
+        }
+        return [fieldNamesOfData, data as Record<string, any>[]];
+      };
 
     newQuerySet['__hasSearch'] = this['__hasSearch'];
     newQuerySet['__isJoin'] = this['__isJoin'];

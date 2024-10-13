@@ -1,8 +1,9 @@
-import { removeQuery } from './queries/remove';
-import { setQuery } from './queries/set';
+//import { removeQuery } from './queries/remove';
+//import { setQuery } from './queries/set';
 
 import type { model } from './models/model';
 
+/*
 /**
  * EXPERIMENTAL
  *
@@ -10,7 +11,7 @@ import type { model } from './models/model';
  * this is supposed to be handled for the framework itself specially for distributed systems where
  * the data is stored in different places. The transaction instance is created so that the framework
  * can handle when something goes wrong and fails.
- */
+ * /
 export class Transaction {
   originalOperation: 'set' | 'remove';
   insertionOrdering: {
@@ -156,4 +157,4 @@ export class Transaction {
       if (this.dataThatWasInsertedOrRemoved.size > 0) return await this.rollback(currentIndexToProcess);
     });
   }
-}
+}*/

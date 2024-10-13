@@ -40,8 +40,8 @@ export class CreateModel extends Operation {
 
     modelConstructor['__domainName'] = domainName;
     modelConstructor['__domainPath'] = domainPath;
-    model.fields = this.fields;
-    model.options = this.options;
+    modelConstructor['__lazyFields'] = this.fields;
+    modelConstructor['__lazyOptions'] = this.options;
     state.set(this.modelName, model);
   }
 
@@ -61,13 +61,15 @@ export class CreateModel extends Operation {
   }
 
   static async toString(
+    engine: DatabaseAdapter,
     indentation = 0,
     data: ActionToGenerateType<CreateModelToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
     const { asString: fieldsAsString, customImports } = await BaseModel['__fieldsToString'](
-      indentation,
-      data.data.fields
+      engine,
+      data.data.fields,
+      indentation
     );
     return {
       asString: await super.defaultToString(
@@ -118,7 +120,11 @@ export class DeleteModel extends Operation {
     return super.defaultToGenerate(domainName, domainPath, modelName, null);
   }
 
-  static async toString(indentation = 0, data: ActionToGenerateType<null>): Promise<ToStringFunctionReturnType> {
+  static async toString(
+    _engine: DatabaseAdapter,
+    indentation = 0,
+    data: ActionToGenerateType<null>
+  ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
     return {
       asString: await super.defaultToString(indentation - 1, `${ident}"${data.modelName}"`)
@@ -176,6 +182,7 @@ export class ChangeModel extends Operation {
   }
 
   static async toString(
+    _engine: DatabaseAdapter,
     indentation = 0,
     data: ActionToGenerateType<ChangeModelToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
@@ -226,6 +233,7 @@ export class RenameModel extends Operation {
   }
 
   static async toString(
+    _engine: DatabaseAdapter,
     indentation = 0,
     data: ActionToGenerateType<RenameModelToGenerateData>
   ): Promise<ToStringFunctionReturnType> {

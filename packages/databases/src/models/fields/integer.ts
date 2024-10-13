@@ -1,6 +1,6 @@
 import { Field } from './field';
 
-import type { CustomImportsForFieldType } from './types';
+import type { CustomImportsForFieldType, FieldWithOperationTypeForSearch } from './types';
 import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
@@ -40,7 +40,8 @@ export function int(): IntegerField<
     databaseName: undefined;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
-  }
+  },
+  Pick<FieldWithOperationTypeForSearch<number>, 'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'>
 > {
   return IntegerField.new();
 }
@@ -90,12 +91,27 @@ export class IntegerField<
     databaseName: undefined;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
-  }
-> extends Field<TType, TDefinitions> {
+  },
+  TFieldOperationTypes = Pick<
+    FieldWithOperationTypeForSearch<number>,
+    'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'
+  >
+> extends Field<TType, TDefinitions, TFieldOperationTypes> {
   protected $$type = '$PIntegerField';
-  protected static __typeName = 'IntegerField';
-  protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __typeName = 'IntegerField';
+  protected __allowedQueryOperations: Set<any> = new Set([
+    'lessThan',
+    'greaterThan',
+    'between',
+    'and',
+    'in',
+    'or',
+    'eq',
+    'is'
+  ] as (keyof Required<TFieldOperationTypes>)[]);
+
+  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
 
   /**
    * Supposed to be used by library maintainers.
@@ -181,7 +197,8 @@ export class IntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > &
     TFunctions {
     if (functions === undefined) return this as any;
@@ -207,7 +224,27 @@ export class IntegerField<
       create?: 'merge' | 'union' | 'replace';
       read?: 'merge' | 'union' | 'replace';
       update?: 'merge' | 'union' | 'replace';
-    }
+    },
+    TNewAllowedQueryOperations extends FieldWithOperationTypeForSearch<
+      TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read']
+    > = Pick<
+      FieldWithOperationTypeForSearch<
+        TActions['read'] extends 'merge'
+          ? TType['read'] & TNewType['read']
+          : TActions['read'] extends 'union'
+            ? TType['read'] | TNewType['read']
+            : TActions['read'] extends 'replace'
+              ? TNewType['read']
+              : TType['read']
+      >,
+      'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'
+    >
   >(): <const TCustomPartialAttributes>(partialCustomAttributes: TCustomPartialAttributes) => IntegerField<
     {
       create: TActions['create'] extends 'merge'
@@ -260,7 +297,8 @@ export class IntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'] & TCustomPartialAttributes;
-    }
+    },
+    TNewAllowedQueryOperations
   > {
     return (partialCustomAttributes) => {
       if (partialCustomAttributes !== undefined) {
@@ -307,42 +345,12 @@ export class IntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TCustomAttributes;
-    }
+    },
+    TFieldOperationTypes
   > {
     (this.__customAttributes as any) = customAttributes as any;
 
-    return this as unknown as IntegerField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDefinitions['dbIndex'];
-        underscored: TDefinitions['underscored'];
-        isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TDefinitions['auto'];
-        hasDefaultValue: TDefinitions['hasDefaultValue'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TCustomAttributes;
-      }
-    >;
+    return this as unknown as any;
   }
 
   unique<TUnique extends boolean = true>(
@@ -377,7 +385,8 @@ export class IntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.unique(isUnique) as unknown as any;
   }
@@ -418,7 +427,11 @@ export class IntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    Pick<
+      FieldWithOperationTypeForSearch<TType['read'] | null>,
+      'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'
+    >
   > {
     return super.allowNull(isNull) as unknown as any;
   }
@@ -458,7 +471,8 @@ export class IntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.dbIndex(isDbIndex) as unknown as any;
   }
@@ -495,7 +509,8 @@ export class IntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.underscored(isUnderscored) as unknown as any;
   }
@@ -532,7 +547,8 @@ export class IntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.primaryKey(isPrimaryKey) as unknown as any;
   }
@@ -573,7 +589,8 @@ export class IntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.auto(isAuto) as any;
   }
@@ -614,7 +631,8 @@ export class IntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.default(defaultValue) as unknown as any;
   }
@@ -651,7 +669,8 @@ export class IntegerField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.databaseName(databaseName) as unknown as any;
   }
@@ -676,14 +695,18 @@ export class IntegerField<
       defaultValue: any;
       typeName: string;
       engineInstance: DatabaseAdapter;
-    }
-  >(args?: {
+    },
+    const TFieldOperationTypes extends
+      | FieldWithOperationTypeForSearch<any>
+      | Pick<FieldWithOperationTypeForSearch<any>, any>
+  >(args: {
     typeName: string;
     toStringCallback?: ToStringCallback;
     compareCallback?: CompareCallback;
     optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
     customImports?: CustomImportsForFieldType[];
+    allowedQueryOperations?: (keyof TFieldOperationTypes)[];
     definitions?: Omit<TDefinitions, 'typeName' | 'engineInstance' | 'customAttributes'>;
   }): TDefinitions['customAttributes'] extends undefined
     ? {
@@ -702,7 +725,8 @@ export class IntegerField<
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
-          }
+          },
+          TFieldOperationTypes
         >;
       }
     : {
@@ -721,7 +745,8 @@ export class IntegerField<
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
-          }
+          },
+          TFieldOperationTypes
         >;
       } {
     return super._overrideType(args) as unknown as any;
@@ -746,7 +771,8 @@ export class IntegerField<
       databaseName: undefined;
       engineInstance: DatabaseAdapter;
       customAttributes: any;
-    }
+    },
+    Pick<FieldWithOperationTypeForSearch<number>, 'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'>
   > {
     return new this(..._args);
   }

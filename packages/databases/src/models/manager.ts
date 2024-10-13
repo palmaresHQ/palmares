@@ -1,17 +1,14 @@
 import { getSettings, initializeDomains } from '@palmares/core';
 
 import { ManagerEngineInstanceNotFoundError } from './exceptions';
-import { GetQuerySet, RemoveQuerySet, SetQuerySet } from './queryset';
 import { Databases } from '../databases';
-import { getQuery } from '../queries/get';
-import { removeQuery } from '../queries/remove';
-import { setQuery } from '../queries/set';
+import { GetQuerySet, RemoveQuerySet, SetQuerySet } from '../queries/queryset';
 
 import type { BaseModel, Model, ModelType } from './model';
-import type { CommonQuerySet, GetDataFromModel, QuerySet } from './queryset';
 import type { ManagerEngineInstancesType, ManagerInstancesType } from './types';
 import type { DatabaseAdapter } from '../engine';
 import type { DatabaseDomainInterface } from '../interfaces';
+import type { CommonQuerySet, GetDataFromModel, QuerySet } from '../queries/queryset';
 import type { DatabaseSettingsType } from '../types';
 import type { SettingsType2 } from '@palmares/core';
 
@@ -99,6 +96,7 @@ export class Manager<
    * retrieve the data from the model
    */
   protected async __verifyIfNotInitializedAndInitializeModels(engineName: string) {
+    console.log('Databases', Databases);
     const database = new Databases();
 
     const canInitializeTheModels =

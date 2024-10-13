@@ -55,7 +55,6 @@ async function formatForeignKeyField(
       dbIndex: () => foreignData.dbIndex,
       fieldName: () => foreignData.fieldName,
       underscored: () => foreignData.underscored,
-      autoGenerate: () => false,
       autoNow: () => false,
       autoNowAdd: () => false,
       allowBlank: () => false,

@@ -16,8 +16,8 @@ export const defaultMigrations: MigrationFileType[] = [
         'PalmaresMigrations',
         {
           id: BigAutoField.new().databaseName('id').underscored(),
-          migrationName: CharField.new({ maxLen: 150 }).databaseName('migration_name').underscored().allowBlank(),
-          engineName: CharField.new({ maxLen: 150 }).databaseName('engine_name').underscored().allowBlank()
+          migrationName: CharField.new({ maxLen: 150 }).databaseName('migration_name').underscored(),
+          engineName: CharField.new({ maxLen: 150 }).databaseName('engine_name').underscored()
         },
         {
           abstract: false,

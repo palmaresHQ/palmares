@@ -1,6 +1,6 @@
 import { Field } from './field';
 
-import type { CustomImportsForFieldType } from './types';
+import type { CustomImportsForFieldType, FieldWithOperationTypeForSearch } from './types';
 import type {
   CompareCallback,
   GetArgumentsCallback,
@@ -47,7 +47,8 @@ export function text(): TextField<
     databaseName: undefined;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
-  }
+  },
+  Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
 > {
   return TextField.new();
 }
@@ -99,39 +100,48 @@ export class TextField<
     databaseName: undefined;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
-  }
-> extends Field<TType, TDefinitions> {
+  },
+  TFieldOperationTypes = Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
+> extends Field<TType, TDefinitions, TFieldOperationTypes> {
   protected $$type = '$PTextField';
-  protected static __typeName = 'TextField';
-  protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __typeName = 'TextField';
+  protected __allowedQueryOperations: Set<any> = new Set([
+    'and',
+    'in',
+    'or',
+    'eq',
+    'is',
+    'like'
+  ] as (keyof Required<TFieldOperationTypes>)[]);
+  protected __allowBlank: TDefinitions['allowBlank'] = false;
 
-  protected static __compareCallback: CompareCallback = (oldField, newField, defaultCompareCallback) => {
-    const oldFieldAsTextField = oldField as TextField<any, any>;
-    const newFieldAsTextField = newField as TextField<any, any>;
+  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+
+  protected __compareCallback = ((engine, oldField, newField, defaultCompareCallback) => {
+    const oldFieldAsTextField = oldField as TextField<any, any, any>;
+    const newFieldAsTextField = newField as TextField<any, any, any>;
     const isAllowBlankEqual = oldFieldAsTextField['__allowBlank'] === newFieldAsTextField['__allowBlank'];
-    const [isEqual, changedAttributes] = defaultCompareCallback(oldField, newField, defaultCompareCallback);
+    const [isEqual, changedAttributes] = defaultCompareCallback(engine, oldField, newField, defaultCompareCallback);
 
     if (!isAllowBlankEqual) changedAttributes.push('allowBlank');
     return [isAllowBlankEqual && isEqual, changedAttributes];
-  };
+  }) satisfies CompareCallback;
 
-  protected static __optionsCallback: OptionsCallback = (setFieldValue, oldField, defaultOptionsCallback) => {
-    const oldFieldAsTextField = oldField as TextField<any, any>;
+  protected __optionsCallback = ((setFieldValue, oldField, defaultOptionsCallback) => {
+    const oldFieldAsTextField = oldField as TextField<any, any, any>;
     defaultOptionsCallback(setFieldValue, oldField, defaultOptionsCallback);
     setFieldValue('__allowBlank', 'allowBlank', oldFieldAsTextField['__allowBlank']);
-  };
+  }) satisfies OptionsCallback;
 
-  protected static __getArgumentsCallback = ((field, defaultGetArgumentsCallback) => {
-    const fieldAsTextField = field as TextField<any, any>;
+  protected __getArgumentsCallback = ((field, defaultGetArgumentsCallback) => {
+    const fieldAsTextField = field as TextField<any, any, any>;
     const defaultData = defaultGetArgumentsCallback(field, defaultGetArgumentsCallback);
     return {
       ...defaultData,
       allowBlank: fieldAsTextField['__allowBlank'] as boolean
     };
   }) satisfies GetArgumentsCallback;
-
-  protected __allowBlank: TDefinitions['allowBlank'] = false;
 
   /**
    * Supposed to be used by library maintainers.
@@ -207,7 +217,8 @@ export class TextField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > &
     TFunctions {
     if (functions === undefined) return this as any;
@@ -233,7 +244,27 @@ export class TextField<
       create?: 'merge' | 'union' | 'replace';
       read?: 'merge' | 'union' | 'replace';
       update?: 'merge' | 'union' | 'replace';
-    }
+    },
+    TNewAllowedQueryOperations extends FieldWithOperationTypeForSearch<
+      TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read']
+    > = Pick<
+      FieldWithOperationTypeForSearch<
+        TActions['read'] extends 'merge'
+          ? TType['read'] & TNewType['read']
+          : TActions['read'] extends 'union'
+            ? TType['read'] | TNewType['read']
+            : TActions['read'] extends 'replace'
+              ? TNewType['read']
+              : TType['read']
+      >,
+      'like' | 'and' | 'in' | 'or' | 'eq' | 'is'
+    >
   >(): <const TCustomPartialAttributes>(partialCustomAttributes: TCustomPartialAttributes) => TextField<
     {
       create: TActions['create'] extends 'merge'
@@ -286,7 +317,8 @@ export class TextField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'] & TCustomPartialAttributes;
-    }
+    },
+    TNewAllowedQueryOperations
   > {
     return (partialCustomAttributes) => {
       if (partialCustomAttributes !== undefined) {
@@ -333,7 +365,8 @@ export class TextField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TCustomAttributes;
-    }
+    },
+    TFieldOperationTypes
   > {
     (this.__customAttributes as any) = customAttributes as any;
 
@@ -372,7 +405,8 @@ export class TextField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.unique(isUnique) as unknown as any;
   }
@@ -413,7 +447,8 @@ export class TextField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    Pick<FieldWithOperationTypeForSearch<TType['read'] | null>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
   > {
     return super.allowNull(isNull) as unknown as any;
   }
@@ -451,7 +486,8 @@ export class TextField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     if (isBlank === undefined) (isBlank as any) = true;
     this.__allowBlank = isBlank as TBlank;
@@ -492,7 +528,8 @@ export class TextField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.dbIndex(isDbIndex) as unknown as any;
   }
@@ -529,7 +566,8 @@ export class TextField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.underscored(isUnderscored) as unknown as any;
   }
@@ -565,7 +603,8 @@ export class TextField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.primaryKey(isPrimaryKey) as unknown as any;
   }
@@ -606,7 +645,8 @@ export class TextField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.auto(isAuto) as any;
   }
@@ -647,7 +687,8 @@ export class TextField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.default(defaultValue) as unknown as any;
   }
@@ -684,7 +725,8 @@ export class TextField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.databaseName(databaseName) as unknown as any;
   }
@@ -715,13 +757,17 @@ export class TextField<
       hasDefaultValue: boolean;
       engineInstance: DatabaseAdapter;
       allowBlank: boolean;
-    } & Record<string, any>
-  >(args?: {
+    } & Record<string, any>,
+    const TFieldOperationTypes extends
+      | FieldWithOperationTypeForSearch<any>
+      | Pick<FieldWithOperationTypeForSearch<any>, any>
+  >(args: {
     typeName: string;
     toStringCallback?: ToStringCallback;
     compareCallback?: CompareCallback;
     optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
+    allowedQueryOperations?: (keyof TFieldOperationTypes)[];
     customImports?: CustomImportsForFieldType[];
   }): TDefinitions['customAttributes'] extends undefined
     ? {
@@ -741,7 +787,8 @@ export class TextField<
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
             allowBlank: TDefinitions['allowBlank'];
-          }
+          },
+          TFieldOperationTypes
         >;
       }
     : {
@@ -761,50 +808,11 @@ export class TextField<
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
             allowBlank: TDefinitions['allowBlank'];
-          }
+          },
+          TFieldOperationTypes
         >;
       } {
-    return super._overrideType(args) as unknown as TDefinitions['customAttributes'] extends undefined
-      ? {
-          new: (...args: any[]) => TextField<
-            TNewType,
-            {
-              unique: TDefinitions['unique'];
-              auto: TDefinitions['auto'];
-              allowNull: TDefinitions['allowNull'];
-              dbIndex: TDefinitions['dbIndex'];
-              isPrimaryKey: TDefinitions['isPrimaryKey'];
-              defaultValue: TDefinitions['defaultValue'];
-              underscored: boolean;
-              databaseName: string | undefined;
-              hasDefaultValue: TDefinitions['hasDefaultValue'];
-              engineInstance: TDefinitions['engineInstance'];
-              typeName: TDefinitions['typeName'];
-              customAttributes: TDefinitions['customAttributes'];
-              allowBlank: TDefinitions['allowBlank'];
-            }
-          >;
-        }
-      : {
-          new: (params: TDefinitions['customAttributes']) => TextField<
-            TNewType,
-            {
-              unique: TDefinitions['unique'];
-              auto: TDefinitions['auto'];
-              allowNull: TDefinitions['allowNull'];
-              dbIndex: TDefinitions['dbIndex'];
-              isPrimaryKey: TDefinitions['isPrimaryKey'];
-              hasDefaultValue: TDefinitions['hasDefaultValue'];
-              defaultValue: TDefinitions['defaultValue'];
-              underscored: boolean;
-              databaseName: string | undefined;
-              engineInstance: TDefinitions['engineInstance'];
-              typeName: TDefinitions['typeName'];
-              customAttributes: TDefinitions['customAttributes'];
-              allowBlank: TDefinitions['allowBlank'];
-            }
-          >;
-        };
+    return super._overrideType(args) as unknown as any;
   }
 
   static new(..._args: any[]): TextField<
@@ -827,7 +835,8 @@ export class TextField<
       databaseName: undefined;
       engineInstance: DatabaseAdapter;
       customAttributes: any;
-    }
+    },
+    Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
   > {
     return new this(..._args);
   }

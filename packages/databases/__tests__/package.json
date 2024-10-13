@@ -7,8 +7,6 @@
     "test": "tsx test.ts",
     "test:watch": "WATCH=true tsx manage.ts test",
     "load": "tsx manage.drizzle.ts load-models",
-    "makemigrations": "drizzle-kit generate",
-    "migrate": "tsx manage.drizzle.ts drizzleMigrate",
     "drzle:test": "tsx --experimental-vm-modules manage.drizzle.ts test",
     "drzle:makemigrations": "drizzle-kit generate",
     "drzle:migrate": "tsx manage.drizzle.ts drizzleMigrate",

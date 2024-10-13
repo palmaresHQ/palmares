@@ -1,6 +1,6 @@
 import { TextField } from './text';
 
-import type { CustomImportsForFieldType } from './types';
+import type { CustomImportsForFieldType, FieldWithOperationTypeForSearch } from './types';
 import type {
   CompareCallback,
   GetArgumentsCallback,
@@ -27,7 +27,32 @@ import type { AdapterFieldParser } from '../../engine/fields/field';
  * const charField = char({ maxLen: 255 }).allowNull();
  * ```
  */
-export function char<const TMaxCharLength extends number>(args: { maxLen: TMaxCharLength }) {
+export function char<const TMaxCharLength extends number>(args: {
+  maxLen: TMaxCharLength;
+}): CharField<
+  {
+    create: string;
+    read: string;
+    update: string;
+  },
+  {
+    unique: false;
+    allowNull: false;
+    dbIndex: false;
+    underscored: true;
+    allowBlank: true;
+    isPrimaryKey: false;
+    auto: false;
+    defaultValue: undefined;
+    typeName: string;
+    hasDefaultValue: false;
+    databaseName: undefined;
+    engineInstance: DatabaseAdapter;
+    customAttributes: any;
+    maxLength: TMaxCharLength;
+  },
+  Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
+> {
   return CharField.new(args);
 }
 
@@ -80,17 +105,26 @@ export class CharField<
     engineInstance: DatabaseAdapter;
     customAttributes: any;
     maxLength: number;
-  }
-> extends TextField<TType, TDefinitions> {
+  },
+  TFieldOperationTypes = Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
+> extends TextField<TType, TDefinitions, TFieldOperationTypes> {
   protected $$type = '$PCharField';
-  protected static __typeName = 'CharField';
+  protected __typeName = 'CharField';
+  protected __allowedQueryOperations: Set<any> = new Set([
+    'and',
+    'in',
+    'or',
+    'eq',
+    'is',
+    'like'
+  ] as (keyof Required<TFieldOperationTypes>)[]);
   protected __maxLength: TDefinitions['maxLength'];
 
-  protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
 
-  protected static __getArgumentsCallback = ((field, defaultGetArgumentsCallback) => {
-    const fieldAsTextField = field as CharField<any, any>;
+  protected __getArgumentsCallback = ((field, defaultGetArgumentsCallback) => {
+    const fieldAsTextField = field as CharField<any, any, any>;
     const defaultData = defaultGetArgumentsCallback(field, defaultGetArgumentsCallback);
     return {
       ...defaultData,
@@ -99,30 +133,28 @@ export class CharField<
     };
   }) satisfies GetArgumentsCallback;
 
-  protected static __compareCallback: CompareCallback = (oldField, newField, defaultCompareCallback) => {
-    const oldFieldAsTextField = oldField as CharField<any, any>;
-    const newFieldAsTextField = newField as CharField<any, any>;
+  protected __compareCallback = ((engine, oldField, newField, defaultCompareCallback) => {
+    const oldFieldAsTextField = oldField as CharField<any, any, any>;
+    const newFieldAsTextField = newField as CharField<any, any, any>;
     const isAllowBlankEqual = oldFieldAsTextField['__allowBlank'] === newFieldAsTextField['__allowBlank'];
     const isMaxLengthEqual = oldFieldAsTextField['__maxLength'] === newFieldAsTextField['__maxLength'];
 
-    const [isEqual, changedAttributes] = defaultCompareCallback(oldField, newField, defaultCompareCallback);
+    const [isEqual, changedAttributes] = defaultCompareCallback(engine, oldField, newField, defaultCompareCallback);
 
     if (!isAllowBlankEqual) changedAttributes.push('allowBlank');
     if (!isMaxLengthEqual) changedAttributes.push('maxLength');
 
     return [isAllowBlankEqual && isMaxLengthEqual && isEqual, changedAttributes];
-  };
-  protected static __optionsCallback: OptionsCallback = (setFieldValue, oldField, defaultOptionsCallback) => {
-    const oldFieldAsTextField = oldField as CharField<any, any>;
+  }) satisfies CompareCallback;
+
+  protected __optionsCallback = ((setFieldValue, oldField, defaultOptionsCallback) => {
+    const oldFieldAsTextField = oldField as CharField<any, any, any>;
     defaultOptionsCallback(setFieldValue, oldField, defaultOptionsCallback);
     setFieldValue('__allowBlank', 'allowBlank', oldFieldAsTextField['__allowBlank']);
-  };
+  }) satisfies OptionsCallback;
 
-  protected static __newInstanceCallback: NewInstanceArgumentsCallback = (
-    field,
-    defaultNewInstanceArgumentsCallback
-  ) => {
-    const fieldAsCharField = field as CharField<any, any>;
+  protected __newInstanceCallback = ((field, defaultNewInstanceArgumentsCallback) => {
+    const fieldAsCharField = field as CharField<any, any, any>;
     const defaultData = defaultNewInstanceArgumentsCallback(field, defaultNewInstanceArgumentsCallback);
     const position0 = defaultData[0] || {};
     const otherPositions = defaultData.slice(1);
@@ -133,7 +165,7 @@ export class CharField<
       },
       ...otherPositions
     ];
-  };
+  }) satisfies NewInstanceArgumentsCallback;
 
   constructor(params: { maxLen: number }) {
     super(params);
@@ -214,7 +246,8 @@ export class CharField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > &
     TFunctions {
     if (functions === undefined) return this as any;
@@ -240,7 +273,27 @@ export class CharField<
       create?: 'merge' | 'union' | 'replace';
       read?: 'merge' | 'union' | 'replace';
       update?: 'merge' | 'union' | 'replace';
-    }
+    },
+    TNewAllowedQueryOperations extends FieldWithOperationTypeForSearch<
+      TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read']
+    > = Pick<
+      FieldWithOperationTypeForSearch<
+        TActions['read'] extends 'merge'
+          ? TType['read'] & TNewType['read']
+          : TActions['read'] extends 'union'
+            ? TType['read'] | TNewType['read']
+            : TActions['read'] extends 'replace'
+              ? TNewType['read']
+              : TType['read']
+      >,
+      'like' | 'and' | 'in' | 'or' | 'eq' | 'is'
+    >
   >(): <const TCustomPartialAttributes>(partialCustomAttributes: TCustomPartialAttributes) => CharField<
     {
       create: TActions['create'] extends 'merge'
@@ -293,7 +346,8 @@ export class CharField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'] & TCustomPartialAttributes;
-    }
+    },
+    TNewAllowedQueryOperations
   > {
     return (partialCustomAttributes) => {
       if (partialCustomAttributes !== undefined) {
@@ -303,6 +357,7 @@ export class CharField<
       return this as any;
     };
   }
+
   setCustomAttributes<
     const TCustomAttributes extends Parameters<
       TDefinitions['engineInstance']['fields']['charFieldParser']['translate']
@@ -339,7 +394,8 @@ export class CharField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TCustomAttributes;
-    }
+    },
+    TFieldOperationTypes
   > {
     (this.__customAttributes as any) = customAttributes as any;
 
@@ -378,7 +434,8 @@ export class CharField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.unique(isUnique) as unknown as any;
   }
@@ -418,7 +475,8 @@ export class CharField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    Pick<FieldWithOperationTypeForSearch<TType['read'] | null>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
   > {
     return super.allowNull(isNull) as unknown as any;
   }
@@ -456,7 +514,8 @@ export class CharField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     if (isBlank === undefined) (isBlank as any) = true;
     this.__allowBlank = isBlank as TBlank;
@@ -497,7 +556,8 @@ export class CharField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.dbIndex(isDbIndex) as unknown as any;
   }
@@ -534,7 +594,8 @@ export class CharField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.underscored(isUnderscored) as unknown as any;
   }
@@ -571,7 +632,8 @@ export class CharField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.primaryKey(isPrimaryKey) as unknown as any;
   }
@@ -612,7 +674,8 @@ export class CharField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.auto(isAuto) as any;
   }
@@ -653,7 +716,8 @@ export class CharField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.default(defaultValue) as unknown as any;
   }
@@ -690,7 +754,8 @@ export class CharField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.databaseName(databaseName) as unknown as any;
   }
@@ -721,13 +786,17 @@ export class CharField<
       hasDefaultValue: boolean;
       engineInstance: DatabaseAdapter;
       allowBlank: boolean;
-    }
-  >(args?: {
+    },
+    const TFieldOperationTypes extends
+      | FieldWithOperationTypeForSearch<any>
+      | Pick<FieldWithOperationTypeForSearch<any>, any>
+  >(args: {
     typeName: string;
     toStringCallback?: ToStringCallback;
     compareCallback?: CompareCallback;
     optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
+    allowedQueryOperations?: (keyof TFieldOperationTypes)[];
     customImports?: CustomImportsForFieldType[];
   }): TDefinitions['customAttributes'] extends undefined
     ? {
@@ -750,7 +819,8 @@ export class CharField<
             typeName: TDefinitions['typeName'];
             allowBlank: TDefinitions['allowBlank'];
             maxLength: TMaxCharLength;
-          }
+          },
+          TFieldOperationTypes
         >;
       }
     : {
@@ -774,8 +844,9 @@ export class CharField<
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
             allowBlank: TDefinitions['allowBlank'];
-            maxLength: number;
-          }
+            maxLength: TMaxCharLength;
+          },
+          TFieldOperationTypes
         >;
       } {
     const newField = super._overrideType(args) as any;
@@ -819,7 +890,8 @@ export class CharField<
       engineInstance: DatabaseAdapter;
       customAttributes: any;
       maxLength: TMaxCharLength;
-    }
+    },
+    Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
   > {
     return new this(args);
   }

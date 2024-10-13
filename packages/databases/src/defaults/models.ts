@@ -2,8 +2,6 @@ import { PalmaresMigrationsManager } from './managers';
 import { BigAutoField, CharField } from '..';
 import { model } from '../models';
 
-import type { ModelOptionsType } from '../models/types';
-
 /**
  * The default migration database. This is responsible for storing and saving all of the migrations that the user made.
  *

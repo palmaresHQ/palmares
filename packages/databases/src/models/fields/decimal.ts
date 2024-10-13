@@ -1,6 +1,6 @@
 import { Field } from './field';
 
-import type { CustomImportsForFieldType } from './types';
+import type { CustomImportsForFieldType, FieldWithOperationTypeForSearch } from './types';
 import type {
   CompareCallback,
   GetArgumentsCallback,
@@ -34,9 +34,9 @@ export function decimal<const TMaxDigits extends number, const TDecimalPlaces ex
   decimalPlaces: TDecimalPlaces;
 }): DecimalField<
   {
-    create: number;
-    read: number;
-    update: number;
+    create: string | number;
+    read: string | number;
+    update: string | number;
   },
   {
     unique: false;
@@ -53,7 +53,11 @@ export function decimal<const TMaxDigits extends number, const TDecimalPlaces ex
     customAttributes: any;
     maxDigits: TMaxDigits;
     decimalPlaces: TDecimalPlaces;
-  }
+  },
+  Pick<
+    FieldWithOperationTypeForSearch<string | number>,
+    'greaterThan' | 'lessThan' | 'between' | 'and' | 'in' | 'or' | 'eq' | 'is'
+  >
 > {
   return DecimalField.new(params);
 }
@@ -73,9 +77,9 @@ export function decimal<const TMaxDigits extends number, const TDecimalPlaces ex
  */
 export class DecimalField<
   TType extends { create: any; read: any; update: any } = {
-    create: number;
-    read: number;
-    update: number;
+    create: number | string;
+    read: number | string;
+    update: number | string;
   },
   TDefinitions extends {
     unique: boolean;
@@ -107,23 +111,37 @@ export class DecimalField<
     customAttributes: any;
     maxDigits: number;
     decimalPlaces: number;
-  }
-> extends Field<TType, TDefinitions> {
+  },
+  TFieldOperationTypes = Pick<
+    FieldWithOperationTypeForSearch<number | string>,
+    'greaterThan' | 'lessThan' | 'between' | 'and' | 'in' | 'or' | 'eq' | 'is'
+  >
+> extends Field<TType, TDefinitions, TFieldOperationTypes> {
   protected $$type = '$PDecimalField';
-  protected static __typeName = 'DecimalField';
+  protected __typeName = 'DecimalField';
   protected __maxDigits: TDefinitions['maxDigits'];
   protected __decimalPlaces: TDefinitions['decimalPlaces'];
+  protected __allowedQueryOperations: Set<any> = new Set([
+    'lessThan',
+    'greaterThan',
+    'between',
+    'and',
+    'in',
+    'or',
+    'eq',
+    'is'
+  ] as (keyof Required<TFieldOperationTypes>)[]);
 
-  protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
 
-  protected static __compareCallback = ((oldField, newField, defaultCompareCallback) => {
+  protected __compareCallback = ((engine, oldField, newField, defaultCompareCallback) => {
     const oldFieldAsTextField = oldField as DecimalField<any, any>;
     const newFieldAsTextField = newField as DecimalField<any, any>;
     const isMaxDigitsEqual = oldFieldAsTextField['__maxDigits'] === newFieldAsTextField['__maxDigits'];
     const isDecimalPlacesEqual = oldFieldAsTextField['__decimalPlaces'] === newFieldAsTextField['__decimalPlaces'];
 
-    const [isEqual, changedAttributes] = defaultCompareCallback(oldField, newField, defaultCompareCallback);
+    const [isEqual, changedAttributes] = defaultCompareCallback(engine, oldField, newField, defaultCompareCallback);
 
     if (!isMaxDigitsEqual) changedAttributes.push('maxDigits');
     if (!isDecimalPlacesEqual) changedAttributes.push('decimalPlaces');
@@ -135,7 +153,7 @@ export class DecimalField<
    * This is used internally by the engine for cloning the field to a new instance.
    * By doing that you are able to get the constructor options of the field when using Field.new(<instanceArguments>)
    */
-  protected static __newInstanceCallback = ((oldField, defaultNewInstanceArgumentsCallback) => {
+  protected __newInstanceCallback = ((oldField, defaultNewInstanceArgumentsCallback) => {
     const defaultData = defaultNewInstanceArgumentsCallback(oldField, defaultNewInstanceArgumentsCallback);
     const position0 = defaultData[0] || {};
     const otherPositions = defaultData.slice(1);
@@ -150,7 +168,7 @@ export class DecimalField<
     ];
   }) satisfies NewInstanceArgumentsCallback;
 
-  protected static __getArgumentsCallback = ((field, defaultCallback) => {
+  protected __getArgumentsCallback = ((field, defaultCallback) => {
     const fieldAsDateField = field as DecimalField<any, any>;
     const maxDigits = fieldAsDateField['__maxDigits'];
     const decimalPlaces = fieldAsDateField['__decimalPlaces'];
@@ -235,12 +253,14 @@ export class DecimalField<
       underscored: TDefinitions['underscored'];
       isPrimaryKey: TDefinitions['isPrimaryKey'];
       auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
       defaultValue: TDefinitions['defaultValue'];
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > &
     TFunctions {
     if (functions === undefined) return this as any;
@@ -266,7 +286,27 @@ export class DecimalField<
       create?: 'merge' | 'union' | 'replace';
       read?: 'merge' | 'union' | 'replace';
       update?: 'merge' | 'union' | 'replace';
-    }
+    },
+    TNewAllowedQueryOperations extends FieldWithOperationTypeForSearch<
+      TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read']
+    > = Pick<
+      FieldWithOperationTypeForSearch<
+        TActions['read'] extends 'merge'
+          ? TType['read'] & TNewType['read']
+          : TActions['read'] extends 'union'
+            ? TType['read'] | TNewType['read']
+            : TActions['read'] extends 'replace'
+              ? TNewType['read']
+              : TType['read']
+      >,
+      'greaterThan' | 'lessThan' | 'between' | 'and' | 'in' | 'or' | 'eq' | 'is'
+    >
   >(): <const TCustomPartialAttributes>(partialCustomAttributes: TCustomPartialAttributes) => DecimalField<
     {
       create: TActions['create'] extends 'merge'
@@ -319,7 +359,8 @@ export class DecimalField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'] & TCustomPartialAttributes;
-    }
+    },
+    TNewAllowedQueryOperations
   > {
     return (partialCustomAttributes) => {
       if (partialCustomAttributes !== undefined) {
@@ -329,6 +370,7 @@ export class DecimalField<
       return this as any;
     };
   }
+
   setCustomAttributes<
     const TCustomAttributes extends Parameters<
       TDefinitions['engineInstance']['fields']['decimalFieldParser']['translate']
@@ -365,7 +407,8 @@ export class DecimalField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TCustomAttributes;
-    }
+    },
+    TFieldOperationTypes
   > {
     (this.__customAttributes as any) = customAttributes as any;
 
@@ -404,7 +447,8 @@ export class DecimalField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.unique(isUnique) as unknown as any;
   }
@@ -445,7 +489,11 @@ export class DecimalField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    Pick<
+      FieldWithOperationTypeForSearch<TType['read'] | null>,
+      'greaterThan' | 'lessThan' | 'between' | 'and' | 'in' | 'or' | 'eq' | 'is'
+    >
   > {
     return super.allowNull(isNull) as unknown as any;
   }
@@ -485,7 +533,8 @@ export class DecimalField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.dbIndex(isDbIndex) as unknown as any;
   }
@@ -522,7 +571,8 @@ export class DecimalField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.underscored(isUnderscored) as unknown as any;
   }
@@ -559,7 +609,8 @@ export class DecimalField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.primaryKey(isPrimaryKey) as unknown as any;
   }
@@ -600,7 +651,8 @@ export class DecimalField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.auto(isAuto) as unknown as any;
   }
@@ -641,7 +693,8 @@ export class DecimalField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.default(defaultValue) as unknown as any;
   }
@@ -677,7 +730,8 @@ export class DecimalField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.databaseName(databaseName) as unknown as any;
   }
@@ -707,13 +761,17 @@ export class DecimalField<
       defaultValue: any;
       typeName: string;
       engineInstance: DatabaseAdapter;
-    }
-  >(args?: {
+    },
+    const TFieldOperationTypes extends
+      | FieldWithOperationTypeForSearch<any>
+      | Pick<FieldWithOperationTypeForSearch<any>, any>
+  >(args: {
     typeName: string;
     toStringCallback?: ToStringCallback;
     compareCallback?: CompareCallback;
     optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
+    allowedQueryOperations?: (keyof TFieldOperationTypes)[];
     customImports?: CustomImportsForFieldType[];
   }): TDefinitions['customAttributes'] extends undefined
     ? {
@@ -737,7 +795,8 @@ export class DecimalField<
             typeName: TDefinitions['typeName'];
             maxDigits: TMaxDigits;
             decimalPlaces: TDecimalPlaces;
-          }
+          },
+          TFieldOperationTypes
         >;
       }
     : {
@@ -763,7 +822,8 @@ export class DecimalField<
             typeName: TDefinitions['typeName'];
             maxDigits: TMaxDigits;
             decimalPlaces: TDecimalPlaces;
-          }
+          },
+          TFieldOperationTypes
         >;
       } {
     return super._overrideType(args) as any;
@@ -774,9 +834,9 @@ export class DecimalField<
     decimalPlaces: TDecimalPlaces;
   }): DecimalField<
     {
-      create: number;
-      read: number;
-      update: number;
+      create: number | string;
+      read: number | string;
+      update: number | string;
     },
     {
       unique: false;
@@ -793,7 +853,11 @@ export class DecimalField<
       customAttributes: any;
       maxDigits: TMaxDigits;
       decimalPlaces: TDecimalPlaces;
-    }
+    },
+    Pick<
+      FieldWithOperationTypeForSearch<string | number>,
+      'greaterThan' | 'lessThan' | 'between' | 'and' | 'in' | 'or' | 'eq' | 'is'
+    >
   > {
     return new this(params);
   }

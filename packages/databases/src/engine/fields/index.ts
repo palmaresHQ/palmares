@@ -15,6 +15,7 @@ import { NotImplementedAdapterFieldsException } from '../exceptions';
 
 import type { DatabaseAdapter as Adapter } from '..';
 import type { CharField, DateField, Field, ForeignKeyField, TextField, UuidField } from '../../models/fields';
+import type { CustomImportsForFieldType } from '../../models/fields/types';
 import type { AdapterFieldParserTranslateArgs } from '../types';
 
 /**
@@ -34,8 +35,11 @@ export function adapterFields<
   TUuidFieldParser extends AdapterUuidFieldParser,
   TEnumFieldParser extends AdapterEnumFieldParser,
   TBooleanFieldParser extends AdapterBooleanFieldParser,
+  TCustomFieldsParser extends Record<string, AdapterFieldParser>,
   TLazyEvaluateField extends AdapterFields['lazyEvaluateField'],
-  TTranslateField extends AdapterFields['translateField']
+  TTranslateField extends AdapterFields['translateField'],
+  TCompare extends AdapterFields['compare'],
+  TToString extends AdapterFields['toString']
 >(args: {
   /** An {@link AdapterFieldParser}, it allows you to have a default translate function for all fields.
    * By default, the translate function will receive the fields parser */
@@ -54,6 +58,25 @@ export function adapterFields<
   uuidFieldParser: TUuidFieldParser;
   enumFieldParser: TEnumFieldParser;
   booleanFieldParser: TBooleanFieldParser;
+  /**
+   * This is used if you have custom fields. The typeName of the field will be the key of the object.
+   * If you do not want to define it, we fallback to {@link AdapterFieldParser} as the parser
+   */
+  customFieldsParser?: TCustomFieldsParser;
+  /**
+   * Used for comparing two custom arguments so we can know if we need to update the field or not. It'll default
+   * to false otherwise.
+   *
+   * This is part of the migration, don't need to implement if you are not using Palmares Migrations.
+   */
+  compare?: TCompare;
+  /**
+   * Used for stringfying the custom arguments so we can store them in the database. If you do not implement this
+   * and implement compare we will throw an error, otherwise we will just ignore the custom arguments.
+   *
+   * This is part of the migration, don't need to implement if you are not using Palmares Migrations.
+   */
+  toString?: TToString;
   /**
    * Stuff like `foreignKeys` can be a little cumbersome to implement. Specially when you are doing a translation
    * from one ORM to another. We don't really know how your ORM handles stuff. So instead of you trying to get
@@ -194,7 +217,28 @@ export function adapterFields<
    * @returns The field translated to something that the ORM can understand.
    */
   translateField?: TTranslateField;
-}) {
+}): typeof AdapterFields & {
+  new (): AdapterFields & {
+    fieldsParser: TFieldsParser;
+    compare: TCompare;
+    toString: TToString;
+    autoFieldParser: TAutoFieldParser;
+    bigAutoFieldParser: TBigAutoFieldParser;
+    bigIntegerFieldParser: TBigIntegerFieldParser;
+    charFieldParser: TCharFieldParser;
+    dateFieldParser: TDateFieldParser;
+    decimalFieldParser: TDecimalFieldParser;
+    foreignKeyFieldParser: TForeignKeyFieldParser;
+    integerFieldParser: TIntegerFieldParser;
+    textFieldParser: TTextFieldParser;
+    uuidFieldParser: TUuidFieldParser;
+    enumFieldParser: TEnumFieldParser;
+    customFieldsParser: TCustomFieldsParser;
+    booleanFieldParser: TBooleanFieldParser;
+    lazyEvaluateField: TLazyEvaluateField;
+    translateField: TTranslateField;
+  };
+} {
   class CustomAdapterFields extends AdapterFields {
     fieldsParser = args.fieldsParser;
     autoFieldParser = (typeof args.autoFieldParser === 'function'
@@ -205,6 +249,8 @@ export function adapterFields<
       : args.bigIntegerFieldParser) as unknown as TBigAutoFieldParser;
     bigIntegerFieldParser = args.bigIntegerFieldParser;
     charFieldParser = args.charFieldParser;
+    compare = args.compare;
+    toString = args.toString;
     dateFieldParser = args.dateFieldParser;
     decimalFieldParser = args.decimalFieldParser;
     foreignKeyFieldParser = args.foreignKeyFieldParser;
@@ -213,8 +259,9 @@ export function adapterFields<
     uuidFieldParser = args.uuidFieldParser;
     enumFieldParser = args.enumFieldParser;
     booleanFieldParser = args.booleanFieldParser;
+    customFieldsParser = args.customFieldsParser;
     lazyEvaluateField = args.lazyEvaluateField;
-    translateField = args.translateField as TTranslateField;
+    translateField = args.translateField;
   }
 
   return CustomAdapterFields as typeof AdapterFields & {
@@ -231,9 +278,12 @@ export function adapterFields<
       textFieldParser: TTextFieldParser;
       uuidFieldParser: TUuidFieldParser;
       enumFieldParser: TEnumFieldParser;
+      customFieldsParser: TCustomFieldsParser;
       booleanFieldParser: TBooleanFieldParser;
       lazyEvaluateField: TLazyEvaluateField;
       translateField: TTranslateField;
+      compare: TCompare;
+      toString: TToString;
     };
   };
 }
@@ -249,8 +299,8 @@ export class AdapterFields {
    * By default, the translate function will receive the fields parser
    */
   fieldsParser: AdapterFieldParser = new AdapterFieldParser();
-  autoFieldParser: AdapterAutoFieldParser = new AdapterAutoFieldParser();
-  bigAutoFieldParser: AdapterBigAutoFieldParser = new AdapterBigAutoFieldParser();
+  autoFieldParser?: AdapterAutoFieldParser = new AdapterAutoFieldParser();
+  bigAutoFieldParser?: AdapterBigAutoFieldParser = new AdapterBigAutoFieldParser();
   bigIntegerFieldParser: AdapterBigIntegerFieldParser = new AdapterBigIntegerFieldParser();
   charFieldParser: AdapterCharFieldParser = new AdapterCharFieldParser();
   dateFieldParser: AdapterDateFieldParser = new AdapterDateFieldParser();
@@ -261,6 +311,7 @@ export class AdapterFields {
   uuidFieldParser: AdapterUuidFieldParser = new AdapterUuidFieldParser();
   enumFieldParser: AdapterEnumFieldParser = new AdapterEnumFieldParser();
   booleanFieldParser: AdapterBooleanFieldParser = new AdapterBooleanFieldParser();
+  customFieldsParser?: Record<string, AdapterFieldParser> = undefined;
 
   /**
    * Stuff like `foreignKeys` can be a little cumbersome to implement. Specially when you are doing a translation
@@ -358,11 +409,11 @@ export class AdapterFields {
       newInstanceOverrideCallback?: (args: any[]) => any[];
       optionsOverrideCallback?: Partial<
         Record<
-          | keyof ReturnType<(typeof Field)['__getArgumentsCallback']>
-          | keyof ReturnType<(typeof UuidField)['__getArgumentsCallback']>
-          | keyof ReturnType<(typeof DateField)['__getArgumentsCallback']>
-          | keyof ReturnType<(typeof TextField)['__getArgumentsCallback']>
-          | keyof ReturnType<(typeof CharField)['__getArgumentsCallback']>,
+          | keyof ReturnType<Field['__getArgumentsCallback']>
+          | keyof ReturnType<UuidField['__getArgumentsCallback']>
+          | keyof ReturnType<DateField['__getArgumentsCallback']>
+          | keyof ReturnType<TextField['__getArgumentsCallback']>
+          | keyof ReturnType<CharField['__getArgumentsCallback']>,
           (oldValue: any) => any
         >
       >;
@@ -438,5 +489,27 @@ export class AdapterFields {
     _defaultTranslateFieldCallback: (_field: Field) => Promise<any>
   ): Promise<any> {
     throw new NotImplementedAdapterFieldsException('translateField');
+  }
+
+  /**
+   * Used for comparing two custom arguments so we can know if we need to update the field or not.
+   *
+   * This is part of the migration, don't need to implement if you are not using Palmares Migrations.
+   */
+  compare?(_oldCustomArguments: any, _newCustomArguments: any): boolean {
+    throw new NotImplementedAdapterFieldsException('compare');
+  }
+
+  /**
+   * Used for stringfying the custom arguments so we can store them in the database. If you do not implement this
+   * and implement compare we will throw an error, otherwise we will just ignore the custom arguments.
+   *
+   * This is part of the migration, don't need to implement if you are not using Palmares Migrations.
+   */
+  toString?(_customArguments: any): {
+    result: string;
+    imports: CustomImportsForFieldType[];
+  } {
+    throw new NotImplementedAdapterFieldsException('toString');
   }
 }

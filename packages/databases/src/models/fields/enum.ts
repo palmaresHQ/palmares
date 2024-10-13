@@ -1,6 +1,6 @@
 import { Field } from './field';
 
-import type { CustomImportsForFieldType } from './types';
+import type { CustomImportsForFieldType, FieldWithOperationTypeForSearch } from './types';
 import type {
   CompareCallback,
   GetArgumentsCallback,
@@ -46,7 +46,8 @@ export function choice<const TChoices extends string[]>(params: {
     engineInstance: DatabaseAdapter;
     customAttributes: any;
     choices: TChoices;
-  }
+  },
+  Pick<FieldWithOperationTypeForSearch<TChoices[number]>, 'and' | 'in' | 'or' | 'eq' | 'is'>
 > {
   return EnumField.new(params);
 }
@@ -98,16 +99,24 @@ export class EnumField<
     engineInstance: DatabaseAdapter;
     customAttributes: any;
     choices: string[];
-  }
-> extends Field<TType, TDefinitions> {
+  },
+  TFieldOperationTypes = Pick<FieldWithOperationTypeForSearch<string>, 'and' | 'in' | 'or' | 'eq' | 'is'>
+> extends Field<TType, TDefinitions, TFieldOperationTypes> {
   protected $$type = '$PEnumField';
-  protected static __typeName = 'EnumField';
+  protected __typeName = 'EnumField';
   protected __choices: TDefinitions['choices'];
+  protected __allowedQueryOperations: Set<any> = new Set([
+    'and',
+    'in',
+    'or',
+    'eq',
+    'is',
+    'like'
+  ] as (keyof Required<TFieldOperationTypes>)[]);
+  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
 
-  protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
-
-  protected static __compareCallback = ((oldField, newField, defaultCompareCallback) => {
+  protected __compareCallback = ((oldField, newField, defaultCompareCallback) => {
     const oldFieldAsTextField = oldField as EnumField<any, any>;
     const newFieldAsTextField = newField as EnumField<any, any>;
     const newFieldChoices = Array.isArray(newFieldAsTextField['__choices']) ? newFieldAsTextField['__choices'] : [];
@@ -122,7 +131,7 @@ export class EnumField<
     return [isChoicesEqual && isEqual, changedAttributes];
   }) satisfies CompareCallback;
 
-  protected static __newInstanceCallback = ((field, defaultNewInstanceArgumentsCallback) => {
+  protected __newInstanceCallback = ((field, defaultNewInstanceArgumentsCallback) => {
     const fieldAsEnumField = field as EnumField<any, any>;
     const defaultData = defaultNewInstanceArgumentsCallback(field, defaultNewInstanceArgumentsCallback);
     const position0 = defaultData[0] || {};
@@ -136,7 +145,7 @@ export class EnumField<
     ];
   }) satisfies NewInstanceArgumentsCallback;
 
-  protected static __getArgumentsCallback = ((field, defaultCallback) => {
+  protected __getArgumentsCallback = ((field, defaultCallback) => {
     const fieldAsDateField = field as EnumField<any, any>;
     const choices = fieldAsDateField['__choices'] as string[];
     return {
@@ -224,7 +233,8 @@ export class EnumField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > &
     TFunctions {
     if (functions === undefined) return this as any;
@@ -250,7 +260,27 @@ export class EnumField<
       create?: 'merge' | 'union' | 'replace';
       read?: 'merge' | 'union' | 'replace';
       update?: 'merge' | 'union' | 'replace';
-    }
+    },
+    TNewAllowedQueryOperations extends FieldWithOperationTypeForSearch<
+      TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read']
+    > = Pick<
+      FieldWithOperationTypeForSearch<
+        TActions['read'] extends 'merge'
+          ? TType['read'] & TNewType['read']
+          : TActions['read'] extends 'union'
+            ? TType['read'] | TNewType['read']
+            : TActions['read'] extends 'replace'
+              ? TNewType['read']
+              : TType['read']
+      >,
+      'and' | 'in' | 'or' | 'eq' | 'is'
+    >
   >(): <const TCustomPartialAttributes>(partialCustomAttributes: TCustomPartialAttributes) => EnumField<
     {
       create: TActions['create'] extends 'merge'
@@ -303,7 +333,8 @@ export class EnumField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'] & TCustomPartialAttributes;
-    }
+    },
+    TNewAllowedQueryOperations
   > {
     return (partialCustomAttributes) => {
       if (partialCustomAttributes !== undefined) {
@@ -313,6 +344,7 @@ export class EnumField<
       return this as any;
     };
   }
+
   setCustomAttributes<
     const TCustomAttributes extends Parameters<
       TDefinitions['engineInstance']['fields']['enumFieldParser']['translate']
@@ -349,7 +381,8 @@ export class EnumField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TCustomAttributes;
-    }
+    },
+    TFieldOperationTypes
   > {
     (this.__customAttributes as any) = customAttributes as any;
 
@@ -388,7 +421,8 @@ export class EnumField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.unique(isUnique) as unknown as any;
   }
@@ -429,7 +463,8 @@ export class EnumField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    Pick<FieldWithOperationTypeForSearch<TType['read'] | null>, 'and' | 'in' | 'or' | 'eq' | 'is'>
   > {
     return super.allowNull(isNull) as unknown as any;
   }
@@ -469,7 +504,8 @@ export class EnumField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.dbIndex(isDbIndex) as unknown as any;
   }
@@ -505,7 +541,8 @@ export class EnumField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.underscored(isUnderscored) as unknown as any;
   }
@@ -542,7 +579,8 @@ export class EnumField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.primaryKey(isPrimaryKey) as unknown as any;
   }
@@ -582,7 +620,8 @@ export class EnumField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.auto(isAuto) as any;
   }
@@ -623,7 +662,8 @@ export class EnumField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.default(defaultValue) as unknown as any;
   }
@@ -660,7 +700,8 @@ export class EnumField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.databaseName(databaseName) as unknown as any;
   }
@@ -691,12 +732,16 @@ export class EnumField<
       typeName: string;
       engineInstance: DatabaseAdapter;
       choices: string[];
-    }
-  >(args?: {
+    },
+    const TFieldOperationTypes extends
+      | FieldWithOperationTypeForSearch<any>
+      | Pick<FieldWithOperationTypeForSearch<any>, any>
+  >(args: {
     typeName: string;
     toStringCallback?: ToStringCallback;
     compareCallback?: CompareCallback;
     optionsCallback?: OptionsCallback;
+    allowedQueryOperations?: (keyof TFieldOperationTypes)[];
     newInstanceCallback?: NewInstanceArgumentsCallback;
     customImports?: CustomImportsForFieldType[];
   }): TDefinitions['customAttributes'] extends undefined
@@ -719,7 +764,8 @@ export class EnumField<
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
             choices: TDefinitions['choices'];
-          }
+          },
+          TFieldOperationTypes
         >;
       }
     : {
@@ -743,7 +789,8 @@ export class EnumField<
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
             choices: TDefinitions['choices'];
-          }
+          },
+          TFieldOperationTypes
         >;
       } {
     const newField = super._overrideType(args) as any;
@@ -786,7 +833,8 @@ export class EnumField<
       engineInstance: DatabaseAdapter;
       customAttributes: any;
       choices: TChoices;
-    }
+    },
+    Pick<FieldWithOperationTypeForSearch<TChoices[number]>, 'and' | 'in' | 'or' | 'eq' | 'is'>
   > {
     return new this(args);
   }

@@ -8,6 +8,7 @@ import * as actions from '../actions';
 import { State } from '../state';
 
 import type { EmptyOptionsOnGenerateFilesType, FieldOrModelParamType } from './types';
+import type { DatabaseAdapter } from '../../engine';
 import type { BaseModel, Model } from '../../models';
 import type { Field } from '../../models/fields';
 import type { CustomImportsForFieldType } from '../../models/fields/types';
@@ -38,8 +39,9 @@ export class MakeMigrations {
   database: string;
   filteredMigrationsOfDatabase: FoundMigrationsFileType[];
   optionalArgs: OptionalMakemigrationsArgsType;
-
+  engine: DatabaseAdapter<any>;
   constructor(
+    engine: DatabaseAdapter<any>,
     database: string,
     settings: DatabaseSettingsType,
     originalModels: InitializedModelsType[],
@@ -47,6 +49,7 @@ export class MakeMigrations {
     filteredMigrationsOfDatabase: FoundMigrationsFileType[],
     optionalArgs: OptionalMakemigrationsArgsType
   ) {
+    this.engine = engine;
     this.database = database;
     this.filteredMigrationsOfDatabase = filteredMigrationsOfDatabase;
     this.optionalArgs = optionalArgs;
@@ -66,7 +69,6 @@ export class MakeMigrations {
   modelsArrayToObjectByName(originalModels: InitializedModelsType[], stateModels: InitializedModelsType[]): void {
     this.#originalModelsByName = {};
     this.#stateModelsByName = {};
-
     for (const originalModel of originalModels) {
       this.#originalModelsByName[originalModel.class['__originalName']()] = originalModel;
     }
@@ -422,8 +424,10 @@ export class MakeMigrations {
     originalInitializedModel: InitializedModelsType
   ) {
     let response = undefined;
-    const areModelsEqual = await originalInitializedModel.original['__compareModels'](
-      stateInitializedModel.original as Model & BaseModel
+    const areModelsEqual = await originalInitializedModel.class['__compareModels'](
+      this.engine,
+      originalInitializedModel.class as typeof Model & typeof BaseModel,
+      stateInitializedModel.class as typeof Model & typeof BaseModel
     );
     if (!areModelsEqual) {
       response = actions.ChangeModel.toGenerate(
@@ -436,18 +440,18 @@ export class MakeMigrations {
         }
       );
     }
+
     await this.#getOperationsFromModelsOrFields(
-      originalInitializedModel.original.fields,
-      stateInitializedModel.original.fields,
+      originalInitializedModel.class['_fields'](),
+      stateInitializedModel.class['_fields'](),
       'field',
       operations
     );
     return response;
   }
 
-  async #fieldWasUpdated(fieldName: string, stateField: Field<any, any>, originalField: Field<any, any>) {
-    const [areFieldsEqual, changedAttributes] = originalField['__compare'](stateField);
-
+  async #fieldWasUpdated(fieldName: string, stateField: Field<any, any, any>, originalField: Field<any, any, any>) {
+    const [areFieldsEqual, changedAttributes] = originalField['__compare'](this.engine, stateField);
     if (areFieldsEqual === false) {
       return actions.ChangeField.toGenerate(
         originalField['__model']?.['__domainName'] as string,
@@ -485,7 +489,6 @@ export class MakeMigrations {
     const reorderedOperations = [];
     let pendingOperations = operations;
     let previousNumberOfReorderedOperations: number | undefined = undefined;
-
     while (pendingOperations.length > 0) {
       const newPendingOperations = [];
       for (let i = 0; i < pendingOperations.length; i++) {
@@ -495,6 +498,7 @@ export class MakeMigrations {
           this.#originalModelsByName[operationToProcess.modelName] !== undefined
             ? this.#originalModelsByName[operationToProcess.modelName]
             : this.#stateModelsByName[operationToProcess.modelName];
+
         const hasNoDependencies = Object.keys(modelOfOperationToProcess.class['__directlyRelatedTo']).length === 0;
 
         const addedModels = new Set(reorderedOperations.map((operation) => operation.modelName));
@@ -569,7 +573,6 @@ export class MakeMigrations {
       migrationNumber < 10 ? `00${migrationNumber}` : migrationNumber < 100 ? `0${migrationNumber}` : migrationNumber;
     const migrationName = `${migrationNumberToString}_${this.database}_auto_migration_${Date.now().toString()}`;
     const settingsIsTs = ((this.settings as any)?.settingsLocation || '').endsWith('.ts');
-    console.log('settingsIsTs', settingsIsTs);
     databaseLogger.logMessage('MIGRATIONS_FILE_TITLE', { title: migrationName });
     databaseLogger.logMessage('MIGRATIONS_FILE_DESCRIPTION', {
       database: this.database,
@@ -581,7 +584,7 @@ export class MakeMigrations {
       databaseLogger.logMessage('MIGRATIONS_ACTION_DESCRIPTION', {
         description: await operation.operation.describe(operation)
       });
-      const { asString, customImports } = await operation.operation.toString(3, operation);
+      const { asString, customImports } = await operation.operation.toString(this.engine, 3, operation);
       operationsAsString.push(asString);
 
       if (Array.isArray(customImports)) {
@@ -604,6 +607,10 @@ export class MakeMigrations {
         .join('\n') + `\n`;
 
     const file =
+      `/* prettier-ignore-start */\n\n` +
+      `/* eslint-disable */\n\n` +
+      `// @ts-nocheck\n\n` +
+      `// noinspection JSUnusedGlobalSymbols\n\n` +
       `/**\n * Automatically generated by ${FRAMEWORK_NAME} on ${currentDate.toISOString()}\n */\n\n` +
       (settingsIsTs
         ? `import { models, actions } from '${PACKAGE_NAME}';`
@@ -786,8 +793,8 @@ export class MakeMigrations {
       );
       const state = await State.buildState(filteredMigrationsOfDatabase);
       const initializedState = await state.initializeStateModels(engineInstance);
-
       const makemigrations = new this(
+        engineInstance,
         database,
         settings,
         projectModels,

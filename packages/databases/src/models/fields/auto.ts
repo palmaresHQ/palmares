@@ -1,8 +1,8 @@
 import { Field } from './field';
 
-import type { CustomImportsForFieldType } from './types';
+import type { CustomImportsForFieldType, FieldWithOperationTypeForSearch } from './types';
 import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
-import type { AdapterFieldParser, DatabaseAdapter } from '../..';
+import type { AdapterAutoFieldParser, AdapterFieldParser, DatabaseAdapter } from '../..';
 
 /**
  * Functional approach for the creation of an AutoField instance. An AutoField is a field that
@@ -41,7 +41,11 @@ export function auto(): AutoField<
     databaseName: undefined;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
-  }
+  },
+  Pick<
+    FieldWithOperationTypeForSearch<number>,
+    'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
+  >
 > {
   return AutoField.new();
 }
@@ -92,8 +96,12 @@ export class AutoField<
     databaseName: undefined;
     engineInstance: DatabaseAdapter;
     customAttributes: any;
-  }
-> extends Field<TType, TDefinitions> {
+  },
+  TFieldOperationTypes = Pick<
+    FieldWithOperationTypeForSearch<number>,
+    'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
+  >
+> extends Field<TType, TDefinitions, TFieldOperationTypes> {
   protected $$type = '$PAutoField';
   protected __typeName = 'AutoField';
   protected __isAuto = true;
@@ -103,8 +111,18 @@ export class AutoField<
   protected __allowNull = true;
   protected __unique = true;
   protected __dbIndex = true;
-  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __allowedQueryOperations: Set<any> = new Set([
+    'lessThan',
+    'greaterThan',
+    'and',
+    'in',
+    'or',
+    'eq',
+    'is',
+    'between'
+  ] as (keyof Required<TFieldOperationTypes>)[]);
+  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser'] | null>();
+  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser'] | null>();
 
   unique!: never;
   auto!: never;
@@ -112,6 +130,17 @@ export class AutoField<
   primaryKey!: never;
   dbIndex!: never;
   default!: never;
+
+  constructor(...args: any[]) {
+    super(...args);
+    this.__isAuto = true;
+    this.__hasDefaultValue = false;
+    this.__primaryKey = true;
+    this.__defaultValue = undefined;
+    this.__allowNull = true;
+    this.__unique = true;
+    this.__dbIndex = true;
+  }
 
   /**
    * Supposed to be used by library maintainers.
@@ -197,7 +226,8 @@ export class AutoField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > &
     TFunctions {
     if (functions === undefined) return this as any;
@@ -223,7 +253,27 @@ export class AutoField<
       create?: 'merge' | 'union' | 'replace';
       read?: 'merge' | 'union' | 'replace';
       update?: 'merge' | 'union' | 'replace';
-    }
+    },
+    TNewAllowedQueryOperations extends FieldWithOperationTypeForSearch<
+      TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read']
+    > = Pick<
+      FieldWithOperationTypeForSearch<
+        TActions['read'] extends 'merge'
+          ? TType['read'] & TNewType['read']
+          : TActions['read'] extends 'union'
+            ? TType['read'] | TNewType['read']
+            : TActions['read'] extends 'replace'
+              ? TNewType['read']
+              : TType['read']
+      >,
+      'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
+    >
   >(): <const TCustomPartialAttributes>(partialCustomAttributes: TCustomPartialAttributes) => AutoField<
     {
       create: TActions['create'] extends 'merge'
@@ -276,7 +326,8 @@ export class AutoField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'] & TCustomPartialAttributes;
-    }
+    },
+    TNewAllowedQueryOperations
   > {
     return (partialCustomAttributes) => {
       if (partialCustomAttributes !== undefined) {
@@ -288,9 +339,10 @@ export class AutoField<
   }
 
   setCustomAttributes<
-    const TCustomAttributes extends Parameters<
-      TDefinitions['engineInstance']['fields']['autoFieldParser']['translate']
-    >[0]['customAttributes']
+    const TCustomAttributes extends
+      TDefinitions['engineInstance']['fields']['autoFieldParser'] extends AdapterAutoFieldParser
+        ? Parameters<TDefinitions['engineInstance']['fields']['autoFieldParser']['translate']>[0]['customAttributes']
+        : Parameters<TDefinitions['engineInstance']['fields']['integerFieldParser']['translate']>[0]['customAttributes']
   >(customAttributes: TCustomAttributes) {
     return super.setCustomAttributes(customAttributes) as unknown as AutoField<
       TType,
@@ -322,7 +374,8 @@ export class AutoField<
         typeName: TDefinitions['typeName'];
         engineInstance: TDefinitions['engineInstance'];
         customAttributes: TCustomAttributes;
-      }
+      },
+      TFieldOperationTypes
     >;
   }
 
@@ -358,7 +411,8 @@ export class AutoField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.underscored(isUnderscored) as unknown as any;
   }
@@ -395,7 +449,8 @@ export class AutoField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.databaseName(databaseName) as unknown as any;
   }
@@ -422,13 +477,17 @@ export class AutoField<
       typeName: string;
       hasDefaultValue: boolean;
       engineInstance: DatabaseAdapter;
-    }
-  >(args?: {
+    },
+    const TFieldOperationTypes extends
+      | FieldWithOperationTypeForSearch<any>
+      | Pick<FieldWithOperationTypeForSearch<any>, any>
+  >(args: {
     typeName: string;
     toStringCallback?: ToStringCallback;
     compareCallback?: CompareCallback;
     optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
+    allowedQueryOperations?: (keyof TFieldOperationTypes)[];
     customImports?: CustomImportsForFieldType[];
     definitions?: Omit<TDefinitions, 'typeName' | 'engineInstance' | 'customAttributes'>;
   }): TDefinitions['customAttributes'] extends undefined
@@ -448,7 +507,8 @@ export class AutoField<
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
-          }
+          },
+          TFieldOperationTypes
         >;
       }
     : {
@@ -467,48 +527,11 @@ export class AutoField<
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
-          }
+          },
+          TFieldOperationTypes
         >;
       } {
-    return super._overrideType(args) as unknown as TDefinitions['customAttributes'] extends undefined
-      ? {
-          new: () => AutoField<
-            TNewType,
-            {
-              unique: TDefinitions['unique'];
-              auto: TDefinitions['auto'];
-              allowNull: TDefinitions['allowNull'];
-              dbIndex: TDefinitions['dbIndex'];
-              isPrimaryKey: TDefinitions['isPrimaryKey'];
-              defaultValue: TDefinitions['defaultValue'];
-              underscored: boolean;
-              databaseName: string | undefined;
-              hasDefaultValue: TDefinitions['hasDefaultValue'];
-              engineInstance: TDefinitions['engineInstance'];
-              typeName: TDefinitions['typeName'];
-              customAttributes: TDefinitions['customAttributes'];
-            }
-          >;
-        }
-      : {
-          new: (params: TDefinitions['customAttributes']) => AutoField<
-            TNewType,
-            {
-              unique: TDefinitions['unique'];
-              auto: TDefinitions['auto'];
-              allowNull: TDefinitions['allowNull'];
-              dbIndex: TDefinitions['dbIndex'];
-              isPrimaryKey: TDefinitions['isPrimaryKey'];
-              defaultValue: TDefinitions['defaultValue'];
-              underscored: boolean;
-              databaseName: string | undefined;
-              hasDefaultValue: TDefinitions['hasDefaultValue'];
-              engineInstance: TDefinitions['engineInstance'];
-              typeName: TDefinitions['typeName'];
-              customAttributes: TDefinitions['customAttributes'];
-            }
-          >;
-        };
+    return super._overrideType(args) as unknown as any;
   }
 
   static new(..._args: any[]): AutoField<
@@ -530,7 +553,11 @@ export class AutoField<
       databaseName: undefined;
       engineInstance: DatabaseAdapter;
       customAttributes: any;
-    }
+    },
+    Pick<
+      FieldWithOperationTypeForSearch<number>,
+      'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
+    >
   > {
     return new this(..._args) as unknown as AutoField<
       {
@@ -551,7 +578,11 @@ export class AutoField<
         databaseName: undefined;
         engineInstance: DatabaseAdapter;
         customAttributes: any;
-      }
+      },
+      Pick<
+        FieldWithOperationTypeForSearch<number>,
+        'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
+      >
     >;
   }
 }

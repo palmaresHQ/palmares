@@ -1,6 +1,6 @@
 import { Field } from './field';
 
-import type { CustomImportsForFieldType } from './types';
+import type { CustomImportsForFieldType, FieldWithOperationTypeForSearch } from './types';
 import type {
   CompareCallback,
   GetArgumentsCallback,
@@ -28,7 +28,33 @@ import type { AdapterFieldParser } from '../../engine/fields/field';
  * const createdAt = date().autoNowAdd();
  * ```
  */
-export function date() {
+export function date(): DateField<
+  {
+    create: string | Date;
+    read: string | Date;
+    update: string | Date;
+  },
+  {
+    unique: false;
+    allowNull: false;
+    dbIndex: false;
+    underscored: true;
+    isPrimaryKey: false;
+    auto: false;
+    hasDefaultValue: false;
+    defaultValue: undefined;
+    typeName: string;
+    databaseName: undefined;
+    engineInstance: DatabaseAdapter;
+    customAttributes: any;
+    autoNow: false;
+    autoNowAdd: false;
+  },
+  Pick<
+    FieldWithOperationTypeForSearch<string | Date>,
+    'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'
+  >
+> {
   return DateField.new();
 }
 
@@ -81,22 +107,35 @@ export class DateField<
     customAttributes: any;
     autoNow: boolean;
     autoNowAdd: boolean;
-  }
-> extends Field<TType, TDefinitions> {
+  },
+  TFieldOperationTypes = Pick<
+    FieldWithOperationTypeForSearch<string | Date>,
+    'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'
+  >
+> extends Field<TType, TDefinitions, TFieldOperationTypes> {
   protected $$type = '$PDateField';
-  protected static __typeName = 'DateField';
+  protected __typeName = 'DateField';
+  protected __allowedQueryOperations: Set<any> = new Set([
+    'eq',
+    'is',
+    'greaterThan',
+    'lessThan',
+    'between',
+    'and',
+    'or'
+  ] as (keyof Required<TFieldOperationTypes>)[]);
   protected __autoNow: TDefinitions['autoNow'] = false;
   protected __autoNowAdd: TDefinitions['autoNowAdd'] = false;
-  protected static __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected static __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
 
-  protected static __compareCallback = ((oldField, newField, defaultCompareCallback) => {
+  protected __compareCallback = ((engine, oldField, newField, defaultCompareCallback) => {
     const oldFieldAsTextField = oldField as DateField<any, any>;
     const newFieldAsTextField = newField as DateField<any, any>;
     const isAutoNowEqual = oldFieldAsTextField['__autoNow'] === newFieldAsTextField['__autoNow'];
     const isAutoNowAddEqual = oldFieldAsTextField['__autoNowAdd'] === newFieldAsTextField['__autoNowAdd'];
 
-    const [isEqual, changedAttributes] = defaultCompareCallback(oldField, newField, defaultCompareCallback);
+    const [isEqual, changedAttributes] = defaultCompareCallback(engine, oldField, newField, defaultCompareCallback);
 
     if (!isAutoNowEqual) changedAttributes.push('autoNow');
     if (!isAutoNowAddEqual) changedAttributes.push('autoNowAdd');
@@ -104,7 +143,7 @@ export class DateField<
     return [isAutoNowAddEqual && isAutoNowEqual && isEqual, changedAttributes];
   }) satisfies CompareCallback;
 
-  protected static __optionsCallback = ((setFieldValue, oldField, defaultOptionsCallback) => {
+  protected __optionsCallback = ((setFieldValue, oldField, defaultOptionsCallback) => {
     const oldFieldAsTextField = oldField as DateField<any, any>;
 
     defaultOptionsCallback(setFieldValue, oldField, defaultOptionsCallback);
@@ -112,7 +151,7 @@ export class DateField<
     setFieldValue('__autoNowAdd', 'autoNowAdd', oldFieldAsTextField['__autoNowAdd']);
   }) satisfies OptionsCallback;
 
-  protected static __getArgumentsCallback = ((field, defaultCallback) => {
+  protected __getArgumentsCallback = ((field, defaultCallback) => {
     const fieldAsDateField = field as DateField<any, any>;
     const autoNow = fieldAsDateField['__autoNow'];
     const autoNowAdd = fieldAsDateField['__autoNowAdd'];
@@ -197,7 +236,8 @@ export class DateField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > &
     TFunctions {
     if (functions === undefined) return this as any;
@@ -223,7 +263,27 @@ export class DateField<
       create?: 'merge' | 'union' | 'replace';
       read?: 'merge' | 'union' | 'replace';
       update?: 'merge' | 'union' | 'replace';
-    }
+    },
+    TNewAllowedQueryOperations extends FieldWithOperationTypeForSearch<
+      TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read']
+    > = Pick<
+      FieldWithOperationTypeForSearch<
+        TActions['read'] extends 'merge'
+          ? TType['read'] & TNewType['read']
+          : TActions['read'] extends 'union'
+            ? TType['read'] | TNewType['read']
+            : TActions['read'] extends 'replace'
+              ? TNewType['read']
+              : TType['read']
+      >,
+      'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'
+    >
   >(): <const TCustomPartialAttributes>(partialCustomAttributes: TCustomPartialAttributes) => DateField<
     {
       create: TActions['create'] extends 'merge'
@@ -276,7 +336,8 @@ export class DateField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'] & TCustomPartialAttributes;
-    }
+    },
+    TNewAllowedQueryOperations
   > {
     return (partialCustomAttributes) => {
       if (partialCustomAttributes !== undefined) {
@@ -322,7 +383,8 @@ export class DateField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TCustomAttributes;
-    }
+    },
+    TFieldOperationTypes
   > {
     (this.__customAttributes as any) = customAttributes as any;
 
@@ -360,7 +422,8 @@ export class DateField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.unique(isUnique) as unknown as any;
   }
@@ -401,7 +464,11 @@ export class DateField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    Pick<
+      FieldWithOperationTypeForSearch<TType['read'] | null>,
+      'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'
+    >
   > {
     return super.allowNull(isNull) as unknown as any;
   }
@@ -441,7 +508,8 @@ export class DateField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.dbIndex(isDbIndex) as unknown as any;
   }
@@ -478,7 +546,8 @@ export class DateField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.underscored(isUnderscored) as unknown as any;
   }
@@ -515,7 +584,8 @@ export class DateField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.primaryKey(isPrimaryKey) as unknown as any;
   }
@@ -556,7 +626,8 @@ export class DateField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.auto(isAuto) as unknown as any;
   }
@@ -597,7 +668,8 @@ export class DateField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.default(defaultValue) as unknown as any;
   }
@@ -633,7 +705,8 @@ export class DateField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.databaseName(databaseName) as unknown as any;
   }
@@ -675,7 +748,8 @@ export class DateField<
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
       autoNow: TAutoNow extends false ? false : true;
-    }
+    },
+    TFieldOperationTypes
   > & { autoNow: never; autoNowAdd: never } {
     isAutoNow = typeof isAutoNow === 'boolean' ? isAutoNow : (true as any);
     this.__autoNow = isAutoNow as TAutoNow;
@@ -719,7 +793,8 @@ export class DateField<
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
       autoNowAdd: TAutoNowAdd extends false ? false : true;
-    }
+    },
+    TFieldOperationTypes
   > & { autoNow: never; autoNowAdd: never } {
     isAutoNowAdd = typeof isAutoNowAdd === 'boolean' ? isAutoNowAdd : (true as any);
     this.__autoNowAdd = isAutoNowAdd as TAutoNowAdd;
@@ -753,13 +828,17 @@ export class DateField<
       engineInstance: DatabaseAdapter;
       autoNow: boolean;
       autoNowAdd: boolean;
-    }
-  >(args?: {
+    },
+    const TFieldOperationTypes extends
+      | FieldWithOperationTypeForSearch<any>
+      | Pick<FieldWithOperationTypeForSearch<any>, any>
+  >(args: {
     typeName: string;
     toStringCallback?: ToStringCallback;
     compareCallback?: CompareCallback;
     optionsCallback?: OptionsCallback;
     newInstanceCallback?: NewInstanceArgumentsCallback;
+    allowedQueryOperations?: (keyof TFieldOperationTypes)[];
     customImports?: CustomImportsForFieldType[];
   }): TDefinitions['customAttributes'] extends undefined
     ? {
@@ -780,7 +859,8 @@ export class DateField<
             typeName: TDefinitions['typeName'];
             autoNow: TDefinitions['autoNow'];
             autoNowAdd: TDefinitions['autoNowAdd'];
-          }
+          },
+          TFieldOperationTypes
         >;
       }
     : {
@@ -801,7 +881,8 @@ export class DateField<
             typeName: TDefinitions['typeName'];
             autoNow: TDefinitions['autoNow'];
             autoNowAdd: TDefinitions['autoNowAdd'];
-          }
+          },
+          TFieldOperationTypes
         >;
       } {
     return super._overrideType(args) as any;
@@ -809,9 +890,9 @@ export class DateField<
 
   static new(): DateField<
     {
-      create: string;
-      read: string;
-      update: string;
+      create: string | Date;
+      read: string | Date;
+      update: string | Date;
     },
     {
       unique: false;
@@ -828,7 +909,11 @@ export class DateField<
       customAttributes: any;
       autoNow: false;
       autoNowAdd: false;
-    }
+    },
+    Pick<
+      FieldWithOperationTypeForSearch<string | Date>,
+      'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'
+    >
   > {
     return new this();
   }
