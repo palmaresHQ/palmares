@@ -124,12 +124,12 @@ export class BigAutoField<
   protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
   protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
 
-  unique!: never;
-  auto!: never;
-  allowNull!: never;
-  primaryKey!: never;
-  dbIndex!: never;
-  default!: never;
+  unique: never = (() => this) as never;
+  auto: never = (() => this) as never;
+  allowNull: never = (() => this) as never;
+  primaryKey: never = (() => this) as never;
+  dbIndex: never = (() => this) as never;
+  default: never = (() => this) as never;
 
   constructor(...args: any[]) {
     super(...args);

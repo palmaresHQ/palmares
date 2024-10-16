@@ -154,6 +154,20 @@ export class EnumField<
     };
   }) satisfies GetArgumentsCallback;
 
+  /**
+   * This is used internally by the engine to convert the field to string.
+   * You can override this if you want to extend the ForeignKeyField class.
+   */
+  protected __toStringCallback = (async (engine, field, defaultToStringCallback, _customParams = undefined) => {
+    const fieldAsEnumField = field as EnumField<any, any, any>;
+    return await defaultToStringCallback(engine, field, defaultToStringCallback, {
+      constructorParams:
+        `{ ` +
+        `choices: [${fieldAsEnumField['__choices'].map((choice: any) => `${JSON.stringify(choice)}`).join(', ')}], ` +
+        `}`
+    });
+  }) satisfies ToStringCallback;
+
   constructor(params: { choices: string[] }) {
     super(params);
     const choices = Array.isArray(params.choices) ? params.choices : [];

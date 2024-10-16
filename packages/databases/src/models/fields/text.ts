@@ -144,6 +144,19 @@ export class TextField<
   }) satisfies GetArgumentsCallback;
 
   /**
+   * This is used internally by the engine to convert the field to string.
+   * You can override this if you want to extend the ForeignKeyField class.
+   */
+  protected __toStringCallback = (async (engine, field, defaultToStringCallback, _customParams = undefined) => {
+    const fieldAsTextField = field as TextField<any, any, any>;
+    return await defaultToStringCallback(engine, field, defaultToStringCallback, {
+      builderParams: `${
+        typeof fieldAsTextField['__allowBlank'] === 'boolean' ? `.allowBlank(${fieldAsTextField['__allowBlank']})` : ''
+      }`
+    });
+  }) satisfies ToStringCallback;
+
+  /**
    * Supposed to be used by library maintainers.
    *
    * When you custom create a field, you might want to take advantage of the builder pattern we already support.

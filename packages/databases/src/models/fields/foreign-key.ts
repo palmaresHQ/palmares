@@ -99,7 +99,6 @@ export function foreignKey<
     typeName: string;
     databaseName: string | undefined;
     engineInstance: DatabaseAdapter;
-    allowedQueryOperations: ExtractFieldOperationTypeForSearch<TRelatedTo, TForeignKeyParams['toField']>;
     customAttributes: any;
     hasDefaultValue: false;
     relatedTo: TRelatedTo;
@@ -564,7 +563,6 @@ export class ForeignKeyField<
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
-      allowedQueryOperations: TNewAllowedQueryOperations;
       customAttributes: TDefinitions['customAttributes'] & TCustomPartialAttributes;
     },
     TNewAllowedQueryOperations
@@ -615,6 +613,11 @@ export class ForeignKeyField<
       databaseName: TDefinitions['databaseName'];
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
+      relatedTo: TDefinitions['relatedTo'];
+      relationName: TDefinitions['relationName'];
+      relatedName: TDefinitions['relatedName'];
+      onDelete: TDefinitions['onDelete'];
+      toField: TDefinitions['toField'];
       customAttributes: TCustomAttributes;
     },
     TFieldOperationTypes
@@ -657,6 +660,11 @@ export class ForeignKeyField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
+      relatedTo: TDefinitions['relatedTo'];
+      relationName: TDefinitions['relationName'];
+      relatedName: TDefinitions['relatedName'];
+      onDelete: TDefinitions['onDelete'];
+      toField: TDefinitions['toField'];
     },
     TFieldOperationTypes
   > {
@@ -684,6 +692,11 @@ export class ForeignKeyField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
+      relatedTo: TDefinitions['relatedTo'];
+      relationName: TDefinitions['relationName'];
+      relatedName: TDefinitions['relatedName'];
+      onDelete: TDefinitions['onDelete'];
+      toField: TDefinitions['toField'];
     } & {
       [TKey in Exclude<
         keyof TDefinitions,
@@ -747,6 +760,11 @@ export class ForeignKeyField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
+      relatedTo: TDefinitions['relatedTo'];
+      relationName: TDefinitions['relationName'];
+      relatedName: TDefinitions['relatedName'];
+      onDelete: TDefinitions['onDelete'];
+      toField: TDefinitions['toField'];
     },
     TFieldOperationTypes
   > {
@@ -787,6 +805,11 @@ export class ForeignKeyField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
+      relatedTo: TDefinitions['relatedTo'];
+      relationName: TDefinitions['relationName'];
+      relatedName: TDefinitions['relatedName'];
+      onDelete: TDefinitions['onDelete'];
+      toField: TDefinitions['toField'];
     },
     TFieldOperationTypes
   > {
@@ -827,6 +850,11 @@ export class ForeignKeyField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
+      relatedTo: TDefinitions['relatedTo'];
+      relationName: TDefinitions['relationName'];
+      relatedName: TDefinitions['relatedName'];
+      onDelete: TDefinitions['onDelete'];
+      toField: TDefinitions['toField'];
     },
     TFieldOperationTypes
   > {
@@ -842,6 +870,24 @@ export class ForeignKeyField<
       update: TType['update'] | undefined;
     },
     {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TIsAuto extends false ? false : true;
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+      relatedTo: TDefinitions['relatedTo'];
+      relationName: TDefinitions['relationName'];
+      relatedName: TDefinitions['relatedName'];
+      onDelete: TDefinitions['onDelete'];
+      toField: TDefinitions['toField'];
+    } & {
       [TKey in Exclude<
         keyof TDefinitions,
         | 'underscored'
@@ -858,19 +904,6 @@ export class ForeignKeyField<
         | 'hasDefaultValue'
         | 'allowedQueryOperations'
       >]: TDefinitions[TKey];
-    } & {
-      unique: TDefinitions['unique'];
-      allowNull: TDefinitions['allowNull'];
-      dbIndex: TDefinitions['dbIndex'];
-      underscored: TDefinitions['underscored'];
-      isPrimaryKey: TDefinitions['isPrimaryKey'];
-      auto: TIsAuto extends false ? false : true;
-      hasDefaultValue: TDefinitions['hasDefaultValue'];
-      defaultValue: TDefinitions['defaultValue'];
-      databaseName: TDefinitions['databaseName'];
-      typeName: TDefinitions['typeName'];
-      engineInstance: TDefinitions['engineInstance'];
-      customAttributes: TDefinitions['customAttributes'];
     },
     TFieldOperationTypes
   > {
@@ -886,6 +919,24 @@ export class ForeignKeyField<
       update: TType['update'] | undefined;
     },
     {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefault;
+      hasDefaultValue: true;
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+      relatedTo: TDefinitions['relatedTo'];
+      relationName: TDefinitions['relationName'];
+      relatedName: TDefinitions['relatedName'];
+      onDelete: TDefinitions['onDelete'];
+      toField: TDefinitions['toField'];
+    } & {
       [TKey in Exclude<
         keyof TDefinitions,
         | 'underscored'
@@ -899,21 +950,11 @@ export class ForeignKeyField<
         | 'typeName'
         | 'engineInstance'
         | 'customAttributes'
+        | 'hasDefaultValue'
+        | 'allowedQueryOperations'
       >]: TDefinitions[TKey];
-    } & {
-      unique: TDefinitions['unique'];
-      allowNull: TDefinitions['allowNull'];
-      dbIndex: TDefinitions['dbIndex'];
-      underscored: TDefinitions['underscored'];
-      isPrimaryKey: TDefinitions['isPrimaryKey'];
-      auto: TDefinitions['auto'];
-      defaultValue: TDefault;
-      hasDefaultValue: true;
-      databaseName: TDefinitions['databaseName'];
-      typeName: TDefinitions['typeName'];
-      engineInstance: TDefinitions['engineInstance'];
-      customAttributes: TDefinitions['customAttributes'];
-    }
+    },
+    TFieldOperationTypes
   > {
     return super.default(defaultValue) as unknown as any;
   }
@@ -952,6 +993,11 @@ export class ForeignKeyField<
       typeName: TDefinitions['typeName'];
       engineInstance: TDefinitions['engineInstance'];
       customAttributes: TDefinitions['customAttributes'];
+      relatedTo: TDefinitions['relatedTo'];
+      relationName: TDefinitions['relationName'];
+      relatedName: TDefinitions['relatedName'];
+      onDelete: TDefinitions['onDelete'];
+      toField: TDefinitions['toField'];
     },
     TFieldOperationTypes
   > {
@@ -979,7 +1025,7 @@ export class ForeignKeyField<
       typeName: string;
       engineInstance: DatabaseAdapter;
     } & Record<string, any>,
-    const TFieldOperationTypes extends
+    const _TFieldOperationTypes extends
       | FieldWithOperationTypeForSearch<any>
       | Pick<FieldWithOperationTypeForSearch<any>, any>
   >(args: {

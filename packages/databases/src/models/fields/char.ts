@@ -1,5 +1,6 @@
 import { TextField } from './text';
 
+import type { ForeignKeyField } from '.';
 import type { CustomImportsForFieldType, FieldWithOperationTypeForSearch } from './types';
 import type {
   CompareCallback,
@@ -166,6 +167,20 @@ export class CharField<
       ...otherPositions
     ];
   }) satisfies NewInstanceArgumentsCallback;
+
+  /**
+   * This is used internally by the engine to convert the field to string.
+   * You can override this if you want to extend the ForeignKeyField class.
+   */
+  protected __toStringCallback = (async (engine, field, defaultToStringCallback, _customParams = undefined) => {
+    const fieldAsCharField = field as CharField<any, any, any>;
+    return await defaultToStringCallback(engine, field, defaultToStringCallback, {
+      constructorParams: `{ ` + `maxLen: ${fieldAsCharField['__maxLength']} ` + `}`,
+      builderParams: `${
+        typeof fieldAsCharField['__allowBlank'] === 'boolean' ? `.allowBlank(${fieldAsCharField['__allowBlank']})` : ''
+      }`
+    });
+  }) satisfies ToStringCallback;
 
   constructor(params: { maxLen: number }) {
     super(params);

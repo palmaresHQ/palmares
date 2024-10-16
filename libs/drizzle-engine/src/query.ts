@@ -52,18 +52,28 @@ const getQuery = adapterGetQuery({
 const setQuery = adapterSetQuery({
   queryData: async (engine, args) => {
     const engineInstanceOrTransaction = args.transaction || engine.instance.instance;
-    if (args.search && Object.keys(args.search).length > 0)
-      return (
-        (await engineInstanceOrTransaction
+    if (args.search && Object.keys(args.search).length > 0) {
+      if (engine.instance.mainType === 'sqlite' || engine.instance.mainType === 'postgres') {
+        return (
+          (await engineInstanceOrTransaction
+            .update(args.modelOfEngineInstance)
+            .set(args.data[0])
+            .where(and(...(Object.values(args.search) as any)))
+            .returning()) || ([] as any)
+        ).map((data: any) => [false, data]);
+      } else {
+        await engineInstanceOrTransaction
           .update(args.modelOfEngineInstance)
           .set(args.data[0])
-          .where(and(...(Object.values(args.search) as any)))
-          .returning()) || ([] as any)
-      ).map((data: any) => {
-        return [false, data];
-      });
-
-    return Promise.all(
+          .where(and(...(Object.values(args.search) as any)));
+        const search = await engineInstanceOrTransaction
+          .select()
+          .from(args.modelOfEngineInstance)
+          .where(and(...(Object.values(args.search) as any)));
+        return search.map((each: any) => [false, each]);
+      }
+    }
+    const inserts = await Promise.all(
       args.data.map(async (eachData: any) => {
         if (engine.instance.mainType === 'sqlite' || engine.instance.mainType === 'postgres') {
           return [
@@ -71,8 +81,26 @@ const setQuery = adapterSetQuery({
             (await engineInstanceOrTransaction.insert(args.modelOfEngineInstance).values(eachData).returning())[0]
           ];
         }
+
+        const results = await engineInstanceOrTransaction
+          .insert(args.modelOfEngineInstance)
+          .values(eachData)
+          .$returningId();
+        const insertedData = results?.[0];
+        if (!insertedData) return undefined;
+        const primaryKey = Object.keys(insertedData)[0];
+        const primaryKeyValue = insertedData[primaryKey];
+        const searchForInsertedData = eq(args.modelOfEngineInstance[primaryKey], primaryKeyValue);
+        const searchResult = await engineInstanceOrTransaction
+          .select()
+          .from(args.modelOfEngineInstance)
+          .where(searchForInsertedData);
+
+        if ((searchResult?.length || []) <= 0) return undefined;
+        return [true, searchResult[0]];
       })
     );
+    return inserts.filter((insert) => Array.isArray(insert));
   }
 });
 

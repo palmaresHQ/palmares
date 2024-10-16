@@ -119,6 +119,19 @@ export class UuidField<
     return [isAllowBlankEqual && isEqual, changedAttributes];
   }) satisfies CompareCallback;
 
+  /**
+   * This is used internally by the engine to convert the field to string.
+   * You can override this if you want to extend the ForeignKeyField class.
+   */
+  protected __toStringCallback = (async (engine, field, defaultToStringCallback, _customParams = undefined) => {
+    const fieldAsUuidField = field as UuidField<any, any, any>;
+    return await defaultToStringCallback(engine, field, defaultToStringCallback, {
+      builderParams: `${
+        typeof fieldAsUuidField['__allowBlank'] === 'boolean' ? `.allowBlank(${fieldAsUuidField['__allowBlank']})` : ''
+      }`
+    });
+  }) satisfies ToStringCallback;
+
   protected __optionsCallback = ((setFieldValue, oldField, defaultOptionsCallback) => {
     const oldFieldAsUuidField = oldField as UuidField<any, any>;
 

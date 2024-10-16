@@ -87,7 +87,7 @@ export function handleRelatedField(
   const isRelatedModelAndModelOfForeignDefined = relatedToModel !== undefined && modelWithForeignKeyField !== undefined;
 
   if (isRelatedModelAndModelOfForeignDefined) {
-    const translatedOnDelete: string = onDeleteOperationsTable[field.onDelete as fields.ON_DELETE];
+    const translatedOnDelete: string = onDeleteOperationsTable[field.onDelete];
 
     fieldAttributes.name = field.fieldName;
     const relationOptions: HasManyOptions | BelongsToOptions | HasOneOptions = {
@@ -97,7 +97,7 @@ export function handleRelatedField(
       sourceKey: field.toField
     };
 
-    if ((field as any)?.['$$type'] === '$PForeignKeyField') {
+    if ((field as any)?.['typeName'] === 'ForeignKeyField') {
       relationOptions.as = field.relatedName as string;
       relatedToModel.hasMany(modelWithForeignKeyField, relationOptions);
 

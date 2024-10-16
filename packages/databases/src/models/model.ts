@@ -1,5 +1,4 @@
-import { ModelCircularAbstractError, ModelNoUniqueFieldsError } from './exceptions';
-import { AutoField, BigAutoField, BooleanField, ON_DELETE, TextField, bigInt } from './fields';
+import { ModelCircularAbstractError, ModelNoPrimaryKeyFieldError, ModelNoUniqueFieldsError } from './exceptions';
 import { DefaultManager, Manager } from './manager';
 import { factoryFunctionForModelTranslate, getDefaultModelOptions, indirectlyRelatedModels } from './utils';
 import { getUniqueCustomImports, hashString } from '../utils';
@@ -7,7 +6,6 @@ import { getUniqueCustomImports, hashString } from '../utils';
 import type { Field, ForeignKeyField } from './fields';
 import type { CustomImportsForFieldType } from './fields/types';
 import type {
-  FieldWithOperationType,
   ManagersOfInstanceType,
   ModelFieldsType,
   ModelOptionsType,
@@ -257,7 +255,7 @@ export class BaseModel {
         accumulator[fieldName] = field['__getArguments']();
         return accumulator;
       },
-      {} as Record<string, ReturnType<Field<any, any>['__getArgumentsCallback']>>
+      {} as Record<string, ReturnType<Field<any, any, any>['__getArgumentsCallback']>>
     );
 
     return {
@@ -374,21 +372,6 @@ export class BaseModel {
   }
 
   /**
-   * This setups the indirect relations to the model. What we are doing is that we are setting the relatedTo
-   * property of the model in the engineInstance._indirectlyRelatedModels. By doing this when we update
-   * the value on this array it will update the `relatedTo` array inside of this model as well. With this we are
-   * able to know which models relates to this model.
-   */
-  protected static __initializeRelatedToModels() {
-    /*const originalModelName = this.__originalName();
-    if (originalModelName in this.__indirectlyRelatedModels) {
-      this.__indirectlyRelatedTo = this.__indirectlyRelatedModels[originalModelName];
-    } else {
-      this.__indirectlyRelatedModels.$set[originalModelName] = this.__initializeRelatedToModels.bind(this);
-    }*/
-  }
-
-  /**
    * Get the options of the model. Use this to get the options of the model since here we will use the cached data
    * if it exists.
    */
@@ -431,6 +414,7 @@ export class BaseModel {
 
     if (this.__cachedFields === undefined) {
       let modelHasNoUniqueFields = true;
+      let modelHasNoPrimaryKey = true;
       let fieldsDefinedOnModel = modelInstanceAsModel.fields;
       if (this.__lazyFields) fieldsDefinedOnModel = { ...fieldsDefinedOnModel, ...this.__lazyFields };
       const allFields = Object.entries(fieldsDefinedOnModel);
@@ -439,19 +423,18 @@ export class BaseModel {
       if (this._options()?.abstract !== true) {
         for (const [fieldName, field] of allFields) {
           if (field['__unique']) modelHasNoUniqueFields = false;
+          if (field['__primaryKey']) modelHasNoPrimaryKey = false;
           field['__init'](fieldName, this as ModelType<any, any> & typeof BaseModel & typeof Model);
         }
 
-        if (modelHasNoUniqueFields) {
-          throw new ModelNoUniqueFieldsError(this.__cachedName);
-        }
+        if (modelHasNoUniqueFields) throw new ModelNoUniqueFieldsError(this.__cachedName);
+        if (modelHasNoPrimaryKey) throw new ModelNoPrimaryKeyFieldError(this.__cachedName);
       }
 
       modelInstance.fields = fieldsDefinedOnModel;
       this.__cachedFields = fieldsDefinedOnModel;
     }
 
-    this.__initializeRelatedToModels();
     return this.__cachedFields;
   }
 
@@ -719,7 +702,7 @@ export function model<
       }
     >();
     protected static __associations: {
-      [modelName: string]: ForeignKeyField<any, any>[];
+      [modelName: string]: ForeignKeyField<any, any, any>[];
     } = {};
     // This model uses other models as ForeignKey
     protected static __directlyRelatedTo: { [modelName: string]: string[] } = {};
@@ -770,19 +753,9 @@ export function model<
     }
   }
 
-  return new Proxy(DefaultModel, {
-    get: (_, prop, receiver) => {
-      const dataToGet = (DefaultModel as any)[prop] as unknown as any;
-      if (dataToGet && dataToGet['$$type'] === '$PManager') {
-        /*if (databases.managers.has(`${modelName}/${prop as string}`))
-          return databases.managers.get(`${modelName}/${prop as string}`);
-        databases.managers.set(`${modelName}/${prop as string}`, dataToGet);*/
-        return dataToGet;
-      }
-      return (DefaultModel as any)[prop] as unknown as any;
-    }
-  }) as any;
+  return DefaultModel as unknown as any;
 }
+
 /**
  * Used for creating a model from a function instead of needing to define a class.
  */
@@ -852,7 +825,7 @@ export function initialize<
       }
     >();
     protected static __associations: {
-      [modelName: string]: ForeignKeyField<any, any>[];
+      [modelName: string]: ForeignKeyField<any, any, any>[];
     } = {};
     // This model uses other models as ForeignKey
     protected static __directlyRelatedTo: { [modelName: string]: string[] } = {};
@@ -871,7 +844,6 @@ export function initialize<
     protected static __cachedManagers = {};
 
     protected static __originalName() {
-      console.log('this.__isState', this.__isState, this.__cachedOriginalName);
       if (typeof this.__cachedOriginalName === 'string') return this.__cachedOriginalName;
 
       if (this.__isState) this.__cachedOriginalName = modelName;
@@ -921,45 +893,3 @@ export function initialize<
 
   return ModelConstructor as any;
 }
-
-/*
-interface NewFieldOperationType extends Pick<FieldWithOperationType<string>, 'in' | 'like'> {
-  newQuery?: string;
-}
-const field = Field._overrideType<
-  { create: string | Date; read: string; update: string | Date },
-  any,
-  NewFieldOperationType
->({
-  typeName: 'real',
-  allowedQueryOperations: ['in', 'like', 'newQuery']
-});
-
-const Company = initialize('Company', {
-  fields: {
-    id: field.new({}),
-    auto: AutoField.new(),
-    bigAuto: BigAutoField.new(),
-    bool: BooleanField.new().allowNull(),
-    text: TextField.new().allowNull()
-  }
-});
-
-const User = initialize('User', {
-  fields: {
-    companyId: ForeignKeyField.new({
-      onDelete: ON_DELETE.CASCADE,
-      relatedTo: () => Company,
-      relatedName: 'usersOfCompany',
-      relationName: 'company',
-      toField: 'id'
-    })
-  }
-});
-
-User.default
-  .set((qs) => qs.join(Company, 'company'))
-  .then((users) => {
-    users[0].company.id;
-  });
-*/

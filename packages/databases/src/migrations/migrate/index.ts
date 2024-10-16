@@ -45,7 +45,13 @@ export class Migrate {
         );
         // eslint-disable-next-line ts/no-unnecessary-condition
         if (!createdMigration) newMigrationsToAddAfterIteration.push(migrationToAddAfterIteration);
-      } catch {
+      } catch (e) {
+        databaseLogger.logMessage('FAILED_TO_COMMIT_MIGRATION', {
+          migrationName: migrationToAddAfterIteration.migrationName,
+          databaseName: migrationToAddAfterIteration.engineName,
+          reason: (e as Error).message,
+          stack: (e as Error).stack || ''
+        });
         newMigrationsToAddAfterIteration.push(migrationToAddAfterIteration);
       }
     }
@@ -63,7 +69,12 @@ export class Migrate {
       const lastMigrationName = await PalmaresMigrations.migrations.getLastMigrationName(engineName);
       const isAValidMigrationName = typeof lastMigrationName === 'string' && lastMigrationName !== '';
       if (isAValidMigrationName) return lastMigrationName;
-    } catch {
+    } catch (e) {
+      databaseLogger.logMessage('FAILED_TO_GET_LAST_MIGRATION', {
+        databaseName: engineName,
+        reason: (e as Error).message,
+        stack: (e as Error).stack || ''
+      });
       return null;
     }
     return null;
@@ -123,7 +134,6 @@ export class Migrate {
             await Migration.buildFromFile(engineInstance, migrationFile, allMigrationsOfDatabase)
           );
         }
-
         await this.saveMigration(migrationName, engineInstance.connectionName);
       }
 

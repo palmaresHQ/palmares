@@ -44,13 +44,21 @@ export async function defaultToStringCallback(
         customParams?.constructorParams ? `${customParams.constructorParams}` : ''
       })` +
       `${typeof field['__primaryKey'] === 'boolean' ? `.primaryKey(${field['__primaryKey']})` : ''}` +
-      `${stringfieldDefaultValue !== undefined ? `.defaultValue(${stringfieldDefaultValue})` : ''}` +
+      `${
+        stringfieldDefaultValue !== undefined
+          ? `.default(${
+              typeof field['__defaultValue'] === 'string' ? `"${stringfieldDefaultValue}"` : stringfieldDefaultValue
+            })`
+          : ''
+      }` +
       `${typeof field['__allowNull'] === 'boolean' ? `.allowNull(${field['__allowNull']})` : ''}` +
       `${typeof field['__unique'] === 'boolean' ? `.unique(${field['__unique']})` : ''}` +
       `${typeof field['__dbIndex'] === 'boolean' ? `.dbIndex(${field['__dbIndex']})` : ''}` +
       `${typeof field['__databaseName'] === 'string' ? `.databaseName("${field['__databaseName']}")` : ''}` +
       `${typeof field['__underscored'] === 'boolean' ? `.underscored(${field['__underscored']})` : ''}` +
-      `${typeof stringifiedCustomAttributes === 'string' ? `.customAttributes(${stringifiedCustomAttributes})` : ''}` +
+      `${
+        typeof stringifiedCustomAttributes === 'string' ? `.setCustomAttributes(${stringifiedCustomAttributes})` : ''
+      }` +
       `${customParams?.builderParams ? `${customParams.builderParams}` : ''}`,
     customImports: customImports
   };

@@ -150,6 +150,21 @@ export class DecimalField<
   }) satisfies CompareCallback;
 
   /**
+   * This is used internally by the engine to convert the field to string.
+   * You can override this if you want to extend the ForeignKeyField class.
+   */
+  protected __toStringCallback = (async (engine, field, defaultToStringCallback, _customParams = undefined) => {
+    const fieldAsDecimalField = field as DecimalField<any, any, any>;
+    return await defaultToStringCallback(engine, field, defaultToStringCallback, {
+      constructorParams:
+        `{ ` +
+        `maxDigits: ${fieldAsDecimalField['__maxDigits']}, ` +
+        `decimalPlaces: ${fieldAsDecimalField['__decimalPlaces']} ` +
+        `}`
+    });
+  }) satisfies ToStringCallback;
+
+  /**
    * This is used internally by the engine for cloning the field to a new instance.
    * By doing that you are able to get the constructor options of the field when using Field.new(<instanceArguments>)
    */

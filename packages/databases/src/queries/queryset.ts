@@ -1,4 +1,6 @@
 import { parseSearchField } from './search';
+import { Manager } from '../models';
+import { initialize as define, model } from '../models/model';
 import { retrieveInputAndOutputParsersFromFieldAndCache } from '../models/utils';
 
 import type { DatabaseAdapter } from '../engine';
@@ -14,11 +16,12 @@ import type {
   Field,
   ForeignKeyField,
   IntegerField,
+  ON_DELETE,
   TextField,
   UuidField
 } from '../models/fields';
 import type { BaseModel, Model, ModelType } from '../models/model';
-import type { ModelFields } from '../models/types';
+import type { ModelFields, ModelOptionsType } from '../models/types';
 
 type ModelsFields<TModel> = TModel extends ModelType<{ fields: infer TFields }, any> | { fields: infer TFields }
   ? TFields
@@ -27,169 +30,84 @@ type ModelsFields<TModel> = TModel extends ModelType<{ fields: infer TFields }, 
 type ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationOrRelatedName> = {
   [TKey in keyof ModelsFields<TModel> as ModelsFields<TModel>[TKey] extends ForeignKeyField<
     any,
-    {
-      unique: any;
-      auto: any;
-      hasDefaultValue: any;
-      allowNull: any;
-      dbIndex: any;
-      isPrimaryKey: any;
-      defaultValue: any;
-      underscored: any;
-      typeName: any;
-      databaseName: any;
-      engineInstance: any;
-      customAttributes: any;
-      relatedTo: any;
-      allowedQueryOperations: any;
-      onDelete: any;
-      relatedName: infer TRelatedName extends string;
-      relationName: infer TRelationName extends string;
-      toField: any;
-    },
+    infer TDefinitions,
     any
   >
-    ? TRelatedName extends TRelationOrRelatedName
+    ? TDefinitions['relatedName'] extends TRelationOrRelatedName
       ? TKey
-      : TRelationName extends TRelationOrRelatedName
+      : TDefinitions['relationName'] extends TRelationOrRelatedName
         ? TKey
         : never
     : never]: any;
 };
 
+// This will create an object where they keys are the relationName and the values are either unknown or
+// undefined.
+// If it's unknown it means it should return the object as it is. If it's undefined the object is optional.
 export type ForeignKeyModelsRelationName<TModel, TIncludedModel> = {
   [TKey in keyof ModelsFields<TModel> as ModelsFields<TModel>[TKey] extends ForeignKeyField<
     any,
-    {
-      unique: any;
-      auto: any;
-      hasDefaultValue: any;
-      allowNull: any;
-      dbIndex: any;
-      isPrimaryKey: any;
-      defaultValue: any;
-      underscored: any;
-      typeName: any;
-      databaseName: any;
-      engineInstance: any;
-      customAttributes: any;
-      relatedTo: ((_: any) => infer TRelatedToModel) | (() => infer TRelatedToModel) | infer TRelatedToModel;
-      onDelete: any;
-      relatedName: any;
-      relationName: infer TRelationName extends string;
-      toField: any;
-    },
+    infer TDefinitions,
     any
   >
-    ? TIncludedModel extends abstract new (...args: any) => any
-      ? InstanceType<
-          TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never
-        > extends InstanceType<TIncludedModel>
-        ? TRelationName
-        : never
-      : InstanceType<
+    ? TDefinitions['relatedTo'] extends
+        | ((_: any) => infer TRelatedToModel)
+        | (() => infer TRelatedToModel)
+        | infer TRelatedToModel
+      ? TIncludedModel extends abstract new (...args: any) => any
+        ? InstanceType<
             TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never
-          > extends TIncludedModel
-        ? TRelationName
-        : never
-    : never]: ModelsFields<TModel>[TKey] extends ForeignKeyField<
-    any,
-    {
-      unique: any;
-      auto: any;
-      hasDefaultValue: any;
-      allowNull: infer TAllowNull extends boolean;
-      dbIndex: any;
-      isPrimaryKey: any;
-      defaultValue: any;
-      underscored: any;
-      typeName: any;
-      databaseName: any;
-      engineInstance: any;
-      customAttributes: any;
-      allowedQueryOperations: any;
-      relatedTo: any;
-      onDelete: any;
-      relatedName: any;
-      relationName: any;
-      toField: any;
-    },
-    any
-  >
-    ? TAllowNull extends true
-      ? undefined
-      : unknown
-    : unknown;
+          > extends InstanceType<TIncludedModel>
+          ? TDefinitions['relationName']
+          : never
+        : InstanceType<
+              TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never
+            > extends TIncludedModel
+          ? TDefinitions['relationName']
+          : never
+      : never
+    : never]: ModelsFields<TModel>[TKey] extends ForeignKeyField<any, infer TDefinitions, any>
+    ? TDefinitions['allowNull'] extends true
+      ? 'optionalObject'
+      : 'object'
+    : 'object';
 };
 
+// This will create an object where they keys are the relationName and the values are either unknown, or
+// undefined, or unknown[] or undefined[]
+// If it's unknown it means it should return the object as it is. If it's undefined the object is optional.
+// The unknown[] and undefined[] is the same thing but for arrays
 export type ForeignKeyModelsRelatedName<TModel, TIncludedModel> = {
   [TKey in keyof ModelsFields<TModel> as ModelsFields<TModel>[TKey] extends ForeignKeyField<
     any,
-    {
-      unique: any;
-      auto: any;
-      hasDefaultValue: any;
-      allowNull: any;
-      dbIndex: any;
-      isPrimaryKey: any;
-      defaultValue: any;
-      underscored: any;
-      typeName: any;
-      databaseName: any;
-      engineInstance: any;
-      customAttributes: any;
-      allowedQueryOperations: any;
-      relatedTo: ((_: any) => infer TRelatedToModel) | (() => infer TRelatedToModel) | infer TRelatedToModel;
-      onDelete: any;
-      relatedName: infer TRelatedName extends string;
-      relationName: any;
-      toField: any;
-    },
+    infer TDefinitions,
     any
   >
-    ? TIncludedModel extends abstract new (...args: any) => any
-      ? InstanceType<
-          TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never
-        > extends InstanceType<TIncludedModel>
-        ? TRelatedName
-        : never
-      : InstanceType<
+    ? TDefinitions['relatedTo'] extends
+        | ((_: any) => infer TRelatedToModel)
+        | (() => infer TRelatedToModel)
+        | infer TRelatedToModel
+      ? TIncludedModel extends abstract new (...args: any) => any
+        ? InstanceType<
             TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never
-          > extends TIncludedModel
-        ? TRelatedName
-        : never
-    : never]: ModelsFields<TModel>[TKey] extends ForeignKeyField<
-    any,
-    {
-      unique: infer TUnique extends boolean;
-      auto: any;
-      hasDefaultValue: any;
-      allowNull: infer TAllowNull extends boolean;
-      dbIndex: any;
-      isPrimaryKey: any;
-      defaultValue: any;
-      underscored: any;
-      typeName: any;
-      databaseName: any;
-      engineInstance: any;
-      customAttributes: any;
-      allowedQueryOperations: any;
-      relatedTo: any;
-      onDelete: any;
-      relatedName: any;
-      relationName: any;
-      toField: any;
-    },
-    any
-  >
-    ? TAllowNull extends true
-      ? TUnique extends true
-        ? undefined
-        : undefined[]
-      : TUnique extends true
-        ? undefined
-        : undefined[]
-    : unknown[];
+          > extends InstanceType<TIncludedModel>
+          ? TDefinitions['relatedName']
+          : never
+        : InstanceType<
+              TRelatedToModel extends abstract new (...args: any) => any ? TRelatedToModel : never
+            > extends TIncludedModel
+          ? TDefinitions['relatedName']
+          : never
+      : never
+    : never]: ModelsFields<TModel>[TKey] extends ForeignKeyField<any, infer TDefinitions, any>
+    ? TDefinitions['allowNull'] extends true
+      ? TDefinitions['unique'] extends true
+        ? 'optionalObject'
+        : 'optionalArray'
+      : TDefinitions['unique'] extends true
+        ? 'object'
+        : 'array'
+    : 'array';
 };
 
 type AddOperation<TField extends Field<any, any, any>> = TField extends
@@ -1200,15 +1118,7 @@ export class CommonQuerySet<
    */
   join<
     TIncludedModel,
-    TRelationName extends
-      | keyof ForeignKeyModelsRelationName<
-          TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel,
-          TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel
-        >
-      | keyof ForeignKeyModelsRelatedName<
-          TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel,
-          TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel
-        >,
+    TRelationName extends keyof TAllRelationNames | keyof TAllRelatedNames,
     TNestedQuerySet extends (
       querySet: ReturnTypeOfBaseQuerySetMethods<
         TType,
@@ -1343,7 +1253,29 @@ export class CommonQuerySet<
           THasRemove,
           true,
           never
-        >
+        >,
+    TAllRelationNames extends ForeignKeyModelsRelationName<
+      TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel,
+      TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel
+    > = ForeignKeyModelsRelationName<
+      TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel,
+      TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel
+    >,
+    TAllRelatedNames extends ForeignKeyModelsRelatedName<
+      TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel,
+      TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel
+    > = ForeignKeyModelsRelatedName<
+      TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel,
+      TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel
+    >,
+    TToJoin =
+      | TAllRelatedNames[TRelationName extends keyof TAllRelatedNames ? TRelationName : never]
+      | TAllRelationNames[TRelationName extends keyof TAllRelationNames ? TRelationName : never],
+    TReturnFromNestedQuerySet = ReturnType<TNestedQuerySet> extends
+      | QuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
+      | CommonQuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
+      ? TResult
+      : never
   >(
     model: TIncludedModel,
     relationName: TRelationName,
@@ -1352,31 +1284,13 @@ export class CommonQuerySet<
     TType,
     TModel,
     TResult & {
-      [TKey in TRelationName]: ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName] extends undefined[]
-        ? (ReturnType<TNestedQuerySet> extends
-            | QuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
-            | CommonQuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
-            ? TResult
-            : never)[]
-        : ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName] extends unknown[]
-          ? (ReturnType<TNestedQuerySet> extends
-              | QuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
-              | CommonQuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
-              ? TResult
-              : never)[]
-          :
-                | ForeignKeyModelsRelatedName<TIncludedModel, TModel>[TRelationName]
-                | ForeignKeyModelsRelationName<TModel, TIncludedModel>[TRelationName] extends undefined
-            ? ReturnType<TNestedQuerySet> extends
-                | QuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
-                | CommonQuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
-              ? TResult | undefined
-              : never
-            : ReturnType<TNestedQuerySet> extends
-                  | CommonQuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
-                  | QuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
-              ? TResult
-              : never;
+      [TKey in TRelationName]: TToJoin extends 'optionalObject'
+        ? TReturnFromNestedQuerySet | undefined
+        : TToJoin extends 'array' | 'optionalArray'
+          ? TReturnFromNestedQuerySet[]
+          : TToJoin extends 'object'
+            ? TReturnFromNestedQuerySet
+            : TReturnFromNestedQuerySet[];
     },
     Omit<
       TUpdate,

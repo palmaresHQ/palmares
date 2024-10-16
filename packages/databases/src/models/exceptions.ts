@@ -8,6 +8,20 @@ export class ModelNoUniqueFieldsError extends Error {
   }
 }
 
+/**
+ * The Primary key is required, because we do relations in memory.
+ * Without that for some databases/orms it would not behave as expected.
+ */
+export class ModelNoPrimaryKeyFieldError extends Error {
+  constructor(modelName: string) {
+    super(
+      `Model ${modelName} has no primary key field, it should have at least one primary key. ` +
+        `If it's an abstract model, you need to set "abstract" to true in the model options.`
+    );
+    this.name = ModelNoPrimaryKeyFieldError.name;
+  }
+}
+
 export class ModelCircularAbstractError extends Error {
   constructor(originalModelName: string, abstractModelName: string) {
     super(`Model ${originalModelName} have a circular abstract dependency with ${abstractModelName}`);
@@ -17,8 +31,8 @@ export class ModelCircularAbstractError extends Error {
 export class ModelInvalidAbstractFieldError extends Error {
   constructor(modelName: string, abstractModelName: string, fieldName: string) {
     super(
-      `The abstract model ${abstractModelName} already have a field named ${fieldName}, ` +
-        `please rename the field ${fieldName} in the ${modelName} model`
+      `The abstract model '${abstractModelName}' already have a field named '${fieldName}', ` +
+        `please rename the field ${fieldName} in the '${modelName}' model or remove the abstract`
     );
   }
 }
@@ -27,7 +41,7 @@ export class ModelInvalidAbstractManagerError extends Error {
   constructor(modelName: string, abstractModelName: string, managerName: string) {
     super(
       `The abstract model ${abstractModelName} already have a manager named ${managerName}, ` +
-        `please rename the field ${managerName} in the ${modelName} model`
+        `please rename the manager '${managerName}' in the ${modelName} model`
     );
     this.name = ModelInvalidAbstractManagerError.name;
   }

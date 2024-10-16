@@ -19,6 +19,28 @@ export const databaseLogger = new Logger(
       category: 'info',
       handler: ({ databaseName }: { databaseName: string }) => `Couldn't connect to the '${databaseName}' database.`
     },
+    FAILED_TO_GET_LAST_MIGRATION: {
+      category: 'error',
+      handler: ({ databaseName, reason, stack }: { databaseName: string; reason: string; stack: string }) =>
+        `Failed to get the last migration for the '${databaseName}' database.` +
+        `\n\n\x1b[1mReason:\x1b[0m ${reason}\n\n\x1b[1mStack:\x1b[0m ${stack}`
+    },
+    FAILED_TO_COMMIT_MIGRATION: {
+      category: 'error',
+      handler: ({
+        migrationName,
+        databaseName,
+        reason,
+        stack
+      }: {
+        migrationName: string;
+        databaseName: string;
+        reason: string;
+        stack: string;
+      }) =>
+        `Failed to get insert ran migration '${migrationName}' for the '${databaseName}' database.` +
+        `\n\n\x1b[1mReason:\x1b[0m ${reason}\n\n\x1b[1mStack:\x1b[0m ${stack}`
+    },
     MIGRATIONS_NOT_FOUND: {
       category: 'warn',
       handler: ({ domainName }: { domainName: string }) =>
