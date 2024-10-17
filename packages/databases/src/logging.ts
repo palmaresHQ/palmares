@@ -1,5 +1,7 @@
 import { Logger } from '@palmares/logging';
 
+import type { parseSearchField } from './queries/search';
+
 export const databaseLogger = new Logger(
   { domainName: '@palmares/databases' },
   {
@@ -94,6 +96,26 @@ export const databaseLogger = new Logger(
     NO_CHANGES_MADE_FOR_MIGRATIONS: {
       category: 'info',
       handler: () => `No changes were found in your models.`
+    },
+    QUERY_NOT_PROPERLY_SET: {
+      category: 'warn',
+      handler: ({
+        modelName,
+        invalidFields
+      }: {
+        modelName: string;
+        invalidFields: Map<string, NonNullable<Awaited<ReturnType<typeof parseSearchField>>>>;
+      }) => {
+        const errorsByField = Array.from(invalidFields)
+          .map(([_, isValidObject]) => {
+            return `- ${isValidObject.reason}`;
+          })
+          .join('\n');
+        return (
+          `The fields on the query to retrieve '${modelName}' data was not set properly` +
+          ` and contain wrong or missing data\n\n${errorsByField}`
+        );
+      }
     }
   }
 );

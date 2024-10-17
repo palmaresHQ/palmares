@@ -71,6 +71,7 @@ export { generateUUID } from './utils/index';
 
 export type { ForeignKeyModelsRelatedName, ForeignKeyModelsRelationName } from './queries/queryset';
 export { DatabasesDomain };
+export { setDatabaseConfig } from './standalone';
 export default DatabasesDomain;
 /*
 class Test extends Manager {

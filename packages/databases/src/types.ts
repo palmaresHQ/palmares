@@ -71,6 +71,7 @@ export type DatabaseSettingsType = {
 
 export type OptionalMakemigrationsArgsType = {
   empty?: string;
+  useTs?: boolean;
 };
 
 export type This<T extends new (...args: any) => any> = {

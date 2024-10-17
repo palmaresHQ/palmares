@@ -1,4 +1,5 @@
 import { parseSearchField } from './search';
+import { databaseLogger } from '../logging';
 import { Manager } from '../models';
 import { initialize as define, model } from '../models/model';
 import { retrieveInputAndOutputParsersFromFieldAndCache } from '../models/utils';
@@ -385,7 +386,7 @@ export class QuerySet<
     search: any
   ) {
     if (search) {
-      const invalidFields = new Set();
+      const invalidFields = new Map<string, NonNullable<Awaited<ReturnType<typeof parseSearchField>>>>();
       let fieldsInModelInstance = [];
       const fieldsInSearch = Object.keys(search);
 
@@ -410,7 +411,7 @@ export class QuerySet<
           : // eslint-disable-next-line ts/require-await
             async (value: any) => value;
         if (fieldsInModelInstance.includes(key)) {
-          const isValid = await parseSearchField(
+          const isValidObject = await parseSearchField(
             engine,
             key,
             search[key],
@@ -418,7 +419,7 @@ export class QuerySet<
             translatedModel,
             formattedSearch
           );
-          if (isValid === false) invalidFields.add(key);
+          if (isValidObject?.isValid === false) invalidFields.set(key, isValidObject);
         }
       });
       await Promise.all(promises);
@@ -638,6 +639,10 @@ export class QuerySet<
       // Engine, and return early.
       if (invalidFields.size > 0) {
         this.__cachedData = Promise.resolve([]);
+        databaseLogger.logMessage('QUERY_NOT_PROPERLY_SET', {
+          modelName: model['__getName'](),
+          invalidFields
+        });
         return this.__cachedData;
       }
 

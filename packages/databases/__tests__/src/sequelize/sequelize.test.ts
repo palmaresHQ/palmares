@@ -41,6 +41,34 @@ describe<JestTestAdapter>('sequelize models', ({ test }) => {
     expect(company[0].usersOfCompany[0]?.profileTypeId).toBe(company[0].usersOfCompany[0]?.profileType?.id);
   });
 
+  test('Set update on relation', async ({ expect }) => {
+    const company = await Company.default.set((qs) =>
+      qs
+        .join(User, 'usersOfCompany', (qs) =>
+          qs
+            .join(ProfileType, 'profileType', (qs) =>
+              qs
+                .where({
+                  id: 1
+                })
+                .data({
+                  name: 'admin2'
+                })
+            )
+            .data({
+              name: 'hello'
+            })
+        )
+        .data({
+          name: 'hello'
+        })
+    );
+
+    const companyId = company[0].id;
+    expect(company[0].usersOfCompany[0]?.companyId).toBe(companyId);
+    expect(company[0].usersOfCompany[0]?.profileTypeId).toBe(company[0].usersOfCompany[0]?.profileType?.id);
+  });
+
   /*
   test('its working with functions', async ({ expect }) => {
     await Company.default.set({ name: 'test', address: 'test', translatable: 'here'});

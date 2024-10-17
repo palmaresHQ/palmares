@@ -18,7 +18,7 @@ export async function parseSearchField(
   inputFieldParser: (value: any) => Promise<any>,
   translatedModelInstance: InstanceType<ReturnType<typeof model>>,
   result: any
-) {
+): Promise<undefined | { isValid: false; code: string; reason: string }> {
   // eslint-disable-next-line ts/no-unnecessary-condition
   if (typeof fieldData === 'object' && fieldData !== null) {
     if (typeof fieldData.like === 'object') {
@@ -74,8 +74,8 @@ export async function parseSearchField(
 
     // AND
     if (fieldData.and !== undefined) {
-      const isArrayAndBiggerThanOneElement = Array.isArray(fieldData.and) && fieldData.and.length > 1;
-      if (isArrayAndBiggerThanOneElement) {
+      const isArrayAndAtLeastOneElement = Array.isArray(fieldData.and) && fieldData.and.length > 1;
+      if (isArrayAndAtLeastOneElement) {
         await engine.query.search.parseSearchFieldValue(
           'and',
           key,
@@ -83,14 +83,19 @@ export async function parseSearchField(
           await inputFieldParser(fieldData.and),
           result
         );
-      } else return false;
+      } else
+        return {
+          isValid: false,
+          code: 'invalid_in',
+          reason: `The field '${key}' must contain at least two elements when using the 'and' clause`
+        };
     }
 
     // OR
     if (fieldData.or !== undefined) {
-      const isArrayAndBiggerThanOneElement = Array.isArray(fieldData.or) && fieldData.or.length > 1;
+      const isArrayAndAtLeastTwoElements = Array.isArray(fieldData.or) && fieldData.or.length > 1;
 
-      if (isArrayAndBiggerThanOneElement) {
+      if (isArrayAndAtLeastTwoElements) {
         await engine.query.search.parseSearchFieldValue(
           'or',
           key,
@@ -98,17 +103,23 @@ export async function parseSearchField(
           await inputFieldParser(fieldData.or),
           result
         );
-      } else return false;
+      } else
+        return {
+          isValid: false,
+          code: 'invalid_in',
+          reason: `The field '${key}' must contain at least two elements when using the 'or' clause`
+        };
     }
 
     // IN
     if (fieldData.in !== undefined) {
-      const isInArrayAndBiggerThanOneElement =
-        (Array.isArray(fieldData.in) && fieldData.in.length > 1) ||
-        (Array.isArray((fieldData.in as any)?.not) && ((fieldData.in as any)?.not || []).length > 1);
-      const isInNotArrayAndBiggerThanOneElement =
-        Array.isArray((fieldData.in as any)?.not) && ((fieldData.in as any)?.not || []).length > 1;
-      if (isInArrayAndBiggerThanOneElement) {
+      const isInArrayAndAtLeastOneElement =
+        (Array.isArray(fieldData.in) && fieldData.in.length > 0) ||
+        (Array.isArray((fieldData.in as any)?.not) && ((fieldData.in as any)?.not || []).length > 0);
+      const isInNotArrayAndAtLeastOneElement =
+        Array.isArray((fieldData.in as any)?.not) && ((fieldData.in as any)?.not || []).length > 0;
+
+      if (isInArrayAndAtLeastOneElement) {
         await engine.query.search.parseSearchFieldValue(
           'in',
           key,
@@ -117,7 +128,7 @@ export async function parseSearchField(
           await Promise.all(((fieldData.in || []) as any[]).map((inValue) => inputFieldParser(inValue))),
           result
         );
-      } else if (isInNotArrayAndBiggerThanOneElement) {
+      } else if (isInNotArrayAndAtLeastOneElement) {
         await engine.query.search.parseSearchFieldValue(
           'in',
           key,
@@ -129,7 +140,12 @@ export async function parseSearchField(
             isNot: true
           }
         );
-      } else return false;
+      } else
+        return {
+          isValid: false,
+          code: 'invalid_in',
+          reason: `The field '${key}' must contain at least one element when using the 'in' clause`
+        };
     }
 
     // BETWEEN
@@ -164,7 +180,12 @@ export async function parseSearchField(
             isNot: true
           }
         );
-      } else return false;
+      } else
+        return {
+          isValid: false,
+          code: 'invalid_between',
+          reason: `The field '${key}' must have exactly two elements when using the 'between' clause`
+        };
     }
 
     // IS

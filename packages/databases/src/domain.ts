@@ -17,7 +17,7 @@ declare global {
   // eslint-disable-next-line no-var
   var $PCachedDatabaseDomains: DatabaseDomainInterface[] | undefined;
 }
-function loadDatabases(databaseDomains?: DatabaseDomainInterface[]) {
+export function loadDatabases(databaseDomains?: DatabaseDomainInterface[]) {
   if (Array.isArray(databaseDomains)) globalThis.$PCachedDatabaseDomains = databaseDomains;
   if (!globalThis.$PDatabases) globalThis.$PDatabases = new Databases();
   return [globalThis.$PDatabases, globalThis.$PCachedDatabaseDomains] as const;

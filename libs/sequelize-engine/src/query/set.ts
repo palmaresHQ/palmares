@@ -8,14 +8,13 @@ export default adapterSetQuery({
       await args.modelOfEngineInstance.update(args.data[0], {
         where: args.search,
         transaction: args.transaction,
-        individualHooks: true,
-        returning: true
+        individualHooks: true
       });
       const search = await args.modelOfEngineInstance.findAll({
         where: args.search,
         transaction: args.transaction
       });
-      return Promise.all(search.map((each: any) => [false, each.toJSON()]));
+      return search.map((each: any) => [false, each.toJSON()]);
     }
 
     return Promise.all(
@@ -25,6 +24,7 @@ export default adapterSetQuery({
           (
             await (args.modelOfEngineInstance as ModelCtor<any>).create(eachData, {
               transaction: args.transaction,
+              individualHooks: true,
               returning: true
             })
           ).toJSON()

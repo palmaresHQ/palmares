@@ -572,7 +572,7 @@ export class MakeMigrations {
     const migrationNumberToString =
       migrationNumber < 10 ? `00${migrationNumber}` : migrationNumber < 100 ? `0${migrationNumber}` : migrationNumber;
     const migrationName = `${migrationNumberToString}_${this.database}_auto_migration_${Date.now().toString()}`;
-    const settingsIsTs = ((this.settings as any)?.settingsLocation || '').endsWith('.ts');
+    const settingsIsTs = ((this.settings as any)?.settingsLocation || '').endsWith('.ts') || this.optionalArgs.useTs;
     databaseLogger.logMessage('MIGRATIONS_FILE_TITLE', { title: migrationName });
     databaseLogger.logMessage('MIGRATIONS_FILE_DESCRIPTION', {
       database: this.database,

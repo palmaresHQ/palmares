@@ -96,7 +96,6 @@ export class Manager<
    * retrieve the data from the model
    */
   protected async __verifyIfNotInitializedAndInitializeModels(engineName: string) {
-    console.log('Databases', Databases);
     const database = new Databases();
 
     const canInitializeTheModels =
@@ -104,18 +103,26 @@ export class Manager<
     this.__isLazyInitializing = true;
 
     if (canInitializeTheModels) {
-      const settings = getSettings() as unknown as DatabaseSettingsType;
-      // Testing environments does not share the same global data. So we need to refetch it again.
-      const { domains } = await initializeDomains(
-        settings as unknown as SettingsType2,
-        (settings as any)?.$$test
-          ? {
-              ignoreCache: true,
-              ignoreCommands: true
-            }
-          : undefined
-      );
-      await database.lazyInitializeEngine(engineName, settings, domains as DatabaseDomainInterface[]);
+      const globalDomains = globalThis.$PCachedDatabaseDomains;
+      let domains = globalDomains;
+      let settings = database.settings;
+
+      // eslint-disable-next-line ts/no-unnecessary-condition
+      if (Array.isArray(domains) === false || settings === undefined) {
+        settings = getSettings() as unknown as DatabaseSettingsType;
+        // Testing environments does not share the same global data. So we need to refetch it again.
+        const { domains: initializedDomains } = await initializeDomains(
+          settings as unknown as SettingsType2,
+          (settings as any)?.$$test
+            ? {
+                ignoreCache: true,
+                ignoreCommands: true
+              }
+            : undefined
+        );
+        domains = initializedDomains as DatabaseDomainInterface[];
+      }
+      await database.lazyInitializeEngine(engineName, settings, domains);
       return true;
     }
     return new Promise((resolve) => {
