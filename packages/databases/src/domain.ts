@@ -17,7 +17,7 @@ declare global {
   // eslint-disable-next-line no-var
   var $PCachedDatabaseDomains: DatabaseDomainInterface[] | undefined;
 }
-function loadDatabases(databaseDomains?: DatabaseDomainInterface[]) {
+export function loadDatabases(databaseDomains?: DatabaseDomainInterface[]) {
   if (Array.isArray(databaseDomains)) globalThis.$PCachedDatabaseDomains = databaseDomains;
   if (!globalThis.$PDatabases) globalThis.$PDatabases = new Databases();
   return [globalThis.$PDatabases, globalThis.$PCachedDatabaseDomains] as const;
@@ -79,9 +79,10 @@ export const databasesDomain = domain('@palmares/database', '', {
   },
   // eslint-disable-next-line ts/require-await
   load: async (_: DatabaseSettingsType) => {
+    // eslint-disable-next-line ts/require-await
     return async (options: DomainReadyFunctionArgs<DatabaseSettingsType, any>) => {
       const databaseDomains = options.domains as DatabaseDomainInterface[];
-      await loadDatabases(databaseDomains);
+      loadDatabases(databaseDomains);
     };
   },
   ready: async (options: DomainReadyFunctionArgs<DatabaseSettingsType, any>) => {

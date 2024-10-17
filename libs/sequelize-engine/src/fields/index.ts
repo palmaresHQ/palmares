@@ -17,7 +17,7 @@ import { handleRelatedField } from '../utils';
 
 import type SequelizeEngine from '../engine';
 import type { TranslatedFieldToEvaluateAfterType } from '../types';
-import type { Field, ForeignKeyField } from '@palmares/databases';
+import type { AdapterFieldParserTranslateArgs, AdapterForeignKeyFieldParser } from '@palmares/databases';
 import type { Model, ModelCtor } from 'sequelize';
 
 /**
@@ -46,12 +46,16 @@ export default adapterFields({
     engine,
     _modelName: string,
     translatedModel: ModelCtor<Model>,
-    field: Field,
+    field: AdapterFieldParserTranslateArgs<'field'>['field'],
     fieldTranslated: TranslatedFieldToEvaluateAfterType
   ) => {
     switch (fieldTranslated.type) {
       case 'foreign-key':
-        handleRelatedField(engine as InstanceType<typeof SequelizeEngine>, field as ForeignKeyField, fieldTranslated);
+        handleRelatedField(
+          engine as InstanceType<typeof SequelizeEngine>,
+          field as Parameters<AdapterForeignKeyFieldParser['translate']>[0]['field'],
+          fieldTranslated
+        );
         break;
       case 'date':
         translatedModel.addHook('beforeSave', `${field.fieldName}AutoNow`, (instance: Model) => {

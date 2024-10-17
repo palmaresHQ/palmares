@@ -9,7 +9,8 @@ export function getUniqueCustomImports(
   customImports: CustomImportsForFieldType[],
   customImportsToAppendDataTo: CustomImportsForFieldType[] = []
 ) {
-  for (const customImport of customImports) {
+  // eslint-disable-next-line ts/no-unnecessary-condition
+  for (const customImport of customImports || []) {
     const doesNotExistYet =
       customImportsToAppendDataTo.find(
         (alreadyExistingCustom) =>

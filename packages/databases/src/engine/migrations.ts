@@ -8,7 +8,8 @@ import type { InitializedModelsType } from '../types';
 /**
  * Functional approach for the migrations. This is used to run the migrations.
  *
- * DatabaseAdapter migrations enables developers to have migrations easily and automatically, no matter the orm they use.
+ * DatabaseAdapter migrations enables developers to have migrations easily and automatically, no
+ * matter the orm they use.
  *
  * This can run FOR EACH MIGRATION FILE. So if you have 10 migration files this flow will run 10 times.
  * Or you can opt in to batchAll and let your ORM handle the migrations.
@@ -26,15 +27,22 @@ export function adapterMigrations<
   TFunctionFinish extends AdapterMigrations['finish']
 >(args: {
   /**
-   * This function is COMPLETELY optional and allows you to batch all of the migrations on a single function. By default we run each migration file one by one, but for stuff like Prisma
-   * we do not have this option. Prisma already migrates everything on a single command. So what we do is that instead of running each migration file one by one we run all of them at once.
-   * We just generate the current state of the database and pass it to the batch function. Imagine that the state holds the strings of each model, so with that we just need to create the
-   * .schema file and let the ORM do the rest.
+   * This function is COMPLETELY optional and allows you to batch all of the migrations on a single function.
+   * By default we run each migration file one by one, but for stuff like Prisma we do not have this option.
+   * Prisma already migrates everything on a single command. So what we do is that instead of running each
+   * migration file one by one we run all of them at once.
+   * We just generate the current state of the database and pass it to the batch function. Imagine that the
+   * state holds the strings of each model, so with that we just need to create the .schema file and let the
+   * ORM do the rest.
    *
    * A simple prisma Example (it can be more complicated than that but you get the idea):
    * @example
    * ```ts
-   * async currentBatch(engine: DatabaseAdapter, toStateModels: OriginalOrStateModelsByNameType, returnOfInit: any): Promise<void> {
+   * async currentBatch(
+   *   engine: DatabaseAdapter,
+   *   toStateModels: OriginalOrStateModelsByNameType,
+   *   returnOfInit: any
+   * ): Promise<void> {
    *   for (const model of Object.values(toStateModels)) {
    *     fs.appendFileSync('./prisma/schema.prisma', model.initialized);
    *   }
@@ -44,13 +52,15 @@ export function adapterMigrations<
    * ```
    *
    * @param _engine - The engine instance that is running the migrations.
-   * @param _toStateModels - All of the models on a key/value pair where the key is the name of the model and the value is the model itself.
+   * @param _toStateModels - All of the models on a key/value pair where the key is the name of the model and the
+   * value is the model itself.
    * @param _returnOfInit - The return of the init function, if you implemented it, otherwise it will be undefined.
    */
   batchAll?: TFunctionBatchAll;
 
   /**
-   * This is called before the migrations are run. If you want to initialize something before the migrations run you can use this function, but it's totally optional and not required.
+   * This is called before the migrations are run. If you want to initialize something before the migrations run you can
+   * use this function, but it's totally optional and not required.
    *
    * **Be aware: what you return from this function will be passed to all of the other functions as the LAST argument.**
    *
@@ -67,7 +77,8 @@ export function adapterMigrations<
   init?: TFunctionInit;
 
   /**
-   * This is called when we are creating a new column on the database. A model represent a table on the database (if we are talking about SQL databases).
+   * This is called when we are creating a new column on the database. A model represent a table on the database (if we
+   * are talking about SQL databases).
    *
    * @example
    * ```ts
@@ -121,7 +132,8 @@ export function adapterMigrations<
    */
   removeModel: TFunctionRemoveModel;
   /**
-   * Used when the user changes the model. Let's say that the user changed the model name, added a new index, changed the ordering, changed pretty much any model configuration.
+   * Used when the user changes the model. Let's say that the user changed the model name, added a new index, changed
+   * the ordering, changed pretty much any model configuration.
    *
    * This is called when the model had changed, not the fields but the options.
    *
@@ -149,14 +161,16 @@ export function adapterMigrations<
    * ```
    *
    * @param _engine - The engine instance that is running the migrations.
-   * @param _toModel - How the model state IS right now when running the migration, this is how the model will be after running the migration.
+   * @param _toModel - How the model state IS right now when running the migration, this is how the model will
+   * be after running the migration.
    * @param _fromModel -  How the model state WILL BE before running the migration.
    * @param _migration - The migration instance that is running the migrations.
    * @param _returnOfInit - The return of the init function, if you implemented it, otherwise it will be undefined.
    */
   changeModel: TFunctionChangeModel;
   /**
-   * When the user already has a model and you add a new field to the model this is used. So, in other words, this is used to add new fields to existing models.
+   * When the user already has a model and you add a new field to the model this is used. So, in other words, this
+   * is used to add new fields to existing models.
    *
    * Here is a sequelize example:
    * @example
@@ -189,7 +203,8 @@ export function adapterMigrations<
    * ```
    *
    * @param _engine - The engine instance that is running the migrations.
-   * @param _toModel - How the model state IS right now when running the migration, this is how the model will be after running the migration. You can take the field data from the actual model instance.
+   * @param _toModel - How the model state IS right now when running the migration, this is how the model will be
+   * after running the migration. You can take the field data from the actual model instance.
    * @param _fromModel - How the model state WAS before running the migration.
    * @param _fieldName -THe name of the field that is being added to the database.
    * @param _migration - The migration instance that is running the migrations.
@@ -197,7 +212,8 @@ export function adapterMigrations<
    */
   addField: TFunctionAddField;
   /**
-   * When the user already has a model and a field but he makes changes to this field adding another attribute, changing the type, changing the name, etc.
+   * When the user already has a model and a field but he makes changes to this field adding another attribute, changing
+   * the type, changing the name, etc.
    *
    * This is called when the field had changed, not the model but the field specifically.
    *
@@ -251,7 +267,8 @@ export function adapterMigrations<
    * ```
    *
    * @param _engine - The engine instance that is running the migrations.
-   * @param _toModel - How the model state IS right now when running the migration, this is how the model will be after running the migration.
+   * @param _toModel - How the model state IS right now when running the migration, this is how the model will be
+   * after running the migration.
    * @param _fromModel - How the model state WAS before running the migration.
    * @param _fieldBefore - How the field WAS
    * @param _fieldAfter - How the field WILL BE.
@@ -260,8 +277,9 @@ export function adapterMigrations<
    */
   changeField: TFunctionChangeField;
   /**
-   * Pretty much called whenever the user renames a field. Why this is done outside of the `changeField`? Because renaming a field can do change some values on the database. Some databases
-   * might prefer to recreate the field from scratch, we opt for maintaining the data and renaming the field only.
+   * Pretty much called whenever the user renames a field. Why this is done outside of the `changeField`? Because
+   * renaming a field can do change some values on the database. Some databases might prefer to recreate the field
+   * from scratch, we opt for maintaining the data and renaming the field only.
    *
    * Here is a Sequelize example:
    * @example
@@ -288,7 +306,8 @@ export function adapterMigrations<
    * ```
    *
    * @param _engine - The engine instance that is running the migrations.
-   * @param _toModel - How the model state IS right now when running the migration, this is how the model will be after running the migration.
+   * @param _toModel - How the model state IS right now when running the migration, this is how the model will be
+   * after running the migration.
    * @param _fromModel - How the model state WAS before running the migration.
    * @param _fieldNameBefore - How the name of the model WAS.
    * @param _fieldNameAfter - How the name of the model WILL BE.
@@ -298,7 +317,8 @@ export function adapterMigrations<
   renameField: TFunctionRenameField;
 
   /**
-   * When a model already exists but we just want to remove an existing field that was created (if it was renamed we call renamed. We actually ask the user for what happened)
+   * When a model already exists but we just want to remove an existing field that was created (if it was renamed we
+   * call renamed. We actually ask the user for what happened)
    *
    * Here is a Sequelize example:
    * @example
@@ -321,7 +341,8 @@ export function adapterMigrations<
    * ```
    *
    * @param _engine - The engine instance that is running the migrations.
-   * @param _toModel - How the model state IS right now when running the migration, this is how the model will be after running the migration.
+   * @param _toModel - How the model state IS right now when running the migration, this is how the model will
+   * be after running the migration.
    * @param _fromModel - How the model state WAS before running the migration.
    * @param _fieldName - The name of the field that will be removed (THAT'S NOT THE DB NAME, BUT THE JS NAME)
    * @param _migration - The migration instance that is running the migrations.
@@ -329,7 +350,8 @@ export function adapterMigrations<
    */
   removeField: TFunctionRemoveField;
   /**
-   * When the migration file finishes running and you want to do some cleanup we call this function. If you don't have any cleanup to do, don't implement this function.
+   * When the migration file finishes running and you want to do some cleanup we call this function. If you don't have
+   * any cleanup to do, don't implement this function.
    *
    * @param _engine - The engine instance that is running the migrations.
    * @param _returnOfInit - The return of the init function, if you implemented it, otherwise it will be undefined.
@@ -366,22 +388,30 @@ export function adapterMigrations<
 }
 
 /**
- * DatabaseAdapter migrations enables developers to have migrations easily and automatically, no matter the orm they use.
+ * DatabaseAdapter migrations enables developers to have migrations easily and automatically, no matter the
+ * ORM they use.
  *
  * This can run FOR EACH MIGRATION FILE. So if you have 10 migration files this flow will run 10 times.
  * Or you can opt in to batchAll and let your ORM handle the migrations.
  */
 export class AdapterMigrations {
   /**
-   * This function is COMPLETELY optional and allows you to batch all of the migrations on a single function. By default we run each migration file one by one, but for stuff like Prisma
-   * we do not have this option. Prisma already migrates everything on a single command. So what we do is that instead of running each migration file one by one we run all of them at once.
-   * We just generate the current state of the database and pass it to the batch function. Imagine that the state holds the strings of each model, so with that we just need to create the
-   * .schema file and let the ORM do the rest.
+   * This function is COMPLETELY optional and allows you to batch all of the migrations on a single function. By
+   * default we run each migration file one by one, but for stuff like Prisma we do not have this option. Prisma
+   * already migrates everything on a single command. So what we do is that instead of running each migration file
+   * one by one we run all of them at once.
+   *
+   * We just generate the current state of the database and pass it to the batch function. Imagine that the state holds
+   * the strings of each model, so with that we just need to create the .schema file and let the ORM do the rest.
    *
    * A simple prisma Example (it can be more complicated than that but you get the idea):
    * @example
    * ```ts
-   * async currentBatch(engine: DatabaseAdapter, toStateModels: OriginalOrStateModelsByNameType, returnOfInit: any): Promise<void> {
+   * async currentBatch(
+   *   engine: DatabaseAdapter,
+   *   toStateModels: OriginalOrStateModelsByNameType,
+   *   returnOfInit: any
+   * ): Promise<void> {
    *   for (const model of Object.values(toStateModels)) {
    *     fs.appendFileSync('./prisma/schema.prisma', model.initialized);
    *   }
@@ -391,7 +421,8 @@ export class AdapterMigrations {
    * ```
    *
    * @param _engine - The engine instance that is running the migrations.
-   * @param _toStateModels - All of the models on a key/value pair where the key is the name of the model and the value is the model itself.
+   * @param _toStateModels - All of the models on a key/value pair where the key is the name of the model and the
+   * value is the model itself.
    * @param _returnOfInit - The return of the init function, if you implemented it, otherwise it will be undefined.
    */
   // eslint-disable-next-line ts/require-await
@@ -404,7 +435,8 @@ export class AdapterMigrations {
   }
 
   /**
-   * This is called before the migrations are run. If you want to initialize something before the migrations run you can use this function, but it's totally optional and not required.
+   * This is called before the migrations are run. If you want to initialize something before the migrations run
+   * you can use this function, but it's totally optional and not required.
    *
    * **Be aware: what you return from this function will be passed to all of the other functions as the LAST argument.**
    *
@@ -424,7 +456,8 @@ export class AdapterMigrations {
   }
 
   /**
-   * This is called when we are creating a new column on the database. A model represent a table on the database (if we are talking about SQL databases).
+   * This is called when we are creating a new column on the database. A model represent a table on the database
+   * (if we are talking about SQL databases).
    *
    * @example
    * ```ts
@@ -496,7 +529,8 @@ export class AdapterMigrations {
   }
 
   /**
-   * Used when the user changes the model. Let's say that the user changed the model name, added a new index, changed the ordering, changed pretty much any model configuration.
+   * Used when the user changes the model. Let's say that the user changed the model name, added a new index,
+   * changed the ordering, changed pretty much any model configuration.
    *
    * This is called when the model had changed, not the fields but the options.
    *
@@ -524,7 +558,8 @@ export class AdapterMigrations {
    * ```
    *
    * @param _engine - The engine instance that is running the migrations.
-   * @param _toModel - How the model state IS right now when running the migration, this is how the model will be after running the migration.
+   * @param _toModel - How the model state IS right now when running the migration, this is how the model will be after
+   * running the migration.
    * @param _fromModel -  How the model state WILL BE before running the migration.
    * @param _migration - The migration instance that is running the migrations.
    * @param _returnOfInit - The return of the init function, if you implemented it, otherwise it will be undefined.
@@ -541,7 +576,8 @@ export class AdapterMigrations {
   }
 
   /**
-   * When the user already has a model and you add a new field to the model this is used. So, in other words, this is used to add new fields to existing models.
+   * When the user already has a model and you add a new field to the model this is used. So, in other words, this is
+   * used to add new fields to existing models.
    *
    * Here is a sequelize example:
    * @example
@@ -574,7 +610,8 @@ export class AdapterMigrations {
    * ```
    *
    * @param _engine - The engine instance that is running the migrations.
-   * @param _toModel - How the model state IS right now when running the migration, this is how the model will be after running the migration. You can take the field data from the actual model instance.
+   * @param _toModel - How the model state IS right now when running the migration, this is how the model will be after
+   * running the migration. You can take the field data from the actual model instance.
    * @param _fromModel - How the model state WAS before running the migration.
    * @param _fieldName -THe name of the field that is being added to the database.
    * @param _migration - The migration instance that is running the migrations.
@@ -593,7 +630,8 @@ export class AdapterMigrations {
   }
 
   /**
-   * When the user already has a model and a field but he makes changes to this field adding another attribute, changing the type, changing the name, etc.
+   * When the user already has a model and a field but he makes changes to this field adding another attribute,
+   * changing the type, changing the name, etc.
    *
    * This is called when the field had changed, not the model but the field specifically.
    *
@@ -647,7 +685,8 @@ export class AdapterMigrations {
    * ```
    *
    * @param _engine - The engine instance that is running the migrations.
-   * @param _toModel - How the model state IS right now when running the migration, this is how the model will be after running the migration.
+   * @param _toModel - How the model state IS right now when running the migration, this is how the model will be
+   * after running the migration.
    * @param _fromModel - How the model state WAS before running the migration.
    * @param _fieldBefore - How the field WAS
    * @param _fieldAfter - How the field WILL BE.
@@ -668,8 +707,9 @@ export class AdapterMigrations {
   }
 
   /**
-   * Pretty much called whenever the user renames a field. Why this is done outside of the `changeField`? Because renaming a field can do change some values on the database. Some databases
-   * might prefer to recreate the field from scratch, we opt for maintaining the data and renaming the field only.
+   * Pretty much called whenever the user renames a field. Why this is done outside of the `changeField`? Because
+   * renaming a field can do change some values on the database. Some databases might prefer to recreate the field
+   * from scratch, we opt for maintaining the data and renaming the field only.
    *
    * Here is a Sequelize example:
    * @example
@@ -696,7 +736,8 @@ export class AdapterMigrations {
    * ```
    *
    * @param _engine - The engine instance that is running the migrations.
-   * @param _toModel - How the model state IS right now when running the migration, this is how the model will be after running the migration.
+   * @param _toModel - How the model state IS right now when running the migration, this is how the model will
+   * be after running the migration.
    * @param _fromModel - How the model state WAS before running the migration.
    * @param _fieldNameBefore - How the name of the model WAS.
    * @param _fieldNameAfter - How the name of the model WILL BE.
@@ -717,7 +758,8 @@ export class AdapterMigrations {
   }
 
   /**
-   * When a model already exists but we just want to remove an existing field that was created (if it was renamed we call renamed. We actually ask the user for what happened)
+   * When a model already exists but we just want to remove an existing field that was created (if it was renamed
+   * we call renamed. We actually ask the user for what happened)
    *
    * Here is a Sequelize example:
    * @example
@@ -740,7 +782,8 @@ export class AdapterMigrations {
    * ```
    *
    * @param _engine - The engine instance that is running the migrations.
-   * @param _toModel - How the model state IS right now when running the migration, this is how the model will be after running the migration.
+   * @param _toModel - How the model state IS right now when running the migration, this is how the model will be
+   * after running the migration.
    * @param _fromModel - How the model state WAS before running the migration.
    * @param _fieldName - The name of the field that will be removed (THAT'S NOT THE DB NAME, BUT THE JS NAME)
    * @param _migration - The migration instance that is running the migrations.
@@ -759,7 +802,8 @@ export class AdapterMigrations {
   }
 
   /**
-   * When the migration file finishes running and you want to do some cleanup we call this function. If you don't have any cleanup to do, don't implement this function.
+   * When the migration file finishes running and you want to do some cleanup we call this function. If you don't have
+   * any cleanup to do, don't implement this function.
    *
    * @param _engine - The engine instance that is running the migrations.
    * @param _returnOfInit - The return of the init function, if you implemented it, otherwise it will be undefined.

@@ -8,6 +8,8 @@ import * as actions from '../actions';
 import { State } from '../state';
 
 import type { EmptyOptionsOnGenerateFilesType, FieldOrModelParamType } from './types';
+import type { DatabaseAdapter } from '../../engine';
+import type { BaseModel, Model } from '../../models';
 import type { Field } from '../../models/fields';
 import type { CustomImportsForFieldType } from '../../models/fields/types';
 import type { ModelFieldsType } from '../../models/types';
@@ -37,8 +39,9 @@ export class MakeMigrations {
   database: string;
   filteredMigrationsOfDatabase: FoundMigrationsFileType[];
   optionalArgs: OptionalMakemigrationsArgsType;
-
+  engine: DatabaseAdapter<any>;
   constructor(
+    engine: DatabaseAdapter<any>,
     database: string,
     settings: DatabaseSettingsType,
     originalModels: InitializedModelsType[],
@@ -46,6 +49,7 @@ export class MakeMigrations {
     filteredMigrationsOfDatabase: FoundMigrationsFileType[],
     optionalArgs: OptionalMakemigrationsArgsType
   ) {
+    this.engine = engine;
     this.database = database;
     this.filteredMigrationsOfDatabase = filteredMigrationsOfDatabase;
     this.optionalArgs = optionalArgs;
@@ -65,13 +69,12 @@ export class MakeMigrations {
   modelsArrayToObjectByName(originalModels: InitializedModelsType[], stateModels: InitializedModelsType[]): void {
     this.#originalModelsByName = {};
     this.#stateModelsByName = {};
-
     for (const originalModel of originalModels) {
-      this.#originalModelsByName[originalModel.class.originalName()] = originalModel;
+      this.#originalModelsByName[originalModel.class['__originalName']()] = originalModel;
     }
 
     for (const stateModel of stateModels) {
-      this.#stateModelsByName[stateModel.class.originalName()] = stateModel;
+      this.#stateModelsByName[stateModel.class['__originalName']()] = stateModel;
     }
   }
 
@@ -300,11 +303,11 @@ export class MakeMigrations {
       case 'field':
         const originalField = originalModelOrField as Field;
         return actions.RenameField.toGenerate(
-          originalField.model.domainName,
-          originalField.model.domainPath,
-          originalField.model.originalName(),
+          originalField['__model']?.['__domainName'] as string,
+          originalField['__model']?.['__domainPath'] as string,
+          originalField['__model']?.['__originalName']() as string,
           {
-            fieldDefinition: originalField,
+            fieldDefinition: originalField['__getArguments']() as any,
             fieldNameAfter: renamedTo,
             fieldNameBefore: fieldOrModelName
           }
@@ -332,9 +335,9 @@ export class MakeMigrations {
       case 'field':
         const stateField = stateFieldOrModel as Field;
         return actions.DeleteField.toGenerate(
-          stateField.model.domainName,
-          stateField.model.domainPath,
-          stateField.model.originalName(),
+          stateField['__model']?.['__domainName'] as string,
+          stateField['__model']?.['__domainPath'] as string,
+          stateField['__model']?.['__originalName']() as string,
           {
             fieldName: fieldOrModelName
           }
@@ -380,10 +383,10 @@ export class MakeMigrations {
         const fieldName = fieldOrModelName;
         const isDefaultValueNotDefinedAndFieldDoesNotAllowNull =
           // eslint-disable-next-line ts/no-unnecessary-condition
-          originalField.defaultValue === undefined && originalField.allowNull === false;
+          originalField['__defaultValue'] === undefined && originalField['__allowNull'] === false;
         if (isDefaultValueNotDefinedAndFieldDoesNotAllowNull) {
           const answer = await Asker.theNewAttributeCantHaveNullDoYouWishToContinue(
-            originalField.model.originalName(),
+            originalField['__model']?.['__originalName']?.() as string,
             fieldName
           );
           if (answer === false) {
@@ -391,9 +394,9 @@ export class MakeMigrations {
           }
         }
         return actions.CreateField.toGenerate(
-          originalField.model.domainName,
-          originalField.model.domainPath,
-          originalField.model.originalName(),
+          originalField['__model']?.['__domainName'] as string,
+          originalField['__model']?.['__domainPath'] as string,
+          originalField['__model']?.['__originalName']?.() as string,
           {
             fieldDefinition: originalField,
             fieldName: fieldName
@@ -403,12 +406,12 @@ export class MakeMigrations {
         // eslint-disable-next-line no-case-declarations
         const originalInitializedModel = originalFieldOrModel as InitializedModelsType;
         return actions.CreateModel.toGenerate(
-          originalInitializedModel.domainName,
-          originalInitializedModel.domainPath,
+          originalInitializedModel['domainName'],
+          originalInitializedModel['domainPath'],
           fieldOrModelName,
           {
-            fields: originalInitializedModel.original.fields,
-            options: originalInitializedModel.original.options || {}
+            fields: originalInitializedModel.class['_fields'](),
+            options: originalInitializedModel.class['_options']() || {}
           }
         );
     }
@@ -421,39 +424,39 @@ export class MakeMigrations {
     originalInitializedModel: InitializedModelsType
   ) {
     let response = undefined;
-    const areModelsEqual = await originalInitializedModel.original._compareModels(stateInitializedModel.original);
+    const areModelsEqual = await originalInitializedModel.class['__compareModels'](
+      this.engine,
+      originalInitializedModel.class as typeof Model & typeof BaseModel,
+      stateInitializedModel.class as typeof Model & typeof BaseModel
+    );
     if (!areModelsEqual) {
       response = actions.ChangeModel.toGenerate(
         originalInitializedModel.domainName,
         originalInitializedModel.domainPath,
         modelName,
         {
-          optionsAfter: originalInitializedModel.original.options || {},
-          optionsBefore: stateInitializedModel.original.options || {}
+          optionsAfter: originalInitializedModel.class['_options']() || {},
+          optionsBefore: stateInitializedModel.class['_options']() || {}
         }
       );
     }
+
     await this.#getOperationsFromModelsOrFields(
-      originalInitializedModel.original.fields,
-      stateInitializedModel.original.fields,
+      originalInitializedModel.class['_fields'](),
+      stateInitializedModel.class['_fields'](),
       'field',
       operations
     );
     return response;
   }
 
-  async #fieldWasUpdated(
-    fieldName: string,
-    stateField: Field<any, any, any, any, any, any, any, any>,
-    originalField: Field<any, any, any, any, any, any, any, any>
-  ) {
-    const [areFieldsEqual, changedAttributes] = await originalField.compare(stateField);
-
+  async #fieldWasUpdated(fieldName: string, stateField: Field<any, any, any>, originalField: Field<any, any, any>) {
+    const [areFieldsEqual, changedAttributes] = originalField['__compare'](this.engine, stateField);
     if (areFieldsEqual === false) {
       return actions.ChangeField.toGenerate(
-        originalField.model.domainName,
-        originalField.model.domainPath,
-        originalField.model.originalName(),
+        originalField['__model']?.['__domainName'] as string,
+        originalField['__model']?.['__domainPath'] as string,
+        originalField['__model']?.['__originalName']?.() as string,
         {
           fieldDefinitionAfter: originalField,
           fieldDefinitionBefore: stateField,
@@ -486,7 +489,6 @@ export class MakeMigrations {
     const reorderedOperations = [];
     let pendingOperations = operations;
     let previousNumberOfReorderedOperations: number | undefined = undefined;
-
     while (pendingOperations.length > 0) {
       const newPendingOperations = [];
       for (let i = 0; i < pendingOperations.length; i++) {
@@ -496,14 +498,16 @@ export class MakeMigrations {
           this.#originalModelsByName[operationToProcess.modelName] !== undefined
             ? this.#originalModelsByName[operationToProcess.modelName]
             : this.#stateModelsByName[operationToProcess.modelName];
-        const hasNoDependencies = Object.keys(modelOfOperationToProcess.class.directlyRelatedTo).length === 0;
+
+        const hasNoDependencies = Object.keys(modelOfOperationToProcess.class['__directlyRelatedTo']).length === 0;
 
         const addedModels = new Set(reorderedOperations.map((operation) => operation.modelName));
 
-        const dependenciesAlreadyAdded = Object.keys(modelOfOperationToProcess.class.directlyRelatedTo).every(
+        const dependenciesAlreadyAdded = Object.keys(modelOfOperationToProcess.class['__directlyRelatedTo']).every(
           (dependencyOfModel: string) =>
             // For circular relations.
-            addedModels.has(dependencyOfModel) || dependencyOfModel === modelOfOperationToProcess.class.originalName()
+            addedModels.has(dependencyOfModel) ||
+            dependencyOfModel === modelOfOperationToProcess.class['__originalName']()
         );
 
         // this means it is the last run so we must add any pending migrations.
@@ -568,8 +572,7 @@ export class MakeMigrations {
     const migrationNumberToString =
       migrationNumber < 10 ? `00${migrationNumber}` : migrationNumber < 100 ? `0${migrationNumber}` : migrationNumber;
     const migrationName = `${migrationNumberToString}_${this.database}_auto_migration_${Date.now().toString()}`;
-    const settingsIsTs = ((this.settings as any)?.settingsLocation || '').endsWith('.ts');
-    console.log('settingsIsTs', settingsIsTs);
+    const settingsIsTs = ((this.settings as any)?.settingsLocation || '').endsWith('.ts') || this.optionalArgs.useTs;
     databaseLogger.logMessage('MIGRATIONS_FILE_TITLE', { title: migrationName });
     databaseLogger.logMessage('MIGRATIONS_FILE_DESCRIPTION', {
       database: this.database,
@@ -581,7 +584,7 @@ export class MakeMigrations {
       databaseLogger.logMessage('MIGRATIONS_ACTION_DESCRIPTION', {
         description: await operation.operation.describe(operation)
       });
-      const { asString, customImports } = await operation.operation.toString(3, operation);
+      const { asString, customImports } = await operation.operation.toString(this.engine, 3, operation);
       operationsAsString.push(asString);
 
       if (Array.isArray(customImports)) {
@@ -604,6 +607,10 @@ export class MakeMigrations {
         .join('\n') + `\n`;
 
     const file =
+      `/* prettier-ignore-start */\n\n` +
+      `/* eslint-disable */\n\n` +
+      `// @ts-nocheck\n\n` +
+      `// noinspection JSUnusedGlobalSymbols\n\n` +
       `/**\n * Automatically generated by ${FRAMEWORK_NAME} on ${currentDate.toISOString()}\n */\n\n` +
       (settingsIsTs
         ? `import { models, actions } from '${PACKAGE_NAME}';`
@@ -786,8 +793,8 @@ export class MakeMigrations {
       );
       const state = await State.buildState(filteredMigrationsOfDatabase);
       const initializedState = await state.initializeStateModels(engineInstance);
-
       const makemigrations = new this(
+        engineInstance,
         database,
         settings,
         projectModels,

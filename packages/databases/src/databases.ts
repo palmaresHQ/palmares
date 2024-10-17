@@ -7,7 +7,7 @@ import { initializeModels } from './models/utils';
 import type { DatabaseAdapter } from './engine';
 import type { DatabaseDomainInterface } from './interfaces';
 import type { Model } from './models';
-import type { BaseModel, model } from './models/model';
+import type { BaseModel, ModelType, model } from './models/model';
 import type {
   DatabaseConfigurationType,
   DatabaseSettingsType,
@@ -20,7 +20,7 @@ import type { EventEmitter } from '@palmares/events';
 
 declare global {
   // eslint-disable-next-line no-var
-  var $PDatabaseInstance: Databases;
+  var $PDatabaseInstance: Databases | undefined;
 }
 
 export class Databases {
@@ -29,13 +29,14 @@ export class Databases {
   isInitialized = false;
   initializedEngineInstances: Partial<InitializedEngineInstancesType> = {};
   obligatoryModels: ReturnType<typeof model>[] = [];
+  managers = new Map<any, any>();
   #cachedModelsByModelName: {
     [modelName: string]: FoundModelType;
   } = {};
 
   constructor() {
-    // eslint-disable-next-line ts/no-unnecessary-condition
     if (globalThis.$PDatabaseInstance) return globalThis.$PDatabaseInstance;
+    // eslint-disable-next-line ts/no-unnecessary-condition
     globalThis.$PDatabaseInstance = this;
   }
 
@@ -61,7 +62,6 @@ export class Databases {
     if (this.isInitialized === false && this.isInitializing === false) {
       // eslint-disable-next-line ts/no-unnecessary-condition
       const isDatabaseDefined: boolean = settings.databases !== undefined && typeof settings.databases === 'object';
-
       const engineNameToUse: string | undefined =
         // eslint-disable-next-line ts/no-unnecessary-condition
         engineName === '' ? Object.keys(settings.databases || {})[0] : engineName;
@@ -200,22 +200,26 @@ export class Databases {
     const models: FoundModelType[] = Object.values(await this.getModels(engineInstance, domains));
 
     const onlyTheModelsFiltered: {
-      [modelName: string]: ReturnType<typeof model>;
+      [modelName: string]: ModelType<any, any>;
     } = {};
     const onlyTheModelsNotOnTheEngine: {
-      [modelName: string]: ReturnType<typeof model>;
+      [modelName: string]: ModelType<any, any>;
     } = {};
     const modelsFilteredForDatabase: FoundModelType[] = [];
 
     models.forEach((foundModel) => {
       const modelInstance = new foundModel.model();
       const isModelManagedByEngine =
+        // eslint-disable-next-line ts/no-unnecessary-condition
         modelInstance.options?.abstract !== true &&
+        // eslint-disable-next-line ts/no-unnecessary-condition
         modelInstance.options?.managed !== false &&
+        // eslint-disable-next-line ts/no-unnecessary-condition
         (Array.isArray(modelInstance.options?.databases) === false ||
           modelInstance.options.databases.includes(engineName) === true);
       const modelName =
-        (foundModel.model as unknown as typeof BaseModel & typeof Model).getName() || modelInstance.constructor.name;
+        (foundModel.model as unknown as typeof BaseModel & typeof Model)['__getName']() ||
+        modelInstance.constructor.name;
 
       if (isModelManagedByEngine) onlyTheModelsFiltered[modelName] = foundModel.model;
       else onlyTheModelsNotOnTheEngine[modelName] = foundModel.model;
@@ -276,8 +280,8 @@ export class Databases {
       engineInstance,
       // eslint-disable-next-line no-shadow
       projectModels.map(({ domainPath, domainName, model }) => {
-        model.domainName = domainName;
-        model.domainPath = domainPath;
+        model['__domainName'] = domainName;
+        model['__domainPath'] = domainPath;
         return model;
       })
     );
@@ -316,7 +320,7 @@ export class Databases {
               this.#cachedModelsByModelName[modelOfModels.name] = {
                 domainPath: domain.path,
                 domainName: domain.name,
-                model: modelOfModels as unknown as typeof BaseModel & ReturnType<typeof model>
+                model: modelOfModels as unknown as typeof Model & typeof BaseModel & ModelType<any, any>
               };
             }
           } else {
@@ -325,7 +329,7 @@ export class Databases {
               this.#cachedModelsByModelName[modelName] = {
                 domainName: domain.path,
                 domainPath: domain.path,
-                model: modelKls as typeof BaseModel & typeof modelKls
+                model: modelKls as typeof Model & typeof BaseModel & ModelType<any, any>
               };
             }
           }

@@ -16,14 +16,13 @@ import {
   EnumField,
   ForeignKeyField,
   IntegerField,
-  TextField,
-  TranslatableField
+  TextField
 } from './fields';
 import { UuidField } from './fields/uuid';
 
 import type { Field } from './fields';
-import type { BaseModel, Model, model } from './model';
-import type { ModelOptionsType, ModelType } from './types';
+import type { BaseModel, Model, ModelType } from './model';
+import type { ModelOptionsType } from './types';
 import type { DatabaseAdapter } from '../engine';
 import type { AdapterFields } from '../engine/fields';
 import type { AdapterFieldParser as EngineFieldParser } from '../engine/fields/field';
@@ -89,45 +88,128 @@ async function foreignKeyFieldParser(engine: DatabaseAdapter, field: ForeignKeyF
   const [isRelatedModelFromEngine, fieldToChangeRelationTo] = await field.isRelatedModelFromEngineInstance(engine);
   if (isRelatedModelFromEngine === false) {
     if (fieldToChangeRelationTo) return fieldToChangeRelationTo;
-    else
+    else {
       throw new RelatedModelFromForeignKeyIsNotFromEngineException(
         engine.connectionName,
-        field.relatedTo,
-        field.fieldName,
-        field.model.name,
-        field.toField
+        field['__relatedToAsString'] || '',
+        field['__fieldName'],
+        field['__model']?.['name'] || '',
+        field['__toField']
       );
+    }
   } else return field;
+}
+
+function fieldAdapterPerField(
+  engine: DatabaseAdapter,
+  field: Field<any, any, any>,
+  model: typeof BaseModel & ModelType<any, any>,
+  options?: {
+    /**
+     *  We ignore the ForeignKeyField parser and go directly to the field it relates to
+     *
+     * For example: you relate a ForeignKeyField to a IntegerField, but the IntegerField
+     * has a custom InputParser, this would obligate the ForeignKeyField to implement all input and output parsers
+     * as well. With this option you can bypass the ForeignKeyField and go directly to the field it relates to.
+     */
+    byPassForeignKey?: boolean;
+    /**
+     * Is retrieving the
+     */
+  }
+) {
+  switch (field['__typeName']) {
+    case AutoField.name:
+      if (engine.fields.autoFieldParser) return engine.fields.autoFieldParser;
+      else return engine.fields.integerFieldParser;
+    case BigAutoField.name:
+      if (engine.fields.autoFieldParser) return engine.fields.autoFieldParser;
+      else return engine.fields.bigIntegerFieldParser;
+    case BigIntegerField.name:
+      return engine.fields.bigIntegerFieldParser;
+    case CharField.name:
+      return engine.fields.charFieldParser;
+    case DateField.name:
+      return engine.fields.dateFieldParser;
+    case DecimalField.name:
+      return engine.fields.decimalFieldParser;
+    case ForeignKeyField.name:
+      {
+        const fieldAsForeignKeyField = field as ForeignKeyField<any, any, any>;
+        if (options?.byPassForeignKey) {
+          const fieldItRelatesTo = model['_fields']()[fieldAsForeignKeyField['__toField']];
+          return fieldAdapterPerField(engine, fieldItRelatesTo, model, options);
+        }
+      }
+      return engine.fields.foreignKeyFieldParser;
+    case IntegerField.name:
+      return engine.fields.integerFieldParser;
+    case TextField.name:
+      return engine.fields.textFieldParser;
+    case UuidField.name:
+      return engine.fields.uuidFieldParser;
+    case EnumField.name:
+      return engine.fields.enumFieldParser;
+    case BooleanField.name:
+      return engine.fields.booleanFieldParser;
+    default:
+      if (
+        typeof engine.fields.customFieldsParser === 'object' &&
+        field['__typeName'] in engine.fields.customFieldsParser
+      )
+        return engine.fields.customFieldsParser[field['__typeName']];
+      return engine.fields.fieldsParser;
+  }
 }
 
 function callTranslateAndAppendInputAndOutputParsersToField(
   connectionName: string,
-  field: Field,
+  field: Field<any, any, any>,
+  model: ModelType<any, any> & typeof BaseModel,
+  engine: DatabaseAdapter,
   engineFieldParser: EngineFieldParser,
   args: Parameters<EngineFieldParser['translate']>[0]
 ) {
   // eslint-disable-next-line ts/no-unnecessary-condition
   if (engineFieldParser) {
-    if (engineFieldParser.inputParser) {
-      field.inputParsers.set(connectionName, engineFieldParser.inputParser);
-      const inputParserFieldsOfEngine = field.model.fieldParsersByEngine.get(connectionName)?.input || [];
-      inputParserFieldsOfEngine.push(field.fieldName);
-      field.model.fieldParsersByEngine.set(connectionName, {
-        input: inputParserFieldsOfEngine,
-        output: field.model.fieldParsersByEngine.get(connectionName)?.output || []
-      });
-    }
-    if (engineFieldParser.outputParser) {
-      field.outputParsers.set(connectionName, engineFieldParser.outputParser);
-      const outputParserFieldsOfEngine = field.model.fieldParsersByEngine.get(connectionName)?.output || [];
-      outputParserFieldsOfEngine.push(field.fieldName);
-      field.model.fieldParsersByEngine.set(connectionName, {
-        input: field.model.fieldParsersByEngine.get(connectionName)?.input || [],
-        output: outputParserFieldsOfEngine
-      });
-    }
+    retrieveInputAndOutputParsersFromFieldAndCache(engine, model, field['__fieldName'], field);
     return engineFieldParser.translate(args);
-  } else throw new EngineDoesNotSupportFieldTypeException(connectionName, field.typeName);
+  } else throw new EngineDoesNotSupportFieldTypeException(connectionName, field['__typeName']);
+}
+
+/**
+ * Used to retrieve the input and output parsers from the field and cache it on the field itself for faster access
+ * next time.
+ */
+export function retrieveInputAndOutputParsersFromFieldAndCache(
+  engine: DatabaseAdapter,
+  model: ModelType<any, any> & typeof BaseModel,
+  fieldName: string,
+  field: Field<any, any, any>
+) {
+  const existingOutputParser = field['__outputParsers'].get(engine.connectionName);
+  const existingInputParser = field['__inputParsers'].get(engine.connectionName);
+  if (existingOutputParser !== undefined && existingInputParser !== undefined) {
+    return { input: existingInputParser, output: existingOutputParser };
+  }
+
+  const fieldParserAdapter = fieldAdapterPerField(engine, field, model, { byPassForeignKey: true });
+  field['__inputParsers'].set(engine.connectionName, fieldParserAdapter.inputParser || null);
+  field['__outputParsers'].set(engine.connectionName, fieldParserAdapter.outputParser || null);
+
+  const existingFieldParsersByEngine = model['__fieldParsersByEngine'].get(engine.connectionName) || {
+    input: new Set(),
+    output: new Set(),
+    toIgnore: new Set()
+  };
+  if (fieldParserAdapter.inputParser) existingFieldParsersByEngine.input.add(fieldName);
+  if (fieldParserAdapter.outputParser) existingFieldParsersByEngine.output.add(fieldName);
+  if (fieldParserAdapter.inputParser === undefined && fieldParserAdapter.outputParser === undefined)
+    existingFieldParsersByEngine.toIgnore.add(fieldName);
+
+  model['__fieldParsersByEngine'].set(engine.connectionName, existingFieldParsersByEngine);
+
+  return { input: fieldParserAdapter.inputParser, output: fieldParserAdapter.outputParser };
 }
 
 /**
@@ -141,8 +223,8 @@ export async function parse(
   engine: DatabaseAdapter,
   engineFields: AdapterFields,
   model: Model,
-  field: Field,
-  callbackForLazyEvaluation: (translatedField: any, shouldReturnData?: boolean, field?: Field) => void
+  field: Field<any, any, any>,
+  callbackForLazyEvaluation: (translatedField: any, shouldReturnData?: boolean, field?: Field<any, any, any>) => void
 ): Promise<any> {
   let shouldReturnData = true;
   /**
@@ -164,113 +246,57 @@ export async function parse(
     callbackForLazyEvaluation(translatedField, shouldReturnData, field);
   };
 
-  const modelName = field.model.getName();
+  const modelName = field['__model']?.['__getName']() as string;
+  const fieldData = field['__getArguments']();
+  const customAttributes = fieldData['customAttributes'];
+  delete fieldData['customAttributes'];
+  const modelAsBaseModel = model as BaseModel & Model;
 
   const args = {
-    engine,
-    field,
+    engine: engine as any,
+    field: fieldData,
+    customAttributes,
     fieldParser: engineFields.fieldsParser,
     modelName,
-    model,
+    model: modelAsBaseModel,
     lazyEvaluate: callbackForLazyEvaluationInsideDefaultParse
   };
 
-  switch (field.typeName) {
-    case AutoField.name:
-      return callTranslateAndAppendInputAndOutputParsersToField(
-        engine.connectionName,
-        field,
-        engineFields.autoFieldParser,
-        args
-      );
-    case BigAutoField.name:
-      return callTranslateAndAppendInputAndOutputParsersToField(
-        engine.connectionName,
-        field,
-        engineFields.bigAutoFieldParser,
-        args
-      );
-    case BigIntegerField.name:
-      return callTranslateAndAppendInputAndOutputParsersToField(
-        engine.connectionName,
-        field,
-        engineFields.bigIntegerFieldParser,
-        args
-      );
-    case CharField.name:
-      return callTranslateAndAppendInputAndOutputParsersToField(
-        engine.connectionName,
-        field,
-        engineFields.charFieldParser,
-        args
-      );
-    case DateField.name:
-      return callTranslateAndAppendInputAndOutputParsersToField(
-        engine.connectionName,
-        field,
-        engineFields.dateFieldParser,
-        args
-      );
-    case DecimalField.name:
-      return callTranslateAndAppendInputAndOutputParsersToField(
-        engine.connectionName,
-        field,
-        engineFields.decimalFieldParser,
-        args
-      );
+  switch (field['__typeName']) {
     case ForeignKeyField.name: {
       // eslint-disable-next-line ts/no-unnecessary-condition
       if (engineFields.foreignKeyFieldParser) {
-        const fieldToParse = await foreignKeyFieldParser(engine, field as ForeignKeyField);
+        const fieldToParse = await foreignKeyFieldParser(engine, field as unknown as ForeignKeyField<any, any, any>);
         if (fieldToParse?.['$$type'] === '$PForeignKeyField') {
           return callTranslateAndAppendInputAndOutputParsersToField(
             engine.connectionName,
             fieldToParse as Field,
-            engineFields.foreignKeyFieldParser,
-            args
+            modelAsBaseModel.constructor as ModelType<any, any> & typeof BaseModel,
+            engine,
+            engineFields.foreignKeyFieldParser as any,
+            {
+              ...args,
+              field: fieldToParse['__getArguments']()
+            }
           );
         } else return parse(engine, engineFields, model, fieldToParse as Field, callbackForLazyEvaluation);
-      } else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
+      } else throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field['__typeName']);
     }
-    case IntegerField.name:
+    default: {
+      const fieldParser = fieldAdapterPerField(
+        engine,
+        field,
+        model.constructor as ModelType<any, any> & typeof BaseModel & typeof Model
+      );
       return callTranslateAndAppendInputAndOutputParsersToField(
         engine.connectionName,
         field,
-        engineFields.integerFieldParser,
+        modelAsBaseModel.constructor as ModelType<any, any> & typeof BaseModel,
+        engine,
+        fieldParser as any,
         args
       );
-    case TextField.name:
-      return callTranslateAndAppendInputAndOutputParsersToField(
-        engine.connectionName,
-        field,
-        engineFields.textFieldParser,
-        args
-      );
-    case UuidField.name:
-      return callTranslateAndAppendInputAndOutputParsersToField(
-        engine.connectionName,
-        field,
-        engineFields.uuidFieldParser,
-        args
-      );
-    case EnumField.name:
-      return callTranslateAndAppendInputAndOutputParsersToField(
-        engine.connectionName,
-        field,
-        engineFields.enumFieldParser,
-        args
-      );
-    case BooleanField.name:
-      return callTranslateAndAppendInputAndOutputParsersToField(
-        engine.connectionName,
-        field,
-        engineFields.booleanFieldParser,
-        args
-      );
-    case TranslatableField.name:
-      return await (field as TranslatableField).translate();
-    default:
-      throw new EngineDoesNotSupportFieldTypeException(engine.connectionName, field.typeName);
+    }
   }
 }
 
@@ -284,19 +310,20 @@ export async function parse(
  */
 export async function initializeModels(
   engine: DatabaseAdapter,
-  models: (typeof BaseModel & ReturnType<typeof model>)[]
+  models: (ModelType<any, any> & typeof BaseModel & typeof Model)[]
 ) {
   const recursiveOptionsToEvaluateModels: {
     forceTranslation?: boolean;
   }[] = [{}];
 
+  const relationsToCallAfterModelsTranslation: Map<string, (engineInstance: DatabaseAdapter) => void> = new Map();
   // It is a loop so we can evaluate the models again if needed.
   // eslint-disable-next-line ts/no-unnecessary-condition
   while (recursiveOptionsToEvaluateModels) {
     const options = recursiveOptionsToEvaluateModels.shift();
     const initializedModels: (InitializedModelsType & { modifyItself: (newModel: any) => void })[] = [];
     let fieldsToEvaluateAfter: {
-      model: InstanceType<ReturnType<typeof model>> & BaseModel;
+      model: BaseModel & Model;
       field: Field;
       translatedField: any;
       getInitialized: () => {
@@ -309,27 +336,29 @@ export async function initializeModels(
     // track of the index of the model so that we can update it later
     // When we set to evaluate the fields later we will update the initialized model.
     const initializeModelPromises = models.map(async (modelClass, index) => {
-      const modelInstance = new modelClass();
+      const modelInstance = new modelClass() as BaseModel & Model;
       const doesModelIncludesTheConnection =
         Array.isArray((modelInstance as any).options?.databases) && typeof engine.connectionName === 'string'
-          ? (modelInstance as any).databases.includes(engine.connectionName)
+          ? (modelInstance as any).options?.databases.includes(engine.connectionName)
           : true;
 
-      const domainName = modelClass.domainName;
-      const domainPath = modelClass.domainPath;
+      const domainName = modelClass['__domainName'];
+      const domainPath = modelClass['__domainPath'];
+      modelClass['__callAfterAllModelsAreLoadedToSetupRelations'] = relationsToCallAfterModelsTranslation;
 
       if (doesModelIncludesTheConnection) {
-        const initializedModel = await modelClass._init(
+        const initializedModel = await modelClass['__init'](
           engine,
           domainName,
           domainPath,
-          (field, translatedField) =>
+          (field: Field<any, any>, translatedField: any) => {
             fieldsToEvaluateAfter.push({
               model: modelInstance as any,
               field,
               translatedField,
               getInitialized: () => initializedModel
-            }),
+            });
+          },
           {
             forceTranslate: options?.forceTranslation === true
           }
@@ -348,6 +377,7 @@ export async function initializeModels(
           original: modelInstance as any
         });
       }
+      modelClass['__callAfterAllModelsAreLoadedToSetupRelations'] = undefined as any;
     });
     await Promise.all(initializeModelPromises);
 
@@ -356,14 +386,42 @@ export async function initializeModels(
     const evaluateLaterFieldsPromises = fieldsToEvaluateAfter.map(
       async ({ model, field, translatedField, getInitialized }, index) => {
         const initialized = getInitialized();
-        const modelConstructor = model.constructor as ModelType;
+        const modelConstructor = model.constructor as ModelType<any, any> & typeof BaseModel & typeof Model;
+
         const lazyEvaluatedFieldResult = await engine.fields.lazyEvaluateField(
           engine,
-          modelConstructor.getName(),
+          modelConstructor['__getName'](),
           initialized.instance,
-          field,
+          field['__getArguments'](),
           translatedField,
-          (model, field) => parse(engine, engine.fields, model, field, () => {})
+          (args) => {
+            let modelToUse = model;
+            let fieldToUse = field;
+            if (args) {
+              const modelConstructor = engine['__modelsOfEngine'][args.modelName] as ModelType<any, any> &
+                typeof BaseModel &
+                typeof Model;
+
+              // eslint-disable-next-line ts/no-unnecessary-condition
+              if (modelConstructor === undefined)
+                throw new Error(`The model ${args.modelName} was not found in the engine`);
+
+              const modelInstance = new modelConstructor() as BaseModel & Model;
+              const fields = modelConstructor['_fields']();
+              const field = fields[args.fieldName];
+              // eslint-disable-next-line ts/no-unnecessary-condition
+              if (field === undefined) {
+                throw new Error(`The field ${args.fieldName} was not found in the model ${args.modelName}`);
+              }
+
+              fieldToUse = field['__clone'](field, {
+                newInstanceOverrideCallback: args.newInstanceOverrideCallback,
+                optionsOverrideCallback: args.optionsOverrideCallback
+              });
+              modelToUse = modelInstance;
+            }
+            return parse(engine, engine.fields, modelToUse, fieldToUse, () => {});
+          }
         );
         if (lazyEvaluatedFieldResult !== undefined && lazyEvaluatedFieldResult !== null) {
           initialized.modifyItself(lazyEvaluatedFieldResult);
@@ -377,8 +435,8 @@ export async function initializeModels(
     if (engine.models.afterModelsTranslation) {
       const { modelEntries, modelsByName } = initializedModels.reduce(
         (acc, model) => {
-          if (model.original.options?.instance && options?.forceTranslation !== true) return acc;
-          const modelName = model.class.getName();
+          if (model.original.options.instance && options?.forceTranslation !== true) return acc;
+          const modelName = model.class['__getName']();
           acc.modelsByName[modelName] = model;
           acc.modelEntries.push([modelName, model.initialized]);
           return acc;
@@ -388,14 +446,16 @@ export async function initializeModels(
           modelEntries: [] as [string, InitializedModelsType][]
         }
       );
+
+      console.log(modelEntries.length, initializeModels.length);
       if (
         modelEntries.length > 0 &&
-        modelEntries.length !== initializeModels.length &&
+        modelEntries.length < initializeModels.length &&
         options?.forceTranslation !== true
       ) {
         const std = getDefaultStd();
         const answer = await std.asker.ask(
-          `\nYou have translated the model before. And you have assigned 'instance' to` +
+          `\nYou have translated the model before. And you have assigned 'instance' to ` +
             `the model options. Should we refresh all of the model instances?` +
             `\n\nType either: 'y' and press Enter to accept or Ctrl+C to make` +
             ` changes before continuing\n\n` +
@@ -419,6 +479,9 @@ export async function initializeModels(
         }
       }
     }
+
+    for (const setRelationToCall of relationsToCallAfterModelsTranslation.values()) setRelationToCall(engine);
+
     if (recursiveOptionsToEvaluateModels.length <= 0) return initializedModels;
   }
   return [];
@@ -437,9 +500,9 @@ export function factoryFunctionForModelTranslate(
     forceTranslate?: boolean;
   }
 ) {
-  const modelConstructor = model.constructor as ModelType;
-  const modelOptions = modelConstructor._options(model) as ModelOptionsType;
-  const fieldEntriesOfModel = Object.entries(modelConstructor._fields(model));
+  const modelConstructor = model.constructor as ModelType<any, any> & typeof BaseModel & typeof Model;
+  const modelOptions = modelConstructor['_options'](model) as ModelOptionsType;
+  const fieldEntriesOfModel = Object.entries(modelConstructor['_fields'](model));
 
   const defaultParseFieldCallback = (field: Field) => {
     return parse(engine, engine.fields, model, field, (translatedField, _, originalField) => {
@@ -463,7 +526,7 @@ export function factoryFunctionForModelTranslate(
   };
 
   return async () => {
-    const modelName = modelConstructor.getName();
+    const modelName = modelConstructor['__getName']();
     const alreadyHasAnInstance =
       options.forceTranslate !== true &&
       (engine.initializedModels[modelName] !== undefined || model.options?.instance !== undefined);
@@ -477,6 +540,7 @@ export function factoryFunctionForModelTranslate(
           model,
           fieldEntriesOfModel,
           modelOptions,
+          modelOptions.customOptions,
           async () => {
             const options = await engine.models.translateOptions.bind(engine.models)(engine, modelName, modelOptions);
             const fields =
@@ -500,7 +564,7 @@ export function factoryFunctionForModelTranslate(
           defaultTranslateFieldsCallback
         );
 
-    engine.initializedModels[modelConstructor.getName()] = modelInstance;
+    engine.initializedModels[modelConstructor['__getName']()] = modelInstance;
 
     // This lets you apply custom hooks to your translated model directly.
     // Something like that: https://www.prisma.io/docs/concepts/components/prisma-client/middleware
