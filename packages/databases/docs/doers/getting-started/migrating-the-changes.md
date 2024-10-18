@@ -97,7 +97,7 @@ import * as migrations from './migrations'; // Add this import
 
 export default domain('myCustomDomain', import.meta.dirname, {
   modifiers: [databaseDomainModifier] as const,
-  getMigrations: () => migrations // return the migrations
+  getMigrations: () => migrations, // return the migrations
   getModels: () => models,
 });
 ```
@@ -111,7 +111,7 @@ $ bun manage.ts migrate
 $ deno manage.ts migrate
 ```
 
-And we are rolling as well, congrats!
+And we are rolling, congrats!
 
 ## Oh nice, where did the generated types go?
 

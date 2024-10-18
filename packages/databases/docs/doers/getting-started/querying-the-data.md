@@ -83,8 +83,16 @@ await Company.default.get((qs) =>
 );
 ```
 
-The `.get()` operation expects a callback that receives and returns a QuerySet `(qs) => `. A QuerySet is what essentially hold your queries. It holds your queries but never run them, it's expected to be used on `.get()`, `.set()` and `.remove()` operations, so you can use and reuse it however you like. This means you are not tied to the model to make the queries! You can make the queries even outside your models!
+The `.get()` operation expects a callback that receives and returns a QuerySet `(qs) => `. A QuerySet is what essentially hold your queries. It holds your queries but never run them. It is expected to be used on `.get()`, `.set()` and `.remove()` operations, so you can use and reuse it however you like. This means you are not tied to the model to make the queries! You can make the queries even outside your models!
 
 Want to reuse a complicated filter? Fine, Want to reuse how you create a data on a table? Also fine!
 
 [Check the QuerySets reference for more details](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/doers/reference/querysets.md)
+
+## The end
+
+From here you are good to go on your own. Check our reference docs for more in-detail explanation about each part of the database.
+
+## Up Next
+
+- [Reference](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/doers/reference/introduction.md)
