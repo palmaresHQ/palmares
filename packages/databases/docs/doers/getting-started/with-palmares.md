@@ -135,5 +135,5 @@ export default defineSettings({
 
 ## Up Next
 
-- [Migrating the Changes](https://github.com/palmaresHQ/palmares/tree/model-fields-new-api/packages/databases/docs/doers/getting-started/migrating-the-changes.md)
-- [Querying the Data](https://github.com/palmaresHQ/palmares/tree/model-fields-new-api/packages/databases/docs/doers/getting-started/querying-the-data.md)
+- [Migrating the Changes](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/doers/getting-started/migrating-the-changes.md)
+- [Querying the Data](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/doers/getting-started/querying-the-data.md)

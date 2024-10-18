@@ -121,4 +121,4 @@ And we are rolling as well, congrats!
 
 ## Up Next
 
-- [Querying the Data](https://github.com/palmaresHQ/palmares/tree/model-fields-new-api/packages/databases/docs/doers/getting-started/querying-the-data.md)
+- [Querying the Data](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/doers/getting-started/querying-the-data.md)
