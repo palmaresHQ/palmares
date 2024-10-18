@@ -1,4 +1,4 @@
-# On your own
+# Getting Started > On your own
 
 Cool, looks like you like it rough, huh? No problem, personally I don't have a problem with that. We did a lot of work so it comes as smooth as butter. You won't even feel it!
 
@@ -17,7 +17,7 @@ $ bun add @palmares/node-std
 
 By default palmares is not dependent on any runtime, you literally install that dependency as you do with any other package. Because of that we have created our own abstraction layer above common operations we need when interacting with stuff like child_threads, folders, files, whatever.
 
-### Writing your first config
+## Writing your first config
 
 Isn't it exciting? C'mon, show some excitement. I'm pretty sure your TS/JS projects does not contain enough config files.
 
@@ -28,7 +28,9 @@ import { setDatabaseConfig } from '@palmares/databases';
 import { NodeStd } from '@palmares/node-std';
 import { SequelizeEngine } from '@palmares/sequelize-engine';
 
-setDatabaseConfig({
+import { Company, User } from './models';
+
+export default setDatabaseConfig({
   databases: {
     default: {
       engine: SequelizeEngine.new({
@@ -42,7 +44,7 @@ setDatabaseConfig({
       name: 'default',
       path: import.meta.dirname, // If your package.json does not contain the "type": "module" in it, change that to __dirname
       getMigrations: () => [],
-      getModels: () => [ProfileType],
+      getModels: () => [User, Company],
     },
   ],
   std: new NodeStd(),
@@ -61,3 +63,8 @@ Let's go over it?
   - _getModels_ - The models on the specific domain of the application.
 
 - **std** - The dependency from the runtime you are using to build your applications on.
+
+## Up Next
+
+- [Migrating the Changes](https://github.com/palmaresHQ/palmares/tree/model-fields-new-api/packages/databases/docs/doers/getting-started/migrating-the-changes.md)
+- [Querying the Data](https://github.com/palmaresHQ/palmares/tree/model-fields-new-api/packages/databases/docs/doers/getting-started/querying-the-data.md)

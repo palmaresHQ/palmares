@@ -25,6 +25,12 @@ With **Palmares** we can unify all the ecosystem into one by worrying in 2 front
   <img src="https://github.com/palmaresHQ/palmares/blob/main/resources/xkcd-standards.png" width="180" alt="XKCD comic joking about standards, but modified to say the only standard is palmares" />
 </p>
 
+### How does it differ from the others
+
+- [Redwood.js](https://redwoodjs.com/), [wasp-lang](https://wasp-lang.dev/), [t3stack](https://create.t3.gg/), etc. Although great ways to create applications they can be categorized more on the template side of things. It's built around a set of tools in mind. React, some of them uses Prisma, some uses drizzle. They are all heavily opinionated on the tools you should use. **Palmares** is not opinionated at all, we go deep into creating an abstraction layer that can be used with all existing ORMs, servers, Schema validators. We are the common _glue_ above all. And another thing: You can still use everything we give you independent from the framework, we are don't have any financial incentive to make you vendor-locked-in on our framework. Pick what you like and just use.
+- [Nest.js](https://nestjs.com/) an amazing piece of software, but i know you don't like Angular, neither do I. Decorators are still non native to Javascript and Nest relies a lot on it. But still, we are grateful for Nest because it offered us some nice ideas.
+- [Adonis.js](https://adonisjs.com/) What we are trying to accomplish, but instead of doing everything ourselves we rely on popular libraries like Express, Drizzle, Zod, etc. We are not trying to substitute them but work alongside them.
+
 ## Getting Started and Documentation
 
 Coming soon...

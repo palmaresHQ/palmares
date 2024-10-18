@@ -6,7 +6,7 @@ This documentation will walk you through [palmares](https://github.com/palmaresH
 
 ### A rough and quick intro to Palmares
 
-The goal of [palmares](https://github.com/palmaresHQ/palmares) is to give you, the programmer, the freedom to use what you want while still maintaining a core, well defined structure. This way you can still use Drizzle or Sequelize as you already using. At the same time [library maintainers like Lucia](https://github.com/lucia-auth/lucia/discussions/1707), don't need to recreate adapters for every ORM available, palmares will be the common abstraction above all. This specially useful when thinking on a framework level. We can create abstractions like Auth, Admin, Scaffolding, without needing to worry about which ORM or server you choose to use.
+The goal of [palmares](https://github.com/palmaresHQ/palmares) is to give you, the programmer, the freedom to use what you want while still maintaining a core, well defined structure. This way you can still use Drizzle or Sequelize as you already using. At the same time [library maintainers like Lucia](https://github.com/lucia-auth/lucia/discussions/1707), don't need to recreate adapters for every ORM available, palmares will be the common abstraction above all. This specially useful when thinking on a framework level. We can create abstractions like Auth, Admin, Scaffolding, without needing to worry about which ORM or server you choose to use and those can work together.
 
 ### What is palmares databases?
 
@@ -20,5 +20,5 @@ Although we kinda see ourselves as an ORM, we are not **data frameworks** as dri
 
 ### Next Steps
 
-- [Are you using to build applications?](https://github.com/palmaresHQ/palmares/tree/main/packages/databases/docs/doers/getting-started/introduction.md)
-- [You want to integrate your library?](https://github.com/palmaresHQ/palmares/tree/main/packages/databases/docs/builders/getting-started/introduction.md)
+- [Are you using to build applications?](https://github.com/palmaresHQ/palmares/tree/model-fields-new-api/packages/databases/docs/doers/getting-started/introduction.md)
+- [You want to integrate your library?](https://github.com/palmaresHQ/palmares/tree/model-fields-new-api/packages/databases/docs/builders/getting-started/introduction.md)

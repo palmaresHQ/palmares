@@ -1,6 +1,6 @@
 # Getting started
 
-There are two ways you can use palmares databases library. You can either use it with palmares, the framework, or you can use it on your own. Of course the recommended way is running it with the framework, but we made it easy to roll on your own as well, don't need to worry, all features are supported on both.
+There are two ways you can use palmares databases library. You can either use it with palmares, the framework, or you can use it on your own. Of course the recommended way is running it with the framework, but we made it easy to roll on your own as well. You don't need to worry, all features are supported on both.
 
 ## Installation
 
@@ -28,13 +28,13 @@ $ bun add @palmares/sequelize-engine
 
 ## Creating your first models
 
-Let's create our first palmares model? No?
+Let's create our first palmares model? No? Okay.
 
 A Model represents the structure of the tables on your database. A model holds all the information it needs about your database tables, like the indexes, the table name, the fields it contains, all that.
 
-Palmares embraces both OOP (known as classes in TS/JS) or Functional Programming. It's up to you for what you want to use. Okay, enough talking, let's head to the code.
+Palmares embraces both OOP (known as classes in TS/JS) or Functional approaches. It's up to you for what you want to use (we prefer classes, but don't talk to anyone).
 
-On a file called `models.ts`, add the following piece of code:
+Okay, enough talking, let's head to the code. On a file called `models.ts`, add the following piece of code:
 
 ```ts
 import {
@@ -79,8 +79,10 @@ export const User = define('User', {
 });
 ```
 
+Don't worry, we'll cover all that in the next chapters.
+
 ### From now, do you want
 
-- [To roll on your own?](https://github.com/palmaresHQ/palmares/tree/main/packages/databases/docs/doers/getting-started/on-your-own.md)
+- [To roll on your own?](https://github.com/palmaresHQ/palmares/tree/model-fields-new-api/packages/databases/docs/doers/getting-started/on-your-own.md)
 - Use it with palmares?
 - [A surprise?](https://youtu.be/dQw4w9WgXcQ?si=20-qoQjs8RyZaTZ7)
