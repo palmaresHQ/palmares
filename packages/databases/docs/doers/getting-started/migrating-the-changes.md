@@ -48,8 +48,6 @@ You should see that it created a new folder called `/migrations` with `index` an
 
 ## I'm little more impressed, but where are the tables?
 
-[Where is my flowers?](https://youtu.be/NhwUy1tS-us?si=BUfgT6pJ8FOMPpdu&t=6)
-
 To generate your tables you should
 
 #### On your own
