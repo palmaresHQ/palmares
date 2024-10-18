@@ -20,5 +20,5 @@ Although we kinda see ourselves as an ORM, we are not **data frameworks** as dri
 
 ### Next Steps
 
-- [Are you using to build applications?](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/doers/getting-started/introduction.md)
+- [Are you using to build applications?](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/doers/summary.md)
 - [You want to integrate your library?](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/builders/getting-started/introduction.md)
