@@ -1,8 +1,6 @@
 import { adapterUuidFieldParser } from '@palmares/databases';
 import { DataTypes } from 'sequelize';
 
-import SequelizeEngine from '../engine';
-
 import type SequelizeEngineFieldParser from './field';
 import type { TranslatedFieldToEvaluateAfterType } from '../types';
 import type { AdapterFieldParserTranslateArgs } from '@palmares/databases';
@@ -17,10 +15,13 @@ export default adapterUuidFieldParser({
       TranslatedFieldToEvaluateAfterType
     >
   ): Promise<ModelAttributeColumnOptions> => {
-    const defaultOptions = await args.fieldParser.translate(args);
+    const defaultOptions = await args.fieldParser.translate({
+      ...args,
+      field: { ...args.field, isAuto: false }
+    });
     defaultOptions.type = DataTypes.UUID;
     // eslint-disable-next-line ts/no-unnecessary-condition
-    if (args.field.autoGenerate) {
+    if (args.field.isAuto) {
       defaultOptions.defaultValue = DataTypes.UUIDV4;
       defaultOptions.autoIncrement = false;
       defaultOptions.autoIncrementIdentity = false;

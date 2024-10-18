@@ -15,13 +15,17 @@ export async function test(domains: TestDomain[], settings: AllTestsSettingsType
     }
   }
   const newTestAdapter = new settings.testAdapter();
-  setTestAdapter(newTestAdapter);
+  await setTestAdapter(newTestAdapter);
   const std = getDefaultStd();
 
-  return newTestAdapter.run(filesToTest, `require('@palmares/tests').run('${settings.settingsLocation}');`, {
-    mkdir: std.files.makeDirectory,
-    join: std.files.join,
-    writeFile: std.files.writeFile,
-    removeFile: std.files.removeFile
-  });
+  return newTestAdapter.run(
+    filesToTest,
+    `import { run } from '@palmares/tests';\nawait run('${settings.settingsLocation}');`,
+    {
+      mkdir: std.files.makeDirectory,
+      join: std.files.join,
+      writeFile: std.files.writeFile,
+      removeFile: std.files.removeFile
+    }
+  );
 }

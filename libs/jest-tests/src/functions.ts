@@ -1,7 +1,7 @@
 import { TestFunctionsAdapter } from '@palmares/tests';
 
 export class JestTestFunctionsAdapter extends TestFunctionsAdapter {
-  getDescribe(descriptionName: string, callback: () => void): void {
+  getDescribe(descriptionName: string, callback: () => void) {
     const describe = require('@jest/globals').describe;
     describe(descriptionName, () => {
       callback();

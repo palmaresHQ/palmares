@@ -1,33 +1,37 @@
 import { EnumField } from '../..';
 import { EngineDoesNotSupportFieldTypeException } from '../../models/exceptions';
 
-import type {
-  AdapterFieldParserInputAndOutputArgs,
-  AdapterFieldParserTranslateArgs} from '../..';
+import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateArgs } from '../..';
 
 /**
  * Functional approach to create a custom field parser.
  *
- * This will be used to parse the fields that are going to be used in the model in the database, we call this class just for the `EnumField`
+ * This will be used to parse the fields that are going to be used in the model in the database, we call this class
+ * just for the `EnumField`
  * This class can have three methods:
- * - `inputParser` - Used to parse the input value before it is sent to the database on your `AdapterQuery` implementation.
- * - `outputParser` - Used to parse the output value before it is sent to the client on your `AdapterQuery` implementation.
+ * - `inputParser` - Used to parse the input value before it is sent to the database on your `AdapterQuery`
+ * implementation.
+ * - `outputParser` - Used to parse the output value before it is sent to the client on your `AdapterQuery`
+ * implementation.
  * - `translate` - Used to translate the EnumField to something that the database can understand.
- * translated directly with the `translate` method, all other field types should define a parser with the `translate` field, those will be injected
- * in the `DatabaseAdapter` class constructor.
+ * translated directly with the `translate` method, all other field types should define a parser with the
+ * `translate` field, those will be injected in the `DatabaseAdapter` class constructor.
  */
 export function adapterEnumFieldParser<
   TTranslateFunction extends AdapterEnumFieldParser['translate'],
   TInputParserFunction extends Required<AdapterEnumFieldParser>['inputParser'],
-  TOutputParserFunction extends Required<AdapterEnumFieldParser>['outputParser'],
+  TOutputParserFunction extends Required<AdapterEnumFieldParser>['outputParser']
 >(args: {
   /**
    * @description
-   * Used to translate the field to something that the database can understand. The `{@link AdapterFieldParser}` instance will be injected by default in the `translate` method.
-   * The core idea is that for every field type we will have a parser that will be used to translate the field to something that the database can understand. It's nice if all of the configuration options
-   * are supported by your ORM, but if that's not the case it's nice to notify the users through documentation.
+   * Used to translate the field to something that the database can understand. The `{@link AdapterFieldParser}`
+   * instance will be injected by default in the `translate` method.
+   * The core idea is that for every field type we will have a parser that will be used to translate the field
+   * to something that the database can understand. It's nice if all of the configuration options are supported
+   * by your ORM, but if that's not the case it's nice to notify the users through documentation.
    *
-   * - _Note_: **If you return undefined, we will not consider that field on the object we build on `translateFields` under {@link AdapterModels} instance.**
+   * - _Note_: **If you return undefined, we will not consider that field on the object we build on
+   * `translateFields` under {@link AdapterModels} instance.**
    * - _Note2_: **Use the `lazyEvaluate` function to evaluate something after the model was translated.**
    *
    * Imagine that you translating to sequelize field:
@@ -99,8 +103,9 @@ export function adapterEnumFieldParser<
    * ```
    *
    * @description
-   * As we discussed before, the `lazyEvaluate` function is used to evaluate something after the model was translated. So what you pass to the `lazyEvaluate` function will
-   * be passed to `lazyEvaluateField` method on the `{@link AdapterFields}` instance under `fieldTranslated` argument
+   * As we discussed before, the `lazyEvaluate` function is used to evaluate something after the model was translated.
+   * So what you pass to the `lazyEvaluate` function will be passed to `lazyEvaluateField` method on the
+   * `{@link AdapterFields}` instance under `fieldTranslated` argument
    *
    * @returns - The translated field.
    */
@@ -108,9 +113,10 @@ export function adapterEnumFieldParser<
 
   /**
    * @description
-   * This is used to parse the input value before you save it. For example, let's say that palmares by default accept `Date` objects for `DateField`. But your database does not support saving
-   * `Date` instances. What you can do is that you can implement this method on `DateFieldParser` and return a iSO string. With that, you can be 100% sure that the data on your `queryData` is
-   * something valid for your database.
+   * This is used to parse the input value before you save it. For example, let's say that palmares by default accept
+   * `Date` objects for `DateField`. But your database does not support saving `Date` instances. What you can do is
+   * that you can implement this method on `DateFieldParser` and return a iSO string. With that, you can be 100% sure
+   * that the data on your `queryData` is something valid for your database.
    *
    * This parses the value for each data.
    *
@@ -134,7 +140,8 @@ export function adapterEnumFieldParser<
   inputParser?: TInputParserFunction;
   /**
    * @description
-   * This is used to parse the output value before you send it to the user. For example, if the user is fetching a `DateField` from the database, you can parse the value to a `Date` object.
+   * This is used to parse the output value before you send it to the user. For example, if the user is fetching
+   * a `DateField` from the database, you can parse the value to a `Date` object.
    * This can be useful so you can guarantee that the user will receive the data in the format that it's expected.
    *
    * This parses the value for each data that is retrieved.
@@ -174,22 +181,29 @@ export function adapterEnumFieldParser<
 }
 
 /**
- * This will be used to parse the fields that are going to be used in the model in the database, we call this class just for the `EnumField`
+ * This will be used to parse the fields that are going to be used in the model in the database, we call this class
+ * just for the `EnumField`
  * This class can have three methods:
- * - `inputParser` - Used to parse the input value before it is sent to the database on your `AdapterQuery` implementation.
- * - `outputParser` - Used to parse the output value before it is sent to the client on your `AdapterQuery` implementation.
+ * - `inputParser` - Used to parse the input value before it is sent to the database on your `AdapterQuery`
+ * implementation.
+ * - `outputParser` - Used to parse the output value before it is sent to the client on your `AdapterQuery`
+ * implementation.
  * - `translate` - Used to translate the EnumField to something that the database can understand.
- * translated directly with the `translate` method, all other field types should define a parser with the `translate` field, those will be injected
+ * translated directly with the `translate` method, all other field types should define a parser with the
+ * `translate` field, those will be injected
  * in the `DatabaseAdapter` class constructor.
  */
 export class AdapterEnumFieldParser {
   /**
    * @description
-   * Used to translate the field to something that the database can understand. The `{@link AdapterFieldParser}` instance will be injected by default in the `translate` method.
-   * The core idea is that for every field type we will have a parser that will be used to translate the field to something that the database can understand. It's nice if all of the configuration options
-   * are supported by your ORM, but if that's not the case it's nice to notify the users through documentation.
+   * Used to translate the field to something that the database can understand. The `{@link AdapterFieldParser}`
+   * instance will be injected by default in the `translate` method.
+   * The core idea is that for every field type we will have a parser that will be used to translate the field to
+   * something that the database can understand. It's nice if all of the configuration options are supported by
+   * your ORM, but if that's not the case it's nice to notify the users through documentation.
    *
-   * - _Note_: **If you return undefined, we will not consider that field on the object we build on `translateFields` under {@link AdapterModels} instance.**
+   * - _Note_: **If you return undefined, we will not consider that field on the object we build on `translateFields`
+   * under {@link AdapterModels} instance.**
    * - _Note2_: **Use the `lazyEvaluate` function to evaluate something after the model was translated.**
    *
    * Imagine that you translating to sequelize field:
@@ -261,8 +275,9 @@ export class AdapterEnumFieldParser {
    * ```
    *
    * @description
-   * As we discussed before, the `lazyEvaluate` function is used to evaluate something after the model was translated. So what you pass to the `lazyEvaluate` function will
-   * be passed to `lazyEvaluateField` method on the `{@link AdapterFields}` instance under `fieldTranslated` argument
+   * As we discussed before, the `lazyEvaluate` function is used to evaluate something after the model was translated.
+   * So what you pass to the `lazyEvaluate` function will be passed to `lazyEvaluateField` method on the
+   * `{@link AdapterFields}` instance under `fieldTranslated` argument
    *
    * @returns - The translated field.
    */
@@ -273,9 +288,10 @@ export class AdapterEnumFieldParser {
 
   /**
    * @description
-   * This is used to parse the input value before you save it. For example, let's say that palmares by default accept `Date` objects for `DateField`. But your database does not support saving
-   * `Date` instances. What you can do is that you can implement this method on `DateFieldParser` and return a iSO string. With that, you can be 100% sure that the data on your `queryData` is
-   * something valid for your database.
+   * This is used to parse the input value before you save it. For example, let's say that palmares by default accept
+   * `Date` objects for `DateField`. But your database does not support saving `Date` instances. What you can do is
+   * that you can implement this method on `DateFieldParser` and return a iSO string. With that, you can be 100%
+   * sure that the data on your `queryData` is something valid for your database.
    *
    * This parses the value for each data.
    *
@@ -303,7 +319,8 @@ export class AdapterEnumFieldParser {
 
   /**
    * @description
-   * This is used to parse the output value before you send it to the user. For example, if the user is fetching a `DateField` from the database, you can parse the value to a `Date` object.
+   * This is used to parse the output value before you send it to the user. For example, if the user is fetching a
+   * `DateField` from the database, you can parse the value to a `Date` object.
    * This can be useful so you can guarantee that the user will receive the data in the format that it's expected.
    *
    * This parses the value for each data that is retrieved.

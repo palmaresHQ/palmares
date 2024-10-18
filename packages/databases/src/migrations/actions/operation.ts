@@ -69,7 +69,11 @@ export class Operation {
   }
 
   // eslint-disable-next-line ts/require-await
-  static async toString(indentation = 0, data: ActionToGenerateType<any>): Promise<ToStringFunctionReturnType> {
+  static async toString(
+    _engine: DatabaseAdapter,
+    indentation = 0,
+    data: ActionToGenerateType<any>
+  ): Promise<ToStringFunctionReturnType> {
     return {
       asString: ''
     };

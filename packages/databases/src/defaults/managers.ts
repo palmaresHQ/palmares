@@ -11,16 +11,10 @@ export class PalmaresMigrationsManager extends Manager<PalmaresMigrations> {
    * @param engineName - The name of the engine from which this migration was created.
    */
   async createMigration(migrationName: string, engineName: string) {
-    return this.set(
-      {
-        migrationName,
-        engineName
-      },
-      {
-        useTransaction: true
-      },
+    return this.set((qs) => qs.data({ migrationName, engineName }), {
+      useTransaction: true,
       engineName
-    );
+    });
   }
 
   /**
@@ -31,7 +25,7 @@ export class PalmaresMigrationsManager extends Manager<PalmaresMigrations> {
    * @return - An empty '' string or the name of the last migration.
    */
   async getLastMigrationName(engineName: string) {
-    const allMigrations = await this.get({ search: { engineName } }, engineName);
+    const allMigrations = await this.get((qs) => qs.where({ engineName }).select('migrationName'), { engineName });
     return allMigrations.length > 0 ? allMigrations[0].migrationName : '';
   }
 }

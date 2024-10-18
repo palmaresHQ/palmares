@@ -22,7 +22,7 @@ export default function SidebarRoutesOrSections(props: { routesOrSections: (Rout
   return (
     <div className="w-full">
       {props.routesOrSections.map((routeOrSection, index) => (
-        <SidebarSectionOrRoute routeOrSection={routeOrSection} padding={padding} />
+        <SidebarSectionOrRoute key={index} routeOrSection={routeOrSection} padding={padding} />
       ))}
     </div>
   );

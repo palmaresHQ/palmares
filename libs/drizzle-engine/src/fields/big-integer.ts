@@ -22,9 +22,12 @@ export const bigIntegerFieldParser = adapterBigIntegerFieldParser({
           defaultOptions.nullable !== true ? `.notNull()` : ''
         }${defaultOptions.unique ? `.unique()` : ''}`;
       case 'postgres':
-        return `d.${defaultOptions.autoincrement ? 'bigserial' : 'bigint'}('${field.databaseName}', { mode: 'number' })${defaultOptions.primaryKey ? '.primaryKey()' : ''}${
-          defaultOptions.default ? `.default(${defaultOptions.default})` : ''
-        }${defaultOptions.nullable !== true ? `.notNull()` : ''}${defaultOptions.unique ? `.unique()` : ''}`;
+        return (
+          `d.${defaultOptions.autoincrement ? 'bigserial' : 'bigint'}` +
+          `('${field.databaseName}', { mode: 'number' })${defaultOptions.primaryKey ? '.primaryKey()' : ''}${
+            defaultOptions.default ? `.default(${defaultOptions.default})` : ''
+          }${defaultOptions.nullable !== true ? `.notNull()` : ''}${defaultOptions.unique ? `.unique()` : ''}`
+        );
       default:
         return `d.bigint('${field.databaseName}', { mode: 'number' })${
           defaultOptions.autoincrement ? '.autoIncrement()' : ''
