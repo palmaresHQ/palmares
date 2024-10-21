@@ -14,10 +14,10 @@ import {
   define
 } from '@palmares/databases';
 
-import { Company as DCompany, User as DUser } from '../../.drizzle/schema';
-
+import type * as d /*{ Company as DCompany, User as DUser }*/ from '../../.drizzle/schema';
 import type { ModelOptionsType } from '@palmares/databases';
 
+type Test = (typeof d)['Company'];
 class Authentication extends Manager<CompanyAbstract> {
   test() {
     return 'test';

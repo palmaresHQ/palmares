@@ -1,4 +1,4 @@
-# Getting started
+# Getting started > Installation
 
 There are two ways you can use palmares databases library. You can either use it with palmares, the framework, or you can use it on your own. Of course the recommended way is running it with the framework, but we made it easy to roll on your own as well. You don't need to worry, all features are supported on both.
 
@@ -83,6 +83,6 @@ Don't worry, we'll cover all that in the next chapters.
 
 ### From now, do you want
 
-- [To roll on your own?](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/doers/getting-started/on-your-own.md)
-- [Use it with palmares?](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/doers/getting-started/with-palmares.md)
+- [To roll on your own?](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/on-your-own.md)
+- [Use it with palmares?](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/with-palmares.md)
 - [A surprise?](https://youtu.be/dQw4w9WgXcQ?si=20-qoQjs8RyZaTZ7)

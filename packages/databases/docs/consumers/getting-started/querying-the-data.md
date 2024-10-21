@@ -67,7 +67,7 @@ Company.default;
 
 What the hell is `default`? This is a Manager, as the name suggest, the default manager of your table. A manager is what provides all common database operations. All models come with the `default` manager. On other frameworks they can also be referred as repositories.
 
-You can (and should) also create your own managers. [Check the managers reference for more details](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/doers/reference/managers.md)
+You can (and should) also create your own managers. [Check the managers reference for more details](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/managers.md)
 
 ### QuerySets
 
@@ -87,13 +87,13 @@ The `.get()` operation expects a callback that receives and returns a QuerySet `
 
 Want to reuse a complicated filter? Fine, Want to reuse how you create a data on a table? Also fine!
 
-[Check the QuerySets reference for more details](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/doers/reference/querysets.md)
+[Check the QuerySets reference for more details](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/querysets.md)
 
 ## The end
 
-From here you are good to go on your own. [Check our reference docs for more in-detail explanation about each part of the database](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/doers/reference/introduction.md).
+From here you are good to go on your own. [Check our reference docs for more in-detail explanation about each part of the database](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/introduction.md).
 
 ## Up Next
 
-- [Summary](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/doers/summary.md)
-- [Reference](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/doers/reference/introduction.md)
+- [Summary](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/summary.md)
+- [Reference](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/introduction.md)
