@@ -59,7 +59,9 @@ Lazy loading is the feature that lets this package be performant and independent
 
 Essentially when you make a query, the first thing we do is that we check if the database is already initialized, if it is not we will initialize the hole engine with all of the models. This means that there are some **"gotchas"** you should be aware of:
 
-- Be mindful when using `Promise.all()` or `Promise.allSettled()` APIs. Instead of:
+#### Be mindful when using Promise.all() or Promise.allSettled() APIs
+
+Instead of:
 
 ```ts
 await Promise.all([
@@ -83,10 +85,19 @@ await Promise.all([
 
 We are working around that limitation right now.
 
-- How to speed initialization?
+#### How to speed initialization?
 
 This is better documented on the [Models](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/models.md) but you can speed things up using `instance` on `options` on the models. If your engine creates an instance in Javascript/Typescript or you want to reuse an instance that already exists. You can set `instance` on the model. This way, during the initialization it will not loop through all the models and all of the fields of the models, it'll use this instance to make the queries. Each engine should have this better documented for you.
 
-- When it is initialized without lazy loading?
+#### When it is initialized without lazy loading?
 
 Lazy loading just not take place when running the App Server. For example: `runserver` from @palmares/server should initialize the database before it can be used. This way when running your app we guarantee it's always available to be called. This is useful on a Serverful environment.
+
+## Read More
+
+- [Introduction](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/introduction.md)
+- [Engines](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/enginess.md)
+- [Models](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/models.md)
+- [Managers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/managers.md)
+- [QuerySets](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/querysets.md)
+- [Testing](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/testing.md)
