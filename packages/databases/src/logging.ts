@@ -1,5 +1,7 @@
 import { Logger } from '@palmares/logging';
 
+import type { parseSearchField } from './queries/search';
+
 export const databaseLogger = new Logger(
   { domainName: '@palmares/databases' },
   {
@@ -18,6 +20,28 @@ export const databaseLogger = new Logger(
     DATABASE_IS_NOT_CONNECTED: {
       category: 'info',
       handler: ({ databaseName }: { databaseName: string }) => `Couldn't connect to the '${databaseName}' database.`
+    },
+    FAILED_TO_GET_LAST_MIGRATION: {
+      category: 'error',
+      handler: ({ databaseName, reason, stack }: { databaseName: string; reason: string; stack: string }) =>
+        `Failed to get the last migration for the '${databaseName}' database.` +
+        `\n\n\x1b[1mReason:\x1b[0m ${reason}\n\n\x1b[1mStack:\x1b[0m ${stack}`
+    },
+    FAILED_TO_COMMIT_MIGRATION: {
+      category: 'error',
+      handler: ({
+        migrationName,
+        databaseName,
+        reason,
+        stack
+      }: {
+        migrationName: string;
+        databaseName: string;
+        reason: string;
+        stack: string;
+      }) =>
+        `Failed to get insert ran migration '${migrationName}' for the '${databaseName}' database.` +
+        `\n\n\x1b[1mReason:\x1b[0m ${reason}\n\n\x1b[1mStack:\x1b[0m ${stack}`
     },
     MIGRATIONS_NOT_FOUND: {
       category: 'warn',
@@ -72,6 +96,26 @@ export const databaseLogger = new Logger(
     NO_CHANGES_MADE_FOR_MIGRATIONS: {
       category: 'info',
       handler: () => `No changes were found in your models.`
+    },
+    QUERY_NOT_PROPERLY_SET: {
+      category: 'warn',
+      handler: ({
+        modelName,
+        invalidFields
+      }: {
+        modelName: string;
+        invalidFields: Map<string, NonNullable<Awaited<ReturnType<typeof parseSearchField>>>>;
+      }) => {
+        const errorsByField = Array.from(invalidFields)
+          .map(([_, isValidObject]) => {
+            return `- ${isValidObject.reason}`;
+          })
+          .join('\n');
+        return (
+          `The fields on the query to retrieve '${modelName}' data was not set properly` +
+          ` and contain wrong or missing data\n\n${errorsByField}`
+        );
+      }
     }
   }
 );

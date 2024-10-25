@@ -15,18 +15,14 @@ export function adapterRemoveQuery<TFunctionQueryData extends AdapterRemoveQuery
    *      });
    *   }
    *
-   *   if (args.shouldReturnData) {
-   *     const deleted = await args.modelOfEngineInstance.findAll({
-   *       where: args.search,
-   *       transaction: args.transaction,
-   *     });
-   *     await remove();
-   *
-   *     return deleted.map((data: any) => data.toJSON());
-   *   }
-   *
+   *   const deleted = await args.modelOfEngineInstance.findAll({
+   *     where: args.search,
+   *     transaction: args.transaction,
+   *   });
    *   await remove();
-   *   return [];
+   *
+   *   return deleted.map((data: any) => data.toJSON());
+   *
    * }
    */
   queryData: TFunctionQueryData;
@@ -75,7 +71,6 @@ export class AdapterRemoveQuery {
     _args: {
       modelOfEngineInstance: any;
       search: any;
-      shouldReturnData?: boolean;
       shouldNotDelete?: boolean;
       transaction?: any;
     }

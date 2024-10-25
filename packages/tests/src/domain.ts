@@ -25,7 +25,7 @@ export const testDomain = domain('@palmares/tests', '', {
   load: async (settings: TestsSettingsType) => {
     if ((settings as any).$$test) {
       const adapterInstance = new settings.testAdapter();
-      setTestAdapter(adapterInstance);
+      await setTestAdapter(adapterInstance, true);
     }
   }
 });

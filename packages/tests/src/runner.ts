@@ -3,16 +3,22 @@ import { initializeDomains } from '@palmares/core';
 import { setTestAdapter } from './utils';
 
 export async function run(settingsPath: string) {
-  const settings = await import(settingsPath).catch((e) => {
-    console.error('Error importing settings', e);
-  });
-  const defaultSettings = settings.default;
-  defaultSettings.$$test = true;
-  console.log('runner');
-  await initializeDomains(defaultSettings, {
-    ignoreCache: false,
-    ignoreCommands: true
-  });
+  try {
+    const settings = await import(settingsPath);
+    /*const settings = await import(settingsPath);*/ /*.catch((e) => {
+      console.error('Error importing settings', e);
+    });*/
+    let defaultSettings = settings.default;
+    if ('default' in defaultSettings) defaultSettings = defaultSettings.default;
+
+    defaultSettings.$$test = true;
+    await initializeDomains(defaultSettings, {
+      ignoreCache: true,
+      ignoreCommands: true
+    });
+  } catch (e) {
+    console.error('Error initializing domains', e);
+  }
 }
 
 export async function runIndependently(adapterLocation: string) {

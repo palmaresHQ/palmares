@@ -3,7 +3,7 @@ import type { onRemoveFunction, onSetFunction } from '../models/types';
 
 export function extractDefaultEventsHandlerFromModel<
   TModel extends InstanceType<ReturnType<typeof model>>,
-  TFunctionType extends 'onSet' | 'onRemove',
+  TFunctionType extends 'onSet' | 'onRemove'
 >(
   modelInstance: TModel,
   functionType: TFunctionType
@@ -14,9 +14,9 @@ export function extractDefaultEventsHandlerFromModel<
       : onRemoveFunction<TModel>;
   } else if (
     typeof modelInstance.options?.[functionType] === 'object' &&
-    (modelInstance.options[functionType] as any).handler === 'function'
+    modelInstance.options[functionType].handler === 'function'
   ) {
-    return (modelInstance.options[functionType] as any).handler as TFunctionType extends 'onSet'
+    return modelInstance.options[functionType].handler as TFunctionType extends 'onSet'
       ? onSetFunction<TModel>
       : onRemoveFunction<TModel>;
   }

@@ -1,8 +1,16 @@
 import { TextField } from './text';
 
-import type { Field } from './field';
-import type { CharFieldParamsType, MaybeNull } from './types';
-import type { This } from '../../types';
+import type { ForeignKeyField } from '.';
+import type { CustomImportsForFieldType, FieldWithOperationTypeForSearch } from './types';
+import type {
+  CompareCallback,
+  GetArgumentsCallback,
+  NewInstanceArgumentsCallback,
+  OptionsCallback,
+  ToStringCallback
+} from './utils';
+import type { DatabaseAdapter } from '../../engine';
+import type { AdapterFieldParser } from '../../engine/fields/field';
 
 /**
  * Functional approach for the creation of a CharField.
@@ -17,266 +25,889 @@ import type { This } from '../../types';
  *
  * @example
  * ```
- * const charField = char({ defaultValue: false });
+ * const charField = char({ maxLen: 255 }).allowNull();
  * ```
  */
-export function char<
-  TDefaultValue extends MaybeNull<TextField['_type']['input'] | undefined, TNull> = undefined,
-  TUnique extends boolean = false,
-  TNull extends boolean = false,
-  TAuto extends boolean = false,
-  TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any
->(
-  params: CharFieldParamsType<CharField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> = {
-    maxLength: 255,
-    allowBlank: true
-  }
-) {
-  return CharField.new(params);
+export function char<const TMaxCharLength extends number>(args: {
+  maxLen: TMaxCharLength;
+}): CharField<
+  {
+    create: string;
+    read: string;
+    update: string;
+  },
+  {
+    unique: false;
+    allowNull: false;
+    dbIndex: false;
+    underscored: true;
+    allowBlank: true;
+    isPrimaryKey: false;
+    auto: false;
+    defaultValue: undefined;
+    typeName: string;
+    hasDefaultValue: false;
+    databaseName: undefined;
+    engineInstance: DatabaseAdapter;
+    customAttributes: any;
+    maxLength: TMaxCharLength;
+  },
+  Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
+> {
+  return CharField.new(args);
 }
 
 /**
- * A CharField is a field that can hold Character values. On Relational Databases that would be a `VARCHAR` field.
- * A varchar should have a maximum length, so you should always define a `maxLength` for this field.
+ * A CharField supports either true or false.
  *
  * @example
  * ```ts
- * const charField = CharField.new({ maxLength: 255 });
+ * const booleanField = CharField.new();
  * ```
  *
  * @example
  * ```
- * const charField = CharField.new({ maxLength: 140, defaultValue: false });
+ * const booleanField = CharField.new({ databaseName: 'user_id' });
  * ```
  */
 export class CharField<
-  TType extends { input: string; output: string } = { input: string; output: string },
-  TField extends Field = any,
-  TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,
-  TUnique extends boolean = false,
-  TNull extends boolean = false,
-  TAuto extends boolean = false,
-  TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any
-> extends TextField<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
+  TType extends { create: any; read: any; update: any } = {
+    create: string;
+    read: string;
+    update: string;
+  },
+  TDefinitions extends {
+    unique: boolean;
+    auto: boolean;
+    allowNull: boolean;
+    allowBlank: boolean;
+    dbIndex: boolean;
+    isPrimaryKey: boolean;
+    defaultValue: undefined;
+    underscored: boolean;
+    typeName: string;
+    hasDefaultValue: boolean;
+    databaseName: string | undefined;
+    engineInstance: DatabaseAdapter;
+    customAttributes: any;
+    maxLength: number;
+  } = {
+    unique: false;
+    allowNull: false;
+    allowBlank: true;
+    dbIndex: false;
+    underscored: true;
+    isPrimaryKey: false;
+    auto: false;
+    hasDefaultValue: false;
+    defaultValue: undefined;
+    typeName: string;
+    databaseName: undefined;
+    engineInstance: DatabaseAdapter;
+    customAttributes: any;
+    maxLength: number;
+  },
+  TFieldOperationTypes = Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
+> extends TextField<TType, TDefinitions, TFieldOperationTypes> {
   protected $$type = '$PCharField';
-  declare _type: TType;
-  typeName: string = CharField.name;
-  maxLength: number;
+  protected __typeName = 'CharField';
+  protected __allowedQueryOperations: Set<any> = new Set([
+    'and',
+    'in',
+    'or',
+    'eq',
+    'is',
+    'like'
+  ] as (keyof Required<TFieldOperationTypes>)[]);
+  protected __maxLength: TDefinitions['maxLength'];
+
+  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+
+  protected __getArgumentsCallback = ((field, defaultGetArgumentsCallback) => {
+    const fieldAsTextField = field as CharField<any, any, any>;
+    const defaultData = defaultGetArgumentsCallback(field, defaultGetArgumentsCallback);
+    return {
+      ...defaultData,
+      allowBlank: fieldAsTextField['__allowBlank'] as boolean,
+      maxLength: fieldAsTextField['__maxLength'] as number
+    };
+  }) satisfies GetArgumentsCallback;
+
+  protected __compareCallback = ((engine, oldField, newField, defaultCompareCallback) => {
+    const oldFieldAsTextField = oldField as CharField<any, any, any>;
+    const newFieldAsTextField = newField as CharField<any, any, any>;
+    const isAllowBlankEqual = oldFieldAsTextField['__allowBlank'] === newFieldAsTextField['__allowBlank'];
+    const isMaxLengthEqual = oldFieldAsTextField['__maxLength'] === newFieldAsTextField['__maxLength'];
+
+    const [isEqual, changedAttributes] = defaultCompareCallback(engine, oldField, newField, defaultCompareCallback);
+
+    if (!isAllowBlankEqual) changedAttributes.push('allowBlank');
+    if (!isMaxLengthEqual) changedAttributes.push('maxLength');
+
+    return [isAllowBlankEqual && isMaxLengthEqual && isEqual, changedAttributes];
+  }) satisfies CompareCallback;
+
+  protected __optionsCallback = ((setFieldValue, oldField, defaultOptionsCallback) => {
+    const oldFieldAsTextField = oldField as CharField<any, any, any>;
+    defaultOptionsCallback(setFieldValue, oldField, defaultOptionsCallback);
+    setFieldValue('__allowBlank', 'allowBlank', oldFieldAsTextField['__allowBlank']);
+  }) satisfies OptionsCallback;
+
+  protected __newInstanceCallback = ((field, defaultNewInstanceArgumentsCallback) => {
+    const fieldAsCharField = field as CharField<any, any, any>;
+    const defaultData = defaultNewInstanceArgumentsCallback(field, defaultNewInstanceArgumentsCallback);
+    const position0 = defaultData[0] || {};
+    const otherPositions = defaultData.slice(1);
+    return [
+      {
+        ...position0,
+        maxLen: fieldAsCharField['__maxLength']
+      },
+      ...otherPositions
+    ];
+  }) satisfies NewInstanceArgumentsCallback;
 
   /**
-   * @deprecated Either use the `char` function or the `CharField.new` static method.
-   * Never create an instance of this class directly.
+   * This is used internally by the engine to convert the field to string.
+   * You can override this if you want to extend the ForeignKeyField class.
    */
-  constructor(
-    params: CharFieldParamsType<TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> = {
-      maxLength: 255,
-      allowBlank: true
-    }
-  ) {
+  protected __toStringCallback = (async (engine, field, defaultToStringCallback, _customParams = undefined) => {
+    const fieldAsCharField = field as CharField<any, any, any>;
+    return await defaultToStringCallback(engine, field, defaultToStringCallback, {
+      constructorParams: `{ ` + `maxLen: ${fieldAsCharField['__maxLength']} ` + `}`,
+      builderParams: `${
+        typeof fieldAsCharField['__allowBlank'] === 'boolean' ? `.allowBlank(${fieldAsCharField['__allowBlank']})` : ''
+      }`
+    });
+  }) satisfies ToStringCallback;
+
+  constructor(params: { maxLen: number }) {
     super(params);
-
-    const maxLength = typeof params.maxLength === 'number' ? params.maxLength : 255;
-    const defaultValueAsString = params.defaultValue as string;
-    const defaultValueAsNull = params.defaultValue as string | null;
-    const isDefaultValueDefined: boolean =
-      (defaultValueAsString === 'string' && defaultValueAsString.length <= maxLength) || defaultValueAsNull === null;
-
-    this.defaultValue = isDefaultValueDefined ? params.defaultValue : undefined;
-    this.maxLength = maxLength;
+    const maxLength = typeof params.maxLen === 'number' ? params.maxLen : 255;
+    this.__maxLength = maxLength;
   }
-
-  static new<
-    // eslint-disable-next-line no-shadow
-    TField extends This<typeof TextField>,
-    // eslint-disable-next-line no-shadow
-    TDefaultValue extends MaybeNull<InstanceType<TField>['_type']['input'] | undefined, TNull> = undefined,
-    // eslint-disable-next-line no-shadow
-    TUnique extends boolean = false,
-    // eslint-disable-next-line no-shadow
-    TNull extends boolean = false,
-    // eslint-disable-next-line no-shadow
-    TAuto extends boolean = false,
-    // eslint-disable-next-line no-shadow
-    TDatabaseName extends string | null | undefined = undefined,
-    // eslint-disable-next-line no-shadow
-    TCustomAttributes = any
-  >(
-    this: TField,
-    params: CharFieldParamsType<
-      InstanceType<TField>,
-      TDefaultValue,
-      TUnique,
-      TNull,
-      TAuto,
-      TDatabaseName,
-      TCustomAttributes
-    > = {
-      maxLength: 255,
-      allowBlank: true
+  /**
+   * Supposed to be used by library maintainers.
+   *
+   * When you custom create a field, you might want to take advantage of the builder pattern we already support.
+   * This let's you create functions that can be chained together to create a new field. It should be used
+   * alongside the `_setPartialAttributes` method like
+   *
+   * @example
+   * ```ts
+   * const customBigInt = CharField._overrideType<
+   *   { create: bigint; read: bigint; update: bigint },
+   *   {
+   *       customAttributes: { name: string };
+   *       unique: boolean;
+   *       auto: boolean;
+   *       allowNull: true;
+   *       dbIndex: boolean;
+   *       isPrimaryKey: boolean;
+   *       defaultValue: any;
+   *       typeName: string;
+   *       engineInstance: DatabaseAdapter;
+   *   }
+   * >({
+   *   typeName: 'CustomBigInt'
+   * });
+   *
+   * const customBuilder = <TParams extends { name: string }>(params: TParams) => {
+   *   const field = customBigInt.new(params);
+   *   return field._setNewBuilderMethods({
+   *     test: <TTest extends { age: number }>(param: TTest) =>
+   *        // This will union the type `string` with what already exists in the field 'create' type
+   *        field._setPartialAttributes<{ create: string }, { create: 'union' }>(param)
+   *   });
+   * };
+   *
+   * // Then your user can use it like:
+   *
+   * const field = customBuilder({ name: 'test' }).test({ age: 2 });
+   * ```
+   *
+   * **Important**: `customBuilder` will be used by the end user and you are responsible for documenting it.
+   */
+  _setNewBuilderMethods<const TFunctions extends InstanceType<any>>(
+    functions?: TFunctions
+  ): CharField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    TFieldOperationTypes
+  > &
+    TFunctions {
+    if (functions === undefined) return this as any;
+    const propertiesOfBase = Object.getOwnPropertyNames(Object.getPrototypeOf(functions));
+    for (const key of propertiesOfBase) {
+      if (key === 'constructor') continue;
+      (this as any)[key] = (functions as any)[key].bind(this);
     }
-  ) {
-    return new this(params) as CharField<
-      { input: string; output: string },
-      InstanceType<TField>,
-      TDefaultValue,
-      TUnique,
-      TNull,
-      TAuto,
-      TDatabaseName,
-      TCustomAttributes
-    >;
+
+    return this as any;
   }
 
   /**
-   * This method can be used to override the type of a field. This is useful for library maintainers
-   * that want to support the field type but the default type provided by palmares
-   * is not the one that the database engine supports.
+   * FOR LIBRARY MAINTAINERS ONLY
    *
-   * @example
-   * ```ts
-   * const MyCustomDatabaseCharField = CharField.overrideType<string>();
-   *
-   * // then the user can use as normal:
-   *
-   * constcCharField = MyCustomDatabaseCharField.new();
-   *
-   * // now the type inferred for the field will be a BigInt instead of a number.
-   * ```
-   *
-   * @example
-   * ```ts
-   * class MyCustomDatabaseEngineCharFieldParser extends EngineCharFieldParser {
-   *    static getFieldClass() {
-   *       return CharField.overrideType<BigInt>();
-   *    }
-   * }
-   *
-   * // then the user can use like:
-   *
-   * const charField = MyCustomDatabaseEngineCharFieldParser.getFieldClass().new();
-   * ```
+   * Focused for library maintainers that want to support a custom field type not supported by palmares.
+   * This let's them partially update the custom attributes of the field. By default setCustomAttributes
+   * will override the custom attributes entirely.
+   */
+  _setPartialAttributes<
+    TNewType extends { create?: any; read?: any; update?: any },
+    TActions extends {
+      create?: 'merge' | 'union' | 'replace';
+      read?: 'merge' | 'union' | 'replace';
+      update?: 'merge' | 'union' | 'replace';
+    },
+    TNewAllowedQueryOperations extends FieldWithOperationTypeForSearch<
+      TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read']
+    > = Pick<
+      FieldWithOperationTypeForSearch<
+        TActions['read'] extends 'merge'
+          ? TType['read'] & TNewType['read']
+          : TActions['read'] extends 'union'
+            ? TType['read'] | TNewType['read']
+            : TActions['read'] extends 'replace'
+              ? TNewType['read']
+              : TType['read']
+      >,
+      'like' | 'and' | 'in' | 'or' | 'eq' | 'is'
+    >
+  >(): <const TCustomPartialAttributes>(partialCustomAttributes: TCustomPartialAttributes) => CharField<
+    {
+      create: TActions['create'] extends 'merge'
+        ? TType['create'] & TNewType['create']
+        : TActions['create'] extends 'union'
+          ? TType['create'] | TNewType['create']
+          : TActions['create'] extends 'replace'
+            ? TNewType['create']
+            : TType['create'];
+      read: TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read'];
+      update: TActions['update'] extends 'merge'
+        ? TType['update'] & TNewType['update']
+        : TActions['update'] extends 'union'
+          ? TType['update'] | TNewType['update']
+          : TActions['update'] extends 'replace'
+            ? TNewType['update']
+            : TType['update'];
+    },
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'] & TCustomPartialAttributes;
+    },
+    TNewAllowedQueryOperations
+  > {
+    return (partialCustomAttributes) => {
+      if (partialCustomAttributes !== undefined) {
+        if ((this.__customAttributes as any) === undefined) this.__customAttributes = {} as any;
+        this.__customAttributes = { ...this.__customAttributes, ...partialCustomAttributes };
+      }
+      return this as any;
+    };
+  }
+
+  setCustomAttributes<
+    const TCustomAttributes extends Parameters<
+      TDefinitions['engineInstance']['fields']['charFieldParser']['translate']
+    >[0]['customAttributes']
+  >(
+    customAttributes: TCustomAttributes
+  ): CharField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TCustomAttributes;
+    },
+    TFieldOperationTypes
+  > {
+    (this.__customAttributes as any) = customAttributes as any;
+
+    return this as unknown as any;
+  }
+
+  unique<TUnique extends boolean = true>(
+    isUnique?: TUnique
+  ): CharField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TUnique extends false ? false : true;
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    TFieldOperationTypes
+  > {
+    return super.unique(isUnique) as unknown as any;
+  }
+
+  allowNull<TNull extends boolean = true>(
+    isNull?: TNull
+  ): CharField<
+    {
+      create: TType['create'] | null | undefined;
+      read: TType['read'] | null | undefined;
+      update: TType['update'] | null | undefined;
+    },
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TNull extends false ? false : true;
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    Pick<FieldWithOperationTypeForSearch<TType['read'] | null>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
+  > {
+    return super.allowNull(isNull) as unknown as any;
+  }
+
+  allowBlank<TBlank extends boolean = true>(
+    isBlank?: TBlank
+  ): CharField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      allowBlank: TBlank extends false ? false : true;
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    TFieldOperationTypes
+  > {
+    if (isBlank === undefined) (isBlank as any) = true;
+    this.__allowBlank = isBlank as TBlank;
+    return this as unknown as any;
+  }
+
+  /**
+   * This method is used to create an index on the database for this field.
+   */
+  dbIndex<TDbIndex extends boolean = true>(
+    isDbIndex?: TDbIndex
+  ): CharField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDbIndex extends false ? false : true;
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    TFieldOperationTypes
+  > {
+    return super.dbIndex(isDbIndex) as unknown as any;
+  }
+
+  underscored<TUnderscored extends boolean = true>(
+    isUnderscored?: TUnderscored
+  ): CharField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TUnderscored extends false ? false : true;
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    TFieldOperationTypes
+  > {
+    return super.underscored(isUnderscored) as unknown as any;
+  }
+
+  primaryKey<TIsPrimaryKey extends boolean = true>(
+    isPrimaryKey?: TIsPrimaryKey
+  ): CharField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TIsPrimaryKey extends false ? false : true;
+      auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    TFieldOperationTypes
+  > {
+    return super.primaryKey(isPrimaryKey) as unknown as any;
+  }
+
+  auto<TIsAuto extends boolean = true>(
+    isAuto?: TIsAuto
+  ): CharField<
+    {
+      create: TType['create'] | undefined;
+      read: TType['read'];
+      update: TType['update'] | undefined;
+    },
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TIsAuto extends false ? false : true;
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    TFieldOperationTypes
+  > {
+    return super.auto(isAuto) as any;
+  }
+
+  default<TDefault extends TType['create']>(
+    defaultValue: TDefault
+  ): CharField<
+    {
+      create: TType['create'] | TDefault | null | undefined;
+      read: TType['read'];
+      update: TType['update'] | null | undefined;
+    },
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      hasDefaultValue: true;
+      defaultValue: TDefault;
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    TFieldOperationTypes
+  > {
+    return super.default(defaultValue) as unknown as any;
+  }
+
+  databaseName<TDatabaseName extends string>(
+    databaseName: TDatabaseName
+  ): CharField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDatabaseName;
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    TFieldOperationTypes
+  > {
+    return super.databaseName(databaseName) as unknown as any;
+  }
+
+  /**
+   * This method can be used to override the type of a field. This is useful for library
+   * maintainers that want to support a custom field type not supported by palmares.
    *
    * ### Note
-   *
-   * Your library should provide documentation of the fields that are supported.
+   * - Your library should provide documentation of the fields that are supported.
+   * - This should be used alongside the `_setPartialAttributes` method and `_setNewBuilderMethods`.
+   * Instead of making users type NameOfYourField.new(), you should create a function that calls .new and creates
+   * a new instance of the field for them.
+   * - TDefinitions exists on type-level only, in runtime, it's not a guarantee of nothing. If TDefinitions
+   * sets unique to true, it's up to you to do `NameOfYourField.new().unique()`, because otherwise it will be false
    */
-  static overrideType<TNewType extends { input: any; output: any }>() {
-    return this as unknown as {
-      new: <
-        TFieldInstance extends This<typeof CharField>,
-        // eslint-disable-next-line no-shadow
-        TDefaultValue extends MaybeNull<TNewType['input'] | undefined, TNull> = undefined,
-        // eslint-disable-next-line no-shadow
-        TUnique extends boolean = false,
-        // eslint-disable-next-line no-shadow
-        TNull extends boolean = false,
-        // eslint-disable-next-line no-shadow
-        TAuto extends boolean = false,
-        // eslint-disable-next-line no-shadow
-        TDatabaseName extends string | null | undefined = undefined,
-        // eslint-disable-next-line no-shadow
-        TCustomAttributes = any
-      >(
-        params?: CharFieldParamsType<CharField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>
-      ) => CharField<TNewType, CharField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;
+  static _overrideType<
+    const TNewType extends { create: any; update: any; read: any },
+    const TDefinitions extends {
+      customAttributes: any;
+      unique: boolean;
+      auto: boolean;
+      allowNull: boolean;
+      dbIndex: boolean;
+      isPrimaryKey: boolean;
+      defaultValue: any;
+      typeName: string;
+      hasDefaultValue: boolean;
+      engineInstance: DatabaseAdapter;
+      allowBlank: boolean;
+    },
+    const TFieldOperationTypes extends
+      | FieldWithOperationTypeForSearch<any>
+      | Pick<FieldWithOperationTypeForSearch<any>, any>
+  >(args: {
+    typeName: string;
+    toStringCallback?: ToStringCallback;
+    compareCallback?: CompareCallback;
+    optionsCallback?: OptionsCallback;
+    newInstanceCallback?: NewInstanceArgumentsCallback;
+    allowedQueryOperations?: (keyof TFieldOperationTypes)[];
+    customImports?: CustomImportsForFieldType[];
+  }): TDefinitions['customAttributes'] extends undefined
+    ? {
+        new: <const TMaxCharLength extends number>(params: {
+          maxLen: TMaxCharLength;
+        }) => CharField<
+          TNewType,
+          {
+            unique: TDefinitions['unique'];
+            auto: TDefinitions['auto'];
+            allowNull: TDefinitions['allowNull'];
+            dbIndex: TDefinitions['dbIndex'];
+            isPrimaryKey: TDefinitions['isPrimaryKey'];
+            defaultValue: TDefinitions['defaultValue'];
+            underscored: boolean;
+            databaseName: string | undefined;
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
+            engineInstance: TDefinitions['engineInstance'];
+            customAttributes: TDefinitions['customAttributes'];
+            typeName: TDefinitions['typeName'];
+            allowBlank: TDefinitions['allowBlank'];
+            maxLength: TMaxCharLength;
+          },
+          TFieldOperationTypes
+        >;
+      }
+    : {
+        new: <const TMaxCharLength extends number>(
+          params: {
+            maxLen: TMaxCharLength;
+          } & TDefinitions['customAttributes']
+        ) => CharField<
+          TNewType,
+          {
+            unique: TDefinitions['unique'];
+            auto: TDefinitions['auto'];
+            allowNull: TDefinitions['allowNull'];
+            dbIndex: TDefinitions['dbIndex'];
+            isPrimaryKey: TDefinitions['isPrimaryKey'];
+            defaultValue: TDefinitions['defaultValue'];
+            underscored: boolean;
+            databaseName: string | undefined;
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
+            engineInstance: TDefinitions['engineInstance'];
+            customAttributes: TDefinitions['customAttributes'];
+            typeName: TDefinitions['typeName'];
+            allowBlank: TDefinitions['allowBlank'];
+            maxLength: TMaxCharLength;
+          },
+          TFieldOperationTypes
+        >;
+      } {
+    const newField = super._overrideType(args) as any;
+    /** We remove the data needed for ForeignKeyField */
+    newField.new = (params: any) => {
+      const newInstance = new this(params);
+      const keysOfForeignKeyAttributes = new Set(['maxLen']);
+
+      const customAttributes = Object.keys(params).reduce((acc, key) => {
+        if (keysOfForeignKeyAttributes.has(key)) return acc;
+        acc[key] = params[key];
+        return acc;
+      }, {} as any);
+      (newInstance as any)['__customAttributes'] = customAttributes;
+
+      return newInstance;
     };
+    return newField;
   }
 
-  /**
-   * This is mostly used internally by the engine to stringify the contents of the field on
-   * migrations. But you can override this if you want to extend the CharField class.
-   *
-   * @example
-   * ```
-   * class CustomCharField extends CharField {
-   *   aCustomValue: string;
-   *
-   *   async toString(indentation = 0, customParams: string | undefined = undefined) {
-   *    const ident = '  '.repeat(indentation + 1);
-   *    const customParamsString = customParams ? `\n${customParams}` : '';
-   *    return super.toString(indentation, `${ident}aCustomValue: ${this.aCustomValue},` + `${customParamsString}`);
-   *   }
-   * }
-   * ```
-   *
-   * On this example, your custom CharField instance defines a `aCustomValue` property that will
-   * be added on the migrations. It is useful if you have created a custom field and wants to
-   * implement a custom logic during migrations.
-   *
-   * @param indentation - The number of spaces to use for indentation. Use `'  '.repeat(indentation + 1);`
-   * @param customParams - Custom parameters to append to the stringified field.
-   *
-   * @returns The stringified field.
-   */
-  async toString(indentation = 0, customParams: string | undefined = undefined) {
-    const ident = '  '.repeat(indentation + 1);
-    const customParamsString = customParams ? `\n${customParams}` : '';
-    return super.toString(indentation, `${ident}maxLength: ${this.maxLength},` + `${customParamsString}`);
-  }
-
-  /**
-   * This is used internally by the engine to compare if the field is equal to another field.
-   * You can override this if you want to extend the CharField class.
-   *
-   * @example
-   * ```
-   * class CustomCharField extends CharField {
-   *   aCustomValue: string;
-   *
-   *   async compare(field:Field) {
-   *      const fieldAsText = field as TextField;
-   *      const isCustomValueEqual = fieldAsText.aCustomValue === this.aCustomValue;
-   *      const [isEqual, changedAttributes] = await super.compare(field);
-   *      if (!isCustomValueEqual) changedAttributes.push('aCustomValue');
-   *      return [isCustomValueEqual && isEqual, changedAttributes]
-   *   }
-   * }
-   * ```
-   *
-   * @param field - The field to compare.
-   *
-   * @returns A promise that resolves to a tuple containing a boolean and the changed attributes.
-   */
-  async compare(field: Field): Promise<[boolean, string[]]> {
-    const fieldAsText = field as CharField;
-    const isMaxLengthEqual = fieldAsText.maxLength === this.maxLength;
-    const [isEqual, changedAttributes] = await super.compare(field);
-
-    if (!isMaxLengthEqual) changedAttributes.push('maxLength');
-    return [isMaxLengthEqual && isEqual, changedAttributes];
-  }
-
-  /**
-   * This is used internally by the engine for cloning the field to a new instance. By doing
-   * that you are able to get the constructor options of the field.
-   *
-   * @example
-   * ```
-   * class CustomCharField extends CharField {
-   *  aCustomValue: string;
-   *
-   * async constructorOptions(field?: CharField) {
-   *   if (!field) field = this as CharField;
-   *   const defaultConstructorOptions = await super.constructorOptions(field);
-   *   return {
-   *     ...defaultConstructorOptions,
-   *     aCustomValue: field.aCustomValue,
-   *   };
-   * }
-   * ```
-   *
-   * @param field - The field to get the constructor options from. If not provided it will use the current field.
-   *
-   * @returns The constructor options of the field.
-   */
-  async constructorOptions(field?: CharField) {
-    if (!field) field = this as CharField;
-    const defaultConstructorOptions = await super.constructorOptions(field);
-    return {
-      ...defaultConstructorOptions,
-      allowBlank: field.allowBlank
-    };
+  static new<const TMaxCharLength extends number>(args: {
+    maxLen: TMaxCharLength;
+  }): CharField<
+    {
+      create: string;
+      read: string;
+      update: string;
+    },
+    {
+      unique: false;
+      allowNull: false;
+      dbIndex: false;
+      underscored: true;
+      allowBlank: true;
+      isPrimaryKey: false;
+      auto: false;
+      defaultValue: undefined;
+      typeName: string;
+      hasDefaultValue: false;
+      databaseName: undefined;
+      engineInstance: DatabaseAdapter;
+      customAttributes: any;
+      maxLength: TMaxCharLength;
+    },
+    Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
+  > {
+    return new this(args);
   }
 }

@@ -1,12 +1,12 @@
 import { InfiniteData, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { InventoryInput, ArrayInventoryOutput } from 'shared';
+import { InventoryInput, ArrayInventoryOutput } from '@examples/with-code-share-shared';
 
 import { pFetch, MutationErrors } from '../../utils';
 
 export default function useAddItem() {
   const queryClient = useQueryClient();
-  
+
   const addItem = useMutation({
     mutationFn: async (dataAdd: InventoryInput) => {
       const response = await pFetch('/inventory?cursor=number?', {
@@ -30,14 +30,14 @@ export default function useAddItem() {
         data: ArrayInventoryOutput;
         nextOffset: number;
       }>;
-      
+
       const newItems = structuredClone(previousItems);
       if (newItems.pages.length > 0 && Array.isArray(newItems.pages[0].data)) {
         newItems.pages[0].data.unshift(newItem as ArrayInventoryOutput[number])
       }
 
       queryClient.setQueryData(['items'], newItems)
-      
+
       return { previousItems, newItems }
     },
     // If the mutation fails, use the context we returned above
