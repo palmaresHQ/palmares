@@ -22,6 +22,7 @@ export default function Navbar() {
     { name: 'Docs', href: '/docs' },
     { name: 'Blog', href: '/blog' },
   ];
+
   return (
     <nav className="flex relative items-center justify-between w-full p-4 h-20 bg-gray-800 text-white">
       <div className="items-center gap-4 md:flex hidden">
@@ -40,9 +41,8 @@ export default function Navbar() {
       </div>
 
       <div
-        className={`${
-          searchParams.has('navbarModal') ? 'h-full' : 'h-0'
-        } absolute top-20 right-0 flex flex-col items-start pr-4 pl-4 md:hidden bg-gray-800 w-full transition-[height,opacity] z-10 overflow-auto`}
+        className={`${searchParams.has('navbarModal') ? 'h-full' : 'h-0'
+          } absolute top-20 right-0 flex flex-col items-start pr-4 pl-4 md:hidden bg-gray-800 w-full transition-[height,opacity] z-10 overflow-auto`}
       >
         {routes.map((route) => (
           <Link key={route.href} href={route.href} className="hover:underline">
