@@ -321,22 +321,32 @@ export class QuerySet<
   protected __type: TType;
   protected __query: QuerySetQueryData;
   protected __cachedData: any;
+  protected __model: TModel;
 
-  constructor(type: TType) {
+  constructor(model: TModel, type: TType) {
+    this.__model = model;
     this.__type = type;
     this.__query = {};
   }
 
   static new<TModel, TType extends 'set' | 'remove' | 'get' = 'get'>(
+    model: TModel,
     type?: TType
   ): TType extends 'remove'
     ? RemoveQuerySet<'remove', TModel>
     : TType extends 'set'
       ? SetQuerySet<'set', TModel>
       : GetQuerySet<'get', TModel> {
-    if (type === 'set') return new SetQuerySet('set') as any;
-    if (type === 'remove') return new RemoveQuerySet('remove') as any;
-    return new GetQuerySet('get') as any;
+    if (type === 'set') return new SetQuerySet(model, 'set') as any;
+    if (type === 'remove') return new RemoveQuerySet(model, 'remove') as any;
+    return new GetQuerySet(model, 'get') as any;
+  }
+
+  protected _makeQuery() {
+    const type = this.__type;
+    if (type === 'remove') return (this.__model as any).default.remove(() => this as any);
+    if (type === 'set') return (this.__model as any).default.set(() => this as any);
+    return (this.__model as any).default.get(() => this as any);
   }
 
   /**
@@ -1330,9 +1340,9 @@ export class CommonQuerySet<
     TAlreadyDefinedRelations | TRelationName
   > {
     const getNewQuerySet = () => {
-      if (this.__type === 'set') return new SetQuerySet(this.__type);
-      if (this.__type === 'remove') return new RemoveQuerySet(this.__type);
-      else return new GetQuerySet(this.__type);
+      if (this.__type === 'set') return new SetQuerySet(model, this.__type);
+      if (this.__type === 'remove') return new RemoveQuerySet(model, this.__type);
+      else return new GetQuerySet(model, this.__type);
     };
 
     const newParentQuerySet = getNewQuerySet();
@@ -1426,7 +1436,7 @@ export class CommonQuerySet<
           THasRemove,
           TIsJoin,
           TAlreadyDefinedRelations
-        >(this.__type);
+        >(this.__model, this.__type);
       if (this.__type === 'remove')
         return new RemoveQuerySet<
           'remove',
@@ -1441,7 +1451,7 @@ export class CommonQuerySet<
           THasRemove,
           TIsJoin,
           TAlreadyDefinedRelations
-        >(this.__type);
+        >(this.__model, this.__type);
       else if (this.__isJoin)
         return new GetQuerySetIfSearchOnJoin<
           'get',
@@ -1456,7 +1466,7 @@ export class CommonQuerySet<
           THasRemove,
           TIsJoin,
           TAlreadyDefinedRelations
-        >(this.__type);
+        >(this.__model, this.__type);
       else
         return new GetQuerySet<
           'get',
@@ -1471,7 +1481,7 @@ export class CommonQuerySet<
           THasRemove,
           TIsJoin,
           TAlreadyDefinedRelations
-        >(this.__type);
+        >(this.__model, this.__type);
     };
     const newQuerySet = getNewQuerySet();
 
@@ -1575,7 +1585,7 @@ export class GetQuerySetIfSearchOnJoin<
       THasRemove,
       TIsJoin,
       TAlreadyDefinedRelations
-    >(this.__type);
+    >(this.__model, this.__type);
 
     for (const field of Object.keys(this.__query)) {
       if (field === 'fields') continue;
@@ -1645,7 +1655,7 @@ export class GetQuerySetIfSearchOnJoin<
       THasRemove,
       TIsJoin,
       TAlreadyDefinedRelations
-    >(this.__type);
+    >(this.__model, this.__type);
 
     for (const field of Object.keys(this.__query)) {
       if (field === 'where') continue;
@@ -1717,7 +1727,7 @@ export class GetQuerySet<
       THasRemove,
       TIsJoin,
       TAlreadyDefinedRelations
-    >(this.__type);
+    >(this.__model, this.__type);
 
     for (const field of Object.keys(this.__query)) {
       (newQuerySet['__query'] as any)[field] = (this.__query as any)[field];
@@ -1759,7 +1769,7 @@ export class GetQuerySet<
       THasRemove,
       TIsJoin,
       TAlreadyDefinedRelations
-    >(this.__type);
+    >(this.__model, this.__type);
 
     for (const field of Object.keys(this.__query)) {
       (newQuerySet['__query'] as any)[field] = (this.__query as any)[field];
@@ -1828,6 +1838,7 @@ export class SetQuerySet<
    * - All fields are optional.
    *
    * Here is simple examples:
+   *
    * @example
    * ```typescript
    * // CREATING A USER
@@ -1926,7 +1937,7 @@ export class SetQuerySet<
       THasRemove,
       TIsJoin,
       TAlreadyDefinedRelations
-    >('set');
+    >(this.__model, 'set');
 
     for (const field of Object.keys(this.__query)) {
       if (field === 'data') continue;
@@ -2006,6 +2017,7 @@ export class RemoveQuerySet<
    * something being a little more verbose is actually a nice thing!
    *
    * A simple example:
+   *
    * @example
    * ```typescript
    * const user = await User.objects.remove((qs) => qs.where({ id: 1 }).remove());
@@ -2068,7 +2080,7 @@ export class RemoveQuerySet<
       true,
       TIsJoin,
       TAlreadyDefinedRelations
-    >('remove');
+    >(this.__model, 'remove');
 
     for (const field of Object.keys(this.__query)) {
       (newQuerySet['__query'] as any)[field] = (this.__query as any)[field];

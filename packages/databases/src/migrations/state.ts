@@ -145,9 +145,13 @@ export class State {
     let duplicatedEngineInstance: undefined | DatabaseAdapter = undefined;
 
     const wasDefaultDuplicateCalled = { value: false };
-    duplicatedEngineInstance = await engineInstance.duplicate(
-      defaultEngineDuplicate(engineInstance, wasDefaultDuplicateCalled)
-    );
+    if (engineInstance.duplicate === undefined)
+      duplicatedEngineInstance = await defaultEngineDuplicate(engineInstance, wasDefaultDuplicateCalled)();
+    else
+      duplicatedEngineInstance = await engineInstance.duplicate(
+        defaultEngineDuplicate(engineInstance, wasDefaultDuplicateCalled)
+      );
+
     if (wasDefaultDuplicateCalled.value === false) throw new DefaultDuplicateFunctionNotCalledOnEngine();
 
     const closeEngineInstance = duplicatedEngineInstance.close?.bind(duplicatedEngineInstance);

@@ -14,8 +14,10 @@ export function extractDefaultEventsHandlerFromModel<
       : onRemoveFunction<TModel>;
   } else if (
     typeof modelInstance.options?.[functionType] === 'object' &&
+    // eslint-disable-next-line ts/no-unnecessary-type-assertion
     (modelInstance.options[functionType] as any).handler === 'function'
   ) {
+    // eslint-disable-next-line ts/no-unnecessary-type-assertion
     return (modelInstance.options[functionType] as any).handler as TFunctionType extends 'onSet'
       ? onSetFunction<TModel>
       : onRemoveFunction<TModel>;

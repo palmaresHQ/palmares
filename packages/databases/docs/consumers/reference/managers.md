@@ -1,6 +1,6 @@
 # Reference > Managers
 
-During the [Getting Started](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/getting-started/querying-the-data.md) you saw that every model contain a `default` **Manager**. The idea of **Manager** is kinda the same from a _repository_. It's essentially where your queries will live.
+During the [Getting Started](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/querying-the-data.md) you saw that every model contain a `default` **Manager**. The idea of **Manager** is kinda the same from a _repository_. It's essentially where your queries will live.
 
 #### What is the difference from common repository pattern?
 
@@ -137,7 +137,7 @@ const count = await db.$count(drizzleProfilePhotos, eq(drizzleProfilePhotos.id, 
 
 #### get
 
-Used for retrieving information from your database. It will receive a callback passing a [QuerySet](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/querysets.md) and expects a [QuerySet](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/querysets.md) from the return of the callback. As documented on the QuerySets documentation, you can also create a QuerySet outside of this function, and just return this custom QuerySet here.
+Used for retrieving information from your database. It will receive a callback passing a [QuerySet](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md) and expects a [QuerySet](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md) from the return of the callback. As documented on the QuerySets documentation, you can also create a QuerySet outside of this function, and just return this custom QuerySet here.
 
 **IMPORTANT**: This will always return an array of items or an empty array if nothing is found.
 
@@ -219,9 +219,9 @@ I know it's kinda redundant, but it's safer to make it explicit, specially since
 
 ## Read More
 
-- [Introduction](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/introduction.md)
-- [Engines](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/enginess.md)
-- [Models](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/models.md)
-- [Managers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/managers.md)
-- [QuerySets](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/querysets.md)
-- [Testing](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/testing.md)
+- [Introduction](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/introduction.md)
+- [Engines](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/enginess.md)
+- [Models](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/models.md)
+- [Managers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md)
+- [QuerySets](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md)
+- [Testing](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/testing.md)

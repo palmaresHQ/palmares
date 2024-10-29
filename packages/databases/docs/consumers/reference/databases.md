@@ -95,9 +95,9 @@ Lazy loading just not take place when running the App Server. For example: `runs
 
 ## Read More
 
-- [Introduction](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/introduction.md)
-- [Engines](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/enginess.md)
-- [Models](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/models.md)
-- [Managers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/managers.md)
-- [QuerySets](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/querysets.md)
-- [Testing](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/blob/consumers/reference/testing.md)
+- [Introduction](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/introduction.md)
+- [Engines](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/enginess.md)
+- [Models](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/models.md)
+- [Managers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md)
+- [QuerySets](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md)
+- [Testing](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/testing.md)

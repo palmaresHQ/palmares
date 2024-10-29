@@ -4,7 +4,7 @@ import type { ModelType } from './models/model';
 import type { EventEmitter } from '@palmares/events';
 
 export interface DatabaseConfigurationType {
-  engine: [any, DatabaseAdapter];
+  engine: [any, () => DatabaseAdapter];
   events?: {
     emitter: EventEmitter | Promise<EventEmitter>;
     channels?: string[];

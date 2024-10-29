@@ -244,7 +244,10 @@ export class Manager<
 
     const modelInstance = this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName) as Model;
     const modelConstructor = modelInstance.constructor as typeof Model & typeof BaseModel & ModelType<any, any>;
-    return callback(new GetQuerySet('get'))['__queryTheData'](modelConstructor, engineInstance);
+    return callback(new GetQuerySet(modelConstructor as any, 'get'))['__queryTheData'](
+      modelConstructor,
+      engineInstance
+    );
   }
 
   async set<
@@ -311,7 +314,10 @@ export class Manager<
 
     const modelInstance = this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName) as Model;
     const modelConstructor = modelInstance.constructor as typeof Model & typeof BaseModel & ModelType<any, any>;
-    return callback(new SetQuerySet('set'))['__queryTheData'](modelConstructor, engineInstance);
+    return callback(new SetQuerySet(modelConstructor as any, 'set'))['__queryTheData'](
+      modelConstructor,
+      engineInstance
+    );
   }
 
   async remove<
@@ -373,7 +379,10 @@ export class Manager<
 
     const modelInstance = this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName) as Model;
     const modelConstructor = modelInstance.constructor as typeof Model & typeof BaseModel & ModelType<any, any>;
-    return callback(new RemoveQuerySet('remove'))['__queryTheData'](modelConstructor, engineInstance);
+    return callback(new RemoveQuerySet(modelConstructor as any, 'remove'))['__queryTheData'](
+      modelConstructor,
+      engineInstance
+    );
   }
 }
 

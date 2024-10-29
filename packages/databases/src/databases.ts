@@ -185,7 +185,7 @@ export class Databases {
     else {
       const engineArgs = databaseSettings.engine;
       argumentsToPassOnNew = engineArgs[0];
-      engineInstance = engineArgs[1];
+      engineInstance = engineArgs[1]();
 
       const isAnEngineInstanceDefinedForDatabase = isProbablyAnEngineInstanceDefinedForDatabase
         ? // eslint-disable-next-line ts/no-unnecessary-condition
@@ -226,18 +226,9 @@ export class Databases {
       if (isModelManagedByEngine) modelsFilteredForDatabase.push(foundModel);
     });
 
-    await new Promise((resolve) => {
-      Promise.resolve(engineInstance.isConnected(engineInstance)).then((isDatabaseConnected) => {
-        if (isDatabaseConnected) resolve(true);
-        else {
-          databaseLogger.logMessage('DATABASE_IS_NOT_CONNECTED', {
-            databaseName: engineInstance.connectionName
-          });
-          setTimeout(() => {}, 10);
-        }
-      });
-    });
-    const isDatabaseConnected = await Promise.resolve(engineInstance.isConnected(engineInstance));
+    const isDatabaseConnected = await Promise.resolve(
+      engineInstance.isConnected ? engineInstance.isConnected(engineInstance) : true
+    );
 
     // Append all of the models to the engine instance.
     engineInstance.__modelsOfEngine = onlyTheModelsFiltered;

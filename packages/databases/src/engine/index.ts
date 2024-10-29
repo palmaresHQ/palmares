@@ -24,19 +24,19 @@ export function databaseAdapter<
   query: TQueryAdapter;
   migrations?: TMigrationsAdapter;
   new: TFunctionNew;
-  duplicate: TFunctionDuplicate;
-  isConnected: TFunctionIsConnected;
+  duplicate?: TFunctionDuplicate;
+  isConnected?: TFunctionIsConnected;
   close: TFunctionClose;
   transaction: TFunctionTransaction;
 }) {
   class CustomDatabaseAdapter extends DatabaseAdapter<
-    Awaited<ReturnType<TFunctionNew>>[1]['instance'],
+    ReturnType<Awaited<ReturnType<TFunctionNew>>[1]>['instance'],
     TFieldsAdapter,
     TModelsAdapter,
     TQueryAdapter,
     TMigrationsAdapter
   > {
-    declare instance: Awaited<ReturnType<TFunctionNew>>[1]['instance'];
+    declare instance: ReturnType<Awaited<ReturnType<TFunctionNew>>[1]>['instance'];
     fields = args.fields;
     models = args.models;
     query = args.query;
@@ -99,7 +99,7 @@ export class DatabaseAdapter<
    *
    * @returns - Will return a new engine instance.
    */
-  static new(..._args: any[]): [any, DatabaseAdapter] {
+  static new(..._args: any[]): [any, () => DatabaseAdapter] {
     throw new NotImplementedAdapterException('new');
   }
 
@@ -123,7 +123,7 @@ export class DatabaseAdapter<
    * @returns - A new engine instance after calling `.new` static method.
    */
   // eslint-disable-next-line ts/require-await
-  async duplicate(
+  async duplicate?(
     _getNewEngine: (...args: Parameters<(typeof DatabaseAdapter)['new']>) => Promise<DatabaseAdapter>
   ): Promise<DatabaseAdapter> {
     throw new NotImplementedAdapterException('duplicate');
@@ -137,7 +137,7 @@ export class DatabaseAdapter<
    * @return - Return true if the database is connected or false otherwise.
    */
   // eslint-disable-next-line ts/require-await
-  async isConnected(engine: DatabaseAdapter): Promise<boolean> {
+  async isConnected?(_engine: DatabaseAdapter): Promise<boolean> {
     throw new NotImplementedAdapterException('isConnected');
   }
 

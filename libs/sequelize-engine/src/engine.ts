@@ -40,20 +40,25 @@ const sequelizeDatabaseAdapter = databaseAdapter({
   migrations: new SequelizeMigrations(),
   models: new SequelizeEngineModels(),
   query: new SequelizeEngineQuery(),
-  new: <TArgs extends Options & { url?: string }>(args: TArgs): [TArgs, DatabaseAdapter] => {
-    const isUrlDefined: boolean = typeof args.url === 'string';
-    if (isUrlDefined) {
-      const databaseUrl: string = args.url || '';
-      const sequelizeInstance = new Sequelize(databaseUrl, args);
-      const engineInstance = new sequelizeDatabaseAdapter();
-      engineInstance.instance = sequelizeInstance;
-      return [args, engineInstance];
-    }
+  new: <TArgs extends Options & { url?: string }>(args: TArgs): [TArgs, () => DatabaseAdapter] => {
+    return [
+      args,
+      () => {
+        const isUrlDefined: boolean = typeof args.url === 'string';
+        if (isUrlDefined) {
+          const databaseUrl: string = args.url || '';
+          const sequelizeInstance = new Sequelize(databaseUrl, args);
+          const engineInstance = new sequelizeDatabaseAdapter();
+          engineInstance.instance = sequelizeInstance;
+          return engineInstance;
+        }
 
-    const sequelizeInstance = new Sequelize(args);
-    const engineInstance = new sequelizeDatabaseAdapter();
-    engineInstance.instance = sequelizeInstance;
-    return [args, engineInstance];
+        const sequelizeInstance = new Sequelize(args);
+        const engineInstance = new sequelizeDatabaseAdapter();
+        engineInstance.instance = sequelizeInstance;
+        return engineInstance;
+      }
+    ];
   },
   isConnected: async (databaseAdapter): Promise<boolean> => {
     const instanceData = checkIfInstanceSavedOrSave(databaseAdapter.connectionName, databaseAdapter.instance);
