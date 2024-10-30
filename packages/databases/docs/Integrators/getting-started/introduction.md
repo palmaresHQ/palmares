@@ -1,3 +1,7 @@
+[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/introduction.md) >
+[integrators](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/integrators/summary.md) >
+[introduction](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/integrators/getting-started/introduction.md)
+
 # Getting Started > Introduction
 
 We really hope you already read the [Consumer docs](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/summary.md). Yeah, I wouldn't have read it either, who got time for reading 2 docs?
