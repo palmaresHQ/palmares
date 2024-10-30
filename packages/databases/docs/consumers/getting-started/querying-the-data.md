@@ -1,3 +1,8 @@
+[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/introduction.md) >
+[consumers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/summary.md) >
+[getting-started](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/summary.md) >
+[querying-the-data](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/querying-the-data.md)
+
 # Getting Started > Querying the Data
 
 A database does not have much value if you can't access its data so we offer you the ability to query your data.
@@ -91,9 +96,9 @@ Want to reuse a complicated filter? Fine, Want to reuse how you create a data on
 
 ## The end
 
-From here you are good to go on your own. [Check our reference docs for more in-detail explanation about each part of the database](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/introduction.md).
+From here you are good to go on your own. [Check our reference docs for more in-detail explanation about each part of the database](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/summary.md).
 
 ## Up Next
 
 - [Summary](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/summary.md)
-- [Reference](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/introduction.md)
+- [Reference](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/summary.md)

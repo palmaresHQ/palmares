@@ -1,3 +1,8 @@
+[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/introduction.md) >
+[consumers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/summary.md) >
+[getting-started](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/summary.md) >
+[with-palmares](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/with-palmares.md)
+
 # Getting Started > With Palmares
 
 ONE OF US! ONE OF US! Welcome to the team! [Everybody claps their hands](https://www.youtube.com/watch?v=oyFQVZ2h0V8).

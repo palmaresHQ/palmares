@@ -1,6 +1,13 @@
+[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/introduction.md) >
+[consumers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/summary.md) >
+[getting-started](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/summary.md) >
+[migrating-the-changes](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/migrating-the-changes.md)
+
 # Getting Started > Your first migration
 
 A migration is a tool that lets you focus more on your code and less on your database changes. When you make a change, like, any change on your models, when you run `makemigrations` command it will know exactly what changes you made on your model and apply those changes on the next migration. It feels like magic, [because it is!](https://www.youtube.com/watch?v=Iz-8CSa9xj8)
+
+**IMPORTANT**: This step is totally optional since the database engine can implement our migration tool or roll with their own. For example `@palmares/sequelize-engine` uses our migration tool but `@palmares/drizzle-engine` uses [drizzle-kit](https://orm.drizzle.team/docs/kit-overview) to handle the migrations.
 
 ## Whatever old guy, I'm not impressed
 

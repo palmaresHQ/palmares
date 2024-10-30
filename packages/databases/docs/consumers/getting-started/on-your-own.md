@@ -1,3 +1,8 @@
+[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/introduction.md) >
+[consumers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/summary.md) >
+[getting-started](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/summary.md) >
+[on-your-own](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/on-your-own.md)
+
 # Getting Started > On your own
 
 Cool, looks like you like it rough, huh? No problem, personally I don't have a problem with that. We did a lot of work so it comes as smooth as butter. You won't even feel it!

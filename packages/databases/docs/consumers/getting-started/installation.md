@@ -1,3 +1,8 @@
+[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/introduction.md) >
+[consumers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/summary.md) >
+[getting-started](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/summary.md) >
+[installation](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/installation.md)
+
 # Getting started > Installation
 
 There are two ways you can use palmares databases library. You can either use it with palmares, the framework, or you can use it on your own. Of course the recommended way is running it with the framework, but we made it easy to roll on your own as well. You don't need to worry, all features are supported on both.
