@@ -1,3 +1,8 @@
+[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/introduction.md) >
+[consumers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/summary.md) >
+[reference](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/introduction.md) >
+[querysets](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md) >
+
 # Reference > QuerySets
 
 You probably already know what are models, you know what are [Managers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md), but now you are curious about what the hell are QuerySets. Like, why the hell something that was supposed to be simple has so many concepts?
@@ -93,7 +98,7 @@ export class Company extends Model<Company>() {
 
   options =  {
     tableName: 'company'
-  } satisfies ModelOptionsType<Company> // We use satisfies here so we can still infer and you don't lose intellisense.
+  } satisfies ModelOptionsType<Company>
 }
 
 export const User = define('User', {
@@ -174,6 +179,12 @@ const company = await Company.default.get((qs) =>
 company[0].usersOfCompany.id; // 1
 ```
 
+### Still on relations
+
+The `.join()` has intellisense, the first argument is with what model you want to join, and the second argument is the `relationName` or `relatedName` you want to join with.
+
+You can, for example, have the **User** model related to **Company** on more than one field. So we always need to explicitly define to what relation we are referring to. If you want to relate Company to two distinct fields, you should create two joins. Just like you would need on a normal SQL query.
+
 ## Types of QuerySets
 
 We have three main ones that follow the methods on the [Manager](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md):
@@ -184,6 +195,107 @@ The most basic one, it offer you basic querying capabilities like filtering, ord
 
 When you don't explicitly define a _type_ of a **QuerySet**, we will create a GetQuerySet by default.
 
-#### GetQuerySetIfSearchOnJoin
+**Example:**
 
-This is a special GetQuerySet but without `limit` and `offset`. This will only exist if you add a `.where()` clause inside of a `.join`.
+```ts
+import { queryset } from '@palmares/schemas';
+
+import { Company, User } from './models';
+
+queryset(Company, 'get')
+  .join(User, 'usersOfCompany', (qs) => qs.select('name', 'uuid', 'age'))
+  .where({ id: 1 })
+  .limit(10);
+```
+
+### SetQuerySet
+
+A `set` QuerySet type includes the `.data()` method. The `.data()` method should always be the last method to call. We differ if it's an UPDATE or a CREATE operation based on the presence of the `.where()` clause anywhere on your QuerySet (even on nested `.join()` operations).
+
+If you have the `.where()` clause anywhere on your QuerySet, even on joins, we will make an UPDATE, since it is an UPDATE operation you can set ONE argument only on the `.data()` method.
+
+If that's not the case, you are making a CREATE operation, a CREATE operation can create multiple items all at once.
+
+**Examples:**
+
+```ts
+import { queryset } from '@palmares/schemas';
+
+import { Company, User } from './models';
+
+// A CREATE EXAMPLE.
+/** You don't need to assign companyId, to each user it gets assigned automatically for you. **/
+queryset(Company, 'set')
+  .join(User, 'usersOfCompany', (qs) =>
+    qs.data(
+      {
+        firstName: 'Foo',
+        lastName: 'Bar',
+        email: 'foo@bar.com',
+      },
+      {
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'johndoe@example.com',
+      }
+    )
+  )
+  .data({
+    name: 'Beautiful Dolphins',
+    slug: 'beautiful-dolphins',
+  });
+
+// AN UPDATE EXAMPLE
+/** Yes, it will update just all the users from company 'Beautiful Dolphins' with the firstName "Oof" **/
+/** It doesn't make sense to update more than one data, so you can just pass one argument to `.data()` when it's an update **/
+queryset(Company, 'set')
+  .where({ name: 'Beautiful Dolphins' })
+  .join(User, 'usersOfCompany', (qs) =>
+    qs.data({
+      firstName: 'Oof',
+    })
+  );
+```
+
+### RemoveQuerySet
+
+Kinda the same thing as [SetQuerySet](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md#setqueryset) except you need to explicitly call `.remove()` instead of `.data()`.
+
+The first question you might ask is: **Why the hell i'm wasting my time with this?**
+
+I don't have an answer for that. But I have an answer why it can look redundant to need to explicitly call `.remove()` on a [QuerySet](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md) that will run on the `.remove()` method from the [Manager](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md). We think it is safer since [QuerySets](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md) can be reused and removing something is a sensitive action to do.
+
+Also, it works well with `.join()`, because you can control of it removing just the child elements of a query. You gain more fine grained control over a little inconvenience of it being a little redundant. I would take that.
+
+```ts
+// Removes all of the Users from the 'Beautiful Dolphins' Company, but not the Company itself.
+queryset(Company, 'remove')
+  .where({ name: 'Beautiful Dolphins' })
+  .join(User, 'usersOfCompany', (qs) => qs.remove());
+
+// A remove operation without a WHERE? NOT ON OUR WATCH.
+// Palmares adds type-safety and validation to guarantee you remove just the wanted data
+queryset(Company, 'remove').remove(); // NOT VALID, where is the WHERE?
+
+// wait, WAIT! HOW?
+// Yep, we know you defined a `.where()` clause on a nested QuerySet, so `.remove()` is allowed on the parent.
+// This is also valid for deeply nested QuerySets.
+queryset(Company, 'remove')
+  .join(User, 'usersOfCompany', (qs) =>
+    qs.where({
+      firstName: {
+        like: '%John%',
+      },
+    })
+  )
+  .remove();
+```
+
+## Read More
+
+- [Introduction](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/introduction.md)
+- [Engines](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/enginess.md)
+- [Models](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/models.md)
+- [Managers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md)
+- [QuerySets](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md)
+- [Testing](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/testing.md)
