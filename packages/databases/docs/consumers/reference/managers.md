@@ -5,7 +5,7 @@
 
 # Reference > Managers
 
-During the [Getting Started](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/querying-the-data.md) you saw that every model contain a `default` **Manager**. The idea of **Manager** is kinda the same from a _repository_. It's essentially where your queries will live.
+During the [Getting Started](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/querying-the-data.md) you saw that every model contain a `default` [Manager](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md). The idea of [Manager](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md) is kinda the same from a _repository_. It's essentially where your queries will live.
 
 #### What is the difference from common repository pattern?
 
@@ -44,7 +44,7 @@ export default class ProfilePhotoRepository {
 
 This essentially is explicit that it expects PrismaService to be injected when this class is initialized. On here we have an explicit dependency injection.
 
-The same thing with **Palmares Managers** would be.
+The same thing with **Palmares** [Managers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md) would be.
 
 ```ts
 class MyCustomManager extends Manger<ProfilePhoto> {
@@ -98,7 +98,7 @@ class ProfilePhotos extends Model<ProfilePhotos>() {
 ProfilePhotos.custom.byId(123);
 ```
 
-Do you see the difference? The **Manager** approach injects the model indirectly. You can access the model at any time. Get it's instance, but it's guaranteed for you that all the data you need is injected when you need. A great thing about this pattern is that Managers and Models are tightly coupled. On the original repository pattern there is nothing stopping the repository to access data from all of the models in the database. This means it's totally possible to have just one repository for the hole project. With the Manager pattern each repository is responsible for the data from one Model. Of course, not stops you from accessing data from other models on each Manager.
+Do you see the difference? The [Manager](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md) approach injects the model indirectly. You can access the model at any time. Get it's instance, but it's guaranteed for you that all the data you need is injected when you need. A great thing about this pattern is that [Managers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md) and [Models](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/models.md) are tightly coupled. On the original repository pattern there is nothing stopping the repository to access data from all of the models in the database. This means it's totally possible to have just one repository for the hole project. With the [Managers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md) pattern each repository is responsible for the data from one [Model](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/models.md). Of course, not stops you from accessing data from other models on each Manager.
 
 ## Methods
 
@@ -142,7 +142,7 @@ const count = await db.$count(drizzleProfilePhotos, eq(drizzleProfilePhotos.id, 
 
 #### get
 
-Used for retrieving information from your database. It will receive a callback passing a [QuerySet](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md) and expects a [QuerySet](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md) from the return of the callback. As documented on the QuerySets documentation, you can also create a QuerySet outside of this function, and just return this custom QuerySet here.
+Used for retrieving information from your database. It will receive a callback passing a [QuerySet](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md) and expects a [QuerySet](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md) from the return of the callback. As documented on the [QuerySets](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md) documentation, you can also create a [QuerySet](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md) outside of this function, and just return this custom QuerySet here.
 
 **IMPORTANT**: This will always return an array of items or an empty array if nothing is found.
 
@@ -167,10 +167,10 @@ const usersWithCompany = await User.default.get((qs) => qs.join(Company, 'compan
 
 #### set
 
-Used for updating ot creating information on the database. It's the same thing as `.get` except that it expects that you call `.data()` at the end of the queryset.
+Used for updating ot creating information on the database. It's the same thing as `.get` except that it expects that you call `.data()` at the end of the [QuerySet](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md) .
 
-- **CREATE**: When the queryset does not contain ANY `.where()` clauses, it'll be a _CREATE_ operation. By default you can create more than one item on the same query.
-- **UPDATE**: When the queryset contain ANY `.where()` clause, either on the root or its child querysets, it'll be an _UPDATE_ operation. It'll allow just one item to be set, if more than one is present, we will use the first one.
+- **CREATE**: When the [QuerySet](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md) does not contain ANY `.where()` clauses, it'll be a _CREATE_ operation. By default you can create more than one item on the same query.
+- **UPDATE**: When the [QuerySet](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md) contain ANY `.where()` clause, either on the root or its child [QuerySets](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md), it'll be an _UPDATE_ operation. It'll allow just one item to be set, if more than one is present, we will use the first one.
 
 _Example:_
 
@@ -208,7 +208,7 @@ const updatedUsers = await User.default.set((qs) =>
 
 #### remove
 
-By design, no more delete without where issues! It'll only work if you add `.remove()` and a `.where()` clause on your QuerySet. You can still use `force: true` to delete all the data without `.where()` but this guarantee that you can safely delete your data without worrying.
+By design, no more delete without where issues! It'll only work if you add `.remove()` and a `.where()` clause on your [QuerySet](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md) . You can still use `force: true` to delete all the data without `.where()` but this guarantee that you can safely delete your data without worrying.
 
 _Example_:
 
@@ -220,7 +220,7 @@ const removedUser = await User.default.remove((qs) => qs.where({ id: 1 }));
 const removedUser = await User.default.remove((qs) => qs.where({ id: 1 }).remove());
 ```
 
-I know it's kinda redundant, but it's safer to make it explicit, specially since you can reuse QuerySets. That way you don't unintentionally remove unwanted data.
+I know it's kinda redundant, but it's safer to make it explicit, specially since you can reuse [QuerySets](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md). That way you don't unintentionally remove unwanted data.
 
 ## Read More
 

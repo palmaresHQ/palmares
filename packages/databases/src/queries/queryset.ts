@@ -67,11 +67,14 @@ export type ForeignKeyModelsRelationName<TModel, TIncludedModel> = {
           ? TDefinitions['relationName']
           : never
       : never
-    : never]: ModelsFields<TModel>[TKey] extends ForeignKeyField<any, infer TDefinitions, any>
-    ? TDefinitions['allowNull'] extends true
-      ? 'optionalObject'
-      : 'object'
-    : 'object';
+    : never]: {
+    originalKey: TKey;
+    returnType: ModelsFields<TModel>[TKey] extends ForeignKeyField<any, infer TDefinitions, any>
+      ? TDefinitions['allowNull'] extends true
+        ? 'optionalObject'
+        : 'object'
+      : 'object';
+  };
 };
 
 // This will create an object where they keys are the relationName and the values are either unknown, or
@@ -100,15 +103,18 @@ export type ForeignKeyModelsRelatedName<TModel, TIncludedModel> = {
           ? TDefinitions['relatedName']
           : never
       : never
-    : never]: ModelsFields<TModel>[TKey] extends ForeignKeyField<any, infer TDefinitions, any>
-    ? TDefinitions['allowNull'] extends true
-      ? TDefinitions['unique'] extends true
-        ? 'optionalObject'
-        : 'optionalArray'
-      : TDefinitions['unique'] extends true
-        ? 'object'
-        : 'array'
-    : 'array';
+    : never]: {
+    originalKey: TKey;
+    returnType: ModelsFields<TModel>[TKey] extends ForeignKeyField<any, infer TDefinitions, any>
+      ? TDefinitions['allowNull'] extends true
+        ? TDefinitions['unique'] extends true
+          ? 'optionalObject'
+          : 'optionalArray'
+        : TDefinitions['unique'] extends true
+          ? 'object'
+          : 'array'
+      : 'array';
+  };
 };
 
 type AddOperation<TField extends Field<any, any, any>> = TField extends
@@ -132,6 +138,7 @@ type _GetDataFromModel<TModel, TType extends 'create' | 'update' | 'read' = 'rea
     | Field<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
     | AutoField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
     | BigAutoField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
+    | BooleanField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
     | TextField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
     | CharField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
     | UuidField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
@@ -139,7 +146,6 @@ type _GetDataFromModel<TModel, TType extends 'create' | 'update' | 'read' = 'rea
     | DecimalField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
     | DateField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
     | EnumField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
-    | BooleanField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
     | ForeignKeyField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
     | BigIntegerField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
     ? TType extends 'create'
@@ -1133,7 +1139,21 @@ export class CommonQuerySet<
    */
   join<
     TIncludedModel,
-    TRelationName extends keyof TAllRelationNames | keyof TAllRelatedNames,
+    TRelationName extends keyof TAllRelationNames,
+    TAllRelationNames extends Record<
+      string,
+      {
+        originalKey: string;
+        returnType: 'array' | 'object' | 'optionalArray' | 'optionalObject';
+      }
+    > = ForeignKeyModelsRelationName<
+      TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel,
+      TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel
+    > &
+      ForeignKeyModelsRelatedName<
+        TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel,
+        TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel
+      >,
     TNestedQuerySet extends (
       querySet: ReturnTypeOfBaseQuerySetMethods<
         TType,
@@ -1186,13 +1206,11 @@ export class CommonQuerySet<
           GetDataFromModel<TIncludedModel>,
           Omit<
             Partial<GetDataFromModel<TIncludedModel, 'update'>>,
-            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+            TAllRelationNames[TRelationName extends keyof TAllRelationNames ? TRelationName : never]['originalKey']
           >,
           Omit<
             GetDataFromModel<TIncludedModel, 'create'>,
-            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+            TAllRelationNames[TRelationName extends keyof TAllRelationNames ? TRelationName : never]['originalKey']
           >,
           Partial<GetDataFromModel<TIncludedModel, 'read', true>>,
           GetDataFromModel<TIncludedModel>,
@@ -1208,13 +1226,11 @@ export class CommonQuerySet<
         GetDataFromModel<TIncludedModel>,
         Omit<
           Partial<GetDataFromModel<TIncludedModel, 'update'>>,
-          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+          TAllRelationNames[TRelationName extends keyof TAllRelationNames ? TRelationName : never]['originalKey']
         >,
         Omit<
           GetDataFromModel<TIncludedModel, 'create'>,
-          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-          | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+          TAllRelationNames[TRelationName extends keyof TAllRelationNames ? TRelationName : never]['originalKey']
         >,
         Partial<GetDataFromModel<TIncludedModel, 'read', true>>,
         GetDataFromModel<TIncludedModel>,
@@ -1231,13 +1247,11 @@ export class CommonQuerySet<
           GetDataFromModel<TIncludedModel>,
           Omit<
             Partial<GetDataFromModel<TIncludedModel, 'update'>>,
-            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+            TAllRelationNames[TRelationName extends keyof TAllRelationNames ? TRelationName : never]['originalKey']
           >,
           Omit<
             GetDataFromModel<TIncludedModel, 'create'>,
-            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+            TAllRelationNames[TRelationName extends keyof TAllRelationNames ? TRelationName : never]['originalKey']
           >,
           Partial<GetDataFromModel<TIncludedModel, 'read', true>>,
           GetDataFromModel<TIncludedModel>,
@@ -1253,13 +1267,11 @@ export class CommonQuerySet<
           GetDataFromModel<TIncludedModel>,
           Omit<
             Partial<GetDataFromModel<TIncludedModel, 'update'>>,
-            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+            TAllRelationNames[TRelationName extends keyof TAllRelationNames ? TRelationName : never]['originalKey']
           >,
           Omit<
             GetDataFromModel<TIncludedModel, 'create'>,
-            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-            | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+            TAllRelationNames[TRelationName extends keyof TAllRelationNames ? TRelationName : never]['originalKey']
           >,
           Partial<GetDataFromModel<TIncludedModel, 'read', true>>,
           GetDataFromModel<TIncludedModel>,
@@ -1269,23 +1281,10 @@ export class CommonQuerySet<
           true,
           never
         >,
-    TAllRelationNames extends ForeignKeyModelsRelationName<
-      TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel,
-      TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel
-    > = ForeignKeyModelsRelationName<
-      TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel,
-      TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel
-    >,
-    TAllRelatedNames extends ForeignKeyModelsRelatedName<
-      TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel,
-      TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel
-    > = ForeignKeyModelsRelatedName<
-      TIncludedModel extends abstract new (...args: any) => any ? InstanceType<TIncludedModel> : TIncludedModel,
-      TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel
-    >,
-    TToJoin =
-      | TAllRelatedNames[TRelationName extends keyof TAllRelatedNames ? TRelationName : never]
-      | TAllRelationNames[TRelationName extends keyof TAllRelationNames ? TRelationName : never],
+    TToJoin extends {
+      originalKey: string;
+      returnType: 'array' | 'object' | 'optionalArray' | 'optionalObject';
+    } = TAllRelationNames[TRelationName extends keyof TAllRelationNames ? TRelationName : never],
     TReturnFromNestedQuerySet = ReturnType<TNestedQuerySet> extends
       | QuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
       | CommonQuerySet<any, any, infer TResult, any, any, any, any, any, any, any, any, any>
@@ -1299,23 +1298,21 @@ export class CommonQuerySet<
     TType,
     TModel,
     TResult & {
-      [TKey in TRelationName]: TToJoin extends 'optionalObject'
+      [TKey in TRelationName]: TToJoin['returnType'] extends 'optionalObject'
         ? TReturnFromNestedQuerySet | undefined
-        : TToJoin extends 'array' | 'optionalArray'
+        : TToJoin['returnType'] extends 'array' | 'optionalArray'
           ? TReturnFromNestedQuerySet[]
-          : TToJoin extends 'object'
+          : TToJoin['returnType'] extends 'object'
             ? TReturnFromNestedQuerySet
             : TReturnFromNestedQuerySet[];
     },
     Omit<
       TUpdate,
-      | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-      | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+      TAllRelationNames[TRelationName extends keyof TAllRelationNames ? TRelationName : never]['originalKey']
     >,
     Omit<
       TCreate,
-      | keyof ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationName>
-      | keyof ForeignKeyFieldNameByRelationOrRelatedName<TIncludedModel, TRelationName>
+      TAllRelationNames[TRelationName extends keyof TAllRelationNames ? TRelationName : never]['originalKey']
     >,
     TSearch,
     TOrder,

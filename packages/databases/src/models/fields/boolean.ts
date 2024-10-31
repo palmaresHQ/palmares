@@ -589,7 +589,7 @@ export class BooleanField<
     defaultValue: TDefault
   ): BooleanField<
     {
-      create: TType['create'] | TDefault | undefined;
+      create: TType['create'] | undefined;
       read: TType['read'];
       update: TType['update'] | undefined;
     },

@@ -1,7 +1,7 @@
 [@palmares/databases](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/introduction.md) >
 [consumers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/summary.md)
 
-# Palmares/Databases > Summary
+# Palmares/Databases > Consumers > Summary
 
 ## Getting Started
 

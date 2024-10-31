@@ -22,6 +22,8 @@ const args = DrizzleEngine.new({
 });
 export const db = args[1]().instance.instance;
 
+const newDb = drizzleBetterSqlite3(database, { schema: schema });
+
 export default defineSettings({
   basePath: dirname(resolve(import.meta.dirname)),
   settingsLocation: import.meta.filename,

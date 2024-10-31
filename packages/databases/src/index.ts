@@ -9,6 +9,7 @@ import { type ForeignKeyModelsRelatedName, type ForeignKeyModelsRelationName, Qu
 import type { DatabaseAdapter } from './engine';
 
 export { Manager };
+export { GetQuerySet, QuerySet, RemoveQuerySet, SetQuerySet } from './queries/queryset';
 export { ON_DELETE } from './models/fields';
 export * from './types';
 export { DatabaseAdapter, databaseAdapter } from './engine';

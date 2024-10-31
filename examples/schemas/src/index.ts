@@ -15,13 +15,8 @@ const userSchema = p.object({
     id: p.number(),
     name: p.string(),
   }),
-}).toInternal().toRepresentation(async (value) => {
+})
 
-  return {
-    ...value,
-    company: value.company.id,
-  } as Omit<typeof value, 'password'>;
-});
 const main = async () => {
   const testSchema = p.object({
     companyId: p.number().toRepresentation(async (value) => {

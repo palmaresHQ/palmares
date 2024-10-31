@@ -81,7 +81,7 @@ export class User extends Model<User>() {
       onDelete: ON_DELETE.CASCADE,
       relatedName: 'usersOfCompany',
       relationName: 'company',
-      toField: 'id',
+      toField: 'uuid',
       relatedTo: () => Company
     }),
     profileTypeId: ForeignKeyField.new({

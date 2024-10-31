@@ -77,6 +77,10 @@ User.lucia.authenticateWithEmail(email, password);
 
 This way the user can use the managers from your library without needing to implement themselves. Also, you guarantee that the fields you need on your model will be available since the user extended from your abstract model.
 
+## Speeding up initialization
+
+We will always translate the Palmares model to the underlying engine model.
+
 ## Fields
 
 Since palmares/databases is intended to work with any database, we tried to abstract the most common used fields on applications. We might remove or add other fields as we feel the necessity.

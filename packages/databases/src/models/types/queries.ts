@@ -858,6 +858,7 @@ type GetField<
   | Field<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
   | AutoField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
   | BigAutoField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
+  | BooleanField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
   | TextField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
   | CharField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
   | UuidField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
@@ -865,7 +866,6 @@ type GetField<
   | DecimalField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
   | DateField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
   | EnumField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
-  | BooleanField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
   | ForeignKeyField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
   ? TIsSearch extends true
     ? AddOperation<TRead> | TRead

@@ -3,6 +3,7 @@ import { describe } from '@palmares/tests';
 import { Company, ProfileType, User } from './models';
 
 import type JestTestAdapter from '@palmares/jest-tests';
+//import { QuerySet } from 'packages/databases/dist/src/queries/queryset';
 
 describe<JestTestAdapter>('sequelize models', ({ test }) => {
   test('Test set data through relation', async ({ expect }) => {
