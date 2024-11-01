@@ -16,7 +16,7 @@ A <a href="http://nodejs.org" target="_blank">Javascript</a> and <a href="typesc
 
 **Palmares** is a framework that aims for unification and freedom. It's opinionated at the same time it's not. Bring your own tools, forget thinking if X works with Y. With Palmares it just works! You can use it even without a server!
 
-You can also strip the hole framework apart and just use what you need on your projects. You don't need to use Palmares to use Palmares!
+You can also strip the hole framework apart and just use what you need from it on your projects. You don't need to use Palmares to use Palmares!
 
 It's aimed to work well on monorepos and have **ZERO** dependencies at it's core. Where javascript runs, this framework is supposed to run as well. **Even on places where javascript is definitely the worst language choice!**
 
@@ -32,7 +32,7 @@ With **Palmares** we can unify all the ecosystem into one by worrying in 2 front
 - How to make the framework easy to extend
 
 <p align="center">
-  <img src="https://github.com/palmaresHQ/palmares/blob/main/resources/xkcd-standards.png" width="180" alt="XKCD comic joking about standards, but modified to say the only standard is palmares" />
+  <img src="https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/resources/xkcd-standards.png" width="180" alt="XKCD comic joking about standards, but modified to say the only standard is palmares" />
 </p>
 
 > Now cut the trash talk
@@ -42,10 +42,10 @@ The motivation is that we had nothing better to do. And Palmares is because we t
 ### How does it differ from the others
 
 - [Redwood.js](https://redwoodjs.com/), [wasp-lang](https://wasp-lang.dev/), [t3stack](https://create.t3.gg/), etc. Although great ways to create applications they can be categorized more on the template side of things. It's built around a set of tools in mind. React, some of them uses Prisma, some uses drizzle. They are all heavily opinionated on the tools you should use. **Palmares** is not opinionated at all, we go deep into creating an abstraction layer that can be used with all existing ORMs, servers, Schema validators. We are the common _glue_ above all. And another thing: You can still use everything we give you independent from the framework, we are don't have any financial incentive to make you vendor-locked-in on our framework. Pick what you like and just use.
-- [Nest.js](https://nestjs.com/) an amazing piece of software, but i know you don't like Angular, neither do I. Decorators are still non native to Javascript and Nest relies a lot on it. But still, we are grateful for Nest because it offered us some nice ideas.
+- [Nest.js](https://nestjs.com/) An amazing piece of software, but I know you don't like Angular, neither do I. Decorators are still non native to Javascript and Nest relies a lot on it. But still, we are grateful for Nest existence because it gave us some nice ideas.
 - [Adonis.js](https://adonisjs.com/) What we are trying to accomplish, but instead of doing everything ourselves we rely on popular libraries like Express, Drizzle, Zod, etc. We are not trying to substitute them but work alongside them.
-- [Encore.js](https://encore.dev/) Kinda the same thing from Adonis. It's more like a Development Platform, as they, themselves sell it, than a framework.
-- [Supabase](https://supabase.com/) and [Strapi](https://strapi.io/) have a nice UI to build backend application. We differ a lot from them.
+- [Encore.js](https://encore.dev/) Kinda the same thing as Adonis. It's more like a Development Platform, as they sell it, than a framework.
+- [Supabase](https://supabase.com/) and [Strapi](https://strapi.io/) have a nice UI to build backend applications. We differ a lot from them.
 
 ### When NOT to use Palmares
 
@@ -56,7 +56,7 @@ But also
 - You dream with Angular or think Javascript should be less _Script_ and more _Java_: [Nest.js](https://nestjs.com/)
 - You just want to build your shiny new MVP with an opinionated set of tools you are familiar: [Redwood.js](https://redwoodjs.com/), [wasp-lang](https://wasp-lang.dev/), [t3stack](https://create.t3.gg/)
 - You don't want to rely on third party, and want the full package: [Adonis.js](https://adonisjs.com/) or [Encore.js](https://encore.dev/)
-- You think that the Mouse is better than the Keyboard: [Supabase](https://supabase.com/) and [Strapi](https://strapi.io/)
+- You think that the Mouse is better than the Keyboard and you hate Code Editors in general: [Supabase](https://supabase.com/) and [Strapi](https://strapi.io/)
 
 ## Getting Started and Documentation
 
