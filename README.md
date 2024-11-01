@@ -32,7 +32,7 @@ With **Palmares** we can unify all the ecosystem into one by worrying in 2 front
 - How to make the framework easy to extend
 
 <p align="center">
-  <img src="https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/resources/xkcd-standards.png" width="180" alt="XKCD comic joking about standards, but modified to say the only standard is palmares" />
+  <img src="https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/resources/xkcd-standards.png" width="560" alt="XKCD comic joking about standards, but modified to say the only standard is palmares" />
 </p>
 
 > Now cut the trash talk
