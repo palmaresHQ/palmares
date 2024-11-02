@@ -1,3 +1,4 @@
+import { RelationNameIsNotPartOfModelException } from './exceptions';
 import { parseSearchField } from './search';
 import { databaseLogger } from '../logging';
 import { Manager } from '../models';
@@ -22,9 +23,9 @@ import type {
   UuidField
 } from '../models/fields';
 import type { BaseModel, Model, ModelType } from '../models/model';
-import type { ModelFields, ModelOptionsType } from '../models/types';
+import type { ModelFields } from '../models/types';
 
-type ModelsFields<TModel> = TModel extends ModelType<{ fields: infer TFields }, any> | { fields: infer TFields }
+export type ModelsFields<TModel> = TModel extends ModelType<{ fields: infer TFields }, any> | { fields: infer TFields }
   ? TFields
   : never;
 
@@ -935,7 +936,7 @@ export class QuerySet<
         }
       }
       if (isDirectlyRelated === false && isIndirectlyRelated === false)
-        throw new Error(`The relation ${relationOrRelatedName} is not a relation or related name`);
+        throw new RelationNameIsNotPartOfModelException(joinedModelName, relationOrRelatedName);
 
       if (querySet['__hasSearch'] as boolean) (this as any)['__hasSearch'] = true;
       else if (this['__hasSearch']) (querySet as any)['__hasSearch'] = true;

@@ -33,7 +33,7 @@ So let's understand how engines applies to Palmares:
 - You need to explicitly access the engine instance and call `transaction()` to guarantee that a query is running inside of a transaction.
 - An engine might, or might not implement all of our own APIs, so not everything from this doc might apply to that engine. So if you are an engine builder, make sure to provide a full documentation. If you are just a user, make sure to create a bunch of issues on their github repo.
 - You are not forced to use our own [Model](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/models.md), and [Managers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md), and [QuerySets] in any way, you can access the translated model at any time and do the queries as you have been doing during all of this time. We tried our best to offer the best type-safe experience we could so you won't miss anything.
-- _But palmares/databases is a piece of 💩, where are the fields I need?_ - We got you covered. You can write your own custom fields orlet the engine instance itself write its own expected fields. Want `VARCHAR`, `REAL`, `Buffer`, `Schema`, whatever you need? You can consult the engine docs and take a look on what custom fields it export. Or create your own using the Field's `_overrideType()` method.
+- _But palmares/databases is a piece of 💩, where are the fields I need?_ - We got you covered. You can write your own custom fields or let the engine instance itself write its own expected fields. Want `VARCHAR`, `REAL`, `Buffer`, `Schema`, whatever you need? You can consult the engine docs and take a look on what custom fields it export. Or create your own using the Field's `_overrideType()` method.
 
 ## Making a query on a transaction
 
@@ -77,5 +77,92 @@ You can't create the fields on your own, you need to make sure that the engine i
 Most engines should handle `customAttributes`, you can use that to pass what is needed to translate your custom field. For example, on `@palmares/sequelize-engine` you would create it like this:
 
 ```ts
-const realField = Field._overrideType();
+import { DataTypes } from '@sequelize/core';
+
+type ParamsAcceptedByField = {
+  maybe?: number;
+  outOfCreativity: string;
+};
+
+// Now when you call RealField.new() you will create a custom instance of the Field Class.
+const RealField = Field._overrideType<
+  { create: number; update: number; read: number },
+  {
+    customAttributes: ParamsAcceptedByField;
+    unique: true;
+    auto: false;
+    allowNull: true;
+    dbIndex: false;
+    isPrimaryKey: false;
+    defaultValue: any;
+    typeName: 'realField';
+    hasDefaultValue: false;
+    engineInstance: DatabaseAdapter;
+  },
+  Pick<
+    FieldWithOperationTypeForSearch<number>,
+    'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
+  >
+>({
+  typeName: 'realField', // Make sure this typeName is unique and does not clash with others.
+});
+
+// We use builder pattern to build the fields, your users will expect it as well.
+// We tried simplifying it for you so it gets easier.
+// It's still hard, but you are trying to do hard things either way.
+const actualRealField = <TParams extends ParamsAcceptedByField>(params: TParams) => {
+  // The params here will go for both: The customParameters of the field and our field. Also, make sure you follow what you defined on `._overrideType` definition.
+  let field = RealField.new(params).unique().allowNull();
+
+  // Here we are setting the type as DATATYPE.FLOAT from Sequelize.
+  field = field._setPartialAttributes()({
+    type: DataTypes.FLOAT,
+  });
+
+  // To get the full power of the Builder Pattern we need to create a class.
+  class Builder {
+    allowString(shouldAllow: boolean = true) {
+      return (
+        field
+          // A union means create will be both "number" and "string"
+          ._setPartialAttributes<{ create: string }, { create: 'union' }>()({ shouldAllow })
+          ._setNewBuilderMethods<Builder>()
+      );
+    }
+
+    is<const TValue extends string>(value: TValue) {
+      return (
+        field
+          // Now we just accept the value that was set when creating
+          ._setPartialAttributes<{ create: TValue }, { create: 'replace' }>()(value)
+          ._setNewBuilderMethods<Builder>()
+      );
+    }
+  }
+
+  const builder = new Builder();
+  return field._setNewBuilderMethods(builder);
+};
+
+// Your users will use it like this, everything is fully typed for them. You just reached State-of-the-Palmares level of abstraction without a sweat.
+class ACustomModel extends model<ACustomModel>() {
+  fields = {
+    myShinyRealField: actualRealField({
+      outOfCreativity: 'The hardest part of programming: Properly naming your variables',
+    }).allowString(),
+  };
+}
+
+// Look at the type of myShinyRealField.
+ACustomModel.default.set((qs) =>
+  qs.data({
+    myShinyRealField: '1',
+  })
+);
 ```
+
+> Seems complicated
+
+Of course it seems complicated, that's why you are reading the **Consumer** docs and not the **Integrator** docs.
+
+But for real, you are _ideally_ not supposed to do it on your own. It is supposed for the **Integrator** to do it for you.

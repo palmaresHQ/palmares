@@ -7,6 +7,7 @@ import {
   defaultOptionsCallback,
   defaultToStringCallback
 } from './utils';
+import { type BaseModel, type Model, type ModelType, model } from '../model';
 
 import type { CustomImportsForFieldType, FieldWithOperationTypeForSearch, ON_DELETE } from './types';
 import type {
@@ -18,7 +19,58 @@ import type {
 } from './utils';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
-import type { BaseModel, Model, ModelType } from '../model';
+/*
+const field = Field._overrideType<
+  { create: string; read: string; update: string },
+  {
+    customAttributes: { name: string };
+    unique: boolean;
+    auto: boolean;
+    allowNull: boolean;
+    dbIndex: boolean;
+    isPrimaryKey: boolean;
+    defaultValue: any;
+    typeName: string;
+    allowedQueryOperations: FieldWithOperationTypeForSearch<string> & {
+      notIn: string;
+    };
+    engineInstance: any;
+  },
+  any
+>({
+  typeName: 'Field'
+});
+
+const newField = Field.new({ name: 'hey' })._setPartialAttributes<
+  { create: string; read: string; update: string },
+  { create: 'replace'; read: 'replace'; update: 'replace' },
+  FieldWithOperationTypeForSearch<string> & {
+    notIn: string;
+  }
+>()({});
+
+type AllowedQuery =
+  typeof newField extends Field<
+    any,
+    {
+      unique: any;
+      auto: any;
+      allowNull: any;
+      dbIndex: any;
+      isPrimaryKey: any;
+      defaultValue: any;
+      hasDefaultValue: any;
+      underscored: any;
+      databaseName: any;
+      engineInstance: any;
+      customAttributes: any;
+      typeName: any;
+      allowedQueryOperations: infer TAllowedQueryOperations extends FieldWithOperationTypeForSearch<any>;
+    }
+  >
+    ? TAllowedQueryOperations
+    : 'no';
+*/
 
 /**
  * This is the default field of the model, every other field type should override this
@@ -899,55 +951,3 @@ export class Field<
     return new this(..._args) as unknown as any;
   }
 }
-
-const field = Field._overrideType<
-  { create: string; read: string; update: string },
-  {
-    customAttributes: { name: string };
-    unique: boolean;
-    auto: boolean;
-    allowNull: boolean;
-    dbIndex: boolean;
-    isPrimaryKey: boolean;
-    defaultValue: any;
-    typeName: string;
-    allowedQueryOperations: FieldWithOperationTypeForSearch<string> & {
-      notIn: string;
-    };
-    engineInstance: any;
-  },
-  any
->({
-  typeName: 'Field'
-});
-/*
-const newField = Field.new({ name: 'hey' })._setPartialAttributes<
-  { create: string; read: string; update: string },
-  { create: 'replace'; read: 'replace'; update: 'replace' },
-  FieldWithOperationTypeForSearch<string> & {
-    notIn: string;
-  }
->()({});
-
-type AllowedQuery =
-  typeof newField extends Field<
-    any,
-    {
-      unique: any;
-      auto: any;
-      allowNull: any;
-      dbIndex: any;
-      isPrimaryKey: any;
-      defaultValue: any;
-      hasDefaultValue: any;
-      underscored: any;
-      databaseName: any;
-      engineInstance: any;
-      customAttributes: any;
-      typeName: any;
-      allowedQueryOperations: infer TAllowedQueryOperations extends FieldWithOperationTypeForSearch<any>;
-    }
-  >
-    ? TAllowedQueryOperations
-    : 'no';
-*/

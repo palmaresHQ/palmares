@@ -1,5 +1,6 @@
-import { CommonQuerySet, GetQuerySet, QuerySet, RemoveQuerySet, SetQuerySet } from './queryset';
+import { GetQuerySet, RemoveQuerySet, SetQuerySet } from './queryset';
 
+import type { GetDataFromModel } from './queryset';
 import type { DatabaseAdapter } from '../engine';
 import type { BaseModel, Model, model } from '../models';
 import type { ModelType } from '../models/model';
@@ -294,18 +295,59 @@ export async function parseSearchField(
  * If you are looking to perform a 'set' query, you should pass 'set' as the type.
  * If you are looking to perform a 'remove' query, you should pass 'remove' as the type.
  * Last but not least, if you are looking to perform a 'get' query, you should pass 'get' as the type or leave it empty.
+ *
+ * @param model The model you want to perform the query on.
+ * @param type The type of query you want to perform.
+ *
+ * @returns A QuerySet instance based on the type of query you want to perform.
  */
-export function queryset<
-  TModel extends typeof Model & typeof BaseModel & ModelType<any, any>,
-  TType extends 'set' | 'remove' | 'get' = 'get'
->(
+export function queryset<TModel, TType extends 'set' | 'remove' | 'get' = 'get'>(
   model: TModel,
   type: TType = 'get' as TType
 ): TType extends 'remove'
-  ? RemoveQuerySet<'remove', TModel>
+  ? RemoveQuerySet<
+      'remove',
+      TModel,
+      GetDataFromModel<TModel, 'read'>,
+      Partial<GetDataFromModel<TModel, 'update'>>,
+      GetDataFromModel<TModel, 'create'>,
+      Partial<GetDataFromModel<TModel, 'read', true>>,
+      GetDataFromModel<TModel>,
+      false,
+      false,
+      false,
+      false,
+      never
+    >
   : TType extends 'set'
-    ? SetQuerySet<'set', TModel>
-    : GetQuerySet<'get', TModel> {
+    ? SetQuerySet<
+        'set',
+        TModel,
+        GetDataFromModel<TModel, 'read'>,
+        Partial<GetDataFromModel<TModel, 'update'>>,
+        GetDataFromModel<TModel, 'create'>,
+        Partial<GetDataFromModel<TModel, 'read', true>>,
+        GetDataFromModel<TModel>,
+        false,
+        false,
+        false,
+        false,
+        never
+      >
+    : GetQuerySet<
+        'get',
+        TModel,
+        GetDataFromModel<TModel, 'read'>,
+        Partial<GetDataFromModel<TModel, 'update'>>,
+        GetDataFromModel<TModel, 'create'>,
+        Partial<GetDataFromModel<TModel, 'read', true>>,
+        GetDataFromModel<TModel>,
+        false,
+        false,
+        false,
+        false,
+        never
+      > {
   if (type === 'set') return new SetQuerySet(model, 'set') as any;
   if (type === 'remove') return new RemoveQuerySet(model, 'remove') as any;
   return new GetQuerySet(model, 'get') as any;

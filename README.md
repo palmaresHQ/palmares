@@ -8,7 +8,7 @@ A <a href="http://nodejs.org" target="_blank">Javascript</a> and <a href="typesc
 
 <p align="center">
   <a title="MIT license" target="_blank" href="https://github.com/palmaresHQ/palmares/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-mustard?style=flat-square"></a>
-  <a title="Coverage" target="_blank" href="ttps://github.com/palmaresHQ/palmares/blob/main/examples"><img alt="Coverage" src="https://img.shields.io/badge/coverage-trust_me_bro-green?style=flat-square"></a>
+  <a title="Coverage" target="_blank" href="https://github.com/palmaresHQ/palmares/blob/main/examples"><img alt="Coverage" src="https://img.shields.io/badge/coverage-trust_me_bro-green?style=flat-square"></a>
   <a title="Blazingly fast" target="_blank" href="https://twitter.com/acdlite/status/974390255393505280"><img src="https://img.shields.io/badge/blazingly-slow-red?style=flat-square"/></a>
 </p>
 
@@ -37,12 +37,14 @@ With **Palmares** we can unify all the ecosystem into one by worrying in 2 front
 
 > Now cut the trash talk
 
-The motivation is that we had nothing better to do. And Palmares is because we thought it would be a cool name, what did you expect? Also I write in third person because if this project start receiving contributions from maintainers we don't need to change first to third person. I'm a nice person, you know? Or we?
+The motivation is that we had nothing better to do. And Palmares is because we thought it would be a cool name, what did you expect? It was hard trying to find a correlation between the name and our goal, you should give us props to that!
+
+Also, I write in third person because if this project start receiving contributions from maintainers we don't need to change first to third person. I'm a nice person, you know? Or we?
 
 ### How does it differ from the others
 
-- [Redwood.js](https://redwoodjs.com/), [wasp-lang](https://wasp-lang.dev/), [t3stack](https://create.t3.gg/), etc. Although great ways to create applications they can be categorized more on the template side of things. It's built around a set of tools in mind. React, some of them uses Prisma, some uses drizzle. They are all heavily opinionated on the tools you should use. **Palmares** is not opinionated at all, we go deep into creating an abstraction layer that can be used with all existing ORMs, servers, Schema validators. We are the common _glue_ above all. And another thing: You can still use everything we give you independent from the framework, we are don't have any financial incentive to make you vendor-locked-in on our framework. Pick what you like and just use.
-- [Nest.js](https://nestjs.com/) An amazing piece of software, but I know you don't like Angular, neither do I. Decorators are still non native to Javascript and Nest relies a lot on it. But still, we are grateful for Nest existence because it gave us some nice ideas.
+- [Redwood.js](https://redwoodjs.com/), [wasp-lang](https://wasp-lang.dev/), [t3stack](https://create.t3.gg/), etc. Although great ways to create applications they can be categorized more on the template side of things. It's built around a set of tools in mind. You will probably build your apps in React, some of them uses Prisma, some uses Drizzle. They are all heavily opinionated on the tools you should use. **Palmares** is not opinionated at all, we go deep into creating an abstraction layer that can be used with all existing ORMs, servers, Schema validators. We are the common _glue_ above all. And another thing: You can still use everything we give you independent from the framework, we also don't have any financial incentive to make you vendor-locked-in on our framework. Pick what you like and just use!
+- [Nest.js](https://nestjs.com/) An amazing piece of software, but I know you don't like Angular, neither do I. Decorators are still non native to Javascript and Nest relies a lot on it. But still, we are grateful for Nest existence because it gave us some nice ideas. Still on that, **we go all-in on the abstractions we give to our users**. You can interact with Drizzle, or with Express, but we give a higher level set of APIs for you to interact with those libraries as well. This let us scaffold your hole application and also create higher level abstractions at the same time we don't limit you to our implementations. Maybe you think we are bad developers (_which maybe we really are_), but this don't need to stop you from using our framework.
 - [Adonis.js](https://adonisjs.com/) What we are trying to accomplish, but instead of doing everything ourselves we rely on popular libraries like Express, Drizzle, Zod, etc. We are not trying to substitute them but work alongside them.
 - [Encore.js](https://encore.dev/) Kinda the same thing as Adonis. It's more like a Development Platform, as they sell it, than a framework.
 - [Supabase](https://supabase.com/) and [Strapi](https://strapi.io/) have a nice UI to build backend applications. We differ a lot from them.
@@ -54,7 +56,7 @@ The motivation is that we had nothing better to do. And Palmares is because we t
 But also
 
 - You dream with Angular or think Javascript should be less _Script_ and more _Java_: [Nest.js](https://nestjs.com/)
-- You just want to build your shiny new MVP with an opinionated set of tools you are familiar: [Redwood.js](https://redwoodjs.com/), [wasp-lang](https://wasp-lang.dev/), [t3stack](https://create.t3.gg/)
+- You just want to build your shiny new MVP with an opinionated set of tools you are already familiar: [Redwood.js](https://redwoodjs.com/), [wasp-lang](https://wasp-lang.dev/), [t3stack](https://create.t3.gg/)
 - You don't want to rely on third party, and want the full package: [Adonis.js](https://adonisjs.com/) or [Encore.js](https://encore.dev/)
 - You think that the Mouse is better than the Keyboard and you hate Code Editors in general: [Supabase](https://supabase.com/) and [Strapi](https://strapi.io/)
 
@@ -64,11 +66,11 @@ Real developers code looking at the source code. But for you newbies out there, 
 
 ## Issues
 
-Guarantee that your issue follow our [code of conduct](https://github.com/palmaresHQ/palmares/blob/main/CODE_OF_CONDUCT.md) guidelines before posting. All issues that does not follow our Code of Conduct will be closed and ignored.
+Guarantee that your issue follow our [code of conduct](https://github.com/palmaresHQ/palmares/blob/main/CODE_OF_CONDUCT.md) guidelines before posting. All issues that does not follow our Code of Conduct will be closed and ignored and we'll tell your mom you behaved badly on a github repo, please don't do that.
 
 ## Discussions and Help
 
-Use [our discussions tab](https://github.com/palmaresHQ/palmares/discussions) for help and questions. We will be glad to help you out.
+Use [our discussions tab](https://github.com/palmaresHQ/palmares/discussions) for help and questions. We will be glad to help you out. If you are a total skill issued dev you can also use AI to help you out. Which I don't recommend because you'll teach AI how to work with palmares and it might take your job someday because of that. It's like shooting yourself in the foot!
 
 ## F.A.Q.
 
@@ -87,3 +89,5 @@ Use [our discussions tab](https://github.com/palmaresHQ/palmares/discussions) fo
 - **EW, JS, WHY NOT JAVA?**: But it's Java.
 - **I don't like it**: I'm sorry to hear that, but you'll need to live and deal with our existence.
 - **I love it**: Thank you, we love you too.
+- **I don't have any sense of humor, you should be more professional**: Bla bla bla, talk to my hand.
+- **Cringe**: [And here you are, looking for another JS framework...](https://www.youtube.com/watch?v=WBxD0VBOuW8)

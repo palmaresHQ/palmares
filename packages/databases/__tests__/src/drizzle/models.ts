@@ -15,9 +15,8 @@ import {
 } from '@palmares/databases';
 
 import type * as d /*{ Company as DCompany, User as DUser }*/ from '../../.drizzle/schema';
-import type { ModelOptionsType } from '@palmares/databases';
+import { ModelOptionsType } from '@palmares/databases';
 
-type Test = (typeof d)['Company'];
 class Authentication extends Manager<CompanyAbstract> {
   test() {
     return 'test';
@@ -70,7 +69,7 @@ export const ProfileType = define('ProfileType', {
 //*********************************/
 export class User extends Model<User>() {
   fields = {
-    id: AutoField.new(),
+    id: AutoField.new().databaseName('user_id'),
     uuid: UuidField.new(),
     name: CharField.new({ maxLen: 280 }).allowNull().dbIndex(),
     age: IntegerField.new().dbIndex(),

@@ -5,8 +5,6 @@ import type { Field, ForeignKeyField } from '../fields';
 import type { Manager } from '../manager';
 import type { BaseModel, Model } from '../model';
 
-export type ModelType = typeof BaseModel & typeof Model;
-
 export type ManagerInstancesType = {
   [engineName: string]: {
     instance: any;
@@ -176,7 +174,7 @@ export interface ModelInterface {
   abstracts: (typeof Model)[];
   instances?: Map<keyof DatabaseSettingsType['databases'], any>;
 }
-0;
+
 export type ModelFields<TModel> = ModelFieldsInQueries<TModel>;
 
 export type IncludesInstances<TModel = any> = {

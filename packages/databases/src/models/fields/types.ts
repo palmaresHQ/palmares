@@ -43,6 +43,25 @@ export type ExtractFieldNameOptionsOfModel<TProbablyAModel> = TProbablyAModel ex
   ? keyof TFields
   : string;
 
+export type ExtractTypeFromField<
+  TField,
+  TTypeToExtract extends 'create' | 'update' | 'read' = 'create'
+> = TField extends
+  | Field<infer TType, any>
+  | AutoField<infer TType, any>
+  | BigAutoField<infer TType, any>
+  | BigIntegerField<infer TType, any>
+  | IntegerField<infer TType, any>
+  | BooleanField<infer TType, any>
+  | EnumField<infer TType, any>
+  | CharField<infer TType, any>
+  | DateField<infer TType, any>
+  | TextField<infer TType, any>
+  | UuidField<infer TType, any>
+  | ForeignKeyField<infer TType, any>
+  ? TType[TTypeToExtract]
+  : any;
+
 export type ExtractTypeFromFieldOfAModel<
   TProbablyAModel,
   TToFieldName extends string,
@@ -66,21 +85,7 @@ export type ExtractTypeFromFieldOfAModel<
       | UuidField<any, any>
       | ForeignKeyField<any, any>
     >
-    ? TFields[TToFieldName] extends
-        | Field<infer TType, any>
-        | AutoField<infer TType, any>
-        | BigAutoField<infer TType, any>
-        | BigIntegerField<infer TType, any>
-        | IntegerField<infer TType, any>
-        | BooleanField<infer TType, any>
-        | EnumField<infer TType, any>
-        | CharField<infer TType, any>
-        | DateField<infer TType, any>
-        | TextField<infer TType, any>
-        | UuidField<infer TType, any>
-        | ForeignKeyField<infer TType, any>
-      ? TType[TTypeToExtract]
-      : any
+    ? ExtractTypeFromField<TFields[TToFieldName], TTypeToExtract>
     : any
   : TProbablyAModel extends (args: infer TType) => { new (...args: any): any }
     ? TTypeToExtract extends keyof TType
