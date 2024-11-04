@@ -1,4 +1,3 @@
-import { TranslatableFieldNotImplementedError } from './exceptions';
 import { number } from './schema';
 import { ArraySchema } from './schema/array';
 import { boolean } from './schema/boolean';
@@ -25,11 +24,13 @@ import type {
 
 async function getSchemaFromModelField(
   model: ReturnType<typeof Model>,
-  field: Field<any, any, any, any, any, any, any, any>,
+  field: Field<any, any, any>,
   parent: Schema<any, any> | undefined,
   definedFields: Record<any, Schema<any, DefinitionsOfSchemaType>> | undefined,
   engineInstanceName?: string,
   options?: {
+    // This will use the Field's typename to convert it to a schema.
+    fieldParsersByType?: Record<string, (field: Field<any, any, any>) => Schema<any, any>>;
     foreignKeyRelation?: {
       schema?: Schema<any, any>;
       isArray: boolean;
@@ -42,12 +43,14 @@ async function getSchemaFromModelField(
 ) {
   const fieldAsAny = field as any;
   let schema: Schema<any, any> | undefined = undefined;
-  if (fieldAsAny?.['$$type'] === '$PAutoField' || fieldAsAny?.['$$type'] === '$PBigAutoField')
+  if (options?.fieldParsersByType?.[field['__typeName']]) {
+    schema = options.fieldParsersByType[field['__typeName']](field);
+  } else if (fieldAsAny?.['$$type'] === '$PAutoField' || fieldAsAny?.['$$type'] === '$PBigAutoField')
     schema = number().integer().optional();
   else if (fieldAsAny?.['$$type'] === '$PDecimalField')
     schema = number()
-      .decimalPlaces((field as DecimalField).decimalPlaces)
-      .maxDigits((field as DecimalField).maxDigits);
+      .decimalPlaces((field as DecimalField)['__decimalPlaces'])
+      .maxDigits((field as DecimalField)['__maxDigits']);
   else if (fieldAsAny?.['$$type'] === '$PIntegerField') schema = number().integer();
   else if (fieldAsAny?.['$$type'] === '$PBooleanField') schema = boolean();
   else if (
@@ -56,24 +59,25 @@ async function getSchemaFromModelField(
     fieldAsAny?.['$$type'] === '$PUuidField'
   ) {
     schema = string();
-    if ((field as TextField).allowBlank === false) schema = (schema as ReturnType<typeof string>).minLength(1);
-    if (fieldAsAny?.['$$type'] === '$PCharField' && typeof (field as CharField).maxLength === 'number')
-      schema = (schema as ReturnType<typeof string>).maxLength((field as CharField).maxLength);
+    if (((field as TextField)['__allowBlank'] as boolean) === false)
+      schema = (schema as ReturnType<typeof string>).minLength(1);
+    if (fieldAsAny?.['$$type'] === '$PCharField' && typeof (field as CharField)['__maxLength'] === 'number')
+      schema = (schema as ReturnType<typeof string>).maxLength((field as CharField)['__maxLength']);
     if (fieldAsAny?.['$$type'] === '$PUuidField') {
       schema = (schema as ReturnType<typeof string>).uuid();
       // eslint-disable-next-line ts/no-unnecessary-condition
-      if ((field as UuidField).autoGenerate) schema = (schema as ReturnType<typeof string>).optional();
+      if ((field as UuidField)['auto']) schema = (schema as ReturnType<typeof string>).optional();
     }
   } else if (fieldAsAny?.['$$type'] === '$PDateField') {
     schema = datetime().allowString();
     // eslint-disable-next-line ts/no-unnecessary-condition
-    if ((field as DateField).autoNow || (field as DateField).autoNowAdd)
+    if ((field as DateField)['__autoNow'] || (field as DateField)['__autoNowAdd'])
       schema = (schema as ReturnType<typeof datetime>).optional();
   } else if (fieldAsAny?.['$$type'] === '$PEnumField') {
-    const allChoicesOfTypeStrings = (field as EnumField<any>).choices.filter(
+    const allChoicesOfTypeStrings = (field as EnumField<any>)['__choices'].filter(
       (choice: any) => typeof choice === 'string'
     );
-    const allChoicesOfTypeNumbers = (field as EnumField<any>).choices.filter(
+    const allChoicesOfTypeNumbers = (field as EnumField<any>)['__choices'].filter(
       (choice: any) => typeof choice === 'number'
     );
 
@@ -89,22 +93,22 @@ async function getSchemaFromModelField(
   } else if (fieldAsAny?.['$$type'] === '$PForeignKeyField') {
     const fieldAsForeignKey = field as ForeignKeyField;
     const doesADefinedFieldExistWithRelatedName =
-      parent && fieldAsForeignKey.relatedName && (parent as any).__data?.[fieldAsForeignKey.relatedName];
+      parent && fieldAsForeignKey['__relatedName'] && (parent as any).__data?.[fieldAsForeignKey['__relatedName']];
     const doesADefinedFieldExistWithRelationName =
-      definedFields && fieldAsForeignKey.relationName && definedFields[fieldAsForeignKey.relationName];
+      definedFields && fieldAsForeignKey['__relationName'] && definedFields[fieldAsForeignKey['__relationName']];
     const fieldWithRelatedName = doesADefinedFieldExistWithRelatedName
-      ? (parent as any).__data?.[fieldAsForeignKey.relatedName]
+      ? (parent as any).__data?.[fieldAsForeignKey['__relatedName']]
       : undefined;
     const fieldWithRelationName = doesADefinedFieldExistWithRelationName
-      ? definedFields[fieldAsForeignKey.relationName]
+      ? definedFields[fieldAsForeignKey['__relationName']]
       : undefined;
     const isFieldWithRelatedNameAModelField =
       fieldWithRelatedName?.['$$type'] === '$PSchema' && fieldWithRelatedName.__model !== undefined;
     const isFieldWithRelationNameAModelField =
       fieldWithRelationName?.['$$type'] === '$PSchema' && (fieldWithRelationName as any).__model !== undefined;
-    const relatedToModel = fieldAsForeignKey.relatedTo;
-    const toField = fieldAsForeignKey.toField;
-    if (Object.keys(model._initialized).length > 0) {
+    const relatedToModel = fieldAsForeignKey['__relatedTo'];
+    const toField = fieldAsForeignKey['__toField'];
+    if (Object.keys((model as any)['__initialized']).length > 0) {
       const engineInstance = await model.default.getEngineInstance(engineInstanceName);
       const relatedToModelInstance = engineInstance.__modelsOfEngine[relatedToModel];
       const modelFieldsOfRelatedModel = (relatedToModelInstance as any).__cachedFields[toField];
@@ -114,18 +118,18 @@ async function getSchemaFromModelField(
           schema: parent,
           isArray: fieldWithRelatedName['$$type'] === '$PArraySchema',
           model: fieldWithRelatedName.__model,
-          fieldToSearchOnModel: fieldAsForeignKey.fieldName,
-          fieldToGetFromData: fieldAsForeignKey.toField,
-          relationOrRelatedName: fieldAsForeignKey.relatedName!
+          fieldToSearchOnModel: fieldAsForeignKey['__fieldName'],
+          fieldToGetFromData: fieldAsForeignKey['__toField'],
+          relationOrRelatedName: fieldAsForeignKey['__relatedName']
         };
       } else if (isFieldWithRelationNameAModelField) {
         if (typeof options !== 'object') options = {};
         options.foreignKeyRelation = {
           isArray: fieldWithRelationName['$$type'] === '$PArraySchema',
           model: (fieldWithRelationName as any).__model,
-          fieldToSearchOnModel: fieldAsForeignKey.toField,
-          fieldToGetFromData: field.fieldName,
-          relationOrRelatedName: fieldAsForeignKey.relationName!
+          fieldToSearchOnModel: fieldAsForeignKey['__toField'],
+          fieldToGetFromData: field['__fieldName'],
+          relationOrRelatedName: fieldAsForeignKey['__relationName']
         };
       }
 
@@ -138,14 +142,10 @@ async function getSchemaFromModelField(
         options
       );
     }
-  } else if (fieldAsAny?.['$$type'] === '$PTranslatableField' && field.customAttributes.schema) {
-    if ((field.customAttributes.schema?.['$$type'] === '$PSchema') === false)
-      throw new TranslatableFieldNotImplementedError(field.fieldName);
-    schema = field.customAttributes.schema;
   }
 
-  if (field.allowNull && schema) schema = schema.nullable().optional();
-  if (field.defaultValue && schema) schema = schema.default(field.defaultValue);
+  if (field['__allowNull'] && schema) schema = schema.nullable().optional();
+  if (field['__defaultValue'] && schema) schema = schema.default(field['__defaultValue']);
 
   return schema || string();
 }
@@ -399,7 +399,7 @@ export function modelSchema<
   // Add this callback to transform the model fields
   parentSchema.__runBeforeParseAndData = async () => {
     const promise = new Promise((resolve) => {
-      const fieldsOfModels = (model as unknown as typeof InternalModelClass_DoNotUse)._fields();
+      const fieldsOfModels = (model as unknown as typeof InternalModelClass_DoNotUse)['_fields']();
       const fieldsAsEntries = Object.entries(fieldsOfModels);
       const fieldsWithAutomaticRelations = new Map<
         Schema<any, any>,
@@ -472,11 +472,11 @@ export function modelSchema<
                         // Ignore if the data of the relation already exists
                         if (relation.relationOrRelatedName in data) return;
 
-                        let relationData: any | any[] = await relation.model.default.get({
-                          search: {
+                        let relationData: any | any[] = await relation.model.default.get((qs) =>
+                          qs.where({
                             [relation.fieldToSearchOnModel]: data[relation.fieldToGetFromData]
-                          }
-                        });
+                          })
+                        );
                         if (relation.isArray !== true) relationData = relationData[0];
                         data[relation.relationOrRelatedName] = relationData;
 

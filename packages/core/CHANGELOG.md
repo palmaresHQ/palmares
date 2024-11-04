@@ -1,5 +1,14 @@
 # @palmares/core
 
+## 0.2.0
+
+### Minor Changes
+
+- d792775: - Added QuerySet, add documentation for databases.
+  - Better typescript type safety on queries.
+  - Changed testing, because it was not working with "type": "module",
+  - Changed core
+
 ## 0.1.17
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@palmares/jest-tests",
-  "version": "0.1.18",
+  "version": "0.2.0",
   "description": "This is the jest testing adapter, we are abstracting jest to work flawlessly with palmares",
   "main": "./dist/src/index.cjs",
   "module": "./dist/src/index.js",
@@ -23,7 +23,7 @@
     "build:types": "tsc --project tsconfig.types.json",
     "build:cjs": "tsup ./src --out-dir ./dist/src --format cjs --external jest --silent --no-splitting",
     "build:esm": "tsup ./src --config tsup.esm.config.ts --out-dir ./dist/src --format esm --external jest --silent --no-splitting",
-    "build": "pnpm run clear && pnpm run build:cjs:esm && pnpm run build:types",
+    "build": "pnpm run clear && pnpm run build:cjs &&  pnpm run build:esm && pnpm run build:types",
     "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
     "build:cjs:watch": "tsup ./src --out-dir ./dist/src --format cjs --watch --silent --no-splitting",
     "build:esm:watch": "tsup ./src  --config tsup.esm.config.ts --out-dir ./dist/src --format esm --watch --silent --no-splitting",

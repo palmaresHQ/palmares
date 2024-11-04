@@ -1,5 +1,19 @@
 # @palmares/redis-emitter
 
+## 0.1.0
+
+### Minor Changes
+
+- d792775: - Added QuerySet, add documentation for databases.
+  - Better typescript type safety on queries.
+  - Changed testing, because it was not working with "type": "module",
+  - Changed core
+
+### Patch Changes
+
+- Updated dependencies [d792775]
+  - @palmares/events@0.1.0
+
 ## 0.0.14
 
 ### Patch Changes

@@ -38,8 +38,8 @@
     "@examples/with-code-share-shared": "workspace:*"
   },
   "devDependencies": {
-    "@palmares/jest-tests": "^0.1.18",
-    "@palmares/tests": "^0.1.18",
+    "@palmares/jest-tests": "^0.2.0",
+    "@palmares/tests": "^0.2.0",
     "@swc/cli": "^0.4.0",
     "@swc/core": "^1.7.23",
     "@types/better-sqlite3": "^7.6.11",
