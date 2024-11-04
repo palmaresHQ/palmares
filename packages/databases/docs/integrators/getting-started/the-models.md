@@ -307,4 +307,15 @@ For Drizzle, as we said, we are using it to create the files. At the same time, 
 
 ### Translating the options
 
-The only reason `translateOptions` is required is to translate the options of the model.
+The only reason `translateOptions` is required is to translate the options of the model. You might ask why is this not on `translate` method since that essentially it is translating the model. We though it might be confusing that the `translate` method will be responsible for a lot of things, so we added this. This holds the table name that the model represents, the indexes, a default ordering, etc. You can check what are the options from the model by creating a model.
+
+### The other methods
+
+- `translateFields` - We said that we loop through all fields, translate each field and create an object with that, but that might not be what you need. If you want to override the custom implementation you can use this method.
+- `compare` - Compare two models with each other. By default we will try to transform the custom options using JSON.stringify and trying to compare, but this can cause a lot of issues. You can use this to compare two models with each other.
+- `modelToString` - Transforms the model into a string. This is for customOptions, when the user is creating a new migration.
+- `customOptions` - Adds type-safety when the user is defining custom options, you just need to properly type the arguments.
+
+## Up Next
+
+[Translating the fields](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/integrators/getting-started/the-fields.md)

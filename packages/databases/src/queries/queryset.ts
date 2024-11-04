@@ -1,8 +1,6 @@
 import { RelationNameIsNotPartOfModelException } from './exceptions';
 import { parseSearchField } from './search';
 import { databaseLogger } from '../logging';
-import { Manager } from '../models';
-import { initialize as define, model } from '../models/model';
 import { retrieveInputAndOutputParsersFromFieldAndCache } from '../models/utils';
 
 import type { DatabaseAdapter } from '../engine';
@@ -18,7 +16,6 @@ import type {
   Field,
   ForeignKeyField,
   IntegerField,
-  ON_DELETE,
   TextField,
   UuidField
 } from '../models/fields';
