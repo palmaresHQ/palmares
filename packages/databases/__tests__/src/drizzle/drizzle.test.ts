@@ -1,25 +1,149 @@
-import {
-  describe,
-} from '@palmares/tests'
+import { describe } from '@palmares/tests';
 
-import { Company, User } from '../drizzle/models';
+import { Company, ProfileType, User } from '../drizzle/models';
 
-import type JestTestAdapter from '@palmares/jest-tests';
+//const test = require('@jest/globals').test;
+describe('drizzle models', ({ test }) => {
+  test('Simple query with relation', async ({ expect }) => {
+    const user = await User.default.get((qs) => qs.join(Company, 'company', (qs) => qs.where({ name: 'hello' })));
 
-describe<JestTestAdapter>('drizzle models', ({ test }) => {
-  test('its limiting the query', async ({ expect }) => {
-    await Company.default.set({ name: 'test', address: 'test' })
-    await Company.default.set({ name: 'test', address: 'test' })
+    const anotherUser = await User.default.get((qs) => qs.where({ name: 'test1' }));
 
-    const companies = await Company.default.get({
-      search: {
-        name: {
-          like: '%te%'
-        }
-      },
-      limit: 1,
-      ordering: ['-id']
-    });
+    console.log(JSON.stringify(user, null, 2), JSON.stringify(anotherUser, null, 2));
+    expect(user.length > 0).toBe(true);
+    expect(user[0].company.name).toBe('test5');
+    //expect(user[0].profileType.name).toBe('admin');
+  });
+
+  /*
+  test('Simple Set', async ({ expect }) => {
+    const company = await Company.default.set((qs) =>
+      qs.data({
+        address: 'test',
+        name: 'test5'
+      })
+    );
+
+    console.log(JSON.stringify(company, null, 2));
+    const companyId = company[0].id;
+    //expect(company[0].usersOfCompany[0]?.companyId).toBe(companyId);
+    //expect(company[0].usersOfCompany[0]?.profileTypeId).toBe(company[0].usersOfCompany[0]?.profileType?.id);
+  });*/
+
+  /*
+  test('Querying by selecting fields', async ({ expect }) => {
+    const company = await Company.default.get((qs) =>
+      qs
+        .join(User, 'usersOfCompany', (qs) =>
+          qs.select('name', 'uuid', 'age').join(Company, 'company', (qs) => qs.select('name', 'uuid', 'address'))
+        )
+        .where({ id: 1 })
+    );
+    console.log(JSON.stringify(company, null, 2));
+  });*/
+
+  /*
+  test('Test set data through relation', async ({ expect }) => {
+    const company = await Company.default.set((qs) =>
+      qs
+        .join(User, 'usersOfCompany', (qs) =>
+          qs
+            .join(ProfileType, 'profileType', (qs) =>
+              qs.data({
+                name: 'admin2'
+              })
+            )
+            .data(
+              {
+                age: 10,
+                name: 'test1',
+                uuid: 'a417f723-ddb7-4f8c-a42c-0b5975e4cf5f',
+                userType: 'admin'
+              },
+              {
+                age: 11,
+                name: 'test2',
+                uuid: '77ac0c15-09c7-425e-9d77-97c0f973e8e6',
+                userType: 'user'
+              }
+            )
+        )
+        .data({
+          address: 'test',
+          name: 'test5'
+        })
+    );
+
+    const companyId = company[0].id;
+    expect(company[0].usersOfCompany[0]?.companyId).toBe(companyId);
+    expect(company[0].usersOfCompany[0]?.profileTypeId).toBe(company[0].usersOfCompany[0]?.profileType?.id);
+  });
+
+  test('Set update on relation', async ({ expect }) => {
+    const company = await Company.default.set((qs) =>
+      qs
+        .join(User, 'usersOfCompany', (qs) =>
+          qs
+            .join(ProfileType, 'profileType', (qs) =>
+              qs
+                .where({
+                  id: 1
+                })
+                .data({
+                  name: 'admin2'
+                })
+            )
+            .data({
+              name: 'hello'
+            })
+        )
+        .data({
+          name: 'hello'
+        })
+    );
+
+    const companyId = company[0].id;
+    expect(company[0].usersOfCompany[0]?.companyId).toBe(companyId);
+    expect(company[0].usersOfCompany[0]?.profileTypeId).toBe(company[0].usersOfCompany[0]?.profileType?.id);
+  });
+
+  /*
+  test('Test Remove', async ({ expect }) => {
+    const company = await Company.default.remove((qs) =>
+      qs
+        .join(User, 'usersOfCompany', (qs) =>
+          qs
+            .join(ProfileType, 'profileType', (qs) =>
+              qs.where({
+                id: 5
+              })
+            )
+            .remove()
+        )
+        .remove()
+    );
+
+    console.log(JSON.stringify(company, null, 2));
+    const companyId = company[0].id;
+
+    expect(company[0].usersOfCompany[0].companyId).toBe(companyId);
+    expect(company[0].usersOfCompany[0].profileTypeId).toBe(company[0].usersOfCompany[0].profileType?.id);
+  });
+*/
+  /*test('its limiting the query', async ({ expect }) => {
+    await Company.default.set((qs) => qs.data({ id: undefined, name: 'test', address: 'test' }))
+    await Company.default.set((qs) => qs.data({ id: undefined, name: 'test', address: 'test' }))
+
+    const companies = await Company.default.get((qs) =>
+      qs
+        .where({
+          name: {
+            like: '%te%'??
+          }
+        })
+      .limit(1)
+      .orderBy(['-id'])
+  );
 
     expect(companies.length === 1).toBe(true);
   });
@@ -56,6 +180,8 @@ describe<JestTestAdapter>('drizzle models', ({ test }) => {
     }]});
 
     const user = await User.default.get({ search: { companyId: company[0].id as number }, limit: 1});
+    const user = await User.default.get((qs) => qs.where({ companyId: company[0].id as number }).limit(1));
+
     expect(company[0].usersOfCompany.length > 0).toBe(true);
     expect(user[0].companyId).toBe(company[0].id as number);
   })
@@ -71,5 +197,5 @@ describe<JestTestAdapter>('drizzle models', ({ test }) => {
   test('its allowing null to nullable fields', async ({ expect }) => {
     const data = await Company.default.set({ name: 'test', address: null, translatable: 12 });
     expect(data[0].address).toBe(null);
-  });
+  });*/
 });

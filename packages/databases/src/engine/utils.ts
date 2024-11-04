@@ -14,7 +14,8 @@ import type { DatabaseAdapter } from '../engine';
 export function defaultEngineDuplicate(engine: DatabaseAdapter, wasCalled = { value: false }) {
   return async () => {
     const engineConstructor = engine.constructor as typeof DatabaseAdapter;
-    const [argsForNewInstance, newInstance] = await engineConstructor.new(engine.__argumentsUsed);
+    const [argsForNewInstance, newInstanceCallback] = await engineConstructor.new(engine.__argumentsUsed);
+    const newInstance = newInstanceCallback();
     newInstance.__argumentsUsed = argsForNewInstance;
     newInstance.initializedModels = { ...engine.initializedModels };
     newInstance.__modelsOfEngine = { ...engine.__modelsOfEngine };

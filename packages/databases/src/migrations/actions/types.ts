@@ -33,20 +33,20 @@ export type RenameModelToGenerateData = {
 
 export type CreateFieldToGenerateData = {
   fieldName: string;
-  fieldDefinition: Field;
+  fieldDefinition: Field<any, any>;
 };
 
 export type ChangeFieldToGenerateData = {
   fieldName: string;
-  fieldDefinitionBefore: Field;
-  fieldDefinitionAfter: Field;
+  fieldDefinitionBefore: Field<any, any>;
+  fieldDefinitionAfter: Field<any, any>;
   changedAttributes: string[];
 };
 
 export type RenameFieldToGenerateData = {
   fieldNameBefore: string;
   fieldNameAfter: string;
-  fieldDefinition: Field;
+  fieldDefinition: Field<any, any>;
 };
 
 export type DeleteFieldToGenerateData = {

@@ -7,7 +7,7 @@ import type { AdapterFieldParserTranslateArgs } from '@palmares/databases';
 import type { ModelAttributeColumnOptions } from 'sequelize';
 
 // eslint-disable-next-line ts/require-await
-async function textFieldValidations(field: CharField | TextField) {
+async function textFieldValidations(field: AdapterFieldParserTranslateArgs<'text'>['field']) {
   return {
     validate: {
       notEmpty: typeof field.allowBlank === 'boolean' ? !field.allowBlank : false
@@ -19,15 +19,16 @@ export default adapterFieldParser({
   translate: async ({
     engine,
     field,
+    customAttributes,
     modelName
   }: AdapterFieldParserTranslateArgs<
-    any,
+    'field',
     any,
     any,
     TranslatedFieldToEvaluateAfterType
   >): Promise<ModelAttributeColumnOptions> => {
     const defaultOptions = {} as ModelAttributeColumnOptions;
-    const isFieldAIndexOrIsFieldUnique = field.dbIndex === true || (field.unique as boolean) === true;
+    const isFieldAIndexOrIsFieldUnique = field.dbIndex === true || field.unique === true;
 
     if (isFieldAIndexOrIsFieldUnique) appendIndexes(engine.connectionName, modelName, field);
 
@@ -43,7 +44,7 @@ export default adapterFieldParser({
     defaultOptions.validate.notNull = !field.allowNull;
     defaultOptions.field = field.databaseName;
 
-    const customAttributesOfFieldEntries = Object.entries(field.customAttributes);
+    const customAttributesOfFieldEntries = Object.entries(customAttributes || {});
     for (const [key, value] of customAttributesOfFieldEntries) {
       const keyAsTypeofModelColumnOption = key as keyof ModelAttributeColumnOptions;
       defaultOptions[keyAsTypeofModelColumnOption] = value as never;
@@ -51,7 +52,7 @@ export default adapterFieldParser({
 
     const isFieldOfTypeText =
       field.typeName === TextField.name || field.typeName === CharField.name || field.typeName === UuidField.name;
-    if (isFieldOfTypeText) await textFieldValidations(field as TextField);
+    if (isFieldOfTypeText) await textFieldValidations(field as AdapterFieldParserTranslateArgs<'text'>['field']);
 
     return defaultOptions;
   }

@@ -3,12 +3,16 @@ import { NotImplementedAdapterException } from '../exceptions';
 /**
  * A simple ordering adapter, this is used to order the query.
  *
- * This is used for handling ordering in your queries, we decided to move it out from the `AdapterGetQuery` in order to handle ordering separately from only the `.get` query.
- * Ordering the query is as simple as passing an array of string, each string contains the name of the field alongside a `-` if it's descending.
+ * This is used for handling ordering in your queries, we decided to move it out from the `AdapterGetQuery`
+ * in order to handle ordering separately from only the `.get` query.
+ *
+ * Ordering the query is as simple as passing an array of string, each string contains the name of the field
+ * alongside a `-` if it's descending.
  */
 export function adapterOrderingQuery<TFunctionParseOrdering extends AdapterOrderingQuery['parseOrdering']>(args: {
   /**
-   * Ordering the query is as simple as passing an array of string, each string contains the name of the field alongside a `-` if it's descending.
+   * Ordering the query is as simple as passing an array of string, each string contains the name of the
+   * field alongside a `-` if it's descending.
    *
    * - `['name']` - Order by name ascending.
    * - `['-name']` - Order by name descending.
@@ -42,12 +46,15 @@ export function adapterOrderingQuery<TFunctionParseOrdering extends AdapterOrder
 }
 
 /**
- * This is used for handling ordering in your queries, we decided to move it out from the `AdapterGetQuery` in order to handle ordering separately from only the `.get` query.
- * Ordering the query is as simple as passing an array of string, each string contains the name of the field alongside a `-` if it's descending.
+ * This is used for handling ordering in your queries, we decided to move it out from the `AdapterGetQuery` in order
+ * to handle ordering separately from only the `.get` query.
+ * Ordering the query is as simple as passing an array of string, each string contains the name of the field alongside
+ * a `-` if it's descending.
  */
 export class AdapterOrderingQuery {
   /**
-   * Ordering the query is as simple as passing an array of string, each string contains the name of the field alongside a `-` if it's descending.
+   * Ordering the query is as simple as passing an array of string, each string contains the name of the field alongside
+   * a `-` if it's descending.
    *
    * - `['name']` - Order by name ascending.
    * - `['-name']` - Order by name descending.

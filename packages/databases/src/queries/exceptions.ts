@@ -7,3 +7,10 @@ export class UnmanagedModelsShouldImplementSpecialMethodsException extends Error
     this.name = UnmanagedModelsShouldImplementSpecialMethodsException.name;
   }
 }
+
+export class RelationNameIsNotPartOfModelException extends Error {
+  constructor(modelName: string, relationName: string) {
+    super(`The relation name '${relationName}' is not part of the model '${modelName}'.`);
+    this.name = RelationNameIsNotPartOfModelException.name;
+  }
+}

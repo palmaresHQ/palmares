@@ -29,8 +29,8 @@ import type { OriginalOrStateModelsByNameType, StateModelsConstructorType } from
  * })
  * ```
  *
- * But many migrations later you delete the `createdAt` attribute from your model. If you import this model directly this
- * query will fail when you run the query again. So instead you should make it like this
+ * But many migrations later you delete the `createdAt` attribute from your model. If you import this model directly
+ * this query will fail when you run the query again. So instead you should make it like this
  *
  * ```
  * const { Field, ...rest } = state

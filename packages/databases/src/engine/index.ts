@@ -10,7 +10,7 @@ import type { DatabaseConfigurationType } from '../types';
 
 export function databaseAdapter<
   TFieldsAdapter extends AdapterFields,
-  TModelsAdapter extends AdapterModels,
+  TModelsAdapter extends AdapterModels<any>,
   TQueryAdapter extends AdapterQuery,
   TMigrationsAdapter extends AdapterMigrations,
   TFunctionNew extends (typeof DatabaseAdapter)['new'],
@@ -24,19 +24,19 @@ export function databaseAdapter<
   query: TQueryAdapter;
   migrations?: TMigrationsAdapter;
   new: TFunctionNew;
-  duplicate: TFunctionDuplicate;
-  isConnected: TFunctionIsConnected;
+  duplicate?: TFunctionDuplicate;
+  isConnected?: TFunctionIsConnected;
   close: TFunctionClose;
   transaction: TFunctionTransaction;
 }) {
   class CustomDatabaseAdapter extends DatabaseAdapter<
-    Awaited<ReturnType<TFunctionNew>>[1]['instance'],
+    ReturnType<Awaited<ReturnType<TFunctionNew>>[1]>['instance'],
     TFieldsAdapter,
     TModelsAdapter,
     TQueryAdapter,
     TMigrationsAdapter
   > {
-    declare instance: Awaited<ReturnType<TFunctionNew>>[1]['instance'];
+    declare instance: ReturnType<Awaited<ReturnType<TFunctionNew>>[1]>['instance'];
     fields = args.fields;
     models = args.models;
     query = args.query;
@@ -58,19 +58,20 @@ export function databaseAdapter<
  * of his code if he just wants to build a different orm.
  *
  * FOR ENGINE CREATORS:
- * 1 - Everything starts with the `new` constructor, first, this is how you will connect your engine to the database. Generally
- * most orms will create an instance of some class, save this on `instance`.
+ * 1 - Everything starts with the `new` constructor, first, this is how you will connect your engine to the database.
+ * Generally most orms will create an instance of some class, save this on `instance`.
  *
- * 2- After that `initializeModel` will be called to translate the model to a instance of something that your engine can understand.
- * For that you should use the `EngineFields`. `EngineFields`, as explained in the class, is for translating each particular field
- * of the model to something that the orm can understand. This should return the model translated so we can use it. Don't forget to call
- * the base class with `super.initializeModel(model, theInstanceOfYourCustomModel)` so we can save it on the `initializedModels` object
- * in the class instance.
+ * 2- After that `initializeModel` will be called to translate the model to a instance of something that your engine
+ * can understand.
+ * For that you should use the `EngineFields`. `EngineFields`, as explained in the class, is for translating each
+ * particular field of the model to something that the orm can understand. This should return the model translated so
+ * we can use it. Don't forget to call the base class with `super.initializeModel(model, theInstanceOfYourCustomModel)`
+ * so we can save it on the `initializedModels` object in the class instance.
  */
 export class DatabaseAdapter<
   TInstanceType = any,
   TFieldsAdapter extends AdapterFields = AdapterFields,
-  TModelsAdapter extends AdapterModels = AdapterModels,
+  TModelsAdapter extends AdapterModels<TInstanceType> = AdapterModels<TInstanceType>,
   TQueryAdapter extends AdapterQuery = AdapterQuery,
   TMigrationsAdapter extends AdapterMigrations = AdapterMigrations
 > {
@@ -98,7 +99,7 @@ export class DatabaseAdapter<
    *
    * @returns - Will return a new engine instance.
    */
-  static new(..._args: any[]): [any, DatabaseAdapter] {
+  static new(..._args: any[]): [any, () => DatabaseAdapter] {
     throw new NotImplementedAdapterException('new');
   }
 
@@ -122,7 +123,7 @@ export class DatabaseAdapter<
    * @returns - A new engine instance after calling `.new` static method.
    */
   // eslint-disable-next-line ts/require-await
-  async duplicate(
+  async duplicate?(
     _getNewEngine: (...args: Parameters<(typeof DatabaseAdapter)['new']>) => Promise<DatabaseAdapter>
   ): Promise<DatabaseAdapter> {
     throw new NotImplementedAdapterException('duplicate');
@@ -136,13 +137,13 @@ export class DatabaseAdapter<
    * @return - Return true if the database is connected or false otherwise.
    */
   // eslint-disable-next-line ts/require-await
-  async isConnected(engine: DatabaseAdapter): Promise<boolean> {
+  async isConnected?(_engine: DatabaseAdapter): Promise<boolean> {
     throw new NotImplementedAdapterException('isConnected');
   }
 
   /**
-   * Called when we want to close all of the connections to the database, if your engine can close the connection automatically
-   * this don't need to be used.
+   * Called when we want to close all of the connections to the database, if your engine can close the connection
+   * automatically this don't need to be used.
    *
    * @example
    * ```ts
@@ -155,8 +156,8 @@ export class DatabaseAdapter<
   }
 
   /**
-   * A transaction is a database transaction, this is used to guarantee that all of the queries we do will run inside of a
-   * transaction.
+   * A transaction is a database transaction, this is used to guarantee that all of the queries we do will run inside
+   * of a transaction.
    *
    * @param callback - The callback that will be called to run inside of a transaction.
    * @param args - The arguments of the callback.
@@ -174,8 +175,8 @@ export class DatabaseAdapter<
 
   /**
    * A transaction is kinda strange, but it's a function that will run another function inside of it. With this
-   * we can guarantee that a given piece of code will run inside of the transaction. After it finishes it returns the value
-   * normally.
+   * we can guarantee that a given piece of code will run inside of the transaction. After it finishes it returns
+   * the value normally.
    *
    * @example
    * ```
@@ -188,8 +189,8 @@ export class DatabaseAdapter<
    * result // 4
    * ```
    *
-   * On the example above, transactionMultiply run in a transaction and we pass the variables of this function on the other arguments. The first argument
-   * is always the callback. The rest are the arguments of the callback function.
+   * On the example above, transactionMultiply run in a transaction and we pass the variables of this function on the
+   * other arguments. The first argument is always the callback. The rest are the arguments of the callback function.
    *
    * @param callback - The callback that will be called to run inside of a transaction.
    * @param args - The arguments of the callback.

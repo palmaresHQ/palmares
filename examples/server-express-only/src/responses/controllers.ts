@@ -1,15 +1,15 @@
-import { FileLike, pathNested, Response, middleware, path, Request } from '@palmares/server';
+import { FileLike, Request, Response, middleware, path, pathNested } from '@palmares/server';
 import * as z from 'zod';
 
 import type {
-  blobRouter,
-  jsonRouter,
-  textRouter,
-  streamRouter,
   arrayBufferRouter,
-  errorRouter,
   baseRouter,
   baseRouterType,
+  blobRouter,
+  errorRouter,
+  jsonRouter,
+  streamRouter,
+  textRouter
 } from './routes';
 
 export const blobResponseController = pathNested<typeof blobRouter>()().get(async () => {
@@ -56,8 +56,8 @@ export const errorController = pathNested<typeof errorRouter>()().get(
   {
     responses: {
       '400': (message: string) => Response.json({ message: message }, { status: 400 }),
-      '404': (message: string, userId: number) => Response.json({ message: message, userId }, { status: 404 }),
-    },
+      '404': (message: string, userId: number) => Response.json({ message: message, userId }, { status: 404 })
+    }
   }
 );
 export const testTypeOfResponseOnHandlerOnMiddlewaresAndResponseOptionsController = pathNested<typeof baseRouterType>()(
@@ -68,8 +68,8 @@ export const testTypeOfResponseOnHandlerOnMiddlewaresAndResponseOptionsControlle
   },
   {
     responses: {
-      '201': () => Response.json({ body: 'hey' }, { status: 201 }),
-    },
+      '201': () => Response.json({ body: 'hey' }, { status: 201 })
+    }
   }
 );
 
@@ -86,30 +86,29 @@ export const schemaValidatorMiddleware = <TInputSchema extends z.ZodType, TOutpu
     options: {
       responses: {
         '200': (body: z.infer<TOutputSchema>) => Response.json({ ...body }, { status: 200 }),
-        '201': (body: z.infer<TOutputSchema>) => Response.json({ ...body }, { status: 201 }),
-      },
-    },
+        '201': (body: z.infer<TOutputSchema>) => Response.json({ ...body }, { status: 201 })
+      }
+    }
   });
 };
-
 path('')
   .middlewares([
     schemaValidatorMiddleware({
       input: z.object({
-        userId: z.number(),
+        userId: z.number()
       }),
       output: z.object({
         firstName: z.string(),
         lastName: z.string(),
-        age: z.number(),
-      }),
-    }),
+        age: z.number()
+      })
+    })
   ])
   .get((request) => {
     request.body.userId;
     return Response.json({
       firstName: 'hey',
       lastName: 'hey',
-      age: 1,
+      age: 1
     });
   });

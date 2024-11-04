@@ -1,11 +1,9 @@
 import type { FieldsOFModelType, ModelFieldsInQueries } from './queries';
 import type { DatabaseAdapter } from '../../engine';
 import type { DatabaseSettingsType } from '../../types';
-import type { Field } from '../fields';
+import type { Field, ForeignKeyField } from '../fields';
 import type { Manager } from '../manager';
 import type { BaseModel, Model } from '../model';
-
-export type ModelType = typeof BaseModel & typeof Model;
 
 export type ManagerInstancesType = {
   [engineName: string]: {
@@ -19,7 +17,7 @@ export type ManagerEngineInstancesType = {
 };
 
 export type ModelFieldsType = {
-  [fieldName: string | symbol]: Field<any, any, any, any, any, any, any, any>;
+  [fieldName: string | symbol]: Field<any, any, any>;
 };
 
 export type ManagersOfInstanceType = {
@@ -99,9 +97,13 @@ export type onSetFunction<TModel = any> = (args: {
 }) => Promise<any[]>;
 
 export type onRemoveFunction<TModel = any> = (args: {
-  /** Sometimes we just want to return the data but we don't want to remove it. Most of the time you should remove it. */
+  /** Sometimes we just want to return the data but we don't want to remove it.
+   * Most of the time you should remove it.
+   */
   shouldRemove?: boolean;
-  /** Should you return the data that you are removing? By default yes, you should, in case this is false you should not. */
+  /** Should you return the data that you are removing? By default yes, you should, in
+   * case this is false you should not.
+   */
   shouldReturnData?: boolean;
   search: ExtractFieldTypes<TModel, [], true>;
 }) => Promise<any[]>;
@@ -113,7 +115,8 @@ export type ModelOptionsType<TModel = any> = {
   indexes?: ModelIndexType<FieldsOFModelType<TModel>>[];
   ordering?: OrderingOfModelOptions<FieldsOFModelType<TModel>>;
   /**
-   * Sometimes a ORM can let you define custom hooks to be fired for example on certain lifecycle events, or for example, sequelize let's you define relations on the model after it was defined.
+   * Sometimes a ORM can let you define custom hooks to be fired for example on certain lifecycle events,
+   * or for example, sequelize let's you define relations on the model after it was defined.
    * This is a function that will be called after the model is translated so you can apply your custom hooks.
    */
   applyToTranslatedModel?: (translatedModel: any) => void;
@@ -123,8 +126,10 @@ export type ModelOptionsType<TModel = any> = {
   managed?: boolean;
   databases?: string[];
   customOptions?: any;
-  /** The translated instance, with that we bypass the model translation step we just assign it directly to the instance.
-   * P.S.: Make sure that the instance is up to date with the model, otherwise you will have problems (and it'll not be our fault).
+  /** The translated instance, with that we bypass the model translation step we just assign it directly
+   * to the instance.
+   * P.S.: Make sure that the instance is up to date with the model, otherwise you will have problems
+   * (and it'll not be our fault).
    */
   instance?: any;
   onGet?: (args: {
@@ -135,8 +140,10 @@ export type ModelOptionsType<TModel = any> = {
     offset?: number | string;
   }) => Promise<any[]>;
   /**
-   * Can be used either for firing a synchronous call to make changes to a particular model or can use the event handler to fire asyncrhronous
-   * events to set data to this model. This is useful if you want to make your model in sync with the model from another palmares application or
+   * Can be used either for firing a synchronous call to make changes to a particular model or
+   * can use the event handler to fire asyncrhronous
+   * events to set data to this model. This is useful if you want to make your model in sync
+   * with the model from another palmares application or
    * if you want to have hooks attached to this model.
    * */
   onSet?:
@@ -146,8 +153,10 @@ export type ModelOptionsType<TModel = any> = {
         handler: onSetFunction<TModel>;
       };
   /**
-   * Can be used either for firing a synchronous call to make changes to a particular model or can use the event handler to fire asyncrhronous
-   * events to set data to this model. This is useful if you want to make your model in sync with the model from another palmares application or
+   * Can be used either for firing a synchronous call to make changes to a particular model or can
+   * use the event handler to fire asyncrhronous
+   * events to set data to this model. This is useful if you want to make your model in sync with
+   * the model from another palmares application or
    * if you want to have hooks attached to this model.
    * */
   onRemove?:
@@ -165,7 +174,7 @@ export interface ModelInterface {
   abstracts: (typeof Model)[];
   instances?: Map<keyof DatabaseSettingsType['databases'], any>;
 }
-0;
+
 export type ModelFields<TModel> = ModelFieldsInQueries<TModel>;
 
 export type IncludesInstances<TModel = any> = {

@@ -185,7 +185,7 @@ export class TestFunctionsAdapter {
    * @param descriptionName - The name of the description
    * @param callback - The callback that should be called inside the describe function
    */
-  getDescribe(_descriptionName: string, _callback: () => void): void {
+  getDescribe(_descriptionName: string, _callback: () => void, customData: any): void {
     throw new Error('Not implemented');
   }
 
@@ -209,7 +209,7 @@ export class TestFunctionsAdapter {
    * @param testName - The name of the test
    * @param callback - The callback that should be called inside the test function
    */
-  getTest(_testName: string, _callback: () => Promise<void>): void {
+  getTest(_testName: string, _callback: () => Promise<void>, customData: any): void {
     throw new Error('Not implemented');
   }
 
@@ -232,7 +232,7 @@ export class TestFunctionsAdapter {
    *
    * @param callback - The callback that should be called inside the beforeEach function
    */
-  getBeforeEach(_callback: () => Promise<void>): void {
+  getBeforeEach(_callback: () => Promise<void>, customData: any): void {
     throw new Error('Not implemented');
   }
 
@@ -255,7 +255,7 @@ export class TestFunctionsAdapter {
    *
    * @param callback - The callback that should be called inside the beforeEach function
    */
-  getAfterEach(_callback: () => Promise<void>): void {
+  getAfterEach(_callback: () => Promise<void>, customData: any): void {
     throw new Error('Not implemented');
   }
 
@@ -278,7 +278,7 @@ export class TestFunctionsAdapter {
    *
    * @param callback - The callback that should be called inside the beforeEach function
    */
-  getBeforeAll(_callback: () => Promise<void>): void {
+  getBeforeAll(_callback: () => Promise<void>, customData: any): void {
     throw new Error('Not implemented');
   }
 
@@ -301,7 +301,7 @@ export class TestFunctionsAdapter {
    *
    * @param callback - The callback that should be called inside the beforeEach function
    */
-  getAfterAll(_callback: () => Promise<void>): void {
+  getAfterAll(_callback: () => Promise<void>, customData: any): void {
     throw new Error('Not implemented');
   }
 }

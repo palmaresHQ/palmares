@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "e50f698b-d5b1-40e0-824e-303c7a3929bb",
-  "prevId": "7e0c5f10-006e-43b6-9beb-d589600960e4",
+  "id": "19d5fcab-377c-487e-9854-a04fdfa34abf",
+  "prevId": "ba18f2e0-9367-47b6-bf4b-830d43771bb0",
   "tables": {
     "companies": {
       "name": "companies",
@@ -14,6 +14,13 @@
           "notNull": true,
           "autoincrement": true
         },
+        "uuid": {
+          "name": "uuid",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "name": {
           "name": "name",
           "type": "text(255)",
@@ -24,13 +31,6 @@
         "address": {
           "name": "address",
           "type": "text(255)",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "translatable": {
-          "name": "translatable",
-          "type": "real",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -46,6 +46,44 @@
         },
         "companies_id_idx": {
           "name": "companies_id_idx",
+          "columns": [
+            "id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "profile_type": {
+      "name": "profile_type",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "profile_type_id_unique": {
+          "name": "profile_type_id_unique",
+          "columns": [
+            "id"
+          ],
+          "isUnique": true
+        },
+        "profile_type_id_idx": {
+          "name": "profile_type_id_idx",
           "columns": [
             "id"
           ],
@@ -75,7 +113,7 @@
         },
         "name": {
           "name": "name",
-          "type": "text(255)",
+          "type": "text(280)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -92,8 +130,7 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "'admin'"
+          "autoincrement": false
         },
         "price": {
           "name": "price",
@@ -130,6 +167,13 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "profile_type_id": {
+          "name": "profile_type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {
@@ -137,13 +181,6 @@
           "name": "users_id_unique",
           "columns": [
             "id"
-          ],
-          "isUnique": true
-        },
-        "users_uuid_unique": {
-          "name": "users_uuid_unique",
-          "columns": [
-            "uuid"
           ],
           "isUnique": true
         },
@@ -176,6 +213,19 @@
           "tableTo": "companies",
           "columnsFrom": [
             "company_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "users_profile_type_id_profile_type_id_fk": {
+          "name": "users_profile_type_id_profile_type_id_fk",
+          "tableFrom": "users",
+          "tableTo": "profile_type",
+          "columnsFrom": [
+            "profile_type_id"
           ],
           "columnsTo": [
             "id"

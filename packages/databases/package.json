@@ -4,8 +4,9 @@
   "description": "Add support for working with databases with palmares framework",
   "main": "./dist/src/index.cjs",
   "module": "./dist/src/index.js",
-  "types": "./dist/src/index.d.ts",
+  "types": "./src/index.ts",
   "files": [
+    "src",
     "dist",
     "package.json",
     "README.md",
@@ -13,12 +14,13 @@
   ],
   "exports": {
     ".": {
-      "types": "./dist/src/index.d.ts",
+      "types": "./src/index.ts",
       "import": "./dist/src/index.js",
       "require": "./dist/src/index.cjs"
     }
   },
   "scripts": {
+    "test": "tsx ./src/index.ts",
     "clear": "rimraf ./dist",
     "build:types": "tsc --project tsconfig.types.json",
     "build:cjs:esm": "tsup ./src --out-dir ./dist/src --format cjs,esm --silent --no-splitting --no-splitting",

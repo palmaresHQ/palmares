@@ -117,7 +117,7 @@ const drizzleDatabaseAdapter = databaseAdapter({
       drizzle: TDrizzleInstance;
       closeCallback?: () => void | Promise<void>;
     },
-    Omit<InstanceType<ReturnType<typeof databaseAdapter>>, 'instance'> & {
+    () => Omit<InstanceType<ReturnType<typeof databaseAdapter>>, 'instance'> & {
       instance: {
         instance: ReturnTypeByType<
           TType,
@@ -163,26 +163,27 @@ const drizzleDatabaseAdapter = databaseAdapter({
 
     return [
       args,
-      engineInstance as unknown as Omit<InstanceType<ReturnType<typeof databaseAdapter>>, 'instance'> & {
-        instance: {
-          instance: ReturnTypeByType<
-            TType,
-            TDrizzleInstance extends ReturnTypeByType<TType, infer TSchema> ? TSchema : never
-          >;
-          mainType: 'postgres' | 'mysql' | 'sqlite';
-          type:
-            | 'postgres-js'
-            | 'node-postgres'
-            | 'neon-http'
-            | 'xata-http'
-            | 'pglite'
-            | 'vercel-postgres'
-            | 'aws-data-api/pg'
-            | 'pg-proxy';
-          output: string;
-          closeCallback?: () => void | Promise<void>;
-        };
-      }
+      () =>
+        engineInstance as unknown as Omit<InstanceType<ReturnType<typeof databaseAdapter>>, 'instance'> & {
+          instance: {
+            instance: ReturnTypeByType<
+              TType,
+              TDrizzleInstance extends ReturnTypeByType<TType, infer TSchema> ? TSchema : never
+            >;
+            mainType: 'postgres' | 'mysql' | 'sqlite';
+            type:
+              | 'postgres-js'
+              | 'node-postgres'
+              | 'neon-http'
+              | 'xata-http'
+              | 'pglite'
+              | 'vercel-postgres'
+              | 'aws-data-api/pg'
+              | 'pg-proxy';
+            output: string;
+            closeCallback?: () => void | Promise<void>;
+          };
+        }
     ];
   },
   // eslint-disable-next-line ts/require-await

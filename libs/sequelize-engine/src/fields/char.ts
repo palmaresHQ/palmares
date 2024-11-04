@@ -5,7 +5,7 @@ import SequelizeEngine from '../engine';
 
 import type SequelizeEngineFieldParser from './field';
 import type { TranslatedFieldToEvaluateAfterType } from '../types';
-import type { AdapterFieldParserTranslateArgs} from '@palmares/databases';
+import type { AdapterFieldParserTranslateArgs } from '@palmares/databases';
 import type { ModelAttributeColumnOptions } from 'sequelize';
 
 export default adapterCharFieldParser({
@@ -20,5 +20,5 @@ export default adapterCharFieldParser({
     const defaultOptions = await args.fieldParser.translate(args);
     defaultOptions.type = DataTypes.STRING(args.field.maxLength);
     return defaultOptions;
-  },
+  }
 });

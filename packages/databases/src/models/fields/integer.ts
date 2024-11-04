@@ -1,7 +1,9 @@
 import { Field } from './field';
 
-import type { FieldDefaultParamsType, MaybeNull } from './types';
-import type { This } from '../../types';
+import type { CustomImportsForFieldType, FieldWithOperationTypeForSearch } from './types';
+import type { CompareCallback, NewInstanceArgumentsCallback, OptionsCallback, ToStringCallback } from './utils';
+import type { DatabaseAdapter } from '../../engine';
+import type { AdapterFieldParser } from '../../engine/fields/field';
 
 /**
  * Functional approach for the creation of an Integer field.
@@ -11,37 +13,41 @@ import type { This } from '../../types';
  *
  * @example
  * ```ts
- * const integerField = integer();
+ * const integerField = int();
  * ```
  *
  * @example
  * ```
- * const integerField = integer({ defaultValue: 2 });
+ * const integerField = int().default(2);
  * ```
  */
-export function integer<
-  TDefaultValue extends MaybeNull<IntegerField['_type']['input'] | undefined, TNull> = undefined,
-  TUnique extends boolean = false,
-  TNull extends boolean = false,
-  TAuto extends boolean = false,
-  TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any
->(
-  params: FieldDefaultParamsType<
-    IntegerField,
-    TDefaultValue,
-    TUnique,
-    TNull,
-    TAuto,
-    TDatabaseName,
-    TCustomAttributes
-  > = {}
-) {
-  return IntegerField.new(params);
+export function int(): IntegerField<
+  {
+    create: number;
+    read: number;
+    update: number;
+  },
+  {
+    unique: false;
+    allowNull: false;
+    dbIndex: false;
+    underscored: true;
+    isPrimaryKey: false;
+    auto: false;
+    hasDefaultValue: false;
+    defaultValue: undefined;
+    typeName: string;
+    databaseName: undefined;
+    engineInstance: DatabaseAdapter;
+    customAttributes: any;
+  },
+  Pick<FieldWithOperationTypeForSearch<number>, 'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'>
+> {
+  return IntegerField.new();
 }
 
 /**
- * A IntegerField is similar to an IntegerField, except that it should support bigger numbers.
+ * A IntegerField supports only numbers, and not big numbers.
  *
  * @example
  * ```ts
@@ -50,159 +56,724 @@ export function integer<
  *
  * @example
  * ```
- * const IntegerField = IntegerField.new({ databaseName: 'user_id' });
+ * const IntegerField = IntegerField.new().databaseName('user_id');
  * ```
  */
 export class IntegerField<
-  TType extends { input: number; output: number } = {
-    input: number;
-    output: number;
+  TType extends { create: any; read: any; update: any } = {
+    create: number;
+    read: number;
+    update: number;
   },
-  TField extends Field = any,
-  TDefaultValue extends MaybeNull<TField['_type']['input'] | undefined, TNull> = undefined,
-  TUnique extends boolean = false,
-  TNull extends boolean = false,
-  TAuto extends boolean = false,
-  TDatabaseName extends string | null | undefined = undefined,
-  TCustomAttributes = any
-> extends Field<TType, TField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes> {
+  TDefinitions extends {
+    unique: boolean;
+    auto: boolean;
+    allowNull: boolean;
+    dbIndex: boolean;
+    isPrimaryKey: boolean;
+    hasDefaultValue: boolean;
+    defaultValue: undefined;
+    underscored: boolean;
+    typeName: string;
+    databaseName: string | undefined;
+    engineInstance: DatabaseAdapter;
+    customAttributes: any;
+  } & Record<string, any> = {
+    unique: true;
+    allowNull: true;
+    dbIndex: true;
+    underscored: true;
+    hasDefaultValue: false;
+    isPrimaryKey: true;
+    auto: true;
+    defaultValue: undefined;
+    typeName: string;
+    databaseName: undefined;
+    engineInstance: DatabaseAdapter;
+    customAttributes: any;
+  },
+  TFieldOperationTypes = Pick<
+    FieldWithOperationTypeForSearch<number>,
+    'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'
+  >
+> extends Field<TType, TDefinitions, TFieldOperationTypes> {
   protected $$type = '$PIntegerField';
-  declare _type: TType;
-  typeName: string = IntegerField.name;
+  protected __typeName = 'IntegerField';
+  protected __allowedQueryOperations: Set<any> = new Set([
+    'lessThan',
+    'greaterThan',
+    'between',
+    'and',
+    'in',
+    'or',
+    'eq',
+    'is'
+  ] as (keyof Required<TFieldOperationTypes>)[]);
+
+  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
 
   /**
-   * @deprecated Either use the `integer` function or the `IntegerField.new` static method.
-   * Never create an instance of this class directly.
+   * Supposed to be used by library maintainers.
+   *
+   * When you custom create a field, you might want to take advantage of the builder pattern we already support.
+   * This let's you create functions that can be chained together to create a new field. It should be used
+   * alongside the `_setPartialAttributes` method like
+   *
+   * @example
+   * ```ts
+   * const customBigInt = TextField.overrideType<
+   *   { create: bigint; read: bigint; update: bigint },
+   *   {
+   *       customAttributes: { name: string };
+   *       unique: boolean;
+   *       auto: boolean;
+   *       allowNull: true;
+   *       dbIndex: boolean;
+   *       isPrimaryKey: boolean;
+   *       defaultValue: any;
+   *       typeName: string;
+   *       engineInstance: DatabaseAdapter;
+   *   }
+   * >({
+   *   typeName: 'CustomBigInt'
+   * });
+   *
+   * const customBuilder = () => {
+   *   const field = textField.new();
+   *   class Builder {
+   *     test<TTest extends { age: number }>(param: TTest) {
+   *       return field
+   *         ._setPartialAttributes<{ create: TTest }, { create: 'union' }>()(param)
+   *         ._setNewBuilderMethods<Builder>();
+   *     }
+   *     value<const TValue extends string>(value: TValue) {
+   *       return field
+   *         ._setPartialAttributes<{ create: TValue }, { create: 'replace' }>()(value)
+   *         ._setNewBuilderMethods<Builder>();
+   *     }
+   *   }
+   *
+   *   const builder = new Builder();
+   *   return field._setNewBuilderMethods(builder);
+   * };
+   *
+   * // Then your user can use it like:
+   *
+   * const field = customBuilder({ name: 'test' }).test({ age: 2 });
+   * ```
+   *
+   * **Important**: `customBuilder` will be used by the end user and you are responsible for documenting it.
    */
-  constructor(
-    params: FieldDefaultParamsType<
-      IntegerField,
-      TDefaultValue,
-      TUnique,
-      TNull,
-      TAuto,
-      TDatabaseName,
-      TCustomAttributes
-    > = {}
-  ) {
-    super(params);
+  _setNewBuilderMethods<const TFunctions extends InstanceType<any>>(
+    functions?: TFunctions
+  ): IntegerField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    TFieldOperationTypes
+  > &
+    TFunctions {
+    if (functions === undefined) return this as any;
+    const propertiesOfBase = Object.getOwnPropertyNames(Object.getPrototypeOf(functions));
+    for (const key of propertiesOfBase) {
+      if (key === 'constructor') continue;
+      (this as any)[key] = (functions as any)[key].bind(this);
+    }
+
+    return this as any;
+  }
+
+  /**
+   * FOR LIBRARY MAINTAINERS ONLY
+   *
+   * Focused for library maintainers that want to support a custom field type not supported by palmares.
+   * This let's them partially update the custom attributes of the field. By default setCustomAttributes
+   * will override the custom attributes entirely.
+   */
+  _setPartialAttributes<
+    TNewType extends { create?: any; read?: any; update?: any },
+    TActions extends {
+      create?: 'merge' | 'union' | 'replace';
+      read?: 'merge' | 'union' | 'replace';
+      update?: 'merge' | 'union' | 'replace';
+    },
+    TNewAllowedQueryOperations extends FieldWithOperationTypeForSearch<
+      TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read']
+    > = Pick<
+      FieldWithOperationTypeForSearch<
+        TActions['read'] extends 'merge'
+          ? TType['read'] & TNewType['read']
+          : TActions['read'] extends 'union'
+            ? TType['read'] | TNewType['read']
+            : TActions['read'] extends 'replace'
+              ? TNewType['read']
+              : TType['read']
+      >,
+      'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'
+    >
+  >(): <const TCustomPartialAttributes>(partialCustomAttributes: TCustomPartialAttributes) => IntegerField<
+    {
+      create: TActions['create'] extends 'merge'
+        ? TType['create'] & TNewType['create']
+        : TActions['create'] extends 'union'
+          ? TType['create'] | TNewType['create']
+          : TActions['create'] extends 'replace'
+            ? TNewType['create']
+            : TType['create'];
+      read: TActions['read'] extends 'merge'
+        ? TType['read'] & TNewType['read']
+        : TActions['read'] extends 'union'
+          ? TType['read'] | TNewType['read']
+          : TActions['read'] extends 'replace'
+            ? TNewType['read']
+            : TType['read'];
+      update: TActions['update'] extends 'merge'
+        ? TType['update'] & TNewType['update']
+        : TActions['update'] extends 'union'
+          ? TType['update'] | TNewType['update']
+          : TActions['update'] extends 'replace'
+            ? TNewType['update']
+            : TType['update'];
+    },
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'] & TCustomPartialAttributes;
+    },
+    TNewAllowedQueryOperations
+  > {
+    return (partialCustomAttributes) => {
+      if (partialCustomAttributes !== undefined) {
+        if ((this.__customAttributes as any) === undefined) this.__customAttributes = {} as any;
+        this.__customAttributes = { ...this.__customAttributes, ...partialCustomAttributes };
+      }
+      return this as any;
+    };
+  }
+
+  setCustomAttributes<
+    const TCustomAttributes extends Parameters<
+      TDefinitions['engineInstance']['fields']['integerFieldParser']['translate']
+    >[0]['customAttributes']
+  >(
+    customAttributes: TCustomAttributes
+  ): IntegerField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TCustomAttributes;
+    },
+    TFieldOperationTypes
+  > {
+    (this.__customAttributes as any) = customAttributes as any;
+
+    return this as unknown as any;
+  }
+
+  unique<TUnique extends boolean = true>(
+    isUnique?: TUnique
+  ): IntegerField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TUnique extends false ? false : true;
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    TFieldOperationTypes
+  > {
+    return super.unique(isUnique) as unknown as any;
+  }
+
+  allowNull<TNull extends boolean = true>(
+    isNull?: TNull
+  ): IntegerField<
+    {
+      create: TType['create'] | null | undefined;
+      read: TType['read'] | null | undefined;
+      update: TType['update'] | null | undefined;
+    },
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TNull extends false ? false : true;
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    Pick<
+      FieldWithOperationTypeForSearch<TType['read'] | null>,
+      'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'
+    >
+  > {
+    return super.allowNull(isNull) as unknown as any;
+  }
+
+  /**
+   * This method is used to create an index on the database for this field.
+   */
+  dbIndex<TDbIndex extends boolean = true>(
+    isDbIndex?: TDbIndex
+  ): IntegerField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDbIndex extends false ? false : true;
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    TFieldOperationTypes
+  > {
+    return super.dbIndex(isDbIndex) as unknown as any;
+  }
+
+  underscored<TUnderscored extends boolean = true>(
+    isUnderscored?: TUnderscored
+  ): IntegerField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TUnderscored extends false ? false : true;
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    TFieldOperationTypes
+  > {
+    return super.underscored(isUnderscored) as unknown as any;
+  }
+
+  primaryKey<TIsPrimaryKey extends boolean = true>(
+    isPrimaryKey?: TIsPrimaryKey
+  ): IntegerField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TIsPrimaryKey extends false ? false : true;
+      auto: TDefinitions['auto'];
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    TFieldOperationTypes
+  > {
+    return super.primaryKey(isPrimaryKey) as unknown as any;
+  }
+
+  auto<TIsAuto extends boolean = true>(
+    isAuto?: TIsAuto
+  ): IntegerField<
+    {
+      create: TType['create'] | undefined;
+      read: TType['read'];
+      update: TType['update'] | undefined;
+    },
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TIsAuto extends false ? false : true;
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    TFieldOperationTypes
+  > {
+    return super.auto(isAuto) as any;
+  }
+
+  default<TDefault extends TType['create']>(
+    defaultValue: TDefault
+  ): IntegerField<
+    {
+      create: TType['create'] | TDefault | undefined;
+      read: TType['read'];
+      update: TType['update'] | undefined;
+    },
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      hasDefaultValue: true;
+      defaultValue: TDefault;
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    TFieldOperationTypes
+  > {
+    return super.default(defaultValue) as unknown as any;
+  }
+
+  databaseName<TDatabaseName extends string>(
+    databaseName: TDatabaseName
+  ): IntegerField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDatabaseName;
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TDefinitions['customAttributes'];
+    },
+    TFieldOperationTypes
+  > {
+    return super.databaseName(databaseName) as unknown as any;
   }
 
   /**
    * This method can be used to override the type of a field. This is useful for library
-   * maintainers that want to support the field type but the default type provided by palmares
-   * is not the one that the database engine supports.
-   *
-   * @example
-   * ```ts
-   * const MyCustomDatabaseIntegerField = IntegerField.overrideType<string>();
-   *
-   * // then the user can use as normal:
-   *
-   * const integerField = MyCustomDatabaseIntegerField.new();
-   *
-   * // now the type inferred for the field will be a string instead of a number.
-   * ```
-   *
-   * @example
-   * ```ts
-   * class MyCustomDatabaseEngineIntegerFieldParser extends EngineIntegerFieldParser {
-   *    static getFieldClass() {
-   *       return IntegerField.overrideType<BigInt>();
-   *    }
-   * }
-   *
-   * // then the user can use like:
-   *
-   * const integerField = MyCustomDatabaseEngineIntegerFieldParser.getFieldClass().new();
-   * ```
+   * maintainers that want to support a custom field type not supported by palmares.
    *
    * ### Note
-   *
    * Your library should provide documentation of the fields that are supported.
    */
-  static overrideType<TNewType extends { input: number; output: number }>() {
-    return this as unknown as {
-      new: <
-        // eslint-disable-next-line no-shadow
-        TDefaultValue extends MaybeNull<TNewType['input'] | undefined, TNull> = undefined,
-        // eslint-disable-next-line no-shadow
-        TUnique extends boolean = false,
-        // eslint-disable-next-line no-shadow
-        TNull extends boolean = false,
-        // eslint-disable-next-line no-shadow
-        TAuto extends boolean = false,
-        // eslint-disable-next-line no-shadow
-        TDatabaseName extends string | null | undefined = undefined,
-        // eslint-disable-next-line no-shadow
-        TCustomAttributes = any
-      >(
-        params?: FieldDefaultParamsType<
-          IntegerField,
-          TDefaultValue,
-          TUnique,
-          TNull,
-          TAuto,
-          TDatabaseName,
-          TCustomAttributes
-        >
-      ) => IntegerField<TNewType, IntegerField, TDefaultValue, TUnique, TNull, TAuto, TDatabaseName, TCustomAttributes>;
-    };
+  static _overrideType<
+    const TNewType extends { create: any; update: any; read: any },
+    const TDefinitions extends {
+      customAttributes: any;
+      unique: boolean;
+      auto: boolean;
+      hasDefaultValue: boolean;
+      allowNull: boolean;
+      dbIndex: boolean;
+      isPrimaryKey: boolean;
+      defaultValue: any;
+      typeName: string;
+      engineInstance: DatabaseAdapter;
+    },
+    const TFieldOperationTypes extends
+      | FieldWithOperationTypeForSearch<any>
+      | Pick<FieldWithOperationTypeForSearch<any>, any>
+  >(args: {
+    typeName: string;
+    toStringCallback?: ToStringCallback;
+    compareCallback?: CompareCallback;
+    optionsCallback?: OptionsCallback;
+    newInstanceCallback?: NewInstanceArgumentsCallback;
+    customImports?: CustomImportsForFieldType[];
+    allowedQueryOperations?: (keyof TFieldOperationTypes)[];
+    definitions?: Omit<TDefinitions, 'typeName' | 'engineInstance' | 'customAttributes'>;
+  }): TDefinitions['customAttributes'] extends undefined
+    ? {
+        new: () => IntegerField<
+          TNewType,
+          {
+            unique: TDefinitions['unique'];
+            auto: TDefinitions['auto'];
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
+            allowNull: TDefinitions['allowNull'];
+            dbIndex: TDefinitions['dbIndex'];
+            isPrimaryKey: TDefinitions['isPrimaryKey'];
+            defaultValue: TDefinitions['defaultValue'];
+            underscored: boolean;
+            databaseName: string | undefined;
+            engineInstance: TDefinitions['engineInstance'];
+            customAttributes: TDefinitions['customAttributes'];
+            typeName: TDefinitions['typeName'];
+          },
+          TFieldOperationTypes
+        >;
+      }
+    : {
+        new: (params: TDefinitions['customAttributes']) => IntegerField<
+          TNewType,
+          {
+            unique: TDefinitions['unique'];
+            auto: TDefinitions['auto'];
+            hasDefaultValue: TDefinitions['hasDefaultValue'];
+            allowNull: TDefinitions['allowNull'];
+            dbIndex: TDefinitions['dbIndex'];
+            isPrimaryKey: TDefinitions['isPrimaryKey'];
+            defaultValue: TDefinitions['defaultValue'];
+            underscored: boolean;
+            databaseName: string | undefined;
+            engineInstance: TDefinitions['engineInstance'];
+            customAttributes: TDefinitions['customAttributes'];
+            typeName: TDefinitions['typeName'];
+          },
+          TFieldOperationTypes
+        >;
+      } {
+    return super._overrideType(args) as unknown as any;
   }
 
-  /**
-   * @param params - The parameters that will be used to create the IntegerField instance.
-   * @param params.primaryKey - Specifies if this field should be considered the primary key of the
-   * model. (default: false)
-   * @param params.defaultValue - The default value for this field. (default: undefined)
-   * @param params.allowNull - If this field can be null or not. (default: false)
-   * @param params.unique - If this field should be unique or not. (default: false)
-   * @param params.isAuto - An auto field is automatically incremented by the database engine. (default: false)
-   * @param params.dbIndex - On relational database we can create an index. This specifies if we
-   * should create an index for this field on the database (default: false).
-   * Be aware, this is mostly for relational databases.
-   * @param params.underscored - If the field name should be underscored on the database or not.
-   * Like `firstName` will be converted to `first_name` on the database.
-   * This is ignored if `databaseName` is set. (default: true)
-   * @param params.databaseName - The name of the field on the database. If this is not set, we will
-   * use either the field name or the underscored version of the field name.
-   * @param params.customAttributes - Custom attributes that will be passed to the field for the engine to use.
-   */
-  static new<
-    TFieldInstance extends This<typeof IntegerField>,
-    // eslint-disable-next-line no-shadow
-    TDefaultValue extends MaybeNull<InstanceType<TFieldInstance>['_type']['input'] | undefined, TNull> = undefined,
-    // eslint-disable-next-line no-shadow
-    TUnique extends boolean = true,
-    // eslint-disable-next-line no-shadow
-    TNull extends boolean = false,
-    // eslint-disable-next-line no-shadow
-    TAuto extends boolean = true,
-    // eslint-disable-next-line no-shadow
-    TDatabaseName extends string | null | undefined = undefined,
-    // eslint-disable-next-line no-shadow
-    TCustomAttributes = any
-  >(
-    this: TFieldInstance,
-    params: FieldDefaultParamsType<
-      InstanceType<TFieldInstance>,
-      TDefaultValue,
-      TUnique,
-      TNull,
-      TAuto,
-      TDatabaseName,
-      TCustomAttributes
-    > = {}
-  ) {
-    return new this(params) as IntegerField<
-      { input: number; output: number },
-      InstanceType<TFieldInstance>,
-      TDefaultValue,
-      TUnique,
-      TNull,
-      TAuto,
-      TDatabaseName,
-      TCustomAttributes
-    >;
+  static new(..._args: any[]): IntegerField<
+    {
+      create: number;
+      read: number;
+      update: number;
+    },
+    {
+      unique: false;
+      allowNull: false;
+      dbIndex: false;
+      underscored: true;
+      isPrimaryKey: false;
+      auto: false;
+      defaultValue: undefined;
+      hasDefaultValue: false;
+      typeName: string;
+      databaseName: undefined;
+      engineInstance: DatabaseAdapter;
+      customAttributes: any;
+    },
+    Pick<FieldWithOperationTypeForSearch<number>, 'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'>
+  > {
+    return new this(..._args);
   }
 }

@@ -22,9 +22,9 @@ import type { OriginalOrStateModelsByNameType } from '../types';
 export class CreateField extends Operation {
   modelName: string;
   fieldName: string;
-  fieldDefinition: Field<any, any, any, any, any, any, any, any>;
+  fieldDefinition: Field<any, any>;
 
-  constructor(modelName: string, fieldName: string, fieldDefinition: Field<any, any, any, any, any, any, any, any>) {
+  constructor(modelName: string, fieldName: string, fieldDefinition: Field<any, any>) {
     super();
     this.modelName = modelName;
     this.fieldName = fieldName;
@@ -34,8 +34,8 @@ export class CreateField extends Operation {
   async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {
     const model = await state.get(this.modelName);
     const modelConstructor = model.constructor as typeof BaseModel;
-    modelConstructor.domainName = domainName;
-    modelConstructor.domainPath = domainPath;
+    modelConstructor['__domainName'] = domainName;
+    modelConstructor['__domainPath'] = domainPath;
     model.fields[this.fieldName] = this.fieldDefinition;
     await state.set(this.modelName, model);
   }
@@ -64,6 +64,7 @@ export class CreateField extends Operation {
   }
 
   static async toString(
+    engine: DatabaseAdapter,
     indentation = 0,
     data: ActionToGenerateType<CreateFieldToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
@@ -73,9 +74,9 @@ export class CreateField extends Operation {
         indentation - 1,
         `${ident}"${data.modelName}",\n` +
           `${ident}"${data.data.fieldName}",\n` +
-          `${await data.data.fieldDefinition.toString(indentation)}`
+          `${await data.data.fieldDefinition['__toString'](engine)}`
       ),
-      customImports: await data.data.fieldDefinition.customImports()
+      customImports: await data.data.fieldDefinition['__getCustomImports']()
     };
   }
 
@@ -88,14 +89,14 @@ export class CreateField extends Operation {
 export class ChangeField extends Operation {
   modelName: string;
   fieldName: string;
-  fieldDefinitionBefore: Field<any, any, any, any, any, any, any, any>;
-  fieldDefinitionAfter: Field<any, any, any, any, any, any, any, any>;
+  fieldDefinitionBefore: Field<any, any>;
+  fieldDefinitionAfter: Field<any, any>;
 
   constructor(
     modelName: string,
     fieldName: string,
-    fieldDefinitionBefore: Field<any, any, any, any, any, any, any, any>,
-    fieldDefinitionAfter: Field<any, any, any, any, any, any, any, any>
+    fieldDefinitionBefore: Field<any, any>,
+    fieldDefinitionAfter: Field<any, any>
   ) {
     super();
     this.modelName = modelName;
@@ -107,8 +108,8 @@ export class ChangeField extends Operation {
   async stateForwards(state: State, domainName: string, domainPath: string) {
     const model = await state.get(this.modelName);
     const modelConstructor = model.constructor as typeof BaseModel;
-    modelConstructor.domainName = domainName;
-    modelConstructor.domainPath = domainPath;
+    modelConstructor['__domainName'] = domainName;
+    modelConstructor['__domainPath'] = domainPath;
     model.fields[this.fieldName] = this.fieldDefinitionAfter;
     await state.set(this.modelName, model);
   }
@@ -138,6 +139,7 @@ export class ChangeField extends Operation {
   }
 
   static async toString(
+    engine: DatabaseAdapter,
     indentation = 0,
     data: ActionToGenerateType<ChangeFieldToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
@@ -147,11 +149,11 @@ export class ChangeField extends Operation {
         indentation - 1,
         `${ident}"${data.modelName}",\n` +
           `${ident}"${data.data.fieldName}",\n` +
-          `${await data.data.fieldDefinitionBefore.toString(indentation)},\n` +
-          `${await data.data.fieldDefinitionAfter.toString(indentation)}`
+          `${await data.data.fieldDefinitionBefore['__toString'](engine)},\n` +
+          `${await data.data.fieldDefinitionAfter['__toString'](engine)}`
       ),
-      customImports: (await data.data.fieldDefinitionBefore.customImports()).concat(
-        await data.data.fieldDefinitionAfter.customImports()
+      customImports: (await data.data.fieldDefinitionBefore['__getCustomImports']()).concat(
+        await data.data.fieldDefinitionAfter['__getCustomImports']()
       )
     };
   }
@@ -169,14 +171,9 @@ export class RenameField extends Operation {
   modelName: string;
   fieldNameBefore: string;
   fieldNameAfter: string;
-  fieldDefinition: Field<any, any, any, any, any, any, any, any>;
+  fieldDefinition: Field<any, any>;
 
-  constructor(
-    modelName: string,
-    fieldNameBefore: string,
-    fieldNameAfter: string,
-    fieldDefinition: Field<any, any, any, any, any, any, any, any>
-  ) {
+  constructor(modelName: string, fieldNameBefore: string, fieldNameAfter: string, fieldDefinition: Field<any, any>) {
     super();
     this.modelName = modelName;
     this.fieldNameBefore = fieldNameBefore;
@@ -187,8 +184,8 @@ export class RenameField extends Operation {
   async stateForwards(state: State, domainName: string, domainPath: string) {
     const model = await state.get(this.modelName);
     const modelConstructor = model.constructor as typeof BaseModel;
-    modelConstructor.domainName = domainName;
-    modelConstructor.domainPath = domainPath;
+    modelConstructor['__domainName'] = domainName;
+    modelConstructor['__domainPath'] = domainPath;
 
     const hasNamesReallyChanged = this.fieldNameAfter !== this.fieldNameBefore;
     if (hasNamesReallyChanged) {
@@ -225,6 +222,7 @@ export class RenameField extends Operation {
   }
 
   static async toString(
+    engine: DatabaseAdapter,
     indentation = 0,
     data: ActionToGenerateType<RenameFieldToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
@@ -235,15 +233,18 @@ export class RenameField extends Operation {
         `${ident}"${data.modelName}",\n` +
           `${ident}"${data.data.fieldNameBefore}",\n` +
           `${ident}"${data.data.fieldNameAfter}",\n` +
-          `${await data.data.fieldDefinition.toString(indentation)}`
+          `${await data.data.fieldDefinition['__toString'](engine)}`
       ),
-      customImports: await data.data.fieldDefinition.customImports()
+      customImports: await data.data.fieldDefinition['__getCustomImports']()
     };
   }
 
   // eslint-disable-next-line ts/require-await
   static async describe(data: ActionToGenerateType<RenameFieldToGenerateData>): Promise<string> {
-    return `Renamed the field '${data.data.fieldNameBefore}' to '${data.data.fieldNameAfter}' on the '${data.modelName}' model`;
+    return (
+      `Renamed the field '${data.data.fieldNameBefore}' to ` +
+      `'${data.data.fieldNameAfter}' on the '${data.modelName}' model`
+    );
   }
 }
 
@@ -260,8 +261,8 @@ export class DeleteField extends Operation {
   async stateForwards(state: State, domainName: string, domainPath: string): Promise<void> {
     const model = await state.get(this.modelName);
     const modelConstructor = model.constructor as typeof BaseModel;
-    modelConstructor.domainName = domainName;
-    modelConstructor.domainPath = domainPath;
+    modelConstructor['__domainName'] = domainName;
+    modelConstructor['__domainPath'] = domainPath;
 
     delete model.fields[this.fieldName];
     await state.set(this.modelName, model);
@@ -291,6 +292,8 @@ export class DeleteField extends Operation {
   }
 
   static async toString(
+    _engine: DatabaseAdapter,
+
     indentation = 0,
     data: ActionToGenerateType<DeleteFieldToGenerateData>
   ): Promise<ToStringFunctionReturnType> {

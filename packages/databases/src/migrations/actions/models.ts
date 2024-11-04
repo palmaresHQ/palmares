@@ -38,10 +38,10 @@ export class CreateModel extends Operation {
     const model = await state.get(this.modelName);
     const modelConstructor = model.constructor as typeof BaseModel;
 
-    modelConstructor.domainName = domainName;
-    modelConstructor.domainPath = domainPath;
-    model.fields = this.fields;
-    model.options = this.options;
+    modelConstructor['__domainName'] = domainName;
+    modelConstructor['__domainPath'] = domainPath;
+    modelConstructor['__lazyFields'] = this.fields;
+    modelConstructor['__lazyOptions'] = this.options;
     state.set(this.modelName, model);
   }
 
@@ -61,17 +61,22 @@ export class CreateModel extends Operation {
   }
 
   static async toString(
+    engine: DatabaseAdapter,
     indentation = 0,
     data: ActionToGenerateType<CreateModelToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
-    const { asString: fieldsAsString, customImports } = await BaseModel._fieldsToString(indentation, data.data.fields);
+    const { asString: fieldsAsString, customImports } = await BaseModel['__fieldsToString'](
+      engine,
+      data.data.fields,
+      indentation
+    );
     return {
       asString: await super.defaultToString(
         indentation - 1,
         `${ident}"${data.modelName}",\n` +
           `${fieldsAsString},\n` +
-          `${await BaseModel._optionsToString(indentation, data.data.options)}`
+          `${await BaseModel['__optionsToString'](engine, indentation, data.data.options)}`
       ),
       customImports: customImports
     };
@@ -115,7 +120,11 @@ export class DeleteModel extends Operation {
     return super.defaultToGenerate(domainName, domainPath, modelName, null);
   }
 
-  static async toString(indentation = 0, data: ActionToGenerateType<null>): Promise<ToStringFunctionReturnType> {
+  static async toString(
+    _engine: DatabaseAdapter,
+    indentation = 0,
+    data: ActionToGenerateType<null>
+  ): Promise<ToStringFunctionReturnType> {
     const ident = '  '.repeat(indentation);
     return {
       asString: await super.defaultToString(indentation - 1, `${ident}"${data.modelName}"`)
@@ -150,8 +159,8 @@ export class ChangeModel extends Operation {
     const model = await state.get(this.modelName);
     const modelConstructor = model.constructor as typeof BaseModel;
 
-    modelConstructor.domainName = domainName;
-    modelConstructor.domainPath = domainPath;
+    modelConstructor['__domainName'] = domainName;
+    modelConstructor['__domainPath'] = domainPath;
 
     model.options = this.optionsAfter;
   }
@@ -173,6 +182,7 @@ export class ChangeModel extends Operation {
   }
 
   static async toString(
+    engine: DatabaseAdapter,
     indentation = 0,
     data: ActionToGenerateType<ChangeModelToGenerateData>
   ): Promise<ToStringFunctionReturnType> {
@@ -181,8 +191,8 @@ export class ChangeModel extends Operation {
       asString: await super.defaultToString(
         indentation - 1,
         `${ident}"${data.modelName}",\n` +
-          `${await BaseModel._optionsToString(indentation, data.data.optionsBefore)},\n` +
-          `${await BaseModel._optionsToString(indentation, data.data.optionsAfter)}`
+          `${await BaseModel['__optionsToString'](engine, indentation, data.data.optionsBefore)},\n` +
+          `${await BaseModel['__optionsToString'](engine, indentation, data.data.optionsAfter)}`
       )
     };
   }
@@ -212,8 +222,8 @@ export class RenameModel extends Operation {
     const modelConstructor = model.constructor as typeof BaseModel;
 
     (modelConstructor as any).__cachedName = this.newModelName;
-    modelConstructor.domainName = domainName;
-    modelConstructor.domainPath = domainPath;
+    modelConstructor['__domainName'] = domainName;
+    modelConstructor['__domainPath'] = domainPath;
 
     await Promise.all([state.set(this.newModelName, model), state.remove(this.oldModelName)]);
   }
@@ -223,6 +233,7 @@ export class RenameModel extends Operation {
   }
 
   static async toString(
+    _engine: DatabaseAdapter,
     indentation = 0,
     data: ActionToGenerateType<RenameModelToGenerateData>
   ): Promise<ToStringFunctionReturnType> {

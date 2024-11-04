@@ -30,7 +30,7 @@
     "build:watch": "turbo run build:watch --concurrency 20",
     "build:watch:tests": "turbo run build:watch --filter=@palmares/core --filter=@palmares/tests --filter=@palmares/jest-tests",
     "build:watch:schemas": "turbo run build:watch --filter=@palmares/core --filter=@palmares/schemas --filter=@palmares/zod-schema",
-    "build:watch:databases": "turbo run build:watch --filter=@palmares/core --filter=@palmares/databases --filter=@palmares/drizzle-engine",
+    "build:watch:databases": "turbo run build:watch --filter=@palmares/core --filter=@palmares/databases --filter=@palmares/drizzle-engine --filter=@palmares/sequelize-engine",
     "build:watch:server": "turbo run build:watch --filter=@palmares/core --filter=@palmares/server --filter=@palmares/express-adapter",
     "dev": "turbo run dev --parallel",
     "examples:server-express-only": "turbo run dev --parallel --filter=@examples/server-express-only --filter=@palmares/*",

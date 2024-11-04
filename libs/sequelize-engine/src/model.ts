@@ -45,6 +45,7 @@ export default adapterModels({
     _model,
     _fieldEntriesOfModel,
     modelOptions,
+    _customModelOptions,
     defaultTranslateCallback: () => Promise<{ options: ModelOptions; fields: ModelAttributes<any> }>,
     _,
     __

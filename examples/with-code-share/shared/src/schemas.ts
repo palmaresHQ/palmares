@@ -11,12 +11,14 @@ const p = getSchemasWithDefaultAdapter<ZodSchemaAdapter>();
 export const arrayInventorySchema = p.modelSchema(AbstractInventoryItem, {
   many: true,
   fields: {
-    userId: p.number().optional(),
+    userId: p.number(),
     user: p
       .modelSchema(AbstractUser, {
         show: ['email', 'firstName', 'lastName']
       })
-      .optional()
+      .optional({
+        outputOnly: true
+      })
   },
   omit: []
 });
@@ -24,7 +26,7 @@ export const arrayInventorySchema = p.modelSchema(AbstractInventoryItem, {
 export const inventorySchema = p
   .modelSchema(AbstractInventoryItem, {
     fields: {
-      id: p.number().optional().nullable(),
+      id: p.number().optional(),
       imageUrl: p
         .string()
         .minLength(1)
@@ -44,7 +46,9 @@ export const inventorySchema = p
   })
   .refine((value) => {
     if (
+      // eslint-disable-next-line ts/no-unnecessary-condition
       value &&
+      // eslint-disable-next-line ts/no-unnecessary-condition
       value.manufacturer &&
       value.serial &&
       !new RegExp(regexForManufacturer[value.manufacturer]).test(value.serial)
@@ -56,6 +60,7 @@ export const inventorySchema = p
     }
   })
   .toValidate(async (value) => {
+    // eslint-disable-next-line ts/no-unnecessary-condition
     if (value) {
       if (value.status !== 'use')
         return {

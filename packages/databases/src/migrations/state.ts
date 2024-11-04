@@ -5,7 +5,7 @@ import { initializeModels } from '../models/utils';
 
 import type { FoundMigrationsFileType, OriginalOrStateModelsByNameType, StateModelsType } from './types';
 import type { DatabaseAdapter } from '../engine';
-import type { BaseModel } from '../models/model';
+import type { BaseModel, ModelType } from '../models/model';
 import type { InitializedModelsType } from '../types';
 
 /**
@@ -71,7 +71,8 @@ export class State {
   async newModel(modelName: string): Promise<StateModelsType[string]> {
     const ModelClass = class StateModel extends model() {
       static isState = true;
-      static __cachedName: string = modelName;
+      static __cachedOriginalName = modelName;
+      static __cachedName = `State${modelName}`;
 
       fields = {};
       options = {};
@@ -106,17 +107,18 @@ export class State {
       engineInstance,
       modelsInState.map((stateModel) => {
         const ModelClass = class StateModel extends model() {
-          static isState = true;
+          static __isState = true;
           static __stateNumber = stateNumber;
           static _initialized = {};
-          static domainName = (stateModel.constructor as any).domainName;
-          static domainPath = (stateModel.constructor as any).domainPath;
-          static __cachedOriginalName: string = (stateModel.constructor as any).__cachedName;
-          static __cachedName: string = (stateModel.constructor as any).__cachedName;
-
-          fields = stateModel.fields;
-          options = stateModel.options;
+          static __domainName = (stateModel.constructor as ModelType<any, any> & typeof BaseModel)['__domainName'];
+          static __domainPath = (stateModel.constructor as ModelType<any, any> & typeof BaseModel)['__domainPath'];
+          static __cachedOriginalName = (stateModel.constructor as any)['__cachedOriginalName'] as string;
+          static __cachedName = (stateModel.constructor as any)['__cachedName'] as string;
+          static __lazyFields = (stateModel.constructor as ModelType<any, any> & typeof BaseModel)['__lazyFields'];
+          static __lazyOptions = (stateModel.constructor as ModelType<any, any> & typeof BaseModel)['__lazyOptions'];
+          static __cachedOptions = undefined;
         };
+
         return ModelClass as any;
       })
     );
@@ -143,9 +145,13 @@ export class State {
     let duplicatedEngineInstance: undefined | DatabaseAdapter = undefined;
 
     const wasDefaultDuplicateCalled = { value: false };
-    duplicatedEngineInstance = await engineInstance.duplicate(
-      defaultEngineDuplicate(engineInstance, wasDefaultDuplicateCalled)
-    );
+    if (engineInstance.duplicate === undefined)
+      duplicatedEngineInstance = await defaultEngineDuplicate(engineInstance, wasDefaultDuplicateCalled)();
+    else
+      duplicatedEngineInstance = await engineInstance.duplicate(
+        defaultEngineDuplicate(engineInstance, wasDefaultDuplicateCalled)
+      );
+
     if (wasDefaultDuplicateCalled.value === false) throw new DefaultDuplicateFunctionNotCalledOnEngine();
 
     const closeEngineInstance = duplicatedEngineInstance.close?.bind(duplicatedEngineInstance);
@@ -160,7 +166,7 @@ export class State {
     const initializedModels = await this.initializeStateModels(duplicatedEngineInstance);
 
     for (const initializedModel of initializedModels) {
-      this.initializedModelsByName[initializedModel.class.originalName()] = initializedModel;
+      this.initializedModelsByName[initializedModel.class['__originalName']()] = initializedModel;
     }
     return {
       initializedModels: this.initializedModelsByName,

@@ -9,13 +9,13 @@ export default adapterGetQuery({
       attributes: args.fields as string[],
       where: args.search,
       nest: true,
-      raw: true,
+      raw: true
     };
     if (args.ordering) findAllOptions.order = args.ordering;
     if (args.limit) findAllOptions.limit = args.limit;
     if (args.offset) findAllOptions.offset = Number(args.offset);
     return args.modelOfEngineInstance.findAll(findAllOptions);
-  },
+  }
 });
 
 /**

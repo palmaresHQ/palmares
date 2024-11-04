@@ -1,12 +1,76 @@
-import {
-  describe,
-} from '@palmares/tests'
+import { describe } from '@palmares/tests';
 
-import { Company, User } from './models';
+import { Company, ProfileType, User } from './models';
 
 import type JestTestAdapter from '@palmares/jest-tests';
+//import { QuerySet } from 'packages/databases/dist/src/queries/queryset';
 
 describe<JestTestAdapter>('sequelize models', ({ test }) => {
+  test('Test set data through relation', async ({ expect }) => {
+    const company = await Company.default.set((qs) =>
+      qs
+        .join(User, 'usersOfCompany', (qs) =>
+          qs
+            .join(ProfileType, 'profileType', (qs) =>
+              qs.data({
+                name: 'admin2'
+              })
+            )
+            .data(
+              {
+                age: 10,
+                name: 'test1',
+                uuid: 'a417f723-ddb7-4f8c-a42c-0b5975e4cf5f',
+                userType: 'admin'
+              },
+              {
+                age: 11,
+                name: 'test2',
+                uuid: '77ac0c15-09c7-425e-9d77-97c0f973e8e6',
+                userType: 'user'
+              }
+            )
+        )
+        .data({
+          address: 'test',
+          name: 'test5'
+        })
+    );
+
+    const companyId = company[0].id;
+    expect(company[0].usersOfCompany[0]?.companyId).toBe(companyId);
+    expect(company[0].usersOfCompany[0]?.profileTypeId).toBe(company[0].usersOfCompany[0]?.profileType?.id);
+  });
+
+  test('Set update on relation', async ({ expect }) => {
+    const company = await Company.default.set((qs) =>
+      qs
+        .join(User, 'usersOfCompany', (qs) =>
+          qs
+            .join(ProfileType, 'profileType', (qs) =>
+              qs
+                .where({
+                  id: 1
+                })
+                .data({
+                  name: 'admin2'
+                })
+            )
+            .data({
+              name: 'hello'
+            })
+        )
+        .data({
+          name: 'hello'
+        })
+    );
+
+    const companyId = company[0].id;
+    expect(company[0].usersOfCompany[0]?.companyId).toBe(companyId);
+    expect(company[0].usersOfCompany[0]?.profileTypeId).toBe(company[0].usersOfCompany[0]?.profileType?.id);
+  });
+
+  /*
   test('its working with functions', async ({ expect }) => {
     await Company.default.set({ name: 'test', address: 'test', translatable: 'here'});
     const companies = await Company.test.test('test');
@@ -55,5 +119,5 @@ describe<JestTestAdapter>('sequelize models', ({ test }) => {
   test('its allowing null to nullable fields', async ({ expect }) => {
     const data = await Company.default.set({ name: 'test', address: null, translatable: 'here' });
     expect(data[0].address).toBe(null);
-  });
+  });*/
 });

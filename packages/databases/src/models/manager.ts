@@ -2,27 +2,15 @@ import { getSettings, initializeDomains } from '@palmares/core';
 
 import { ManagerEngineInstanceNotFoundError } from './exceptions';
 import { Databases } from '../databases';
-import { getQuery } from '../queries/get';
-import { removeQuery } from '../queries/remove';
-import { setQuery } from '../queries/set';
+import { GetQuerySet, RemoveQuerySet, SetQuerySet } from '../queries/queryset';
 
-import type { Model, model } from './model';
-import type {
-  FieldsOFModelType,
-  FieldsOfModelOptionsType,
-  Includes,
-  IncludesInstances,
-  IncludesValidated,
-  ManagerEngineInstancesType,
-  ManagerInstancesType,
-  ModelFieldsWithIncludes,
-  ModelType,
-  OrderingOfModelsType
-} from './types';
+import type { BaseModel, Model, ModelType } from './model';
+import type { ManagerEngineInstancesType, ManagerInstancesType } from './types';
 import type { DatabaseAdapter } from '../engine';
 import type { DatabaseDomainInterface } from '../interfaces';
+import type { CommonQuerySet, GetDataFromModel, QuerySet } from '../queries/queryset';
 import type { DatabaseSettingsType } from '../types';
-import type { Narrow, SettingsType2 } from '@palmares/core';
+import type { SettingsType2 } from '@palmares/core';
 
 /**
  * Managers define how you make queries on the database. Instead of making queries everywhere in your application
@@ -68,29 +56,35 @@ import type { Narrow, SettingsType2 } from '@palmares/core';
  * For example: one could create a framework that enables `bull.js` tasks to be defined on the database instead
  * of the code. This way we could update the tasks dynamically.
  */
-export class Manager<TModel = Model, TEI extends DatabaseAdapter | null = null> {
-  $$type = '$PManager';
-  instances: ManagerInstancesType;
-  engineInstances: ManagerEngineInstancesType;
-  defaultEngineInstanceName: string;
-  models: { [engineName: string]: TModel };
-  modelKls!: { new (...args: unknown[]): any };
-  isLazyInitializing = false as boolean;
+export class Manager<
+  TModel = Model,
+  TDefinitions extends {
+    engineInstance: DatabaseAdapter;
+    customOptions: any;
+  } = {
+    engineInstance: DatabaseAdapter;
+    customOptions: any;
+  }
+> {
+  protected $$type = '$PManager';
+  protected __instances: ManagerInstancesType = {};
+  protected __engineInstances: ManagerEngineInstancesType;
+  protected __defaultEngineInstanceName: string;
+  protected __models: { [engineName: string]: TModel };
+  protected __modelKls!: { new (...args: unknown[]): any };
+  protected __isLazyInitializing = false as boolean;
 
   constructor() {
     //this.modelKls = modelKls;
-    this.instances = {};
-    this.engineInstances = {};
-    this.models = {};
-    this.defaultEngineInstanceName = '';
+    this.__instances = {};
+    this.__engineInstances = {};
+    this.__models = {};
+    this.__defaultEngineInstanceName = '';
+    this.__isLazyInitializing = false;
   }
 
-  _setModel(engineName: string, initializedModel: TModel) {
-    this.models[engineName] = initializedModel;
-  }
-
-  getModel(engineName: string) {
-    return this.models[engineName];
+  protected __setModel(engineName: string, initializedModel: TModel) {
+    this.__models[engineName] = initializedModel;
   }
 
   /**
@@ -101,28 +95,48 @@ export class Manager<TModel = Model, TEI extends DatabaseAdapter | null = null> 
    * doesn't exist, load the settings from where we can find them and initialize the domains. After that we are able to
    * retrieve the data from the model
    */
-  async verifyIfNotInitializedAndInitializeModels(engineName: string) {
+  protected async __verifyIfNotInitializedAndInitializeModels(engineName: string) {
     const database = new Databases();
 
     const canInitializeTheModels =
-      this.isLazyInitializing === false && database.isInitialized === false && database.isInitializing === false;
-    this.isLazyInitializing = true;
+      this.__isLazyInitializing === false && database.isInitialized === false && database.isInitializing === false;
+    this.__isLazyInitializing = true;
 
     if (canInitializeTheModels) {
-      const settings = getSettings() as unknown as DatabaseSettingsType;
-      const { domains } = await initializeDomains(settings as unknown as SettingsType2);
-      await database.lazyInitializeEngine(engineName, settings, domains as DatabaseDomainInterface[]);
+      const globalDomains = globalThis.$PCachedDatabaseDomains;
+      let domains = globalDomains;
+      let settings = database.settings;
+
+      // eslint-disable-next-line ts/no-unnecessary-condition
+      if (Array.isArray(domains) === false || settings === undefined) {
+        settings = getSettings() as unknown as DatabaseSettingsType;
+        // Testing environments does not share the same global data. So we need to refetch it again.
+        const { domains: initializedDomains } = await initializeDomains(
+          settings as unknown as SettingsType2,
+          (settings as any)?.$$test
+            ? {
+                ignoreCache: true,
+                ignoreCommands: true
+              }
+            : undefined
+        );
+        domains = initializedDomains as DatabaseDomainInterface[];
+      }
+      await database.lazyInitializeEngine(engineName, settings, domains);
       return true;
     }
-
-    return await await new Promise((resolve) => {
+    return new Promise((resolve) => {
       const verifyIfInitialized = () => {
-        const doesInstanceExists = (this.instances as any)[engineName] !== undefined;
+        const doesInstanceExists = (this.__instances as any)[engineName] !== undefined;
         if (doesInstanceExists) return resolve(true);
         setTimeout(() => verifyIfInitialized(), 100);
       };
       verifyIfInitialized();
     });
+  }
+
+  getModel(engineName: string): TModel {
+    return this.__models[engineName];
   }
 
   /**
@@ -136,199 +150,140 @@ export class Manager<TModel = Model, TEI extends DatabaseAdapter | null = null> 
    *
    * @return - The instance of the the model inside that engine instance
    */
-  async getInstance<T extends DatabaseAdapter = DatabaseAdapter>(
+  async getInstance<TDatabaseAdapter extends DatabaseAdapter = TDefinitions['engineInstance']>(
     engineName?: string
-  ): Promise<TEI extends DatabaseAdapter ? TEI['ModelType'] : T['ModelType']> {
-    const engineInstanceName = engineName || this.defaultEngineInstanceName;
-    const doesInstanceExists = (this.instances as any)[engineInstanceName] !== undefined;
-    if (doesInstanceExists) return this.instances[engineInstanceName].instance;
+  ): Promise<
+    TDatabaseAdapter['models']['getTranslatedModels'] extends (...args: any[]) => infer TResult ? TResult : never
+  > {
+    const engineInstanceName = engineName || this.__defaultEngineInstanceName;
+    const doesInstanceExists = (this.__instances as any)[engineInstanceName] !== undefined;
+    if (doesInstanceExists) return this.__instances[engineInstanceName].instance;
 
-    const hasLazilyInitialized = await this.verifyIfNotInitializedAndInitializeModels(engineInstanceName);
+    const hasLazilyInitialized = await this.__verifyIfNotInitializedAndInitializeModels(engineInstanceName);
     if (!hasLazilyInitialized) return this.getInstance(engineName);
 
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }
 
-  _setInstance(engineName: string, instance: any) {
-    const isDefaultEngineInstanceNameEmpty = this.defaultEngineInstanceName === '';
-    if (isDefaultEngineInstanceNameEmpty) this.defaultEngineInstanceName = engineName;
+  protected __setInstance(engineName: string, instance: any) {
+    const isDefaultEngineInstanceNameEmpty = this.__defaultEngineInstanceName === '';
+    if (isDefaultEngineInstanceNameEmpty) this.__defaultEngineInstanceName = engineName;
 
-    this.instances[engineName] = instance;
+    this.__instances[engineName] = instance;
   }
 
-  async getEngineInstance<T extends DatabaseAdapter = DatabaseAdapter>(
+  async getEngineInstance<TDatabaseAdapter extends DatabaseAdapter = TDefinitions['engineInstance']>(
     engineName?: string
-  ): Promise<TEI extends DatabaseAdapter ? TEI : T> {
-    const engineInstanceName: string = engineName || this.defaultEngineInstanceName;
-    const doesInstanceExists = (this.engineInstances as any)[engineInstanceName] !== undefined;
-    if (doesInstanceExists) return this.engineInstances[engineInstanceName] as TEI extends DatabaseAdapter ? TEI : T;
-    const hasLazilyInitialized = await this.verifyIfNotInitializedAndInitializeModels(engineInstanceName);
+  ): Promise<TDatabaseAdapter> {
+    const engineInstanceName: string = engineName || this.__defaultEngineInstanceName;
+    const doesInstanceExists = (this.__engineInstances as any)[engineInstanceName] !== undefined;
+    if (doesInstanceExists) return this.__engineInstances[engineInstanceName] as TDatabaseAdapter;
+
+    const hasLazilyInitialized = await this.__verifyIfNotInitializedAndInitializeModels(engineInstanceName);
+
     if (hasLazilyInitialized) return this.getEngineInstance(engineName);
     throw new ManagerEngineInstanceNotFoundError(engineInstanceName);
   }
 
-  _setEngineInstance(engineName: string, instance: DatabaseAdapter) {
-    const isDefaultEngineInstanceNameEmpty = this.defaultEngineInstanceName === '';
-    if (isDefaultEngineInstanceNameEmpty) this.defaultEngineInstanceName = engineName;
-    this.engineInstances[engineName] = instance;
-  }
-
-  async #getIncludeInstancesRecursively(
-    engineName: string,
-    includes: Includes,
-    modelInstancesByModelName: { [modelName: string]: any } = {},
-    includesInstances: IncludesInstances[] = []
-  ) {
-    const doesIncludesExists = Array.isArray(includes);
-    if (doesIncludesExists) {
-      const includesAsArray = includes as readonly {
-        model: ReturnType<typeof model>;
-        includes?: Includes;
-      }[];
-      const promises: Promise<void>[] = includesAsArray.map(
-        async ({ model: initializedModel, includes: includesOfModel }) => {
-          const modelName = initializedModel.name;
-          const isModelAlreadyGot = modelInstancesByModelName[modelName] !== undefined;
-
-          const modelInstance = isModelAlreadyGot
-            ? modelInstancesByModelName[modelName]
-            : await initializedModel.default.getInstance(engineName);
-
-          if (isModelAlreadyGot === false) modelInstancesByModelName[modelName] = modelInstance;
-
-          const includeInstanceForModel: IncludesInstances = {
-            model: modelInstance
-          };
-          includesInstances.push(includeInstanceForModel);
-          if (includesOfModel)
-            await this.#getIncludeInstancesRecursively(
-              engineName,
-              includesOfModel,
-              modelInstancesByModelName,
-              includeInstanceForModel.includes || []
-            );
-        }
-      );
-      await Promise.all(promises);
-    }
-    return includesInstances;
+  protected __setEngineInstance(engineName: string, instance: DatabaseAdapter) {
+    const isDefaultEngineInstanceNameEmpty = this.__defaultEngineInstanceName === '';
+    if (isDefaultEngineInstanceNameEmpty) this.__defaultEngineInstanceName = engineName;
+    this.__engineInstances[engineName] = instance;
   }
 
   /**
-   * A simple get method for retrieving the data of a model. It will ALWAYS be an array, it's
-   * the programmers responsibility
-   * to filter it accordingly if he want to retrieve an instance.
+   * A simple get method for retrieving the data of a model. The result will ALWAYS be an array.
    *
-   * @param search - All of the parameters of a model that can be optional for querying.
-   * @param engineName - The name of the engine to use defined in the DATABASES object. By default we use the
-   * `default` one.
+   * To query you must pass a callback that receives and returns a QuerySet instance. A QuerySet
+   * is an object that contains all of the parameters that you can use to query the database.
+   *
+   * IMPORTANT: `It's not a **REAL** query builder, because there is no way to guarantee where
+   * the data is coming from. It's just a simple and convenient way to make queries across different engines.`
+   *
+   * @example
+   * ```ts
+   * const users = await User.default.get((qs) => qs.fields(['id', 'name']).where({ name: 'John' }));
+   *
+   * // Or you can use like
+   *
+   *
+   * const qs = QuerySet<typeof User>.new('get').fields(['id', 'name']).where({ name: 'John' });
+   *
+   * const users = await User.default.get(() => qs);
+   * ```
+   *
+   * @param callback - A callback that receives a QuerySet instance and returns a QuerySet instance.
+   * @param args - Arguments that can be passed to the query.
    *
    * @return - An array of instances retrieved by this query.
    */
   async get<
-    TIncludes extends Includes<{
-      fields?: readonly string[];
-      ordering?: readonly (string | `-${string}`)[];
-      limit?: number;
-      offset?: number | string;
-    }>,
-    TFields extends FieldsOFModelType<TModel> = FieldsOFModelType<TModel>
+    TQueryBuilder extends (
+      queryBuilder: GetQuerySet<'get', TModel>
+    ) =>
+      | QuerySet<'get', TModel, any, any, any, any, any, any>
+      | GetQuerySet<'get', TModel, any, any, any, any, any, any>
   >(
+    callback: TQueryBuilder,
     args?: {
-      /**
-       * Includes is used for making relations. Because everything is inferred and you define your relationName
-       * directly on the ForeignKeyField
-       */
-      includes?: Narrow<IncludesValidated<TModel, TIncludes>>;
-      fields?: Narrow<TFields>;
-      search?:
-        | ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true>
-        | ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true>[]
-        | undefined;
-      ordering?: OrderingOfModelsType<
-        FieldsOfModelOptionsType<TModel> extends string ? FieldsOfModelOptionsType<TModel> : string
-      >;
-      limit?: number;
-      offset?: string | number;
-    },
-    engineName?: string
-  ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]> {
-    const isValidEngineName = typeof engineName === 'string' && engineName !== '';
-    const engineInstanceName = isValidEngineName ? engineName : this.defaultEngineInstanceName;
-    // Promise.all here will not work, we need to do this sequentially.
+      engineName?: string;
+    }
+  ): Promise<
+    ReturnType<TQueryBuilder> extends
+      | QuerySet<'get', TModel, infer TResult, any, any, any, any, any, any>
+      | GetQuerySet<'get', TModel, infer TResult, any, any, any, any, any, any>
+      ? TResult[]
+      : never
+  > {
+    const isValidEngineName = typeof args?.engineName === 'string' && args.engineName !== '';
+    const engineInstanceName = isValidEngineName ? args.engineName : this.__defaultEngineInstanceName;
     const engineInstance = await this.getEngineInstance(engineInstanceName);
-
-    const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName = isValidEngineName
-      ? engineName
-      : this.defaultEngineInstanceName;
+    const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName = (
+      isValidEngineName ? args.engineName : this.__defaultEngineInstanceName
+    ) as string;
 
     const modelInstance = this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName) as Model;
-    const modelConstructor = modelInstance.constructor as ModelType;
-    const allFieldsOfModel = Object.keys((modelConstructor as any)._fields(modelInstance));
-    return getQuery(
-      {
-        fields: (args?.fields || allFieldsOfModel) as unknown as TFields,
-        search: (args?.search || {}) as ModelFieldsWithIncludes<TModel, TIncludes, TFields, false, false, true, true>,
-        ordering: args?.ordering || (modelInstance.options?.ordering as any),
-        limit: args?.limit,
-        offset: args?.offset
-      },
-      {
-        model: this.models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName],
-        engine: engineInstance,
-        includes: (args?.includes || []) as TIncludes
-      }
-    ) as Promise<ModelFieldsWithIncludes<TModel, TIncludes, TFields>[]>;
+    const modelConstructor = modelInstance.constructor as typeof Model & typeof BaseModel & ModelType<any, any>;
+    return callback(new GetQuerySet(modelConstructor as any, 'get'))['__queryTheData'](
+      modelConstructor,
+      engineInstance
+    );
   }
 
-  /**
-   * A Simple `set` method for creating or updating a model. All of the types here are conditional.
-   * If you define a `search` argument as an object we will automatically return the data with all of the
-   * values. Otherwise we return just a boolean.
-   *
-   * Because stuff might fail we recommend a pipeline of operations something like this:
-   * ```
-   * const user = await User.default.set({firstName: 'John', lastName: 'Doe'});
-   *
-   * // We add the if here to check if the instance actually exists. So we can proceed with the operation.
-   * if (user) await Post.default.set({ userId: user.id, title: 'New Post' });
-   * ```
-   *
-   * @param data - The data is conditional, if you pass the `search` argument this means you are updating,
-   * then all parameters will be optional, otherwise some of the parameters will be obligatory because you are
-   * creating an instance.
-   * @param search - All of the parameters of a model that can be optional for querying.
-   * @param engineName - The name of the engine to use defined in the DATABASES object. By default we use the
-   * `default` one.
-   *
-   * @return - Return the created instance or undefined if something went wrong, or boolean if it's an update.
-   */
   async set<
-    TIncludes extends Includes = undefined,
-    TSearch extends
-      | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
-      | undefined = undefined
-  >(
-    data:
-      | ModelFieldsWithIncludes<
-          TModel,
-          TIncludes,
-          FieldsOFModelType<TModel>,
-          true,
-          false,
-          TSearch extends undefined ? false : true,
-          false
-        >[]
-      | ModelFieldsWithIncludes<
-          TModel,
-          TIncludes,
-          FieldsOFModelType<TModel>,
-          true,
-          false,
-          TSearch extends undefined ? false : true,
-          false
+    TQueryBuilder extends (
+      queryBuilder: SetQuerySet<
+        'set',
+        TModel,
+        GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'read'>,
+        Partial<
+          GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'update'>
         >,
+        GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'create'>,
+        Partial<
+          GetDataFromModel<
+            TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel,
+            'read',
+            true
+          >
+        >,
+        GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel>,
+        false,
+        false,
+        false,
+        false,
+        never
+      >
+    ) =>
+      | RemoveQuerySet<any, TModel, any, any, any, any, any, any, true, any, any, any>
+      | QuerySet<any, TModel, any, any, any, any, any, any, true, any, any, any>
+      | CommonQuerySet<any, TModel, any, any, any, any, any, any, true, any, any, any>
+      | GetQuerySet<any, TModel, any, any, any, any, any, any, true, any, any, any>
+      | SetQuerySet<any, TModel, any, any, any, any, any, any, true, any, any, any>
+  >(
+    callback: TQueryBuilder,
     args?: {
+      engineName?: string;
       isToPreventEvents?: boolean;
       transaction?: any;
       /**
@@ -337,118 +292,107 @@ export class Manager<TModel = Model, TEI extends DatabaseAdapter | null = null> 
        */
       useTransaction?: boolean;
       usePalmaresTransaction?: boolean;
-      includes?: Narrow<IncludesValidated<TModel, TIncludes, true>>;
-      search?: TSearch;
-    },
-    engineName?: string
-  ): Promise<ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>>[]> {
-    const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
-    let engineInstanceName = engineName || this.defaultEngineInstanceName;
-    // Promise.all here will not work, we need to do this sequentially.
-    const engineInstance = await this.getEngineInstance(engineName);
-    engineInstanceName = engineName || this.defaultEngineInstanceName;
-    const dataAsAnArray = Array.isArray(data)
-      ? data
-      : ([data] as ModelFieldsWithIncludes<
-          TModel,
-          TIncludes,
-          FieldsOFModelType<TModel>,
-          true,
-          false,
-          TSearch extends undefined ? false : true,
-          false
-        >[]);
-    return setQuery(
-      dataAsAnArray,
-      {
-        isToPreventEvents,
-        useTransaction: args?.useTransaction,
-        search: args?.search
-      },
-      {
-        model: this.getModel(engineInstanceName) as unknown as TModel,
-        engine: engineInstance,
-        transaction: args?.transaction,
-        includes: (args?.includes || []) as TIncludes
-      }
+    }
+  ): Promise<
+    ReturnType<TQueryBuilder> extends
+      | RemoveQuerySet<any, any, infer TResult, any, any, any, any, any, true, any, any, any>
+      | QuerySet<any, any, infer TResult, any, any, any, any, any, true, any, any, any>
+      | CommonQuerySet<any, any, infer TResult, any, any, any, any, any, true, any, any, any>
+      | GetQuerySet<any, any, infer TResult, any, any, any, any, any, true, any, any, any>
+      | SetQuerySet<any, any, infer TResult, any, any, any, any, any, true, any, any, any>
+      ? TResult[]
+      : never
+  > {
+    //const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
+
+    const isValidEngineName = typeof args?.engineName === 'string' && args.engineName !== '';
+    const engineInstanceName = isValidEngineName ? args.engineName : this.__defaultEngineInstanceName;
+    const engineInstance = await this.getEngineInstance(engineInstanceName);
+    const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName = (
+      isValidEngineName ? args.engineName : this.__defaultEngineInstanceName
+    ) as string;
+
+    const modelInstance = this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName) as Model;
+    const modelConstructor = modelInstance.constructor as typeof Model & typeof BaseModel & ModelType<any, any>;
+    return callback(new SetQuerySet(modelConstructor as any, 'set'))['__queryTheData'](
+      modelConstructor,
+      engineInstance
     );
   }
 
-  /**
-   * Simple query to remove one or more instances from the database. Be aware that not defining a search
-   * might mean removing all of the instances of your database.
-   *
-   * @param search - All of the parameters of a model that can be used for querying.
-   * @param engineName - The name of the engine to use defined in the DATABASES object. By default we use the
-   * `default` one.
-   *
-   * @return - Returns true if everything went fine and false otherwise.
-   */
   async remove<
-    TIncludes extends Includes<{
-      isToPreventRemove?: true;
-    }> = undefined
+    TQueryBuilder extends (
+      queryBuilder: RemoveQuerySet<
+        'remove',
+        TModel,
+        GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'read'>,
+        Partial<
+          GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'update'>
+        >,
+        GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'create'>,
+        Partial<
+          GetDataFromModel<
+            TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel,
+            'read',
+            true
+          >
+        >,
+        GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel>,
+        false,
+        false,
+        false,
+        false,
+        never
+      >
+    ) =>
+      | RemoveQuerySet<any, TModel, any, any, any, any, any, true, any, true, any, any>
+      | QuerySet<any, TModel, any, any, any, any, any, true, any, true, any, any>
+      | CommonQuerySet<any, TModel, any, any, any, any, any, true, any, true, any, any>
+      | GetQuerySet<any, TModel, any, any, any, any, any, true, any, true, any, any>
+      | SetQuerySet<any, TModel, any, any, any, any, any, true, any, true, any, any>
   >(
+    callback: TQueryBuilder,
     args?: {
+      engineName?: string;
       usePalmaresTransaction?: boolean;
+      transaction?: any;
       useTransaction?: boolean;
       isToPreventEvents?: boolean;
-      includes?: Narrow<
-        IncludesValidated<
-          TModel,
-          TIncludes,
-          false,
-          {
-            shouldRemove?: boolean;
-          }
-        >
-      >;
-      search?:
-        | ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
-        | undefined;
-      shouldRemove?: boolean;
-    },
-    engineName?: string
-  ): Promise<ModelFieldsWithIncludes<TModel, TIncludes>[]> {
-    const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
-    const shouldRemove = typeof args?.shouldRemove === 'boolean' ? args.shouldRemove : true;
-    const isValidEngineName = typeof engineName === 'string' && engineName !== '';
-    let engineInstanceName = isValidEngineName ? engineName : this.defaultEngineInstanceName;
-    // Promise.all here will not work, we need to do this sequentially.
+    }
+  ): Promise<
+    ReturnType<TQueryBuilder> extends
+      | RemoveQuerySet<any, any, infer TResult, any, any, any, any, true, any, true, any, any>
+      | QuerySet<any, any, infer TResult, any, any, any, any, true, any, true, any, any>
+      | CommonQuerySet<any, any, infer TResult, any, any, any, any, true, any, true, any, any>
+      | GetQuerySet<any, any, infer TResult, any, any, any, any, true, any, true, any, any>
+      | SetQuerySet<any, any, infer TResult, any, any, any, any, true, any, true, any, any>
+      ? TResult[]
+      : never
+  > {
+    //const isToPreventEvents = typeof args?.isToPreventEvents === 'boolean' ? args.isToPreventEvents : false;
+    const isValidEngineName = typeof args?.engineName === 'string' && args.engineName !== '';
+    const engineInstanceName = isValidEngineName ? args.engineName : this.__defaultEngineInstanceName;
     const engineInstance = await this.getEngineInstance(engineInstanceName);
-    engineInstanceName = engineName || this.defaultEngineInstanceName;
+    const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName = (
+      isValidEngineName ? args.engineName : this.__defaultEngineInstanceName
+    ) as string;
 
-    const initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName = isValidEngineName
-      ? engineName
-      : this.defaultEngineInstanceName;
-
-    return removeQuery<
-      TModel,
-      TIncludes,
-      ModelFieldsWithIncludes<TModel, TIncludes, FieldsOFModelType<TModel>, false, false, true, true>
-    >(
-      {
-        search: (args?.search || {}) as ModelFieldsWithIncludes<
-          TModel,
-          TIncludes,
-          FieldsOFModelType<TModel>,
-          false,
-          false,
-          true,
-          true
-        >,
-        isToPreventEvents,
-        useTransaction: args?.useTransaction,
-        usePalmaresTransaction: args?.usePalmaresTransaction,
-        shouldRemove: shouldRemove
-      },
-      {
-        model: this.models[initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName],
-        engine: engineInstance,
-        includes: (args?.includes || []) as TIncludes
-      }
-    ) as Promise<ModelFieldsWithIncludes<TModel, TIncludes>[]>;
+    const modelInstance = this.getModel(initializedDefaultEngineInstanceNameOrSelectedEngineInstanceName) as Model;
+    const modelConstructor = modelInstance.constructor as typeof Model & typeof BaseModel & ModelType<any, any>;
+    return callback(new RemoveQuerySet(modelConstructor as any, 'remove'))['__queryTheData'](
+      modelConstructor,
+      engineInstance
+    );
   }
 }
 
-export class DefaultManager<TModel extends Model> extends Manager<TModel, null> {}
+export class DefaultManager<
+  TModel,
+  TDefinitions extends {
+    engineInstance: DatabaseAdapter;
+    customOptions: any;
+  } = {
+    engineInstance: DatabaseAdapter;
+    customOptions: any;
+  }
+> extends Manager<TModel, TDefinitions> {}

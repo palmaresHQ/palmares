@@ -6,10 +6,17 @@ import { ZodSchemaAdapter, z } from '@palmares/zod-schema';
 setDefaultAdapter(new ZodSchemaAdapter());
 const p = getSchemasWithDefaultAdapter<ZodSchemaAdapter>();
 
-p.object({
+const userSchema = p.object({
   name: p.string(),
-  age: p.number()
+  age: p.number(),
+  email: p.string().email(),
+  password: p.string().minLength(6),
+  company: p.object({
+    id: p.number(),
+    name: p.string(),
+  }),
 })
+
 const main = async () => {
   const testSchema = p.object({
     companyId: p.number().toRepresentation(async (value) => {

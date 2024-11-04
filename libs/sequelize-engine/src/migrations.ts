@@ -7,7 +7,7 @@ import type {
   IndexesToAddOnNextIterationType,
   MigrationModelType
 } from './types';
-import type { DatabaseAdapter, Field, InitializedModelsType, Migration , ForeignKeyField} from '@palmares/databases';
+import type { DatabaseAdapter, Field, ForeignKeyField, InitializedModelsType, Migration } from '@palmares/databases';
 import type {
   Model,
   ModelAttributeColumnOptions,
@@ -32,8 +32,8 @@ function formatForeignKeyFields(model: ModelCtor<Model>, field: ModelAttributeCo
   return field;
 }
 /**
- * When the model references itself we need to evaluate it lazily. What this does is: First check if it has a circular dependency,
- * all circular dependencies will add a new column.
+ * When the model references itself we need to evaluate it lazily. What this does is: First check if it has
+ * a circular dependency, all circular dependencies will add a new column.
  *
  * For example:
  * ```
@@ -64,15 +64,17 @@ function formatForeignKeyFields(model: ModelCtor<Model>, field: ModelAttributeCo
  *
  * Look that CircularDependency is dependant on Circular and Circular is dependant on CircularDependency.
  *
- * So what this does is that, on the creation of `Circular` or `CircularDependency` one of the columns will not yet be created.
- * So it won't create the column by default, you can remove this function, and create this simple model, make a migration and then
- * run this, you will see that `circular` table will be created but WILL NOT contain the `circularFromHere` column.
+ * So what this does is that, on the creation of `Circular` or `CircularDependency` one of the columns will not yet
+ * be created. So it won't create the column by default, you can remove this function, and create this simple model,
+ * make a migration and then run this, you will see that `circular` table will be created but WILL NOT contain the
+ * `circularFromHere` column.
  *
  * So what we do is handle this and enforce it's creation.
  *
- * For doing that we will transverse the attributes defined in the model and we check if the 'relatedTo' attribute is already defined or not.
- * If it's not then we will append it to .circularDependenciesInMigration variable. The next time we run this function on the next operation we
- * enter on this function again, and then we will check if the model that is pending has been created or not. If it is then we will create the column.
+ * For doing that we will transverse the attributes defined in the model and we check if the 'relatedTo' attribute
+ * is already defined or not. If it's not then we will append it to .circularDependenciesInMigration variable. The
+ * next time we run this function on the next operation we enter on this function again, and then we will check if
+ * the model that is pending has been created or not. If it is then we will create the column.
  * Really simple stuff.
  *
  * @param migration - The migration that is currently running.
@@ -107,13 +109,13 @@ async function handleCircularDependencies(
   const allFieldsOfModel = Object.values(toModel.original.fields || {});
   for (const fieldDefinition of allFieldsOfModel) {
     const isAForeignKeyField = (fieldDefinition as any)?.['$$type'] === '$PForeignKeyField';
-    const relatedTo = (fieldDefinition as ForeignKeyField).relatedTo;
+    const relatedTo = (fieldDefinition as ForeignKeyField)['__relatedToAsString'] as string;
     const fieldDoesNotExist = isAForeignKeyField && engine.initializedModels[relatedTo] === undefined;
     if (fieldDoesNotExist) {
       circularDependenciesInMigration.push({
         fromModel: fromModel !== undefined ? fromModel : toModel,
         toModel: toModel,
-        fieldName: fieldDefinition.fieldName,
+        fieldName: (fieldDefinition as any)['__fieldName'] as string,
         relatedToName: relatedTo
       });
     }
@@ -323,7 +325,6 @@ export default adapterMigrations({
     migration,
     queryInterface: QueryInterface
   ): Promise<void> => {
-    engine = engine as InstanceType<typeof SequelizeEngine>;
     const columnName = fromModel.initialized.getAttributes()[fieldName].field as string;
     const tableName = fromModel.initialized.options.tableName as string;
     await queryInterface.removeColumn(tableName, columnName, {
@@ -341,8 +342,6 @@ export default adapterMigrations({
     migration: Migration,
     queryInterface: QueryInterface
   ): Promise<void> => {
-    engine = engine as InstanceType<typeof SequelizeEngine>;
-
     const databaseNameAfter = toModel.initialized.getAttributes()[fieldNameAfter].field as string;
     const databaseNameBefore = toModel.initialized.getAttributes()[fieldNameBefore].field as string;
     const tableNameWhereRenameHappened = toModel.initialized.options.tableName as string;
@@ -355,7 +354,8 @@ export default adapterMigrations({
   },
 
   /**
-   * Responsible for changing the fields of the model. This does many stuff, from creating indexes, to removing constraints and so on.
+   * Responsible for changing the fields of the model. This does many stuff, from creating indexes, to removing
+   * constraints and so on.
    * The idea is that this renames the table, this adds indexes, this changes the model attribute definition and so on.
    *
    * @param toModel - How the model will be after this operation.
@@ -368,16 +368,17 @@ export default adapterMigrations({
     engine: DatabaseAdapter<Sequelize>,
     toModel: InitializedModelsType<ModelCtor<Model>>,
     fromModel: InitializedModelsType<ModelCtor<Model>>,
-    fieldBefore: Field<any, any, any, any, any, any, any, any>,
-    fieldAfter: Field<any, any, any, any, any, any, any, any>,
+    fieldBefore: Field<any, any, any>,
+    fieldAfter: Field<any, any, any>,
     migration: Migration,
     queryInterface: QueryInterface
   ): Promise<void> => {
-    engine = engine as InstanceType<typeof SequelizeEngine>;
     const attributesAsArray = Object.values(toModel.initialized.getAttributes()).map((attribute) =>
       formatForeignKeyFields(toModel.initialized, attribute)
     );
-    const initializedAttribute = attributesAsArray.find((attribute) => attribute.field === fieldAfter.databaseName);
+    const initializedAttribute = attributesAsArray.find(
+      (attribute) => (attribute.field as string) === (fieldAfter['__databaseName'] as string)
+    );
     const tableName = toModel.initialized.options.tableName as string;
     if (initializedAttribute) {
       const isOfTypeRelation = (fieldBefore as any)?.['$$type'] === '$PForeignKeyField';
@@ -391,7 +392,7 @@ export default adapterMigrations({
 
         if (constraints) {
           const constraintsToRemove = constraints.filter(
-            (constraint) => constraint.columnName === fieldBefore.databaseName
+            (constraint) => constraint.columnName === fieldBefore['__databaseName']
           );
 
           for (const constraintToRemove of constraintsToRemove) {

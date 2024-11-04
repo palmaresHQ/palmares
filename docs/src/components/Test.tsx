@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 
-export default function Test() {
+export default function Test(props: {
+  name: string
+}) {
   const [counter, setCounter] = useState(0);
 
   useEffect(() => {

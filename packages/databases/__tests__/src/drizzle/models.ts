@@ -1,78 +1,103 @@
 import {
-  AutoField, BooleanField, CharField, DateField, DecimalField, EnumField,
-  ForeignKeyField, IntegerField, Manager, Model, ON_DELETE, TranslatableField, UuidField, define
+  AutoField,
+  BooleanField,
+  CharField,
+  DateField,
+  DecimalField,
+  EnumField,
+  ForeignKeyField,
+  IntegerField,
+  Manager,
+  Model,
+  ON_DELETE,
+  UuidField,
+  define
 } from '@palmares/databases';
 
-import { Company as DCompany, User as DUser } from '../../.drizzle/schema';
-
-import type { ModelOptionsType} from '@palmares/databases';
+import type * as d /*{ Company as DCompany, User as DUser }*/ from '../../.drizzle/schema';
+import { ModelOptionsType } from '@palmares/databases';
 
 class Authentication extends Manager<CompanyAbstract> {
   test() {
-    return 'test'
+    return 'test';
   }
 }
 export class CompanyAbstract extends Model<CompanyAbstract>() {
   fields = {
-    address: CharField.new({ maxLength: 255, allowNull: true }),
-    translatable: TranslatableField.new({
-      translate: async () => {
-        return `d.real('translatable')`
-      }
-    })
-  }
+    address: CharField.new({ maxLen: 255 }).allowNull()
+  };
   options = {
     tableName: 'companies',
     abstract: true
-  }
+  };
 
-  static auth = new Authentication()
+  static auth = new Authentication();
 }
 
 export const Company = define('Company', {
-  fields:  {
+  fields: {
     id: AutoField.new(),
-    name: CharField.new({ maxLength: 255 }),
-  },
-  options: {
-    tableName: 'companies',
-    //instance: DCompany
+    uuid: UuidField.new().auto(),
+    name: CharField.new({ maxLen: 255 })
   },
   abstracts: [CompanyAbstract],
+  options: {
+    tableName: 'companies'
+    //instance: DCompany
+  },
   managers: {
     test: {
       async test(name: string) {
-        return this.get({ search: { name }})
+        return this.get((qs) => qs.where({ name }));
       }
     }
   }
 });
 
+export const ProfileType = define('ProfileType', {
+  fields: {
+    id: AutoField.new(),
+    name: CharField.new({ maxLen: 255 })
+  },
+  options: {
+    tableName: 'profile_type'
+  }
+});
+
+//*********************************/
+//**      Modelos Palmares       **/
+//*********************************/
 export class User extends Model<User>() {
   fields = {
-    id: AutoField.new(),
-    uuid: UuidField.new({
-      autoGenerate: true
-    }),
-    name: CharField.new({ maxLength: 255, dbIndex: true, allowNull: true }),
-    age: IntegerField.new({ dbIndex: true }),
-    userType: EnumField.new({ choices: ['admin', 'user'], defaultValue: 'admin' }),
-    price: DecimalField.new({ maxDigits: 5, decimalPlaces: 2, allowNull: true }),
-    isActive: BooleanField.new({ defaultValue: true }),
+    id: AutoField.new().databaseName('user_id'),
+    uuid: UuidField.new(),
+    name: CharField.new({ maxLen: 280 }).allowNull().dbIndex(),
+    age: IntegerField.new().dbIndex(),
+    userType: EnumField.new({ choices: ['admin', 'user'] }),
+    price: DecimalField.new({ maxDigits: 5, decimalPlaces: 2 }).allowNull(),
+    isActive: BooleanField.new().default(true),
     companyId: ForeignKeyField.new({
       onDelete: ON_DELETE.CASCADE,
       relatedName: 'usersOfCompany',
       relationName: 'company',
       toField: 'id',
-      relatedTo: Company
+      relatedTo: () => Company
     }),
-    updatedAt: DateField.new({ autoNow: true }),
-    createdAt: DateField.new({ autoNowAdd: true }),
-  }
+    profileTypeId: ForeignKeyField.new({
+      relatedName: 'usersByProfileType',
+      relationName: 'profileType',
+      relatedTo: () => ProfileType,
+      toField: 'id',
+      onDelete: ON_DELETE.CASCADE
+    })
+      .allowNull()
+      .default(null),
+    updatedAt: DateField.new().autoNow(),
+    createdAt: DateField.new().autoNowAdd()
+  };
 
-  options: ModelOptionsType<User> = {
-    tableName: 'users',
+  options = {
+    tableName: 'users'
     // instance: DUser
-  }
+  } satisfies ModelOptionsType<User>;
 }
-
