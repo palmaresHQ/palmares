@@ -660,11 +660,11 @@ importers:
         version: 0.32.2(@types/better-sqlite3@7.6.11)(@types/react@18.3.5)(better-sqlite3@11.2.1)(pg@8.12.0)(postgres@3.4.4)(react@18.3.1)(sqlite3@5.1.7)
     devDependencies:
       '@palmares/jest-tests':
-        specifier: ^0.1.18
-        version: 0.1.18
+        specifier: ^0.2.0
+        version: 0.2.0(@babel/core@7.25.2)(@jest/transform@29.7.0)(@jest/types@29.6.3)(@types/node@22.5.4)(esbuild@0.19.12)(typescript@5.5.4)
       '@palmares/tests':
-        specifier: ^0.1.18
-        version: 0.1.18
+        specifier: ^0.2.0
+        version: 0.2.0
       '@swc/cli':
         specifier: ^0.4.0
         version: 0.4.0(@swc/core@1.7.23(@swc/helpers@0.5.5))(chokidar@3.6.0)
@@ -2898,20 +2898,20 @@ packages:
   '@palmares/core@0.0.3':
     resolution: {integrity: sha512-H0+lvHVLupC94wll2SHkJKYuoUR20/MgpzanQy9ooggm5bD9xmh+OhGVfuZpSyvEgz/ALlrMe6qUPFYHQY45Qw==}
 
-  '@palmares/core@0.1.17':
-    resolution: {integrity: sha512-HI6OkWyuCoDVGBF7TgTGkqeetYT/brWiUSh6ARW//RjtmCmSV23eVzDcEbKZQu2JI7nEGeSN2YwcCcyMFZz9LA==}
+  '@palmares/core@0.2.0':
+    resolution: {integrity: sha512-Zd/eyesRHartQNEUtjNOgs9oefFNNNMhkcEpXJ6a1knoO3SKPC4xMVFp2YhpXYqhHVWD90KRSO4ZJfViH6Y0bw==}
 
   '@palmares/events@0.0.1':
     resolution: {integrity: sha512-w14qDi/I9ugiVy5Wj6zS8OnWN8aJCwIx8I1DPUXlnllDDZmqII7BJ6Ox6WxgwdhczthnV1/MM00dp/XIbq2PAw==}
 
-  '@palmares/jest-tests@0.1.18':
-    resolution: {integrity: sha512-/cJEY4DEj+TrzuD63braTFMqIlJOmsWhd4PpbdPgIwUh2YsbJJUuZ1tx2AEieO/v7Zjgp+q6SdKmfdst+Y51nA==}
+  '@palmares/jest-tests@0.2.0':
+    resolution: {integrity: sha512-gjTDCfElJ80jEZjxIlcM3LtGr1gDaFm3UH0KPZAxlChrXo4No3sHznoNrmX63M9FK9lIE6Ww/xxiqQV+0dqXlg==}
 
   '@palmares/logging@0.0.1':
     resolution: {integrity: sha512-3mBPEk1WwacXG8StU1wGs2ZJGyV+KWOvSsawDUHVsqd2YmqKQb1TVoVW2GC4QcwWtKK9OReoiGbhmFXsTBzB9g==}
 
-  '@palmares/tests@0.1.18':
-    resolution: {integrity: sha512-I2AL8Wv6ZsIvRbJuVbH1Yj1nfjDAFkBiE60ObHq40xs4QbXdZdqOz1tcBaPVmzLvrTyWSa0P19k+yyKLm95m9w==}
+  '@palmares/tests@0.2.0':
+    resolution: {integrity: sha512-3rCU5XBmqK1FPcemJKFFKFYup+7wXeXkSecI2Wa9ri3y0hh9hjdrIlMbk3lJ1JW8NtAIMYQLKfq+A8GRVlWP0g==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -11202,25 +11202,41 @@ snapshots:
 
   '@palmares/core@0.0.3': {}
 
-  '@palmares/core@0.1.17': {}
+  '@palmares/core@0.2.0': {}
 
   '@palmares/events@0.0.1':
     dependencies:
       '@palmares/core': 0.0.3
       '@palmares/logging': 0.0.1
 
-  '@palmares/jest-tests@0.1.18':
+  '@palmares/jest-tests@0.2.0(@babel/core@7.25.2)(@jest/transform@29.7.0)(@jest/types@29.6.3)(@types/node@22.5.4)(esbuild@0.19.12)(typescript@5.5.4)':
     dependencies:
-      '@palmares/tests': 0.1.18
+      '@babel/preset-env': 7.25.4(@babel/core@7.25.2)
+      '@jest/globals': 29.7.0
+      '@palmares/tests': 0.2.0
       '@types/jest': 29.5.12
+      babel-jest: 29.7.0(@babel/core@7.25.2)
+      jest: 29.7.0(@types/node@22.5.4)
+      ts-jest: 29.2.3(@babel/core@7.25.2)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.25.2))(esbuild@0.19.12)(jest@29.7.0(@types/node@22.5.4))(typescript@5.5.4)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - '@jest/transform'
+      - '@jest/types'
+      - '@types/node'
+      - babel-plugin-macros
+      - esbuild
+      - node-notifier
+      - supports-color
+      - ts-node
+      - typescript
 
   '@palmares/logging@0.0.1':
     dependencies:
       '@palmares/core': 0.0.3
 
-  '@palmares/tests@0.1.18':
+  '@palmares/tests@0.2.0':
     dependencies:
-      '@palmares/core': 0.1.17
+      '@palmares/core': 0.2.0
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
@@ -15521,6 +15537,25 @@ snapshots:
       - supports-color
       - ts-node
 
+  jest-cli@29.7.0(@types/node@22.5.4):
+    dependencies:
+      '@jest/core': 29.7.0(ts-node@10.9.1(@swc/core@1.7.23(@swc/helpers@0.5.5))(@types/node@20.16.1)(typescript@5.5.4))
+      '@jest/test-result': 29.7.0
+      '@jest/types': 29.6.3
+      chalk: 4.1.2
+      create-jest: 29.7.0(@types/node@22.5.4)(ts-node@10.9.1(@swc/core@1.7.23(@swc/helpers@0.5.5))(@types/node@22.5.4)(typescript@5.5.4))
+      exit: 0.1.2
+      import-local: 3.1.0
+      jest-config: 29.7.0(@types/node@22.5.4)(ts-node@10.9.1(@swc/core@1.7.23(@swc/helpers@0.5.5))(@types/node@22.5.4)(typescript@5.5.4))
+      jest-util: 29.7.0
+      jest-validate: 29.7.0
+      yargs: 17.7.2
+    transitivePeerDependencies:
+      - '@types/node'
+      - babel-plugin-macros
+      - supports-color
+      - ts-node
+
   jest-cli@29.7.0(@types/node@22.5.4)(ts-node@10.9.1(@swc/core@1.7.23(@swc/helpers@0.5.5))(@types/node@22.5.4)(typescript@5.5.4)):
     dependencies:
       '@jest/core': 29.7.0(ts-node@10.9.1(@swc/core@1.7.23(@swc/helpers@0.5.5))(@types/node@22.5.4)(typescript@5.5.4))
@@ -15854,6 +15889,18 @@ snapshots:
       '@jest/types': 29.6.3
       import-local: 3.1.0
       jest-cli: 29.7.0(@types/node@20.16.1)(ts-node@10.9.1(@swc/core@1.7.23(@swc/helpers@0.5.5))(@types/node@20.16.1)(typescript@5.5.4))
+    transitivePeerDependencies:
+      - '@types/node'
+      - babel-plugin-macros
+      - supports-color
+      - ts-node
+
+  jest@29.7.0(@types/node@22.5.4):
+    dependencies:
+      '@jest/core': 29.7.0(ts-node@10.9.1(@swc/core@1.7.23(@swc/helpers@0.5.5))(@types/node@20.16.1)(typescript@5.5.4))
+      '@jest/types': 29.6.3
+      import-local: 3.1.0
+      jest-cli: 29.7.0(@types/node@22.5.4)
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
@@ -18382,6 +18429,26 @@ snapshots:
       ejs: 3.1.10
       fast-json-stable-stringify: 2.1.0
       jest: 29.7.0(@types/node@22.5.4)(ts-node@10.9.1(@swc/core@1.7.23(@swc/helpers@0.5.5))(@types/node@22.5.4)(typescript@5.5.4))
+      jest-util: 29.7.0
+      json5: 2.2.3
+      lodash.memoize: 4.1.2
+      make-error: 1.3.6
+      semver: 7.6.2
+      typescript: 5.5.4
+      yargs-parser: 21.1.1
+    optionalDependencies:
+      '@babel/core': 7.25.2
+      '@jest/transform': 29.7.0
+      '@jest/types': 29.6.3
+      babel-jest: 29.7.0(@babel/core@7.25.2)
+      esbuild: 0.19.12
+
+  ts-jest@29.2.3(@babel/core@7.25.2)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.25.2))(esbuild@0.19.12)(jest@29.7.0(@types/node@22.5.4))(typescript@5.5.4):
+    dependencies:
+      bs-logger: 0.2.6
+      ejs: 3.1.10
+      fast-json-stable-stringify: 2.1.0
+      jest: 29.7.0(@types/node@22.5.4)
       jest-util: 29.7.0
       json5: 2.2.3
       lodash.memoize: 4.1.2
