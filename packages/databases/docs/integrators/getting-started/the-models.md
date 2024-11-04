@@ -1,6 +1,6 @@
-[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/introduction.md) >
-[integrators](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/integrators/summary.md) >
-[the-models](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/integrators/getting-started/the-models.md)
+[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/introduction.md) >
+[integrators](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/integrators/summary.md) >
+[the-models](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/integrators/getting-started/the-models.md)
 
 # Getting Started > The Models
 
@@ -318,4 +318,4 @@ The only reason `translateOptions` is required is to translate the options of th
 
 ## Up Next
 
-[Translating the fields](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/integrators/getting-started/the-fields.md)
+[Translating the fields](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/integrators/getting-started/the-fields.md)

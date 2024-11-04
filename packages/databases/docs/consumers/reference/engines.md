@@ -1,7 +1,7 @@
-[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/introduction.md) >
-[consumers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/summary.md) >
-[reference](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/summary.md) >
-[engines](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/engines.md)
+[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/introduction.md) >
+[consumers](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/summary.md) >
+[reference](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/summary.md) >
+[engines](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/engines.md)
 
 # Reference > Engines
 
@@ -32,7 +32,7 @@ So let's understand how engines applies to Palmares:
 
 - You need to explicitly access the engine instance and call `transaction()` to guarantee that a query is running inside of a transaction.
 - An engine might, or might not implement all of our own APIs, so not everything from this doc might apply to that engine. So if you are an engine builder, make sure to provide a full documentation. If you are just a user, make sure to create a bunch of issues on their github repo.
-- You are not forced to use our own [Model](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/models.md), and [Managers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md), and [QuerySets] in any way, you can access the translated model at any time and do the queries as you have been doing during all of this time. We tried our best to offer the best type-safe experience we could so you won't miss anything.
+- You are not forced to use our own [Model](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/models.md), and [Managers](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/managers.md), and [QuerySets] in any way, you can access the translated model at any time and do the queries as you have been doing during all of this time. We tried our best to offer the best type-safe experience we could so you won't miss anything.
 - _But palmares/databases is a piece of 💩, where are the fields I need?_ - We got you covered. You can write your own custom fields or let the engine instance itself write its own expected fields. Want `VARCHAR`, `REAL`, `Buffer`, `Schema`, whatever you need? You can consult the engine docs and take a look on what custom fields it export. Or create your own using the Field's `_overrideType()` method.
 
 ## Making a query on a transaction

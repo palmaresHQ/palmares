@@ -1,7 +1,7 @@
-[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/introduction.md) >
-[consumers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/summary.md) >
-[getting-started](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/summary.md) >
-[on-your-own](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/on-your-own.md)
+[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/introduction.md) >
+[consumers](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/summary.md) >
+[getting-started](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/getting-started/summary.md) >
+[on-your-own](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/getting-started/on-your-own.md)
 
 # Getting Started > On your own
 
@@ -71,4 +71,4 @@ Let's go over it?
 
 ## Up Next
 
-- [Migrating the Changes](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/migrating-the-changes.md)
+- [Migrating the Changes](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/getting-started/migrating-the-changes.md)

@@ -1,7 +1,7 @@
-[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/introduction.md) >
-[consumers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/summary.md) >
-[getting-started](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/summary.md) >
-[installation](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/installation.md)
+[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/introduction.md) >
+[consumers](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/summary.md) >
+[getting-started](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/getting-started/summary.md) >
+[installation](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/getting-started/installation.md)
 
 # Getting started > Installation
 
@@ -88,6 +88,6 @@ Don't worry, we'll cover all that in the next chapters.
 
 ### From now, do you want
 
-- [To roll on your own?](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/on-your-own.md)
-- [Use it with palmares?](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/with-palmares.md)
+- [To roll on your own?](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/getting-started/on-your-own.md)
+- [Use it with palmares?](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/getting-started/with-palmares.md)
 - [A surprise?](https://youtu.be/dQw4w9WgXcQ?si=20-qoQjs8RyZaTZ7)

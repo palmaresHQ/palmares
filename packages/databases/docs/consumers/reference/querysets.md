@@ -1,11 +1,11 @@
-[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/introduction.md) >
-[consumers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/summary.md) >
-[reference](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/summary.md) >
-[querysets](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md)
+[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/introduction.md) >
+[consumers](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/summary.md) >
+[reference](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/summary.md) >
+[querysets](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/querysets.md)
 
 # Reference > QuerySets
 
-You probably already know what are models, you know what are [Managers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md), but now you are curious about what the hell are QuerySets. Like, why the hell something that was supposed to be simple has so many concepts?
+You probably already know what are models, you know what are [Managers](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/managers.md), but now you are curious about what the hell are QuerySets. Like, why the hell something that was supposed to be simple has so many concepts?
 I usually ask the same thing about Next.js.
 
 Anyway, this was the latest addition to the database library before releasing it. Before we didn't exactly had QuerySets, but after thinking a little about it we thought this would be a nice addition to the library. It allows you to build queries outside of the codebase, reusing them, whatever, without worrying too much weather it will run or not. QuerySets essentially just hold the query data. This data is only accessed when actually fetching the database.
@@ -31,11 +31,11 @@ MyModel.default.get(() => myCustomQuerySet);
 
 Now you might be asking, **why is that useful??**
 
-The main goal of QuerySets is to give you, through a builder a pattern, a way to _build_ queries. By default it won't run anything, it needs to go through the [Manager](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md) to effectively run the query, there is no way around that.
+The main goal of QuerySets is to give you, through a builder a pattern, a way to _build_ queries. By default it won't run anything, it needs to go through the [Manager](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/managers.md) to effectively run the query, there is no way around that.
 
 ## Unless
 
-We can actually make queries using just **QuerySets**. You can see it as being a hack, but it doesn't break the rule that every query must go through a [Manager](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md).
+We can actually make queries using just **QuerySets**. You can see it as being a hack, but it doesn't break the rule that every query must go through a [Manager](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/managers.md).
 
 ```ts
 const resultsOfTheQuery = await myQuerySet.['_makeQuery']();
@@ -187,7 +187,7 @@ You can, for example, have the **User** model related to **Company** on more tha
 
 ## Types of QuerySets
 
-We have three main ones that follow the methods on the [Manager](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md):
+We have three main ones that follow the methods on the [Manager](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/managers.md):
 
 ### GetQuerySet
 
@@ -259,11 +259,11 @@ queryset(Company, 'set')
 
 ### RemoveQuerySet
 
-Kinda the same thing as [SetQuerySet](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md#setqueryset) except you need to explicitly call `.remove()` instead of `.data()`.
+Kinda the same thing as [SetQuerySet](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/querysets.md#setqueryset) except you need to explicitly call `.remove()` instead of `.data()`.
 
 The first question you might ask is: **Why the hell i'm wasting my time with this?**
 
-I don't have an answer for that. But I have an answer why it can look redundant to need to explicitly call `.remove()` on a [QuerySet](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md) that will run on the `.remove()` method from the [Manager](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md). We think it is safer since [QuerySets](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md) can be reused and removing something is a sensitive action to do.
+I don't have an answer for that. But I have an answer why it can look redundant to need to explicitly call `.remove()` on a [QuerySet](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/querysets.md) that will run on the `.remove()` method from the [Manager](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/managers.md). We think it is safer since [QuerySets](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/querysets.md) can be reused and removing something is a sensitive action to do.
 
 Also, it works well with `.join()`, because you can control of it removing just the child elements of a query. You gain more fine grained control over a little inconvenience of it being a little redundant. I would take that.
 
@@ -293,9 +293,9 @@ queryset(Company, 'remove')
 
 ## Read More
 
-- [Introduction](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/summary.md)
-- [Engines](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/enginess.md)
-- [Models](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/models.md)
-- [Managers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/managers.md)
-- [QuerySets](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/querysets.md)
-- [Testing](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/testing.md)
+- [Introduction](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/summary.md)
+- [Engines](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/enginess.md)
+- [Models](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/models.md)
+- [Managers](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/managers.md)
+- [QuerySets](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/querysets.md)
+- [Testing](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/testing.md)

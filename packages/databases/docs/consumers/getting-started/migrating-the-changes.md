@@ -1,7 +1,7 @@
-[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/introduction.md) >
-[consumers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/summary.md) >
-[getting-started](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/summary.md) >
-[migrating-the-changes](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/migrating-the-changes.md)
+[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/introduction.md) >
+[consumers](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/summary.md) >
+[getting-started](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/getting-started/summary.md) >
+[migrating-the-changes](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/getting-started/migrating-the-changes.md)
 
 # Getting Started > Your first migration
 
@@ -126,4 +126,4 @@ And we are rolling, congrats!
 
 ## Up Next
 
-- [Querying the Data](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/querying-the-data.md)
+- [Querying the Data](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/getting-started/querying-the-data.md)

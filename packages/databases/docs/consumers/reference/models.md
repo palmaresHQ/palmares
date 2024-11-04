@@ -1,11 +1,11 @@
-[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/introduction.md) >
-[consumers](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/summary.md) >
-[reference](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/summary.md) >
-[models](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/reference/models.md)
+[@palmares/databases](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/introduction.md) >
+[consumers](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/summary.md) >
+[reference](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/summary.md) >
+[models](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/reference/models.md)
 
 # Reference > Models
 
-You already saw how to create a model during the [Getting Started](https://github.com/palmaresHQ/palmares/blob/model-fields-new-api/packages/databases/docs/consumers/getting-started/installation.md). A model maps to a table on your database, or a collection, or whatever (depends on the engine you are using, and if the database is relational or not). A Model represents the structure of your data where it is saved.
+You already saw how to create a model during the [Getting Started](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/getting-started/installation.md). A model maps to a table on your database, or a collection, or whatever (depends on the engine you are using, and if the database is relational or not). A Model represents the structure of your data where it is saved.
 
 It's built from the ground up with relational databases in mind, but it should support non relational databases as well just fine.
 
