@@ -533,8 +533,8 @@ importers:
         specifier: ^1.9.0
         version: 1.9.0(react@18.3.1)
       '@eslint/js':
-        specifier: ^9.10.0
-        version: 9.10.0
+        specifier: ^9.14.0
+        version: 9.14.0
       '@palmares/core':
         specifier: workspace:*
         version: link:../../../../packages/core
@@ -2724,6 +2724,10 @@ packages:
 
   '@eslint/js@9.10.0':
     resolution: {integrity: sha512-fuXtbiP5GWIn8Fz+LWoOMVf/Jxm+aajZYkhi6CuEm4SxymFM+eUWzbO9qXT+L0iCkL5+KGYMCSGxo686H19S1g==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@eslint/js@9.14.0':
+    resolution: {integrity: sha512-pFoEtFWCPyDOl+C6Ift+wC7Ro89otjigCf5vcuWqWgqNSQbRrpjSvdeE6ofLz4dHmyxD5f7gIdGT4+p36L6Twg==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   '@eslint/js@9.9.1':
@@ -11122,6 +11126,8 @@ snapshots:
   '@eslint/js@8.57.0': {}
 
   '@eslint/js@9.10.0': {}
+
+  '@eslint/js@9.14.0': {}
 
   '@eslint/js@9.9.1': {}
 
