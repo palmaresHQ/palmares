@@ -48,8 +48,8 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
       globals:
-        specifier: ^15.8.0
-        version: 15.8.0
+        specifier: ^15.12.0
+        version: 15.12.0
       prettier:
         specifier: 3.3.3
         version: 3.3.3
@@ -590,8 +590,8 @@ importers:
         specifier: ^0.8.0
         version: 0.8.0(eslint@9.10.0(jiti@1.21.3))(typescript@5.5.4)
       globals:
-        specifier: ^15.9.0
-        version: 15.9.0
+        specifier: ^15.12.0
+        version: 15.12.0
       postcss:
         specifier: ^8.4.47
         version: 8.4.47
@@ -6142,12 +6142,8 @@ packages:
     resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
     engines: {node: '>=18'}
 
-  globals@15.8.0:
-    resolution: {integrity: sha512-VZAJ4cewHTExBWDHR6yptdIBlx9YSSZuwojj9Nt5mBRXQzrKakDsVKQ1J63sklLvzAJm0X5+RpO4i3Y2hcOnFw==}
-    engines: {node: '>=18'}
-
-  globals@15.9.0:
-    resolution: {integrity: sha512-SmSKyLLKFbSr6rptvP8izbyxJL4ILwqO9Jg23UA0sDlGlu58V59D1//I3vlc0KJphVdUR7vMjHIplYnzBxorQA==}
+  globals@15.12.0:
+    resolution: {integrity: sha512-1+gLErljJFhbOVyaetcwJiJ4+eLe45S2E7P5UiZ9xGfeq3ATQf5DOv9G7MH3gGbKQLkzmNh2DxfZwLdw+j6oTQ==}
     engines: {node: '>=18'}
 
   globalthis@1.0.3:
@@ -14675,7 +14671,7 @@ snapshots:
       eslint: 8.57.0
       eslint-plugin-es-x: 7.8.0(eslint@8.57.0)
       get-tsconfig: 4.7.5
-      globals: 15.8.0
+      globals: 15.12.0
       ignore: 5.3.1
       minimatch: 9.0.5
       semver: 7.6.2
@@ -15447,9 +15443,7 @@ snapshots:
 
   globals@14.0.0: {}
 
-  globals@15.8.0: {}
-
-  globals@15.9.0: {}
+  globals@15.12.0: {}
 
   globalthis@1.0.3:
     dependencies:
