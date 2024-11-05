@@ -29,7 +29,7 @@
     "@palmares/core": "workspace:*",
     "@palmares/server": "workspace:*",
     "@storybook/addon-essentials": "^8.2.9",
-    "@storybook/addon-interactions": "^8.2.9",
+    "@storybook/addon-interactions": "^8.4.2",
     "@storybook/addon-links": "^8.4.2",
     "@storybook/addon-onboarding": "^8.4.2",
     "@storybook/blocks": "^8.2.9",
