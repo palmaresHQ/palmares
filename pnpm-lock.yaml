@@ -78,8 +78,8 @@ importers:
         specifier: ^7.24.9
         version: 7.25.2
       '@babel/parser':
-        specifier: ^7.25.0
-        version: 7.25.4
+        specifier: ^7.26.2
+        version: 7.26.2
       '@babel/plugin-transform-modules-commonjs':
         specifier: ^7.25.9
         version: 7.25.9(@babel/core@7.25.2)
@@ -1428,11 +1428,6 @@ packages:
   '@babel/highlight@7.24.7':
     resolution: {integrity: sha512-EStJpq4OuY8xYfhGVXngigBJRWxftKX9ksiGDnmlY3o7B/V7KIAc9X4oiK87uPJSc/vs5L869bem5fhZa8caZw==}
     engines: {node: '>=6.9.0'}
-
-  '@babel/parser@7.25.4':
-    resolution: {integrity: sha512-nq+eWrOgdtu3jG5Os4TQP3x3cLA8hR8TvJNjD8vnPa20WGycimcparWnLK4jJhElTK6SDyuJo1weMKO/5LpmLA==}
-    engines: {node: '>=6.0.0'}
-    hasBin: true
 
   '@babel/parser@7.26.2':
     resolution: {integrity: sha512-DWMCZH9WA4Maitz2q21SRKHo9QXZxkDsbNZoVD62gusNtNBBqDg9i7uOhASfTfIGNzW+O+r7+jAlM8dwphcJKQ==}
@@ -9454,7 +9449,7 @@ snapshots:
       '@babel/helper-compilation-targets': 7.25.2
       '@babel/helper-module-transforms': 7.25.2(@babel/core@7.25.2)
       '@babel/helpers': 7.25.0
-      '@babel/parser': 7.25.4
+      '@babel/parser': 7.26.2
       '@babel/template': 7.25.0
       '@babel/traverse': 7.25.4
       '@babel/types': 7.25.4
@@ -9475,7 +9470,7 @@ snapshots:
 
   '@babel/generator@7.25.5':
     dependencies:
-      '@babel/types': 7.25.4
+      '@babel/types': 7.26.0
       '@jridgewell/gen-mapping': 0.3.5
       '@jridgewell/trace-mapping': 0.3.25
       jsesc: 2.5.2
@@ -9760,7 +9755,7 @@ snapshots:
   '@babel/helpers@7.25.0':
     dependencies:
       '@babel/template': 7.25.0
-      '@babel/types': 7.25.4
+      '@babel/types': 7.26.0
 
   '@babel/highlight@7.24.7':
     dependencies:
@@ -9768,10 +9763,6 @@ snapshots:
       chalk: 2.4.2
       js-tokens: 4.0.0
       picocolors: 1.1.1
-
-  '@babel/parser@7.25.4':
-    dependencies:
-      '@babel/types': 7.25.4
 
   '@babel/parser@7.26.2':
     dependencies:
@@ -10234,7 +10225,7 @@ snapshots:
       '@babel/helper-module-imports': 7.24.7
       '@babel/helper-plugin-utils': 7.25.9
       '@babel/plugin-syntax-jsx': 7.24.7(@babel/core@7.25.2)
-      '@babel/types': 7.24.7
+      '@babel/types': 7.26.0
     transitivePeerDependencies:
       - supports-color
 
@@ -10417,7 +10408,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.25.2
       '@babel/helper-plugin-utils': 7.25.9
-      '@babel/types': 7.24.7
+      '@babel/types': 7.26.0
       esutils: 2.0.3
 
   '@babel/preset-react@7.24.7(@babel/core@7.25.2)':
@@ -10461,14 +10452,14 @@ snapshots:
   '@babel/template@7.24.7':
     dependencies:
       '@babel/code-frame': 7.24.7
-      '@babel/parser': 7.25.4
+      '@babel/parser': 7.26.2
       '@babel/types': 7.26.0
 
   '@babel/template@7.25.0':
     dependencies:
       '@babel/code-frame': 7.24.7
-      '@babel/parser': 7.25.4
-      '@babel/types': 7.25.4
+      '@babel/parser': 7.26.2
+      '@babel/types': 7.26.0
 
   '@babel/template@7.25.9':
     dependencies:
@@ -10480,9 +10471,9 @@ snapshots:
     dependencies:
       '@babel/code-frame': 7.24.7
       '@babel/generator': 7.25.5
-      '@babel/parser': 7.25.4
+      '@babel/parser': 7.26.2
       '@babel/template': 7.25.0
-      '@babel/types': 7.25.4
+      '@babel/types': 7.26.0
       debug: 4.3.5(supports-color@5.5.0)
       globals: 11.12.0
     transitivePeerDependencies:
@@ -11839,7 +11830,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.25.2
       '@babel/preset-env': 7.25.4(@babel/core@7.25.2)
-      '@babel/types': 7.25.4
+      '@babel/types': 7.26.0
       '@storybook/core': 8.2.9
       '@storybook/csf': 0.1.11
       '@types/cross-spawn': 6.0.6
@@ -12189,7 +12180,7 @@ snapshots:
 
   '@types/babel__core@7.20.5':
     dependencies:
-      '@babel/parser': 7.25.4
+      '@babel/parser': 7.26.2
       '@babel/types': 7.24.7
       '@types/babel__generator': 7.6.8
       '@types/babel__template': 7.4.4
@@ -12197,16 +12188,16 @@ snapshots:
 
   '@types/babel__generator@7.6.8':
     dependencies:
-      '@babel/types': 7.24.7
+      '@babel/types': 7.26.0
 
   '@types/babel__template@7.4.4':
     dependencies:
-      '@babel/parser': 7.25.4
-      '@babel/types': 7.24.7
+      '@babel/parser': 7.26.2
+      '@babel/types': 7.26.0
 
   '@types/babel__traverse@7.20.6':
     dependencies:
-      '@babel/types': 7.24.7
+      '@babel/types': 7.26.0
 
   '@types/better-sqlite3@7.6.11':
     dependencies:
@@ -15884,7 +15875,7 @@ snapshots:
   istanbul-lib-instrument@5.2.1:
     dependencies:
       '@babel/core': 7.25.2
-      '@babel/parser': 7.25.4
+      '@babel/parser': 7.26.2
       '@istanbuljs/schema': 0.1.3
       istanbul-lib-coverage: 3.2.2
       semver: 6.3.1
@@ -16407,7 +16398,7 @@ snapshots:
   jscodeshift@0.15.2(@babel/preset-env@7.25.4(@babel/core@7.25.2)):
     dependencies:
       '@babel/core': 7.25.2
-      '@babel/parser': 7.25.4
+      '@babel/parser': 7.26.2
       '@babel/plugin-transform-class-properties': 7.25.4(@babel/core@7.25.2)
       '@babel/plugin-transform-modules-commonjs': 7.25.9(@babel/core@7.25.2)
       '@babel/plugin-transform-nullish-coalescing-operator': 7.24.7(@babel/core@7.25.2)
@@ -17879,7 +17870,7 @@ snapshots:
     dependencies:
       '@babel/core': 7.25.2
       '@babel/traverse': 7.25.4
-      '@babel/types': 7.25.4
+      '@babel/types': 7.26.0
       '@types/babel__core': 7.20.5
       '@types/babel__traverse': 7.20.6
       '@types/doctrine': 0.0.9
