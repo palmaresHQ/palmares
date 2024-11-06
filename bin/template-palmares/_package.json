@@ -7,10 +7,12 @@
   "main": "./dist/manage.js",
   "require": "./dist/manage.cjs",
   "scripts": {
-    "dev": "tsx src/manage.ts runserver",
-    "build": "tsup src/manage.ts",
+    "dev": "tsx manage.ts runserver",
+    "build": "tsup manage.ts",
     "lint": "eslint .",
-    "start": "${runtime} dist/manage.js"
+    "makemigrations": "tsx manage.ts makemigrations",
+    "migrate": "tsx manage.ts migrate",
+    "start": "${runtime} ./dist/manage.js"
   },
   "dependencies": {
     "@palmares/core": "${@palmares/core/version}",

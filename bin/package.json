@@ -1,0 +1,42 @@
+{
+  "name": "create-palmares-app",
+  "version": "0.0.0",
+  "description": "Scaffolds a new palmares application for you. Palmares is a framework that helps you to write and run javascript on the server",
+  "main": "./dist/src/index.cjs",
+  "module": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "bin": {
+    "create-palmares-app": "./dist/src/cli.js"
+  },
+  "files": [
+    "dist",
+    "template-*",
+    "package.json",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js",
+      "require": "./dist/src/index.cjs"
+    }
+  },
+  "keywords": [
+    "create",
+    "palmares",
+    "framework"
+  ],
+  "type": "module",
+  "author": "Nicolas Leal",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/palmaresHQ/palmares.git",
+    "directory": "packages/bin"
+  },
+  "bugs": {
+    "url": "https://github.com/palmaresHQ/palmares/issues"
+  },
+  "homepage": "https://github.com/palmaresHQ/palmares#readme"
+}

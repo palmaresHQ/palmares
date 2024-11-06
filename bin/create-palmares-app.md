@@ -109,3 +109,5 @@ dist-ssr
 *.sw?
 `
 );
+
+fs.mkdirSync()

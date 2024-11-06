@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "declaration": false,
+    "rootDir": "./src",
+    "baseUrl": "./src",
+    "lib": ["Es2022"],
+    "outDir": "./dist/cjs"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["template-palmares/**/*"],
+}

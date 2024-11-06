@@ -3,3 +3,4 @@ packages:
   - 'packages/**/*'
   - 'libs/*'
   - 'docs'
+  - 'bin'
