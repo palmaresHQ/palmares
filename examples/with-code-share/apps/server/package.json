@@ -41,7 +41,7 @@
     "@palmares/jest-tests": "^0.2.0",
     "@palmares/tests": "^0.2.0",
     "@swc/cli": "^0.4.0",
-    "@swc/core": "^1.7.23",
+    "@swc/core": "^1.9.1",
     "@types/better-sqlite3": "^7.6.11",
     "@types/cors": "^2.8.17",
     "@types/node": "^22.5.4",
