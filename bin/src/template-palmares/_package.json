@@ -1,0 +1,37 @@
+{
+  "name": "${appName}",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/manage.js",
+  "require": "./dist/manage.cjs",
+  "scripts": {
+    "dev": "tsx src/manage.ts runserver",
+    "build": "tsup src/manage.ts",
+    "lint": "eslint .",
+    "start": "${runtime} dist/manage.js"
+  },
+  "dependencies": {
+    "@palmares/core": "${@palmares/core/version}",
+    "@palmares/server": "${@palmares/server/version}",
+    "@palmares/databases": "${@palmares/core/version}",
+    "@palmares/schemas": "${@palmares/schemas/version}",
+    "@palmares/sequelize-engine": "${@palmares/sequelize-engine/version}",
+    "@palmares/express-adapter": "${@palmares/express-adapter/version}",
+    "@palmares/zod-schema": "${@palmares/zod-schema/version}",
+    "@palmares/console-logging": "${@palmares/console-logging/version}",
+    "@palmares/logging": "${@palmares/logging/version}",
+    "@palmares/node-std": "${@palmares/logging/version}"
+  },
+  "devDependencies": {
+    "@palmares/tests": "${@palmares/tests/version}",
+    "@palmares/jest-tests": "${@palmares/jest-tests/version}",
+    "@eslint/js": "latest",
+    "eslint": "latest",
+    "tsup": "latest",
+    "typescript": "latest",
+    "typescript-eslint": "latest",
+    "tsx": "latest"
+  }
+}
