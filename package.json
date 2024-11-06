@@ -46,7 +46,7 @@
   "packageManager": "pnpm@9.2.0",
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "devDependencies": {
-    "@changesets/cli": "^2.27.7",
+    "@changesets/cli": "^2.27.9",
     "@types/node": "^20.14.12",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^6.21.0",
@@ -63,7 +63,7 @@
     "prettier": "3.3.3",
     "rimraf": "^6.0.1",
     "tsup": "^8.2.4",
-    "tsx": "^4.16.2",
+    "tsx": "^4.19.2",
     "turbo": "^2.0.9",
     "typescript": "^5.5.4",
     "typescript-eslint": "^7.17.0"
