@@ -24,7 +24,7 @@
     "@palmares/zod-schema": "workspace:*",
     "better-sqlite3": "^11.1.2",
     "drizzle-kit": "^0.27.2",
-    "drizzle-orm": "^0.32.0"
+    "drizzle-orm": "^0.36.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.11",
