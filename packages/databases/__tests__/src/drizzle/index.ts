@@ -6,7 +6,7 @@ import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 import * as models from './models';
 import { db } from '../settings';
 
-export default domain('testingDrizzle', import.meta.dirname, {
+export default domain('testingDrizzle1', import.meta.dirname, {
   commands: {
     drizzleMigrate: {
       description: 'Migrate the database using drizzle',
@@ -15,7 +15,26 @@ export default domain('testingDrizzle', import.meta.dirname, {
       handler: () => {
         migrate(db as any, { migrationsFolder: './.drizzle/migrations' });
       }
-    }
+    },
+    helloWorld: {
+      description: 'Greets you with a hello world message',
+      keywordArgs: {
+        appName: {
+          description: 'Your application name',
+          default: null,
+          hasFlag: true
+        }
+      },
+      positionalArgs: {
+        name: {
+          description: 'The name of the person to greet',
+          required: true
+        }
+      },
+      handler: ({ commandLineArgs }) => {
+        console.log(`Hello ${commandLineArgs.positionalArgs['name']}, welcome to ${commandLineArgs.keywordArgs['appName'] || 'Palmares'}!`);
+      }
+    },
   },
   modifiers: [testDomainModifier, databaseDomainModifier] as const,
   getMigrations: () => [],

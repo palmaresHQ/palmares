@@ -379,6 +379,7 @@ export class BaseModel {
 
     for (const abstractModelConstructor of (modelInstance as any)['abstracts'] as (typeof Model & typeof BaseModel)[])
       this.__loadAbstract(abstractModelConstructor, alreadyComposedAbstracts);
+
     this.__hasLoadedAbstracts = true;
   }
 
@@ -419,10 +420,10 @@ export class BaseModel {
 
   protected static _fields(modelInstance?: any) {
     // 'this' and typeof Model means pretty much the same thing here.
+
     if (!modelInstance) modelInstance = new this() as Model & BaseModel;
     const modelInstanceAsModel = modelInstance as Model & BaseModel;
     this.__initializeAbstracts();
-
     if (this.__cachedFields === undefined) {
       let modelHasNoUniqueFields = true;
       let modelHasNoPrimaryKey = true;

@@ -137,7 +137,16 @@ function fieldAdapterPerField(
       {
         const fieldAsForeignKeyField = field as ForeignKeyField<any, any, any>;
         if (options?.byPassForeignKey) {
-          const fieldItRelatesTo = model['_fields']()[fieldAsForeignKeyField['__toField']];
+          let fieldItRelatesTo = undefined;
+          const modelItRelatesTo = fieldAsForeignKeyField['__relatedTo'];
+          if (typeof modelItRelatesTo === 'string')
+            fieldItRelatesTo = (engine['__modelsOfEngine'] as any)?.[modelItRelatesTo]?.['_fields']()[
+              fieldAsForeignKeyField['__toField']
+            ];
+          else if (modelItRelatesTo['$$type'] === '$PModel')
+            fieldItRelatesTo = modelItRelatesTo?.['_fields']()[fieldAsForeignKeyField['__toField']];
+          else fieldItRelatesTo = modelItRelatesTo()?.['_fields']()[fieldAsForeignKeyField['__toField']];
+
           return fieldAdapterPerField(engine, fieldItRelatesTo, model, options);
         }
       }
@@ -293,7 +302,7 @@ export async function parse(
         field,
         modelAsBaseModel.constructor as ModelType<any, any> & typeof BaseModel,
         engine,
-        fieldParser as any,
+        fieldParser,
         args
       );
     }
@@ -447,7 +456,7 @@ export async function initializeModels(
         }
       );
 
-      console.log(modelEntries.length, initializeModels.length);
+      //console.log(modelEntries.length, initializeModels.length);
       if (
         modelEntries.length > 0 &&
         modelEntries.length < initializeModels.length &&

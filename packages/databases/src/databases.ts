@@ -217,6 +217,7 @@ export class Databases {
         // eslint-disable-next-line ts/no-unnecessary-condition
         (Array.isArray(modelInstance.options?.databases) === false ||
           modelInstance.options.databases.includes(engineName) === true);
+
       const modelName =
         (foundModel.model as unknown as typeof BaseModel & typeof Model)['__getName']() ||
         modelInstance.constructor.name;
@@ -308,7 +309,7 @@ export class Databases {
           const models = await Promise.resolve(domain.getModels(engineInstance));
           if (Array.isArray(models)) {
             for (const modelOfModels of models) {
-              this.#cachedModelsByModelName[modelOfModels.name] = {
+              this.#cachedModelsByModelName[(modelOfModels as any)['__getName']()] = {
                 domainPath: domain.path,
                 domainName: domain.name,
                 model: modelOfModels as unknown as typeof Model & typeof BaseModel & ModelType<any, any>
@@ -328,6 +329,7 @@ export class Databases {
       });
       await Promise.all(promises);
     }
+
     return this.#cachedModelsByModelName;
   }
 }
