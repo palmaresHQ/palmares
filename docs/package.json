@@ -24,7 +24,7 @@
     "docs:lint": "next lint"
   },
   "dependencies": {
-    "@babel/core": "^7.24.9",
+    "@babel/core": "^7.26.0",
     "@babel/parser": "^7.26.2",
     "@babel/plugin-transform-modules-commonjs": "^7.25.9",
     "@babel/preset-react": "^7.24.7",
