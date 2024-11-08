@@ -1,5 +1,11 @@
 # @palmares/server
 
+## 0.2.1
+
+### Patch Changes
+
+- a1f191c: Drizzle engine now exports drizzle by itself.
+
 ## 0.2.0
 
 ### Minor Changes

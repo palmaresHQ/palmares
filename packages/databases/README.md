@@ -1,65 +1,174 @@
-# @palmares/database
+# Palmares/Databases
 
-This is responsible for handling database connections inside of the palmares framework.
-We offer a middle ground between orms and palmares, this way when developing a new project in palmares
-you can change the orm you want to use without having to change too much on your codebase.
+## Introduction
 
-## Installation
+This documentation will walk you through [palmares](https://github.com/palmaresHQ/palmares), but focusing on the [@palmares/databases](https://www.npmjs.com/package/@palmares/databases) package.
 
-First, install by running the following command:
+### A rough and quick intro to Palmares
 
-```
-$ npm install @palmares/database
-```
+The goal of [palmares](https://github.com/palmaresHQ/palmares) is to give you, the programmer, the freedom to use what you want while still maintaining a core, well defined structure. This way you can still use Drizzle or Sequelize as you already using. At the same time [library maintainers like Lucia](https://github.com/lucia-auth/lucia/discussions/1707), don't need to recreate adapters for every ORM available, palmares will be the common abstraction above all. This specially useful when thinking on a framework level. We can create abstractions like Auth, Admin, Scaffolding, without needing to worry about which ORM or server you choose to use and those can work together.
 
-Then add the following in your settings.(js/ts) file:
+### What is palmares databases?
+
+The [@palmares/databases](https://www.npmjs.com/package/@palmares/databases) package offers you a simple API to interact with databases. Manage Schemas, access your data, relate your data. Everything you would do on a normal database.
+
+At its core it does nothing, at the same time it does everything!
+
+With 0 dependencies at its core (even no dependency on Node), you don't need to worry if it'll work on Expo. Without an adapter this will simply not do anything. But with the adapter this package offers you the ability to generate migrations, query your data and offer a really nice way to interact with your database.
+
+Although we kinda see ourselves as an ORM, we are not **data frameworks** as drizzle like to call others like Django or Spring. You are not forced to build your project around our structure, although we think this is preferable most of the times, you are still free to use it the way you want, on your own existing projects without any hassle or problem.
+
+### QuickStart
+
+#### On your own
+
+**TIP:** This QuickStart uses [drizzle orm, reach out to their docs for reference](https://orm.drizzle.team/docs/overview)
+
+Step 1. Create a `database.config.ts` with:
 
 ```ts
-export const INSTALLED_DOMAINS = [
-  import('@palmares/database'), // <-- Add this line as the first domain.
-  // Add all the other domains here.
-];
-// Other configs
-export const DATABASES = {
-  default: {
-    engine: '@palmares/sequelize-engine',
-    dialect: 'postgres',
-    databaseName: 'postgres',
-    username: 'postgres',
-    password: '',
-    host: 'localhost',
-    port: 5435,
+import {
+  Model,
+  define,
+  auto,
+  char,
+  text,
+  bool,
+  ON_DELETE,
+  setDatabaseConfig
+} from '@palmares/databases';
+import { NodeStd } from '@palmares/node-std';
+import { DrizzleDatabaseAdapter } from '@palmares/drizzle-engine';
+import { drizzle as drizzleBetterSqlite3 } from '@palmares/drizzle-engine/better-sqlite3';
+import Database from 'better-sqlite3';
+
+import type { ModelOptionsType } from '@palmares/databases'
+
+export class Company extends Model<Company>() {
+  fields = {
+    id: auto(),
+    name: char({ maxLen: 255 }),
+    slug: char({ maxLen: 255 }),
+    isActive: bool().default(true)
   },
-};
+
+  options =  {
+    tableName: 'company'
+  } satisfies ModelOptionsType<Company> // We use satisfies here so we can still infer and you don't lose intellisense.
+}
+
+export const User = define('User', {
+  fields: {
+    id: auto(),
+    firstName: char({ maxLen: 255 }),
+    lastName: char({ maxLen: 255 }),
+    email: text().allowNull(),
+    createdAt: date().autoNowAdd(),
+    companyId: foreignKey({
+      relatedTo: () => Company,
+      toField: 'id',
+      relationName: 'company',
+      relatedName: 'usersOfCompany',
+      onDelete: ON_DELETE.CASCADE
+    })
+  }
+});
+
+const database = new Database('sqlite.db');
+
+const newEngine = DrizzleDatabaseAdapter.new({
+  output: './.drizzle/schema.ts',
+  type: 'better-sqlite3',
+  drizzle: drizzleBetterSqlite3(database),
+});
+
+export const db = newEngine[1]().instance.instance;
+
+export default setDatabaseConfig({
+  databases: {
+    default: {
+      engine: newEngine,
+    },
+  },
+  locations: [
+    {
+      name: 'default',
+      // @ts-ignore
+      path: import.meta.dirname, // If your package.json does not contain the "type": "module" in it, change that to __dirname
+      getMigrations: () => [],
+      getModels: () => [authenticatedUsers, questions],
+    },
+  ],
+  std: new NodeStd(),
+});
 ```
 
-## TODOs:
+Step 2. Make your queries
 
-- [x] Add support for multiple databases.
-- [ ] Dependency injection on models for testing managers without needing a database connection.
-- [ ] 80% test coverage.
-- [x] Better typescript support for abstract models.
-- [ ] Model to instance and instance to Model (translates a raw object to something that the orm/database can understand and vice versa).
-- [ ] Dynamic imports for models (similar with the `customImports` function on fields)
-- [/] Lazy load the models, so we can tackle environments like serverless or the edge with the framework. (For that we need to just load the basic part of the models, without translating, we will only translate when we need it. When we translate we must be sure the dependencies are translated first.) It won't be the fastest solution but it will work. **(HALF DONE, WE ARE ABLE TO TRANSLATE THE ENGINE LAZILY BUT NOT THE MODELS AND ITS DEPENDENCIES (THE PROBLEM RELIES ON INDIRECT RELATIONS)**)
-  - [ ] I Think we can do this using proxies, we can create a proxy for the model and when we try to access a property we can translate the model and it's dependencies. (We can use the same approach for the fields)
-- [x] Better support for self referencing relations.
-- [x] `Set` and `get` and even `delete` should have a better API for deleting, creating, updating, and retrieving related data. Also we should change the default functions api for an object. This way we can make it more flexible and easier to use. (instead of `set(dataToSet, search, engineName)` we can do `set({ dataToSet, search, engineName })`)
-- [x] Better Support for relations on queries:
-- [x] .get
-- [x] .set
-- [x] .delete
-- [x] Improve include relations on queries
-  - [x] Define if the relation should be excluded in a `remove` query (we are just fetching the data, and don't want to remove it)
-  - [x] Define exactly what field we are refearing in a relation 'if the same model has two relations with the same model, we should be able to define which one we are refearing to'. (This should be typed as well)
-- [x] Add `orderBy` and `limit` to queries
-- [ ] Support for seeding data into the database (useful for testing).
-- [x] Support for queries like 'in', 'between', 'lessThan', etc.
-- [x] Support for unmanaged models and distributed systems. We can have like, the model definition on this server, set this model to unmanaged, and try to fetch the resources for it
-      automatically from the other servers. (This is useful for distributed systems, and for the edge)
-  - [x] Check if unmananaged models does not create an instance in the database.
-- [x] Possibility for Internal transactions (transactions that does not depend on the database engine, but on the framework itself.)
-  - [ ] Custom transaction caller (so for example the user can define what to do when a transaction fails)
-- [x] Support for events on models. We can attach an event handler to a model, connected to a layer, and all of the models that are connected to that layer will trigger the event handler. This way we can keep copies of the data internally.
-- [x] Functional model creation instead of class based.
-- [ ] Make queries run in generators so we can better control the flow of the queries.
+- **Using Palmares:**
+
+```ts
+import { Company, User } from './database.config';
+
+await Company.default.set((qs) =>
+  qs
+    .join(User, 'usersOfCompany', (qs) =>
+      qs.data(
+        {
+          firstName: 'Foo',
+          lastName: 'bar',
+          email: 'foo@bar.com',
+          isActive: true,
+        },
+        {
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@doe.com',
+          isActive: true,
+        }
+      )
+    )
+    .data({
+      name: 'Evil Foo',
+      slug: 'evil-foo',
+      isActive: true,
+    })
+);
+```
+
+- **Using your favorite ORM**:
+
+1. Create a file called `load.ts` and add the following:
+
+```ts
+import databasesConfig from './database.config';
+
+databasesConfig.load();
+```
+
+2. Run (we are using to run typescript from the command line [tsx](https://tsx.is/)):
+
+```sh
+$ tsx load.ts
+```
+
+3. You will see that `./.drizzle/schema.ts` file was created. You can query your models from there.
+
+```ts
+import { db } from './database.config';
+import { Company } from './.drizzle/schema';
+
+const data = await db.insert(Company).values({
+  name: 'Evil Foo',
+  slug: 'evil-foo',
+});
+```
+
+#### With Palmares:
+
+Coming Soon...
+
+### Next Steps
+
+- [Are you using to build applications?](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/summary.md)
+- [You want to integrate your library?](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/integrators/summary.md)

@@ -18,6 +18,156 @@ With 0 dependencies at its core (even no dependency on Node), you don't need to 
 
 Although we kinda see ourselves as an ORM, we are not **data frameworks** as drizzle like to call others like Django or Spring. You are not forced to build your project around our structure, although we think this is preferable most of the times, you are still free to use it the way you want, on your own existing projects without any hassle or problem.
 
+### QuickStart
+
+#### On your own
+
+**TIP:** This QuickStart uses [drizzle orm, reach out to their docs for reference](https://orm.drizzle.team/docs/overview)
+
+Step 1. Create a `database.config.ts` with:
+
+```ts
+import {
+  Model,
+  define,
+  auto,
+  char,
+  text,
+  bool,
+  ON_DELETE,
+  setDatabaseConfig
+} from '@palmares/databases';
+import { NodeStd } from '@palmares/node-std';
+import { DrizzleDatabaseAdapter } from '@palmares/drizzle-engine';
+import { drizzle as drizzleBetterSqlite3 } from '@palmares/drizzle-engine/better-sqlite3';
+import Database from 'better-sqlite3';
+
+import type { ModelOptionsType } from '@palmares/databases'
+
+export class Company extends Model<Company>() {
+  fields = {
+    id: auto(),
+    name: char({ maxLen: 255 }),
+    slug: char({ maxLen: 255 }),
+    isActive: bool().default(true)
+  },
+
+  options =  {
+    tableName: 'company'
+  } satisfies ModelOptionsType<Company> // We use satisfies here so we can still infer and you don't lose intellisense.
+}
+
+export const User = define('User', {
+  fields: {
+    id: auto(),
+    firstName: char({ maxLen: 255 }),
+    lastName: char({ maxLen: 255 }),
+    email: text().allowNull(),
+    createdAt: date().autoNowAdd(),
+    companyId: foreignKey({
+      relatedTo: () => Company,
+      toField: 'id',
+      relationName: 'company',
+      relatedName: 'usersOfCompany',
+      onDelete: ON_DELETE.CASCADE
+    })
+  }
+});
+
+const database = new Database('sqlite.db');
+
+const newEngine = DrizzleDatabaseAdapter.new({
+  output: './.drizzle/schema.ts',
+  type: 'better-sqlite3',
+  drizzle: drizzleBetterSqlite3(database),
+});
+
+export const db = newEngine[1]().instance.instance;
+
+export default setDatabaseConfig({
+  databases: {
+    default: {
+      engine: newEngine,
+    },
+  },
+  locations: [
+    {
+      name: 'default',
+      // @ts-ignore
+      path: import.meta.dirname, // If your package.json does not contain the "type": "module" in it, change that to __dirname
+      getMigrations: () => [],
+      getModels: () => [authenticatedUsers, questions],
+    },
+  ],
+  std: new NodeStd(),
+});
+```
+
+Step 2. Make your queries
+
+- **Using Palmares:**
+
+```ts
+import { Company, User } from './database.config';
+
+await Company.default.set((qs) =>
+  qs
+    .join(User, 'usersOfCompany', (qs) =>
+      qs.data(
+        {
+          firstName: 'Foo',
+          lastName: 'bar',
+          email: 'foo@bar.com',
+          isActive: true,
+        },
+        {
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@doe.com',
+          isActive: true,
+        }
+      )
+    )
+    .data({
+      name: 'Evil Foo',
+      slug: 'evil-foo',
+      isActive: true,
+    })
+);
+```
+
+- **Using your favorite ORM**:
+
+1. Create a file called `load.ts` and add the following:
+
+```ts
+import databasesConfig from './database.config';
+
+databasesConfig.load();
+```
+
+2. Run (we are using to run typescript from the command line [tsx](https://tsx.is/)):
+
+```sh
+$ tsx load.ts
+```
+
+3. You will see that `./.drizzle/schema.ts` file was created. You can query your models from there.
+
+```ts
+import { db } from './database.config';
+import { Company } from './.drizzle/schema';
+
+const data = await db.insert(Company).values({
+  name: 'Evil Foo',
+  slug: 'evil-foo',
+});
+```
+
+#### With Palmares:
+
+Coming Soon...
+
 ### Next Steps
 
 - [Are you using to build applications?](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/summary.md)

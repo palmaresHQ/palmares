@@ -1,5 +1,14 @@
 # @palmares/schemas
 
+## 0.2.1
+
+### Patch Changes
+
+- a1f191c: Drizzle engine now exports drizzle by itself.
+- Updated dependencies [a1f191c]
+  - @palmares/databases@0.2.1
+  - @palmares/server@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes
