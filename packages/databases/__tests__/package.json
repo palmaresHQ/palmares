@@ -4,9 +4,11 @@
   "description": "testing the tests",
   "main": "manage.drizzle.ts",
   "scripts": {
+    "help": "tsx manage.drizzle.ts help",
     "test": "tsx test.ts",
     "test:watch": "WATCH=true tsx manage.ts test",
     "load": "tsx manage.drizzle.ts load-models",
+    "standalone:load": "tsx src/standalone/load.ts",
     "drzle:test": "tsx --experimental-vm-modules manage.drizzle.ts test",
     "drzle:makemigrations": "drizzle-kit generate",
     "drzle:migrate": "tsx manage.drizzle.ts drizzleMigrate",

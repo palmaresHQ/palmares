@@ -19,6 +19,6 @@
 		"forceConsistentCasingInFileNames": true,
 		"noFallthroughCasesInSwitch": false,
 	},
-  "include": ["packages/**/*", "integration/**/*", "libs/**/*", "examples/**/*", "scripts/**/*", "bin/**/*"],
-  "exclude": ["node_modules", "**/*.spec.ts"]
+  "include": ["packages/**/*", "libs/**/*", "examples/**/*", "scripts/**/*", "bin/src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts", "bin/template-palmares/**/*"]
 }

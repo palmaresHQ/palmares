@@ -18,7 +18,7 @@ import type * as d /*{ Company as DCompany, User as DUser }*/ from '../../.drizz
 import { ModelOptionsType } from '@palmares/databases';
 
 class Authentication extends Manager<CompanyAbstract> {
-  test() {
+  authenticate(username: string, password: string) {
     return 'test';
   }
 }
