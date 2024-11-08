@@ -1,4 +1,4 @@
-# Palmares/Databases
+# @palmares/databases
 
 ## Introduction
 
@@ -105,7 +105,7 @@ export default setDatabaseConfig({
 
 - **Step 2**. Make your queries
 
-  - **Using Palmares:**
+  - **Using your Palmares models:**
 
   ```ts
   import { Company, User } from './database.config';
