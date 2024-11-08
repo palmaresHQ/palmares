@@ -1,6 +1,6 @@
 {
   "name": "@palmares/databases",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Add support for working with databases with palmares framework",
   "main": "./dist/src/index.cjs",
   "module": "./dist/src/index.js",

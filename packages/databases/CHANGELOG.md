@@ -1,5 +1,11 @@
 # @palmares/databases
 
+## 0.2.2
+
+### Patch Changes
+
+- Change on the docs and the file generating for drizzle-engine
+
 ## 0.2.1
 
 ### Patch Changes

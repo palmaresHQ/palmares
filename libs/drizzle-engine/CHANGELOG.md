@@ -1,5 +1,13 @@
 # @palmares/sequelize-engine
 
+## 0.2.2
+
+### Patch Changes
+
+- Change on the docs and the file generating for drizzle-engine
+- Updated dependencies
+  - @palmares/databases@0.2.2
+
 ## 0.2.1
 
 ### Patch Changes
