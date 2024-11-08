@@ -107,62 +107,62 @@ export default setDatabaseConfig({
 
   - **Using Palmares:**
 
-```ts
-import { Company, User } from './database.config';
+  ```ts
+  import { Company, User } from './database.config';
 
-await Company.default.set((qs) =>
-  qs
-    .join(User, 'usersOfCompany', (qs) =>
-      qs.data(
-        {
-          firstName: 'Foo',
-          lastName: 'bar',
-          email: 'foo@bar.com',
-          isActive: true,
-        },
-        {
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john@doe.com',
-          isActive: true,
-        }
+  await Company.default.set((qs) =>
+    qs
+      .join(User, 'usersOfCompany', (qs) =>
+        qs.data(
+          {
+            firstName: 'Foo',
+            lastName: 'bar',
+            email: 'foo@bar.com',
+            isActive: true,
+          },
+          {
+            firstName: 'John',
+            lastName: 'Doe',
+            email: 'john@doe.com',
+            isActive: true,
+          }
+        )
       )
-    )
-    .data({
+      .data({
+        name: 'Evil Foo',
+        slug: 'evil-foo',
+        isActive: true,
+      })
+  );
+  ```
+
+  - **Using your favorite ORM**:
+
+    1. Create a file called `load.ts` and add the following:
+
+    ```ts
+    import databasesConfig from './database.config';
+
+    databasesConfig.load();
+    ```
+
+    2. Run (we are using to run typescript from the command line [tsx](https://tsx.is/)):
+
+    ```sh
+    $ tsx load.ts
+    ```
+
+    3. You will see that `./.drizzle/schema.ts` file was created. You can query your models from there.
+
+    ```ts
+    import { db } from './database.config';
+    import { Company } from './.drizzle/schema';
+
+    const data = await db.insert(Company).values({
       name: 'Evil Foo',
       slug: 'evil-foo',
-      isActive: true,
-    })
-);
-```
-
-    - **Using your favorite ORM**:
-
-        1. Create a file called `load.ts` and add the following:
-
-```ts
-import databasesConfig from './database.config';
-
-databasesConfig.load();
-```
-
-        2. Run (we are using to run typescript from the command line [tsx](https://tsx.is/)):
-
-```sh
-$ tsx load.ts
-```
-
-        3. You will see that `./.drizzle/schema.ts` file was created. You can query your models from there.
-
-```ts
-import { db } from './database.config';
-import { Company } from './.drizzle/schema';
-
-const data = await db.insert(Company).values({
-  name: 'Evil Foo',
-  slug: 'evil-foo',
-});
-```
+    });
+    ```
 
 #### With Palmares:
 
