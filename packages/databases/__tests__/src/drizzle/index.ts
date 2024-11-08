@@ -1,7 +1,7 @@
 import { domain } from '@palmares/core';
 import { databaseDomainModifier } from '@palmares/databases';
+import { migrate } from '@palmares/drizzle-engine/better-sqlite3/migrator';
 import { testDomainModifier } from '@palmares/tests';
-import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
 
 import * as models from './models';
 import { db } from '../settings';
@@ -13,7 +13,7 @@ export default domain('testingDrizzle1', import.meta.dirname, {
       keywordArgs: undefined,
       positionalArgs: undefined,
       handler: () => {
-        migrate(db as any, { migrationsFolder: './.drizzle/migrations' });
+        migrate(db, { migrationsFolder: './.drizzle/migrations' });
       }
     },
     helloWorld: {
