@@ -129,13 +129,11 @@ export default setDatabaseConfig({
             firstName: 'Foo',
             lastName: 'bar',
             email: 'foo@bar.com',
-            isActive: true,
           },
           {
             firstName: 'John',
             lastName: 'Doe',
             email: 'john@doe.com',
-            isActive: true,
           }
         )
       )
