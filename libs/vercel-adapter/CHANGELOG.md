@@ -1,5 +1,11 @@
 # @palmares/vercel-adapter
 
+## 0.1.2
+
+### Patch Changes
+
+- @palmares/server@0.2.2
+
 ## 0.1.1
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @palmares/events
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [9268a32]
+  - @palmares/core@0.2.1
+  - @palmares/logging@0.2.1
+
 ## 0.1.0
 
 ### Minor Changes
