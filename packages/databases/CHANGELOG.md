@@ -1,5 +1,11 @@
 # @palmares/databases
 
+## 0.2.3
+
+### Patch Changes
+
+- Fix minor issues like docs, and code and probably typing
+
 ## 0.2.2
 
 ### Patch Changes

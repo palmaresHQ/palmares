@@ -1,5 +1,13 @@
 # @palmares/sequelize-engine
 
+## 0.2.3
+
+### Patch Changes
+
+- Fix minor issues like docs, and code and probably typing
+- Updated dependencies
+  - @palmares/databases@0.2.3
+
 ## 0.2.2
 
 ### Patch Changes
