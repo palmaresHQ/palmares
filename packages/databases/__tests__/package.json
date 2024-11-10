@@ -16,7 +16,9 @@
     "sqlize:test": "tsx --experimental-vm-modules manage.sequelize.ts test",
     "sqlize:makemigrations": "tsx manage.sequelize.ts makemigrations",
     "sqlize:migrate": "tsx manage.sequelize.ts migrate",
-    "standalone": "tsx ./src/standalone.ts"
+    "standalone:drzle": "tsx ./src/standalone.ts",
+    "standalone:sqlize:makemigrations": "tsx ./src/standalone/sequelize/makemigrations.ts",
+    "standalone:sqlize:migrate": "tsx ./src/standalone/sequelize/migrate.ts"
   },
   "keywords": [],
   "author": "",

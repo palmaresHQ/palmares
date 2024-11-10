@@ -102,3 +102,17 @@ export class MissingWhereClauseException extends Error {
     this.name = MissingWhereClauseException.name;
   }
 }
+
+export class ModelMissingException extends Error {
+  constructor(modelName: string) {
+    super(`The model ${modelName} was not found in the engine.`);
+    this.name = ModelMissingException.name;
+  }
+}
+
+export class FieldFromModelMissingException extends Error {
+  constructor(modelName: string, fieldName: string) {
+    super(`The field ${fieldName} was not found in the model ${modelName}.`);
+    this.name = FieldFromModelMissingException.name;
+  }
+}

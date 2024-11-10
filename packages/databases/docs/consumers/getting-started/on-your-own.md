@@ -69,6 +69,18 @@ Let's go over it?
 
 - **std** - The dependency from the runtime you are using to build your applications on.
 
+## Now let's guarantee that the database is initialized when using
+
+You found the root of your project. It is `index.ts` or `app.ts`, whatever. It's the first file that runs when your application runs.
+
+Now make sure to add this on the root of that file.
+
+```ts
+import './database.config';
+```
+
+This will guarantee that when your code gets executed all of the models are translated.
+
 ## Up Next
 
 - [Migrating the Changes](https://github.com/palmaresHQ/palmares/blob/main/packages/databases/docs/consumers/getting-started/migrating-the-changes.md)

@@ -2,6 +2,8 @@ import { getDefaultStd } from '@palmares/core';
 
 import {
   EngineDoesNotSupportFieldTypeException,
+  FieldFromModelMissingException,
+  ModelMissingException,
   RelatedModelFromForeignKeyIsNotFromEngineException,
   ShouldAssignAllInstancesException
 } from './exceptions';
@@ -133,24 +135,23 @@ function fieldAdapterPerField(
       return engine.fields.dateFieldParser;
     case DecimalField.name:
       return engine.fields.decimalFieldParser;
-    case ForeignKeyField.name:
-      {
-        const fieldAsForeignKeyField = field as ForeignKeyField<any, any, any>;
-        if (options?.byPassForeignKey) {
-          let fieldItRelatesTo = undefined;
-          const modelItRelatesTo = fieldAsForeignKeyField['__relatedTo'];
-          if (typeof modelItRelatesTo === 'string')
-            fieldItRelatesTo = (engine['__modelsOfEngine'] as any)?.[modelItRelatesTo]?.['_fields']()[
-              fieldAsForeignKeyField['__toField']
-            ];
-          else if (modelItRelatesTo['$$type'] === '$PModel')
-            fieldItRelatesTo = modelItRelatesTo?.['_fields']()[fieldAsForeignKeyField['__toField']];
-          else fieldItRelatesTo = modelItRelatesTo()?.['_fields']()[fieldAsForeignKeyField['__toField']];
+    case ForeignKeyField.name: {
+      const fieldAsForeignKeyField = field as ForeignKeyField<any, any, any>;
+      if (options?.byPassForeignKey) {
+        let fieldItRelatesTo = undefined;
+        const modelItRelatesTo = fieldAsForeignKeyField['__relatedTo'];
+        if (typeof modelItRelatesTo === 'string')
+          fieldItRelatesTo = (engine['__modelsOfEngine'] as any)?.[modelItRelatesTo]?.['_fields']()[
+            fieldAsForeignKeyField['__toField']
+          ];
+        else if (modelItRelatesTo['$$type'] === '$PModel')
+          fieldItRelatesTo = modelItRelatesTo?.['_fields']()[fieldAsForeignKeyField['__toField']];
+        else fieldItRelatesTo = modelItRelatesTo()?.['_fields']()[fieldAsForeignKeyField['__toField']];
 
-          return fieldAdapterPerField(engine, fieldItRelatesTo, model, options);
-        }
+        return fieldAdapterPerField(engine, fieldItRelatesTo, model, options);
       }
       return engine.fields.foreignKeyFieldParser;
+    }
     case IntegerField.name:
       return engine.fields.integerFieldParser;
     case TextField.name:
@@ -161,13 +162,14 @@ function fieldAdapterPerField(
       return engine.fields.enumFieldParser;
     case BooleanField.name:
       return engine.fields.booleanFieldParser;
-    default:
+    default: {
       if (
         typeof engine.fields.customFieldsParser === 'object' &&
         field['__typeName'] in engine.fields.customFieldsParser
       )
         return engine.fields.customFieldsParser[field['__typeName']];
       return engine.fields.fieldsParser;
+    }
   }
 }
 
@@ -412,16 +414,13 @@ export async function initializeModels(
                 typeof Model;
 
               // eslint-disable-next-line ts/no-unnecessary-condition
-              if (modelConstructor === undefined)
-                throw new Error(`The model ${args.modelName} was not found in the engine`);
+              if (modelConstructor === undefined) throw new ModelMissingException(args.modelName);
 
               const modelInstance = new modelConstructor() as BaseModel & Model;
               const fields = modelConstructor['_fields']();
               const field = fields[args.fieldName];
               // eslint-disable-next-line ts/no-unnecessary-condition
-              if (field === undefined) {
-                throw new Error(`The field ${args.fieldName} was not found in the model ${args.modelName}`);
-              }
+              if (field === undefined) throw new FieldFromModelMissingException(args.modelName, args.fieldName);
 
               fieldToUse = field['__clone'](field, {
                 newInstanceOverrideCallback: args.newInstanceOverrideCallback,

@@ -1,6 +1,7 @@
 import { domain, setDefaultStd } from '@palmares/core';
 
 import { makeMigrations, migrate } from './commands';
+import { defaultMigrations, defaultModels } from './defaults';
 import { loadDatabases } from './domain';
 import { defaultSettings } from './settings';
 
@@ -33,7 +34,16 @@ export function setDatabaseConfig(
 ) {
   if (settings.std) setDefaultStd(settings.std);
 
-  const domains: DatabaseDomainInterface[] = [];
+  const databaseDomain = domain('@palmares/database', '', {
+    // eslint-disable-next-line ts/require-await
+    getMigrations: async () => defaultMigrations,
+    // eslint-disable-next-line ts/require-await
+    getModels: async (engineInstance: DatabaseAdapter<any>) => {
+      if (engineInstance.migrations) return defaultModels as any;
+      else return [];
+    }
+  }) as any;
+  const domains: DatabaseDomainInterface[] = [new databaseDomain() as DatabaseDomainInterface];
   for (const location of settings.locations) {
     const newDomainConstructor = domain(location.name, location.path, {
       getModels: location.getModels,

@@ -52,6 +52,8 @@ export async function setSettings(
   let settings = undefined;
   if (settingsOrStd instanceof Promise) {
     const awaitedSettingsOrSrd = await settingsOrStd;
+    // eslint-disable-next-line ts/no-unnecessary-condition
+    if (awaitedSettingsOrSrd === undefined) throw new SettingsNotFoundException();
     if ('files' in awaitedSettingsOrSrd.default) await extractSettingsFromPath(awaitedSettingsOrSrd.default);
     else {
       settings = awaitedSettingsOrSrd.default;
