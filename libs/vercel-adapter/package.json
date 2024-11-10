@@ -48,7 +48,7 @@
     "@palmares/server": "workspace:*"
   },
   "devDependencies": {
-    "@vercel/node": "^3.2.7",
+    "@vercel/node": "^3.2.24",
     "vercel": "^35.2.1",
     "typescript": "^5.5.4"
   }
