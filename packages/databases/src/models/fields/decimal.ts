@@ -76,12 +76,12 @@ export function decimal<const TMaxDigits extends number, const TDecimalPlaces ex
  * ```
  */
 export class DecimalField<
-  TType extends { create: any; read: any; update: any } = {
+  out TType extends { create: any; read: any; update: any } = {
     create: number | string;
     read: number | string;
     update: number | string;
   },
-  TDefinitions extends {
+  out TDefinitions extends {
     unique: boolean;
     auto: boolean;
     allowNull: boolean;
@@ -112,7 +112,7 @@ export class DecimalField<
     maxDigits: number;
     decimalPlaces: number;
   },
-  TFieldOperationTypes = Pick<
+  out TFieldOperationTypes = Pick<
     FieldWithOperationTypeForSearch<number | string>,
     'greaterThan' | 'lessThan' | 'between' | 'and' | 'in' | 'or' | 'eq' | 'is'
   >

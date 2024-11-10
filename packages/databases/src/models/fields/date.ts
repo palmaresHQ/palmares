@@ -72,12 +72,12 @@ export function date(): DateField<
  * ```
  */
 export class DateField<
-  TType extends { create: any; read: any; update: any } = {
+  out TType extends { create: any; read: any; update: any } = {
     create: string | Date;
     read: string | Date;
     update: string | Date;
   },
-  TDefinitions extends {
+  out TDefinitions extends {
     unique: boolean;
     auto: boolean;
     allowNull: boolean;
@@ -108,7 +108,7 @@ export class DateField<
     autoNow: boolean;
     autoNowAdd: boolean;
   },
-  TFieldOperationTypes = Pick<
+  out TFieldOperationTypes = Pick<
     FieldWithOperationTypeForSearch<string | Date>,
     'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'
   >

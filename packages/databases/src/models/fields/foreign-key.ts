@@ -122,8 +122,8 @@ export function foreignKey<
  * themselves. This is because we want to keep the library as simple as possible.
  */
 export class ForeignKeyField<
-  TType extends { create: any; read: any; update: any } = { create: any; read: any; update: any },
-  TDefinitions extends {
+  out TType extends { create: any; read: any; update: any } = { create: any; read: any; update: any },
+  out TDefinitions extends {
     unique: boolean;
     auto: boolean;
     allowNull: boolean;
@@ -160,8 +160,8 @@ export class ForeignKeyField<
     relationName: string;
     toField: string;
   },
-  TFieldOperationTypes = FieldWithOperationTypeForSearch<any>
-> extends Field<TType, TDefinitions> {
+  out TFieldOperationTypes = FieldWithOperationTypeForSearch<any>
+> extends Field<TType, TDefinitions, TFieldOperationTypes> {
   protected $$type = '$PForeignKeyField';
   protected __typeName = 'ForeignKeyField';
   protected __relatedToAsString?: string;
@@ -1183,7 +1183,7 @@ export class ForeignKeyField<
    * It's confusing because at the end of the day it'll look like a complex graph.
    */
   protected __attachRelationsToModel(
-    field: ForeignKeyField<any, any, any>,
+    _field: ForeignKeyField<any, any, any>,
     fieldName: string,
     modelOfField: ModelType<any, any> & typeof Model & typeof BaseModel,
     relatedModel: string | (ModelType<any, any> & typeof Model & typeof BaseModel)

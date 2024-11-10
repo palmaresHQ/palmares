@@ -67,12 +67,12 @@ export function text(): TextField<
  * ```
  */
 export class TextField<
-  TType extends { create: any; read: any; update: any } = {
+  out TType extends { create: any; read: any; update: any } = {
     create: string;
     read: string;
     update: string;
   },
-  TDefinitions extends {
+  out TDefinitions extends {
     unique: boolean;
     auto: boolean;
     allowNull: boolean;
@@ -101,7 +101,7 @@ export class TextField<
     engineInstance: DatabaseAdapter;
     customAttributes: any;
   },
-  TFieldOperationTypes = Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
+  out TFieldOperationTypes = Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
 > extends Field<TType, TDefinitions, TFieldOperationTypes> {
   protected $$type = '$PTextField';
   protected __typeName = 'TextField';

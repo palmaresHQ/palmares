@@ -62,12 +62,12 @@ export function bigInt(): BigIntegerField<
  * ```
  */
 export class BigIntegerField<
-  TType extends { create: any; read: any; update: any } = {
+  out TType extends { create: any; read: any; update: any } = {
     create: bigint | number;
     read: bigint | number;
     update: bigint | number;
   },
-  TDefinitions extends {
+  out TDefinitions extends {
     unique: boolean;
     auto: boolean;
     allowNull: boolean;
@@ -94,7 +94,7 @@ export class BigIntegerField<
     engineInstance: DatabaseAdapter;
     customAttributes: any;
   },
-  TFieldOperationTypes = Pick<
+  out TFieldOperationTypes = Pick<
     FieldWithOperationTypeForSearch<number | bigint>,
     'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
   >
@@ -350,39 +350,7 @@ export class BigIntegerField<
   > {
     (this.__customAttributes as any) = customAttributes as any;
 
-    return this as unknown as BigIntegerField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        unique: TDefinitions['unique'];
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDefinitions['dbIndex'];
-        underscored: TDefinitions['underscored'];
-        isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TDefinitions['auto'];
-        hasDefaultValue: TDefinitions['hasDefaultValue'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TCustomAttributes;
-      },
-      TFieldOperationTypes
-    >;
+    return this as unknown as any;
   }
 
   unique<TUnique extends boolean = true>(

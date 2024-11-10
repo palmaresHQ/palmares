@@ -78,8 +78,8 @@ type AllowedQuery =
  * Generally we do not offer any translation to this type of field.
  */
 export class Field<
-  TType extends { create: any; read: any; update: any } = { create: any; read: any; update: any },
-  TDefinitions extends {
+  in out TType extends { create: any; read: any; update: any } = { create: any; read: any; update: any },
+  in out TDefinitions extends {
     unique: boolean;
     auto: boolean;
     allowNull: boolean;
@@ -106,7 +106,7 @@ export class Field<
     engineInstance: DatabaseAdapter;
     customAttributes: any;
   },
-  TFieldOperationTypes = FieldWithOperationTypeForSearch<any>
+  in out TFieldOperationTypes = FieldWithOperationTypeForSearch<any>
 > {
   protected $$type = '$PField';
   protected __typeName = 'Field';

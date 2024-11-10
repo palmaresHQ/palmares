@@ -60,12 +60,12 @@ export function int(): IntegerField<
  * ```
  */
 export class IntegerField<
-  TType extends { create: any; read: any; update: any } = {
+  out TType extends { create: any; read: any; update: any } = {
     create: number;
     read: number;
     update: number;
   },
-  TDefinitions extends {
+  out TDefinitions extends {
     unique: boolean;
     auto: boolean;
     allowNull: boolean;
@@ -92,7 +92,7 @@ export class IntegerField<
     engineInstance: DatabaseAdapter;
     customAttributes: any;
   },
-  TFieldOperationTypes = Pick<
+  out TFieldOperationTypes = Pick<
     FieldWithOperationTypeForSearch<number>,
     'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'
   >

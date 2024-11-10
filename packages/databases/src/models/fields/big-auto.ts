@@ -65,12 +65,12 @@ export function bigAuto(): BigAutoField<
  * ```
  */
 export class BigAutoField<
-  TType extends { create: any; read: any; update: any } = {
+  out TType extends { create: any; read: any; update: any } = {
     create: bigint | number | undefined;
     read: bigint | number;
     update: bigint | number | undefined;
   },
-  TDefinitions extends {
+  out TDefinitions extends {
     unique: boolean;
     auto: boolean;
     allowNull: boolean;
@@ -97,7 +97,7 @@ export class BigAutoField<
     engineInstance: DatabaseAdapter;
     customAttributes: any;
   },
-  TFieldOperationTypes = Pick<
+  out TFieldOperationTypes = Pick<
     FieldWithOperationTypeForSearch<number | bigint>,
     'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
   >

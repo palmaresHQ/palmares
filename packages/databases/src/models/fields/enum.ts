@@ -66,12 +66,12 @@ export function choice<const TChoices extends string[]>(params: {
  * ```
  */
 export class EnumField<
-  TType extends { create: any; read: any; update: any } = {
+  out TType extends { create: any; read: any; update: any } = {
     create: string;
     read: string;
     update: string;
   },
-  TDefinitions extends {
+  out TDefinitions extends {
     unique: boolean;
     auto: boolean;
     allowNull: boolean;
@@ -100,7 +100,7 @@ export class EnumField<
     customAttributes: any;
     choices: string[];
   },
-  TFieldOperationTypes = Pick<FieldWithOperationTypeForSearch<string>, 'and' | 'in' | 'or' | 'eq' | 'is'>
+  out TFieldOperationTypes = Pick<FieldWithOperationTypeForSearch<string>, 'and' | 'in' | 'or' | 'eq' | 'is'>
 > extends Field<TType, TDefinitions, TFieldOperationTypes> {
   protected $$type = '$PEnumField';
   protected __typeName = 'EnumField';

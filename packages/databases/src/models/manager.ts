@@ -219,7 +219,28 @@ export class Manager<
    */
   async get<
     TQueryBuilder extends (
-      queryBuilder: GetQuerySet<'get', TModel>
+      queryBuilder: GetQuerySet<
+        'get',
+        TModel,
+        GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'read'>,
+        Partial<
+          GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'update'>
+        >,
+        GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'create'>,
+        Partial<
+          GetDataFromModel<
+            TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel,
+            'read',
+            true
+          >
+        >,
+        GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel>,
+        false,
+        false,
+        false,
+        false,
+        never
+      >
     ) =>
       | QuerySet<'get', TModel, any, any, any, any, any, any>
       | GetQuerySet<'get', TModel, any, any, any, any, any, any>
