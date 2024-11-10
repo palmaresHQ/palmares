@@ -60,12 +60,12 @@ export function bool(): BooleanField<
  * ```
  */
 export class BooleanField<
-  TType extends { create: any; read: any; update: any } = {
+  out TType extends { create: any; read: any; update: any } = {
     create: boolean;
     read: boolean;
     update: boolean;
   },
-  TDefinitions extends {
+  out TDefinitions extends {
     unique: boolean;
     auto: boolean;
     allowNull: boolean;
@@ -92,7 +92,7 @@ export class BooleanField<
     engineInstance: DatabaseAdapter;
     customAttributes: any;
   },
-  TFieldOperationTypes = Pick<FieldWithOperationTypeForSearch<boolean>, 'and' | 'in' | 'or' | 'eq' | 'is'>
+  out TFieldOperationTypes = Pick<FieldWithOperationTypeForSearch<boolean>, 'and' | 'in' | 'or' | 'eq' | 'is'>
 > extends Field<TType, TDefinitions, TFieldOperationTypes> {
   protected $$type = '$PBooleanField';
   protected __typeName = 'BooleanField';

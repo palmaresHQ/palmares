@@ -65,12 +65,12 @@ export function auto(): AutoField<
  * ```
  */
 export class AutoField<
-  TType extends { create: any; read: any; update: any } = {
+  out TType extends { create: any; read: any; update: any } = {
     create: number | undefined | null;
     read: number;
     update: number | undefined | null;
   },
-  TDefinitions extends {
+  out TDefinitions extends {
     hasDefaultValue: boolean;
     unique: boolean;
     auto: boolean;
@@ -97,7 +97,7 @@ export class AutoField<
     engineInstance: DatabaseAdapter;
     customAttributes: any;
   },
-  TFieldOperationTypes = Pick<
+  out TFieldOperationTypes = Pick<
     FieldWithOperationTypeForSearch<number>,
     'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
   >

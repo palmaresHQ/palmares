@@ -26,7 +26,7 @@ export type ModelsFields<TModel> = TModel extends ModelType<{ fields: infer TFie
   ? TFields
   : never;
 
-type ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationOrRelatedName> = {
+type ForeignKeyFieldNameByRelationOrRelatedName<in out TModel, in out TRelationOrRelatedName> = {
   [TKey in keyof ModelsFields<TModel> as ModelsFields<TModel>[TKey] extends ForeignKeyField<
     any,
     infer TDefinitions,
@@ -43,7 +43,7 @@ type ForeignKeyFieldNameByRelationOrRelatedName<TModel, TRelationOrRelatedName> 
 // This will create an object where they keys are the relationName and the values are either unknown or
 // undefined.
 // If it's unknown it means it should return the object as it is. If it's undefined the object is optional.
-export type ForeignKeyModelsRelationName<TModel, TIncludedModel> = {
+export type ForeignKeyModelsRelationName<in out TModel, in out TIncludedModel> = {
   [TKey in keyof ModelsFields<TModel> as ModelsFields<TModel>[TKey] extends ForeignKeyField<
     any,
     infer TDefinitions,
@@ -131,7 +131,7 @@ type AddOperation<TField extends Field<any, any, any>> = TField extends
   ? TAllowedQueryOperations
   : never;
 
-type _GetDataFromModel<TModel, TType extends 'create' | 'update' | 'read' = 'read', TIsSearch = false> = {
+type _GetDataFromModel<in out TModel, TType extends 'create' | 'update' | 'read' = 'read', TIsSearch = false> = {
   [TKey in keyof ModelsFields<TModel>]: ModelsFields<TModel>[TKey] extends
     | Field<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
     | AutoField<{ create: infer TCreate; update: infer TUpdate; read: infer TRead }, any>
@@ -957,7 +957,7 @@ export class QuerySet<
 
       if (shouldBeQueriedBeforeBase)
         toQueryBeforeBase.push(async () => {
-          this.__duringQueryAppendFieldToBeLazyRemovedAfterQuery(querySet, fieldNameOnRelationToFilter);
+          this.__duringQueryAppendFieldToBeLazyRemovedAfterQuery(querySet as any, fieldNameOnRelationToFilter);
 
           const parentWhereClause = this['__query'].where ? this['__query'].where() : {};
           const toFilterOnParentModelAsSet = new Set();
@@ -1094,22 +1094,25 @@ export class QuerySet<
   }
 }
 export class CommonQuerySet<
-  TType extends 'get' | 'set' | 'remove',
-  TModel,
-  TResult = GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'read'>,
-  TUpdate = Partial<
+  in out TType extends 'get' | 'set' | 'remove',
+  in out TModel,
+  in out TResult = GetDataFromModel<
+    TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel,
+    'read'
+  >,
+  in out TUpdate = Partial<
     GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'update'>
   >,
-  TCreate = ModelFields<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel>,
-  TSearch = Partial<
+  in out TCreate = ModelFields<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel>,
+  in out TSearch = Partial<
     GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel, 'read', true>
   >,
-  TOrder = GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel>,
-  THasSearch extends boolean = false,
-  THasData extends boolean = false,
-  THasRemove extends boolean = false,
-  TIsJoin extends boolean = false,
-  TAlreadyDefinedRelations = never
+  in out TOrder = GetDataFromModel<TModel extends abstract new (...args: any) => any ? InstanceType<TModel> : TModel>,
+  in out THasSearch extends boolean = false,
+  in out THasData extends boolean = false,
+  in out THasRemove extends boolean = false,
+  in out TIsJoin extends boolean = false,
+  in out TAlreadyDefinedRelations = never
 > extends QuerySet<
   TType,
   TModel,

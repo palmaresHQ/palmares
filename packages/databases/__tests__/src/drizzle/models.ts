@@ -15,7 +15,7 @@ import {
 } from '@palmares/databases';
 
 import type * as d /*{ Company as DCompany, User as DUser }*/ from '../../.drizzle/schema';
-import { ModelOptionsType } from '@palmares/databases';
+import type { ModelOptionsType } from '@palmares/databases';
 
 class Authentication extends Manager<CompanyAbstract> {
   authenticate(username: string, password: string) {
@@ -79,7 +79,7 @@ export class User extends Model<User>() {
     companyId: ForeignKeyField.new({
       onDelete: ON_DELETE.CASCADE,
       relatedName: 'usersOfCompany',
-      relationName: 'company',
+      relationName: 'company2',
       toField: 'id',
       relatedTo: () => Company
     }),

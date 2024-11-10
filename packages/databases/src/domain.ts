@@ -25,7 +25,7 @@ export function loadDatabases(databaseDomains?: DatabaseDomainInterface[]) {
 
 const databaseDomainModifier = domain<{
   getModels: (
-    engineInstance: DatabaseAdapter
+    engineInstance: DatabaseAdapter<any>
   ) =>
     | Promise<Record<string, ReturnType<typeof BaseModel>> | ReturnType<typeof BaseModel>[]>
     | Record<string, ReturnType<typeof BaseModel>>
@@ -99,8 +99,8 @@ export const databasesDomain = domain('@palmares/database', '', {
   // eslint-disable-next-line ts/require-await
   getMigrations: async () => defaultMigrations,
   // eslint-disable-next-line ts/require-await
-  getModels: async (engineInstance: DatabaseAdapter) => {
-    if (engineInstance.migrations) return defaultModels;
+  getModels: async (engineInstance: DatabaseAdapter<any>) => {
+    if (engineInstance.migrations) return defaultModels as any;
     else return [];
   }
 });

@@ -67,12 +67,12 @@ export function uuid(): UuidField<
  * ```
  */
 export class UuidField<
-  TType extends { create: any; read: any; update: any } = {
+  out TType extends { create: any; read: any; update: any } = {
     create: string;
     read: string;
     update: string;
   },
-  TDefinitions extends {
+  out TDefinitions extends {
     unique: boolean;
     auto: boolean;
     allowNull: boolean;
@@ -101,7 +101,7 @@ export class UuidField<
     engineInstance: DatabaseAdapter;
     customAttributes: any;
   },
-  TFieldOperationTypes = Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
+  out TFieldOperationTypes = Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
 > extends TextField<TType, TDefinitions, TFieldOperationTypes> {
   protected $$type = '$PUuidField';
   protected __typeName = 'UuidField';

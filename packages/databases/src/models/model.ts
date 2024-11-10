@@ -1,20 +1,9 @@
 import { ModelCircularAbstractError, ModelNoPrimaryKeyFieldError, ModelNoUniqueFieldsError } from './exceptions';
-import {
-  AutoField,
-  BooleanField,
-  CharField,
-  DecimalField,
-  EnumField,
-  type Field,
-  ForeignKeyField,
-  IntegerField,
-  ON_DELETE,
-  UuidField
-} from './fields';
 import { DefaultManager, Manager } from './manager';
 import { factoryFunctionForModelTranslate, getDefaultModelOptions, indirectlyRelatedModels } from './utils';
 import { getUniqueCustomImports, hashString } from '../utils';
 
+import type { Field, ForeignKeyField } from './fields';
 import type { CustomImportsForFieldType } from './fields/types';
 import type {
   ManagersOfInstanceType,
@@ -656,7 +645,7 @@ export class Model extends BaseModelWithoutMethods {
  */
 export type ModelType<
   TModel,
-  TDefinitions extends {
+  in out TDefinitions extends {
     engineInstance: DatabaseAdapter;
     customOptions: any;
   } = {
@@ -906,6 +895,7 @@ export function initialize<
   return ModelConstructor as any;
 }
 
+/*
 class Authentication extends Manager<CompanyAbstract> {
   test() {
     return 'test';
@@ -985,10 +975,4 @@ export class User extends model<User>() {
     // instance: DUser
   } satisfies ModelOptionsType<User>;
 }
-
-/*
-async function main() {
-  await Company.default.set((qs) => qs.join(User, 'usersOfCompany', (qs) => qs.data({
-
-  })))
-}*/
+*/
