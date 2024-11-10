@@ -211,12 +211,12 @@ export class Databases {
       const modelInstance = new foundModel.model();
       const isModelManagedByEngine =
         // eslint-disable-next-line ts/no-unnecessary-condition
-        modelInstance.options?.abstract !== true &&
+        foundModel.model['_options'](modelInstance)?.abstract !== true &&
         // eslint-disable-next-line ts/no-unnecessary-condition
-        modelInstance.options?.managed !== false &&
+        foundModel.model['_options'](modelInstance)?.managed !== false &&
         // eslint-disable-next-line ts/no-unnecessary-condition
         (Array.isArray(modelInstance.options?.databases) === false ||
-          modelInstance.options.databases.includes(engineName) === true);
+          foundModel.model['_options'](modelInstance).databases.includes(engineName) === true);
 
       const modelName =
         (foundModel.model as unknown as typeof BaseModel & typeof Model)['__getName']() ||

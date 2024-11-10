@@ -14,7 +14,7 @@ The [@palmares/databases](https://www.npmjs.com/package/@palmares/databases) pac
 
 At its core it does nothing, at the same time it does everything!
 
-With 0 dependencies at its core (even no dependency on Node), you don't need to worry if it'll work on Expo. Without an adapter this will simply not do anything. But with the adapter this package offers you the ability to generate migrations, query your data and offer a really nice way to interact with your database.
+With 0 dependencies at its core (even no dependency on Node), you don't need to worry if it'll work on Expo, the Browser or even a Brain interface. Without an adapter this will simply not do anything. But with the adapter this package offers you the ability to generate migrations, query your data and offer a really nice way to interact with your database.
 
 Although we kinda see ourselves as an ORM, we are not **data frameworks** as drizzle like to call others like Django or Spring. You are not forced to build your project around our structure, although we think this is preferable most of the times, you are still free to use it the way you want, on your own existing projects without any hassle or problem.
 
@@ -24,7 +24,16 @@ Although we kinda see ourselves as an ORM, we are not **data frameworks** as dri
 
 **TIP:** This QuickStart uses [drizzle orm, reach out to their docs for reference](https://orm.drizzle.team/docs/overview)
 
-- **Step 1**. Create a `database.config.ts` with:
+- **Step 1**. Install a few more packages, and don't act like you cared about the number of dependencies on your projects
+
+```sh
+$ pnpm add @palmares/node-std @palmares/drizzle-engine
+$ npm i @palmares/node-std @palmares/drizzle-engine
+$ yarn i @palmares/node-std @palmares/drizzle-engine
+$ bun i @palmares/node-std @palmares/drizzle-engine
+```
+
+- **Step 2**. Create a `database.config.ts` with:
 
 ```ts
 import {
@@ -103,11 +112,13 @@ export default setDatabaseConfig({
 });
 ```
 
-- **Step 2**. Make your queries
+- **Step 3**. Make your queries
 
   - **Using your Palmares models:**
 
   ```ts
+  import './database.config'; // On this quickstart it's redundant, but make sure to initialize the DB before trying to query.
+
   import { Company, User } from './database.config';
 
   await Company.default.set((qs) =>
@@ -138,7 +149,7 @@ export default setDatabaseConfig({
 
   - **Using your favorite ORM**:
 
-    1. Create a file called `load.ts` and add the following:
+    1. Create a file called `load.ts` and add the following (You are responsible for your own CLI):
 
     ```ts
     import databasesConfig from './database.config';
@@ -146,7 +157,7 @@ export default setDatabaseConfig({
     databasesConfig.load();
     ```
 
-    2. Run (we are using to run typescript from the command line [tsx](https://tsx.is/)):
+    2. Run (we are using [tsx](https://tsx.is/) to run typescript from the command line):
 
     ```sh
     $ tsx load.ts

@@ -53,6 +53,7 @@ export class CreateModel extends Operation {
     returnOfInit: any
   ): Promise<void> {
     const toModel = toState[this.modelName];
+
     await engineInstance.migrations?.addModel(engineInstance, toModel, migration, returnOfInit);
   }
 

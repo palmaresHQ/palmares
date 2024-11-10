@@ -1,3 +1,5 @@
+import { utils } from '@palmares/core';
+
 import { ModelCircularAbstractError, ModelNoPrimaryKeyFieldError, ModelNoUniqueFieldsError } from './exceptions';
 import { DefaultManager, Manager } from './manager';
 import { factoryFunctionForModelTranslate, getDefaultModelOptions, indirectlyRelatedModels } from './utils';
@@ -403,6 +405,12 @@ export class BaseModel {
           modelInstance.options?.customOptions ||
           ((this.__cachedOptions as any) || ({} as any)).customOptions
       };
+
+      if (this.__cachedOptions.tableName === undefined) {
+        const modelName = this.__originalName();
+        const firstLetterLowerCase = modelName.charAt(0).toLowerCase() + modelName.slice(1);
+        this.__cachedOptions.tableName = utils.camelCaseToHyphenOrSnakeCase(firstLetterLowerCase);
+      }
     }
     return this.__cachedOptions;
   }
