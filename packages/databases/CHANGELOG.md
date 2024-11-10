@@ -1,5 +1,16 @@
 # @palmares/databases
 
+## 0.2.4
+
+### Patch Changes
+
+- 9268a32: - Fix docs with better explanation on how to use palmares/databases when on standalone.
+  - Fixed standalone to add palmares_migrations table when the engine runs.
+- Updated dependencies [9268a32]
+  - @palmares/core@0.2.1
+  - @palmares/events@0.1.1
+  - @palmares/logging@0.2.1
+
 ## 0.2.3
 
 ### Patch Changes

@@ -209,14 +209,14 @@ export class Databases {
 
     models.forEach((foundModel) => {
       const modelInstance = new foundModel.model();
+      const options = foundModel.model['_options'](modelInstance);
       const isModelManagedByEngine =
         // eslint-disable-next-line ts/no-unnecessary-condition
-        foundModel.model['_options'](modelInstance)?.abstract !== true &&
+        options?.abstract !== true &&
         // eslint-disable-next-line ts/no-unnecessary-condition
-        foundModel.model['_options'](modelInstance)?.managed !== false &&
+        options?.managed !== false &&
         // eslint-disable-next-line ts/no-unnecessary-condition
-        (Array.isArray(modelInstance.options?.databases) === false ||
-          foundModel.model['_options'](modelInstance).databases.includes(engineName) === true);
+        (Array.isArray(options?.databases) === false || options.databases.includes(engineName) === true);
 
       const modelName =
         (foundModel.model as unknown as typeof BaseModel & typeof Model)['__getName']() ||

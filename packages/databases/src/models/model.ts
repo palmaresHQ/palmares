@@ -406,10 +406,10 @@ export class BaseModel {
           ((this.__cachedOptions as any) || ({} as any)).customOptions
       };
 
-      if (this.__cachedOptions.tableName === undefined) {
+      if (this.__cachedOptions?.tableName === undefined) {
         const modelName = this.__originalName();
         const firstLetterLowerCase = modelName.charAt(0).toLowerCase() + modelName.slice(1);
-        this.__cachedOptions.tableName = utils.camelCaseToHyphenOrSnakeCase(firstLetterLowerCase);
+        (this.__cachedOptions as any).tableName = utils.camelCaseToHyphenOrSnakeCase(firstLetterLowerCase);
       }
     }
     return this.__cachedOptions;
@@ -902,85 +902,3 @@ export function initialize<
 
   return ModelConstructor as any;
 }
-
-/*
-class Authentication extends Manager<CompanyAbstract> {
-  test() {
-    return 'test';
-  }
-}
-export class CompanyAbstract extends model<CompanyAbstract>() {
-  fields = {
-    address: CharField.new({ maxLen: 255 }).allowNull()
-  };
-  options = {
-    tableName: 'companies',
-    abstract: true
-  };
-
-  static auth = new Authentication();
-}
-
-export const Company = initialize('Company', {
-  fields: {
-    id: AutoField.new(),
-    uuid: UuidField.new().auto(),
-    name: CharField.new({ maxLen: 255 })
-  },
-  abstracts: [CompanyAbstract],
-  options: {
-    tableName: 'companies'
-    //instance: DCompany
-  },
-  managers: {
-    test: {
-      async test(name: string) {
-        return this.get((qs) => qs.where({ name }));
-      }
-    }
-  }
-});
-
-export const ProfileType = initialize('ProfileType', {
-  fields: {
-    id: AutoField.new(),
-    name: CharField.new({ maxLen: 255 })
-  },
-  options: {
-    tableName: 'profile_type'
-  }
-});
-
-export class User extends model<User>() {
-  fields = {
-    id: AutoField.new(),
-    uuid: UuidField.new(),
-    name: CharField.new({ maxLen: 280 }).allowNull().dbIndex(),
-    age: IntegerField.new().dbIndex(),
-    userType: EnumField.new({ choices: ['admin', 'user'] }),
-    price: DecimalField.new({ maxDigits: 5, decimalPlaces: 2 }).allowNull(),
-    isActive: BooleanField.new().default(true),
-    companyId: ForeignKeyField.new({
-      onDelete: ON_DELETE.CASCADE,
-      relatedName: 'usersOfCompany',
-      relationName: 'company',
-      toField: 'id',
-      relatedTo: () => Company
-    }),
-    profileTypeId: ForeignKeyField.new({
-      relatedName: 'usersByProfileType',
-      relationName: 'profileType',
-      relatedTo: () => ProfileType,
-      toField: 'id',
-      onDelete: ON_DELETE.CASCADE
-    })
-      .allowNull()
-      .default(null)
-  };
-
-  options = {
-    tableName: 'users'
-    // instance: DUser
-  } satisfies ModelOptionsType<User>;
-}
-*/
