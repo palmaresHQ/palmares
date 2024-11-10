@@ -96,7 +96,7 @@ export default setDatabaseConfig({
       // @ts-ignore
       path: import.meta.dirname, // If your package.json does not contain the "type": "module" in it, change that to __dirname
       getMigrations: () => [],
-      getModels: () => [authenticatedUsers, questions],
+      getModels: () => [User, Company],
     },
   ],
   std: new NodeStd(),
