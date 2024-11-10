@@ -443,7 +443,8 @@ export async function initializeModels(
     if (engine.models.afterModelsTranslation) {
       const { modelEntries, modelsByName } = initializedModels.reduce(
         (acc, model) => {
-          if (model.original.options?.instance && (options || {}).forceTranslation !== true) return acc;
+          const optionsOfModel = model.class['_options']();
+          if (optionsOfModel && (options || {}).forceTranslation !== true) return acc;
           const modelName = model.class['__getName']();
           acc.modelsByName[modelName] = model;
           acc.modelEntries.push([modelName, model.initialized]);
