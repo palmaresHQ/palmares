@@ -44,6 +44,7 @@ const databasesBinDomain = domain('@palmares/databases', '', {
 
         const recursivelyCopyFiles = async (directoryToCreate: string, path: string) => {
           const templateFiles = await std.files.readDirectory(path);
+          console.log('Creating directory', directoryToCreate);
           await std.files.makeDirectory(directoryToCreate);
 
           await Promise.all(
@@ -53,11 +54,12 @@ const databasesBinDomain = domain('@palmares/databases', '', {
 
               try {
                 await std.files.readDirectory(filePath);
-                await std.files.makeDirectory(path);
-                recursivelyCopyFiles(fileOrFolder, filePath);
+                const newDirectoryPath = await std.files.join(directoryToCreate, fileNameRenamed);
+                recursivelyCopyFiles(newDirectoryPath, filePath);
               } catch (e) {
                 const fileContent = await std.files.readFile(filePath);
                 const newFilePath = await std.files.join(path, fileNameRenamed);
+                console.log('Creating file from', newFilePath, 'to', directoryToCreate);
                 await std.files.writeFile(
                   newFilePath,
                   fileContent.replace(`// eslint-disable-next-line ts/ban-ts-comment\n// @ts-nocheck\n`, '')
