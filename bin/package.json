@@ -6,7 +6,11 @@
   "module": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
   "bin": {
-    "create-palmares-app": "./dist/src/cli.js"
+    "create-palmares": "./dist/src/app.js"
+  },
+  "scripts": {
+    "test:app": "tsx ./src/app.ts",
+    "test:db": "tsx ./src/db.ts"
   },
   "files": [
     "dist",
@@ -38,5 +42,13 @@
   "bugs": {
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
-  "homepage": "https://github.com/palmaresHQ/palmares#readme"
+  "homepage": "https://github.com/palmaresHQ/palmares#readme",
+  "dependencies": {
+    "@palmares/core": "workspace:*",
+    "@palmares/node-std": "workspace:*",
+    "@palmares/databases": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2"
+  }
 }

@@ -80,7 +80,8 @@ export type DefaultCommandType = {
       | {
           [key: string]: {
             /**
-             * The description of the argument, try to explain in a few words what the argument does and what it is used for.
+             * The description of the argument, try to explain in a few words what the argument does and
+             * what it is used for.
              */
             description: string;
             /**
@@ -90,7 +91,8 @@ export type DefaultCommandType = {
              */
             required?: boolean;
             /**
-             * If can be multiple is set to true, you can use the argument multiple times. If you don't specify it, it will default to false.
+             * If can be multiple is set to true, you can use the argument multiple times. If you don't specify it,
+             * it will default to false.
              *
              * @default false
              */
@@ -108,19 +110,24 @@ export type DefaultCommandType = {
       | {
           [key: string]: {
             /**
-             * The description of the argument, try to explain in a few words what the argument does and what it is used for.
+             * The description of the argument, try to explain in a few words what the argument does and what
+             * it is used for.
              */
             description: string;
             /**
-             * Let's say you have an argument called `--name` and you want to be able to use `-n` instead of `--name`, you can set `hasFlag` to true and it will take the `n` and use it as acronym.
-             * If you have for example `--name` and `--number` and you set `hasFlag` for both of them, it will not work as expected, it will just work for the first one. If `name` comes before `number` in the command,
-             * it will work for `name`, if `number` comes before `name` in the command, it will work for `number`. If you don't specify it, it will default to false.
+             * Let's say you have an argument called `--name` and you want to be able to use `-n` instead of
+             * `--name`, you can set `hasFlag` to true and it will take the `n` and use it as acronym.
+             * If you have for example `--name` and `--number` and you set `hasFlag` for both of them, it will not
+             * work as expected, it will just work for the first one. If `name` comes before `number` in the command,
+             * it will work for `name`, if `number` comes before `name` in the command, it will work for `number`. If
+             * you don't specify it, it will default to false.
              *
              * @default false.
              */
             hasFlag?: boolean;
             /**
-             * If can be multiple is set to true, you can use the argument multiple times. If you don't specify it, it will default to false.
+             * If can be multiple is set to true, you can use the argument multiple times. If you don't specify it, it
+             * will default to false.
              *
              * @default false
              */
@@ -132,7 +139,8 @@ export type DefaultCommandType = {
              */
             default?: any;
             /**
-             * The type of the argument. If an array of string is provided, this will be all of the choices that the user can define. If you don't specify it, it will default to 'boolean'.
+             * The type of the argument. If an array of string is provided, this will be all of the choices that the
+             * user can define. If you don't specify it, it will default to 'boolean'.
              *
              * @default 'boolean'
              */
@@ -144,7 +152,8 @@ export type DefaultCommandType = {
      * This is the function that will be called when the command is executed.
      *
      * ADVANCED:
-     * If you return an AppServer from this function, we will initialize it. If you don't know what an AppServer is, don't worry about it.
+     * If you return an AppServer from this function, we will initialize it. If you don't know what an AppServer is,
+     * don't worry about it.
      */
     handler: (
       options: DomainHandlerFunctionArgs

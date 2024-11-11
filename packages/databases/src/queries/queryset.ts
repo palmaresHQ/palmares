@@ -410,6 +410,11 @@ export class QuerySet<
         fieldsInModelInstance = Object.keys(modelInstanceFields);
 
         const field = modelInstanceFields[key];
+        // eslint-disable-next-line ts/no-unnecessary-condition
+        if (!field) {
+          delete search[key];
+          return;
+        }
         const { input: inputFieldParser } = retrieveInputAndOutputParsersFromFieldAndCache(engine, model, key, field);
         const fieldInputParserFunction = inputFieldParser
           ? // eslint-disable-next-line ts/require-await
@@ -510,6 +515,7 @@ export class QuerySet<
     if (differenceBetweenFieldsOnQueryAndFieldsOnModel.size > 0) {
       const modelFields = model['_fields']();
       for (const field of differenceBetweenFieldsOnQueryAndFieldsOnModel) {
+        if (!field) continue;
         retrieveInputAndOutputParsersFromFieldAndCache(engine, model, field, modelFields[field]);
       }
     }
@@ -623,6 +629,7 @@ export class QuerySet<
       if (fieldsWithInputParser.size > 0) {
         const fieldsOfModel = model['_fields']();
         for (const field of fieldsWithInputParser) {
+          if (!field) continue;
           const { input } = retrieveInputAndOutputParsersFromFieldAndCache(engine, model, field, fieldsOfModel[field]);
           for (const data of dataToSaveOrUpdate) {
             data[field] = await input!({
@@ -731,6 +738,7 @@ export class QuerySet<
       for (const dataItem of awaitedCachedData) {
         await Promise.all(
           fieldsWithOutputParserAsArray.map(async (field) => {
+            if (!field) return;
             const { output } = retrieveInputAndOutputParsersFromFieldAndCache(
               engine,
               model,

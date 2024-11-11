@@ -182,7 +182,7 @@ function callTranslateAndAppendInputAndOutputParsersToField(
   args: Parameters<EngineFieldParser['translate']>[0]
 ) {
   // eslint-disable-next-line ts/no-unnecessary-condition
-  if (engineFieldParser) {
+  if (engineFieldParser && field) {
     retrieveInputAndOutputParsersFromFieldAndCache(engine, model, field['__fieldName'], field);
     return engineFieldParser.translate(args);
   } else throw new EngineDoesNotSupportFieldTypeException(connectionName, field['__typeName']);
