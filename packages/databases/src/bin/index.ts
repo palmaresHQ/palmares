@@ -1,1 +1,1 @@
-export { default as databasesBinDomain } from './domain';
+export { default as databasesBinDomainBuilder } from './domain';

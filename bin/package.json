@@ -46,7 +46,9 @@
   "dependencies": {
     "@palmares/core": "workspace:*",
     "@palmares/node-std": "workspace:*",
-    "@palmares/databases": "workspace:*"
+    "@palmares/databases": "workspace:*",
+    "@palmares/console-logging": "workspace:*",
+    "@palmares/logging": "workspace:*"
   },
   "devDependencies": {
     "tsx": "^4.19.2"

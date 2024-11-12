@@ -116,6 +116,24 @@ export const databaseLogger = new Logger(
           ` and contain wrong or missing data\n\n${errorsByField}`
         );
       }
+    },
+    CREATE_PALMARES_DB_APP: {
+      category: 'info',
+      handler: ({ name, template }: { name: string; template: string }) =>
+        `Creating Palmares database app '${name}' using the template '${template}'`
+    },
+    DONE_CREATING_PALMARES_DB_APP: {
+      category: 'info',
+      handler: ({ name, template }: { name: string; template: string }) =>
+        `Done creating Palmares database app '${name}' using the template '${template}' \n\nNext steps:\n\n` +
+        `1. cd ${name}\n\n` +
+        `2. Install the dependencies with your favorite package manager:\n- $ pnpm i\n- $ yarn\n` +
+        `- $ npm i\n- $ bun i\n\n` +
+        `3. Create the migrations:\n- $ pnpm run makemigrations\n- $ yarn run makemigrations\n` +
+        `- $ npm run makemigrations\n- $ bun run makemigrations\n\n` +
+        `4. Apply the migrations:\n- $ pnpm run migrate\n- $ yarn run migrate\n` +
+        `- $ npm run migrate\n- $ bun run migrate\n\n` +
+        `5. Start the application:\n- $ pnpm run dev\n- $ yarn run dev\n- $ npm run dev\n- $ bun run dev`
     }
   }
 );

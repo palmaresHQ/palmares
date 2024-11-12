@@ -70,7 +70,7 @@ export type { DatabaseDomainInterface } from './interfaces';
 export { databaseDomainModifier } from './domain';
 export { generateUUID } from './utils/index';
 export { queryset } from './queries/utils';
-export { databasesBinDomain } from './bin';
+export { databasesBinDomainBuilder } from './bin';
 
 export type { ForeignKeyModelsRelatedName, ForeignKeyModelsRelationName } from './queries/queryset';
 export { DatabasesDomain };
