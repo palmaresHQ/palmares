@@ -12,5 +12,5 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
   },
-  "include": ["src/**/*.ts", "database.config.ts", "drizzle.config.ts", "migrate.ts"],
+  "include": ["src/**/*.ts", "database.config.ts", "drizzle.config.ts", "migrate.ts", "load.ts"],
 }

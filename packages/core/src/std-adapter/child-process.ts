@@ -1,5 +1,5 @@
 export interface ChildProcess {
-  executeAndOutput: (command: string) => Promise<string>;
+  executeAndOutput: (command: string, options?: { liveOutput?: boolean }) => Promise<string>;
   spawn: (
     command: string,
     args: string[],

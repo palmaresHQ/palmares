@@ -8,6 +8,7 @@
   "require": "./dist/index.cjs",
   "scripts": {
     "lint": "eslint .",
+    "load": "tsx load.ts",
     "makemigrations": "drizzle-kit generate",
     "migrate": "tsx migrate.ts",
     "dev": "tsx ./src/index.ts",
@@ -16,10 +17,13 @@
   "dependencies": {
     "@palmares/databases": "${version}",
     "@palmares/drizzle-engine": "${version}",
-    "@palmares/node-std": "${version}"
+    "@palmares/node-std": "${version}",
+    "better-sqlite3": "${version}"
   },
   "devDependencies": {
     "@types/node": "${version}",
+    "@types/better-sqlite3": "${version}",
+    "drizzle-kit": "${version}",
     "@eslint/js": "${version}",
     "globals": "${version}",
     "eslint": "${version}",
@@ -29,3 +33,4 @@
     "tsx": "${version}"
   }
 }
+

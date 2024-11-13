@@ -6,9 +6,13 @@
   "module": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
   "bin": {
-    "create-palmares": "./dist/src/app.js"
+    "please-palmares": "./dist/src/app.js",
+    "pp": "./dist/src/app.js",
+    "palmares": "./dist/src/app.js"
   },
   "scripts": {
+    "clear": "rimraf ./dist && rimraf ./templates && mkdir ./templates",
+    "build:all": "pnpm run clear && pnpm -w run copy:templates",
     "test:app": "tsx ./src/app.ts",
     "test:db": "tsx ./src/db.ts"
   },
@@ -46,7 +50,6 @@
   "dependencies": {
     "@palmares/core": "workspace:*",
     "@palmares/node-std": "workspace:*",
-    "@palmares/databases": "workspace:*",
     "@palmares/console-logging": "workspace:*",
     "@palmares/logging": "workspace:*"
   },
