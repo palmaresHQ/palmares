@@ -20,10 +20,10 @@
   "scripts": {
     "lint": "eslint . --ignore-pattern .gitignore",
     "define:change": "pnpm changeset",
-    "release:apply": "pnpm changeset version",
-    "release:publish": "pnpm changeset publish --filter @palmares/*",
+    "release:apply": "pnpm changeset version --filter @palmares/* --filter=palmares",
+    "release:publish": "pnpm changeset publish --filter @palmares/* --filter=palmares",
     "release:github": "tsx scripts/release/index.ts",
-    "release": "pnpm run build && pnpm run release:apply && pnpm run release:publish && pnpm run release:github",
+    "release": "pnpm run copy:templates && pnpm run build && pnpm run release:apply && pnpm run release:publish && pnpm run release:github",
     "docs:dev": "cd docs && pnpm run docs:dev",
     "publish": "turbo run publish",
     "build": "turbo run build",

@@ -4,7 +4,8 @@ import { ConsoleLogging } from '@palmares/console-logging';
 import { Commands, CoreDomain, defineSettings, domain, getDefaultStd } from '@palmares/core';
 import { Logger, loggingDomain } from '@palmares/logging';
 import { NodeStd } from '@palmares/node-std';
-import { recursivelyCopyFilesFromTemplate } from 'utils';
+
+import { recursivelyCopyFilesFromTemplate } from './utils';
 
 import type { ExtractCommandsType } from '@palmares/core';
 

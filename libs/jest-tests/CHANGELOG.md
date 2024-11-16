@@ -1,5 +1,13 @@
 # @palmares/jest-tests
 
+## 0.2.3
+
+### Patch Changes
+
+- 00aa84d: - Changed the API of the integrators, now the integrators don't need to define a customOptions function, it will be available when the properly define the customOptions on the translate method.
+- Updated dependencies [00aa84d]
+  - @palmares/tests@0.2.3
+
 ## 0.2.2
 
 ### Patch Changes
