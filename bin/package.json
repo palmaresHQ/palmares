@@ -1,5 +1,5 @@
 {
-  "name": "create-palmares-app",
+  "name": "palmares",
   "version": "0.0.0",
   "description": "Scaffolds a new palmares application for you. Palmares is a framework that helps you to write and run javascript on the server",
   "main": "./dist/src/index.cjs",

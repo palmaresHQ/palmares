@@ -55,8 +55,26 @@ const cpaDomain = domain('palmares', '', {
         const fullPath = await std.files.join(basePath, '..', 'templates');
         const allApps = await std.files.readDirectory(fullPath);
         const commandLineArgs = args.commandLineArgs as ExtractCommandsType<typeof cpaDomain, 'new'>;
-        const appType = commandLineArgs.positionalArgs.appType;
+        let appType = commandLineArgs.positionalArgs.appType;
         let name = commandLineArgs.positionalArgs.name;
+
+        if (!appType) {
+          const appNameOptions = allApps.reduce(
+            (accumulator, app, index) => {
+              accumulator[index] = app;
+              return accumulator;
+            },
+            {} as Record<string, string>
+          );
+          const appTypeOption = await std.asker.askClearingScreen(
+            [
+              `\x1b[1mWhich app you want to create?\x1b[0m`,
+              ...Object.entries(appNameOptions).map(([key, value]) => `${key}. ${value}`)
+            ],
+            (answer) => `\x1b[1mWhich app you want to create?\x1b[0m ` + `\x1b[32m${appNameOptions[answer]}\x1b[0m`
+          );
+          appType = appNameOptions[appTypeOption];
+        }
 
         if (!appType)
           throw new Error(
