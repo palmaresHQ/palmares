@@ -1,12 +1,20 @@
 import { databasesDomain as DatabasesDomain } from './domain';
 import { model as Model, Model as ModelBaseClass } from './models';
 import * as fields from './models/fields';
-import { AutoField, CharField, ForeignKeyField, ON_DELETE, TextField } from './models/fields';
 import { Manager } from './models/manager';
 import { initialize, model } from './models/model';
-import { type ForeignKeyModelsRelatedName, type ForeignKeyModelsRelationName, QuerySet } from './queries/queryset';
 
 import type { DatabaseAdapter } from './engine';
+import type { AutoField, BigIntegerField } from './models/fields';
+import type {
+  ExtractFieldNameOptionsOfModel,
+  ExtractFieldOperationTypeForSearch,
+  ExtractTypeFromFieldOfAModel,
+  FieldWithOperationTypeForSearch
+} from './models/fields/types';
+import type { ModelType } from './models/model';
+import type { ModelFieldsType, ModelOptionsType } from './models/types';
+import type { ExtractFieldsFromAbstracts, ExtractManagersFromAbstracts } from './types';
 
 export { Manager };
 export { GetQuerySet, QuerySet, RemoveQuerySet, SetQuerySet } from './queries/queryset';
@@ -70,122 +78,438 @@ export type { DatabaseDomainInterface } from './interfaces';
 export { databaseDomainModifier } from './domain';
 export { generateUUID } from './utils/index';
 export { queryset } from './queries/utils';
-export { databasesBinDomainBuilder } from './bin';
 
 export type { ForeignKeyModelsRelatedName, ForeignKeyModelsRelationName } from './queries/queryset';
 export { DatabasesDomain };
 export { setDatabaseConfig } from './standalone';
 export default DatabasesDomain;
-/*
-class Test extends Manager {
-  createUser(aqui: string) {
-    //return this.get({ fields: ['firstName'] });
-  }
-}
 
-class Profile extends Model<Profile>() {
-  fields = {
-    id: AutoField.new(),
-    type: CharField.new({ maxLen: 12 }),
-    userId: ForeignKeyField.new({
-      relatedName: 'profilesOfUser',
-      relationName: 'user',
-      relatedTo: (_: { create: string; read: string; update: string }) => baseUserInstance,
-      toField: 'id',
-      onDelete: ON_DELETE.CASCADE
-    })
-  };
-
-  options = {
-    tableName: 'profile'
-  };
-}
-
-const Contract = initialize('Contract', {
-  fields: {
-    id: AutoField.new(),
-    name: CharField.new({ maxLen: 12 })
-  },
-  options: {
-    tableName: 'contract'
-  }
-});
-
-const User2 = initialize('AbstractUser', {
-  fields: {
-    firstName: TextField.new()
-  },
-  options: {
-    abstract: true
-  },
-  managers: {
-    test: new Test()
-  }
-});
-
-const baseUserInstance = initialize('User', {
-  fields: {
-    lastName: CharField.new({ maxLen: 12 }).allowNull(),
-    profileId: ForeignKeyField.new({
-      onDelete: ON_DELETE.CASCADE,
-      relatedName: 'usersOfProfile',
-      relationName: 'profile',
-      relatedTo: () => Profile,
-      toField: 'type'
-    })
-      .allowNull(true)
-      .unique(true),
-    contractId: ForeignKeyField.new({
-      onDelete: ON_DELETE.CASCADE,
-      relatedName: 'usersOfContract',
-      relationName: 'contract',
-      relatedTo: () => Contract,
-      toField: 'id'
-    }),
-    contractorId: ForeignKeyField.new({
-      onDelete: ON_DELETE.CASCADE,
-      relatedName: 'usersOfContractor',
-      relationName: 'contractor',
-      relatedTo: () => Contract,
-      toField: 'id'
-    })
-  },
-  options: {
-    tableName: 'user'
-  },
-  abstracts: [User2]
-});
-*/
-//const qs = QuerySet.new<InstanceType<typeof baseUserInstance>, 'set'>('set');
-/*
-const newQs = QuerySet.new<Profile, 'get'>('get').join(baseUserInstance, 'usersOfProfile', (qs) =>
-  qs.where({ firstName: 'a' })
-);
-newQs['__queryTheData'](Profile, undefined as any);
-
-const qs = QuerySet.new<InstanceType<typeof baseUserInstance>, 'set'>('set').join(Profile, 'profile', (qs) =>
-  qs.where({ type: 'admin' })
-);
-qs['__queryTheData'](baseUserInstance, undefined as any);
-*/
-/*
-const newQs2 = QuerySet.new<Profile, 'set'>('set').join(baseUserInstance, 'usersOfProfile', (qs) =>
-  qs.where({ firstName: 'a' })
-);
-newQs2['__queryTheData'](Profile, undefined as any);
-*/
-/*
-const modelOfDA = await baseUserInstance.default.getInstance<DatabaseAdapter<InstanceType<typeof baseUserInstance>>>();
-const test2 = await baseUserInstance.default.get((qs) =>
-  qs.where({
-    firstName: {
-      and: ['a', 'b']
+/**
+ * Retrieves the model and fields with the default adapter previously assigned.
+ *
+ * This way you can have typesafety when defining custom attributes for the models and the fields.
+ *
+ * @returns - An object that you can export and use to create your models and fields.
+ */
+export function getDatabasesWithDefaultAdapter<TAdapter extends typeof DatabaseAdapter<any>>() {
+  return {
+    define: <
+      TTypeName extends string,
+      const TCustomOptions extends Parameters<InstanceType<TAdapter>['models']['translate']>[5],
+      const TFields extends ModelFieldsType,
+      const TAbstracts extends readonly {
+        new (): {
+          fields: any;
+          options?: any;
+        };
+      }[],
+      const TOptions extends ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }, TCustomOptions>,
+      TManagers extends {
+        [managerName: string]:
+          | Manager<any, { customOptions: TCustomOptions; engineInstance: InstanceType<TAdapter> }>
+          | {
+              [functionName: string]: (
+                this: Manager<
+                  ReturnType<
+                    typeof model<{
+                      fields: ExtractFieldsFromAbstracts<TFields, TAbstracts>;
+                      options: TOptions;
+                    }>
+                  > & {
+                    fields: ExtractFieldsFromAbstracts<TFields, TAbstracts>;
+                    options: TOptions;
+                    // eslint-disable-next-line no-shadow
+                  },
+                  { customOptions: TCustomOptions; engineInstance: InstanceType<TAdapter> }
+                >,
+                ...args: any
+              ) => any;
+            };
+      }
+    >(
+      modelName: TTypeName,
+      args: {
+        fields: TFields;
+        options?: TOptions;
+        abstracts?: TAbstracts;
+        managers?: TManagers;
+      }
+    ): (TManagers extends undefined
+      ? unknown
+      : ExtractManagersFromAbstracts<TAbstracts> & {
+          [TManagerName in keyof TManagers]: Manager<
+            any,
+            { customOptions: TCustomOptions; engineInstance: InstanceType<TAdapter> }
+          > & {
+            [TFunctionName in keyof TManagers[TManagerName]]: TManagers[TManagerName][TFunctionName];
+          };
+        }) &
+      ModelType<
+        { fields: ExtractFieldsFromAbstracts<TFields, TAbstracts>; options: TOptions },
+        { engineInstance: InstanceType<TAdapter>; customOptions: TCustomOptions }
+      > => {
+      return initialize(modelName, args) as any;
+    },
+    Model: <
+      TModel,
+      TDefinitions extends {
+        engineInstance: InstanceType<TAdapter>;
+        customOptions: any;
+      } = {
+        engineInstance: InstanceType<TAdapter>;
+        customOptions: any;
+      }
+    >(): ModelType<TModel, TDefinitions> => model() as any,
+    fields: {
+      auto: (
+        ..._args: any[]
+      ): AutoField<
+        {
+          create: number | undefined;
+          read: number;
+          update: number | undefined;
+        },
+        {
+          unique: true;
+          allowNull: true;
+          dbIndex: true;
+          underscored: true;
+          isPrimaryKey: true;
+          auto: true;
+          hasDefaultValue: false;
+          defaultValue: undefined;
+          typeName: string;
+          databaseName: undefined;
+          engineInstance: InstanceType<TAdapter>;
+          customAttributes: any;
+        },
+        Pick<
+          FieldWithOperationTypeForSearch<number>,
+          'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
+        >
+      > => fields.AutoField.new(..._args) as any,
+      bigAuto: (
+        ..._args: any[]
+      ): fields.BigAutoField<
+        {
+          create: number | bigint | undefined | null;
+          read: number | bigint;
+          update: number | bigint | undefined | null;
+        },
+        {
+          unique: true;
+          allowNull: true;
+          dbIndex: true;
+          underscored: true;
+          isPrimaryKey: true;
+          auto: true;
+          hasDefaultValue: false;
+          defaultValue: undefined;
+          typeName: string;
+          databaseName: undefined;
+          engineInstance: InstanceType<TAdapter>;
+          customAttributes: any;
+        },
+        Pick<
+          FieldWithOperationTypeForSearch<number | bigint>,
+          'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
+        >
+      > => fields.BigAutoField.new(..._args) as any,
+      bigInt: (
+        ..._args: any[]
+      ): BigIntegerField<
+        {
+          create: bigint | number;
+          read: bigint | number;
+          update: bigint | number;
+        },
+        {
+          unique: false;
+          allowNull: false;
+          dbIndex: false;
+          underscored: true;
+          isPrimaryKey: false;
+          auto: false;
+          hasDefaultValue: false;
+          defaultValue: undefined;
+          typeName: string;
+          databaseName: undefined;
+          engineInstance: InstanceType<TAdapter>;
+          customAttributes: any;
+        },
+        Pick<
+          FieldWithOperationTypeForSearch<bigint | number>,
+          'lessThan' | 'greaterThan' | 'and' | 'in' | 'or' | 'eq' | 'is' | 'between'
+        >
+      > => fields.BigIntegerField.new(..._args) as any,
+      int: (
+        ..._args: any[]
+      ): fields.IntegerField<
+        {
+          create: number;
+          read: number;
+          update: number;
+        },
+        {
+          unique: false;
+          allowNull: false;
+          dbIndex: false;
+          underscored: true;
+          isPrimaryKey: false;
+          auto: false;
+          defaultValue: undefined;
+          hasDefaultValue: false;
+          typeName: string;
+          databaseName: undefined;
+          engineInstance: InstanceType<TAdapter>;
+          customAttributes: any;
+        },
+        Pick<
+          FieldWithOperationTypeForSearch<number>,
+          'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'
+        >
+      > => fields.IntegerField.new(..._args) as any,
+      text: (
+        ..._args: any[]
+      ): fields.TextField<
+        {
+          create: string;
+          read: string;
+          update: string;
+        },
+        {
+          unique: false;
+          allowNull: false;
+          dbIndex: false;
+          underscored: true;
+          allowBlank: true;
+          isPrimaryKey: false;
+          auto: false;
+          hasDefaultValue: false;
+          defaultValue: undefined;
+          typeName: string;
+          databaseName: undefined;
+          engineInstance: InstanceType<TAdapter>;
+          customAttributes: any;
+        },
+        Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
+      > => fields.TextField.new(..._args) as any,
+      char: <const TMaxCharLength extends number>(args: {
+        maxLen: TMaxCharLength;
+      }): fields.CharField<
+        {
+          create: string;
+          read: string;
+          update: string;
+        },
+        {
+          unique: false;
+          allowNull: false;
+          dbIndex: false;
+          underscored: true;
+          allowBlank: true;
+          isPrimaryKey: false;
+          auto: false;
+          defaultValue: undefined;
+          typeName: string;
+          hasDefaultValue: false;
+          databaseName: undefined;
+          engineInstance: InstanceType<TAdapter>;
+          customAttributes: any;
+          maxLength: TMaxCharLength;
+        },
+        Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
+      > => fields.CharField.new(args) as any,
+      uuid: (
+        ..._args: any[]
+      ): fields.UuidField<
+        {
+          create: string;
+          read: string;
+          update: string;
+        },
+        {
+          unique: false;
+          allowNull: false;
+          allowBlank: true;
+          dbIndex: false;
+          underscored: true;
+          isPrimaryKey: false;
+          auto: false;
+          hasDefaultValue: false;
+          defaultValue: undefined;
+          typeName: string;
+          databaseName: undefined;
+          engineInstance: DatabaseAdapter;
+          customAttributes: any;
+        },
+        Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>
+      > => fields.UuidField.new(..._args) as any,
+      date: (
+        ..._args: any[]
+      ): fields.DateField<
+        {
+          create: string | Date;
+          read: string | Date;
+          update: string | Date;
+        },
+        {
+          unique: false;
+          allowNull: false;
+          dbIndex: false;
+          underscored: true;
+          isPrimaryKey: false;
+          auto: false;
+          hasDefaultValue: false;
+          defaultValue: undefined;
+          typeName: string;
+          databaseName: undefined;
+          engineInstance: InstanceType<TAdapter>;
+          customAttributes: any;
+          autoNow: false;
+          autoNowAdd: false;
+        },
+        Pick<
+          FieldWithOperationTypeForSearch<string | Date>,
+          'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'
+        >
+      > => fields.DateField.new(..._args) as any,
+      decimal: <const TMaxDigits extends number, const TDecimalPlaces extends number>(params: {
+        maxDigits: TMaxDigits;
+        decimalPlaces: TDecimalPlaces;
+      }): fields.DecimalField<
+        {
+          create: number | string;
+          read: number | string;
+          update: number | string;
+        },
+        {
+          unique: false;
+          allowNull: false;
+          dbIndex: false;
+          underscored: true;
+          isPrimaryKey: false;
+          auto: false;
+          hasDefaultValue: false;
+          defaultValue: undefined;
+          typeName: string;
+          databaseName: undefined;
+          engineInstance: InstanceType<TAdapter>;
+          customAttributes: any;
+          maxDigits: TMaxDigits;
+          decimalPlaces: TDecimalPlaces;
+        },
+        Pick<
+          FieldWithOperationTypeForSearch<string | number>,
+          'greaterThan' | 'lessThan' | 'between' | 'and' | 'in' | 'or' | 'eq' | 'is'
+        >
+      > => fields.DecimalField.new(params) as any,
+      boolean: (
+        ...args: any[]
+      ): fields.BooleanField<
+        {
+          create: boolean;
+          read: boolean;
+          update: boolean;
+        },
+        {
+          unique: false;
+          allowNull: false;
+          dbIndex: false;
+          underscored: true;
+          isPrimaryKey: false;
+          auto: false;
+          hasDefaultValue: false;
+          defaultValue: undefined;
+          typeName: string;
+          databaseName: undefined;
+          engineInstance: InstanceType<TAdapter>;
+          customAttributes: any;
+        },
+        Pick<FieldWithOperationTypeForSearch<boolean>, 'and' | 'in' | 'or' | 'eq' | 'is'>
+      > => fields.BooleanField.new(...args) as any,
+      enum: <const TChoices extends string[]>(args: {
+        choices: TChoices;
+      }): fields.EnumField<
+        {
+          create: TChoices[number];
+          read: TChoices[number];
+          update: TChoices[number];
+        },
+        {
+          unique: false;
+          allowNull: false;
+          dbIndex: false;
+          underscored: true;
+          isPrimaryKey: false;
+          auto: false;
+          defaultValue: undefined;
+          typeName: string;
+          hasDefaultValue: false;
+          databaseName: undefined;
+          engineInstance: InstanceType<TAdapter>;
+          customAttributes: any;
+          choices: TChoices;
+        },
+        Pick<FieldWithOperationTypeForSearch<TChoices[number]>, 'and' | 'in' | 'or' | 'eq' | 'is'>
+      > => fields.EnumField.new(args) as any,
+      foreignKey: <
+        const TRelatedTo extends any | (() => any) | ((_: { create: any; read: any; update: any }) => any),
+        const TForeignKeyParams extends {
+          toField: ExtractFieldNameOptionsOfModel<TRelatedTo>;
+          onDelete: fields.ON_DELETE;
+          relatedName: string;
+          relationName: string;
+        }
+      >(
+        params: TForeignKeyParams & {
+          relatedTo: TRelatedTo;
+        }
+      ): fields.ForeignKeyField<
+        {
+          create: TRelatedTo extends () => any
+            ? ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'create'>
+            : TRelatedTo extends (_: { create: any; read: any; update: any }) => any
+              ? TRelatedTo extends (_: { create: infer TCreate; read: any; update: any }) => any
+                ? TCreate
+                : never
+              : ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'create'>;
+          read: TRelatedTo extends () => any
+            ? ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'read'>
+            : TRelatedTo extends (_: { create: any; read: any; update: any }) => any
+              ? TRelatedTo extends (_: { create: any; read: infer TRead; update: any }) => any
+                ? TRead
+                : never
+              : ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'read'>;
+          update: TRelatedTo extends () => any
+            ? ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'update'>
+            : TRelatedTo extends (_: { create: any; read: any; update: any }) => any
+              ? TRelatedTo extends (_: { create: any; read: any; update: infer TUpdate }) => any
+                ? TUpdate
+                : never
+              : ExtractTypeFromFieldOfAModel<TRelatedTo, TForeignKeyParams['toField'], 'update'>;
+        },
+        {
+          onDelete: TForeignKeyParams['onDelete'];
+          relatedName: TForeignKeyParams['relatedName'];
+          relationName: TForeignKeyParams['relationName'];
+          toField: TForeignKeyParams['toField'];
+          unique: false;
+          auto: false;
+          allowNull: false;
+          dbIndex: false;
+          isPrimaryKey: false;
+          defaultValue: any;
+          hasDefaultValue: false;
+          underscored: true;
+          typeName: string;
+          databaseName: string | undefined;
+          engineInstance: InstanceType<TAdapter>;
+          customAttributes: any;
+          relatedTo: TRelatedTo;
+        },
+        ExtractFieldOperationTypeForSearch<TRelatedTo, TForeignKeyParams['toField']>
+      > => fields.ForeignKeyField.new(params) as any
     }
-  })
-);
-test2.firstName;
-//test2.profile.type;
-/*const test = await Profile.default.get((qs) =>
-  qs.join(baseUserInstance, 'usersOfProfile', (qs) => qs.select(['firstName']))
-);
-*/
+  };
+}

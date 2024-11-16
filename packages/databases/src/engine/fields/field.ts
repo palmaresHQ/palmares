@@ -173,7 +173,13 @@ export function adapterFieldParser<
    * @returns - The parsed value for the user for that specific field.
    */
   outputParser?: TOutputParserFunction;
-}) {
+}): typeof AdapterFieldParser & {
+  new (): AdapterFieldParser & {
+    translate: TTranslateFunction;
+    inputParser: TInputParserFunction;
+    outputParser: TOutputParserFunction;
+  };
+} {
   class CustomAdapterFieldParser extends AdapterFieldParser {
     translate = args.translate;
     inputParser = args.inputParser as TInputParserFunction;

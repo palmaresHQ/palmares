@@ -17,7 +17,28 @@ export type ManagerEngineInstancesType = {
 };
 
 export type ModelFieldsType = {
-  [fieldName: string | symbol]: Field<any, any, any>;
+  [fieldName: string | symbol]: Field<
+    {
+      create: any;
+      read: any;
+      update: any;
+    },
+    {
+      unique: boolean;
+      auto: boolean;
+      allowNull: boolean;
+      dbIndex: boolean;
+      isPrimaryKey: boolean;
+      hasDefaultValue: boolean;
+      defaultValue: any;
+      underscored: boolean;
+      typeName: string;
+      databaseName: string | undefined;
+      engineInstance: DatabaseAdapter;
+      customAttributes: any;
+    },
+    any
+  >;
 };
 
 export type ManagersOfInstanceType = {
@@ -111,7 +132,7 @@ export type onRemoveFunction<TModel = any> = (args: {
 /**
  * Those are the options that you can pass to the model.
  */
-export type ModelOptionsType<TModel = any> = {
+export type ModelOptionsType<TModel = any, TCustomOptions = any> = {
   indexes?: ModelIndexType<FieldsOFModelType<TModel>>[];
   ordering?: OrderingOfModelOptions<FieldsOFModelType<TModel>>;
   /**
@@ -125,7 +146,7 @@ export type ModelOptionsType<TModel = any> = {
   tableName?: string;
   managed?: boolean;
   databases?: string[];
-  customOptions?: any;
+  customOptions?: TCustomOptions;
   /** The translated instance, with that we bypass the model translation step we just assign it directly
    * to the instance.
    * P.S.: Make sure that the instance is up to date with the model, otherwise you will have problems

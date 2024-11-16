@@ -28,7 +28,31 @@ export function databaseAdapter<
   isConnected?: TFunctionIsConnected;
   close: TFunctionClose;
   transaction: TFunctionTransaction;
-}) {
+}): typeof DatabaseAdapter<
+  ReturnType<Awaited<ReturnType<TFunctionNew>>[1]>['instance'],
+  TFieldsAdapter,
+  TModelsAdapter,
+  TQueryAdapter,
+  TMigrationsAdapter
+> & {
+  new (): DatabaseAdapter<
+    ReturnType<Awaited<ReturnType<TFunctionNew>>[1]>['instance'],
+    TFieldsAdapter,
+    TModelsAdapter,
+    TQueryAdapter,
+    TMigrationsAdapter
+  > & {
+    fields: TFieldsAdapter;
+    models: TModelsAdapter;
+    query: TQueryAdapter;
+    migrations: TMigrationsAdapter;
+    duplicate: TFunctionDuplicate;
+    isConnected: TFunctionIsConnected;
+    close: TFunctionClose;
+    transaction: TFunctionTransaction;
+  };
+  new: TFunctionNew;
+} {
   class CustomDatabaseAdapter extends DatabaseAdapter<
     ReturnType<Awaited<ReturnType<TFunctionNew>>[1]>['instance'],
     TFieldsAdapter,
@@ -49,7 +73,7 @@ export function databaseAdapter<
     transaction = args.transaction;
   }
 
-  return CustomDatabaseAdapter;
+  return CustomDatabaseAdapter as any;
 }
 
 /**

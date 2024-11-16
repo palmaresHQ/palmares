@@ -524,8 +524,8 @@ export function factoryFunctionForModelTranslate(
     for (const [fieldName, field] of fieldEntriesOfModel) {
       const translatedAttributes =
         typeof engine.fields.translateField === 'function'
-          ? await engine.fields.translateField(engine, field, defaultParseFieldCallback)
-          : await defaultParseFieldCallback(field);
+          ? await engine.fields.translateField(engine, field as any, defaultParseFieldCallback)
+          : await defaultParseFieldCallback(field as any);
 
       const isTranslatedAttributeDefined = translatedAttributes !== undefined && translatedAttributes !== null;
       if (isTranslatedAttributeDefined) translatedFieldDataByFieldName[fieldName] = translatedAttributes;
@@ -547,7 +547,7 @@ export function factoryFunctionForModelTranslate(
           engine,
           modelName,
           model,
-          fieldEntriesOfModel,
+          fieldEntriesOfModel as any,
           modelOptions,
           modelOptions.customOptions,
           async () => {
@@ -557,7 +557,7 @@ export function factoryFunctionForModelTranslate(
                 ? await engine.models.translateFields.bind(engine.models)(
                     engine,
                     modelName,
-                    fieldEntriesOfModel,
+                    fieldEntriesOfModel as any,
                     model,
                     defaultParseFieldCallback,
                     defaultTranslateFieldsCallback

@@ -6,6 +6,7 @@
   "scripts": {
     "help": "tsx manage.drizzle.ts help",
     "test": "tsx test.ts",
+    "test:type": "attest trace ./src/drizzle",
     "test:watch": "WATCH=true tsx manage.ts test",
     "load": "tsx manage.drizzle.ts load-models",
     "standalone:load": "tsx src/standalone/load.ts",

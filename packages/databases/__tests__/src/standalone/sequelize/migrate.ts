@@ -1,3 +1,3 @@
 import db from './database.config';
 
-db.migrate({});
+db.migrate();

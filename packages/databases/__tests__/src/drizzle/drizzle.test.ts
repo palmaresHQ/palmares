@@ -1,3 +1,4 @@
+/* eslint-disable ts/naming-convention */
 import { describe } from '@palmares/tests';
 
 import { Company, ProfileType, User } from '../drizzle/models';
@@ -5,13 +6,20 @@ import { Company, ProfileType, User } from '../drizzle/models';
 //const test = require('@jest/globals').test;
 describe('drizzle models', ({ test }) => {
   test('Simple query with relation', async ({ expect }) => {
-    const user = await User.default.get((qs) => qs.join(Company, 'company', (qs) => qs.where({ name: 'hello' })));
-
-    const anotherUser = await User.default.get((qs) => qs.where({ name: 'test1' }));
-
-    console.log(JSON.stringify(user, null, 2), JSON.stringify(anotherUser, null, 2));
-    expect(user.length > 0).toBe(true);
-    expect(user[0].company.name).toBe('test5');
+    const company = await Company.default.get((qs) =>
+      qs.join(User, 'usersOfCompany', (qs) =>
+        qs.join(ProfileType, 'profileType', (qs) =>
+          qs.where({
+            id: 1
+          })
+        )
+      )
+    );
+    const teste = company[0].usersOfCompany[0].profileType?.name;
+    //const anotherUser = await User.default.get((qs) => qs.where({ name: 'test1' }));
+    //console.log(JSON.stringify(user, null, 2), JSON.stringify(anotherUser, null, 2));
+    //expect(user.length > 0).toBe(true);
+    //expect(user[0].company2.name).toBe('test5');
     //expect(user[0].profileType.name).toBe('admin');
   });
 

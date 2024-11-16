@@ -343,40 +343,42 @@ export class AutoField<
       TDefinitions['engineInstance']['fields']['autoFieldParser'] extends AdapterAutoFieldParser
         ? Parameters<TDefinitions['engineInstance']['fields']['autoFieldParser']['translate']>[0]['customAttributes']
         : Parameters<TDefinitions['engineInstance']['fields']['integerFieldParser']['translate']>[0]['customAttributes']
-  >(customAttributes: TCustomAttributes) {
-    return super.setCustomAttributes(customAttributes) as unknown as AutoField<
-      TType,
-      {
-        [TKey in Exclude<
-          keyof TDefinitions,
-          | 'underscored'
-          | 'allowNull'
-          | 'dbIndex'
-          | 'unique'
-          | 'isPrimaryKey'
-          | 'auto'
-          | 'defaultValue'
-          | 'databaseName'
-          | 'typeName'
-          | 'engineInstance'
-          | 'customAttributes'
-        >]: TDefinitions[TKey];
-      } & {
-        hasDefaultValue: TDefinitions['hasDefaultValue'];
-        unique: TDefinitions['unique'];
-        allowNull: TDefinitions['allowNull'];
-        dbIndex: TDefinitions['dbIndex'];
-        underscored: TDefinitions['underscored'];
-        isPrimaryKey: TDefinitions['isPrimaryKey'];
-        auto: TDefinitions['auto'];
-        defaultValue: TDefinitions['defaultValue'];
-        databaseName: TDefinitions['databaseName'];
-        typeName: TDefinitions['typeName'];
-        engineInstance: TDefinitions['engineInstance'];
-        customAttributes: TCustomAttributes;
-      },
-      TFieldOperationTypes
-    >;
+  >(
+    customAttributes: TCustomAttributes
+  ): AutoField<
+    TType,
+    {
+      [TKey in Exclude<
+        keyof TDefinitions,
+        | 'underscored'
+        | 'allowNull'
+        | 'dbIndex'
+        | 'unique'
+        | 'isPrimaryKey'
+        | 'auto'
+        | 'defaultValue'
+        | 'databaseName'
+        | 'typeName'
+        | 'engineInstance'
+        | 'customAttributes'
+      >]: TDefinitions[TKey];
+    } & {
+      hasDefaultValue: TDefinitions['hasDefaultValue'];
+      unique: TDefinitions['unique'];
+      allowNull: TDefinitions['allowNull'];
+      dbIndex: TDefinitions['dbIndex'];
+      underscored: TDefinitions['underscored'];
+      isPrimaryKey: TDefinitions['isPrimaryKey'];
+      auto: TDefinitions['auto'];
+      defaultValue: TDefinitions['defaultValue'];
+      databaseName: TDefinitions['databaseName'];
+      typeName: TDefinitions['typeName'];
+      engineInstance: TDefinitions['engineInstance'];
+      customAttributes: TCustomAttributes;
+    },
+    TFieldOperationTypes
+  > {
+    return super.setCustomAttributes(customAttributes) as unknown as any;
   }
 
   underscored<TUnderscored extends boolean = true>(

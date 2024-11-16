@@ -86,7 +86,7 @@ const checkIfInstanceSavedOrSave = (
 
 const drizzleDatabaseAdapter = databaseAdapter({
   fields: new DrizzleFields(),
-  models: new DrizzleModels(),
+  models: new DrizzleModels<any>(),
   query: new DrizzleQuery(),
   new: <
     TType extends
@@ -99,7 +99,6 @@ const drizzleDatabaseAdapter = databaseAdapter({
       | 'aws-data-api/pg'
       | 'pg-proxy'
       | 'libsql'
-      | 'd1'
       | 'bun-sqlite'
       | 'expo-sqlite'
       | 'op-sqlite'
