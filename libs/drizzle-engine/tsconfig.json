@@ -3,7 +3,6 @@
   "compilerOptions": {
     "declaration": true,
     "outDir": "./dist",
-    "types":["drizzle-orm", "node"],
   },
   "include": ["src/**/*"]
 }

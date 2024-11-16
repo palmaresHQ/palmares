@@ -1,5 +1,15 @@
 # @palmares/sequelize-engine
 
+## 0.2.5
+
+### Patch Changes
+
+- 00aa84d: - Changed the API of the integrators, now the integrators don't need to define a customOptions function, it will be available when the properly define the customOptions on the translate method.
+- Updated dependencies [00aa84d]
+- Updated dependencies [05714f9]
+  - @palmares/databases@0.2.5
+  - @palmares/core@0.2.2
+
 ## 0.2.4
 
 ### Patch Changes

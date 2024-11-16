@@ -142,12 +142,12 @@ export class MakeMigrations {
             const originalModelOrField = originalModelsByNameOrFields[renamedTo];
 
             appendOperation(
-              await this.#callbackIfRenamed(fieldOrModel, stateFieldOrModelName, renamedTo, originalModelOrField)
+              await this.#callbackIfRenamed(fieldOrModel, stateFieldOrModelName, renamedTo, originalModelOrField as any)
             );
 
             // We change the name of the state model or field to the actual name, so we can compare other stuff
             // also now when we loop though the original models or field it will not catch as it was renamed
-            stateModelsByNameOrFields[renamedTo] = stateFieldOrModelObject;
+            (stateModelsByNameOrFields as any)[renamedTo] = stateFieldOrModelObject;
             delete stateModelsByNameOrFields[stateFieldOrModelName];
           } else {
             appendOperation(
@@ -197,8 +197,8 @@ export class MakeMigrations {
             operations,
             fieldOrModel,
             originalFieldOrModelName,
-            stateFieldOrModelObject,
-            originalFieldOrModelObject
+            stateFieldOrModelObject as any,
+            originalFieldOrModelObject as any
           )
         );
       }
@@ -216,7 +216,7 @@ export class MakeMigrations {
       for (const originalFieldOrModelNameToAdd of modelsOrFieldsInOriginalButNotDefinedInState) {
         const originalFieldOrModelObject = originalModelsByNameOrFields[originalFieldOrModelNameToAdd];
         appendOperation(
-          await this.#callbackIfCreated(fieldOrModel, originalFieldOrModelNameToAdd, originalFieldOrModelObject)
+          await this.#callbackIfCreated(fieldOrModel, originalFieldOrModelNameToAdd, originalFieldOrModelObject as any)
         );
       }
     } else if (wereModelsOrFieldsDeleted) {
@@ -224,7 +224,7 @@ export class MakeMigrations {
       for (const stateFieldOrModelNameToRemove of modelsOrFieldsInStateButNotDefinedInOriginal) {
         const stateFieldOrModelObject = stateModelsByNameOrFields[stateFieldOrModelNameToRemove];
         appendOperation(
-          await this.#callbackIfDeleted(fieldOrModel, stateFieldOrModelNameToRemove, stateFieldOrModelObject)
+          await this.#callbackIfDeleted(fieldOrModel, stateFieldOrModelNameToRemove, stateFieldOrModelObject as any)
         );
       }
     } else {
@@ -243,7 +243,7 @@ export class MakeMigrations {
         if (didTheUserDeletedTheFieldOrTheModel) {
           // was deleted
           appendOperation(
-            await this.#callbackIfDeleted(fieldOrModel, fieldOrModelNameInState, stateFieldOrModelObject)
+            await this.#callbackIfDeleted(fieldOrModel, fieldOrModelNameInState, stateFieldOrModelObject as any)
           );
         } else {
           const answerAsString = answer as string;
@@ -254,7 +254,7 @@ export class MakeMigrations {
               fieldOrModel,
               fieldOrModelNameInState,
               answerAsString,
-              originalModelOrFieldObject
+              originalModelOrFieldObject as any
             )
           );
 
@@ -276,7 +276,7 @@ export class MakeMigrations {
         if (stateFieldOrModelObject === undefined) {
           // we already asked and changed the state so a new was definitely created
           appendOperation(
-            await this.#callbackIfCreated(fieldOrModel, fieldOrModelNameInOriginal, originalFieldOrModelObject)
+            await this.#callbackIfCreated(fieldOrModel, fieldOrModelNameInOriginal, originalFieldOrModelObject as any)
           );
         } else {
           appendOperation(
@@ -284,8 +284,8 @@ export class MakeMigrations {
               operations,
               fieldOrModel,
               fieldOrModelNameInOriginal,
-              stateFieldOrModelObject,
-              originalFieldOrModelObject
+              stateFieldOrModelObject as any,
+              originalFieldOrModelObject as any
             )
           );
         }

@@ -1,0 +1,14 @@
+{
+  "name": "db/app",
+  "templates": [
+    {
+      "name": "app/drizzle",
+      "location": "app/drizzle",
+      "messages": {
+        "onStart": "Copying files to '${appName}' using the drizzle template",
+        "onDoing": "Installing the dependencies on '${appName}' using '${packageManager}'",
+        "onFinish": "Created '${appName}' using the drizzle template. Thank you for using Palmares.\n\nTo get started, run:\n\n1. cd ${appName}\n2. ${packageManager} run dev"
+      }
+    }
+  ]
+}

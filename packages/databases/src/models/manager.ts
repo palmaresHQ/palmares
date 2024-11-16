@@ -1,10 +1,11 @@
 import { getSettings, initializeDomains } from '@palmares/core';
 
 import { ManagerEngineInstanceNotFoundError } from './exceptions';
+import { AutoField, CharField } from './fields';
+import { type BaseModel, type Model, type ModelType, initialize } from './model';
 import { Databases } from '../databases';
 import { GetQuerySet, RemoveQuerySet, SetQuerySet } from '../queries/queryset';
 
-import type { BaseModel, Model, ModelType } from './model';
 import type { ManagerEngineInstancesType, ManagerInstancesType } from './types';
 import type { DatabaseAdapter } from '../engine';
 import type { DatabaseDomainInterface } from '../interfaces';
@@ -242,8 +243,11 @@ export class Manager<
         never
       >
     ) =>
-      | QuerySet<'get', TModel, any, any, any, any, any, any>
-      | GetQuerySet<'get', TModel, any, any, any, any, any, any>
+      | RemoveQuerySet<'get', any, any, any, any, any, any, any, true, any, any, any>
+      | QuerySet<'get', any, any, any, any, any, any, any, true, any, any, any>
+      | CommonQuerySet<'get', any, any, any, any, any, any, any, true, any, any, any>
+      | GetQuerySet<'get', any, any, any, any, any, any, any, true, any, any, any>
+      | SetQuerySet<'get', any, any, any, any, any, any, any, true, any, any, any>
   >(
     callback: TQueryBuilder,
     args?: {
@@ -251,8 +255,11 @@ export class Manager<
     }
   ): Promise<
     ReturnType<TQueryBuilder> extends
-      | QuerySet<'get', TModel, infer TResult, any, any, any, any, any, any>
-      | GetQuerySet<'get', TModel, infer TResult, any, any, any, any, any, any>
+      | RemoveQuerySet<'get', any, infer TResult, any, any, any, any, any, true, any, any, any>
+      | QuerySet<'get', any, infer TResult, any, any, any, any, any, true, any, any, any>
+      | CommonQuerySet<'get', any, infer TResult, any, any, any, any, any, true, any, any, any>
+      | GetQuerySet<'get', any, infer TResult, any, any, any, any, any, true, any, any, any>
+      | SetQuerySet<'get', any, infer TResult, any, any, any, any, any, true, any, any, any>
       ? TResult[]
       : never
   > {

@@ -115,7 +115,6 @@ export const fields = adapterFields({
   uuidFieldParser: new uuidFieldParser(),
   enumFieldParser: new enumFieldParse(),
   booleanFieldParser: new booleanFieldParser(),
-
   lazyEvaluateField: async (
     engine: any,
     modelName: string,
@@ -150,4 +149,4 @@ export const fields = adapterFields({
     }
     return undefined;
   }
-} as any);
+});

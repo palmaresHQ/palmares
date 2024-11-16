@@ -2,6 +2,7 @@ import { getDefaultStd } from '@palmares/core';
 import { adapterModels } from '@palmares/databases';
 
 import type { ModelOptionsType } from '@palmares/databases';
+import type { sqliteTable } from 'drizzle-orm/sqlite-core';
 
 export const models = adapterModels({
   // eslint-disable-next-line ts/require-await
@@ -32,7 +33,7 @@ export const models = adapterModels({
     _model,
     _fieldEntriesOfModel,
     _modelOptions,
-    _customModelOptions,
+    customModelOptions: Parameters<typeof sqliteTable>[2],
     defaultTranslateCallback: () => Promise<{ options: any; fields: any }>,
     _,
     __

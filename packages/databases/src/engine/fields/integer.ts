@@ -164,7 +164,13 @@ export function adapterIntegerFieldParser<
    * @returns - The parsed value for the user for that specific field.
    */
   outputParser?: TOutputParserFunction;
-}) {
+}): typeof AdapterIntegerFieldParser & {
+  new (): AdapterIntegerFieldParser & {
+    translate: TTranslateFunction;
+    inputParser: TInputParserFunction;
+    outputParser: TOutputParserFunction;
+  };
+} {
   class CustomAdapterIntegerFieldParser extends AdapterIntegerFieldParser {
     translate = args.translate;
     inputParser = args.inputParser as TInputParserFunction;

@@ -20,11 +20,11 @@ export const fieldParser = adapterFieldParser({
     const fieldData = {
       fieldName: args.field.fieldName,
       primaryKey: args.field.primaryKey,
-      unique: args.field.unique as boolean,
-      nullable: args.field.allowNull as boolean,
+      unique: args.field.unique,
+      nullable: args.field.allowNull,
       dbIndex: args.field.dbIndex,
-      default: args.field.defaultValue as any,
-      autoincrement: args.field.isAuto as boolean,
+      default: args.field.defaultValue,
+      autoincrement: args.field.isAuto,
       databaseName: args.field.databaseName
     };
     return fieldData;

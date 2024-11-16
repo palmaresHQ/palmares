@@ -72,18 +72,18 @@ export type ExtractTypeFromFieldOfAModel<
   | ((_: any) => { new (...args: any): { fields: infer TFields } })
   ? TFields extends Record<
       any,
-      | Field<any, any>
-      | AutoField<any, any>
-      | BigAutoField<any, any>
-      | BigIntegerField<any, any>
-      | IntegerField<any, any>
-      | BooleanField<any, any>
-      | EnumField<any, any>
-      | CharField<any, any>
-      | DateField<any, any>
-      | TextField<any, any>
-      | UuidField<any, any>
-      | ForeignKeyField<any, any>
+      | Field<any, any, any>
+      | AutoField<any, any, any>
+      | BigAutoField<any, any, any>
+      | BigIntegerField<any, any, any>
+      | IntegerField<any, any, any>
+      | BooleanField<any, any, any>
+      | EnumField<any, any, any>
+      | CharField<any, any, any>
+      | DateField<any, any, any>
+      | TextField<any, any, any>
+      | UuidField<any, any, any>
+      | ForeignKeyField<any, any, any>
     >
     ? ExtractTypeFromField<TFields[TToFieldName], TTypeToExtract>
     : any

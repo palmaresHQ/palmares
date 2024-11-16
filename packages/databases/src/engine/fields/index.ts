@@ -23,8 +23,6 @@ import type { AdapterFieldParserTranslateArgs } from '../types';
  */
 export function adapterFields<
   TFieldsParser extends AdapterFieldParser,
-  TAutoFieldParser extends AdapterAutoFieldParser,
-  TBigAutoFieldParser extends AdapterBigAutoFieldParser,
   TBigIntegerFieldParser extends AdapterBigIntegerFieldParser,
   TCharFieldParser extends AdapterCharFieldParser,
   TDateFieldParser extends AdapterDateFieldParser,
@@ -39,7 +37,9 @@ export function adapterFields<
   TLazyEvaluateField extends AdapterFields['lazyEvaluateField'],
   TTranslateField extends AdapterFields['translateField'],
   TCompare extends AdapterFields['compare'],
-  TToString extends AdapterFields['fieldToString']
+  TToString extends AdapterFields['fieldToString'],
+  TAutoFieldParser extends AdapterAutoFieldParser | undefined = undefined,
+  TBigAutoFieldParser extends AdapterBigAutoFieldParser | undefined = undefined
 >(args: {
   /** An {@link AdapterFieldParser}, it allows you to have a default translate function for all fields.
    * By default, the translate function will receive the fields parser */
@@ -222,8 +222,8 @@ export function adapterFields<
     fieldsParser: TFieldsParser;
     compare: TCompare;
     fieldToString: TToString;
-    autoFieldParser: TAutoFieldParser;
-    bigAutoFieldParser: TBigAutoFieldParser;
+    autoFieldParser: TAutoFieldParser extends undefined ? TIntegerFieldParser : TAutoFieldParser;
+    bigAutoFieldParser: TBigAutoFieldParser extends undefined ? TBigAutoFieldParser : TBigAutoFieldParser;
     bigIntegerFieldParser: TBigIntegerFieldParser;
     charFieldParser: TCharFieldParser;
     dateFieldParser: TDateFieldParser;
@@ -264,28 +264,7 @@ export function adapterFields<
     translateField = args.translateField;
   }
 
-  return CustomAdapterFields as typeof AdapterFields & {
-    new (): AdapterFields & {
-      fieldsParser: TFieldsParser;
-      autoFieldParser: TAutoFieldParser;
-      bigAutoFieldParser: TBigAutoFieldParser;
-      bigIntegerFieldParser: TBigIntegerFieldParser;
-      charFieldParser: TCharFieldParser;
-      dateFieldParser: TDateFieldParser;
-      decimalFieldParser: TDecimalFieldParser;
-      foreignKeyFieldParser: TForeignKeyFieldParser;
-      integerFieldParser: TIntegerFieldParser;
-      textFieldParser: TTextFieldParser;
-      uuidFieldParser: TUuidFieldParser;
-      enumFieldParser: TEnumFieldParser;
-      customFieldsParser: TCustomFieldsParser;
-      booleanFieldParser: TBooleanFieldParser;
-      lazyEvaluateField: TLazyEvaluateField;
-      translateField: TTranslateField;
-      compare: TCompare;
-      fieldToString: TToString;
-    };
-  };
+  return CustomAdapterFields as any;
 }
 
 /**
@@ -299,8 +278,8 @@ export class AdapterFields {
    * By default, the translate function will receive the fields parser
    */
   fieldsParser: AdapterFieldParser = new AdapterFieldParser();
-  autoFieldParser?: AdapterAutoFieldParser = new AdapterAutoFieldParser();
-  bigAutoFieldParser?: AdapterBigAutoFieldParser = new AdapterBigAutoFieldParser();
+  autoFieldParser?: AdapterAutoFieldParser | AdapterIntegerFieldParser = new AdapterAutoFieldParser();
+  bigAutoFieldParser?: AdapterBigAutoFieldParser | AdapterBigIntegerFieldParser = new AdapterBigAutoFieldParser();
   bigIntegerFieldParser: AdapterBigIntegerFieldParser = new AdapterBigIntegerFieldParser();
   charFieldParser: AdapterCharFieldParser = new AdapterCharFieldParser();
   dateFieldParser: AdapterDateFieldParser = new AdapterDateFieldParser();

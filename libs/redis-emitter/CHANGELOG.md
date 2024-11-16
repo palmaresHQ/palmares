@@ -1,5 +1,13 @@
 # @palmares/redis-emitter
 
+## 0.1.1
+
+### Patch Changes
+
+- 00aa84d: - Changed the API of the integrators, now the integrators don't need to define a customOptions function, it will be available when the properly define the customOptions on the translate method.
+- Updated dependencies [00aa84d]
+  - @palmares/events@0.1.2
+
 ## 0.1.0
 
 ### Minor Changes

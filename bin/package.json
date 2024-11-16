@@ -1,12 +1,26 @@
 {
-  "name": "create-palmares-app",
+  "name": "create-palmares",
   "version": "0.0.0",
   "description": "Scaffolds a new palmares application for you. Palmares is a framework that helps you to write and run javascript on the server",
   "main": "./dist/src/index.cjs",
   "module": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
   "bin": {
-    "create-palmares-app": "./dist/src/cli.js"
+    "please-palmares": "./dist/src/app.js",
+    "pp": "./dist/src/app.js",
+    "palmares": "./dist/src/app.js"
+  },
+  "scripts": {
+    "clear": "rimraf ./dist && rimraf ./templates && mkdir ./templates",
+    "build:all": "pnpm run clear && pnpm -w run copy:templates",
+    "build:types": "tsc --project tsconfig.types.json",
+    "build:cjs:esm": "tsup ./src --out-dir ./dist/src --format cjs,esm --silent --no-splitting",
+    "build": "pnpm run clear && pnpm run build:cjs:esm && pnpm run build:types",
+    "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
+    "build:cjs:esm:watch": "tsup ./src --out-dir ./dist/src --format cjs,esm --watch --silent --no-splitting",
+    "build:watch": "pnpm run build:cjs:esm:watch & pnpm run build:types:watch",
+    "test:app": "tsx ./src/app.ts",
+    "test:db": "tsx ./src/db.ts"
   },
   "files": [
     "dist",
@@ -38,5 +52,14 @@
   "bugs": {
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
-  "homepage": "https://github.com/palmaresHQ/palmares#readme"
+  "homepage": "https://github.com/palmaresHQ/palmares#readme",
+  "dependencies": {
+    "@palmares/core": "workspace:*",
+    "@palmares/node-std": "workspace:*",
+    "@palmares/console-logging": "workspace:*",
+    "@palmares/logging": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2"
+  }
 }

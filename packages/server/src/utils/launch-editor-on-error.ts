@@ -203,7 +203,7 @@ async function guessEditor(
         'wmic process where "executablepath is not null" get executablepath'
       );
 
-      const runningProcesses = output.split('\r\n');
+      const runningProcesses = output;
       // eslint-disable-next-line ts/prefer-for-of
       for (let i = 0; i < runningProcesses.length; i++) {
         const processPath = runningProcesses[i].trim();

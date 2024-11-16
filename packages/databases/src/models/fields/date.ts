@@ -905,7 +905,7 @@ export class DateField<
     return super._overrideType(args) as any;
   }
 
-  static new(): DateField<
+  static new(..._args: any[]): DateField<
     {
       create: string | Date;
       read: string | Date;
@@ -932,6 +932,6 @@ export class DateField<
       'eq' | 'is' | 'greaterThan' | 'lessThan' | 'between' | 'and' | 'or'
     >
   > {
-    return new this();
+    return new this(..._args);
   }
 }

@@ -5,6 +5,9 @@
       "cache": true,
       "dependsOn": ["^build"]
     },
+    "copy:templates": {
+      "cache": false
+    },
     "build:watch": {
       "persistent": true,
       "cache": true,

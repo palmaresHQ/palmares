@@ -45,7 +45,8 @@ export type AdapterFieldParserTranslateArgs<
     | 'uuid' = 'field',
   TEngine = DatabaseAdapter,
   TFieldParser extends AdapterFieldParser | InstanceType<ReturnType<typeof adapterFieldParser>> = AdapterFieldParser,
-  TLazyTranslatedFieldArg = any
+  TLazyTranslatedFieldArg = any,
+  TCustomAttributes = any
 > = {
   /**The engine instance. */
   engine: TEngine;
@@ -89,7 +90,7 @@ export type AdapterFieldParserTranslateArgs<
                           ? Omit<ReturnType<TextField['__getArgumentsCallback']>, 'customAttributes'>
                           : Omit<ReturnType<UuidField['__getArgumentsCallback']>, 'customAttributes'>;
   /** The custom attributes that you can pass to the field. */
-  customAttributes: any;
+  customAttributes: TCustomAttributes;
   /** The field parser instance so we can call the `translate` method on other field types. */
   fieldParser: TFieldParser;
   /** The name of the model */

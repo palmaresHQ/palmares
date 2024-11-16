@@ -5,7 +5,13 @@ import type { AdapterFieldParserTranslateArgs } from '@palmares/databases';
 
 export const integerFieldParser = adapterIntegerFieldParser({
   translate: async (
-    args: AdapterFieldParserTranslateArgs<'integer', any, InstanceType<typeof DrizzleEngineFieldParser>, any>
+    args: AdapterFieldParserTranslateArgs<
+      'integer',
+      any,
+      InstanceType<typeof DrizzleEngineFieldParser>,
+      any,
+      { user: string; anotherValue: boolean }
+    >
   ): Promise<string> => {
     const defaultOptions = await args.fieldParser.translate(args);
     const field = args.field;

@@ -1,5 +1,16 @@
 # @palmares/databases
 
+## 0.2.5
+
+### Patch Changes
+
+- 00aa84d: - Changed the API of the integrators, now the integrators don't need to define a customOptions function, it will be available when the properly define the customOptions on the translate method.
+- 05714f9: add a coverage to avoid errors on model initializing
+- Updated dependencies [00aa84d]
+  - @palmares/core@0.2.2
+  - @palmares/events@0.1.2
+  - @palmares/logging@0.2.2
+
 ## 0.2.4
 
 ### Patch Changes

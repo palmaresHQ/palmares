@@ -115,3 +115,5 @@ next-env.d.ts
 
 # macos files
 .DS_Store
+
+/bin/templates/
