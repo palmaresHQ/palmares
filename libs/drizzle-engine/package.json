@@ -1715,7 +1715,7 @@
     "@originjs/vite-plugin-commonjs": "^1.0.3",
     "@planetscale/database": "^1.16.0",
     "@prisma/client": "5.14.0",
-    "@tidbcloud/serverless": "^0.1.1",
+    "@tidbcloud/serverless": "^0.2.0",
     "@types/better-sqlite3": "^7.6.4",
     "@types/node": "^20.2.5",
     "@types/pg": "^8.10.1",
