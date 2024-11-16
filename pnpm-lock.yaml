@@ -597,13 +597,8 @@ importers:
         specifier: ^18.3.0
         version: 18.3.0
       '@vitejs/plugin-react':
-<<<<<<< HEAD
-        specifier: ^4.3.1
-        version: 4.3.1(vite@5.4.10(@types/node@22.9.0)(terser@5.36.0))
-=======
         specifier: ^4.3.3
         version: 4.3.3(vite@5.4.10(@types/node@22.5.4)(terser@5.36.0))
->>>>>>> origin/main
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.20(postcss@8.4.47)
@@ -687,16 +682,6 @@ importers:
         version: 0.27.2
       drizzle-orm:
         specifier: ^0.36.1
-<<<<<<< HEAD
-        version: 0.36.1(y4mg56qtcpvppgdx4a2q3tbv6u)
-    devDependencies:
-      '@palmares/jest-tests':
-        specifier: ^0.2.3
-        version: 0.2.3(@babel/core@7.26.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(@types/node@22.5.4)(esbuild@0.19.12)(typescript@5.5.4)
-      '@palmares/tests':
-        specifier: ^0.2.3
-        version: 0.2.3
-=======
         version: 0.36.1(@aws-sdk/client-rds-data@3.687.0)(@cloudflare/workers-types@4.20241106.0)(@electric-sql/pglite@0.2.12)(@libsql/client-wasm@0.10.0)(@libsql/client@0.10.0)(@neondatabase/serverless@0.9.5)(@op-engineering/op-sqlite@2.0.22(react@18.3.1))(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.14.0)(@tidbcloud/serverless@0.2.0)(@types/better-sqlite3@7.6.11)(@types/pg@8.11.10)(@types/react@18.3.12)(@types/sql.js@1.4.9)(@vercel/postgres@0.8.0)(@xata.io/client@0.29.5(typescript@5.5.4))(better-sqlite3@11.2.1)(bun-types@0.6.14)(expo-sqlite@13.4.0)(knex@2.5.1(better-sqlite3@11.2.1)(mysql2@3.11.4)(pg@8.12.0)(sqlite3@5.1.7))(kysely@0.25.0)(mysql2@3.11.4)(pg@8.12.0)(postgres@3.4.5)(react@18.3.1)(sql.js@1.12.0)(sqlite3@5.1.7)
     devDependencies:
       '@palmares/jest-tests':
@@ -705,7 +690,6 @@ importers:
       '@palmares/tests':
         specifier: ^0.2.2
         version: 0.2.2
->>>>>>> origin/main
       '@swc/cli':
         specifier: ^0.4.0
         version: 0.4.0(@swc/core@1.9.1(@swc/helpers@0.5.5))(chokidar@3.6.0)
@@ -787,11 +771,7 @@ importers:
         version: link:../../packages/databases
       drizzle-orm:
         specifier: ^0.36.1
-<<<<<<< HEAD
-        version: 0.36.1(qom2ekgbvuofhw6oaqej5eqnba)
-=======
         version: 0.36.1(@aws-sdk/client-rds-data@3.687.0)(@cloudflare/workers-types@4.20241106.0)(@electric-sql/pglite@0.2.12)(@libsql/client-wasm@0.10.0)(@libsql/client@0.10.0(bufferutil@4.0.8)(utf-8-validate@6.0.3))(@neondatabase/serverless@0.9.5)(@op-engineering/op-sqlite@2.0.22(react-native@0.76.1(@babel/core@7.26.0)(@babel/preset-env@7.25.4(@babel/core@7.26.0))(@types/react@18.3.12)(bufferutil@4.0.8)(encoding@0.1.13)(react@18.3.1)(utf-8-validate@6.0.3))(react@18.3.1))(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.14.0(prisma@5.14.0))(@tidbcloud/serverless@0.2.0)(@types/better-sqlite3@7.6.11)(@types/pg@8.11.10)(@types/react@18.3.12)(@types/sql.js@1.4.9)(@vercel/postgres@0.8.0)(@xata.io/client@0.29.5(typescript@5.5.4))(better-sqlite3@8.7.0)(bun-types@0.6.14)(expo-sqlite@13.4.0(expo@51.0.38(@babel/core@7.26.0)(@babel/preset-env@7.25.4(@babel/core@7.26.0))(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@6.0.3)))(knex@2.5.1(better-sqlite3@8.7.0)(mysql2@3.11.4)(pg@8.12.0)(sqlite3@5.1.7))(kysely@0.25.0)(mysql2@3.11.4)(pg@8.12.0)(postgres@3.4.5)(prisma@5.14.0)(react@18.3.1)(sql.js@1.12.0)(sqlite3@5.1.7)
->>>>>>> origin/main
       react:
         specifier: '>=18'
         version: 18.3.1
@@ -1135,11 +1115,7 @@ importers:
         version: 0.27.2
       drizzle-orm:
         specifier: ^0.36.1
-<<<<<<< HEAD
-        version: 0.36.1(wkht5ewcqvhj2oucdn63itfcli)
-=======
         version: 0.36.1(@aws-sdk/client-rds-data@3.687.0)(@cloudflare/workers-types@4.20241106.0)(@electric-sql/pglite@0.2.12)(@libsql/client-wasm@0.10.0)(@libsql/client@0.10.0)(@neondatabase/serverless@0.9.5)(@op-engineering/op-sqlite@2.0.22(react@18.3.1))(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.14.0)(@tidbcloud/serverless@0.2.0)(@types/better-sqlite3@7.6.11)(@types/pg@8.11.10)(@types/react@18.3.12)(@types/sql.js@1.4.9)(@vercel/postgres@0.8.0)(@xata.io/client@0.29.5(typescript@5.5.4))(better-sqlite3@11.1.2)(bun-types@0.6.14)(expo-sqlite@13.4.0)(knex@2.5.1(better-sqlite3@11.1.2)(mysql2@3.11.4)(pg@8.12.0)(sqlite3@5.1.7))(kysely@0.25.0)(mysql2@3.11.4)(pg@8.12.0)(postgres@3.4.5)(react@18.3.1)(sql.js@1.12.0)(sqlite3@5.1.7)
->>>>>>> origin/main
       postgres:
         specifier: ^3.4.5
         version: 3.4.5
@@ -1230,11 +1206,7 @@ importers:
         version: 0.27.2
       drizzle-orm:
         specifier: ^0.36.1
-<<<<<<< HEAD
-        version: 0.36.1(wkht5ewcqvhj2oucdn63itfcli)
-=======
         version: 0.36.1(@aws-sdk/client-rds-data@3.687.0)(@cloudflare/workers-types@4.20241106.0)(@electric-sql/pglite@0.2.12)(@libsql/client-wasm@0.10.0)(@libsql/client@0.10.0)(@neondatabase/serverless@0.9.5)(@op-engineering/op-sqlite@2.0.22(react@18.3.1))(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.14.0)(@tidbcloud/serverless@0.2.0)(@types/better-sqlite3@7.6.11)(@types/pg@8.11.10)(@types/react@18.3.12)(@types/sql.js@1.4.9)(@vercel/postgres@0.8.0)(@xata.io/client@0.29.5(typescript@5.5.4))(better-sqlite3@11.1.2)(bun-types@0.6.14)(expo-sqlite@13.4.0)(knex@2.5.1(better-sqlite3@11.1.2)(mysql2@3.11.4)(pg@8.12.0)(sqlite3@5.1.7))(kysely@0.25.0)(mysql2@3.11.4)(pg@8.12.0)(postgres@3.4.5)(react@18.3.1)(sql.js@1.12.0)(sqlite3@5.1.7)
->>>>>>> origin/main
     devDependencies:
       '@types/better-sqlite3':
         specifier: ^7.6.11
@@ -1289,11 +1261,7 @@ importers:
         version: 0.27.2
       drizzle-orm:
         specifier: ^0.36.1
-<<<<<<< HEAD
-        version: 0.36.1(wkht5ewcqvhj2oucdn63itfcli)
-=======
         version: 0.36.1(@aws-sdk/client-rds-data@3.687.0)(@cloudflare/workers-types@4.20241106.0)(@electric-sql/pglite@0.2.12)(@libsql/client-wasm@0.10.0)(@libsql/client@0.10.0)(@neondatabase/serverless@0.9.5)(@op-engineering/op-sqlite@2.0.22(react@18.3.1))(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.14.0)(@tidbcloud/serverless@0.2.0)(@types/better-sqlite3@7.6.11)(@types/pg@8.11.10)(@types/react@18.3.12)(@types/sql.js@1.4.9)(@vercel/postgres@0.8.0)(@xata.io/client@0.29.5(typescript@5.5.4))(better-sqlite3@11.1.2)(bun-types@0.6.14)(expo-sqlite@13.4.0)(knex@2.5.1(better-sqlite3@11.1.2)(mysql2@3.11.4)(pg@8.12.0)(sqlite3@5.1.7))(kysely@0.25.0)(mysql2@3.11.4)(pg@8.12.0)(postgres@3.4.5)(react@18.3.1)(sql.js@1.12.0)(sqlite3@5.1.7)
->>>>>>> origin/main
     devDependencies:
       '@types/better-sqlite3':
         specifier: ^7.6.11
@@ -3543,35 +3511,20 @@ packages:
   '@palmares/core@0.0.3':
     resolution: {integrity: sha512-H0+lvHVLupC94wll2SHkJKYuoUR20/MgpzanQy9ooggm5bD9xmh+OhGVfuZpSyvEgz/ALlrMe6qUPFYHQY45Qw==}
 
-<<<<<<< HEAD
-  '@palmares/core@0.2.2':
-    resolution: {integrity: sha512-9byfm/XN7fWI+yS66gQyPjb0+qgscS9GCaajO0MSFAv0jtBg80z9rxw31MCSU4+d29RnNcI92UJm5zrZpaCVJA==}
-=======
   '@palmares/core@0.2.1':
     resolution: {integrity: sha512-kgJ2c25e1lguH88M2F5AHaDayorxgJ/C/Wus55qPWU6NBDhK85sRL32CORXWV2GQFzUm/30OvDNZxbxiLewscw==}
->>>>>>> origin/main
 
   '@palmares/events@0.0.1':
     resolution: {integrity: sha512-w14qDi/I9ugiVy5Wj6zS8OnWN8aJCwIx8I1DPUXlnllDDZmqII7BJ6Ox6WxgwdhczthnV1/MM00dp/XIbq2PAw==}
 
-<<<<<<< HEAD
-  '@palmares/jest-tests@0.2.3':
-    resolution: {integrity: sha512-y1t3u87BknICyO55Su4Ct/aeoF5mWVW2Wht2m8pFVaQjyDmdmq9zhnJltsR26rXfFIFHADPTIqYz6rMwHtxO8g==}
-=======
   '@palmares/jest-tests@0.2.2':
     resolution: {integrity: sha512-E7PbpkQvL/LhqjaxzhZ5SkHzIm5+J9MQ4FuLu3q4fTcIzjgzr+lzYtOwnW+SeTlsSo0WonWIA+tFur3i6cP35Q==}
->>>>>>> origin/main
 
   '@palmares/logging@0.0.1':
     resolution: {integrity: sha512-3mBPEk1WwacXG8StU1wGs2ZJGyV+KWOvSsawDUHVsqd2YmqKQb1TVoVW2GC4QcwWtKK9OReoiGbhmFXsTBzB9g==}
 
-<<<<<<< HEAD
-  '@palmares/tests@0.2.3':
-    resolution: {integrity: sha512-cfX/V6UU/nBy2cM6hsM8W1hiiWfyOmOMU1bKF5Y7d5OJnN8fXBvwkR2UahosygGu5GULHf41YMf5SZ8/C0jnCg==}
-=======
   '@palmares/tests@0.2.2':
     resolution: {integrity: sha512-DlySyXnP9t6INcbpHaptViqthIIvsZsHDLg6Yz5w+gRM+wI3GvO/9OrbO6uZKVwKF/tq1icTu8WF48YcOCpeCg==}
->>>>>>> origin/main
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -14745,30 +14698,18 @@ snapshots:
 
   '@palmares/core@0.0.3': {}
 
-<<<<<<< HEAD
-  '@palmares/core@0.2.2': {}
-=======
   '@palmares/core@0.2.1': {}
->>>>>>> origin/main
 
   '@palmares/events@0.0.1':
     dependencies:
       '@palmares/core': 0.0.3
       '@palmares/logging': 0.0.1
 
-<<<<<<< HEAD
-  '@palmares/jest-tests@0.2.3(@babel/core@7.26.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(@types/node@22.5.4)(esbuild@0.19.12)(typescript@5.5.4)':
-    dependencies:
-      '@babel/preset-env': 7.25.4(@babel/core@7.26.0)
-      '@jest/globals': 29.7.0
-      '@palmares/tests': 0.2.3
-=======
   '@palmares/jest-tests@0.2.2(@babel/core@7.26.0)(@jest/transform@29.7.0)(@jest/types@29.6.3)(@types/node@22.5.4)(esbuild@0.19.12)(typescript@5.5.4)':
     dependencies:
       '@babel/preset-env': 7.25.4(@babel/core@7.26.0)
       '@jest/globals': 29.7.0
       '@palmares/tests': 0.2.2
->>>>>>> origin/main
       '@types/jest': 29.5.12
       babel-jest: 29.7.0(@babel/core@7.26.0)
       jest: 29.7.0(@types/node@22.5.4)
@@ -14789,15 +14730,9 @@ snapshots:
     dependencies:
       '@palmares/core': 0.0.3
 
-<<<<<<< HEAD
-  '@palmares/tests@0.2.3':
-    dependencies:
-      '@palmares/core': 0.2.2
-=======
   '@palmares/tests@0.2.2':
     dependencies:
       '@palmares/core': 0.2.1
->>>>>>> origin/main
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
@@ -16911,11 +16846,7 @@ snapshots:
       json-schema-to-ts: 1.6.4
       ts-morph: 12.0.0
 
-<<<<<<< HEAD
-  '@vitejs/plugin-react@4.3.1(vite@5.4.10(@types/node@22.9.0)(terser@5.36.0))':
-=======
   '@vitejs/plugin-react@4.3.3(vite@5.4.10(@types/node@22.5.4)(terser@5.36.0))':
->>>>>>> origin/main
     dependencies:
       '@babel/core': 7.26.0
       '@babel/plugin-transform-react-jsx-self': 7.24.7(@babel/core@7.26.0)
@@ -18293,13 +18224,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-<<<<<<< HEAD
-  drizzle-orm@0.36.1(qom2ekgbvuofhw6oaqej5eqnba):
-    optionalDependencies:
-=======
   ? drizzle-orm@0.36.1(@aws-sdk/client-rds-data@3.687.0)(@cloudflare/workers-types@4.20241106.0)(@electric-sql/pglite@0.2.12)(@libsql/client-wasm@0.10.0)(@libsql/client@0.10.0(bufferutil@4.0.8)(utf-8-validate@6.0.3))(@neondatabase/serverless@0.9.5)(@op-engineering/op-sqlite@2.0.22(react-native@0.76.1(@babel/core@7.26.0)(@babel/preset-env@7.25.4(@babel/core@7.26.0))(@types/react@18.3.12)(bufferutil@4.0.8)(encoding@0.1.13)(react@18.3.1)(utf-8-validate@6.0.3))(react@18.3.1))(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.14.0(prisma@5.14.0))(@tidbcloud/serverless@0.2.0)(@types/better-sqlite3@7.6.11)(@types/pg@8.11.10)(@types/react@18.3.12)(@types/sql.js@1.4.9)(@vercel/postgres@0.8.0)(@xata.io/client@0.29.5(typescript@5.5.4))(better-sqlite3@8.7.0)(bun-types@0.6.14)(expo-sqlite@13.4.0(expo@51.0.38(@babel/core@7.26.0)(@babel/preset-env@7.25.4(@babel/core@7.26.0))(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@6.0.3)))(knex@2.5.1(better-sqlite3@8.7.0)(mysql2@3.11.4)(pg@8.12.0)(sqlite3@5.1.7))(kysely@0.25.0)(mysql2@3.11.4)(pg@8.12.0)(postgres@3.4.5)(prisma@5.14.0)(react@18.3.1)(sql.js@1.12.0)(sqlite3@5.1.7)
   : optionalDependencies:
->>>>>>> origin/main
       '@aws-sdk/client-rds-data': 3.687.0
       '@cloudflare/workers-types': 4.20241106.0
       '@electric-sql/pglite': 0.2.12
@@ -18330,11 +18256,7 @@ snapshots:
       sql.js: 1.12.0
       sqlite3: 5.1.7
 
-<<<<<<< HEAD
-  drizzle-orm@0.36.1(wkht5ewcqvhj2oucdn63itfcli):
-=======
   drizzle-orm@0.36.1(@aws-sdk/client-rds-data@3.687.0)(@cloudflare/workers-types@4.20241106.0)(@electric-sql/pglite@0.2.12)(@libsql/client-wasm@0.10.0)(@libsql/client@0.10.0)(@neondatabase/serverless@0.9.5)(@op-engineering/op-sqlite@2.0.22(react@18.3.1))(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.14.0)(@tidbcloud/serverless@0.2.0)(@types/better-sqlite3@7.6.11)(@types/pg@8.11.10)(@types/react@18.3.12)(@types/sql.js@1.4.9)(@vercel/postgres@0.8.0)(@xata.io/client@0.29.5(typescript@5.5.4))(better-sqlite3@11.1.2)(bun-types@0.6.14)(expo-sqlite@13.4.0)(knex@2.5.1(better-sqlite3@11.1.2)(mysql2@3.11.4)(pg@8.12.0)(sqlite3@5.1.7))(kysely@0.25.0)(mysql2@3.11.4)(pg@8.12.0)(postgres@3.4.5)(react@18.3.1)(sql.js@1.12.0)(sqlite3@5.1.7):
->>>>>>> origin/main
     optionalDependencies:
       '@aws-sdk/client-rds-data': 3.687.0
       '@cloudflare/workers-types': 4.20241106.0
@@ -18366,11 +18288,7 @@ snapshots:
       sql.js: 1.12.0
       sqlite3: 5.1.7
 
-<<<<<<< HEAD
-  drizzle-orm@0.36.1(y4mg56qtcpvppgdx4a2q3tbv6u):
-=======
   drizzle-orm@0.36.1(@aws-sdk/client-rds-data@3.687.0)(@cloudflare/workers-types@4.20241106.0)(@electric-sql/pglite@0.2.12)(@libsql/client-wasm@0.10.0)(@libsql/client@0.10.0)(@neondatabase/serverless@0.9.5)(@op-engineering/op-sqlite@2.0.22(react@18.3.1))(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.14.0)(@tidbcloud/serverless@0.2.0)(@types/better-sqlite3@7.6.11)(@types/pg@8.11.10)(@types/react@18.3.12)(@types/sql.js@1.4.9)(@vercel/postgres@0.8.0)(@xata.io/client@0.29.5(typescript@5.5.4))(better-sqlite3@11.2.1)(bun-types@0.6.14)(expo-sqlite@13.4.0)(knex@2.5.1(better-sqlite3@11.2.1)(mysql2@3.11.4)(pg@8.12.0)(sqlite3@5.1.7))(kysely@0.25.0)(mysql2@3.11.4)(pg@8.12.0)(postgres@3.4.5)(react@18.3.1)(sql.js@1.12.0)(sqlite3@5.1.7):
->>>>>>> origin/main
     optionalDependencies:
       '@aws-sdk/client-rds-data': 3.687.0
       '@cloudflare/workers-types': 4.20241106.0
