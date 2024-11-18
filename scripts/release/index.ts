@@ -55,7 +55,7 @@ function parseGitTags(gitTags: string) {
 
     const [name, version] = tag.split(/@(\d.*)/);
     if (!name || !version) continue;
-    else formattedTags.push({ name, version, raw: tag });
+    else formattedTags.push({ name, version: version.split(' ')[0], raw: tag.split(' ')[0] });
   }
   return formattedTags;
 }
@@ -109,7 +109,6 @@ async function releaseToGithub(parsedTags: ReturnType<typeof parseGitTags>) {
       console.log(`Could not find package ${parsedTag.name}`);
       return;
     }
-    console.log(packageToPublish);
     const changelogContents = await getChangelogFile(packageToPublish.path);
     if (!changelogContents) {
       console.log(`Could not find changelog for ${parsedTag.name}`);

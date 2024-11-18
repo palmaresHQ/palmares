@@ -1,5 +1,12 @@
 # @palmares/sequelize-engine
 
+## 0.2.6
+
+### Patch Changes
+
+- Updated dependencies [bcafd12]
+  - @palmares/databases@0.2.6
+
 ## 0.2.5
 
 ### Patch Changes
