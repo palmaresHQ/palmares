@@ -1,6 +1,11 @@
 import type { Std } from '@palmares/core';
 
-export async function recursivelyCopyFilesFromTemplate(std: Std, projectName: string, templateDirectoryPath: string) {
+export async function recursivelyCopyFilesFromTemplate(
+  std: Std,
+  packageManager: string,
+  projectName: string,
+  templateDirectoryPath: string
+) {
   const recursivelyCopyFiles = async (directoryToCreate: string, path: string) => {
     const templateFiles = await std.files.readDirectory(path);
     await std.files.makeDirectory(directoryToCreate);
@@ -19,6 +24,12 @@ export async function recursivelyCopyFilesFromTemplate(std: Std, projectName: st
           const fileName = await std.files.join(directoryToCreate, fileNameRenamed);
           //console.log('Creating file from', locationPathToCopyFrom, 'to', fileName);
           const isPackageJson = fileNameRenamed === 'package.json';
+          const isReadme = fileNameRenamed === 'README.md';
+          if (isReadme) {
+            fileContent = fileContent
+              .replaceAll(/\$\{appName\}/g, projectName)
+              .replaceAll(/\$\{packageManager\}/g, packageManager);
+          }
           if (isPackageJson) {
             const fileContentAsJson = JSON.parse(fileContent);
             fileContentAsJson.name = projectName;
