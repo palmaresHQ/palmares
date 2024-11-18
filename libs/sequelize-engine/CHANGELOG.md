@@ -1,5 +1,13 @@
 # @palmares/sequelize-engine
 
+## 0.2.7
+
+### Patch Changes
+
+- ba3507a: - Fix adapters to work on template creation
+- Updated dependencies [ba3507a]
+  - @palmares/databases@0.2.7
+
 ## 0.2.6
 
 ### Patch Changes

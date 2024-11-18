@@ -1,5 +1,11 @@
 # palmares
 
+## 0.0.5
+
+### Patch Changes
+
+- ba3507a: - Fix adapters to work on template creation
+
 ## 0.0.4
 
 ### Patch Changes
