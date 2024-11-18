@@ -1,5 +1,13 @@
 # @palmares/sequelize-engine
 
+## 0.2.9
+
+### Patch Changes
+
+- 4c6107e: fix readme on templates, change ${appName} and ${packageManager} to the actual values
+- Updated dependencies [4c6107e]
+  - @palmares/databases@0.2.9
+
 ## 0.2.8
 
 ### Patch Changes

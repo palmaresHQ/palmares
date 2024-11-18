@@ -1,5 +1,11 @@
 # palmares
 
+## 0.0.7
+
+### Patch Changes
+
+- 4c6107e: fix readme on templates, change ${appName} and ${packageManager} to the actual values
+
 ## 0.0.6
 
 ### Patch Changes
