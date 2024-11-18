@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "description": "The palmares framework, a framework to write simple, fast and reliable node.js code on the server",
   "workspaces": [
-    "examples/**/*",
     "packages/*",
+    "bin",
     "libs/*",
     "docs/*"
   ],

@@ -51,16 +51,11 @@ function parseGitTags(gitTags: string) {
   const tags = gitTags.split('\n');
 
   for (const tag of tags) {
-    const splittedTags = tag.split(' ');
-    if (splittedTags.length > 1) {
-      for (const splittedTag of splittedTags) {
-        if (splittedTag !== '') {
-          const [name, version] = splittedTag.split(/@(\d.*)/);
-          if (!name || !version) continue;
-          else formattedTags.push({ name, version, raw: splittedTag });
-        }
-      }
-    }
+    if (tag === '') continue;
+
+    const [name, version] = tag.split(/@(\d.*)/);
+    if (!name || !version) continue;
+    else formattedTags.push({ name, version, raw: tag });
   }
   return formattedTags;
 }
@@ -114,6 +109,7 @@ async function releaseToGithub(parsedTags: ReturnType<typeof parseGitTags>) {
       console.log(`Could not find package ${parsedTag.name}`);
       return;
     }
+    console.log(packageToPublish);
     const changelogContents = await getChangelogFile(packageToPublish.path);
     if (!changelogContents) {
       console.log(`Could not find changelog for ${parsedTag.name}`);

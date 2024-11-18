@@ -1,6 +1,6 @@
 {
-  "name": "create-palmares",
-  "version": "0.0.0",
+  "name": "palmares",
+  "version": "0.0.2",
   "description": "Scaffolds a new palmares application for you. Palmares is a framework that helps you to write and run javascript on the server",
   "main": "./dist/src/index.cjs",
   "module": "./dist/src/index.js",

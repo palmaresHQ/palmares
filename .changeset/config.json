@@ -7,20 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": [
-    "@examples/with-code-share",
-    "@examples/with-code-share-shared",
-    "@examples/with-code-share-server",
-    "@examples/with-code-share-client",
-    "@examples/deel-hometask-challenge",
-    "@examples/next-client-app",
-    "@examples/server-palmares",
-    "@examples/server-express-only",
-    "@examples/next-monorepo",
-    "@examples/server-vercel",
-    "@examples/basic",
-    "@examples/bench",
-    "@examples/tests",
-    "@examples/schemas"
-  ]
+  "ignore": []
 }
