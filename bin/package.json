@@ -12,10 +12,11 @@
   },
   "scripts": {
     "clear": "rimraf ./dist && rimraf ./templates && mkdir ./templates",
-    "build:all": "pnpm run clear && pnpm -w run copy:templates",
+    "copy:dev": "pnpm run clear && pnpm -w run copy:templates",
+    "copy:prod": "copyfiles -u 1 \"templates/**/*\" dist/templates",
     "build:types": "tsc --project tsconfig.types.json",
     "build:cjs:esm": "tsup ./src --out-dir ./dist/src --format cjs,esm --silent --no-splitting",
-    "build": "pnpm run clear && pnpm run build:cjs:esm && pnpm run build:types",
+    "build": "pnpm run copy:dev && pnpm run build:cjs:esm && pnpm run build:types && pnpm run copy:prod",
     "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
     "build:cjs:esm:watch": "tsup ./src --out-dir ./dist/src --format cjs,esm --watch --silent --no-splitting",
     "build:watch": "pnpm run build:cjs:esm:watch & pnpm run build:types:watch",
@@ -24,7 +25,6 @@
   },
   "files": [
     "dist",
-    "template-*",
     "package.json",
     "README.md",
     "CHANGELOG.md"
