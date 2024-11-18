@@ -10,6 +10,7 @@
         "onFinish": {
           "message": "Created '${appName}' using the drizzle template. Thank you for using Palmares.",
           "commands": [
+            "${packageManager} run load",
             "${packageManager} run makemigrations",
             "${packageManager} run migrate",
             "${packageManager} run dev"

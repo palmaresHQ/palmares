@@ -1,5 +1,11 @@
 # @palmares/databases
 
+## 0.2.6
+
+### Patch Changes
+
+- bcafd12: Fix drizzle template for @palmares/databases and palmares
+
 ## 0.2.5
 
 ### Patch Changes
