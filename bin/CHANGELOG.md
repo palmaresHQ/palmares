@@ -1,5 +1,11 @@
 # palmares
 
+## 0.0.6
+
+### Patch Changes
+
+- 5d0081e: Fix drizzle template to run flawlessly
+
 ## 0.0.5
 
 ### Patch Changes

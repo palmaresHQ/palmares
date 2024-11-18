@@ -149,7 +149,7 @@ const cpaDomain = domain('palmares', '', {
             );
 
           const templatePath = await std.files.join(path, ...(template?.location.split('/') || []));
-          await recursivelyCopyFilesFromTemplate(std, name, templatePath);
+          await recursivelyCopyFilesFromTemplate(std, packageManager, name, templatePath);
 
           logger.log(`\x1b[1mInstalling dependencies on '${name}' using '${packageManager}'...\x1b[0m`);
 

@@ -1,5 +1,13 @@
 # @palmares/sequelize-engine
 
+## 0.2.8
+
+### Patch Changes
+
+- 5d0081e: Fix drizzle template to run flawlessly
+- Updated dependencies [5d0081e]
+  - @palmares/databases@0.2.8
+
 ## 0.2.7
 
 ### Patch Changes
