@@ -28,7 +28,8 @@ async function extractSettingsFromPath(stdToUse: Std, path?: string) {
 
   if (!pathToUse) throw new SettingsNotFoundException();
   try {
-    $PCachedSettings = ((await import(pathToUse)) as { default: SettingsType2 }).default;
+    $PCachedSettings = ((await import(stdToUse.files.getPathToFileURL(pathToUse))) as { default: SettingsType2 })
+      .default;
   } catch (e) {
     throw new SettingsNotFoundException();
   }

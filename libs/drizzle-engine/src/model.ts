@@ -113,9 +113,9 @@ export const models = adapterModels({
         modelName,
         async () => {
           try {
-            return Promise.resolve(require(locationToRequire)[modelName]);
+            return Promise.resolve(require(std.files.getPathToFileURL(locationToRequire))[modelName]);
           } catch (e) {
-            return (await import(locationToRequire))[modelName];
+            return (await import(std.files.getPathToFileURL(locationToRequire)))[modelName];
           }
         }
       ];

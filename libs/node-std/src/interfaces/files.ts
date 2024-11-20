@@ -1,6 +1,7 @@
 import { access, appendFile, constants, mkdir, readFile, readdir, rm, writeFile } from 'fs';
 import { basename, dirname, join, relative } from 'path';
 import { env } from 'process';
+import { pathToFileURL } from 'url';
 
 import type { FilesAndFolders } from '@palmares/core';
 
@@ -44,6 +45,10 @@ export class FilesAndFoldersNode implements FilesAndFolders {
         } else resolve(true);
       });
     });
+  }
+
+  getPathToFileURL(path: string) {
+    return pathToFileURL(path).pathname;
   }
 
   async writeFile(path: string | string[], content: string): Promise<void> {

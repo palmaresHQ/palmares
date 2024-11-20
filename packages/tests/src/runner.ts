@@ -1,4 +1,4 @@
-import { initializeDomains } from '@palmares/core';
+import { initializeDomains, setDefaultStd } from '@palmares/core';
 
 import { setTestAdapter } from './utils';
 
