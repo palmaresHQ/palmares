@@ -23,6 +23,12 @@ export interface FilesAndFolders {
    */
   appendFile: (path: string | string[], content: string) => Promise<void>;
   /**
+   * Retrieves the file url from the path. This is useful because of certain OSes
+   * that only allows dynamic imports to occur if the path is a URL with file://
+   */
+  getPathToFileURL: (path: string) => string;
+
+  /**
    * When the path is a simple string work normally, if the path is an array of strings, join
    * the strings with .join() and then work normally
    */
