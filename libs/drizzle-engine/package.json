@@ -1,6 +1,6 @@
 {
   "name": "@palmares/drizzle-engine",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "This is the engine that wraps the hole drizzle interface in a way palmares can understand and have full control of",
   "main": "./dist/src/index.cjs",
   "module": "./dist/src/index.js",

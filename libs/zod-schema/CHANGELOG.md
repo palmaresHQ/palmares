@@ -1,5 +1,11 @@
 # @palmares/zod-schema
 
+## 0.2.10
+
+### Patch Changes
+
+- @palmares/schemas@0.2.10
+
 ## 0.2.9
 
 ### Patch Changes

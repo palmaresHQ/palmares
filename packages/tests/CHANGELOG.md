@@ -1,5 +1,13 @@
 # @palmares/tests
 
+## 0.2.4
+
+### Patch Changes
+
+- 4c6392c: Make it work on Windows, it was breaking when using dynamic imports
+- Updated dependencies [4c6392c]
+  - @palmares/core@0.2.3
+
 ## 0.2.3
 
 ### Patch Changes
