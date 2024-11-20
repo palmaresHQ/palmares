@@ -77,8 +77,15 @@ export class Migrations {
           const promises = directoryFiles.map(async (element) => {
             const file = element;
             const pathOfMigration = await defaultStd.files.join(fullPath, file);
-            const migrationFile = (await import(defaultStd.files.getPathToFileURL(pathOfMigration)))
-              .default as MigrationFileType;
+            const pathToGetMigration = defaultStd.files.getPathToFileURL(pathOfMigration);
+
+            const migrationFile = (
+              await import(
+                (await defaultStd.os.platform()) === 'windows' && pathOfMigration.startsWith('file:') === false
+                  ? `file:/${pathToGetMigration}`
+                  : pathToGetMigration
+              )
+            ).default as MigrationFileType;
             const isAValidMigrationFile =
               typeof migrationFile === 'object' &&
               // eslint-disable-next-line ts/no-unnecessary-condition
