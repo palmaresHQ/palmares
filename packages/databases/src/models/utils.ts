@@ -198,6 +198,7 @@ export function retrieveInputAndOutputParsersFromFieldAndCache(
   fieldName: string,
   field: Field<any, any, any>
 ) {
+  if (!field) return
   const existingOutputParser = field['__outputParsers'].get(engine.connectionName);
   const existingInputParser = field['__inputParsers'].get(engine.connectionName);
   if (existingOutputParser !== undefined && existingInputParser !== undefined) {
