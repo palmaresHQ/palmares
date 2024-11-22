@@ -1,5 +1,4 @@
-import { getDefaultStd } from '@palmares/core';
-import { Server } from 'http';
+import { std } from '@palmares/core';
 
 import {
   HandlerOrHandlersShouldBeDefinedOnRouterAdapterError,
@@ -502,7 +501,6 @@ function generateServerlessHandler(
   path: string,
   pathOfHandler: { pathOfHandler: string }
 ): HandlerForServerless {
-  const std = getDefaultStd();
   const shouldBeTypeAnnotated = allSettings.settingsLocation.endsWith('.ts');
   const extension = allSettings.settingsLocation.split('.').pop();
 

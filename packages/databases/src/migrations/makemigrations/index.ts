@@ -1,5 +1,5 @@
 /* eslint-disable no-case-declarations */
-import { FRAMEWORK_NAME, getDefaultStd, retrieveDomains } from '@palmares/core';
+import { FRAMEWORK_NAME, retrieveDomains, std } from '@palmares/core';
 
 import { asker as Asker } from './asker';
 import { databaseLogger } from '../../logging';
@@ -564,7 +564,6 @@ export class MakeMigrations {
     lastMigrationName = '',
     lastDomainPath = ''
   ) {
-    const defaultStd = getDefaultStd();
     const customImportsOfCustomData: CustomImportsForFieldType[] = [];
     const operationsAsString: string[] = [];
     const currentDate = new Date();
@@ -621,19 +620,19 @@ export class MakeMigrations {
       `  dependsOn: '${lastMigrationName}',\n` +
       `  operations: [\n${operationsToString}\n  ]\n};\n`;
     const indexFileOfMigrations = `index.${settingsIsTs ? 'ts' : 'js'}`;
-    const pathToWriteMigrations = await defaultStd.files.join(domainPath, 'migrations');
+    const pathToWriteMigrations = await std.files.join(domainPath, 'migrations');
 
-    const existsFile = await defaultStd.files.exists(pathToWriteMigrations);
+    const existsFile = await std.files.exists(pathToWriteMigrations);
     if (!existsFile) {
-      await defaultStd.files.makeDirectory(pathToWriteMigrations);
-      await defaultStd.files.writeFile([pathToWriteMigrations, indexFileOfMigrations], '');
+      await std.files.makeDirectory(pathToWriteMigrations);
+      await std.files.writeFile([pathToWriteMigrations, indexFileOfMigrations], '');
     }
 
     // write file first so after we can read the directory and update the index file.
-    await defaultStd.files.writeFile([pathToWriteMigrations, `${migrationName}.${settingsIsTs ? 'ts' : 'js'}`], file);
+    await std.files.writeFile([pathToWriteMigrations, `${migrationName}.${settingsIsTs ? 'ts' : 'js'}`], file);
 
     // This will write the migrations to index.ts or index.js file.
-    const files = await defaultStd.files.readDirectory(pathToWriteMigrations);
+    const files = await std.files.readDirectory(pathToWriteMigrations);
     const filteredFilesWithoutIndex = files.filter((fileName) => fileName !== indexFileOfMigrations);
 
     const contentsOfIndex = filteredFilesWithoutIndex
@@ -646,7 +645,7 @@ export class MakeMigrations {
       .join('\n');
 
     // save the index file.
-    await defaultStd.files.writeFile([pathToWriteMigrations, indexFileOfMigrations], contentsOfIndex);
+    await std.files.writeFile([pathToWriteMigrations, indexFileOfMigrations], contentsOfIndex);
 
     return migrationName;
   }

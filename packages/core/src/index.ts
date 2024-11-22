@@ -20,8 +20,8 @@ export * from './utils/types';
 
 export { AppServer, appServer } from './app';
 export type { AppServerInterface } from './app/types';
-export { ImportsError, getDefaultStd, setDefaultStd } from './std';
-export { Std, type Asker, type ChildProcess, type FilesAndFolders, type Os } from './std-adapter';
+export { ImportsError, getDefaultStd, setDefaultStd, std } from './std';
+export { Std, type Asker, type ChildProcess, type FilesAndFolders, type Os, type AskSelect } from './std-adapter';
 
 export { coreDomain as CoreDomain } from './domain/default';
 export { coreDomain as default } from './domain/default';

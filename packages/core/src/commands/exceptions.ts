@@ -6,3 +6,10 @@ export class CommandNotFoundException extends Error {
     );
   }
 }
+
+export class RequiredPositionalArgs extends Error {
+  constructor(missingArgs: string[]) {
+    super(`Missing required positional arguments: ${missingArgs.join(', ')}`);
+    this.name = 'RequiredPositionalArgs';
+  }
+}

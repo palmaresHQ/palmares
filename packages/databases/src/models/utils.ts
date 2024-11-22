@@ -1,4 +1,4 @@
-import { getDefaultStd } from '@palmares/core';
+import { std } from '@palmares/core';
 
 import {
   EngineDoesNotSupportFieldTypeException,
@@ -462,7 +462,6 @@ export async function initializeModels(
         modelEntries.length < initializeModels.length &&
         options?.forceTranslation !== true
       ) {
-        const std = getDefaultStd();
         const answer = await std.asker.ask(
           `\nYou have translated the model before. And you have assigned 'instance' to ` +
             `the model options. Should we refresh all of the model instances?` +

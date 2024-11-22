@@ -1,4 +1,4 @@
-import { getDefaultStd } from '@palmares/core';
+import { std } from '@palmares/core';
 import { adapterModels } from '@palmares/databases';
 
 import type { ModelOptionsType } from '@palmares/databases';
@@ -50,7 +50,6 @@ export const models = adapterModels({
 
   afterModelsTranslation: async (engine, models): Promise<[string, any][]> => {
     let fileContent = '';
-    const std = getDefaultStd();
     const [cwd, directoryName] = await Promise.all([std.os.cwd(), std.files.dirname(engine.instance.output)]);
     const [folderName, locationToRequire] = await Promise.all([
       std.files.join(cwd, directoryName),

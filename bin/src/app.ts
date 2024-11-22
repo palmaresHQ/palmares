@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { ConsoleLogging } from '@palmares/console-logging';
-import { Commands, CoreDomain, defineSettings, domain, getDefaultStd } from '@palmares/core';
+import { Commands, CoreDomain, defineSettings, domain, std } from '@palmares/core';
 import { Logger, loggingDomain } from '@palmares/logging';
 import { NodeStd } from '@palmares/node-std';
 
@@ -34,48 +34,35 @@ const cpaDomain = domain('palmares', '', {
         appType: {
           description: 'The type of app you want to create',
           type: 'string',
-          required: true
+          required: false
         },
         name: {
           description: 'The name of the app you are creating',
           type: 'string',
-          required: true
+          required: false
         }
       },
       keywordArgs: {
         template: {
           description: 'The template to use for the database app',
-          type: 'string',
-          required: true
+          type: 'string'
+        },
+        pm: {
+          description: 'The package manager to use',
+          type: ['pnpm', 'npm', 'yarn', 'bun']
         }
       },
       handler: async (args) => {
-        const std = getDefaultStd();
         // @ts-ignore Trust me bro
         const basePath = import.meta.dirname;
         const fullPath = await std.files.join(basePath, '..', 'templates');
         const allApps = await std.files.readDirectory(fullPath);
         const commandLineArgs = args.commandLineArgs as ExtractCommandsType<typeof cpaDomain, 'new'>;
-        let appType = commandLineArgs.positionalArgs.appType;
+        let appType: undefined | string = commandLineArgs.positionalArgs.appType;
+        let packageManager: undefined | 'pnpm' | 'npm' | 'yarn' | 'bun' = commandLineArgs.keywordArgs.pm;
         let name = commandLineArgs.positionalArgs.name;
 
-        if (!appType) {
-          const appNameOptions = allApps.reduce(
-            (accumulator, app, index) => {
-              accumulator[index] = app;
-              return accumulator;
-            },
-            {} as Record<string, string>
-          );
-          const appTypeOption = await std.asker.askClearingScreen(
-            [
-              `\x1b[1mWhich app you want to create?\x1b[0m`,
-              ...Object.entries(appNameOptions).map(([key, value]) => `${key}. ${value}`)
-            ],
-            (answer) => `\x1b[1mWhich app you want to create?\x1b[0m ` + `\x1b[32m${appNameOptions[answer]}\x1b[0m`
-          );
-          appType = appNameOptions[appTypeOption];
-        }
+        if (!appType) appType = await std.asker.askSelection(`\x1b[1mWhich app you want to create?\x1b[0m`, allApps);
 
         if (!appType)
           throw new Error(
@@ -89,22 +76,16 @@ const cpaDomain = domain('palmares', '', {
           );
         }
 
-        const packageManagerOptions = {
-          '1': 'npm',
-          '2': 'yarn',
-          '3': 'pnpm',
-          '4': 'bun'
-        };
-        const packageManagerOption = await std.asker.askClearingScreen(
-          [
-            `\x1b[1mWhich package manager would you like to use?\x1b[0m`,
-            ...Object.entries(packageManagerOptions).map(([key, value]) => `${key}. ${value}`)
-          ],
-          (answer) =>
-            `\x1b[1mWhich package manager would you like to use?\x1b[0m ` +
-            `\x1b[32m${packageManagerOptions[answer as keyof typeof packageManagerOptions]}\x1b[0m`
-        );
-        const packageManager = packageManagerOptions[packageManagerOption as keyof typeof packageManagerOptions];
+        if (!packageManager)
+          packageManager = (await std.asker.askSelection(`\x1b[1mWhich package manager would you like to use?\x1b[0m`, [
+            'npm',
+            'yarn',
+            'pnpm',
+            'bun'
+          ])) as 'npm' | 'yarn' | 'pnpm' | 'bun' | undefined;
+
+        if (!packageManager) throw new Error('You must provide a package manager to use');
+
         const path = await std.files.join(fullPath, appType);
         try {
           const templatesJson = JSON.parse(await std.files.readFile(await std.files.join(path, 'templates.json'))) as
@@ -123,22 +104,13 @@ const cpaDomain = domain('palmares', '', {
               typeof templateToUse === 'string'
                 ? `Template '${templateToUse}' not found. Choose one from the list`
                 : 'Which template would you like to use?';
-            const templateOptions = templatesJson.templates.reduce(
-              (accumulator, template, index) => {
-                accumulator[index + 1] = template.name;
-                return accumulator;
-              },
-              {} as Record<string, string>
-            );
-            const answer = await std.asker.askClearingScreen(
-              [
-                `\x1b[1m${question}\x1b[0m`,
-                ...Object.entries(templateOptions).map(([key, value]) => `${key}. ${value}`)
-              ],
-              (answer) => `\x1b[1m${question}\x1b[0m ` + `\x1b[32m${templateOptions[answer]}\x1b[0m`
+
+            const answer = await std.asker.askSelection(
+              `\x1b[1m${question}\x1b[0m`,
+              templatesJson.templates.map((template) => template.name)
             );
 
-            template = templatesJson.templates.find((template) => template.name === templateOptions[answer]);
+            template = templatesJson.templates.find((template) => template.name === answer);
           }
 
           if (template?.messages['onStart'])

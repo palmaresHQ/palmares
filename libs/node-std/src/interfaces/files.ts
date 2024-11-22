@@ -6,7 +6,7 @@ import { pathToFileURL } from 'url';
 import type { FilesAndFolders } from '@palmares/core';
 
 export class FilesAndFoldersNode implements FilesAndFolders {
-  async basename(path: string | string[]): Promise<string> {
+  async basename(path: string): Promise<string> {
     const pathToUse = Array.isArray(path) ? await this.join(...path) : path;
     return basename(pathToUse);
   }
@@ -19,12 +19,9 @@ export class FilesAndFoldersNode implements FilesAndFolders {
     return env[envName] as T;
   }
 
-  async readFile(path: string | string[]): Promise<string> {
-    let pathAsString: string = path as string;
-    if (Array.isArray(path)) pathAsString = await this.join(...path);
-
+  async readFile(path: string): Promise<string> {
     return new Promise((resolve, reject) => {
-      readFile(pathAsString, (error, data) => {
+      readFile(path, (error, data) => {
         if (error) reject(error);
         else resolve(data.toString());
       });
@@ -35,10 +32,9 @@ export class FilesAndFoldersNode implements FilesAndFolders {
     return join(...paths);
   }
 
-  async exists(path: string | string[]): Promise<boolean> {
-    const pathToUse = Array.isArray(path) ? await this.join(...path) : path;
+  async exists(path: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
-      access(pathToUse, constants.F_OK, (error) => {
+      access(path, constants.F_OK, (error) => {
         if (error) {
           if (error.code === 'ENOENT') resolve(false);
           else reject(error);
@@ -51,55 +47,49 @@ export class FilesAndFoldersNode implements FilesAndFolders {
     return pathToFileURL(path).pathname;
   }
 
-  async writeFile(path: string | string[], content: string): Promise<void> {
-    const pathToUse = Array.isArray(path) ? await this.join(...path) : path;
+  async writeFile(path: string, content: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      writeFile(pathToUse, content, (error) => {
+      writeFile(path, content, (error) => {
         if (error) reject(error);
         else resolve(undefined);
       });
     });
   }
 
-  async appendFile(path: string | string[], content: string): Promise<void> {
-    const pathToUse = Array.isArray(path) ? await this.join(...path) : path;
+  async appendFile(path: string, content: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      appendFile(pathToUse, content, (error) => {
+      appendFile(path, content, (error) => {
         if (error) reject(error);
         else resolve(undefined);
       });
     });
   }
 
-  async dirname(path: string | string[]): Promise<string> {
-    const pathToUse = Array.isArray(path) ? await this.join(...path) : path;
-    return dirname(pathToUse);
+  async dirname(path: string): Promise<string> {
+    return dirname(path);
   }
 
-  async makeDirectory(path: string | string[]): Promise<void> {
-    const pathToCreateDirectory = Array.isArray(path) ? await this.join(...path) : path;
+  async makeDirectory(path: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      mkdir(pathToCreateDirectory, { recursive: true }, (error) => {
+      mkdir(path, { recursive: true }, (error) => {
         if (error) reject(error);
         else resolve(undefined);
       });
     });
   }
 
-  async readDirectory(path: string | string[]): Promise<string[]> {
-    const pathToReadDirectory = Array.isArray(path) ? await this.join(...path) : path;
+  async readDirectory(path: string): Promise<string[]> {
     return new Promise((resolve, reject) => {
-      readdir(pathToReadDirectory, (error, files) => {
+      readdir(path, (error, files) => {
         if (error) reject(error);
         else resolve(files);
       });
     });
   }
 
-  async removeFile(path: string | string[]): Promise<void> {
-    const pathToRemove = Array.isArray(path) ? await this.join(...path) : path;
+  async removeFile(path: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      rm(pathToRemove, (error) => {
+      rm(path, (error) => {
         if (error) reject(error);
         else resolve(undefined);
       });

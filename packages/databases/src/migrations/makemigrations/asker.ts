@@ -1,4 +1,4 @@
-import { getDefaultStd } from '@palmares/core';
+import { std } from '@palmares/core';
 
 class Asker {
   async theNewAttributeCantHaveNullDoYouWishToContinue(modelName: string, fieldName: string): Promise<boolean> {
@@ -9,14 +9,14 @@ class Asker {
       `set to \x1b[33mfalse\x1b[0m. \n` +
       `You can safely ignore this message if you didn't add any data to the table. \n\n` +
       `Press any key to continue or 'CTRL+C' to stop and define the attributes yourself.\n`;
-    const answer = await getDefaultStd().asker.ask(question);
+    const answer = await std.asker.ask(question);
     if (answer.toLowerCase() === 'n') return false;
     else return true;
   }
 
   async didUserRename(modelOrFieldThatWasRenamed: string, renamedTo: string): Promise<boolean> {
     const question = `\nDid you rename '${modelOrFieldThatWasRenamed}' to '${renamedTo}'? [y/n]\n`;
-    const answer = await getDefaultStd().asker.ask(question);
+    const answer = await std.asker.ask(question);
     if (['y', 'n'].includes(answer)) return answer === 'y';
     else return false;
   }
@@ -27,7 +27,7 @@ class Asker {
     const question = `\nDid you rename '${valueThatWasRenamed}' to one of the following options? \n${toOptions.join(
       '\n'
     )} \n\n${explanation}\n`;
-    const answer = await getDefaultStd().asker.ask(question);
+    const answer = await std.asker.ask(question);
     if (answer === '') return null;
     else {
       try {
