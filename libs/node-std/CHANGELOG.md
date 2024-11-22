@@ -1,5 +1,12 @@
 # @palmares/node-std
 
+## 0.2.5
+
+### Patch Changes
+
+- Updated dependencies [b0c5de7]
+  - @palmares/core@0.2.5
+
 ## 0.2.4
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@palmares/server",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "The server from palmares, this is what you will use generally to make HTTP requests",
   "main": "./dist/src/index.cjs",
   "module": "./dist/src/index.js",

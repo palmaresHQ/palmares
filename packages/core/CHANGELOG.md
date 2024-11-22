@@ -1,5 +1,11 @@
 # @palmares/core
 
+## 0.2.5
+
+### Patch Changes
+
+- b0c5de7: writeFile on std was appending and not writting
+
 ## 0.2.4
 
 ### Patch Changes

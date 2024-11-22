@@ -1,5 +1,15 @@
 # palmares
 
+## 0.0.10
+
+### Patch Changes
+
+- Updated dependencies [b0c5de7]
+  - @palmares/core@0.2.5
+  - @palmares/node-std@0.2.5
+  - @palmares/logging@0.2.5
+  - @palmares/console-logging@0.2.5
+
 ## 0.0.9
 
 ### Patch Changes
