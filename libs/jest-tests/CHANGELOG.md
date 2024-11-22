@@ -1,5 +1,12 @@
 # @palmares/jest-tests
 
+## 0.2.5
+
+### Patch Changes
+
+- Updated dependencies [3d5119f]
+  - @palmares/tests@0.2.5
+
 ## 0.2.4
 
 ### Patch Changes

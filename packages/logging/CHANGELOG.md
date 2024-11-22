@@ -1,5 +1,12 @@
 # @palmares/logging
 
+## 0.2.4
+
+### Patch Changes
+
+- Updated dependencies [3d5119f]
+  - @palmares/core@0.2.4
+
 ## 0.2.3
 
 ### Patch Changes

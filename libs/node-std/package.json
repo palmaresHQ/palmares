@@ -1,6 +1,6 @@
 {
   "name": "@palmares/node-std",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "This is the nodejs standard library, it uses the std interfaces to interact with the environment so palmares can work with the same APIs without worrying about the environment it is running on.",
   "main": "./dist/src/index.cjs",
   "module": "./dist/src/index.js",

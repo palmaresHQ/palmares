@@ -1,5 +1,16 @@
 # @palmares/server
 
+## 0.2.5
+
+### Patch Changes
+
+- 3d5119f: - Add arrow navigation to Std
+  - Detach Std adapter from Std API
+  - Validate positional arguments on CLI
+- Updated dependencies [3d5119f]
+  - @palmares/core@0.2.4
+  - @palmares/logging@0.2.4
+
 ## 0.2.4
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @palmares/console-logging
 
+## 0.2.4
+
+### Patch Changes
+
+- @palmares/logging@0.2.4
+
 ## 0.2.3
 
 ### Patch Changes
