@@ -50,7 +50,7 @@ const std = {
     getPathToFileURL: (path: string) => getDefaultStd().files.getPathToFileURL(path),
     writeFile: async (path: string | string[], content: string) => {
       if (Array.isArray(path)) path = await getDefaultStd().files.join(...path);
-      return getDefaultStd().files.appendFile(path, content);
+      return getDefaultStd().files.writeFile(path, content);
     },
     removeFile: async (path: string | string[]) => {
       if (Array.isArray(path)) path = await getDefaultStd().files.join(...path);
