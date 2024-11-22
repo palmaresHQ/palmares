@@ -1,4 +1,4 @@
-import { getDefaultStd } from '@palmares/core';
+import { std } from '@palmares/core';
 
 import { setTestAdapter } from '../utils';
 
@@ -16,7 +16,6 @@ export async function test(domains: TestDomain[], settings: AllTestsSettingsType
   }
   const newTestAdapter = new settings.testAdapter();
   await setTestAdapter(newTestAdapter);
-  const std = getDefaultStd();
 
   return newTestAdapter.run(
     filesToTest,

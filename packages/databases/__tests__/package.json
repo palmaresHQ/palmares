@@ -4,6 +4,7 @@
   "description": "testing the tests",
   "main": "manage.drizzle.ts",
   "scripts": {
+    "helpdrizzle": "drizzle-kit help generate",
     "help": "tsx manage.drizzle.ts help",
     "test": "tsx test.ts",
     "test:type": "attest trace ./src/drizzle",

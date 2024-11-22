@@ -1,7 +1,7 @@
-import type { Std } from '@palmares/core';
+import type { std as defaultStd } from '@palmares/core';
 
 export async function recursivelyCopyFilesFromTemplate(
-  std: Std,
+  std: typeof defaultStd,
   packageManager: string,
   projectName: string,
   templateDirectoryPath: string

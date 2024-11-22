@@ -1,4 +1,4 @@
-import { CommandNotFoundException } from './exceptions';
+import { CommandNotFoundException, RequiredPositionalArgs } from './exceptions';
 import { initializeApp } from '../app/utils';
 import { initializeDomains } from '../domain/utils';
 import { getLogger, setLogger } from '../logging';
@@ -78,7 +78,7 @@ function getValueFromType(type: 'boolean' | 'number' | 'string' | string[] | rea
  */
 function formatArgs(command: DefaultCommandType[string], args: string[]) {
   const isArgAKeywordParameter = (arg: string) => arg.startsWith('--') || arg.startsWith('-');
-  const positionalArguments = structuredClone(command.positionalArgs || ({} as object)) as NonNullable<
+  const positionalArguments = JSON.parse(JSON.stringify(command.positionalArgs || ({} as object))) as NonNullable<
     DefaultCommandType[string]['positionalArgs']
   >;
   const allKeywordArgsFlagsByRealName =
@@ -97,6 +97,11 @@ function formatArgs(command: DefaultCommandType[string], args: string[]) {
 
   const positionalArgs: { [key: string]: any } = {};
   const keywordArgs: { [key: string]: any } = {};
+  const requiredPositionalArgs = new Set(
+    Object.entries(positionalArguments)
+      .filter(([, value]) => value.required)
+      .map(([key]) => key)
+  );
 
   while (args.length > 0) {
     const arg = args.shift() as string;
@@ -134,10 +139,14 @@ function formatArgs(command: DefaultCommandType[string], args: string[]) {
       }
     } else if (Object.keys(positionalArguments).length > 0) {
       const [positionalArgument, positionalArgsData] = Object.entries(positionalArguments)[0];
+      console.log('positionalArgument', positionalArgument);
       positionalArgs[positionalArgument] = getValueFromType(positionalArgsData.type || 'string', arg);
       delete positionalArguments[positionalArgument];
+      requiredPositionalArgs.delete(positionalArgument);
     }
   }
+
+  if (requiredPositionalArgs.size > 0) throw new RequiredPositionalArgs(Array.from(requiredPositionalArgs));
 
   return {
     positionalArgs,

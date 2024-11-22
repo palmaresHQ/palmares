@@ -1,9 +1,62 @@
 import { stdin as input, stdout as output } from 'process';
-import { clearScreenDown, createInterface, moveCursor } from 'readline';
+import { createInterface, emitKeypressEvents } from 'readline';
 
-import type { Asker } from '@palmares/core';
+import type { AskSelect, Asker } from '@palmares/core';
+
+const keyPressHandlerBuilder = (
+  asker: AskSelectNode,
+  resolve: (value: string | undefined) => void,
+  args: {
+    onUp: () => void;
+    onDown: () => void;
+    onSelect: () => string;
+    clearConsole: () => string;
+    renderOption: (index: number) => string;
+  }
+) => {
+  return (_: any, key: any) => {
+    if (key) {
+      if (key.name === 'down') args.onDown();
+      else if (key.name === 'up') args.onUp();
+      else if (key.name === 'escape' || (key.name === 'c' && key.ctrl)) resolve(asker.close() as undefined);
+      else if (key.name === 'return') resolve(args.onSelect());
+    }
+  };
+};
+let keyPressHandler: ReturnType<typeof keyPressHandlerBuilder> | undefined;
+class AskSelectNode implements AskSelect {
+  close() {
+    input.setRawMode(false);
+    input.pause();
+    if (keyPressHandler) input.removeListener('keypress', keyPressHandler);
+    //input.removeAllListeners();
+  }
+
+  async ask(
+    _question: string,
+    _options: string[],
+    registerWrite: (writeCallback: (valueToWrite: string) => void) => void,
+    args: {
+      onUp: () => void;
+      onDown: () => void;
+      onSelect: () => string;
+      clearConsole: () => string;
+      renderOption: (index: number) => string;
+    }
+  ) {
+    registerWrite((value: string) => output.write(value));
+    return new Promise<string | undefined>((resolve) => {
+      keyPressHandler = keyPressHandlerBuilder(this, resolve, args);
+      emitKeypressEvents(input);
+      input.setRawMode(true);
+      input.resume();
+      input.on('keypress', keyPressHandler);
+    });
+  }
+}
 
 export class AskerNode implements Asker {
+  select = new AskSelectNode();
   async ask(question: string): Promise<string> {
     const readlineInterface = createInterface({
       input,
@@ -16,18 +69,15 @@ export class AskerNode implements Asker {
       });
     });
   }
-  async askClearingScreen(question: string[], afterRespond: (answer: string) => string): Promise<string> {
+  async askClearingScreen(question: string, clearScreen: () => string): Promise<string> {
     const readlineInterface = createInterface({
       input,
       output
     });
-    const numberOfLines = question.length + 1;
     return new Promise((resolve) => {
-      readlineInterface.question(`${question.join('\n')}\n> `, (answer) => {
+      readlineInterface.question(question, (answer) => {
         readlineInterface.close();
-        moveCursor(output, 0, -numberOfLines);
-        clearScreenDown(output);
-        console.log(afterRespond(answer));
+        output.write(clearScreen());
         resolve(answer);
       });
     });

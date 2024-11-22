@@ -15,3 +15,10 @@ export class StdNotSetError extends Error {
     this.name = 'StdNotSetError';
   }
 }
+
+export class FileOrDirectoryDoesNotExistError extends Error {
+  constructor(path: string) {
+    super(`File or directory ${path} does not exist`);
+    this.name = 'FileOrDirectoryDoesNotExistError';
+  }
+}

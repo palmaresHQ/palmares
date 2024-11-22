@@ -1,4 +1,4 @@
-import { ERR_MODULE_NOT_FOUND, getDefaultStd } from '@palmares/core';
+import { ERR_MODULE_NOT_FOUND, std } from '@palmares/core';
 
 import { MakeMigrations } from './makemigrations';
 import { Migrate } from './migrate';
@@ -54,7 +54,6 @@ export class Migrations {
   }
 
   async #getMigrations(): Promise<FoundMigrationsFileType[]> {
-    const defaultStd = getDefaultStd();
     const foundMigrations: FoundMigrationsFileType[] = [];
     const promises: Promise<void>[] = this.domains.map(async (domain) => {
       if (domain.getMigrations) {
@@ -71,17 +70,17 @@ export class Migrations {
           });
         }
       } else {
-        const fullPath = await defaultStd.files.join(domain.path, 'migrations');
+        const fullPath = await std.files.join(domain.path, 'migrations');
         try {
-          const directoryFiles = await defaultStd.files.readDirectory(fullPath);
+          const directoryFiles = await std.files.readDirectory(fullPath);
           const promises = directoryFiles.map(async (element) => {
             const file = element;
-            const pathOfMigration = await defaultStd.files.join(fullPath, file);
-            const pathToGetMigration = defaultStd.files.getPathToFileURL(pathOfMigration);
+            const pathOfMigration = await std.files.join(fullPath, file);
+            const pathToGetMigration = std.files.getPathToFileURL(pathOfMigration);
 
             const migrationFile = (
               await import(
-                (await defaultStd.os.platform()) === 'windows' && pathOfMigration.startsWith('file:') === false
+                (await std.os.platform()) === 'windows' && pathOfMigration.startsWith('file:') === false
                   ? `file:/${pathToGetMigration}`
                   : pathToGetMigration
               )

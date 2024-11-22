@@ -13,18 +13,18 @@ type ExtractTypeFromArg<
   ? TArgument['canBeMultiple'] extends true
     ? string[]
     : string
-  : TArgument extends 'number'
+  : TArgument['type'] extends 'number'
     ? TArgument['canBeMultiple'] extends true
       ? number[]
       : number
-    : TArgument extends 'boolean'
+    : TArgument['type'] extends 'boolean'
       ? TArgument['canBeMultiple'] extends true
         ? boolean[]
         : boolean
-      : TArgument extends string[] | readonly string[]
+      : TArgument['type'] extends string[] | readonly string[]
         ? TArgument['canBeMultiple'] extends true
-          ? Narrow<TArgument>
-          : Narrow<TArgument>
+          ? Narrow<TArgument['type']>[number][]
+          : Narrow<TArgument['type']>[number]
         : TPositionalOrKeyword extends 'positionalArgs'
           ? TArgument['canBeMultiple'] extends true
             ? string[]
@@ -102,7 +102,7 @@ export type DefaultCommandType = {
              *
              * @default 'string'
              */
-            type?: 'string' | 'number' | 'boolean';
+            type?: 'string' | 'number' | 'boolean' | readonly string[] | string[];
           };
         }
       | undefined;
