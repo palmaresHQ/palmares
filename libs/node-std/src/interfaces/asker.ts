@@ -1,13 +1,35 @@
-import { exit, stdin as input, stdout as output } from 'process';
-import { clearScreenDown, createInterface, emitKeypressEvents, moveCursor } from 'readline';
+import { stdin as input, stdout as output } from 'process';
+import { createInterface, emitKeypressEvents } from 'readline';
 
 import type { AskSelect, Asker } from '@palmares/core';
 
+const keyPressHandlerBuilder = (
+  asker: AskSelectNode,
+  resolve: (value: string | undefined) => void,
+  args: {
+    onUp: () => void;
+    onDown: () => void;
+    onSelect: () => string;
+    clearConsole: () => string;
+    renderOption: (index: number) => string;
+  }
+) => {
+  return (_: any, key: any) => {
+    if (key) {
+      if (key.name === 'down') args.onDown();
+      else if (key.name === 'up') args.onUp();
+      else if (key.name === 'escape' || (key.name === 'c' && key.ctrl)) resolve(asker.close() as undefined);
+      else if (key.name === 'return') resolve(args.onSelect());
+    }
+  };
+};
+let keyPressHandler: ReturnType<typeof keyPressHandlerBuilder> | undefined;
 class AskSelectNode implements AskSelect {
   close() {
     input.setRawMode(false);
     input.pause();
-    exit(0);
+    if (keyPressHandler) input.removeListener('keypress', keyPressHandler);
+    //input.removeAllListeners();
   }
 
   async ask(
@@ -24,17 +46,11 @@ class AskSelectNode implements AskSelect {
   ) {
     registerWrite((value: string) => output.write(value));
     return new Promise<string | undefined>((resolve) => {
+      keyPressHandler = keyPressHandlerBuilder(this, resolve, args);
       emitKeypressEvents(input);
       input.setRawMode(true);
       input.resume();
-      input.on('keypress', (_, key) => {
-        if (key) {
-          if (key.name === 'down') args.onDown();
-          else if (key.name === 'up') args.onUp();
-          else if (key.name === 'escape' || (key.name === 'c' && key.ctrl)) resolve(this.close() as undefined);
-          else if (key.name === 'return') resolve(args.onSelect());
-        }
-      });
+      input.on('keypress', keyPressHandler);
     });
   }
 }

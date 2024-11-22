@@ -19,7 +19,12 @@ type TemplatesJson = {
       onDoing: string;
       onFinish: {
         message: string;
-        commands: string[];
+        commands:
+          | string[]
+          | {
+              command: string;
+              message: string;
+            }[];
       };
     };
   }[];
@@ -163,12 +168,18 @@ const cpaDomain = domain('palmares', '', {
             clearTimeout(message5);
 
             if (template?.messages['onFinish']) {
-              for (const command of template.messages['onFinish'].commands)
-                console.log(
-                  await std.childProcess.executeAndOutput(
-                    `cd ${name} && ${command.replaceAll('${packageManager}', packageManager)}`
-                  )
-                );
+              for (const commandToRunOrObject of template.messages['onFinish'].commands) {
+                const commandToRun = (
+                  typeof commandToRunOrObject === 'string' ? commandToRunOrObject : commandToRunOrObject.command
+                ).replaceAll('${packageManager}', packageManager);
+                const message =
+                  typeof commandToRunOrObject === 'string'
+                    ? `Running command '${commandToRun}'...`
+                    : commandToRunOrObject.message;
+                logger.log(message);
+
+                console.log(await std.childProcess.executeAndOutput(`cd ${name} && ${commandToRun}`));
+              }
               logger.log(
                 template.messages['onFinish'].message
                   .replaceAll('${appName}', name)

@@ -96,7 +96,7 @@ const std = {
     askClearingScreen: async (question: string[], afterRespond: (answer: string) => string) => {
       const numberOfLines = question.length + 1;
       const actualQuestion = `${question.join('\n')}\n> `;
-      const response = getDefaultStd().asker.askClearingScreen(actualQuestion, () => clearConsole(numberOfLines));
+      const response = getDefaultStd().asker.askClearingScreen(actualQuestion, () => clearConsole(numberOfLines + 1));
       return response.then((answer) => {
         console.log(afterRespond(answer));
         return answer;
@@ -144,6 +144,7 @@ const std = {
               outputWrite(clearConsole(options.length + 1));
               console.log(`${question} \x1b[32m${options[selectedOptionIndex]}\x1b[0m`);
             }
+            defaultStd.asker.select.close();
             return options[selectedOptionIndex];
           },
           clearConsole: () => clearConsole(options.length),
