@@ -17,6 +17,22 @@
           ]
         }
       }
+    },
+    {
+      "name": "app/sequelize",
+      "location": "app/sequelize",
+      "messages": {
+        "onStart": "Copying files to '${appName}' using the Sequelize template",
+        "onDoing": "Installing the dependencies on '${appName}' using '${packageManager}'",
+        "onFinish": {
+          "message": "Created '${appName}' using the sequelize template. Thank you for using Palmares.",
+          "commands": [
+            "${packageManager} run makemigrations",
+            "${packageManager} run migrate",
+            "${packageManager} run dev"
+          ]
+        }
+      }
     }
   ]
 }

@@ -51,8 +51,7 @@ export function databaseAdapter<
     close: TFunctionClose;
     transaction: TFunctionTransaction;
   };
-  new: TFunctionNew;
-} {
+} & { new: TFunctionNew } {
   class CustomDatabaseAdapter extends DatabaseAdapter<
     ReturnType<Awaited<ReturnType<TFunctionNew>>[1]>['instance'],
     TFieldsAdapter,

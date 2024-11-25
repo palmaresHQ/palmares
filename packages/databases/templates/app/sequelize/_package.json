@@ -1,0 +1,33 @@
+{
+  "name": "${appName}",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "require": "./dist/index.cjs",
+  "scripts": {
+    "lint": "eslint .",
+    "makemigrations": "tsx makemigrations.ts",
+    "migrate": "tsx migrate.ts",
+    "dev": "tsx ./src/index.ts",
+    "build": "tsup index.ts"
+  },
+  "dependencies": {
+    "@palmares/databases": "${version}",
+    "@palmares/sequelize-engine": "${version}",
+    "@palmares/node-std": "${version}",
+    "sqlite3": "${version}"
+  },
+  "devDependencies": {
+    "@types/node": "${version}",
+    "@eslint/js": "${version}",
+    "globals": "${version}",
+    "eslint": "${version}",
+    "tsup": "${version}",
+    "typescript": "${version}",
+    "typescript-eslint": "${version}",
+    "tsx": "${version}"
+  }
+}
+

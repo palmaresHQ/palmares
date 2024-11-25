@@ -48,6 +48,7 @@ const std = {
       return getDefaultStd().files.appendFile(path, content);
     },
     getPathToFileURL: (path: string) => getDefaultStd().files.getPathToFileURL(path),
+    getFileURLToPath: (path: string) => getDefaultStd().files.getFileURLToPath(path),
     writeFile: async (path: string | string[], content: string) => {
       if (Array.isArray(path)) path = await getDefaultStd().files.join(...path);
       return getDefaultStd().files.writeFile(path, content);
@@ -58,9 +59,8 @@ const std = {
       if (!exists) throw new FileOrDirectoryDoesNotExistError(path);
       return getDefaultStd().files.removeFile(path);
     },
-    dirname: async (path: string | string[]) => {
-      if (Array.isArray(path)) path = await getDefaultStd().files.join(...path);
-      return await getDefaultStd().files.dirname(path);
+    dirname: (path: string) => {
+      return getDefaultStd().files.dirname(path);
     },
     basename: async (path: string | string[]) => {
       if (Array.isArray(path)) path = await getDefaultStd().files.join(...path);
