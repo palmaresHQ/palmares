@@ -1,6 +1,6 @@
 {
   "name": "@palmares/schemas",
-  "version": "0.2.12",
+  "version": "0.2.13",
   "description": "This defines a default schema definition for validation of data, it abstract popular schema validation libraries like zod, yup, valibot and others\"",
   "main": "./dist/src/index.cjs",
   "module": "./dist/src/index.js",

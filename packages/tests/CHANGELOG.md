@@ -1,5 +1,12 @@
 # @palmares/tests
 
+## 0.2.7
+
+### Patch Changes
+
+- Updated dependencies [b1b09b4]
+  - @palmares/core@0.2.6
+
 ## 0.2.6
 
 ### Patch Changes

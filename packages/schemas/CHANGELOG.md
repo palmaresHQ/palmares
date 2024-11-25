@@ -1,5 +1,14 @@
 # @palmares/schemas
 
+## 0.2.13
+
+### Patch Changes
+
+- Updated dependencies [b1b09b4]
+  - @palmares/databases@0.2.13
+  - @palmares/core@0.2.6
+  - @palmares/server@0.2.7
+
 ## 0.2.12
 
 ### Patch Changes

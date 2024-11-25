@@ -1,5 +1,16 @@
 # @palmares/sequelize-engine
 
+## 0.2.13
+
+### Patch Changes
+
+- b1b09b4: - Sequelize package
+  - Fix small issue to allow empty migration files
+  - Fix typings on Sequelize Engine
+- Updated dependencies [b1b09b4]
+  - @palmares/databases@0.2.13
+  - @palmares/core@0.2.6
+
 ## 0.2.12
 
 ### Patch Changes

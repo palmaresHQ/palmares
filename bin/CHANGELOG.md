@@ -1,5 +1,18 @@
 # palmares
 
+## 0.0.11
+
+### Patch Changes
+
+- b1b09b4: - Sequelize package
+  - Fix small issue to allow empty migration files
+  - Fix typings on Sequelize Engine
+- Updated dependencies [b1b09b4]
+  - @palmares/node-std@0.2.6
+  - @palmares/core@0.2.6
+  - @palmares/logging@0.2.6
+  - @palmares/console-logging@0.2.6
+
 ## 0.0.10
 
 ### Patch Changes
