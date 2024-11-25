@@ -59,7 +59,8 @@ const cpaDomain = domain('palmares', '', {
       },
       handler: async (args) => {
         // @ts-ignore Trust me bro
-        const basePath = import.meta.dirname;
+        const basePath: string = import.meta.dirname || std.files.dirname(std.files.getFileURLToPath(import.meta.url));
+
         const fullPath = await std.files.join(basePath, '..', 'templates');
         const allApps = await std.files.readDirectory(fullPath);
         const commandLineArgs = args.commandLineArgs as ExtractCommandsType<typeof cpaDomain, 'new'>;

@@ -49,7 +49,8 @@ export const models = adapterModels({
 
   afterModelsTranslation: async (engine, models): Promise<[string, any][]> => {
     let fileContent = '';
-    const [cwd, directoryName] = await Promise.all([std.os.cwd(), std.files.dirname(engine.instance.output)]);
+    const cwd = await std.os.cwd();
+    const directoryName = std.files.dirname(engine.instance.output);
     const [folderName, locationToRequire] = await Promise.all([
       std.files.join(cwd, directoryName),
       std.files.join(cwd, engine.instance.output)

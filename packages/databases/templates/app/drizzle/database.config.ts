@@ -8,15 +8,24 @@ import Database from 'better-sqlite3';
 
 import { Company, User } from './src/models';
 
+// SQLITE database
 const database = new Database('sqlite.db');
+export const db = drizzleBetterSqlite3(database);
+
+/**
+ * To use with postgres database uncomment the following lines
+ */
+// import 'dotenv/config';
+// import { drizzle as drizzleNodePostgres } from '@palmares/drizzle-engine/node-postgres';
+// export const db = drizzleNodePostgres(process.env.DATABASE_URL!);
 
 const newEngine = DrizzleDatabaseAdapter.new({
   output: './.drizzle/schema.ts',
   type: 'better-sqlite3',
-  drizzle: drizzleBetterSqlite3(database)
+  drizzle: db
 });
 
-export const db = newEngine[1]().instance.instance;
+const std = new NodeStd();
 
 export default setDatabaseConfig({
   databases: {
@@ -27,10 +36,12 @@ export default setDatabaseConfig({
   locations: [
     {
       name: 'default',
-      path: import.meta.dirname,
+      // dirname and fileURLToPath is just for compatibility with older versions of Node.js
+      // Remove if you are using Node.js 20.0.0 or higher
+      path: import.meta.dirname || std.files.dirname(std.files.getFileURLToPath(import.meta.url)),
       getMigrations: () => [],
       getModels: () => [Company, User]
     }
   ],
-  std: new NodeStd()
+  std
 });

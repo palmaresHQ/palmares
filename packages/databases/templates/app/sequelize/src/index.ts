@@ -5,12 +5,11 @@ import '../database.config';
 import { Company, User } from './models';
 
 /**
- * YOU CAN STILL USE DRIZZLE!
+ * YOU CAN STILL USE SEQUELIZE!
  *
- * Uncomment the following Lines of Code to query the database from Drizzle.
+ * Uncomment the following Lines of Code to query the database from Sequelize.
  */
-// import { db } from '../database.config';
-// import * as d from '../.drizzle/schema';
+// import type { SequelizeModel } from '@palmares/sequelize-engine';
 
 (async () => {
   await Company.default.set((qs) =>
@@ -41,10 +40,10 @@ import { Company, User } from './models';
   console.log('All users in your db:', data);
 
   /**
-   * YOU CAN STILL USE DRIZZLE!
+   * YOU CAN STILL USE SEQUELIZE!
    *
-   * Uncomment the following Lines of Code to query the database from Drizzle.
+   * Uncomment the following Lines of Code to query the database from Sequelize.
    */
-  // const dataFromDrizzle = await db.select().from(d.User)
-  // console.log('Hello from Drizzle Users:', dataFromDrizzle);
+  // const UserFromSequelize = (await User.default.getInstance()) as SequelizeModel<typeof User>;
+  // console.log('Data from sequelize:', await UserFromSequelize.findMany()); // IT HAS TYPESAFETY!!!
 })();

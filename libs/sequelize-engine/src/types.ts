@@ -1,5 +1,12 @@
-import type { InitializedModelsType, ModelFields, Model as PalmaresModel, fields } from '@palmares/databases';
-import type { IndexesOptions, Model, ModelAttributeColumnOptions, ModelCtor, ModelStatic } from 'sequelize';
+import type { InferModel, InitializedModelsType, fields } from '@palmares/databases';
+import type {
+  CreationOptional,
+  IndexesOptions,
+  Model,
+  ModelAttributeColumnOptions,
+  ModelCtor,
+  ModelStatic
+} from 'sequelize';
 
 export type IndexesToAddOnNextIterationType = {
   tableName: string;
@@ -43,9 +50,11 @@ export type RelatedModelToEvaluateAfterType = {
   [key: string]: RelatedFieldsToEvaluateType[];
 };
 
-export type SequelizeModel<TTypeModel extends InstanceType<ReturnType<typeof PalmaresModel>>> = ModelCtor<
-  Model<ModelFields<TTypeModel>>
->;
+export type SequelizeModel<TTypeModel, TFieldsOfModel = InferModel<TTypeModel, 'create'>> = typeof Model<{
+  [TKey in keyof TFieldsOfModel]: TFieldsOfModel[TKey] extends undefined
+    ? CreationOptional<NonNullable<TFieldsOfModel[TKey]>>
+    : NonNullable<TFieldsOfModel[TKey]>;
+}>;
 
 export type TranslatedFieldToEvaluateAfterType = {
   fieldAttributes: ModelAttributeColumnOptions<Model<any, any>>;

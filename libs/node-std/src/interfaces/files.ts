@@ -1,7 +1,7 @@
 import { access, appendFile, constants, mkdir, readFile, readdir, rm, writeFile } from 'fs';
 import { basename, dirname, join, relative } from 'path';
 import { env } from 'process';
-import { pathToFileURL } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 import type { FilesAndFolders } from '@palmares/core';
 
@@ -43,6 +43,10 @@ export class FilesAndFoldersNode implements FilesAndFolders {
     });
   }
 
+  getFileURLToPath(path: string) {
+    return fileURLToPath(path);
+  }
+
   getPathToFileURL(path: string) {
     return pathToFileURL(path).pathname;
   }
@@ -65,7 +69,7 @@ export class FilesAndFoldersNode implements FilesAndFolders {
     });
   }
 
-  async dirname(path: string): Promise<string> {
+  dirname(path: string): string {
     return dirname(path);
   }
 

@@ -57,12 +57,18 @@ export class Migrations {
     const foundMigrations: FoundMigrationsFileType[] = [];
     const promises: Promise<void>[] = this.domains.map(async (domain) => {
       if (domain.getMigrations) {
-        let domainMigrations = await Promise.resolve(domain.getMigrations());
+        let domainMigrations: Record<string, MigrationFileType> | MigrationFileType[] = await Promise.resolve(
+          domain.getMigrations()
+        );
         // eslint-disable-next-line ts/no-unnecessary-condition
         if (typeof domainMigrations === 'object' && domainMigrations !== null)
           domainMigrations = Object.values(domainMigrations);
 
         for (const domainMigration of domainMigrations) {
+          // eslint-disable-next-line ts/no-unnecessary-condition
+          if (domainMigration === undefined) continue;
+          // eslint-disable-next-line ts/no-unnecessary-condition
+          if (domainMigration === null) continue;
           foundMigrations.push({
             domainPath: domain.path,
             domainName: domain.name,

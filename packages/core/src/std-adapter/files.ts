@@ -27,6 +27,7 @@ export interface FilesAndFolders {
    * that only allows dynamic imports to occur if the path is a URL with file://
    */
   getPathToFileURL: (path: string) => string;
+  getFileURLToPath: (path: string) => string;
 
   /**
    * When the path is a simple string work normally, if the path is an array of strings, join
@@ -38,7 +39,7 @@ export interface FilesAndFolders {
    * the strings with .join() and then work normally
    */
   removeFile: (path: string) => Promise<void>;
-  dirname: (path: string) => Promise<string>;
+  dirname: (path: string) => string;
   /**
    * When the path is a simple string work normally, if the path is an array of strings, join
    * the strings with .join() and then work normally

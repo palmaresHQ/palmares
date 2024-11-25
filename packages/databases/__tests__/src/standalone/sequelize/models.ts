@@ -1,15 +1,6 @@
-import {
-  Model,
-  define,
-  auto,
-  char,
-  text,
-  bool,
-  ON_DELETE,
-  foreignKey
-} from '@palmares/databases';
+import { Model, ON_DELETE, auto, bool, char, define, foreignKey, text } from '@palmares/databases';
 
-import type { ModelOptionsType } from '@palmares/databases'
+import type { ModelOptionsType } from '@palmares/databases';
 
 export class Company extends Model<Company>() {
   fields = {
@@ -17,11 +8,11 @@ export class Company extends Model<Company>() {
     name: char({ maxLen: 255 }),
     slug: char({ maxLen: 255 }),
     isActive: bool().default(true)
-  }
+  };
 
-  options =  {
+  options = {
     tableName: 'company'
-  } satisfies ModelOptionsType<Company> // We use satisfies here so we can still infer and you don't lose intellisense.
+  } satisfies ModelOptionsType<Company>; // We use satisfies here so we can still infer and you don't lose intellisense.
 }
 
 export const User = define('User', {
