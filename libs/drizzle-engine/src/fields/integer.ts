@@ -45,7 +45,7 @@ export const integerFieldParser = adapterIntegerFieldParser({
                 ? 'serial'
                 : 'integer',
         databaseName: field.databaseName as string,
-        args: "{ mode: 'number' }"
+        args: mainType === 'sqlite' ? "{ mode: 'number' }" : ''
       },
       (defaultBuilderArgs) => {
         if (defaultOptions.primaryKey)

@@ -3,6 +3,7 @@ export function getBuilderArgs(
     type: string;
     databaseName: string;
     args?: string;
+    withoutD?: boolean;
   },
   callback: (defaultOptions: [string, string][]) => [string, string][]
 ) {
@@ -25,7 +26,7 @@ export function getBuilderArgs(
         return (args || []).length > 0 ? `.${method}(${args})` : `.${method}()`;
       })
       .join('');
-    return `d.${builder.type}('${builder.databaseName}'${
+    return `${builder.withoutD ? '' : 'd.'}${builder.type}('${builder.databaseName}'${
       customAttributesArgs !== undefined || builder.args
         ? `, ${customAttributesArgs !== undefined ? JSON.stringify(customAttributesArgs) : builder.args}`
         : ''

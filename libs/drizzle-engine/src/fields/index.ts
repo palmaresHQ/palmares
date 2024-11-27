@@ -35,7 +35,7 @@ async function formatForeignKeyField(
   engine: any,
   modelName: string,
   translatedModel: any,
-  field: Parameters<Parameters<typeof adapterFields>[0]['lazyEvaluateField']>[3],
+  _field: Parameters<Parameters<typeof adapterFields>[0]['lazyEvaluateField']>[3],
   fieldTranslated: any,
   parseAgain: Parameters<Parameters<typeof adapterFields>[0]['lazyEvaluateField']>[5]
 ) {

@@ -42,7 +42,8 @@ export const Company = define('Company', {
   fields: {
     id: pd.fields.auto().setCustomAttributes({
       options: {
-        generatedAlwaysAs: [() => drzl.sql`uuid_generate_v4()`, { mode: 'stored' }]
+        $defaultFn: [() => drzl.sql`uuid_generate_v4()`],
+        generatedAlwaysAs: [() => drzl.sql`10`, { mode: 'stored' }]
       }
     }),
     uuid: UuidField.new().auto(),
