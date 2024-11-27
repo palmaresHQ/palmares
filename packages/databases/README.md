@@ -18,7 +18,15 @@ With 0 dependencies at its core (even no dependency on Node), you don't need to 
 
 Although we kinda see ourselves as an ORM, we are not **data frameworks** as drizzle like to call others like Django or Spring. You are not forced to build your project around our structure, although we think this is preferable most of the times, you are still free to use it the way you want, on your own existing projects without any hassle or problem.
 
-### QuickStart
+### Blazingly-Fast QuickStart
+
+If you don't have time, or is always living on the edging, just run this:
+
+```sh
+$ npx palmares@latest new db
+```
+
+### Or kinda slow Getting Started
 
 #### On your own
 

@@ -1,5 +1,6 @@
-import { middleware, Response } from '@palmares/server';
-import * as z from 'zod';
+import { Response, middleware } from '@palmares/server';
+
+import type * as z from 'zod';
 
 export const schemaValidatorMiddleware = <TInputSchema extends z.ZodType>(schema: TInputSchema) => {
   return middleware({
@@ -12,6 +13,6 @@ export const schemaValidatorMiddleware = <TInputSchema extends z.ZodType>(schema
         const errorAsZodError = error as z.ZodError;
         return Response.json({ errors: errorAsZodError.errors }, { status: 400 });
       }
-    },
+    }
   });
 };

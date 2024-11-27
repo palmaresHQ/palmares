@@ -266,7 +266,7 @@ export async function parse(
   const args = {
     engine: engine as any,
     field: fieldData,
-    customAttributes,
+    customAttributes: customAttributes || {},
     fieldParser: engineFields.fieldsParser,
     modelName,
     model: modelAsBaseModel,

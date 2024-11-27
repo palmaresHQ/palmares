@@ -27,22 +27,22 @@ export const uuidFieldParser = adapterUuidFieldParser({
     switch (mainType) {
       case 'sqlite':
         return `d.text('${field.databaseName}')${defaultOptions.primaryKey ? '.primaryKey()' : ''}${
-          defaultOptions.default && (field.isAuto as boolean) !== true ? `.default("${defaultOptions.default}")` : ''
+          defaultOptions.default && field.isAuto !== true ? `.default("${defaultOptions.default}")` : ''
         }${defaultOptions.nullable !== true ? `.notNull()` : ''}${
           defaultOptions.unique ? `.unique()` : ''
-        }${(field.isAuto as boolean) ? `.$defaultFn(() => pdb.generateUUID())` : ''}`;
+        }${field.isAuto ? `.$defaultFn(() => pdb.generateUUID())` : ''}`;
       case 'postgres':
         return `d.uuid('${field.databaseName}', { length: 36 })${defaultOptions.primaryKey ? '.primaryKey()' : ''}${
-          defaultOptions.default && (field.isAuto as boolean) !== true ? `.default("${defaultOptions.default}")` : ''
+          defaultOptions.default && field.isAuto !== true ? `.default("${defaultOptions.default}")` : ''
         }${
           defaultOptions.nullable !== true ? `.notNull()` : ''
-        }${defaultOptions.unique ? `.unique()` : ''}${(field.isAuto as boolean) ? `.defaultRandom()` : ''}`;
+        }${defaultOptions.unique ? `.unique()` : ''}${field.isAuto ? `.defaultRandom()` : ''}`;
       default:
         return `d.varchar('${field.databaseName}', { length: 36 })${defaultOptions.primaryKey ? '.primaryKey()' : ''}${
-          defaultOptions.default && (field.isAuto as boolean) !== true ? `.default("${defaultOptions.default}")` : ''
+          defaultOptions.default && field.isAuto !== true ? `.default("${defaultOptions.default}")` : ''
         }${defaultOptions.nullable !== true ? `.notNull()` : ''}${
           defaultOptions.unique ? `.unique()` : ''
-        }${(field.isAuto as boolean) ? `.$defaultFn(() => pdb.generateUUID())` : ''}`;
+        }${field.isAuto ? `.$defaultFn(() => pdb.generateUUID())` : ''}`;
     }
   }
 });

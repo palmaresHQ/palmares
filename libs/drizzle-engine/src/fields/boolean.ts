@@ -1,5 +1,7 @@
 import { adapterBooleanFieldParser } from '@palmares/databases';
 
+import { getBuilderArgs } from './utils';
+
 import type { fieldParser as DrizzleEngineFieldParser } from './field';
 import type { AdapterFieldParserTranslateArgs } from '@palmares/databases';
 
@@ -10,27 +12,22 @@ export const booleanFieldParser = adapterBooleanFieldParser({
     const defaultOptions = await args.fieldParser.translate(args);
     const field = args.field;
     const mainType = args.engine.instance.mainType;
-    switch (mainType) {
-      case 'sqlite':
-        return `d.integer('${field.databaseName}', { mode: 'boolean' })${
-          defaultOptions.primaryKey
-            ? defaultOptions.autoincrement
-              ? '.primaryKey({ autoIncrement: true })'
-              : '.primaryKey()'
-            : ''
-        }${typeof defaultOptions.default === 'boolean' ? `.default(${defaultOptions.default})` : ''}${
-          defaultOptions.nullable !== true ? `.notNull()` : ''
-        }${defaultOptions.unique ? `.unique()` : ''}`;
-      case 'postgres':
-        return `d.boolean('${field.databaseName}')${defaultOptions.primaryKey ? '.primaryKey()' : ''}${
-          typeof defaultOptions.default === 'boolean' ? `.default(${defaultOptions.default})` : ''
-        }${defaultOptions.nullable !== true ? `.notNull()` : ''}${defaultOptions.unique ? `.unique()` : ''}`;
-      default:
-        return `d.boolean('${field.databaseName}')${
-          defaultOptions.autoincrement ? '.autoIncrement()' : ''
-        }${defaultOptions.primaryKey ? '.primaryKey()' : ''}${
-          typeof defaultOptions.default === 'boolean' ? `.default(${defaultOptions.default})` : ''
-        }${defaultOptions.nullable !== true ? `.notNull()` : ''}${defaultOptions.unique ? `.unique()` : ''}`;
-    }
+
+    const builderArgsFormatted = getBuilderArgs(
+      {
+        type: mainType === 'sqlite' ? 'integer' : 'boolean',
+        databaseName: field.databaseName as string,
+        args: mainType === 'sqlite' ? "{ mode: 'number' }" : undefined
+      },
+      (defaultBuilderArgs) => {
+        if (defaultOptions.primaryKey) defaultBuilderArgs.push(['primaryKey', '']);
+        if (defaultOptions.default) defaultBuilderArgs.push(['default', defaultOptions.default]);
+        if (defaultOptions.nullable !== true) defaultBuilderArgs.push(['notNull', '']);
+        if (defaultOptions.unique) defaultBuilderArgs.push(['unique', '']);
+        return defaultBuilderArgs;
+      }
+    )(args.customAttributes.args, args.customAttributes.options);
+
+    return builderArgsFormatted;
   }
 });

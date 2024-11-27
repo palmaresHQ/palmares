@@ -688,7 +688,15 @@ export function requestMiddleware<
      * @returns - A {@link Request} instance with the modified data or a {@link Response} instance if you
      * want to break the middleware chain.
      */
-    request?: (request: TRequest) => TReturnOfRequestFunction | Promise<TReturnOfRequestFunction>;
+    request?: (
+      request: TRequest &
+        ExtractRequestsFromMiddlewaresForServer<
+          TRouter['path'],
+          TRouterMiddlewares extends readonly Middleware[] ? TRouterMiddlewares : [],
+          RequestMethodTypes,
+          TOptions['responses']
+        >
+    ) => TReturnOfRequestFunction | Promise<TReturnOfRequestFunction>;
     /**
      * This function is executed during the response lifecycle. It needs to return a {@link Response} instance.
      * Usually you will use this to either change the sent response entirely or to add some headers/data to

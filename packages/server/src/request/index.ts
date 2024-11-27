@@ -28,7 +28,8 @@ export class Request<
   TRoutePath extends string = string,
   TRequest extends {
     method?: RequestMethodTypes;
-    headers?: object | unknown;
+    // eslint-disable-next-line ts/ban-types
+    headers?: { [key: string]: string } | unknown;
     body?: unknown;
     responses?: Record<string, (...args: any[]) => Response<any, any> | Promise<Response<any, any>>> | undefined;
     context?: unknown;
@@ -42,7 +43,7 @@ export class Request<
     referrerPolicy?: ReferrerPolicy;
   } = {
     method: RequestMethodTypes;
-    headers: unknown;
+    headers: { [key: string]: string } | unknown;
     body: unknown;
     context: unknown;
     mode: RequestMode;

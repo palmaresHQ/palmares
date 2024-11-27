@@ -1,6 +1,8 @@
 import { adapterCharFieldParser } from '@palmares/databases';
 
 //import { text } from 'drizzle-orm/sqlite-core';
+import { getBuilderArgs } from './utils';
+
 import type { fieldParser as DrizzleEngineFieldParser } from './field';
 import type { AdapterFieldParserTranslateArgs } from '@palmares/databases';
 
@@ -11,19 +13,20 @@ export const charFieldParser = adapterCharFieldParser({
     const defaultOptions = await args.fieldParser.translate(args);
     const field = args.field;
     const mainType = args.engine.instance.mainType;
-    switch (mainType) {
-      case 'sqlite':
-        return `d.text('${field.databaseName}', { length: ${args.field.maxLength} })${
-          defaultOptions.primaryKey ? '.primaryKey()' : ''
-        }${defaultOptions.default ? `.default("${defaultOptions.default}")` : ''}${
-          defaultOptions.nullable !== true ? `.notNull()` : ''
-        }${defaultOptions.unique ? `.unique()` : ''}`;
-      default:
-        return `d.varchar('${field.databaseName}', { length: ${args.field.maxLength} })${
-          defaultOptions.primaryKey ? '.primaryKey()' : ''
-        }${defaultOptions.default ? `.default("${defaultOptions.default}")` : ''}${
-          defaultOptions.nullable !== true ? `.notNull()` : ''
-        }${defaultOptions.unique ? `.unique()` : ''}`;
-    }
+
+    return getBuilderArgs(
+      {
+        type: mainType === 'sqlite' ? 'text' : 'varchar',
+        databaseName: field.databaseName as string,
+        args: `{ length: ${args.field.maxLength} }`
+      },
+      (defaultBuilderArgs) => {
+        if (defaultOptions.primaryKey) defaultBuilderArgs.push(['primaryKey', '']);
+        if (defaultOptions.default) defaultBuilderArgs.push(['default', `"${defaultOptions.default}"`]);
+        if (defaultOptions.nullable !== true) defaultBuilderArgs.push(['notNull', '']);
+        if (defaultOptions.unique) defaultBuilderArgs.push(['unique', '']);
+        return defaultBuilderArgs;
+      }
+    )(args.customAttributes.args, args.customAttributes.options);
   }
 });

@@ -4,9 +4,8 @@
   "description": "Add support for working with databases with palmares framework",
   "main": "./dist/src/index.cjs",
   "module": "./dist/src/index.js",
-  "types": "./src/index.ts",
+  "types": "./dist/src/index.d.ts",
   "files": [
-    "src",
     "dist",
     "package.json",
     "README.md",
@@ -14,7 +13,7 @@
   ],
   "exports": {
     ".": {
-      "types": "./src/index.ts",
+      "types": "./dist/src/index.d.ts",
       "import": "./dist/src/index.js",
       "require": "./dist/src/index.cjs"
     }
@@ -27,8 +26,8 @@
     "build:cjs:esm": "tsup ./src --out-dir ./dist/src --format cjs,esm --silent --no-splitting --no-splitting",
     "build": "pnpm run clear && pnpm run build:cjs:esm && pnpm run build:types",
     "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
-    "build:cjs:esm:watch": "tsup ./src --out-dir ./dist/src --format cjs,esm --watch --silent --clean --no-splitting",
-    "build:watch": "pnpm run build:cjs:esm:watch & pnpm run build:types:watch"
+    "build:cjs:esm:watch": "tsup ./src --out-dir ./dist/src --format cjs,esm --watch --silent --no-splitting",
+    "build:watch": "pnpm run build:types:watch & pnpm run build:cjs:esm:watch"
   },
   "repository": {
     "type": "git",

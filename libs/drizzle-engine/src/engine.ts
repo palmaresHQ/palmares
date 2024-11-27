@@ -21,53 +21,19 @@ type allDrizzleTypes =
 const instancesByConnectionNames = new Map<
   string,
   {
-    type:
-      | 'postgres-js'
-      | 'node-postgres'
-      | 'neon-http'
-      | 'xata-http'
-      | 'pglite'
-      | 'vercel-postgres'
-      | 'aws-data-api/pg'
-      | 'pg-proxy';
+    type: string;
     mainType: 'postgres' | 'mysql' | 'sqlite';
     closeCallback?: () => void | Promise<void>;
-    instance: ReturnType<
-      | (typeof import('drizzle-orm/postgres-js'))['drizzle']
-      | (typeof import('drizzle-orm/node-postgres'))['drizzle']
-      | (typeof import('drizzle-orm/neon-http'))['drizzle']
-      | (typeof import('drizzle-orm/xata-http'))['drizzle']
-      | (typeof import('drizzle-orm/pglite'))['drizzle']
-      | (typeof import('drizzle-orm/vercel-postgres'))['drizzle']
-      | (typeof import('drizzle-orm/aws-data-api/pg'))['drizzle']
-      | (typeof import('drizzle-orm/pg-proxy'))['drizzle']
-    >;
+    instance: any;
     isConnected: boolean | undefined;
   }
 >();
 
 const checkIfInstanceSavedOrSave = (
   connectionName: string,
-  type:
-    | 'postgres-js'
-    | 'node-postgres'
-    | 'neon-http'
-    | 'xata-http'
-    | 'pglite'
-    | 'vercel-postgres'
-    | 'aws-data-api/pg'
-    | 'pg-proxy',
+  type: string,
   mainType: 'postgres' | 'mysql' | 'sqlite',
-  drizzleInstance: ReturnType<
-    | (typeof import('drizzle-orm/postgres-js'))['drizzle']
-    | (typeof import('drizzle-orm/node-postgres'))['drizzle']
-    | (typeof import('drizzle-orm/neon-http'))['drizzle']
-    | (typeof import('drizzle-orm/xata-http'))['drizzle']
-    | (typeof import('drizzle-orm/pglite'))['drizzle']
-    | (typeof import('drizzle-orm/vercel-postgres'))['drizzle']
-    | (typeof import('drizzle-orm/aws-data-api/pg'))['drizzle']
-    | (typeof import('drizzle-orm/pg-proxy'))['drizzle']
-  >,
+  drizzleInstance: any,
   closeCallback?: () => void | Promise<void>
 ) => {
   const instance = instancesByConnectionNames.get(connectionName);
@@ -123,15 +89,7 @@ const drizzleDatabaseAdapter = databaseAdapter({
           TDrizzleInstance extends ReturnTypeByType<TType, infer TSchema> ? TSchema : never
         >;
         mainType: 'postgres' | 'mysql' | 'sqlite';
-        type:
-          | 'postgres-js'
-          | 'node-postgres'
-          | 'neon-http'
-          | 'xata-http'
-          | 'pglite'
-          | 'vercel-postgres'
-          | 'aws-data-api/pg'
-          | 'pg-proxy';
+        type: string;
         output: string;
         closeCallback?: () => void | Promise<void>;
       };
@@ -147,15 +105,7 @@ const drizzleDatabaseAdapter = databaseAdapter({
     } as {
       instance: any;
       mainType: 'postgres' | 'mysql' | 'sqlite';
-      type:
-        | 'postgres-js'
-        | 'node-postgres'
-        | 'neon-http'
-        | 'xata-http'
-        | 'pglite'
-        | 'vercel-postgres'
-        | 'aws-data-api/pg'
-        | 'pg-proxy';
+      type: string;
       output: string;
       closeCallback?: () => void | Promise<void>;
     };
@@ -170,15 +120,7 @@ const drizzleDatabaseAdapter = databaseAdapter({
               TDrizzleInstance extends ReturnTypeByType<TType, infer TSchema> ? TSchema : never
             >;
             mainType: 'postgres' | 'mysql' | 'sqlite';
-            type:
-              | 'postgres-js'
-              | 'node-postgres'
-              | 'neon-http'
-              | 'xata-http'
-              | 'pglite'
-              | 'vercel-postgres'
-              | 'aws-data-api/pg'
-              | 'pg-proxy';
+            type: string;
             output: string;
             closeCallback?: () => void | Promise<void>;
           };
@@ -207,9 +149,9 @@ const drizzleDatabaseAdapter = databaseAdapter({
     return new Promise((resolve, reject) => {
       try {
         instanceData.instance
-          .transaction(async (transaction) => {
+          .transaction(async (transaction: any) => {
             try {
-              resolve(await callback(transaction as any, ...args));
+              resolve(await callback(transaction, ...args));
             } catch (e) {
               reject(e);
             }

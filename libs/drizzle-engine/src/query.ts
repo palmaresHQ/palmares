@@ -138,7 +138,7 @@ const order = adapterOrderingQuery({
 
 const search = adapterSearchQuery({
   // eslint-disable-next-line ts/require-await
-  parseSearchFieldValue: async (operationType, key, model, value, result, options) => {
+  parseSearchFieldValue: async (operationType, key, model, value: any, result: any, options: any) => {
     switch (operationType) {
       case 'like': {
         if (options?.ignoreCase) result[key] = ilike(model[key], value as string);
@@ -162,8 +162,8 @@ const search = adapterSearchQuery({
         else result[key] = inArray(model[key], value as any[]);
         return;
       case 'between':
-        if (options?.isNot) result[key] = notBetween(model[key], value as any[][0], value as any[][1]);
-        else result[key] = between(model[key], value as any[][0], value as any[][1]);
+        if (options?.isNot) result[key] = notBetween(model[key], value, value);
+        else result[key] = between(model[key], value, value);
         return;
       case 'and':
         result[key] = and(eq(model[key], value), eq(model[key], value));

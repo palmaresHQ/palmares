@@ -11,12 +11,16 @@ import {
   Model,
   ON_DELETE,
   UuidField,
-  define
+  define,
+  getDatabasesWithDefaultAdapter
 } from '@palmares/databases';
+import * as drzl from '@palmares/drizzle-engine/drizzle';
 
 import type * as d /*{ Company as DCompany, User as DUser }*/ from '../../.drizzle/schema';
 import type { ModelOptionsType } from '@palmares/databases';
+import type { DrizzleDatabaseAdapter } from '@palmares/drizzle-engine';
 
+const pd = getDatabasesWithDefaultAdapter<typeof DrizzleDatabaseAdapter>();
 class Authentication extends Manager<CompanyAbstract> {
   authenticate(username: string, password: string) {
     return 'test';
@@ -36,7 +40,11 @@ export class CompanyAbstract extends Model<CompanyAbstract>() {
 
 export const Company = define('Company', {
   fields: {
-    id: AutoField.new(),
+    id: pd.fields.auto().setCustomAttributes({
+      options: {
+        generatedAlwaysAs: [() => drzl.sql`uuid_generate_v4()`, { mode: 'stored' }]
+      }
+    }),
     uuid: UuidField.new().auto(),
     name: CharField.new({ maxLen: 255 })
   },
