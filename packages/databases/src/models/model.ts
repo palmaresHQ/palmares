@@ -316,10 +316,10 @@ export class BaseModel {
     const abstractInstance = new abstractConstructor() as Model & BaseModel;
     const modelInstance = new this() as Model & BaseModel;
     const modelConstructor = this as typeof Model & typeof BaseModel;
-    const abstractInstanceName = abstractConstructor.name;
+    const abstractInstanceName = abstractConstructor.__getName();
 
     if (composedAbstracts.includes(abstractInstanceName))
-      throw new ModelCircularAbstractError(this.name, abstractInstanceName);
+      throw new ModelCircularAbstractError(this.__getName(), abstractInstanceName);
 
     // Handle the abstracts and the managers from the abstract
     const abstractManagers: [string, Manager][] = Object.entries(abstractConstructor.__getManagers());
@@ -653,7 +653,7 @@ export class Model extends BaseModelWithoutMethods {
  */
 export type ModelType<
   TModel,
-  in out TDefinitions extends {
+  TDefinitions extends {
     engineInstance: DatabaseAdapter;
     customOptions: any;
   } = {
@@ -667,9 +667,7 @@ export type ModelType<
     fields: TOtherFields
   ) => ModelType<TModel & { fields: TOtherFields }, TDefinitions>;
 
-  setCustomOptions: <
-    TCustomOptions extends Parameters<TDefinitions['engineInstance']['models']['translate']>[5]['customOptions']
-  >(
+  setCustomOptions: <TCustomOptions extends Parameters<TDefinitions['engineInstance']['models']['translate']>[5]>(
     customOptions: TCustomOptions
   ) => ModelType<TModel, { engineInstance: TDefinitions['engineInstance']; customOptions: TCustomOptions }>;
 
@@ -778,27 +776,30 @@ export function initialize<
     };
   }[],
   const TOptions extends ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>,
-  TManagers extends {
-    [managerName: string]:
-      | Manager<any>
-      | {
-          [functionName: string]: (
-            this: Manager<
-              ReturnType<
-                typeof model<{
-                  fields: ExtractFieldsFromAbstracts<TFields, TAbstracts>;
-                  options: TOptions;
-                }>
-              > & {
-                fields: ExtractFieldsFromAbstracts<TFields, TAbstracts>;
-                options: TOptions;
-                // eslint-disable-next-line no-shadow
-              }
-            >,
-            ...args: any
-          ) => any;
-        };
-  }
+  const TManagers extends
+    | unknown
+    | {
+        [managerName: string]:
+          | Manager<any, any>
+          | {
+              [functionName: string]: (
+                this: Manager<
+                  ReturnType<
+                    typeof model<{
+                      fields: ExtractFieldsFromAbstracts<TFields, TAbstracts>;
+                      options: TOptions;
+                    }>
+                  > & {
+                    fields: ExtractFieldsFromAbstracts<TFields, TAbstracts>;
+                    options: TOptions;
+                    // eslint-disable-next-line no-shadow
+                  },
+                  any
+                >,
+                ...args: any
+              ) => any;
+            };
+      } = unknown
 >(
   modelName: TTypeName,
   args: {
@@ -807,13 +808,14 @@ export function initialize<
     abstracts?: TAbstracts;
     managers?: TManagers;
   }
-): (TManagers extends undefined
-  ? unknown
-  : ExtractManagersFromAbstracts<TAbstracts> & {
-      [TManagerName in keyof TManagers]: Manager<any> & {
-        [TFunctionName in keyof TManagers[TManagerName]]: TManagers[TManagerName][TFunctionName];
-      };
-    }) &
+): ExtractManagersFromAbstracts<TAbstracts> &
+  (unknown extends TManagers
+    ? unknown
+    : {
+        [TManagerName in keyof TManagers]: Manager<any> & {
+          [TFunctionName in keyof TManagers[TManagerName]]: TManagers[TManagerName][TFunctionName];
+        };
+      }) &
   ModelType<{ fields: ExtractFieldsFromAbstracts<TFields, TAbstracts>; options: TOptions }> {
   type ModelFields = ExtractFieldsFromAbstracts<TFields, TAbstracts>;
   class ModelConstructor extends model<
@@ -884,20 +886,43 @@ export function initialize<
     abstracts = args.abstracts || [];
   }
 
-  for (const [managerName, managerFunctions] of Object.entries(args.managers || {})) {
-    let managerInstance: Manager<any>;
-    if ((managerFunctions as any)?.['$$type'] !== '$PManager') {
-      class NewManagerInstance extends Manager<any> {
-        static __lazyFields?: ModelFieldsType = {};
-      }
-      managerInstance = new NewManagerInstance();
-      for (const [managerFunctionName, managerFunction] of Object.entries(managerFunctions)) {
-        (managerInstance as any)[managerFunctionName] = managerFunction.bind(managerInstance);
-      }
-    } else managerInstance = managerFunctions as Manager<any>;
+  if (args.abstracts) {
+    for (const abstract of args.abstracts) {
+      const abstractInstance = new abstract() as Model & BaseModel;
+      ModelConstructor['__lazyFields'] = {
+        ...(ModelConstructor['__lazyFields'] || {}),
+        ...abstractInstance.fields
+      };
+      (ModelConstructor as any)['__cachedOptions'] = {
+        ...((ModelConstructor as any)['__cachedOptions'] || {}),
+        ...abstractInstance.options
+      };
 
-    (ModelConstructor as any)[managerName] = managerInstance;
-    (ModelConstructor as any).__cachedManagers[managerName] = managerInstance;
+      // eslint-disable-next-line ts/no-unnecessary-condition
+      for (const [managerName, manager] of Object.entries((abstract as any)['__getManagers']()) || []) {
+        if ((args.managers as any)[managerName]) continue;
+
+        if (!args.managers) (args.managers as any) = {};
+        (args.managers as any)[managerName] = manager;
+      }
+    }
+  }
+  if (args.managers) {
+    for (const [managerName, managerFunctions] of Object.entries(args.managers)) {
+      let managerInstance: Manager<any>;
+      if ((managerFunctions as any)?.['$$type'] !== '$PManager') {
+        class NewManagerInstance extends Manager<any> {
+          static __lazyFields?: ModelFieldsType = {};
+        }
+        managerInstance = new NewManagerInstance();
+        for (const [managerFunctionName, managerFunction] of Object.entries(managerFunctions as any)) {
+          (managerInstance as any)[managerFunctionName] = (managerFunction as any).bind(managerInstance);
+        }
+      } else managerInstance = managerFunctions as Manager<any>;
+
+      (ModelConstructor as any)[managerName] = managerInstance;
+      (ModelConstructor as any).__cachedManagers[managerName] = managerInstance;
+    }
   }
 
   return ModelConstructor as any;

@@ -1,5 +1,7 @@
 import { adapterFieldParser } from '@palmares/databases';
 
+import { getBuilderArgs } from './utils';
+
 import type { AdapterFieldParserTranslateArgs } from '@palmares/databases';
 import type {
   bigint as dMySqlBigInt,
@@ -34,7 +36,6 @@ import type {
   date as dPgDate,
   decimal as dPgDecimal,
   doublePrecision as dPgDoublePrecision,
-  pgEnum as dPgEnum,
   integer as dPgInteger,
   interval as dPgInterval,
   json as dPgJson,
@@ -156,7 +157,11 @@ type ParametersOfColumnTypes =
   | ParametersOfSqliteColumnTypes
   | ParametersOfMySqlColumnTypes;
 
-type ReturnTypeOfColumnTypes = ReturnTypeOfPostgresColumnTypes;
+type ReturnTypeOfColumnTypes =
+  | ReturnTypeOfPostgresColumnTypes
+  | ReturnTypeOfSqliteColumnTypes
+  | ReturnTypeOfMySqlColumnTypes;
+
 export const fieldParser = adapterFieldParser({
   // eslint-disable-next-line ts/require-await
   translate: async (
@@ -166,11 +171,15 @@ export const fieldParser = adapterFieldParser({
       any,
       any,
       {
+        /**
+         * If you define a custom type for the column, we will just create a column with the type you defined.
+         */
+        type?: string;
         args?: ParametersOfColumnTypes;
         options?: {
           [TKey in keyof ReturnTypeOfColumnTypes as ReturnTypeOfColumnTypes[TKey] extends (...args: any) => any
             ? TKey
-            : never]:
+            : never]?:
             | Parameters<
                 ReturnTypeOfColumnTypes[TKey] extends (...args: any) => any ? ReturnTypeOfColumnTypes[TKey] : never
               >
@@ -179,6 +188,16 @@ export const fieldParser = adapterFieldParser({
       }
     >
   ) => {
+    if (args.customAttributes.type)
+      return getBuilderArgs(
+        {
+          type: args.customAttributes.type,
+          databaseName: args.field.databaseName as string,
+          args: args.customAttributes.args as any
+        },
+        (defaultBuilderArgs) => defaultBuilderArgs
+      )(args.customAttributes.args, args.customAttributes.options);
+
     if (args.field.dbIndex) {
       args.lazyEvaluate({
         type: 'index',

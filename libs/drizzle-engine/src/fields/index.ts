@@ -1,4 +1,4 @@
-import { adapterFields, auto } from '@palmares/databases';
+import { adapterFields } from '@palmares/databases';
 
 import { bigIntegerFieldParser } from './big-integer';
 import { booleanFieldParser } from './boolean';

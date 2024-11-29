@@ -52,3 +52,5 @@ export const User = define('User', {
     tableName: 'user'
   }
 });
+
+

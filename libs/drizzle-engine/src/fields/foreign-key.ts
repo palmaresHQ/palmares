@@ -1,7 +1,7 @@
 import { adapterForeignKeyFieldParser } from '@palmares/databases';
 
 import type { fieldParser as DrizzleEngineFieldParser } from './field';
-import type { AdapterFieldParserTranslateArgs, ForeignKeyField } from '@palmares/databases';
+import type { AdapterFieldParserTranslateArgs } from '@palmares/databases';
 
 export const foreignKeyFieldParser = adapterForeignKeyFieldParser({
   translate: async (

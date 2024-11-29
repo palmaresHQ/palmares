@@ -95,7 +95,6 @@ export function getDatabasesWithDefaultAdapter<TAdapter extends typeof DatabaseA
   return {
     define: <
       TTypeName extends string,
-      const TCustomOptions extends Parameters<InstanceType<TAdapter>['models']['translate']>[5],
       const TFields extends ModelFieldsType,
       const TAbstracts extends readonly {
         new (): {
@@ -103,29 +102,16 @@ export function getDatabasesWithDefaultAdapter<TAdapter extends typeof DatabaseA
           options?: any;
         };
       }[],
-      const TOptions extends ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }, TCustomOptions>,
-      TManagers extends {
-        [managerName: string]:
-          | Manager<any, { customOptions: TCustomOptions; engineInstance: InstanceType<TAdapter> }>
-          | {
-              [functionName: string]: (
-                this: Manager<
-                  ReturnType<
-                    typeof model<{
-                      fields: ExtractFieldsFromAbstracts<TFields, TAbstracts>;
-                      options: TOptions;
-                    }>
-                  > & {
-                    fields: ExtractFieldsFromAbstracts<TFields, TAbstracts>;
-                    options: TOptions;
-                    // eslint-disable-next-line no-shadow
-                  },
-                  { customOptions: TCustomOptions; engineInstance: InstanceType<TAdapter> }
-                >,
-                ...args: any
-              ) => any;
-            };
-      }
+      const TOptions extends ModelOptionsType<{ fields: TFields; abstracts: TAbstracts }>,
+      const TManagers extends
+        | unknown
+        | {
+            [managerName: string]:
+              | Manager<any, any> //{ customOptions: any; engineInstance: InstanceType<TAdapter> }>
+              | {
+                  [functionName: string]: (...args: any) => any;
+                };
+          } = unknown
     >(
       modelName: TTypeName,
       args: {
@@ -134,21 +120,22 @@ export function getDatabasesWithDefaultAdapter<TAdapter extends typeof DatabaseA
         abstracts?: TAbstracts;
         managers?: TManagers;
       }
-    ): (TManagers extends undefined
-      ? unknown
-      : ExtractManagersFromAbstracts<TAbstracts> & {
-          [TManagerName in keyof TManagers]: Manager<
-            any,
-            { customOptions: TCustomOptions; engineInstance: InstanceType<TAdapter> }
-          > & {
-            [TFunctionName in keyof TManagers[TManagerName]]: TManagers[TManagerName][TFunctionName];
-          };
-        }) &
+    ): ExtractManagersFromAbstracts<TAbstracts> &
+      (unknown extends TManagers
+        ? unknown
+        : {
+            [TManagerName in keyof TManagers]: Manager<any, any> & {
+              [TFunctionName in keyof TManagers[TManagerName]]: TManagers[TManagerName][TFunctionName];
+            };
+          }) &
       ModelType<
         { fields: ExtractFieldsFromAbstracts<TFields, TAbstracts>; options: TOptions },
-        { engineInstance: InstanceType<TAdapter>; customOptions: TCustomOptions }
+        {
+          engineInstance: InstanceType<TAdapter>;
+          customOptions: any;
+        }
       > => {
-      return initialize(modelName, args) as any;
+      return initialize(modelName, args as any) as any;
     },
     Model: <
       TModel,
@@ -340,7 +327,7 @@ export function getDatabasesWithDefaultAdapter<TAdapter extends typeof DatabaseA
           defaultValue: undefined;
           typeName: string;
           databaseName: undefined;
-          engineInstance: DatabaseAdapter;
+          engineInstance: InstanceType<TAdapter>;
           customAttributes: any;
         },
         Pick<FieldWithOperationTypeForSearch<string>, 'like' | 'and' | 'in' | 'or' | 'eq' | 'is'>

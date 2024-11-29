@@ -15,7 +15,7 @@ describe('drizzle models', ({ test }) => {
         )
       )
     );
-    const teste = company[0].usersOfCompany[0].profileType?.name;
+    const teste = company[0].usersOfCompany[0].profileType.name;
     //const anotherUser = await User.default.get((qs) => qs.where({ name: 'test1' }));
     //console.log(JSON.stringify(user, null, 2), JSON.stringify(anotherUser, null, 2));
     //expect(user.length > 0).toBe(true);

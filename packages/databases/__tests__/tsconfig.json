@@ -4,6 +4,7 @@
     "declaration": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "noErrorTruncation": false,
     "outDir": "./dist",
     "types": ["node"]
   },

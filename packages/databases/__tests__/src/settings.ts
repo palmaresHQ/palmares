@@ -17,7 +17,7 @@ const database = new Database('sqlite.db');
 
 const args = DrizzleEngine.new({
   output: './.drizzle/schema.ts',
-  type: 'node-postgres',
+  type: 'better-sqlite3',
   drizzle: drizzleBetterSqlite3(database, { schema: schema })
 });
 export const db = args[1]().instance.instance;

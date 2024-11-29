@@ -32,7 +32,7 @@ export const models = adapterModels({
     _model,
     _fieldEntriesOfModel,
     _modelOptions,
-    _customModelOptions: any,
+    _customModelOptions: { userOptions: any; fields: any },
     defaultTranslateCallback: () => Promise<{ options: any; fields: any }>,
     _,
     __

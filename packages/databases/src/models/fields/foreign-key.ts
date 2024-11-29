@@ -24,6 +24,19 @@ import type {
   OptionsCallback,
   ToStringCallback
 } from './utils';
+import type {
+  AdapterAutoFieldParser,
+  AdapterBigAutoFieldParser,
+  AutoField,
+  BigIntegerField,
+  BooleanField,
+  CharField,
+  DateField,
+  DecimalField,
+  EnumField,
+  TextField,
+  UuidField
+} from '../..';
 import type { DatabaseAdapter } from '../../engine';
 import type { AdapterFieldParser } from '../../engine/fields/field';
 
@@ -577,9 +590,70 @@ export class ForeignKeyField<
   }
 
   setCustomAttributes<
-    const TCustomAttributes extends Parameters<
-      TDefinitions['engineInstance']['fields']['foreignKeyFieldParser']['translate']
-    >[0]['customAttributes']
+    const TCustomAttributes extends TDefinitions['relatedTo'] extends
+      | { new (...args: any): { fields: infer TFields } }
+      | (() => { new (...args: any): { fields: infer TFields } })
+      | ((_: any) => { new (...args: any): { fields: infer TFields } })
+      ? TDefinitions['toField'] extends keyof TFields
+        ? TFields[TDefinitions['toField']] extends Field<any, any, any>
+          ? Parameters<TDefinitions['engineInstance']['fields']['fieldsParser']['translate']>[0]['customAttributes']
+          : TFields[TDefinitions['toField']] extends AutoField<any, any, any>
+            ? TDefinitions['engineInstance']['fields']['autoFieldParser'] extends AdapterAutoFieldParser
+              ? Parameters<
+                  TDefinitions['engineInstance']['fields']['autoFieldParser']['translate']
+                >[0]['customAttributes']
+              : Parameters<
+                  TDefinitions['engineInstance']['fields']['integerFieldParser']['translate']
+                >[0]['customAttributes']
+            : TFields[TDefinitions['toField']] extends BigAutoField<any, any, any>
+              ? TDefinitions['engineInstance']['fields']['bigAutoFieldParser'] extends AdapterBigAutoFieldParser
+                ? Parameters<
+                    TDefinitions['engineInstance']['fields']['bigAutoFieldParser']['translate']
+                  >[0]['customAttributes']
+                : Parameters<
+                    TDefinitions['engineInstance']['fields']['bigIntegerFieldParser']['translate']
+                  >[0]['customAttributes']
+              : TFields[TDefinitions['toField']] extends IntegerField<any, any, any>
+                ? Parameters<
+                    TDefinitions['engineInstance']['fields']['integerFieldParser']['translate']
+                  >[0]['customAttributes']
+                : TFields[TDefinitions['toField']] extends BigIntegerField<any, any, any>
+                  ? Parameters<
+                      TDefinitions['engineInstance']['fields']['bigIntegerFieldParser']['translate']
+                    >[0]['customAttributes']
+                  : TFields[TDefinitions['toField']] extends DecimalField<any, any, any>
+                    ? Parameters<
+                        TDefinitions['engineInstance']['fields']['decimalFieldParser']['translate']
+                      >[0]['customAttributes']
+                    : TFields[TDefinitions['toField']] extends BooleanField<any, any, any>
+                      ? Parameters<
+                          TDefinitions['engineInstance']['fields']['booleanFieldParser']['translate']
+                        >[0]['customAttributes']
+                      : TFields[TDefinitions['toField']] extends CharField<any, any, any>
+                        ? Parameters<
+                            TDefinitions['engineInstance']['fields']['charFieldParser']['translate']
+                          >[0]['customAttributes']
+                        : TFields[TDefinitions['toField']] extends TextField<any, any, any>
+                          ? Parameters<
+                              TDefinitions['engineInstance']['fields']['textFieldParser']['translate']
+                            >[0]['customAttributes']
+                          : TFields[TDefinitions['toField']] extends EnumField<any, any, any>
+                            ? Parameters<
+                                TDefinitions['engineInstance']['fields']['enumFieldParser']['translate']
+                              >[0]['customAttributes']
+                            : TFields[TDefinitions['toField']] extends DateField<any, any, any>
+                              ? Parameters<
+                                  TDefinitions['engineInstance']['fields']['dateFieldParser']['translate']
+                                >[0]['customAttributes']
+                              : TFields[TDefinitions['toField']] extends UuidField<any, any, any>
+                                ? Parameters<
+                                    TDefinitions['engineInstance']['fields']['uuidFieldParser']['translate']
+                                  >[0]['customAttributes']
+                                : Parameters<
+                                    TDefinitions['engineInstance']['fields']['fieldsParser']['translate']
+                                  >[0]['customAttributes']
+        : any
+      : any
   >(
     customAttributes: TCustomAttributes
   ): ForeignKeyField<
