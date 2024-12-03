@@ -134,7 +134,7 @@ const actualRealField = <TParams extends ParamsAcceptedByField>(params: TParams)
       return (
         field
           // Now we just accept the value that was set when creating
-          ._setPartialAttributes<{ create: TValue }, { create: 'replace' }>()(value)
+          ._setPartialAttributes<{ create: TValue }, { create: 'replace' }>()({ default: value })
           ._setNewBuilderMethods<Builder>()
       );
     }

@@ -756,7 +756,7 @@ export class TextField<
    * - TDefinitions exists on type-level only, in runtime, it's not a guarantee of nothing. If TDefinitions
    * sets unique to true, it's up to you to do `NameOfYourField.new().unique()`, because otherwise it will be false
    */
-  static overrideType<
+  static _overrideType<
     const TNewType extends { create: any; update: any; read: any },
     const TDefinitions extends {
       customAttributes: any;
@@ -795,7 +795,7 @@ export class TextField<
             defaultValue: TDefinitions['defaultValue'];
             underscored: boolean;
             databaseName: string | undefined;
-            hasDefaultValue: TDefinitions['hasDefaultValue'];
+            hasDefaultValue: boolean;
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];
@@ -816,7 +816,7 @@ export class TextField<
             defaultValue: TDefinitions['defaultValue'];
             underscored: boolean;
             databaseName: string | undefined;
-            hasDefaultValue: TDefinitions['hasDefaultValue'];
+            hasDefaultValue: boolean;
             engineInstance: TDefinitions['engineInstance'];
             customAttributes: TDefinitions['customAttributes'];
             typeName: TDefinitions['typeName'];

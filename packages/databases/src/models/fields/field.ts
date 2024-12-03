@@ -785,7 +785,7 @@ export class Field<
             dbIndex: TDefinitions['dbIndex'];
             isPrimaryKey: TDefinitions['isPrimaryKey'];
             defaultValue: TDefinitions['defaultValue'];
-            hasDefaultValue: TDefinitions['hasDefaultValue'];
+            hasDefaultValue: boolean;
             underscored: boolean;
             databaseName: string | undefined;
             engineInstance: TDefinitions['engineInstance'];
@@ -805,7 +805,7 @@ export class Field<
             dbIndex: TDefinitions['dbIndex'];
             isPrimaryKey: TDefinitions['isPrimaryKey'];
             defaultValue: TDefinitions['defaultValue'];
-            hasDefaultValue: TDefinitions['hasDefaultValue'];
+            hasDefaultValue: boolean;
             underscored: boolean;
             databaseName: string | undefined;
             engineInstance: TDefinitions['engineInstance'];

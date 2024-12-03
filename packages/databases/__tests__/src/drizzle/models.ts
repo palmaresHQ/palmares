@@ -5,6 +5,7 @@ import {
   DateField,
   DecimalField,
   EnumField,
+  Field,
   ForeignKeyField,
   IntegerField,
   Manager,
@@ -14,12 +15,9 @@ import {
   define,
   getDatabasesWithDefaultAdapter
 } from '@palmares/databases';
-import * as drzl from '@palmares/drizzle-engine/drizzle';
-import { profile } from 'node:console';
-import { createServer } from 'node:http2';
+import { text } from '@palmares/drizzle-engine';
 
-import type * as d /*{ Company as DCompany, User as DUser }*/ from '../../.drizzle/schema';
-import type { ModelOptionsType } from '@palmares/databases';
+import type { FieldWithOperationType } from '@palmares/databases';
 import type { DrizzleDatabaseAdapter } from '@palmares/drizzle-engine';
 
 const pd = getDatabasesWithDefaultAdapter<typeof DrizzleDatabaseAdapter>();
@@ -32,7 +30,9 @@ class Authentication extends Manager<CompanyAbstract> {
 
 export const CompanyAbstract = pd.define('CompanyAbstract', {
   fields: {
-    address: pd.fields.char({ maxLen: 255 }).allowNull()
+    address: pd.fields.char({ maxLen: 255 }),
+    test: text<{ id: string; name: string }>({ mode: 'json' })
+    //real: integer({ mode: 'boolean' }).$default('() => pd.sql`uuid_generate_v4()`').allowNull(false)
   },
   options: {
     tableName: 'companies',
@@ -69,17 +69,10 @@ export const Company = pd.define('Company', {
   options: {
     tableName: 'companies'
     //instance: DCompany
-  },
-  abstracts: [CompanyAbstract],
-  managers: {
-    test: {
-      async test2(name: string) {
-        return Company.default.get((qs) => qs.where({ name }));
-      }
-    }
   }
 });
 
+Company.default.set((qs) => qs.where({}));
 export const ProfileType = pd.define('ProfileType', {
   fields: {
     id: pd.fields.auto(),
