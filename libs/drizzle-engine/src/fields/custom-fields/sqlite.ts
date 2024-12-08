@@ -1,7 +1,8 @@
 import { Field, type FieldWithOperationType, TextField } from '@palmares/databases';
 import { blob as dSqliteBlob } from 'drizzle-orm/sqlite-core';
 
-import type { DefaultBuilder } from './utils';
+import { DefaultBuilder } from './utils';
+
 import type { integer as dSqliteInteger, text as dSqliteText } from 'drizzle-orm/sqlite-core';
 
 export function real() {
@@ -29,7 +30,7 @@ export function real() {
 
   const instance = RealField.new({}).allowNull(false);
 
-  return instance._setNewBuilderMethods<DefaultBuilder<number, typeof instance>>();
+  return instance._setNewBuilderMethods<DefaultBuilder<typeof instance>>();
 }
 
 export function integer(args: Parameters<typeof dSqliteInteger>[1]) {
@@ -60,7 +61,7 @@ export function integer(args: Parameters<typeof dSqliteInteger>[1]) {
     args: args
   };
 
-  return instance._setNewBuilderMethods<DefaultBuilder<number, typeof instance>>();
+  return instance._setNewBuilderMethods<DefaultBuilder<typeof instance>>();
 }
 
 export function text<const TParams extends Parameters<typeof dSqliteText>[1]>(args: TParams) {
@@ -95,7 +96,7 @@ export function text<const TParams extends Parameters<typeof dSqliteText>[1]>(ar
   instance['__customAttributes'] = {
     args: args
   };
-  return instance._setNewBuilderMethods<DefaultBuilder<number, typeof instance>>();
+  return instance._setNewBuilderMethods<DefaultBuilder<typeof instance>>(new DefaultBuilder(instance, 'text'));
 }
 
 export function blob(args?: Parameters<typeof dSqliteText>[1]) {
@@ -126,5 +127,5 @@ export function blob(args?: Parameters<typeof dSqliteText>[1]) {
   instance['__customAttributes'] = {
     args: args
   };
-  return instance._setNewBuilderMethods<DefaultBuilder<number, typeof instance>>();
+  return instance._setNewBuilderMethods<DefaultBuilder<typeof instance>>();
 }

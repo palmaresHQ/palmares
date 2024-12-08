@@ -15,10 +15,7 @@ import {
   define,
   getDatabasesWithDefaultAdapter
 } from '@palmares/databases';
-import { text } from '@palmares/drizzle-engine';
-
-import type { FieldWithOperationType } from '@palmares/databases';
-import type { DrizzleDatabaseAdapter } from '@palmares/drizzle-engine';
+import { type DrizzleDatabaseAdapter, text } from '@palmares/drizzle-engine';
 
 const pd = getDatabasesWithDefaultAdapter<typeof DrizzleDatabaseAdapter>();
 /*
@@ -30,9 +27,7 @@ class Authentication extends Manager<CompanyAbstract> {
 
 export const CompanyAbstract = pd.define('CompanyAbstract', {
   fields: {
-    address: pd.fields.char({ maxLen: 255 }),
-    test: text<{ id: string; name: string }>({ mode: 'json' })
-    //real: integer({ mode: 'boolean' }).$default('() => pd.sql`uuid_generate_v4()`').allowNull(false)
+    address: pd.fields.char({ maxLen: 255 })
   },
   options: {
     tableName: 'companies',
@@ -64,7 +59,8 @@ export const Company = pd.define('Company', {
   fields: {
     id: pd.fields.auto(),
     uuid: pd.fields.uuid().auto(),
-    name: pd.fields.char({ maxLen: 255 })
+    name: pd.fields.char({ maxLen: 255 }),
+    custom: text({ length: 255 }).notNull()
   },
   options: {
     tableName: 'companies'
@@ -72,7 +68,6 @@ export const Company = pd.define('Company', {
   }
 });
 
-Company.default.set((qs) => qs.where({}));
 export const ProfileType = pd.define('ProfileType', {
   fields: {
     id: pd.fields.auto(),

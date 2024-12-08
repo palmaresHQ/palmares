@@ -238,7 +238,7 @@ export class TextField<
     const propertiesOfBase = Object.getOwnPropertyNames(Object.getPrototypeOf(functions));
     for (const key of propertiesOfBase) {
       if (key === 'constructor') continue;
-      (this as any)[key] = (functions as any)[key].bind(this);
+      (this as any)[key] = (functions as any)[key].bind(functions);
     }
 
     return this as any;
