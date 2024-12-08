@@ -24,14 +24,14 @@ export type ModelFieldsType = {
       update: any;
     },
     {
-      unique: boolean;
-      auto: boolean;
-      allowNull: boolean;
-      dbIndex: boolean;
-      isPrimaryKey: boolean;
-      hasDefaultValue: boolean;
+      unique: any;
+      auto: any;
+      allowNull: any;
+      dbIndex: any;
+      isPrimaryKey: any;
+      hasDefaultValue: any;
       defaultValue: any;
-      underscored: boolean;
+      underscored: any;
       typeName: string;
       databaseName: string | undefined;
       engineInstance: DatabaseAdapter;

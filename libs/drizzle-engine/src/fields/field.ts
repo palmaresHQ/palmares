@@ -2,6 +2,7 @@ import { adapterFieldParser } from '@palmares/databases';
 
 import { getBuilderArgs } from './utils';
 
+import type { CustomArgs } from './types';
 import type { AdapterFieldParserTranslateArgs } from '@palmares/databases';
 import type {
   bigint as dMySqlBigInt,
@@ -175,17 +176,7 @@ export const fieldParser = adapterFieldParser({
          * If you define a custom type for the column, we will just create a column with the type you defined.
          */
         type?: string;
-        args?: ParametersOfColumnTypes;
-        options?: {
-          [TKey in keyof ReturnTypeOfColumnTypes as ReturnTypeOfColumnTypes[TKey] extends (...args: any) => any
-            ? TKey
-            : never]?:
-            | Parameters<
-                ReturnTypeOfColumnTypes[TKey] extends (...args: any) => any ? ReturnTypeOfColumnTypes[TKey] : never
-              >
-            | string[];
-        };
-      }
+      } & CustomArgs<ParametersOfColumnTypes, ReturnTypeOfColumnTypes>
     >
   ) => {
     if (args.customAttributes.type)
