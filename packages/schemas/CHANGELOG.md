@@ -1,5 +1,12 @@
 # @palmares/schemas
 
+## 0.2.14
+
+### Patch Changes
+
+- Updated dependencies [f0003db]
+  - @palmares/databases@0.2.14
+
 ## 0.2.13
 
 ### Patch Changes

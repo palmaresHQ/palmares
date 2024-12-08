@@ -1,5 +1,11 @@
 # @palmares/databases
 
+## 0.2.14
+
+### Patch Changes
+
+- f0003db: Set up the drizzle engine better so we can have dynamic fields and better support from drizzle overall
+
 ## 0.2.13
 
 ### Patch Changes
