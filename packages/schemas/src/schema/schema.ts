@@ -803,13 +803,16 @@ export class Schema<
    * If the value is invalid, the property errors will be present.
    */
   async validate(
-    value: TType['input'],
+    value: unknown,
     context: any
-  ): Promise<{ isValid: false; errors: any[] } | { isValid: true; save: () => Promise<TType['representation']> }> {
+  ): Promise<
+    | { isValid: false; errors: any[]; save: undefined }
+    | { isValid: true; save: () => Promise<TType['representation']>; errors: undefined }
+  > {
     const { errors, parsed } = await this.__parse(value, [], { context } as any);
     // eslint-disable-next-line ts/no-unnecessary-condition
-    if ((errors || []).length > 0) return { isValid: false, errors: errors };
-    return { isValid: true, save: async () => this._save.bind(this)(parsed, context) };
+    if ((errors || []).length > 0) return { isValid: false, errors: errors, save: undefined };
+    return { isValid: true, save: async () => this._save.bind(this)(parsed, context), errors: undefined };
   }
 
   /**
