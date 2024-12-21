@@ -9,6 +9,7 @@ import { objectValidation } from '../validators/object';
 import { Validator } from '../validators/utils';
 
 import type { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from './types';
+import type { SchemaAdapter } from '../adapter';
 import type { FieldAdapter } from '../adapter/fields';
 
 export class ObjectSchema<
@@ -25,7 +26,7 @@ export class ObjectSchema<
     internal: Record<any, any>;
     representation: Record<any, any>;
   },
-  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
+  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>,
   TData extends Record<any, any> = Record<any, any>
 > extends Schema<TType, TDefinitions> {
   protected fieldType = 'object';
@@ -207,26 +208,25 @@ export class ObjectSchema<
    * @param options - Options for the refinement.
    * @param options.isAsync - Whether the callback is async or not. Defaults to true.
    */
-  refine(
-    refinementCallback: (
-      value: TType['input']
-    ) =>
-      | Promise<void | undefined | { code: string; message: string }>
-      | void
-      | undefined
-      | { code: string; message: string }
-  ) {
-    return super.refine(refinementCallback) as unknown as ObjectSchema<
-      {
-        input: TType['input'];
-        validate: TType['validate'];
-        internal: TType['internal'];
-        output: TType['output'];
-        representation: TType['representation'];
-      },
-      TDefinitions,
-      TData
-    >;
+  refine<
+    TRefinementCallback extends (args: {
+      value: TType['input'];
+      context: TDefinitions['context'];
+    }) => Promise<void | undefined | { code: string; message: string }>
+  >(
+    refinementCallback: TRefinementCallback
+  ): ObjectSchema<
+    {
+      input: TType['input'];
+      validate: TType['validate'];
+      internal: TType['internal'];
+      output: TType['output'];
+      representation: TType['representation'];
+    },
+    TDefinitions,
+    TData
+  > {
+    return super.refine(refinementCallback) as unknown as any;
   }
 
   /**
@@ -493,25 +493,27 @@ export class ObjectSchema<
    *
    * @returns The schema.
    */
-  onSave(
-    callback: <TContext = any>(
-      value: TType['internal'],
-      context: TContext
-    ) => Promise<TType['output']> | TType['output']
-  ) {
-    return super.onSave(callback) as unknown as ObjectSchema<
-      {
-        input: TType['input'];
-        validate: TType['validate'];
-        internal: TType['internal'];
-        output: TType['output'];
-        representation: TType['representation'];
-      },
-      TDefinitions & {
-        hasSave: true;
-      },
-      TData
-    >;
+  onSave<
+    TSave extends
+      | ((value: TType['internal']) => (context: any) => Promise<TType['output']>)
+      | ((value: TType['internal']) => Promise<TType['output']>)
+  >(
+    callback: TSave
+  ): ObjectSchema<
+    {
+      input: TType['input'];
+      validate: TType['validate'];
+      internal: TType['internal'];
+      output: TType['output'];
+      representation: TType['representation'];
+    },
+    Omit<TDefinitions, 'hasSave' | 'context'> & {
+      hasSave: true;
+      context: ReturnType<TSave> extends (context: any) => any ? Parameters<ReturnType<TSave>>[0] : any;
+    },
+    TData
+  > {
+    return super.onSave(callback) as unknown as any;
   }
 
   /**
@@ -716,7 +718,9 @@ export class ObjectSchema<
    *
    * @returns The schema with a new return type.
    */
-  toValidate<TValidate>(toValidateCallback: (value: TType['input']) => Promise<TValidate> | TValidate) {
+  toValidate<TValidate>(
+    toValidateCallback: (value: TType['input'], context: TDefinitions['context']) => Promise<TValidate> | TValidate
+  ) {
     return super.toValidate(toValidateCallback) as unknown as ObjectSchema<
       {
         input: TType['input'];
@@ -778,7 +782,7 @@ export class ObjectSchema<
 
   static new<
     TData extends Record<any, Schema<any, TDefinitions>>,
-    TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
+    TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>
   >(data: TData) {
     const returnValue = new ObjectSchema<
       {

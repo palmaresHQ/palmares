@@ -7,7 +7,8 @@ import {
 import { unionValidation } from '../validators/union';
 import { Validator } from '../validators/utils';
 
-import type { DefinitionsOfSchemaType, ExtractTypeFromUnionOfSchemas } from './types';
+import type { AllSchemaTypes, DefinitionsOfSchemaType, ExtractTypeFromUnionOfSchemas } from './types';
+import type { SchemaAdapter } from '../adapter';
 import type { FieldAdapter } from '../adapter/fields';
 import type { Narrow } from '@palmares/core';
 
@@ -25,7 +26,7 @@ export class UnionSchema<
     internal: unknown;
     representation: unknown;
   },
-  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
+  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>,
   TSchemas extends readonly [Schema<any, any>, Schema<any, any>, ...Schema<any, any>[]] = [
     Schema<any, any>,
     Schema<any, any>,
@@ -181,26 +182,25 @@ export class UnionSchema<
    * @param options - Options for the refinement.
    * @param options.isAsync - Whether the callback is async or not. Defaults to true.
    */
-  refine(
-    refinementCallback: (
-      value: TType['input']
-    ) =>
-      | Promise<void | undefined | { code: string; message: string }>
-      | void
-      | undefined
-      | { code: string; message: string }
-  ) {
-    return super.refine(refinementCallback) as unknown as UnionSchema<
-      {
-        input: TType['input'];
-        validate: TType['validate'];
-        internal: TType['internal'];
-        output: TType['output'];
-        representation: TType['representation'];
-      },
-      TDefinitions,
-      TSchemas
-    >;
+  refine<
+    TRefinementCallback extends (args: {
+      value: TType['input'];
+      context: TDefinitions['context'];
+    }) => Promise<void | undefined | { code: string; message: string }>
+  >(
+    refinementCallback: TRefinementCallback
+  ): UnionSchema<
+    {
+      input: TType['input'];
+      validate: TType['validate'];
+      internal: TType['internal'];
+      output: TType['output'];
+      representation: TType['representation'];
+    },
+    TDefinitions,
+    TSchemas
+  > {
+    return super.refine(refinementCallback) as unknown as any;
   }
 
   /**
@@ -433,25 +433,27 @@ export class UnionSchema<
    *
    * @returns The schema.
    */
-  onSave(
-    callback: <TContext = any>(
-      value: TType['internal'],
-      context: TContext
-    ) => Promise<TType['output']> | TType['output']
-  ) {
-    return super.onSave(callback) as unknown as UnionSchema<
-      {
-        input: TType['input'];
-        validate: TType['validate'];
-        internal: TType['internal'];
-        output: TType['output'];
-        representation: TType['representation'];
-      },
-      TDefinitions & {
-        hasSave: true;
-      },
-      TSchemas
-    >;
+  onSave<
+    TSave extends
+      | ((value: TType['internal']) => (context: any) => Promise<TType['output']>)
+      | ((value: TType['internal']) => Promise<TType['output']>)
+  >(
+    callback: TSave
+  ): UnionSchema<
+    {
+      input: TType['input'];
+      validate: TType['validate'];
+      internal: TType['internal'];
+      output: TType['output'];
+      representation: TType['representation'];
+    },
+    Omit<TDefinitions, 'hasSave' | 'context'> & {
+      hasSave: true;
+      context: ReturnType<TSave> extends (context: any) => any ? Parameters<ReturnType<TSave>>[0] : any;
+    },
+    TSchemas
+  > {
+    return super.onSave(callback) as unknown as any;
   }
 
   /**
@@ -686,7 +688,9 @@ export class UnionSchema<
    *
    * @returns The schema with a new return type.
    */
-  toValidate<TValidate>(toValidateCallback: (value: TType['input']) => Promise<TValidate> | TValidate) {
+  toValidate<TValidate>(
+    toValidateCallback: (value: TType['input'], context: TDefinitions['context']) => Promise<TValidate> | TValidate
+  ) {
     return super.toValidate(toValidateCallback) as unknown as UnionSchema<
       {
         input: TType['input'];
@@ -701,17 +705,20 @@ export class UnionSchema<
   }
 
   static new<
-    TSchemas extends readonly [Schema<any, any>, Schema<any, any>, ...Schema<any, any>[]],
-    TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
+    TSchemas extends readonly [AllSchemaTypes, AllSchemaTypes, ...AllSchemaTypes[]],
+    TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>
   >(
     schemas: Narrow<TSchemas>
-  ): UnionSchema<{
-    input: ExtractTypeFromUnionOfSchemas<TSchemas, 'input'>;
-    internal: ExtractTypeFromUnionOfSchemas<TSchemas, 'internal'>;
-    output: ExtractTypeFromUnionOfSchemas<TSchemas, 'output'>;
-    representation: ExtractTypeFromUnionOfSchemas<TSchemas, 'representation'>;
-    validate: ExtractTypeFromUnionOfSchemas<TSchemas, 'validate'>;
-  }> {
+  ): UnionSchema<
+    {
+      input: ExtractTypeFromUnionOfSchemas<TSchemas, 'input'>;
+      internal: ExtractTypeFromUnionOfSchemas<TSchemas, 'internal'>;
+      output: ExtractTypeFromUnionOfSchemas<TSchemas, 'output'>;
+      representation: ExtractTypeFromUnionOfSchemas<TSchemas, 'representation'>;
+      validate: ExtractTypeFromUnionOfSchemas<TSchemas, 'validate'>;
+    },
+    TDefinitions
+  > {
     const returnValue = new UnionSchema<
       TSchemas[number] extends Schema<infer TType, any> ? TType : never,
       TDefinitions,

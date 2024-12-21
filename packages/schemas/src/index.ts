@@ -12,7 +12,7 @@ import { UnionSchema, union } from './schema/union';
 
 import type { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from './schema/types';
 import type { Narrow } from '@palmares/core';
-import type { Model, ModelFields } from '@palmares/databases';
+import type { InferModel, Model, ModelFields } from '@palmares/databases';
 
 export { FieldAdapter, fieldAdapter } from './adapter/fields';
 export { NumberFieldAdapter, numberFieldAdapter } from './adapter/fields/number';
@@ -49,17 +49,22 @@ export default SchemaDomain;
 
 export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
   return {
-    number: () => NumberSchema.new<{ schemaAdapter: TAdapter; schemaType: 'number'; hasSave: false }>(),
-    string: () => StringSchema.new<{ schemaAdapter: TAdapter; schemaType: 'string'; hasSave: false }>(),
+    number: () => NumberSchema.new<{ schemaAdapter: TAdapter; schemaType: 'number'; hasSave: false; context: any }>(),
+    string: () => StringSchema.new<{ schemaAdapter: TAdapter; schemaType: 'string'; hasSave: false; context: any }>(),
     array: <TSchemas extends readonly [Schema, ...Schema[]] | [[Schema]]>(...schemas: TSchemas) =>
-      array<TSchemas, { schemaAdapter: TAdapter; schemaType: 'array'; hasSave: false }>(...schemas),
-    boolean: () => BooleanSchema.new<{ schemaAdapter: TAdapter; schemaType: 'boolean'; hasSave: false }>(),
+      array<TSchemas, { schemaAdapter: TAdapter; schemaType: 'array'; hasSave: false; context: any }>(...schemas),
+    boolean: () =>
+      BooleanSchema.new<{ schemaAdapter: TAdapter; schemaType: 'boolean'; hasSave: false; context: any }>(),
     object: <TData extends Record<any, Schema<any, any>>>(data: TData) =>
-      ObjectSchema.new<TData, { schemaAdapter: TAdapter; schemaType: 'object'; hasSave: false }>(data),
+      ObjectSchema.new<TData, { schemaAdapter: TAdapter; schemaType: 'object'; hasSave: false; context: any }>(data),
     union: <TSchemas extends readonly [Schema<any, any>, Schema<any, any>, ...Schema<any, any>[]]>(
       ...schemas: Narrow<TSchemas>
-    ) => UnionSchema.new<TSchemas, { schemaAdapter: TAdapter; schemaType: 'union'; hasSave: false }>(schemas),
-    datetime: () => DatetimeSchema.new<{ schemaAdapter: TAdapter; schemaType: 'datetime'; hasSave: false }>(),
+    ) =>
+      UnionSchema.new<TSchemas, { schemaAdapter: TAdapter; schemaType: 'union'; hasSave: false; context: any }>(
+        schemas
+      ),
+    datetime: () =>
+      DatetimeSchema.new<{ schemaAdapter: TAdapter; schemaType: 'datetime'; hasSave: false; context: any }>(),
     /**
      * Different from other models, this function is a factory function that returns either an ObjectSchema or
      * an ArraySchema.
@@ -152,12 +157,18 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
       const TShow extends readonly (keyof ModelFields<InstanceType<TModel>>)[] | undefined[] = undefined[],
       TMany extends boolean = false,
       TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> | undefined = undefined,
-      TAllModelFields = ModelFields<InstanceType<TModel>>,
-      TFieldsOnModel = TOmit extends undefined[]
+      TAllModelFieldsRead = InferModel<InstanceType<TModel>, 'read'>,
+      TAllModelFieldsCreate = InferModel<InstanceType<TModel>, 'create'>,
+      TFieldsOnModelRead = TOmit extends undefined[]
         ? TShow extends undefined[]
-          ? TAllModelFields
-          : Pick<TAllModelFields, TShow[number] extends keyof TAllModelFields ? TShow[number] : never>
-        : Omit<TAllModelFields, TOmit[number] extends keyof TAllModelFields ? TOmit[number] : never>,
+          ? TAllModelFieldsRead
+          : Pick<TAllModelFieldsRead, TShow[number] extends keyof TAllModelFieldsRead ? TShow[number] : never>
+        : Omit<TAllModelFieldsRead, TOmit[number] extends keyof TAllModelFieldsRead ? TOmit[number] : never>,
+      TFieldsOnModelCreateOrUpdate = TOmit extends undefined[]
+        ? TShow extends undefined[]
+          ? TAllModelFieldsCreate
+          : Pick<TAllModelFieldsCreate, TShow[number] extends keyof TAllModelFieldsCreate ? TShow[number] : never>
+        : Omit<TAllModelFieldsCreate, TOmit[number] extends keyof TAllModelFieldsCreate ? TOmit[number] : never>,
       TReturnType extends {
         input: any;
         output: any;
@@ -166,9 +177,9 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
         representation: any;
       } = {
         input: TFields extends undefined
-          ? TFieldsOnModel
+          ? TFieldsOnModelCreateOrUpdate
           : Omit<
-              TFieldsOnModel,
+              TFieldsOnModelCreateOrUpdate,
               keyof ExtractTypeFromObjectOfSchemas<
                 // eslint-disable-next-line ts/ban-types
                 TFields extends undefined ? {} : TFields,
@@ -181,9 +192,9 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
                 'input'
               >;
         output: TFields extends undefined
-          ? TFieldsOnModel
+          ? TFieldsOnModelRead
           : Omit<
-              TFieldsOnModel,
+              TFieldsOnModelRead,
               keyof ExtractTypeFromObjectOfSchemas<
                 // eslint-disable-next-line ts/ban-types
                 TFields extends undefined ? {} : TFields,
@@ -196,9 +207,9 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
                 'output'
               >;
         internal: TFields extends undefined
-          ? TFieldsOnModel
+          ? TFieldsOnModelCreateOrUpdate
           : Omit<
-              TFieldsOnModel,
+              TFieldsOnModelCreateOrUpdate,
               keyof ExtractTypeFromObjectOfSchemas<
                 // eslint-disable-next-line ts/ban-types
                 TFields extends undefined ? {} : TFields,
@@ -211,9 +222,9 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
                 'internal'
               >;
         representation: TFields extends undefined
-          ? TFieldsOnModel
+          ? TFieldsOnModelRead
           : Omit<
-              TFieldsOnModel,
+              TFieldsOnModelRead,
               keyof ExtractTypeFromObjectOfSchemas<
                 // eslint-disable-next-line ts/ban-types
                 TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
@@ -226,9 +237,9 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
                 'representation'
               >;
         validate: TFields extends undefined
-          ? TFieldsOnModel
+          ? TFieldsOnModelCreateOrUpdate
           : Omit<
-              TFieldsOnModel,
+              TFieldsOnModelCreateOrUpdate,
               keyof ExtractTypeFromObjectOfSchemas<
                 // eslint-disable-next-line ts/ban-types
                 TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
@@ -264,6 +275,7 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
           {
             schemaAdapter: TAdapter;
             schemaType: 'object';
+            context: any;
             hasSave: false;
           },
           [
@@ -278,6 +290,7 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
               {
                 schemaAdapter: TAdapter;
                 schemaType: 'object';
+                context: any;
                 hasSave: false;
               },
               Record<any, any>
@@ -295,6 +308,7 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
           {
             schemaAdapter: TAdapter;
             schemaType: 'object';
+            context: any;
             hasSave: false;
           },
           Record<any, any>
@@ -305,13 +319,16 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
         TShow,
         TMany,
         TFields,
-        TAllModelFields,
+        TAllModelFieldsRead,
+        TAllModelFieldsCreate,
         {
           schemaAdapter: TAdapter;
+          context: any;
           schemaType: 'object';
           hasSave: false;
         },
-        TFieldsOnModel,
+        TFieldsOnModelRead,
+        TFieldsOnModelCreateOrUpdate,
         TReturnType
       >(model, options)
   };

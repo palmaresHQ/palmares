@@ -1,4 +1,4 @@
-import { serverResponseAdapter } from "@palmares/server"
+import { serverResponseAdapter } from '@palmares/server';
 
 export default serverResponseAdapter({
   // eslint-disable-next-line ts/require-await
@@ -10,12 +10,12 @@ export default serverResponseAdapter({
     return new serverRequestAndResponseData.response(body, {
       headers,
       status: status
-    })
+    });
   },
   stream(_server, serverRequestAndResponseData, _status, _headers, _body, _isAsync) {
     return serverRequestAndResponseData.response.stream(_body, _isAsync);
   },
   sendFile(_server, serverRequestAndResponseData, _status, _headers, _filePath) {
     return serverRequestAndResponseData.response.sendFile(_filePath);
-  },
-})
+  }
+});

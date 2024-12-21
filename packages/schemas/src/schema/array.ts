@@ -9,7 +9,8 @@ import { arrayValidation, maxLength, minLength, nonEmpty } from '../validators/a
 import { nullable, optional } from '../validators/schema';
 import { Validator } from '../validators/utils';
 
-import type { DefinitionsOfSchemaType, ExtractTypeFromArrayOfSchemas } from './types';
+import type { AllSchemaTypes, DefinitionsOfSchemaType, ExtractTypeFromArrayOfSchemas } from './types';
+import type { SchemaAdapter } from '../adapter';
 
 export class ArraySchema<
   TType extends {
@@ -25,13 +26,13 @@ export class ArraySchema<
     representation: any[];
     validate: any[];
   },
-  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
-  TSchemas extends readonly [Schema, ...Schema[]] | [[Schema]] = [[Schema]]
+  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>,
+  TSchemas extends readonly [AllSchemaTypes, ...AllSchemaTypes[]] | [[AllSchemaTypes]] = [[Schema]]
 > extends Schema<TType, TDefinitions> {
   protected $$type = '$PArraySchema';
   protected fieldType = 'array';
 
-  protected __schemas: readonly [Schema, ...Schema[]] | [[Schema]];
+  protected __schemas: readonly [AllSchemaTypes, ...AllSchemaTypes[]] | [[AllSchemaTypes]];
 
   protected __type: {
     message: string;
@@ -156,26 +157,25 @@ export class ArraySchema<
    * @param options - Options for the refinement.
    * @param options.isAsync - Whether the callback is async or not. Defaults to true.
    */
-  refine(
-    refinementCallback: (
-      value: TType['input']
-    ) =>
-      | Promise<void | undefined | { code: string; message: string }>
-      | void
-      | undefined
-      | { code: string; message: string }
-  ) {
-    return super.refine(refinementCallback) as unknown as ArraySchema<
-      {
-        input: TType['input'];
-        validate: TType['validate'];
-        internal: TType['internal'];
-        output: TType['output'];
-        representation: TType['representation'];
-      },
-      TDefinitions,
-      TSchemas
-    >;
+  refine<
+    TRefinementCallback extends (args: {
+      value: TType['input'];
+      context: TDefinitions['context'];
+    }) => Promise<void | undefined | { code: string; message: string }>
+  >(
+    refinementCallback: TRefinementCallback
+  ): ArraySchema<
+    {
+      input: TType['input'];
+      validate: TType['validate'];
+      internal: TType['internal'];
+      output: TType['output'];
+      representation: TType['representation'];
+    },
+    TDefinitions,
+    TSchemas
+  > {
+    return super.refine(refinementCallback) as unknown as any;
   }
 
   /**
@@ -437,25 +437,27 @@ export class ArraySchema<
    *
    * @returns The schema.
    */
-  onSave(
-    callback: <TContext = any>(
-      value: TType['internal'],
-      context: TContext
-    ) => Promise<TType['output']> | TType['output']
-  ) {
-    return super.onSave(callback) as unknown as ArraySchema<
-      {
-        input: TType['input'];
-        validate: TType['validate'];
-        internal: TType['internal'];
-        output: TType['output'];
-        representation: TType['representation'];
-      },
-      TDefinitions & {
-        hasSave: true;
-      },
-      TSchemas
-    >;
+  onSave<
+    TSave extends
+      | ((value: TType['internal']) => (context: any) => Promise<TType['output']>)
+      | ((value: TType['internal']) => Promise<TType['output']>)
+  >(
+    callback: TSave
+  ): ArraySchema<
+    {
+      input: TType['input'];
+      validate: TType['validate'];
+      internal: TType['internal'];
+      output: TType['output'];
+      representation: TType['representation'];
+    },
+    Omit<TDefinitions, 'hasSave' | 'context'> & {
+      hasSave: true;
+      context: ReturnType<TSave> extends (context: any) => any ? Parameters<ReturnType<TSave>>[0] : any;
+    },
+    TSchemas
+  > {
+    return super.onSave(callback) as unknown as any;
   }
 
   /**
@@ -699,7 +701,9 @@ export class ArraySchema<
    *
    * @returns The schema with a new return type.
    */
-  toValidate<TValidate>(toValidateCallback: (value: TType['input']) => Promise<TValidate> | TValidate) {
+  toValidate<TValidate>(
+    toValidateCallback: (value: TType['input'], context: TDefinitions['context']) => Promise<TValidate> | TValidate
+  ) {
     return super.toValidate(toValidateCallback) as unknown as ArraySchema<
       {
         input: TType['input'];
@@ -746,11 +750,11 @@ export class ArraySchema<
   }
 
   static new<
-    TSchemas extends readonly [Schema, ...Schema[]] | [[Schema]],
+    TSchemas extends readonly [AllSchemaTypes, ...AllSchemaTypes[]] | [[AllSchemaTypes]],
     TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
   >(
     ...schemas: TSchemas
-  ): TSchemas extends [[Schema]]
+  ): TSchemas extends [[AllSchemaTypes]]
     ? ArraySchema<
         {
           input: ExtractTypeFromArrayOfSchemas<TSchemas, 'input'>;
@@ -788,38 +792,13 @@ export class ArraySchema<
       TSchemas
     >(...schemas);
 
-    return returnValue as TSchemas extends [[Schema]]
-      ? ArraySchema<
-          {
-            input: ExtractTypeFromArrayOfSchemas<TSchemas, 'input'>;
-            validate: ExtractTypeFromArrayOfSchemas<TSchemas, 'validate'>;
-            internal: ExtractTypeFromArrayOfSchemas<TSchemas, 'internal'>;
-            output: ExtractTypeFromArrayOfSchemas<TSchemas, 'output'>;
-            representation: ExtractTypeFromArrayOfSchemas<TSchemas, 'representation'>;
-          },
-          TDefinitions,
-          TSchemas
-        >
-      : ArraySchema<
-          {
-            input: ExtractTypeFromArrayOfSchemas<TSchemas, 'input'>;
-            validate: ExtractTypeFromArrayOfSchemas<TSchemas, 'validate'>;
-            internal: ExtractTypeFromArrayOfSchemas<TSchemas, 'internal'>;
-            output: ExtractTypeFromArrayOfSchemas<TSchemas, 'output'>;
-            representation: ExtractTypeFromArrayOfSchemas<TSchemas, 'representation'>;
-          },
-          TDefinitions,
-          TSchemas
-        > & {
-          maxLength: never;
-          minLength: never;
-        };
+    return returnValue as any;
   }
 }
 
 export const array = <
-  TSchemas extends readonly [Schema, ...Schema[]] | [[Schema]],
-  TDefinitions extends DefinitionsOfSchemaType
+  TSchemas extends readonly [AllSchemaTypes, ...AllSchemaTypes[]] | [[AllSchemaTypes]],
+  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>
 >(
   ...schemas: TSchemas
 ) => ArraySchema.new<TSchemas, TDefinitions>(...schemas);
