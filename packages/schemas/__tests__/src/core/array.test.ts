@@ -1,7 +1,15 @@
+import type { ZodSchemaAdapter } from '@palmares/zod-schema';
+
 import * as p from '@palmares/schemas';
 import { describe } from '@palmares/tests';
-
 import type JestTestAdapter from '@palmares/jest-tests';
+
+declare global {
+  namespace Palmares {
+    interface PSchemaAdapter extends ZodSchemaAdapter {}
+  }
+};
+
 
 describe<JestTestAdapter>('Array Tests', ({ test }) => {
   test('optional', async ({ expect }) => {
@@ -9,7 +17,7 @@ describe<JestTestAdapter>('Array Tests', ({ test }) => {
     const tupleSchema = p.array(p.number(), p.string());
     const arraySchemaWithCustomMessage = p.array([p.number()]).nonOptional({ message: 'hello' });
     const tupleSchemaWithCustomMessage = p.array(p.number(), p.string()).nonOptional({ message: 'hello' });
-
+    
     const [
       { errors: errorsArrayOnFail },
       { errors: errorsTupleOnFail },
@@ -18,10 +26,10 @@ describe<JestTestAdapter>('Array Tests', ({ test }) => {
       { errors: errorsOnValidArray, parsed: parsedArray },
       { errors: errorsOnValidTuple, parsed: parsedTuple }
     ] = await Promise.all([
-      arraySchema.parse(undefined as any),
-      tupleSchema.parse(undefined as any),
-      arraySchemaWithCustomMessage.parse(undefined as any),
-      tupleSchemaWithCustomMessage.parse(undefined as any),
+      arraySchema.parse(undefined),
+      tupleSchema.parse(undefined),
+      arraySchemaWithCustomMessage.parse(undefined),
+      tupleSchemaWithCustomMessage.parse(undefined),
       arraySchema.parse([1, 2, 3]),
       tupleSchema.parse([1, 'test'])
     ]);

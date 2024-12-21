@@ -4,13 +4,13 @@ import type { Response } from 'express';
 
 export const responseAdapter = serverResponseAdapter({
   // eslint-disable-next-line ts/require-await
-  redirect: async (_server, serverRequestAndResponseData, status, headers, redirectTo) => {
+  redirect: async (_, __, serverRequestAndResponseData, status, headers, redirectTo) => {
     const { res } = serverRequestAndResponseData as { res: Response };
     if (headers) res.set(headers);
     res.redirect(status, redirectTo);
   },
   // eslint-disable-next-line ts/require-await
-  send: async (_server, serverRequestAndResponseData, status, headers, body) => {
+  send: async (_, __, serverRequestAndResponseData, status, headers, body) => {
     const { res } = serverRequestAndResponseData as { res: Response };
     if (headers) {
       res.set(headers);
@@ -19,7 +19,7 @@ export const responseAdapter = serverResponseAdapter({
     if (typeof status === 'number') res.status(status);
     res.send(body);
   },
-  stream: async (_server, serverRequestAndResponseData, status, headers, body, isAsync) => {
+  stream: async (_, __, serverRequestAndResponseData, status, headers, body, isAsync) => {
     const { res } = serverRequestAndResponseData as { res: Response };
     if (headers) {
       res.set(headers);
@@ -37,7 +37,7 @@ export const responseAdapter = serverResponseAdapter({
       }
     res.end();
   },
-  sendFile: async (_server, serverRequestAndResponseData, status, headers, body) => {
+  sendFile: async (_, __, serverRequestAndResponseData, status, headers, body) => {
     const { res } = serverRequestAndResponseData as { res: Response };
     if (headers) {
       res.set(headers);

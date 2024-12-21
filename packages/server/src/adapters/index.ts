@@ -2,7 +2,7 @@ import { ServerRequestAdapter } from './requests';
 import { ServerResponseAdapter } from './response';
 import { ServerRouterAdapter } from './routers';
 
-import type { AllServerSettingsType, ServersSettingsType } from '../types';
+import type { AllServerSettingsType, ServerSettingsType } from '../types';
 import type { Domain } from '@palmares/core';
 
 /**
@@ -14,8 +14,7 @@ export function serverAdapter<
   TServerRouterAdapter extends ServerAdapter['routers'],
   TLoadFunction extends ServerAdapter['load'],
   TStartFunction extends ServerAdapter['start'],
-  TCloseFunction extends ServerAdapter['close'],
-  TCustomServerSettings extends (typeof ServerAdapter)['customServerSettings']
+  TCloseFunction extends ServerAdapter['close']
 >(args: {
   /**
    * This is the {@link ServerRequestAdapter}. The request will hold all of the request data from
@@ -33,7 +32,6 @@ export function serverAdapter<
    * Palmares's router to the server's router.
    */
   routers: TServerRouterAdapter;
-  customServerSettings: TCustomServerSettings;
   /**
    * This is the function that will be called by Palmares to load the server. Usually you add the
    * server constructor here. Notice that this function DOES NOT start the server, it will be used
@@ -44,21 +42,12 @@ export function serverAdapter<
    *
    * @example
    * ```
-   * load: async (serverName, _domains: Domain[], settings: ServerSettingsTypeExpress) => {
-   *    let server: Express | undefined = servers.get(serverName)?.server;
-   *    if (!server) {
-   *      server = express();
-   *      servers.set(serverName, { server, settings });
-   *    }
-   *    if (settings?.customServerSettings?.middlewares) {
-   *      settings.customServerSettings.middlewares.forEach((middleware) => {
-   *      server?.use(middleware);
-   *    });
-   *  }
+   * load: async (_domains: Domain[], settings: ServerSettingsTypeExpress) => {
+   *    const server = express();
+   *    return server;
    * },
    * ```
    *
-   * @param serverName - The name of the server, by default a palmares application can contain multiple servers.
    * @param domains - All of the domains of the application, usually you will not need this, but can be useful.
    * @param settings - The settings for the server.
    */
@@ -103,12 +92,9 @@ export function serverAdapter<
     load = args.load;
     start = args.start;
     close = args.close;
-
-    static customServerSettings = args.customServerSettings;
   }
 
   return CustomServerAdapter as {
-    customServerSettings: TCustomServerSettings;
     new (serverName: string): ServerAdapter & {
       request: TServerRequestAdapter;
       response: TServerResponseAdapter;
@@ -123,7 +109,7 @@ export function serverAdapter<
 export class ServerAdapter {
   $$type = '$PServerAdapter';
   serverName: string;
-  settings: AllServerSettingsType['servers'][string];
+  settings: ServerSettingsType<any>;
   allSettings: AllServerSettingsType;
   domains: Domain[];
   routers: ServerRouterAdapter = new ServerRouterAdapter();
@@ -133,7 +119,7 @@ export class ServerAdapter {
   constructor(
     serverName: string,
     allSettings: AllServerSettingsType,
-    settings: AllServerSettingsType['servers'][string],
+    settings: ServerSettingsType<any>,
     domains: Domain[]
   ) {
     this.serverName = serverName;
@@ -147,35 +133,24 @@ export class ServerAdapter {
    * server constructor here. Notice that this function DOES NOT start the server, it will be used
    * for adding middleware, custom logic, etc.
    *
-   * You can use a global Map to store the server instance, this way you can access it later on the
-   * start function. Since this is functional and not class based.
+   * What you return here will be passed to the start function and to all the other functions from
+   * the adapter.
    *
    * @example
    * ```
-   * load: async (serverName, _domains: Domain[], settings: ServerSettingsTypeExpress) => {
-   *    let server: Express | undefined = servers.get(serverName)?.server;
-   *    if (!server) {
-   *      server = express();
-   *      servers.set(serverName, { server, settings });
-   *    }
-   *    if (settings?.customServerSettings?.middlewares) {
-   *      settings.customServerSettings.middlewares.forEach((middleware) => {
-   *      server?.use(middleware);
-   *    });
-   *  }
+   * load: async (_domains: Domain[], settings: ServerSettingsTypeExpress) => {
+   *    const server = express();
+   *    return server;
    * },
    * ```
    *
-   * @param serverName - The name of the server, by default a palmares application can contain multiple servers.
    * @param domains - All of the domains of the application, usually you will not need this, but can be useful.
    * @param settings - The settings for the server.
+   *
+   * @returns The server instance.
    */
   // eslint-disable-next-line ts/require-await
-  async load(
-    _serverName: string,
-    _domains: Domain[],
-    _settings: ServersSettingsType['servers'][string]
-  ): Promise<void> {
+  async load(_serverName: string, _domains: Domain[], _settings: ServerSettingsType<any>): Promise<any> {
     return undefined;
   }
 
@@ -187,7 +162,7 @@ export class ServerAdapter {
    *
    * @example
    * ```
-   * start: async (serverName, port, logServerStart) => {
+   * start: async (server, port, logServerStart) => {
    *    const serverInstanceToStart = servers.get(serverName);
    *    if (serverInstanceToStart) {
    *     serverInstanceToStart.server.listen(port, () => logServerStart());
@@ -195,12 +170,13 @@ export class ServerAdapter {
    * },
    * ```
    *
-   * @param serverName - The name of the server, by default a palmares application can contain multiple servers.
-   * @param port - The port to start the server on.
-   * @param logServerStart - A function that you can call to log to the user that the server has started.
+   * @param _serverName - The name of the server, by default a palmares application can contain multiple servers.
+   * @param _server - What you returned from the `.load` function.
+   * @param _port - The port to start the server on.
+   * @param _logServerStart - A function that you can call to log to the user that the server has started.
    */
   // eslint-disable-next-line ts/require-await
-  async start(_serverName: string, _port: number, _logServerStart: () => void): Promise<void> {
+  async start(_serverName: string, _server: any, _port: number, _logServerStart: () => void): Promise<void> {
     return undefined;
   }
 
@@ -209,17 +185,17 @@ export class ServerAdapter {
    *
    * @example
    * ```
-   * close: async () => {
+   * close: async (server) => {
+   *   server.stop()
    *   console.log('closing the server');
    * },
    * ```
+   *
+   * @param _serverName - The name of the server, by default a palmares application can contain multiple servers.
+   * @param _server - What you returned from the `.load` function.
    */
   // eslint-disable-next-line ts/require-await
-  async close(): Promise<void> {
+  async close(_serverName: string, _server: any): Promise<void> {
     return undefined;
-  }
-
-  static customServerSettings(args: ServersSettingsType['servers'][string]['customServerSettings']) {
-    return args;
   }
 }

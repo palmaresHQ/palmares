@@ -82,6 +82,7 @@ export class Request<
    * ```
    */
   private __serverRequestAndResponseData: any = undefined;
+  private __serverInstance: any = undefined;
 
   private __query?: ProxyHandler<ExtractQueryParamsFromPathType<TRoutePath>>;
   private __headers!: ProxyHandler<TRequest['headers'] extends object ? TRequest['headers'] : object>;
@@ -160,6 +161,7 @@ export class Request<
           if (propNotYetCached) {
             const dataFromHeader = this.__requestAdapter.headers(
               this.__serverAdapter as NonNullable<Request['__serverAdapter']>,
+              this.__serverInstance,
               this.__serverRequestAndResponseData,
               propAsString
             );
@@ -194,6 +196,7 @@ export class Request<
     if (this.__requestAdapter && this.__serverAdapter) {
       const url = this.__requestAdapter.url(
         this.__serverAdapter as NonNullable<Request['__serverAdapter']>,
+        this.__serverInstance,
         this.__serverRequestAndResponseData
       );
       this.__url = Object.freeze({ value: url });
@@ -326,6 +329,7 @@ export class Request<
     else if (this.__requestAdapter && this.__serverAdapter) {
       const method = this.__requestAdapter.method(
         this.__serverAdapter as NonNullable<Request['__serverAdapter']>,
+        this.__serverInstance,
         this.__serverRequestAndResponseData
       );
       const upperCased = method.toUpperCase() as TRequest['method'];
@@ -391,6 +395,7 @@ export class Request<
     const parserData = this.__urlParams.get(key);
     const dataFromUrl = nonNullableRequestAdapter.params?.(
       this.__serverAdapter as NonNullable<Request['__serverAdapter']>,
+      this.__serverInstance,
       this.__serverRequestAndResponseData,
       key
     );
@@ -530,6 +535,7 @@ export class Request<
     const parserData = this.__queryParams.get(key);
     const dataFromQuery = nonNullableRequestAdapter.query(
       this.__serverAdapter as NonNullable<Request['__serverAdapter']>,
+      this.__serverInstance,
       this.__serverRequestAndResponseData,
       key
     );
@@ -899,7 +905,12 @@ export class Request<
   async arrayBuffer(options?: any) {
     if (this.body instanceof ArrayBuffer) return this.body;
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
-      return this.__requestAdapter.toArrayBuffer(this.__serverAdapter, this.__serverRequestAndResponseData, options);
+      return this.__requestAdapter.toArrayBuffer(
+        this.__serverAdapter,
+        this.__serverInstance,
+        this.__serverRequestAndResponseData,
+        options
+      );
     return undefined;
   }
 
@@ -931,7 +942,12 @@ export class Request<
   async json(options?: any): Promise<TRequest['body'] | undefined> {
     if (typeof this.body === 'object' && this.body !== null) return this.body;
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
-      return this.__requestAdapter.toJson(this.__serverAdapter, this.__serverRequestAndResponseData, options);
+      return this.__requestAdapter.toJson(
+        this.__serverAdapter,
+        this.__serverInstance,
+        this.__serverRequestAndResponseData,
+        options
+      );
     return undefined;
   }
 
@@ -967,6 +983,7 @@ export class Request<
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
       return this.__requestAdapter.toBlob(
         this.__serverAdapter,
+        this.__serverInstance,
         this.__serverRequestAndResponseData,
         options
       ) as Promise<Blob | File>;
@@ -1010,6 +1027,7 @@ export class Request<
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
       return this.__requestAdapter.toFormData(
         this.__serverAdapter,
+        this.__serverInstance,
         this.__serverRequestAndResponseData,
         formDataLikeFactory() as FormDataLike<any>,
         (this.headers as any)[DEFAULT_REQUEST_HEADERS_CONTENT_HEADER_KEY] ===
@@ -1049,7 +1067,12 @@ export class Request<
   async text(options?: any) {
     if (typeof this.body === 'string') return this.body;
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
-      return this.__requestAdapter.toText(this.__serverAdapter, this.__serverRequestAndResponseData, options);
+      return this.__requestAdapter.toText(
+        this.__serverAdapter,
+        this.__serverInstance,
+        this.__serverRequestAndResponseData,
+        options
+      );
     return undefined;
   }
 
@@ -1072,7 +1095,12 @@ export class Request<
    */
   async raw(options?: any) {
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
-      return this.__requestAdapter.toRaw(this.__serverAdapter, this.__serverRequestAndResponseData, options);
+      return this.__requestAdapter.toRaw(
+        this.__serverAdapter,
+        this.__serverInstance,
+        this.__serverRequestAndResponseData,
+        options
+      );
     return undefined;
   }
 }

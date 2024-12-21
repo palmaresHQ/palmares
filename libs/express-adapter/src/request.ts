@@ -13,10 +13,10 @@ export const requestAdapter = serverRequestAdapter({
     return args;
   },
   // eslint-disable-next-line ts/require-await
-  toRaw: async (_server, _serverRequestAndResponseData, _options) => {
+  toRaw: async (_, __, _serverRequestAndResponseData, _options) => {
     return undefined;
   },
-  toArrayBuffer: async (server, serverRequestAndResponseData: { req: Request; res: Response }) => {
+  toArrayBuffer: async (server, _, serverRequestAndResponseData: { req: Request; res: Response }) => {
     const serverInstanceAndSettings = servers.get(server.serverName);
     const { req, res } = serverRequestAndResponseData;
 
@@ -35,7 +35,7 @@ export const requestAdapter = serverRequestAdapter({
       });
     });
   },
-  toBlob: async (server, serverRequestAndResponseData: { req: Request }) => {
+  toBlob: async (server, _, serverRequestAndResponseData: { req: Request }) => {
     const serverInstanceAndSettings = servers.get(server.serverName);
     const { req, res } = serverRequestAndResponseData as { req: Request; res: Response };
 
@@ -54,7 +54,7 @@ export const requestAdapter = serverRequestAdapter({
       });
     });
   },
-  toJson: async (server, serverRequestAndResponseData: { req: Request }) => {
+  toJson: async (server, _, serverRequestAndResponseData: { req: Request }) => {
     const serverInstanceAndSettings = servers.get(server.serverName);
     const { req, res } = serverRequestAndResponseData as { req: Request; res: Response };
     return new Promise((resolve) => {
@@ -81,6 +81,7 @@ export const requestAdapter = serverRequestAdapter({
    */
   toFormData: async (
     server,
+    _serverInstance,
     serverRequestAndResponseData: { req: Request; res: Response },
     formDataConstructor,
     isUrlEncoded,
@@ -158,7 +159,7 @@ export const requestAdapter = serverRequestAdapter({
                 for (const file of req.files) {
                   if (file.fieldname === name)
                     files.push({
-                      value: new File([file.buffer], file.originalname, { type: file.mimetype }),
+                      value: new File([file.buffer as any], file.originalname, { type: file.mimetype }),
                       filename: file.originalname
                     });
                 }
@@ -170,7 +171,7 @@ export const requestAdapter = serverRequestAdapter({
                 for (const file of files) {
                   if (file.fieldname === name)
                     filesArray.push({
-                      value: new File([file.buffer], file.originalname, { type: file.mimetype }),
+                      value: new File([file.buffer as any], file.originalname, { type: file.mimetype }),
                       filename: file.originalname
                     });
                 }
@@ -182,7 +183,7 @@ export const requestAdapter = serverRequestAdapter({
               if (req.file.fieldname === name)
                 return [
                   {
-                    value: new File([req.file.buffer], req.file.originalname, { type: req.file.mimetype }),
+                    value: new File([req.file.buffer as any], req.file.originalname, { type: req.file.mimetype }),
                     filename: req.file.originalname
                   }
                 ];
@@ -194,7 +195,7 @@ export const requestAdapter = serverRequestAdapter({
       });
     });
   },
-  toText: async (server, serverRequestAndResponseData: { req: Request; res: Response }) => {
+  toText: async (server, _, serverRequestAndResponseData: { req: Request; res: Response }) => {
     const serverInstanceAndSettings = servers.get(server.serverName);
     const { req, res } = serverRequestAndResponseData;
 
@@ -213,7 +214,7 @@ export const requestAdapter = serverRequestAdapter({
       });
     });
   },
-  headers: (_, serverRequestAndResponseData, key) => {
+  headers: (_, __, serverRequestAndResponseData, key) => {
     const lowerCasedKey = key.toLowerCase();
     const { req } = serverRequestAndResponseData as { req: Request; headers?: Record<string, string> };
 
@@ -225,7 +226,7 @@ export const requestAdapter = serverRequestAdapter({
     serverRequestAndResponseData.headers[lowerCasedKey] = req.headers[lowerCasedKey];
     return serverRequestAndResponseData.headers[lowerCasedKey];
   },
-  params: (_server, serverRequestAndResponseData, key) => {
+  params: (_, __, serverRequestAndResponseData, key) => {
     const { req } = serverRequestAndResponseData as { req: Request; params?: Record<string, any> };
 
     // eslint-disable-next-line ts/no-unnecessary-condition
@@ -236,7 +237,7 @@ export const requestAdapter = serverRequestAdapter({
     serverRequestAndResponseData.params[key] = req.params[key];
     return serverRequestAndResponseData.params[key];
   },
-  query: (_server, serverRequestAndResponseData, key) => {
+  query: (_, __, serverRequestAndResponseData, key) => {
     const { req } = serverRequestAndResponseData as { req: Request; query?: Record<string, any> };
 
     // eslint-disable-next-line ts/no-unnecessary-condition
@@ -247,11 +248,11 @@ export const requestAdapter = serverRequestAdapter({
     serverRequestAndResponseData.query[key] = req.query[key];
     return serverRequestAndResponseData.query[key];
   },
-  method: (_server, serverRequestAndResponseData) => {
+  method: (_, __, serverRequestAndResponseData) => {
     const { req } = serverRequestAndResponseData as { req: Request };
     return req.method;
   },
-  url: (_server, serverRequestAndResponseData) => {
+  url: (_, __, serverRequestAndResponseData) => {
     const { req } = serverRequestAndResponseData as { req: Request };
     return req.url;
   }

@@ -9,10 +9,15 @@ import type { ServerlessAdapter } from '../serverless';
 export type HandlerForServerless = {
   writeFile: (args: {
     pathOfHandlerFile: string[];
-    /** This is the name of your current package as on package.json the import like: `import ${name} from ${projectName}` */
+    /** This is the name of your current package as on package.json the import like:
+     * `import ${name} from ${projectName}`
+     */
     projectName: string;
     adapter: {
-      /** Is it a default export? like `import ${name} from ${projectName}` or not, like: `import { ${name} } from ${projectName}` */
+      /**
+       * Is it a default export? like `import ${name} from ${projectName}` or not,
+       * like: `import { ${name} } from ${projectName}`
+       */
       isDefaultImport: boolean;
       /** This is the name on the import like: `import ${name} from ${projectName}` */
       name: string;
@@ -49,10 +54,11 @@ export function serverlessRouterAdapter<
   TLoad404Function extends ServerlessRouterAdapter['load404']
 >(args: {
   /**
-   * Used for parsing each part of the route, instead of parsing the whole route all at once, the framework itself will call this method for each part of the route.
+   * Used for parsing each part of the route, instead of parsing the whole route all at once, the framework
+   * itself will call this method for each part of the route.
    *
-   * n this example we are parsing the route and following Express's route syntax, like /users/:id, /users/:id/posts, /users/:id/posts/:postId, etc. So each url param will contain
-   * a colon before the name of the param.
+   * n this example we are parsing the route and following Express's route syntax, like /users/:id, /users/:id/posts,
+   * /users/:id/posts/:postId, etc. So each url param will contain a colon before the name of the param.
    *
    * @example
    * ```ts
@@ -70,9 +76,11 @@ export function serverlessRouterAdapter<
    */
   parseRoute: TParseRouteFunction;
   /**
-   * This method is used for loading a 405 handler, this will only be called if no handler is found for the requested method.
+   * This method is used for loading a 405 handler, this will only be called if no handler is found for the requested
+   * method.
    *
-   * IMPORTANT: If you define a route handler OUTSIDE of palmares and we do not find the route, this will still be called, because this is defined by your framework of choice.
+   * IMPORTANT: If you define a route handler OUTSIDE of palmares and we do not find the route, this will still be
+   * called, because this is defined by your framework of choice.
    *
    * @example
    * ```ts
@@ -91,13 +99,15 @@ export function serverlessRouterAdapter<
    * ```
    *
    * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
-   * @param _handler - The handler is a simple callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of
+   * @param _handler - The handler is a simple callback function that receives a single parameter as argument.
+   * Whatever you pass on this parameter can later be retrieved inside of
    * {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods.
    */
   load404: TLoad404Function;
   /**
-   * Use this method if you want to parse all handlers at once. Parse all handlers at once is ofter useful if your framework doesn't support the same methods as us. With this
-   * method you can loop through each handler and parse it or you can listen to all methods and parse them during the request/response lifecycle.
+   * Use this method if you want to parse all handlers at once. Parse all handlers at once is ofter useful if your
+   * framework doesn't support the same methods as us. With this method you can loop through each handler and parse
+   * it or you can listen to all methods and parse them during the request/response lifecycle.
    *
    * Important: if this method is defined, {@link parseHandler()} will be ignored.
    *
@@ -153,10 +163,11 @@ export function serverlessRouterAdapter<
    *
    * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
    * @param _path - The retrieved by calling {@link parseRoute()} method.
-   * @param _methodsAndHandlers - A Map instance where the method is the key and the handler is the value. The handler is a simple
-   * callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of {@link ServerResponseAdapter}
-   * and {@link ServerRequestAdapter} methods. What you return on {@link ServerResponseAdapter.redirect} or {@link ServerResponseAdapter.send} will be
-   * the return value of the handlers callback.
+   * @param _methodsAndHandlers - A Map instance where the method is the key and the handler is the value. The
+   * handler is a simple callback function that receives a single parameter as argument. Whatever you pass on this
+   * parameter can later be retrieved inside of {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods.
+   * What you return on {@link ServerResponseAdapter.redirect} or {@link ServerResponseAdapter.send} will be the return
+   * value of the handlers callback.
    * @param _queryParams - The query params so you can parse it and validate as you wish.
    * @param _404Handler - The 404 handler.
    */
@@ -182,9 +193,11 @@ export function serverlessRouterAdapter<
  */
 export class ServerlessRouterAdapter {
   /**
-   * This method is used for loading a 405 handler, this will only be called if no handler is found for the requested method.
+   * This method is used for loading a 405 handler, this will only be called if no handler is found for the requested
+   * method.
    *
-   * IMPORTANT: If you define a route handler OUTSIDE of palmares and we do not find the route, this will still be called, because this is defined by your framework of choice.
+   * IMPORTANT: If you define a route handler OUTSIDE of palmares and we do not find the route, this will still be
+   * called, because this is defined by your framework of choice.
    *
    * @example
    * ```ts
@@ -203,8 +216,9 @@ export class ServerlessRouterAdapter {
    * ```
    *
    * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
-   * @param _handler - The handler is a simple callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of
-   * {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods.
+   * @param _handler - The handler is a simple callback function that receives a single parameter as argument.
+   * Whatever you pass on this parameter can later be retrieved inside of {@link ServerResponseAdapter} and
+   * {@link ServerRequestAdapter} methods.
    */
   // eslint-disable-next-line ts/require-await
   async load404(
@@ -215,9 +229,11 @@ export class ServerlessRouterAdapter {
   }
 
   /**
-   * This method is used for loading a 500 handler, this handler will be called when an error occurs during the request/response lifecycle.
+   * This method is used for loading a 500 handler, this handler will be called when an error occurs during the
+   * request/response lifecycle.
    *
-   * IMPORTANT: If you define a route handler OUTSIDE of palmares and an error occurs in the handler, this method will not be called.
+   * IMPORTANT: If you define a route handler OUTSIDE of palmares and an error occurs in the handler, this method
+   * will not be called.
    *
    * @example
    * ```ts
@@ -236,8 +252,9 @@ export class ServerlessRouterAdapter {
    * ```
    *
    * @param _server - The {@link ServerAdapter} or {@link ServerlessAdapter} instance.
-   * @param _handler - The handler is a simple callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of
-   * {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods.
+   * @param _handler - The handler is a simple callback function that receives a single parameter as argument. Whatever
+   * you pass on this parameter can later be retrieved inside of {@link ServerResponseAdapter} and
+   * {@link ServerRequestAdapter} methods.
    */
   // eslint-disable-next-line ts/require-await
   async load500(
@@ -248,10 +265,11 @@ export class ServerlessRouterAdapter {
   }
 
   /**
-   * Used for parsing each part of the route, instead of parsing the whole route all at once, the framework itself will call this method for each part of the route.
+   * Used for parsing each part of the route, instead of parsing the whole route all at once, the framework itself will
+   * call this method for each part of the route.
    *
-   * n this example we are parsing the route and following Express's route syntax, like /users/:id, /users/:id/posts, /users/:id/posts/:postId, etc. So each url param will contain
-   * a colon before the name of the param.
+   * n this example we are parsing the route and following Express's route syntax, like /users/:id, /users/:id/posts,
+   * /users/:id/posts/:postId, etc. So each url param will contain a colon before the name of the param.
    *
    * @example
    * ```ts
@@ -276,17 +294,19 @@ export class ServerlessRouterAdapter {
   }
 
   /**
-   * Use this method if you want to parse all handlers at once. Parse all handlers at once is ofter useful if your framework doesn't support the same methods as us. With this
-   * method you can loop through each handler and parse it or you can listen to all methods and parse them during the request/response lifecycle.
+   * Use this method if you want to parse all handlers at once. Parse all handlers at once is ofter useful if your
+   * framework doesn't support the same methods as us. With this method you can loop through each handler and parse
+   * it or you can listen to all methods and parse them during the request/response lifecycle.
    *
    * Important: if this method is defined, {@link parseHandler()} will be ignored.
    *
    * @param _server - The {@link ServerlessAdapter} instance.
    * @param _path - The retrieved by calling {@link parseRoute()} method.
-   * @param _methodsAndHandlers - A Map instance where the method is the key and the handler is the value. The handler is a simple
-   * callback function that receives a single parameter as argument. Whatever you pass on this parameter can later be retrieved inside of {@link ServerResponseAdapter}
-   * and {@link ServerRequestAdapter} methods. What you return on {@link ServerResponseAdapter.redirect} or {@link ServerResponseAdapter.send} will be
-   * the return value of the handler callback.
+   * @param _methodsAndHandlers - A Map instance where the method is the key and the handler is the value. The handler
+   * is a simple callback function that receives a single parameter as argument. Whatever you pass on this parameter can
+   * later be retrieved inside of {@link ServerResponseAdapter} and {@link ServerRequestAdapter} methods. What you
+   * return on {@link ServerResponseAdapter.redirect} or {@link ServerResponseAdapter.send} will be the return value
+   * of the handler callback.
    * @param _queryParams - The query params so you can parse it and validate as you wish.
    * @param _404Handler - The 404 handler.
    */

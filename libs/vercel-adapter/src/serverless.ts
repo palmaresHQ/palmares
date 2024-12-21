@@ -8,17 +8,12 @@ export default serverlessAdapter({
   request: new VercelRequestAdapter(),
   response: new VercelResponseAdapter(),
   routers: new VercelRouterAdapter(),
-  customServerSettings: (args: {
-    rootPath?: string;
-    fileName?: string;
-  }) => {
+  customServerSettings: (args: { rootPath?: string; fileName?: string }) => {
     return args;
   },
-  load: async (_serverName: string, _domains: any[], _settings: any) => {
-
-  },
+  load: async (_serverName: string, _domains: any[], _settings: any) => {},
   // eslint-disable-next-line ts/require-await
   generate: async (...args: any[]) => {
-    console.log('generate', args)
+    console.log('generate', args);
   }
-})
+});

@@ -1,8 +1,13 @@
 /* eslint-disable ts/naming-convention */
-import { describe } from '@palmares/tests';
+import { DrizzleDatabaseAdapter } from '@palmares/drizzle-engine';
 
-import { Company, ProfileType, User } from '../drizzle/models';
+//import { Company, ProfileType, User } from '../drizzle/models';
 
+declare module '@palmares/databases' {
+  interface DatabaseAdapter extends typeof DrizzleDatabaseAdapter {}
+}
+
+/*
 //const test = require('@jest/globals').test;
 describe('drizzle models', ({ test }) => {
   test('Simple query with relation', async ({ expect }) => {
@@ -21,7 +26,7 @@ describe('drizzle models', ({ test }) => {
     //expect(user.length > 0).toBe(true);
     //expect(user[0].company2.name).toBe('test5');
     //expect(user[0].profileType.name).toBe('admin');
-  });
+  });*/
 
   /*
   test('Simple Set', async ({ expect }) => {

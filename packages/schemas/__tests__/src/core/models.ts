@@ -6,7 +6,6 @@ import {
   IntegerField,
   Model,
   ON_DELETE,
-  TranslatableField,
   define
 } from '@palmares/databases';
 
@@ -15,13 +14,7 @@ import type { ModelOptionsType } from '@palmares/databases';
 export const Company = define('Company', {
   fields: {
     id: AutoField.new(),
-    name: CharField.new({ maxLength: 255 }),
-    translatable: TranslatableField.new({
-      // eslint-disable-next-line ts/require-await
-      translate: async () => {
-        return `d.real('translatable')`;
-      }
-    })
+    name: CharField.new({ maxLen: 255 }),
   },
   options: {
     tableName: 'companies'
@@ -38,10 +31,10 @@ export class User extends Model<User>() {
       toField: 'id',
       relatedTo: Company
     }),
-    name: CharField.new({ maxLength: 255, dbIndex: true, allowNull: true }),
-    age: IntegerField.new({ dbIndex: true }),
-    updatedAt: DateField.new({ autoNow: true }),
-    createdAt: DateField.new({ autoNowAdd: true })
+    name: CharField.new({ maxLen: 255 }).dbIndex().allowNull(),
+    age: IntegerField.new().dbIndex(),
+    updatedAt: DateField.new().dbIndex(),
+    createdAt: DateField.new().autoNowAdd()
   };
 
   options: ModelOptionsType<User> = {

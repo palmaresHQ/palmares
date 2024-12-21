@@ -41,12 +41,14 @@ export class ServerResponseAdapter {
    * @param _headers The headers of the response.
    * @param _redirectTo The redirect url.
    *
-   * @returns - A promise that resolves with the data needed for redirection. This data is the data that will be returned from the callback on
-   * {@link ServerRouterAdapter.parseHandler} or {@link ServerRouterAdapter.parseHandlers}.
+   * @returns - A promise that resolves with the data needed for redirection. This data is the data that
+   * will be returned from the callback on the {@link ServerRouterAdapter.parseHandler} or
+   * {@link ServerRouterAdapter.parseHandlers}.
    */
   // eslint-disable-next-line ts/require-await
   async redirect(
-    _server: ServerAdapter | ServerlessAdapter,
+    _serverAdapter: ServerAdapter | ServerlessAdapter,
+    _serverInstance: any,
     _serverRequestAndResponseData: any,
     _status: number,
     _headers: { [key: string]: string } | undefined,
@@ -68,7 +70,8 @@ export class ServerResponseAdapter {
    */
   // eslint-disable-next-line ts/require-await
   async send(
-    _server: ServerAdapter | ServerlessAdapter,
+    _serverAdapter: ServerAdapter | ServerlessAdapter,
+    _serverInstance: any,
     _serverRequestAndResponseData: any,
     _status: number,
     _headers: { [key: string]: string } | undefined,
@@ -79,7 +82,8 @@ export class ServerResponseAdapter {
 
   // eslint-disable-next-line ts/require-await
   async stream(
-    _server: ServerAdapter | ServerlessAdapter,
+    _serverAdapter: ServerAdapter | ServerlessAdapter,
+    _serverInstance: any,
     _serverRequestAndResponseData: any,
     _status: number,
     _headers: { [key: string]: string } | undefined,
@@ -91,7 +95,8 @@ export class ServerResponseAdapter {
 
   // eslint-disable-next-line ts/require-await
   async sendFile(
-    _server: ServerAdapter | ServerlessAdapter,
+    _serverAdapter: ServerAdapter | ServerlessAdapter,
+    _serverInstance: any,
     _serverRequestAndResponseData: any,
     _status: number,
     _headers: { [key: string]: string } | undefined,
