@@ -84,7 +84,16 @@ export function serverAdapter<
    * ```
    */
   close: TCloseFunction;
-}) {
+}): typeof ServerAdapter & {
+  new (serverName: string): ServerAdapter & {
+    request: TServerRequestAdapter;
+    response: TServerResponseAdapter;
+    routers: TServerRouterAdapter;
+    load: TLoadFunction;
+    start: TStartFunction;
+    close: TCloseFunction;
+  };
+} {
   class CustomServerAdapter extends ServerAdapter {
     request = args.request;
     response = args.response;

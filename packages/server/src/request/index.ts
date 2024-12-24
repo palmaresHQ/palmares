@@ -22,7 +22,7 @@ import type { ServerRequestAdapter } from '../adapters/requests';
 import type { ServerlessAdapter } from '../adapters/serverless';
 import type { Response } from '../response';
 import type { BaseRouter } from '../router/routers';
-import type { AllServerSettingsType } from '../types';
+import type { AllServerSettingsType, DefaultRequestDefinitions } from '../types';
 
 export class Request<
   TRoutePath extends string = string,
@@ -55,7 +55,10 @@ export class Request<
     referrer: string;
     redirect: RequestRedirect;
     referrerPolicy: ReferrerPolicy;
-  }
+  },
+  TDefinitions extends {
+    adapter: (ServerAdapter | ServerlessAdapter) & Palmares.PServerAdapter;
+  } = DefaultRequestDefinitions
 > {
   /**
    * All of those private methods are not really private, we use them internally so we do a typescript
@@ -720,7 +723,8 @@ export class Request<
           ? TRequest['referrerPolicy']
           : ReferrerPolicy;
       responses: TRequest['responses'];
-    }
+    },
+    TDefinitions
   > {
     const isInPlace = options?.inPlace !== false;
     const newRequest = isInPlace
@@ -773,7 +777,8 @@ export class Request<
                 ? TRequest['referrerPolicy']
                 : ReferrerPolicy;
             responses: TRequest['responses'];
-          }
+          },
+          TDefinitions
         >();
     if (args?.body) newRequest.__body = Object.freeze({ value: args.body });
     else newRequest.__body = this.__body;
@@ -871,7 +876,7 @@ export class Request<
    *
    * @returns - The underlying server data.
    */
-  serverData<T>(): T {
+  serverData(): Parameters<TDefinitions['adapter']['request']['headers']>[2] {
     return this.__serverRequestAndResponseData;
   }
 
@@ -902,7 +907,7 @@ export class Request<
    * when retrieving the array buffer, see the documentation of the underlying adapter. You can retrieve
    * those options by: 'MyCustomFrameworkRequestAdapter.customToArrayBufferOptions?.()' if it is implemented.
    */
-  async arrayBuffer(options?: any) {
+  async arrayBuffer(options?: Parameters<TDefinitions['adapter']['request']['toArrayBuffer']>[3]) {
     if (this.body instanceof ArrayBuffer) return this.body;
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
       return this.__requestAdapter.toArrayBuffer(
@@ -939,7 +944,9 @@ export class Request<
    * when retrieving the json, see the documentation of the underlying adapter. You can retrieve those
    * options by: 'MyCustomFrameworkRequestAdapter.customToJsonOptions?.()' if it is implemented.
    */
-  async json(options?: any): Promise<TRequest['body'] | undefined> {
+  async json(
+    options?: Parameters<TDefinitions['adapter']['request']['toJson']>[3]
+  ): Promise<TRequest['body'] | undefined> {
     if (typeof this.body === 'object' && this.body !== null) return this.body;
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
       return this.__requestAdapter.toJson(
@@ -978,7 +985,7 @@ export class Request<
    * when retrieving the blob, see the documentation of the underlying adapter. You can retrieve those
    * options by: 'MyCustomFrameworkRequestAdapter.customToBlobOptions?.()' if it is implemented.
    */
-  async blob(options?: any) {
+  async blob(options?: Parameters<TDefinitions['adapter']['request']['toBlob']>[3]) {
     if (this.body instanceof Blob || this.body instanceof File) return this.body;
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
       return this.__requestAdapter.toBlob(
@@ -1023,7 +1030,9 @@ export class Request<
    * when retrieving the form data.
    * You can retrieve those options by: 'MyCustomFrameworkRequestAdapter.customToBlobOptions?.()' if it is implemented.
    */
-  async formData(options?: any): Promise<InstanceType<FormDataLike<TRequest['body']>> | undefined> {
+  async formData(
+    options?: Parameters<TDefinitions['adapter']['request']['toFormData']>[5]
+  ): Promise<InstanceType<FormDataLike<TRequest['body']>> | undefined> {
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
       return this.__requestAdapter.toFormData(
         this.__serverAdapter,
@@ -1064,7 +1073,7 @@ export class Request<
    * when retrieving the text, see the documentation of the underlying adapter. You can retrieve those options by:
    * 'MyCustomFrameworkRequestAdapter.customToTextOptions?.()' if it is implemented.
    */
-  async text(options?: any) {
+  async text(options?: Parameters<TDefinitions['adapter']['request']['toText']>[3]) {
     if (typeof this.body === 'string') return this.body;
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
       return this.__requestAdapter.toText(
@@ -1093,7 +1102,7 @@ export class Request<
    * when retrieving the raw data, see the documentation of the underlying adapter. You can retrieve those
    * options by: 'MyCustomFrameworkRequestAdapter.customToRawOptions?.()' if it is implemented.
    */
-  async raw(options?: any) {
+  async raw(options?: Parameters<TDefinitions['adapter']['request']['toRaw']>[3]) {
     if (this.__serverRequestAndResponseData && this.__requestAdapter && this.__serverAdapter)
       return this.__requestAdapter.toRaw(
         this.__serverAdapter,

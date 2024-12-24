@@ -7,6 +7,11 @@ declare global {
   var $PServerInstances:
     | Map<string, { server: ServerAdapter | ServerlessAdapter; settings: ServerSettingsType; loadedServer: any }>
     | undefined;
+
+  // eslint-disable-next-line ts/no-namespace
+  namespace Palmares {
+    interface PServerAdapter {}
+  }
 }
 
 export function getServerInstances() {
