@@ -2,25 +2,13 @@ import { appServer } from '@palmares/core';
 
 import { ServerAlreadyInitializedError } from './exceptions';
 import { initializeRouters } from './utils';
+import { getServerInstances } from '../config';
 import { DEFAULT_SERVER_PORT } from '../defaults';
 import { serverLogger } from '../logging';
 
 import type { ServerAdapter } from '../adapters';
-import type { ServerlessAdapter } from '../adapters/serverless';
 import type { ServerDomain } from '../domain/types';
-import type { AllServerSettingsType, ServerSettingsType } from '../types';
-
-declare global {
-  // eslint-disable-next-line no-var
-  var $PServerInstances:
-    | Map<string, { server: ServerAdapter | ServerlessAdapter; settings: ServerSettingsType }>
-    | undefined;
-}
-
-function getServerInstances() {
-  if (!globalThis.$PServerInstances) globalThis.$PServerInstances = new Map();
-  return globalThis.$PServerInstances;
-}
+import type { AllServerSettingsType } from '../types';
 
 /**
  * This is the http app server, it is responsible for loading the server and starting it configuring all of
@@ -53,20 +41,24 @@ export const httpAppServer = appServer({
           args.settings.servers[serverName],
           args.domains
         );
-        serverInstances.set(serverName, { server: newServerInstance, settings: serverSettings });
-        await newServerInstance.load(serverName, args.domains, serverSettings);
-        await initializeRouters(args.domains, serverSettings, args.settings, newServerInstance);
+        const loadedServer = await newServerInstance.load(serverName, args.domains, serverSettings);
+        serverInstances.set(serverName, {
+          server: newServerInstance,
+          settings: serverSettings,
+          loadedServer
+        });
+        await initializeRouters(loadedServer, args.domains, serverSettings, args.settings, newServerInstance);
       } else throw new ServerAlreadyInitializedError();
     }
   },
   start: async (configureCleanup) => {
     const promises: Promise<void>[] = [];
     const serverInstances = getServerInstances();
-    for (const [serverName, { server, settings }] of serverInstances.entries()) {
+    for (const [serverName, { server, settings, loadedServer }] of serverInstances.entries()) {
       // eslint-disable-next-line ts/no-unnecessary-condition
       if ((server as ServerAdapter)?.$$type === '$PServerAdapter') {
         promises.push(
-          (server as ServerAdapter).start(serverName, settings.port || DEFAULT_SERVER_PORT, () => {
+          (server as ServerAdapter).start(serverName, loadedServer, settings.port || DEFAULT_SERVER_PORT, () => {
             serverLogger.logMessage('START_SERVER', { port: settings.port || DEFAULT_SERVER_PORT, serverName });
           })
         );
@@ -76,12 +68,13 @@ export const httpAppServer = appServer({
   },
   close: async () => {
     const serverInstances = getServerInstances();
-    for (const [serverName, { server }] of serverInstances.entries()) {
+    for (const [serverName, { server, loadedServer }] of serverInstances.entries()) {
       serverLogger.logMessage('STOP_SERVER', {
         serverName
       });
       // eslint-disable-next-line ts/no-unnecessary-condition
-      if ((server as ServerAdapter)?.$$type === '$PServerAdapter') await (server as ServerAdapter).close();
+      if ((server as ServerAdapter)?.$$type === '$PServerAdapter')
+        await (server as ServerAdapter).close(serverName, loadedServer);
     }
   }
 });

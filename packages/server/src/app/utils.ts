@@ -16,7 +16,7 @@ import { serverLogger } from '../logging';
 import { Request } from '../request';
 import { Response } from '../response';
 import { HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR, isRedirect } from '../response/status';
-import { AsyncGeneratorFunction, FileLike, GeneratorFunction } from '../response/utils';
+import { AsyncGeneratorFunction, GeneratorFunction } from '../response/utils';
 import { path } from '../router';
 
 import type { ServerAdapter } from '../adapters';
@@ -145,6 +145,7 @@ async function appendErrorToResponseAndReturnResponseOrThrow(
 function appendTranslatorToRequest(
   request: Request<any, any>,
   serverAdapter: ServerAdapter | ServerlessAdapter,
+  serverInstance: any,
   serverRequestAdapter: ServerRequestAdapter,
   serverRequestAndResponseData: any,
   queryParams: BaseRouter['__queryParamsAndPath']['params'],
@@ -155,6 +156,7 @@ function appendTranslatorToRequest(
   const requestWithoutPrivateMethods = request as unknown as Omit<
     Request<any, any>,
     | '__requestAdapter'
+    | '__serverInstance'
     | '__serverRequestAndResponseData'
     | '__queryParams'
     | '__urlParams'
@@ -163,6 +165,7 @@ function appendTranslatorToRequest(
     | '__validation'
   > & {
     __serverAdapter: ServerAdapter | ServerlessAdapter;
+    __serverInstance: any;
     __requestAdapter: ServerRequestAdapter;
     __serverRequestAndResponseData: any;
     __queryParams: BaseRouter['__queryParamsAndPath']['params'];
@@ -180,12 +183,14 @@ function appendTranslatorToRequest(
   requestWithoutPrivateMethods.__requestAdapter = serverRequestAdapter;
   requestWithoutPrivateMethods.__queryParams = queryParams;
   requestWithoutPrivateMethods.__urlParams = urlParams;
+  requestWithoutPrivateMethods.__serverInstance = serverInstance;
   return request;
 }
 
 function appendTranslatorToResponse(
   response: Response<any, any>,
   serverAdapter: ServerAdapter | ServerlessAdapter,
+  customServerInstance: any,
   serverResponseAdapter: ServerResponseAdapter,
   serverRequestAndResponseData: any,
   options: RouterOptionsType | undefined
@@ -196,6 +201,7 @@ function appendTranslatorToResponse(
   > & {
     responses: Record<string, (...args: any[]) => Response<any, any>>;
     __serverAdapter: ServerAdapter | ServerlessAdapter;
+    __serverInstance: any;
     __responseAdapter: ServerResponseAdapter;
     __serverRequestAndResponseData: any;
   };
@@ -204,6 +210,7 @@ function appendTranslatorToResponse(
       value: options.responses as any
     });
   responseWithoutPrivateMethods.__serverAdapter = serverAdapter;
+  responseWithoutPrivateMethods.__serverInstance = customServerInstance;
   responseWithoutPrivateMethods.__serverRequestAndResponseData = serverRequestAndResponseData;
   responseWithoutPrivateMethods.__responseAdapter = serverResponseAdapter;
   return response;
@@ -221,6 +228,7 @@ async function translateResponseToServerResponse(
   response: Response,
   method: MethodTypes,
   server: ServerAdapter | ServerlessAdapter,
+  serverInstance: any,
   serverRequestAndResponseData: any
 ) {
   // eslint-disable-next-line ts/no-unnecessary-condition
@@ -241,6 +249,7 @@ async function translateResponseToServerResponse(
   if (isRedirectResponse)
     return server.response.redirect(
       server,
+      serverInstance,
       serverRequestAndResponseData,
       responseStatus,
       response.headers,
@@ -249,6 +258,7 @@ async function translateResponseToServerResponse(
   if (isStreamResponse)
     return server.response.stream(
       server,
+      serverInstance,
       serverRequestAndResponseData,
       responseStatus,
       response.headers as any,
@@ -258,6 +268,7 @@ async function translateResponseToServerResponse(
   if (isFileResponse)
     return server.response.sendFile(
       server,
+      serverInstance,
       serverRequestAndResponseData,
       responseStatus,
       response.headers as any,
@@ -265,6 +276,7 @@ async function translateResponseToServerResponse(
     );
   return server.response.send(
     server,
+    serverInstance,
     serverRequestAndResponseData,
     responseStatus,
     response.headers as any,
@@ -282,10 +294,11 @@ async function translateResponseToServerResponse(
  *
  * @param serverAdapter - The server adapter that was selected. We will call the {@link ServerRouterAdapter.parseRoute}
  * method on it.
+ * @param customServerAdapter - The custom server instance returned from {@link ServerAdapter.load}.
  *
  * @returns - A function that can be used to translate the path.
  */
-function translatePathFactory(serverAdapter: ServerAdapter | ServerlessAdapter) {
+function translatePathFactory(serverAdapter: ServerAdapter | ServerlessAdapter, customServerInstance: any) {
   const translatedPathsByRawPath = new Map<string, string>();
 
   return (
@@ -304,7 +317,21 @@ function translatePathFactory(serverAdapter: ServerAdapter | ServerlessAdapter) 
     if (fullPath === '') {
       for (const path of partsOfPath) {
         const urlParamType = path.isUrlParam ? urlParams.get(path.part) : undefined;
-        const translatedPartOfPath = serverAdapter.routers.parseRoute(serverAdapter as any, path.part, urlParamType);
+        let translatedPartOfPath: string | undefined = undefined;
+        // eslint-disable-next-line ts/no-unnecessary-condition
+        if (serverAdapter?.$$type === '$PServerlessAdapter')
+          translatedPartOfPath = (serverAdapter as ServerlessAdapter).routers.parseRoute(
+            serverAdapter as any,
+            path.part,
+            urlParamType
+          );
+        else
+          translatedPartOfPath = (serverAdapter as ServerAdapter).routers.parseRoute(
+            serverAdapter as any,
+            customServerInstance,
+            path.part,
+            urlParamType
+          );
         if (translatedPartOfPath === undefined) continue;
         fullPath += '/' + translatedPartOfPath;
       }
@@ -336,6 +363,7 @@ function wrapHandlerAndMiddlewares(
   handler: HandlerType<string, any[]>,
   options: RouterOptionsType | undefined,
   server: ServerAdapter | ServerlessAdapter,
+  customServerInstance: any,
   handler500?: AllServerSettingsType['servers'][string]['handler500'],
   validation?: AllServerSettingsType['servers'][string]['validation']
 ) {
@@ -344,6 +372,7 @@ function wrapHandlerAndMiddlewares(
     let request = appendTranslatorToRequest(
       new Request(),
       server,
+      customServerInstance,
       server.request,
       serverRequestAndResponseData,
       queryParams,
@@ -368,6 +397,7 @@ function wrapHandlerAndMiddlewares(
           response = appendTranslatorToResponse(
             responseOrRequest as Response<any, any>,
             server,
+            customServerInstance,
             server.response,
             serverRequestAndResponseData,
             options
@@ -376,6 +406,7 @@ function wrapHandlerAndMiddlewares(
           request = appendTranslatorToRequest(
             responseOrRequest as Request<any, any>,
             server,
+            customServerInstance,
             server.request,
             serverRequestAndResponseData,
             queryParams,
@@ -390,6 +421,7 @@ function wrapHandlerAndMiddlewares(
         const handlerResponse = appendTranslatorToResponse(
           await Promise.resolve(handler(request)),
           server,
+          customServerInstance,
           server.response,
           serverRequestAndResponseData,
           options
@@ -411,6 +443,7 @@ function wrapHandlerAndMiddlewares(
       errorResponse = appendTranslatorToResponse(
         errorResponse,
         server,
+        customServerInstance,
         server.response,
         serverRequestAndResponseData,
         options
@@ -422,6 +455,7 @@ function wrapHandlerAndMiddlewares(
       response = appendTranslatorToResponse(
         errorResponse,
         server,
+        customServerInstance,
         server.response,
         serverRequestAndResponseData,
         options
@@ -437,6 +471,7 @@ function wrapHandlerAndMiddlewares(
             response = appendTranslatorToResponse(
               modifiedResponse,
               server,
+              customServerInstance,
               server.response,
               serverRequestAndResponseData,
               options
@@ -448,7 +483,13 @@ function wrapHandlerAndMiddlewares(
           url: request.url,
           timePassed: new Date().getTime() - startTime
         });
-        return translateResponseToServerResponse(response, method, server, serverRequestAndResponseData);
+        return translateResponseToServerResponse(
+          response,
+          method,
+          server,
+          customServerInstance,
+          serverRequestAndResponseData
+        );
       }
     } catch (error) {
       if (wasErrorAlreadyHandledInRequestLifecycle === false) {
@@ -463,6 +504,7 @@ function wrapHandlerAndMiddlewares(
         errorResponse = appendTranslatorToResponse(
           errorResponse,
           server,
+          customServerInstance,
           server.response,
           serverRequestAndResponseData,
           options
@@ -475,6 +517,7 @@ function wrapHandlerAndMiddlewares(
         response = appendTranslatorToResponse(
           errorResponse,
           server,
+          customServerInstance,
           server.response,
           serverRequestAndResponseData,
           options
@@ -485,7 +528,14 @@ function wrapHandlerAndMiddlewares(
         url: request.url,
         timePassed: new Date().getTime() - startTime
       });
-      if (response) return translateResponseToServerResponse(response, method, server, serverRequestAndResponseData);
+      if (response)
+        return translateResponseToServerResponse(
+          response,
+          method,
+          server,
+          customServerInstance,
+          serverRequestAndResponseData
+        );
       else throw error;
     }
   };
@@ -644,8 +694,8 @@ function doTheRoutingForServerlessOnly(
 
   // We parse the url params ourselves if that doesn't exist.
   const existingRequestParams = serverAdapter.request.params;
-  serverAdapter.request.params = (_server, _serverRequestAndResponseData, key) => {
-    const result = existingRequestParams?.(_server, _serverRequestAndResponseData, key);
+  serverAdapter.request.params = (_server, _customServerInstance, _serverRequestAndResponseData, key) => {
+    const result = existingRequestParams?.(_server, _customServerInstance, _serverRequestAndResponseData, key);
     if (result === '' || result === undefined) return groups?.groups?.[key] || '';
     return result;
   };
@@ -661,6 +711,7 @@ export async function* getAllRouters(
   settings: AllServerSettingsType['servers'][string],
   allSettings: AllServerSettingsType,
   serverAdapter: ServerAdapter | ServerlessAdapter,
+  customServerInstance: any,
   options?: {
     serverless?: {
       generate: boolean;
@@ -682,7 +733,7 @@ export async function* getAllRouters(
     // eslint-disable-next-line ts/no-unnecessary-condition
     (serverAdapter as ServerlessAdapter)?.$$type === '$PServerlessAdapter' && options?.serverless?.generate === true;
 
-  const translatePath = translatePathFactory(serverAdapter);
+  const translatePath = translatePathFactory(serverAdapter, customServerInstance);
   const existsRootMiddlewares = Array.isArray(settings.middlewares) && settings.middlewares.length > 0;
   const rootRouterCompletePaths = await getRootRouterCompletePaths(domains, settings, settings.debug === true);
 
@@ -767,6 +818,7 @@ export async function* getAllRouters(
           handler.handler,
           handler.options,
           serverAdapter,
+          customServerInstance,
           settings.handler500,
           settings.validation
         );
@@ -838,6 +890,7 @@ export async function* getAllHandlers(
 
 export function wrap404HandlerAndRootMiddlewares(
   serverAdapter: ServerAdapter | ServerlessAdapter,
+  customServerInstance: any,
   middlewares: Middleware[],
   handler404: AllServerSettingsType['servers'][string]['handler404'],
   handler500: AllServerSettingsType['servers'][string]['handler500']
@@ -847,6 +900,7 @@ export function wrap404HandlerAndRootMiddlewares(
     let response = appendTranslatorToResponse(
       new Response(undefined, { status: HTTP_404_NOT_FOUND, statusText: DEFAULT_NOT_FOUND_STATUS_TEXT_MESSAGE }),
       serverAdapter,
+      customServerInstance,
       serverAdapter.response,
       serverRequestAndResponseData,
       undefined
@@ -867,6 +921,7 @@ export function wrap404HandlerAndRootMiddlewares(
             response = appendTranslatorToResponse(
               modifiedResponse,
               serverAdapter,
+              customServerInstance,
               serverAdapter.response,
               serverRequestAndResponseData,
               undefined
@@ -874,13 +929,25 @@ export function wrap404HandlerAndRootMiddlewares(
           else throw new ResponseNotReturnedFromResponseOnMiddlewareError();
         }
 
-        return translateResponseToServerResponse(response, 'get', serverAdapter, serverRequestAndResponseData);
+        return translateResponseToServerResponse(
+          response,
+          'get',
+          serverAdapter,
+          customServerInstance,
+          serverRequestAndResponseData
+        );
       }
     } catch (error) {
       if (handler500) response = await handler500(response);
       // eslint-disable-next-line ts/no-unnecessary-condition
       if (response)
-        return translateResponseToServerResponse(response, 'get', serverAdapter, serverRequestAndResponseData);
+        return translateResponseToServerResponse(
+          response,
+          'get',
+          serverAdapter,
+          customServerInstance,
+          serverRequestAndResponseData
+        );
       else throw error;
     }
   }
@@ -892,6 +959,7 @@ export function wrap404HandlerAndRootMiddlewares(
  * the domains and initialize them on the server.
  */
 export async function initializeRouters(
+  customServerInstance: any,
   domains: ServerDomain[],
   settings: AllServerSettingsType['servers'][string],
   allSettings: AllServerSettingsType,
@@ -918,12 +986,13 @@ export async function initializeRouters(
   const serverRequestAndResponseData = options?.serverless?.use?.requestAndResponseData;
 
   // eslint-disable-next-line ts/require-await
-  let wrapped404Handler: Parameters<NonNullable<ServerAdapter['routers']['parseHandlers']>>['4'] = async () =>
+  let wrapped404Handler: Parameters<NonNullable<ServerAdapter['routers']['parseHandlers']>>['5'] = async () =>
     undefined;
 
   if (!useServerless) {
     wrapped404Handler = wrap404HandlerAndRootMiddlewares(
       serverAdapter,
+      customServerInstance,
       settings.middlewares || [],
       settings.handler404,
       settings.handler500
@@ -950,8 +1019,9 @@ export async function initializeRouters(
           serverAdapter = serverAdapter as ServerAdapter;
           serverAdapter.routers.parseHandlers?.(
             serverAdapter,
+            customServerInstance,
             router.translatedPath,
-            router.handlers as Parameters<NonNullable<ServerAdapter['routers']['parseHandlers']>>['2'],
+            router.handlers as Parameters<NonNullable<ServerAdapter['routers']['parseHandlers']>>['3'],
             router.queryParams,
             wrapped404Handler
           );
@@ -973,13 +1043,14 @@ export async function initializeRouters(
     // eslint-disable-next-line ts/no-unnecessary-condition
     (serverAdapter as ServerAdapter).routers.parseHandler !== undefined
   ) {
-    const translatePath = translatePathFactory(serverAdapter);
+    const translatePath = translatePathFactory(serverAdapter, customServerInstance);
     const handlers = getAllHandlers(domains, settings, serverAdapter);
 
     for await (const handler of handlers) {
       const translatedPath = translatePath(handler.path, handler.partsOfPath, handler.urlParams);
       (serverAdapter as ServerAdapter).routers.parseHandler(
         serverAdapter as ServerAdapter,
+        customServerInstance,
         translatedPath,
         handler.method as MethodTypes | 'all',
         handler.handler,
@@ -990,5 +1061,5 @@ export async function initializeRouters(
   } else throw new HandlerOrHandlersShouldBeDefinedOnRouterAdapterError();
 
   if (useServerless) return wrapped404Handler(serverRequestAndResponseData);
-  if (settings.handler404) serverAdapter.routers.load404(serverAdapter as any, wrapped404Handler);
+  if (settings.handler404) serverAdapter.routers.load404(serverAdapter as any, customServerInstance, wrapped404Handler);
 }

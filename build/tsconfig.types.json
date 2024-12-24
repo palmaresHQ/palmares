@@ -5,7 +5,7 @@
     "emitDeclarationOnly": true,
     "allowJs": true,
     "incremental": true,
-    "outDir": "./dist/cjs",
+    "outDir": "./dist/src",
     "preserveSymlinks": true,
     "target": "ES2020",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
     "lib": ["ESNext"],                                        /* Specify a set of bundled library declaration files that describe the target runtime environment. */

@@ -4,37 +4,45 @@ import { Company, User } from './models';
 
 describe('Model tests', ({ test }) => {
   beforeAll(async () => {
-    await Company.default.set({
-      name: 'Targaryen',
-      usersOfCompany: [{
-        name: 'Rhaenyra Targaryen',
-        age: 25
-      }, {
-        name: 'Aegon Targaryen',
-        age: 21
-      }]
+    await Company.default.set((qs) => 
+      qs
+        .join(User, 'usersOfCompany', (qs) => 
+          qs.data(
+              {
+              name: 'Rhaenyra Targaryen',
+              age: 25,
+              updatedAt: new Date()
+            }, {
+              name: 'Aegon Targaryen',
+              age: 21,
+              updatedAt: new Date()
+            }
+          )
+        )
+      .data({
+        name: 'Targaryen'
+      })
+    )
+    
+    await Company.default.set((qs) => qs.join(User, 'usersOfCompany', (qs) => 
+      qs.data({
+      name: 'Arya Stark',
+      age: 22,
+      updatedAt: new Date()
+
     }, {
-      includes: [{
-        model: User
-      }]
-    })
-    await Company.default.set({
-      name: 'Stark',
-      usersOfCompany: [{
-        name: 'Arya Stark',
-        age: 22
-      }, {
-        name: 'Ned Stark',
-        age: 46
-      }, {
-        name: 'Sansa Stark',
-        age: 26
-      }]
+      name: 'Ned Stark',
+      age: 46,
+      updatedAt: new Date()
+
     }, {
-      includes: [{
-        model: User
-      }]
-    })
+      name: 'Sansa Stark',
+      age: 26,
+      updatedAt: new Date()
+
+    })).data({
+      name: 'Stark'
+    }))
   });
 
 
@@ -48,13 +56,12 @@ describe('Model tests', ({ test }) => {
     const modelWithAFewFieldsShown = p.modelSchema(User, {
       show: ['name', 'age', 'companyId']
     });
-    const data = await User.default.get({
-      search: {
+    const data = await User.default.get((qs) => qs.where({
         name: {
           like: '%Stark'
         }
-      }
-    })
+      })
+    )
 
     const [
       dataWithAllFields,
@@ -112,13 +119,13 @@ describe('Model tests', ({ test }) => {
       many: true,
       show: ['name', 'age', 'companyId']
     });
-    const data = await User.default.get({
-      search: {
+    const data = await User.default.get((qs) => 
+      qs.where({
         name: {
           like: '%Stark'
         }
-      }
-    });
+      })
+    );
 
     const [
       dataWithAllFields,
@@ -170,9 +177,7 @@ describe('Model tests', ({ test }) => {
   });
 
   test('auto join', async ({ expect }) => {
-    const companyModel = p.modelSchema(Company, {
-      omit: ['translatable'],
-    }).optional({ outputOnly: true });
+    const companyModel = p.modelSchema(Company).optional({ outputOnly: true });
     const userModel = p.modelSchema(User, {
       many: true,
       omit: []
@@ -206,18 +211,19 @@ describe('Model tests', ({ test }) => {
       omit: [],
     });
 
-    const userData = await User.default.get({
-      search: {
+    const userData = await User.default.get((qs) => 
+      qs.where({
         name: {
           like: '%Stark'
         }
-      }
-    });
-    const companyData = await Company.default.get({
-      search: {
-        name: 'Targaryen'
-      }
-    });
+      })
+    );
+    const companyData = await Company.default.get(
+      (qs) => 
+        qs.where({
+          name: 'Targaryen'
+        })
+    );
 
     const [
       arrayModelDirectlyData,
@@ -242,19 +248,17 @@ describe('Model tests', ({ test }) => {
   });
 
   afterAll(async () => {
-    await User.default.remove({
-      search: {
-        name: {
-          in: ['Arya Stark', 'Ned Stark',  'Sansa Stark', 'Sansa Start', 'Rhaenyra Targaryen', 'Aegon Targaryen']
-        }
+    await User.default.remove((qs) => qs.where({
+      name: {
+        in: ['Arya Stark', 'Ned Stark',  'Sansa Stark', 'Sansa Start', 'Rhaenyra Targaryen', 'Aegon Targaryen']
       }
-    });
-    await Company.default.remove({
-      search: {
+    }));
+    await Company.default.remove((qs) => 
+      qs.where({
         name: {
           in: ['Stark', 'Targaryen']
         }
-      }
-    });
+      })
+    );
   });
 });

@@ -14,6 +14,7 @@ import {
 } from '../validators/string';
 
 import type { DefinitionsOfSchemaType } from './types';
+import type { SchemaAdapter } from '../adapter';
 
 export class StringSchema<
   TType extends {
@@ -29,7 +30,7 @@ export class StringSchema<
     representation: string;
     validate: string;
   },
-  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
+  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>
 > extends Schema<TType, TDefinitions> {
   protected fieldType = 'string';
 
@@ -162,25 +163,24 @@ export class StringSchema<
    * @param options - Options for the refinement.
    * @param options.isAsync - Whether the callback is async or not. Defaults to true.
    */
-  refine(
-    refinementCallback: (
-      value: TType['input']
-    ) =>
-      | Promise<void | undefined | { code: string; message: string }>
-      | void
-      | undefined
-      | { code: string; message: string }
-  ) {
-    return super.refine(refinementCallback) as unknown as StringSchema<
-      {
-        input: TType['input'];
-        validate: TType['validate'];
-        internal: TType['internal'];
-        output: TType['output'];
-        representation: TType['representation'];
-      },
-      TDefinitions
-    >;
+  refine<
+    TRefinementCallback extends (args: {
+      value: TType['input'];
+      context: TDefinitions['context'];
+    }) => Promise<void | undefined | { code: string; message: string }>
+  >(
+    refinementCallback: TRefinementCallback
+  ): StringSchema<
+    {
+      input: TType['input'];
+      validate: TType['validate'];
+      internal: TType['internal'];
+      output: TType['output'];
+      representation: TType['representation'];
+    },
+    TDefinitions
+  > {
+    return super.refine(refinementCallback) as unknown as any;
   }
 
   /**
@@ -410,24 +410,26 @@ export class StringSchema<
    *
    * @returns The schema.
    */
-  onSave(
-    callback: <TContext = any>(
-      value: TType['internal'],
-      context: TContext
-    ) => Promise<TType['output']> | TType['output']
-  ) {
-    return super.onSave(callback) as unknown as StringSchema<
-      {
-        input: TType['input'];
-        validate: TType['validate'];
-        internal: TType['internal'];
-        output: TType['output'];
-        representation: TType['representation'];
-      },
-      TDefinitions & {
-        hasSave: true;
-      }
-    >;
+  onSave<
+    TSave extends
+      | ((value: TType['internal']) => (context: any) => Promise<TType['output']>)
+      | ((value: TType['internal']) => Promise<TType['output']>)
+  >(
+    callback: TSave
+  ): StringSchema<
+    {
+      input: TType['input'];
+      validate: TType['validate'];
+      internal: TType['internal'];
+      output: TType['output'];
+      representation: TType['representation'];
+    },
+    Omit<TDefinitions, 'hasSave' | 'context'> & {
+      hasSave: true;
+      context: ReturnType<TSave> extends (context: any) => any ? Parameters<ReturnType<TSave>>[0] : any;
+    }
+  > {
+    return super.onSave(callback) as unknown as any;
   }
 
   /**
@@ -619,17 +621,19 @@ export class StringSchema<
    *
    * @returns The schema with a new return type.
    */
-  toValidate<TValidate>(toValidateCallback: (value: TType['input']) => Promise<TValidate> | TValidate) {
-    return super.toValidate(toValidateCallback) as unknown as StringSchema<
-      {
-        input: TType['input'];
-        validate: TValidate;
-        internal: TType['internal'];
-        output: TType['output'];
-        representation: TType['representation'];
-      },
-      TDefinitions
-    >;
+  toValidate<TValidate>(
+    toValidateCallback: (value: TType['input'], context: TDefinitions['context']) => Promise<TValidate> | TValidate
+  ): StringSchema<
+    {
+      input: TType['input'];
+      validate: TValidate;
+      internal: TType['internal'];
+      output: TType['output'];
+      representation: TType['representation'];
+    },
+    TDefinitions
+  > {
+    return super.toValidate<TValidate>(toValidateCallback) as unknown as any;
   }
 
   /**
@@ -922,7 +926,9 @@ export class StringSchema<
     return this;
   }
 
-  static new<TDefinitions extends DefinitionsOfSchemaType>() {
+  static new<
+    TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>
+  >() {
     const returnValue = new StringSchema<
       {
         input: string;

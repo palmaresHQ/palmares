@@ -5,6 +5,7 @@ import { booleanValidation } from '../validators/boolean';
 import { is, nullable, optional } from '../validators/schema';
 
 import type { DefinitionsOfSchemaType } from './types';
+import type { SchemaAdapter } from '../adapter';
 
 export class BooleanSchema<
   TType extends {
@@ -20,7 +21,7 @@ export class BooleanSchema<
     representation: boolean;
     validate: boolean;
   },
-  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
+  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>
 > extends Schema<TType, TDefinitions> {
   protected fieldType = 'boolean';
 
@@ -116,25 +117,24 @@ export class BooleanSchema<
    *
    * @returns The schema.
    */
-  refine(
-    refinementCallback: (
-      value: TType['input']
-    ) =>
-      | Promise<void | undefined | { code: string; message: string }>
-      | void
-      | undefined
-      | { code: string; message: string }
-  ) {
-    return super.refine(refinementCallback) as unknown as BooleanSchema<
-      {
-        input: TType['input'];
-        validate: TType['validate'];
-        internal: TType['internal'];
-        output: TType['output'];
-        representation: TType['representation'];
-      },
-      TDefinitions
-    >;
+  refine<
+    TRefinementCallback extends (args: {
+      value: TType['input'];
+      context: TDefinitions['context'];
+    }) => Promise<void | undefined | { code: string; message: string }>
+  >(
+    refinementCallback: TRefinementCallback
+  ): BooleanSchema<
+    {
+      input: TType['input'];
+      validate: TType['validate'];
+      internal: TType['internal'];
+      output: TType['output'];
+      representation: TType['representation'];
+    },
+    TDefinitions
+  > {
+    return super.refine(refinementCallback) as unknown as any;
   }
 
   /**
@@ -365,24 +365,26 @@ export class BooleanSchema<
    *
    * @returns The schema.
    */
-  onSave(
-    callback: <TContext = any>(
-      value: TType['internal'],
-      context: TContext
-    ) => Promise<TType['output']> | TType['output']
-  ) {
-    return super.onSave(callback) as unknown as BooleanSchema<
-      {
-        input: TType['input'];
-        validate: TType['validate'];
-        internal: TType['internal'];
-        output: TType['output'];
-        representation: TType['representation'];
-      },
-      TDefinitions & {
-        hasSave: true;
-      }
-    >;
+  onSave<
+    TSave extends
+      | ((value: TType['internal']) => (context: any) => Promise<TType['output']>)
+      | ((value: TType['internal']) => Promise<TType['output']>)
+  >(
+    callback: TSave
+  ): BooleanSchema<
+    {
+      input: TType['input'];
+      validate: TType['validate'];
+      internal: TType['internal'];
+      output: TType['output'];
+      representation: TType['representation'];
+    },
+    Omit<TDefinitions, 'hasSave' | 'context'> & {
+      hasSave: true;
+      context: ReturnType<TSave> extends (context: any) => any ? Parameters<ReturnType<TSave>>[0] : any;
+    }
+  > {
+    return super.onSave(callback) as unknown as any;
   }
 
   /**
@@ -573,7 +575,9 @@ export class BooleanSchema<
    *
    * @returns The schema with a new return type.
    */
-  toValidate<TValidate>(toValidateCallback: (value: TType['input']) => Promise<TValidate> | TValidate) {
+  toValidate<TValidate>(
+    toValidateCallback: (value: TType['input'], context: TDefinitions['context']) => Promise<TValidate> | TValidate
+  ) {
     return super.toValidate(toValidateCallback) as unknown as BooleanSchema<
       {
         input: TType['input'];
@@ -773,7 +777,9 @@ export class BooleanSchema<
     >;
   }
 
-  static new<TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType>() {
+  static new<
+    TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>
+  >() {
     const returnValue = new BooleanSchema<
       {
         input: boolean;
@@ -789,4 +795,6 @@ export class BooleanSchema<
   }
 }
 
-export const boolean = <TDefinitions extends DefinitionsOfSchemaType>() => BooleanSchema.new<TDefinitions>();
+export const boolean = <
+  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>
+>() => BooleanSchema.new<TDefinitions>();

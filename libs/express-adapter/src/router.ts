@@ -2,7 +2,7 @@ import { serverRouterAdapter } from '@palmares/server';
 
 import { servers } from './server';
 
-import type { Request, Response } from 'express';
+import type { Express, Request, Response } from 'express';
 
 /**
  * This will automatically initialize all the routes of the server on the express server.
@@ -14,54 +14,50 @@ export const routerAdapter = serverRouterAdapter({
    *
    * We can use this data to send a response, parse the request and do pretty much anything.
    */
-  parseHandlers(server, path, handlers, _, handler404) {
-    const initializedServer = servers.get(server.serverName)?.server;
+  parseHandlers(_, initializedServer: Express, path, handlers, __, handler404) {
+    const optionsHandler = handlers.get('options')?.handler;
+    const headHandler = handlers.get('head')?.handler;
+    const deleteHandler = handlers.get('delete')?.handler;
+    const getHandler = handlers.get('get')?.handler;
+    const postHandler = handlers.get('post')?.handler;
+    const putHandler = handlers.get('put')?.handler;
+    const patchHandler = handlers.get('patch')?.handler;
+    const allHandler = handlers.get('all')?.handler;
 
-    if (initializedServer) {
-      const optionsHandler = handlers.get('options')?.handler;
-      const headHandler = handlers.get('head')?.handler;
-      const deleteHandler = handlers.get('delete')?.handler;
-      const getHandler = handlers.get('get')?.handler;
-      const postHandler = handlers.get('post')?.handler;
-      const putHandler = handlers.get('put')?.handler;
-      const patchHandler = handlers.get('patch')?.handler;
-      const allHandler = handlers.get('all')?.handler;
-
-      // This will initialize the server routes.
-      initializedServer.all(path, (req: Request, res: Response) => {
-        const serverRequestAndResponseData = {
-          req,
-          res
-        };
-        if (optionsHandler && req.method === 'OPTIONS') {
-          optionsHandler(serverRequestAndResponseData);
-          return;
-        } else if (headHandler && req.method === 'HEAD') {
-          headHandler(serverRequestAndResponseData);
-          return;
-        } else if (deleteHandler && req.method === 'DELETE') {
-          deleteHandler(serverRequestAndResponseData);
-          return;
-        } else if (getHandler && req.method === 'GET') {
-          getHandler(serverRequestAndResponseData);
-          return;
-        } else if (postHandler && req.method === 'POST') {
-          postHandler(serverRequestAndResponseData);
-          return;
-        } else if (putHandler && req.method === 'PUT') {
-          putHandler(serverRequestAndResponseData);
-          return;
-        } else if (patchHandler && req.method === 'PATCH') {
-          patchHandler(serverRequestAndResponseData);
-          return;
-        } else if (allHandler) {
-          allHandler(serverRequestAndResponseData);
-          return;
-        } else handler404(serverRequestAndResponseData);
-      });
-    }
+    // This will initialize the server routes.
+    initializedServer.all(path, (req: Request, res: Response) => {
+      const serverRequestAndResponseData = {
+        req,
+        res
+      };
+      if (optionsHandler && req.method === 'OPTIONS') {
+        optionsHandler(serverRequestAndResponseData);
+        return;
+      } else if (headHandler && req.method === 'HEAD') {
+        headHandler(serverRequestAndResponseData);
+        return;
+      } else if (deleteHandler && req.method === 'DELETE') {
+        deleteHandler(serverRequestAndResponseData);
+        return;
+      } else if (getHandler && req.method === 'GET') {
+        getHandler(serverRequestAndResponseData);
+        return;
+      } else if (postHandler && req.method === 'POST') {
+        postHandler(serverRequestAndResponseData);
+        return;
+      } else if (putHandler && req.method === 'PUT') {
+        putHandler(serverRequestAndResponseData);
+        return;
+      } else if (patchHandler && req.method === 'PATCH') {
+        patchHandler(serverRequestAndResponseData);
+        return;
+      } else if (allHandler) {
+        allHandler(serverRequestAndResponseData);
+        return;
+      } else handler404(serverRequestAndResponseData);
+    });
   },
-  parseRoute(_, partOfPath, urlParamType) {
+  parseRoute(_, __, partOfPath, urlParamType) {
     if (urlParamType) return `:${partOfPath}`;
     else return partOfPath;
   },

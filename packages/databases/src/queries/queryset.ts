@@ -1,4 +1,3 @@
-import { RelationNameIsNotPartOfModelException } from './exceptions';
 import { parseSearchField } from './search';
 import { databaseLogger } from '../logging';
 import { retrieveInputAndOutputParsersFromFieldAndCache } from '../models/utils';

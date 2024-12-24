@@ -35,3 +35,10 @@ export class SchemaAdapter {
     throw new SchemaAdapterNotImplementedError({ className: 'SchemaAdapter', functionName: 'formatError' });
   }
 }
+
+declare global {
+  // eslint-disable-next-line ts/no-namespace
+  namespace Palmares {
+    interface PSchemaAdapter {}
+  }
+}

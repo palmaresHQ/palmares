@@ -49,6 +49,10 @@ export type ServerSettingsType<TCustomServerSettings = unknown> = {
   handler500?: Required<Middleware>['response'];
 };
 
+export type DefaultRequestDefinitions = {
+  adapter: (ServerAdapter | ServerlessAdapter) & Palmares.PServerAdapter;
+};
+
 export type ServersSettingsType<TCustomServerSettings = unknown> = {
   servers: Record<string, ServerSettingsType<TCustomServerSettings>>;
   /**

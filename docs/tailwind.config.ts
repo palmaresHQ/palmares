@@ -2,10 +2,7 @@ import type { Config } from 'tailwindcss';
 
 const config: Config = {
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/hooks/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}'
   ],
   theme: {
     colors: {
@@ -34,21 +31,15 @@ const config: Config = {
         950: '#09090b',
       },
       'tertiary': {
-        200: '#d9f99d',
-        300: '#bef264',
-        400: '#a3e635',
-        500: '#84cc16',
-        600: '#65a30d',
-        700: '#4d7c0f',
-        800: '#3f6212',
-        900: '#365314',
-        950: '#1a2e05',
-      },
-    },
-    extend: {
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+        200: '#fff6ee',
+        300: '#ffecde',
+        400: '#ffe3ce',
+        500: '#ffdabd',
+        600: '#ffd1ad',
+        700: '#fdc79d',
+        800: '#fcbe8e',
+        900: '#f9b57e',
+        950: '#f7ac6e',
       },
     },
   },

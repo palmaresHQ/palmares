@@ -60,6 +60,7 @@ export class Response<
    */
   protected $$type = '$PResponse';
   private __serverRequestAndResponseData: any = undefined;
+  private __serverInstance: any = undefined;
   private __error: Error | undefined = undefined;
 
   readonly url: string = '';

@@ -23,7 +23,7 @@
     "test": "tsx ./src/index.ts",
     "clear": "rimraf ./dist",
     "build:types": "tsc --project tsconfig.types.json",
-    "build:cjs:esm": "tsup ./src --out-dir ./dist/src --format cjs,esm --silent --no-splitting --no-splitting",
+    "build:cjs:esm": "tsup ./src --out-dir ./dist/src --format cjs,esm --silent --no-splitting",
     "build": "pnpm run clear && pnpm run build:cjs:esm && pnpm run build:types",
     "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
     "build:cjs:esm:watch": "tsup ./src --out-dir ./dist/src --format cjs,esm --watch --silent --no-splitting",
