@@ -781,7 +781,7 @@ export async function* getAllRouters(
                 path,
                 pathOfHandler
               ),
-              options: handler.options?.customRouterOptions
+              options: handler.options?.customOptions
             });
             return accumulator;
           },
@@ -789,7 +789,7 @@ export async function* getAllRouters(
             MethodTypes | 'all',
             {
               handler: ReturnType<typeof generateServerlessHandler>;
-              options?: RouterOptionsType['customRouterOptions'];
+              options?: RouterOptionsType['customOptions'];
             }
           >()
         ),
@@ -824,7 +824,7 @@ export async function* getAllRouters(
         );
         accumulator.set(method as MethodTypes | 'all', {
           handler: wrappedHandler,
-          options: handler.options?.customRouterOptions
+          options: handler.options?.customOptions
         });
         return accumulator;
       },
@@ -832,7 +832,7 @@ export async function* getAllRouters(
         MethodTypes | 'all',
         {
           handler: ReturnType<typeof wrapHandlerAndMiddlewares>;
-          options?: RouterOptionsType['customRouterOptions'];
+          options?: RouterOptionsType['customOptions'];
         }
       >()
     );
@@ -878,7 +878,7 @@ export async function* getAllHandlers(
       yield {
         path,
         method,
-        options: handler.options?.customRouterOptions,
+        options: handler.options?.customOptions,
         handler: wrappedHandler,
         partsOfPath: router.partsOfPath,
         queryParams: router.queryParams,
@@ -1054,8 +1054,8 @@ export async function initializeRouters(
         translatedPath,
         handler.method as MethodTypes | 'all',
         handler.handler,
-        handler.options,
-        handler.queryParams
+        handler.queryParams,
+        handler.options
       );
     }
   } else throw new HandlerOrHandlersShouldBeDefinedOnRouterAdapterError();

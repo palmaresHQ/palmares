@@ -1,9 +1,17 @@
 import type { BaseRouter } from '../../router/routers';
-import type { MethodTypes, RouterOptionsType } from '../../router/types';
+import type { MethodTypes } from '../../router/types';
 import type { ServerAdapter } from '../index';
 import type { ServerRequestAdapter } from '../requests';
 import type { ServerResponseAdapter } from '../response';
 import type { ServerlessAdapter } from '../serverless';
+
+export type ParseHandlersServer<TCustomRouterOptions = any> = Map<
+  MethodTypes | 'all',
+  {
+    handler: (serverRequestAndResponseData: any) => ReturnType<ServerResponseAdapter['send']>;
+    options?: TCustomRouterOptions;
+  }
+>;
 
 /**
  * Adapter used for translating Palmares router to the framework of choice router.
@@ -297,8 +305,8 @@ export class ServerRouterAdapter {
     _path: string,
     _method: MethodTypes | 'all',
     _handler: (serverRequestAndResponseData: any) => ReturnType<ServerResponseAdapter['send']>,
-    _options: RouterOptionsType['customRouterOptions'],
-    _queryParams: BaseRouter['__queryParamsAndPath']['params']
+    _queryParams: BaseRouter['__queryParamsAndPath']['params'],
+    _customOptions?: any
   ) {
     return undefined;
   }
@@ -307,13 +315,7 @@ export class ServerRouterAdapter {
     _serverAdapter: ServerAdapter,
     _server: any,
     _path: string,
-    _methodsAndHandlers: Map<
-      MethodTypes | 'all',
-      {
-        handler: (serverRequestAndResponseData: any) => ReturnType<ServerResponseAdapter['send']>;
-        options?: RouterOptionsType['customRouterOptions'];
-      }
-    >,
+    _methodsAndHandlers: ParseHandlersServer,
     _queryParams: BaseRouter['__queryParamsAndPath']['params'],
     _404Handler: (serverRequestAndResponseData: any) => ReturnType<ServerResponseAdapter['send']>
   ) {

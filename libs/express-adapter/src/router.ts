@@ -1,8 +1,8 @@
-import { serverRouterAdapter } from '@palmares/server';
+import { type MethodTypes, type ParseHandlersServer, serverRouterAdapter } from '@palmares/server';
 
 import { servers } from './server';
 
-import type { Express, Request, Response } from 'express';
+import type { Express, Request, RequestHandler, Response } from 'express';
 
 /**
  * This will automatically initialize all the routes of the server on the express server.
@@ -14,47 +14,27 @@ export const routerAdapter = serverRouterAdapter({
    *
    * We can use this data to send a response, parse the request and do pretty much anything.
    */
-  parseHandlers(_, initializedServer: Express, path, handlers, __, handler404) {
-    const optionsHandler = handlers.get('options')?.handler;
-    const headHandler = handlers.get('head')?.handler;
-    const deleteHandler = handlers.get('delete')?.handler;
-    const getHandler = handlers.get('get')?.handler;
-    const postHandler = handlers.get('post')?.handler;
-    const putHandler = handlers.get('put')?.handler;
-    const patchHandler = handlers.get('patch')?.handler;
-    const allHandler = handlers.get('all')?.handler;
-
+  parseHandlers(_, initializedServer: Express, path, handlers: ParseHandlersServer<RequestHandler[]>, __, handler404) {
     // This will initialize the server routes.
     initializedServer.all(path, (req: Request, res: Response) => {
-      const serverRequestAndResponseData = {
-        req,
-        res
+      let currentMiddlewareIndex = 0;
+
+      const runMiddlewares = (methodType: MethodTypes | 'all', req: Request, res: Response) => {
+        const next = () => {
+          if (handlers.get(methodType)?.options?.[currentMiddlewareIndex])
+            handlers.get(methodType)?.options?.[currentMiddlewareIndex]?.(req, res, next);
+          else handlers.get(methodType)?.handler({ req, res });
+          currentMiddlewareIndex++;
+        };
+
+        next();
       };
-      if (optionsHandler && req.method === 'OPTIONS') {
-        optionsHandler(serverRequestAndResponseData);
-        return;
-      } else if (headHandler && req.method === 'HEAD') {
-        headHandler(serverRequestAndResponseData);
-        return;
-      } else if (deleteHandler && req.method === 'DELETE') {
-        deleteHandler(serverRequestAndResponseData);
-        return;
-      } else if (getHandler && req.method === 'GET') {
-        getHandler(serverRequestAndResponseData);
-        return;
-      } else if (postHandler && req.method === 'POST') {
-        postHandler(serverRequestAndResponseData);
-        return;
-      } else if (putHandler && req.method === 'PUT') {
-        putHandler(serverRequestAndResponseData);
-        return;
-      } else if (patchHandler && req.method === 'PATCH') {
-        patchHandler(serverRequestAndResponseData);
-        return;
-      } else if (allHandler) {
-        allHandler(serverRequestAndResponseData);
-        return;
-      } else handler404(serverRequestAndResponseData);
+
+      const methodLowerCase = req.method.toLowerCase() as MethodTypes;
+      const isASpecificMethod = handlers.has(methodLowerCase);
+      const isAllMethod = handlers.has('all') && !isASpecificMethod;
+      if (isASpecificMethod || isAllMethod) runMiddlewares(isASpecificMethod ? methodLowerCase : 'all', req, res);
+      else handler404({ req, res });
     });
   },
   parseRoute(_, __, partOfPath, urlParamType) {

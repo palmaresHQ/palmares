@@ -53,6 +53,10 @@ export type DefaultRequestDefinitions = {
   adapter: (ServerAdapter | ServerlessAdapter) & Palmares.PServerAdapter;
 };
 
+export type DefaultRouterDefinitions = {
+  adapter: (ServerAdapter | ServerlessAdapter) & Palmares.PServerAdapter;
+};
+
 export type ServersSettingsType<TCustomServerSettings = unknown> = {
   servers: Record<string, ServerSettingsType<TCustomServerSettings>>;
   /**

@@ -43,6 +43,14 @@ export type HandlerForServerless = {
   }) => Promise<void>;
 };
 
+export type ParseHandlerServerless<TCustomRouterOptions = any> = Map<
+  MethodTypes | 'all',
+  {
+    handler: HandlerForServerless;
+    options?: TCustomRouterOptions;
+  }
+>;
+
 /**
  * Adapter used for translating Palmares router to the framework of choice router.
  *
@@ -315,13 +323,7 @@ export class ServerlessRouterAdapter {
     _server: ServerlessAdapter,
     _rootFileSystemPath: string,
     _path: string,
-    _methodsAndHandlers: Map<
-      MethodTypes | 'all',
-      {
-        handler: HandlerForServerless;
-        options?: RouterOptionsType['customRouterOptions'];
-      }
-    >,
+    _methodsAndHandlers: ParseHandlerServerless,
     _queryParams: BaseRouter['__queryParamsAndPath']['params'],
     _404Handler: (serverRequestAndResponseData: any) => ReturnType<ServerResponseAdapter['send']>
   ) {

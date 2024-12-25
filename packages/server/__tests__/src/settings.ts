@@ -6,6 +6,7 @@ import LoggingDomain from '@palmares/logging';
 import NodeStd from '@palmares/node-std';
 import ServerDomain, { Response, path } from '@palmares/server';
 import TestsDomain from '@palmares/tests';
+import cors from 'cors';
 import { dirname, resolve } from 'path';
 
 import CustomCoreDomain from './core';
@@ -18,9 +19,14 @@ declare global {
 }
 //import * as schema from '../.drizzle/schema';
 
-path('/test').get((request) => {
-  return Response.json({ message: 'test' });
-});
+path('/test').get(
+  (request) => {
+    return Response.json({ message: 'test' });
+  },
+  {
+    customOptions: [cors()]
+  }
+);
 
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
