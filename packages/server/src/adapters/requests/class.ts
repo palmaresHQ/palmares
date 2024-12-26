@@ -512,36 +512,4 @@ export class ServerRequestAdapter {
   ): Promise<string | undefined> {
     return new Promise((resolve) => resolve(undefined));
   }
-
-  /**
-   * If you want to pass custom options to the `toFormData` method, you can override this method, the user will need to
-   * call this method so he can have intellisense on the options.
-   *
-   * You can totally ignore this method and just pass the options directly to the `toFormData` method.
-   *
-   * @param args - The arguments that you want to pass to the `toFormData` method.
-   */
-  static customToFormDataOptions(args: any): any {
-    return args;
-  }
-
-  static customToJsonOptions(args: any): any {
-    return args;
-  }
-
-  static customToTextOptions(args: any): any {
-    return args;
-  }
-
-  static customToBlobOptions(args: any): any {
-    return args;
-  }
-
-  static customToArrayBufferOptions(args: any): any {
-    return args;
-  }
-
-  static customToRawOptions(args: any): any {
-    return args;
-  }
 }

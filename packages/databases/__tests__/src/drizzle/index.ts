@@ -32,9 +32,12 @@ export default domain('testingDrizzle1', import.meta.dirname, {
         }
       },
       handler: ({ commandLineArgs }) => {
-        console.log(`Hello ${commandLineArgs.positionalArgs['name']}, welcome to ${commandLineArgs.keywordArgs['appName'] || 'Palmares'}!`);
+        console.log(
+          `Hello ${commandLineArgs.positionalArgs['name']}, ` +
+            `welcome to ${commandLineArgs.keywordArgs['appName'] || 'Palmares'}!`
+        );
       }
-    },
+    }
   },
   modifiers: [testDomainModifier, databaseDomainModifier] as const,
   getMigrations: () => [],

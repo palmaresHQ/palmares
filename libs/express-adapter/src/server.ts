@@ -5,7 +5,7 @@ import { requestAdapter } from './request';
 import { responseAdapter } from './response';
 import { routerAdapter } from './router';
 
-import type { CustomSettingsForExpress, ServerSettingsTypeExpress } from './types';
+import type { ServerSettingsTypeExpress } from './types';
 import type { Domain } from '@palmares/core';
 import type multer from 'multer';
 
@@ -43,12 +43,12 @@ const expressServerAdapter = serverAdapter({
     return server;
   },
   // eslint-disable-next-line ts/require-await
-  close: async (serverName, server: Express) => {
+  close: async (serverName) => {
     servers.get(serverName)?.httpServer?.close();
     servers.delete(serverName);
   },
   // eslint-disable-next-line ts/require-await
-  start: async (serverName, server: Express, port, logServerStart) => {
+  start: async (_serverName, server: Express, port, logServerStart) => {
     server.listen(port, () => logServerStart());
   }
 });

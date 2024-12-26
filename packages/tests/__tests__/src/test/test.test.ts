@@ -35,7 +35,7 @@ describe<JestTestAdapter>('test if test package works', ({ test }) => {
   test('test runner', async ({ expect }) => {
     const oldTestAdapter = getTestAdapter();
 
-    await run(path.resolve(__dirname, '__tests__', 'settings.test.ts'));
+    await run(path.resolve(import.meta.dirname, '__tests__', 'settings.test.ts'));
     const newTestAdapter = getTestAdapter();
     setTestAdapter(oldTestAdapter);
     expect(oldTestAdapter).not.toBe(newTestAdapter);
@@ -46,7 +46,7 @@ describe<JestTestAdapter>('test if test package works', ({ test }) => {
     const oldSettings = getSettings();
     const { settings, domains } = await initializeDomains(
       {
-        settingsPathLocation: path.resolve(__dirname, '__tests__', 'settings.test.ts'),
+        settingsPathLocation: path.resolve(import.meta.dirname, '__tests__', 'settings.test.ts'),
         std: getDefaultStd()
       },
       {
@@ -58,7 +58,6 @@ describe<JestTestAdapter>('test if test package works', ({ test }) => {
     const testAdapter = getTestAdapter();
     try {
       jest.spyOn(testAdapter, 'run').mockImplementation(async (filesToRun, globalSetupFunctionBody) => {
-        console.log(filesToRun, globalSetupFunctionBody);
         expect(filesToRun.length).toEqual(0);
         expect(globalSetupFunctionBody).toEqual(`require('@palmares/tests').run('${settings.settingsLocation}');`);
         Promise.resolve();

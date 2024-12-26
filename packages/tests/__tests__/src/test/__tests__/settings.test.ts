@@ -6,8 +6,8 @@ import TestsDomain, { TestAdapter } from '@palmares/tests';
 import { dirname, resolve } from 'path';
 
 export default defineSettings({
-  basePath: dirname(resolve(__dirname)),
-  settingsLocation: __filename,
+  basePath: dirname(resolve(import.meta.dirname)),
+  settingsLocation: import.meta.filename,
   std: NodeStd,
   installedDomains: [
     [
