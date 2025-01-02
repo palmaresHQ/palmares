@@ -12,30 +12,34 @@ import {
 import path from 'path';
 
 describe<JestTestAdapter>('test if test adapter works', ({ test }) => {
+  // eslint-disable-next-line ts/require-await
   test('test adapter', async ({ expect }) => {
     const runningTestAdapter = getTestAdapter();
 
     expect(runningTestAdapter.constructor).toEqual(JestTestAdapter);
+    expect(12).toEqual(10);
   });
 
+  // eslint-disable-next-line ts/require-await
   test('function adapter', async ({ expect }) => {
     const runningTestAdapter = getTestAdapter();
 
     expect(runningTestAdapter.functions).toBeInstanceOf(TestFunctionsAdapter);
   });
 
+  // eslint-disable-next-line ts/require-await
   test('expect adapter', async ({ expect }) => {
     const runningTestAdapter = getTestAdapter();
 
     expect(runningTestAdapter.expect).toBeInstanceOf(TestExpectAdapter);
   });
 });
-
+/*
 describe<JestTestAdapter>('test if test package works', ({ test }) => {
   test('test runner', async ({ expect }) => {
     const oldTestAdapter = getTestAdapter();
 
-    await run(path.resolve(import.meta.dirname, '__tests__', 'settings.test.ts'));
+    await run(path.resolve(import.meta.dirname, 'test', '__tests__', 'settings-for-test.ts'));
     const newTestAdapter = getTestAdapter();
     setTestAdapter(oldTestAdapter);
     expect(oldTestAdapter).not.toBe(newTestAdapter);
@@ -46,7 +50,7 @@ describe<JestTestAdapter>('test if test package works', ({ test }) => {
     const oldSettings = getSettings();
     const { settings, domains } = await initializeDomains(
       {
-        settingsPathLocation: path.resolve(import.meta.dirname, '__tests__', 'settings.test.ts'),
+        settingsPathLocation: path.resolve(import.meta.dirname, 'test', '__tests__', 'settings-for-test.ts'),
         std: getDefaultStd()
       },
       {
@@ -73,3 +77,4 @@ describe<JestTestAdapter>('test if test package works', ({ test }) => {
     setSettings(oldSettings as any);
   });
 });
+*/

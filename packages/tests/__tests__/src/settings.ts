@@ -64,6 +64,7 @@ export default defineSettings({
           }
         })
       }
-    ]
+    ],
+    TestDomain
   ]
 });

@@ -208,5 +208,8 @@ export function afterAll<TTestAdapter extends TestAdapter = TestAdapter>(
 export function expect<TValue, TTestAdapter extends TestAdapter = TestAdapter>(
   value: TValue
 ): Expect<TValue, TTestAdapter, false> {
+  const expect = getTestAdapter().expect.assign?.(value);
+  const palmaresExpect = getExpect.bind(expect)(value, getTestAdapter() as TTestAdapter);
+  return palmaresExpect;
   return getExpect<TValue, TTestAdapter>(value, getTestAdapter() as TTestAdapter);
 }

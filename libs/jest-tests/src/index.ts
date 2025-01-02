@@ -91,6 +91,7 @@ class JestTestAdapter extends TestAdapter {
       std.join(dirnameToCreate, '.jest', 'jest.config.js'),
       std.join(dirnameToCreate, '.jest', 'setup-jest.js')
     ]);
+
     await std.writeFile(whereToCreateGlobalSetup, globalSetupFunctionBody);
     defaultConfig.testRegex = filesToRun.concat(defaultConfig.testRegex || []);
     defaultConfig.setupFiles = [whereToCreateGlobalSetup].concat(defaultConfig.setupFiles || []);

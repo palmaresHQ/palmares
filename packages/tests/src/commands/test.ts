@@ -22,7 +22,7 @@ export async function test(domains: TestDomain[], settings: AllTestsSettingsType
     `try { await import('@palmares/tests').then(({ run }) => run('` +
       `${(await std.os.platform()) === 'windows' ? 'file:/' : ''}` +
       `${std.files.getPathToFileURL(settings.settingsLocation)}')).catch((e) => console.error(e)); } catch (e) {` +
-      `await require('@palmares/tests')['run']('` +
+      `require('@palmares/tests')['run']('` +
       `${(await std.os.platform()) === 'windows' ? 'file:/' : ''}` +
       `${std.files.getPathToFileURL(settings.settingsLocation)}'); }`,
     {

@@ -29,6 +29,7 @@
     "build": "turbo run build",
     "build:watch": "turbo run build:watch --concurrency 20",
     "build:watch:tests": "turbo run build:watch --filter=@palmares/core --filter=@palmares/tests --filter=@palmares/jest-tests",
+    "build:watch:tests:jest": "turbo run build:watch --filter=@palmares/core --filter=@palmares/tests --filter=@palmares/jest-tests",
     "build:watch:schemas": "turbo run build:watch --filter=@palmares/core --filter=@palmares/schemas --filter=@palmares/zod-schema",
     "build:watch:databases": "turbo run build:watch --filter=@palmares/core --filter=@palmares/databases --filter=@palmares/sequelize-engine --filter=@palmares/drizzle-engine",
     "build:watch:databases:sequelize": "turbo run build:watch --filter=@palmares/core --filter=@palmares/databases --filter=@palmares/sequelize-engine",
@@ -72,7 +73,7 @@
     "rimraf": "^6.0.1",
     "tsup": "^8.2.4",
     "tsx": "^4.19.2",
-    "turbo": "^2.0.9",
+    "turbo": "^2.3.3",
     "typescript": "^5.5.4",
     "typescript-eslint": "^7.17.0"
   }
