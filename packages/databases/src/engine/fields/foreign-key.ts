@@ -20,8 +20,8 @@ import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateA
  */
 export function adapterForeignKeyFieldParser<
   TTranslateFunction extends AdapterForeignKeyFieldParser['translate'],
-  TInputParserFunction extends Required<AdapterForeignKeyFieldParser>['inputParser'],
-  TOutputParserFunction extends Required<AdapterForeignKeyFieldParser>['outputParser']
+  TInputParserFunction extends NonNullable<AdapterForeignKeyFieldParser>['inputParser'],
+  TOutputParserFunction extends NonNullable<AdapterForeignKeyFieldParser>['outputParser']
 >(args: {
   /**
    * @description

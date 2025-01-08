@@ -1,47 +1,45 @@
 export class TestExpectAdapter {
-  assign?(value: any): any;
-
-  toBe(_value: any, _expected: any, _isNot: boolean, _customData: any, expect?: any) {
+  toBe(_value: any, _expected: any, _isNot: boolean, _customData: any) {
     throw new Error('Not implemented');
   }
 
-  toEqual(_value: any, _expected: any, _isNot: boolean, _customData: any, expect?: any) {
+  toEqual(_value: any, _expected: any, _isNot: boolean, _customData: any) {
     throw new Error('Not implemented');
   }
 
-  toStrictEqual(_value: any, _expected: any, _isNot: boolean, _customData: any, expect?: any) {
+  toStrictEqual(_value: any, _expected: any, _isNot: boolean, _customData: any) {
     throw new Error('Not implemented');
   }
 
-  toBeDefined(_value: any, _isNot: boolean, _customData: any, expect?: any) {
+  toBeDefined(_value: any, _isNot: boolean, _customData: any) {
     throw new Error('Not implemented');
   }
 
-  toBeInstanceOf(__value: any, _expected: any, _isNot: boolean, _customData: any, expect?: any) {
+  toBeInstanceOf(__value: any, _expected: any, _isNot: boolean, _customData: any) {
     throw new Error('Not implemented');
   }
 
-  toHaveBeenCalled(_value: any, _isNot: boolean, _customData: any, expect?: any) {
-    throw new Error('Not implemented');
-  }
-
-  // eslint-disable-next-line ts/require-await
-  async toHaveBeenCalledTimes(_value: any, _isNot: boolean, _customData: any, expect?: any) {
+  toHaveBeenCalled(_value: any, _isNot: boolean, _customData: any) {
     throw new Error('Not implemented');
   }
 
   // eslint-disable-next-line ts/require-await
-  async toHaveBeenCalledWith(_value: any, _args: any[], _isNot: boolean, _customData: any, expect?: any) {
+  async toHaveBeenCalledTimes(_value: any, _isNot: boolean, _customData: any) {
     throw new Error('Not implemented');
   }
 
   // eslint-disable-next-line ts/require-await
-  async toHaveReturned(_value: (...args: any[]) => any, _isNot: boolean, _customData: any, expect?: any) {
+  async toHaveBeenCalledWith(_value: any, _args: any[], _isNot: boolean, _customData: any) {
     throw new Error('Not implemented');
   }
 
   // eslint-disable-next-line ts/require-await
-  async toHaveReturnedTimes(_value: any, _expected: number, _isNot: boolean, _customData: any, expect?: any) {
+  async toHaveReturned(_value: (...args: any[]) => any, _isNot: boolean, _customData: any) {
+    throw new Error('Not implemented');
+  }
+
+  // eslint-disable-next-line ts/require-await
+  async toHaveReturnedTimes(_value: any, _expected: number, _isNot: boolean, _customData: any) {
     throw new Error('Not implemented');
   }
 }

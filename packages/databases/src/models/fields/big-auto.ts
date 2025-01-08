@@ -113,7 +113,7 @@ export class BigAutoField<
     'eq',
     'is',
     'between'
-  ] as (keyof Required<TFieldOperationTypes>)[]);
+  ] as (keyof NonNullable<TFieldOperationTypes>)[]);
   protected __isAuto = true;
   protected __hasDefaultValue = false;
   protected __primaryKey = true;
@@ -121,8 +121,8 @@ export class BigAutoField<
   protected __allowNull = true;
   protected __unique = true;
   protected __dbIndex = true;
-  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __inputParsers = new Map<string, NonNullable<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, NonNullable<AdapterFieldParser>['outputParser']>();
 
   unique: never = (() => this) as never;
   auto: never = (() => this) as never;

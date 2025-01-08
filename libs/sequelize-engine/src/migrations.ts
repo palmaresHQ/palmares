@@ -159,7 +159,7 @@ async function handleIndexes(
       );
       if (hasTheSameFieldsInTheIndexName) {
         try {
-          const optionsToAddIndex = Object.assign({ transaction: migration.transaction }, toModelIndex) as SetRequired<
+          const optionsToAddIndex = Object.assign({ transaction: migration.transaction }, toModelIndex) as SetNonNullable<
             QueryInterfaceIndexOptions,
             'fields'
           >;
@@ -198,7 +198,7 @@ async function handleIndexes(
         const optionsToAddIndex = Object.assign(
           { transaction: migration.transaction },
           toTryToAddOnThisIteration.index
-        ) as SetRequired<QueryInterfaceIndexOptions, 'fields'>;
+        ) as SetNonNullable<QueryInterfaceIndexOptions, 'fields'>;
         await queryInterface.addIndex(toTryToAddOnThisIteration.tableName, optionsToAddIndex);
       } catch (e) {
         failedIndexesForNextIteration.push(toTryToAddOnThisIteration);

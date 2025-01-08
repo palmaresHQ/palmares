@@ -118,11 +118,11 @@ export class CharField<
     'eq',
     'is',
     'like'
-  ] as (keyof Required<TFieldOperationTypes>)[]);
+  ] as (keyof NonNullable<TFieldOperationTypes>)[]);
   protected __maxLength: TDefinitions['maxLength'];
 
-  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __inputParsers = new Map<string, NonNullable<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, NonNullable<AdapterFieldParser>['outputParser']>();
 
   protected __getArgumentsCallback = ((field, defaultGetArgumentsCallback) => {
     const fieldAsTextField = field as CharField<any, any, any>;

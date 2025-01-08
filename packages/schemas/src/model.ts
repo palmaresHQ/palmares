@@ -399,7 +399,7 @@ export function modelSchema<
       Record<any, any>
     > {
   const lazyModelSchema = ObjectSchema.new({} as any) as ObjectSchema<any, any, any> & {
-    __runBeforeParseAndData: Required<Schema<any, any>['__runBeforeParseAndData']>;
+    __runBeforeParseAndData: NonNullable<Schema<any, any>['__runBeforeParseAndData']>;
   };
   const parentSchema = options?.many === true ? ArraySchema.new([lazyModelSchema as any]) : (lazyModelSchema as any);
   const omitRelationAsSet = new Set(options?.omitRelation || []);

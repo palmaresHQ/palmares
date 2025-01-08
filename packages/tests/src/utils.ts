@@ -9,10 +9,9 @@ declare global {
 
 export async function setTestAdapter(adapter: TestAdapter, withCustomProps: boolean = false) {
   globalThis.$PTestAdapter = adapter;
-  if (withCustomProps) {
-    await adapter.getCustomProps().then((props) => {
-      globalThis.$PTestAdapterCustomProps = props;
-    });
+  if (withCustomProps && adapter.getCustomProps) {
+    const props = await adapter.getCustomProps();
+    globalThis.$PTestAdapterCustomProps = props;
   }
 }
 

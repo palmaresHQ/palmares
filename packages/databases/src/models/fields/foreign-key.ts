@@ -183,14 +183,14 @@ export class ForeignKeyField<
   protected __modelRelatedTo?: {
     new (...args: unknown[]): any;
   };
-  protected __allowedQueryOperations: Set<any> = new Set([] as (keyof Required<TFieldOperationTypes>)[]);
+  protected __allowedQueryOperations: Set<any> = new Set([] as (keyof NonNullable<TFieldOperationTypes>)[]);
   protected __onDelete: TDefinitions['onDelete'];
   protected __relatedName: TDefinitions['relatedName'];
   protected __relationName: TDefinitions['relationName'];
   protected __toField: TDefinitions['toField'];
   protected __originalRelatedName?: string;
-  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __inputParsers = new Map<string, NonNullable<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, NonNullable<AdapterFieldParser>['outputParser']>();
 
   /**
    * This is used internally by the engine to compare if the field is equal to another field.

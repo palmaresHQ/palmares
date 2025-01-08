@@ -21,8 +21,8 @@ import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateA
  */
 export function adapterBigAutoFieldParser<
   TTranslateFunction extends AdapterBigAutoFieldParser['translate'],
-  TInputParserFunction extends Required<AdapterBigAutoFieldParser>['inputParser'],
-  TOutputParserFunction extends Required<AdapterBigAutoFieldParser>['outputParser']
+  TInputParserFunction extends NonNullable<AdapterBigAutoFieldParser>['inputParser'],
+  TOutputParserFunction extends NonNullable<AdapterBigAutoFieldParser>['outputParser']
 >(args: {
   /**
    * @description

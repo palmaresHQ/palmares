@@ -108,10 +108,10 @@ export class IntegerField<
     'or',
     'eq',
     'is'
-  ] as (keyof Required<TFieldOperationTypes>)[]);
+  ] as (keyof NonNullable<TFieldOperationTypes>)[]);
 
-  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __inputParsers = new Map<string, NonNullable<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, NonNullable<AdapterFieldParser>['outputParser']>();
 
   /**
    * Supposed to be used by library maintainers.

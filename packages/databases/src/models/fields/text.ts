@@ -112,11 +112,11 @@ export class TextField<
     'eq',
     'is',
     'like'
-  ] as (keyof Required<TFieldOperationTypes>)[]);
+  ] as (keyof NonNullable<TFieldOperationTypes>)[]);
   protected __allowBlank: TDefinitions['allowBlank'] = false;
 
-  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __inputParsers = new Map<string, NonNullable<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, NonNullable<AdapterFieldParser>['outputParser']>();
 
   protected __compareCallback = ((engine, oldField, newField, defaultCompareCallback) => {
     const oldFieldAsTextField = oldField as TextField<any, any, any>;

@@ -19,8 +19,8 @@ import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateA
  */
 export function adapterDecimalFieldParser<
   TTranslateFunction extends AdapterDecimalFieldParser['translate'],
-  TInputParserFunction extends Required<AdapterDecimalFieldParser>['inputParser'],
-  TOutputParserFunction extends Required<AdapterDecimalFieldParser>['outputParser']
+  TInputParserFunction extends NonNullable<AdapterDecimalFieldParser>['inputParser'],
+  TOutputParserFunction extends NonNullable<AdapterDecimalFieldParser>['outputParser']
 >(args: {
   /**
    * @description

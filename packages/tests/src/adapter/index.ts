@@ -6,9 +6,8 @@ export class TestAdapter {
   expect = new TestExpectAdapter();
 
   // eslint-disable-next-line ts/require-await
-  async getCustomProps(): Promise<object> {
-    throw new Error('Not implemented');
-  }
+  async getCustomProps?(): Promise<object>;
+
   /** Should return  */
   // eslint-disable-next-line ts/require-await
   async run(

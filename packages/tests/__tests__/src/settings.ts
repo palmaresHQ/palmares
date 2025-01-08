@@ -9,6 +9,12 @@ import { dirname, join, resolve } from 'path';
 import TestDomain from './test';
 
 const watch = process.env.WATCH === 'true';
+declare global {
+  // eslint-disable-next-line ts/no-namespace
+  namespace Palmares {
+    interface PTestAdapter extends JestTestAdapter {}
+  }
+}
 
 export default defineSettings({
   basePath: dirname(resolve(import.meta.dirname)),
@@ -64,7 +70,6 @@ export default defineSettings({
           }
         })
       }
-    ],
-    TestDomain
+    ]
   ]
 });

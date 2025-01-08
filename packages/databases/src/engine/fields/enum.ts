@@ -19,8 +19,8 @@ import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateA
  */
 export function adapterEnumFieldParser<
   TTranslateFunction extends AdapterEnumFieldParser['translate'],
-  TInputParserFunction extends Required<AdapterEnumFieldParser>['inputParser'],
-  TOutputParserFunction extends Required<AdapterEnumFieldParser>['outputParser']
+  TInputParserFunction extends NonNullable<AdapterEnumFieldParser>['inputParser'],
+  TOutputParserFunction extends NonNullable<AdapterEnumFieldParser>['outputParser']
 >(args: {
   /**
    * @description

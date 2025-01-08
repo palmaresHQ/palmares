@@ -112,9 +112,9 @@ export class EnumField<
     'eq',
     'is',
     'like'
-  ] as (keyof Required<TFieldOperationTypes>)[]);
-  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  ] as (keyof NonNullable<TFieldOperationTypes>)[]);
+  protected __inputParsers = new Map<string, NonNullable<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, NonNullable<AdapterFieldParser>['outputParser']>();
 
   protected __compareCallback = ((engine, oldField, newField, defaultCompareCallback) => {
     const oldFieldAsTextField = oldField as EnumField<any, any>;

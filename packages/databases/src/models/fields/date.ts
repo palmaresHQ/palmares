@@ -123,11 +123,11 @@ export class DateField<
     'between',
     'and',
     'or'
-  ] as (keyof Required<TFieldOperationTypes>)[]);
+  ] as (keyof NonNullable<TFieldOperationTypes>)[]);
   protected __autoNow: TDefinitions['autoNow'] = false;
   protected __autoNowAdd: TDefinitions['autoNowAdd'] = false;
-  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __inputParsers = new Map<string, NonNullable<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, NonNullable<AdapterFieldParser>['outputParser']>();
 
   protected __compareCallback = ((engine, oldField, newField, defaultCompareCallback) => {
     const oldFieldAsTextField = oldField as DateField<any, any>;

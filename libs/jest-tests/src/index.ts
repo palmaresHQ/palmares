@@ -24,7 +24,6 @@ class JestTestAdapter extends TestAdapter {
   async getCustomProps(): Promise<CustomData> {
     try {
       const { expect, describe, jest, beforeAll, beforeEach, afterAll, afterEach, test } = require('@jest/globals');
-
       return {
         expect,
         describe,

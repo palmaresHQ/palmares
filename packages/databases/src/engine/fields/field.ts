@@ -19,8 +19,8 @@ import type { AdapterModels } from '../model';
  */
 export function adapterFieldParser<
   TTranslateFunction extends AdapterFieldParser['translate'],
-  TInputParserFunction extends Required<AdapterFieldParser>['inputParser'],
-  TOutputParserFunction extends Required<AdapterFieldParser>['outputParser']
+  TInputParserFunction extends NonNullable<AdapterFieldParser>['inputParser'],
+  TOutputParserFunction extends NonNullable<AdapterFieldParser>['outputParser']
 >(args: {
   /**
    * @description

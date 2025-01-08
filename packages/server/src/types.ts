@@ -22,7 +22,7 @@ export type ServerSettingsType<TCustomServerSettings = unknown> = {
    * custom options for fastify initialization */
   customServerSettings?: TCustomServerSettings;
   prefix?: string;
-  handler404?: Required<Middleware>['response'];
+  handler404?: NonNullable<Middleware>['response'];
   serverlessFolderLocation?: string;
   validation?: {
     handler?: (request: Request<any, any>) => Response<any, any>;
@@ -46,7 +46,7 @@ export type ServerSettingsType<TCustomServerSettings = unknown> = {
       query?: 'strict' | 'lazy' | 'none';
     };
   };
-  handler500?: Required<Middleware>['response'];
+  handler500?: NonNullable<Middleware>['response'];
 };
 
 export type DefaultRequestDefinitions = {

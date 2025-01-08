@@ -26,5 +26,5 @@ export async function runIndependently(adapterLocation: string) {
     console.error('Error importing adapter', e);
   });
   const testAdapter = new adapter.default();
-  setTestAdapter(testAdapter);
+  setTestAdapter(testAdapter, true);
 }

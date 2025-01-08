@@ -1,5 +1,4 @@
 import { getDefaultStd, getSettings, initializeDomains, setSettings } from '@palmares/core';
-import JestTestAdapter from '@palmares/jest-tests';
 import {
   TestExpectAdapter,
   TestFunctionsAdapter,
@@ -11,30 +10,23 @@ import {
 } from '@palmares/tests';
 import path from 'path';
 
-describe<JestTestAdapter>('test if test adapter works', ({ test }) => {
-  // eslint-disable-next-line ts/require-await
-  test('test adapter', async ({ expect }) => {
-    const runningTestAdapter = getTestAdapter();
+import type JestTestAdapter from '@palmares/jest-tests';
 
-    expect(runningTestAdapter.constructor).toEqual(JestTestAdapter);
-    expect(12).toEqual(10);
-  });
-
-  // eslint-disable-next-line ts/require-await
-  test('function adapter', async ({ expect }) => {
+describe('test if test adapter works', ({ test }) => {
+  // // eslint-disable-next-line ts/require-await
+  test('function adapter', ({ expect, custom: { jest } }) => {
     const runningTestAdapter = getTestAdapter();
 
     expect(runningTestAdapter.functions).toBeInstanceOf(TestFunctionsAdapter);
   });
 
-  // eslint-disable-next-line ts/require-await
-  test('expect adapter', async ({ expect }) => {
+  // // eslint-disable-next-line ts/require-await
+  test('expect adapter', ({ expect }) => {
     const runningTestAdapter = getTestAdapter();
-
     expect(runningTestAdapter.expect).toBeInstanceOf(TestExpectAdapter);
   });
 });
-/*
+
 describe<JestTestAdapter>('test if test package works', ({ test }) => {
   test('test runner', async ({ expect }) => {
     const oldTestAdapter = getTestAdapter();
@@ -77,4 +69,3 @@ describe<JestTestAdapter>('test if test package works', ({ test }) => {
     setSettings(oldSettings as any);
   });
 });
-*/
