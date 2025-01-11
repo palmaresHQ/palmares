@@ -1,14 +1,77 @@
-import * as fs from 'node:fs';
-import { createFileRoute, useRouter } from '@tanstack/react-router';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
+import { createFileRoute } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/start';
-import { WebContainer } from '@webcontainer/api';
 import { Fragment, lazy, Suspense, useState } from 'react';
 
-const webcontainerInstance = await WebContainer.boot();
 const Code = lazy(() => import('../../components/Code'));
 
+type LibraryCode = { [key: string]: Record<string, string> };
+
+const getLibraryCodes = async (libraries: [string, string][]) => {
+  let libraryCodes = {} as LibraryCode;
+
+  async function getFiles(
+    dir: string,
+    rootDir = dir,
+    files = {} as LibraryCode[string],
+    filesOrFoldersToConsider = undefined as string[] | undefined,
+    hasFoundPackageJson = false
+  ) {
+    const fileList = await fs.readdir(dir);
+    if (hasFoundPackageJson === false) {
+      for (const file of fileList) {
+        if (file === 'package.json') {
+          hasFoundPackageJson = true;
+          const packageJsonContents = await fs.readFile(path.join(dir, file), 'utf8');
+          const packageJson = JSON.parse(packageJsonContents);
+          if (packageJson.files) {
+            files['package.json'] = packageJsonContents;
+            return getFiles(dir, rootDir, files, packageJson.files, true);
+          }
+          break;
+        }
+      }
+    } else {
+      await Promise.all(
+        fileList.map(async (file) => {
+          const filePath = path.join(dir, file);
+          if (Array.isArray(filesOrFoldersToConsider) && filesOrFoldersToConsider.includes(file) === false) return;
+          if ((await fs.stat(filePath)).isDirectory())
+            return getFiles(filePath, rootDir, files, undefined, hasFoundPackageJson);
+          else {
+            const filePathRelativeToRoot = path.relative(rootDir, filePath);
+            files[filePathRelativeToRoot] = await fs.readFile(filePath, 'utf8');
+          }
+        })
+      );
+    }
+  }
+
+  await Promise.all(
+    libraries.map(async ([library, path]) => {
+      libraryCodes[library] = {} as LibraryCode[string];
+      await getFiles(path, path, libraryCodes[library]);
+    })
+  );
+  return libraryCodes;
+};
+
+const getAllLibraryCodes = createServerFn({ method: 'GET' }).handler(() => {
+  return getLibraryCodes([
+    ['@palmares/core', '../packages/core'],
+    ['@palmares/databases', '../packages/databases'],
+    ['@palmares/schemas', '../packages/schemas'],
+    ['@palmares/server', '../packages/server'],
+    ['@palmares/tests', '../packages/tests'],
+    ['@palmares/logging', '../packages/logging'],
+    ['@palmares/events', '../packages/events']
+  ]);
+});
+
 export const Route = createFileRoute('/')({
-  component: Home
+  component: Home,
+  loader: async () => await getAllLibraryCodes()
 });
 
 const fileByCode = {
@@ -79,8 +142,8 @@ await Company.default.set((qs) =>
     '',
   [`server.ts`]: `import { path, Response, middleware } from '@palmares/server';
 
-import { User } from 'databases';
-import { userSchema } from 'schemas';
+import { User } from './databases';
+import { userSchema } from './schemas';
 
 const companyMiddleware = middleware({
   request: async (request) => {
@@ -109,7 +172,10 @@ path('/users')
   .post(async (request) => {
     const validationResp = await userSchema.validate(await request.json(), {});
     if (!validationResp.isValid) {
-      return Response.json({ success: false, errors: validationResp.errors }, { status: 400 });
+      return Response.json({
+        success: false,
+        errors: validationResp.errors
+      }, { status: 400 });
     }
     return Response.json({ success: true, data: await validationResp.save() });
   })
@@ -123,9 +189,7 @@ path('/users')
 `,
   [`tests.ts`]: `import { describe } from '@palmares/tests';
 
-describe('My tests', ({ test, beforeAll }) => {
-  beforeAll(() => {
-  })
+describe('My tests', ({ test }) => {
   test('My first test', ({ expect }) => {
     expect(1 + 1).toBe(2);
   })
@@ -135,6 +199,8 @@ describe('My tests', ({ test, beforeAll }) => {
 
 function Home() {
   const [selectedCode, setSelectedCode] = useState<keyof typeof fileByCode>('databases.ts');
+  const state = Route.useLoaderData();
+
   return (
     <div className="flex flex-col bg-[#ffffff]">
       <nav className="flex flex-row justify-center items-center w-full mt-24 mb-24">
@@ -210,6 +276,8 @@ function Home() {
           width={680}
           text={fileByCode[selectedCode]}
           extraDts={fileByCode}
+          libraries={state}
+          sidebarWidth={'9rem'}
           customSidebar={
             <div className="flex flex-col w-36 h-[840px] from-tertiary-500 to-white bg-gradient-to-b p-2">
               {Object.keys(fileByCode).map((code, index) => (

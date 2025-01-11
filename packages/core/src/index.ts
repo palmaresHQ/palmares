@@ -25,3 +25,4 @@ export { Std, type Asker, type ChildProcess, type FilesAndFolders, type Os, type
 
 export { coreDomain as CoreDomain } from './domain/default';
 export { coreDomain as default } from './domain/default';
+export const test = 'needs to contain type';

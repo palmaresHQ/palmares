@@ -1,41 +1,37 @@
-import {
-  Outlet,
-  ScrollRestoration,
-  createRootRoute,
-} from '@tanstack/react-router'
-import { Meta, Scripts } from '@tanstack/start'
-import type { ReactNode } from 'react'
-import appCss from '../styles/app.css?url'
+import { Outlet, ScrollRestoration, createRootRoute } from '@tanstack/react-router';
+import { Meta, Scripts } from '@tanstack/start';
+import type { ReactNode } from 'react';
+import appCss from '../styles/app.css?url';
 
 export const Route = createRootRoute({
-  /*headers: () => ({
+  headers: () => ({
     'Cross-Origin-Embedder-Policy': 'require-corp',
     'Cross-Origin-Opener-Policy': 'same-origin'
-  }),*/
+  }),
   head: () => ({
     links: [{ rel: 'stylesheet', href: appCss }],
     meta: [
       {
-        charSet: 'utf-8',
+        charSet: 'utf-8'
       },
       {
         name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
+        content: 'width=device-width, initial-scale=1'
       },
       {
-        title: 'Palmares',
-      },
-    ],
+        title: 'Palmares'
+      }
+    ]
   }),
-  component: RootComponent,
-})
+  component: RootComponent
+});
 
 function RootComponent() {
   return (
     <RootDocument>
       <Outlet />
     </RootDocument>
-  )
+  );
 }
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
@@ -50,5 +46,5 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <Scripts />
       </body>
     </html>
-  )
+  );
 }

@@ -36,6 +36,7 @@
     "@tanstack/start": "^1.87.0",
     "@typescript/sandbox": "^0.1.7",
     "@webcontainer/api": "1.5.1-internal.2",
+    "@xterm/xterm": "^5.5.0",
     "autoprefixer": "^10.4.20",
     "monaco-editor": "^0.52.2",
     "next": "^14.2.5",
