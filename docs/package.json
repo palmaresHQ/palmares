@@ -36,6 +36,7 @@
     "@tanstack/start": "^1.87.0",
     "@typescript/sandbox": "^0.1.7",
     "@webcontainer/api": "1.5.1-internal.2",
+    "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
     "autoprefixer": "^10.4.20",
     "monaco-editor": "^0.52.2",
@@ -49,11 +50,11 @@
   },
   "devDependencies": {
     "@types/babel__core": "^7.20.5",
-    "@types/node": "^20.14.12",
+    "@types/node": "^22.10.5",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.0",
     "@vitejs/plugin-react": "^4.3.3",
     "eslint": "8.57.0",
-    "eslint-config-next": "14.2.5"
+    "eslint-config-next": "15.1.4"
   }
 }

@@ -1,5 +1,6 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
+
 import { createFileRoute } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/start';
 import { Fragment, lazy, Suspense, useState } from 'react';
@@ -278,6 +279,18 @@ function Home() {
           extraDts={fileByCode}
           libraries={state}
           sidebarWidth={'9rem'}
+          commands={[
+            {
+              command: 'npm install',
+              tag: 'installation',
+              shouldExit: true
+            },
+            {
+              command: 'npm run start',
+              tag: 'start',
+              shouldExit: false
+            }
+          ]}
           customSidebar={
             <div className="flex flex-col w-36 h-[840px] from-tertiary-500 to-white bg-gradient-to-b p-2">
               {Object.keys(fileByCode).map((code, index) => (
