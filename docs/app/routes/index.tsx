@@ -9,7 +9,10 @@ const Code = lazy(() => import('../../components/Code'));
 
 type LibraryCode = { [key: string]: Record<string, string> };
 
-const getLibraryCodes = async (libraries: [string, string][]) => {
+const getLibraryCodes = async (
+  libraries: [string, string][],
+  parser: ((args: { path: string; content: string }) => { path: string; content: string }) | undefined = undefined
+) => {
   let libraryCodes = {} as LibraryCode;
 
   async function getFiles(
@@ -22,7 +25,7 @@ const getLibraryCodes = async (libraries: [string, string][]) => {
     const fileList = await fs.readdir(dir);
     if (hasFoundPackageJson === false) {
       for (const file of fileList) {
-        if (file === 'package.json') {
+        if (file.endsWith('package.json')) {
           hasFoundPackageJson = true;
           const packageJsonContents = await fs.readFile(path.join(dir, file), 'utf8');
           const packageJson = JSON.parse(packageJsonContents);
@@ -41,14 +44,20 @@ const getLibraryCodes = async (libraries: [string, string][]) => {
           if ((await fs.stat(filePath)).isDirectory())
             return getFiles(filePath, rootDir, files, undefined, hasFoundPackageJson);
           else {
-            const filePathRelativeToRoot = path.relative(rootDir, filePath);
-            files[filePathRelativeToRoot] = await fs.readFile(filePath, 'utf8');
+            let filePathRelativeToRoot = path.relative(rootDir, filePath);
+            let fileContent = await fs.readFile(filePath, 'utf8');
+            if (parser) {
+              const parsed = parser({ path: filePathRelativeToRoot, content: fileContent });
+              filePathRelativeToRoot = parsed.path;
+              fileContent = parsed.content;
+            }
+
+            files[filePathRelativeToRoot] = fileContent;
           }
         })
       );
     }
   }
-
   await Promise.all(
     libraries.map(async ([library, path]) => {
       libraryCodes[library] = {} as LibraryCode[string];
@@ -58,150 +67,169 @@ const getLibraryCodes = async (libraries: [string, string][]) => {
   return libraryCodes;
 };
 
-const getAllLibraryCodes = createServerFn({ method: 'GET' }).handler(() => {
-  return getLibraryCodes([
-    ['@palmares/core', '../packages/core'],
-    ['@palmares/databases', '../packages/databases'],
-    ['@palmares/schemas', '../packages/schemas'],
-    ['@palmares/server', '../packages/server'],
-    ['@palmares/tests', '../packages/tests'],
-    ['@palmares/logging', '../packages/logging'],
-    ['@palmares/events', '../packages/events']
-  ]);
-});
+const getAllLibraryCodes = createServerFn({ method: 'GET' })
+  .validator((data: [string, string][]) => (Array.isArray(data) ? data : undefined))
+  .handler((ctx) => {
+    console.log('getAllLibraryCodes', ctx.data);
+    return getLibraryCodes(
+      (ctx.data || []).concat([
+        ['@palmares/console-logging', '../libs/console-logging'],
+        ['@palmares/drizzle-engine', '../libs/drizzle-engine'],
+        ['@palmares/express-adapter', '../libs/express-adapter'],
+        ['@palmares/jest-tests', '../libs/jest-tests'],
+        ['@palmares/node-std', '../libs/node-std'],
+        ['@palmares/sequelize-engine', '../libs/sequelize-engine'],
+        ['@palmares/zod-schema', '../libs/zod-schema'],
+        ['@palmares/core', '../packages/core'],
+        ['@palmares/databases', '../packages/databases'],
+        ['@palmares/schemas', '../packages/schemas'],
+        ['@palmares/server', '../packages/server'],
+        ['@palmares/tests', '../packages/tests'],
+        ['@palmares/logging', '../packages/logging'],
+        ['@palmares/events', '../packages/events']
+      ]),
+      ({ path, content }) => {
+        return { path: path.replace('_', ''), content: content.replace('// @ts-nocheck\n', '') };
+      }
+    );
+  });
 
 export const Route = createFileRoute('/')({
   component: Home,
-  loader: async () => await getAllLibraryCodes()
-});
-
-const fileByCode = {
-  [`databases.ts`]: `import {  define, fields, Model, ON_DELETE } from '@palmares/databases';
-
-export class Company extends Model<Company>() {
-  fields = {
-    id: fields.auto(),
-    name: fields.char({ maxLen: 255 }),
-    isActive: fields.bool().default(true)
-  }
-}
-
-export const User = define('User', {
-  fields: {
-    id: fields.auto(),
-    firstName: fields.char({ maxLen: 255 }),
-    email: fields.text().allowNull(),
-    companyId: fields.foreignKey({
-      relatedTo: () => Company,
-      toField: 'id',
-      relationName: 'company',
-      relatedName: 'usersOfCompany',
-      onDelete: ON_DELETE.CASCADE
+  loader: async () =>
+    await getAllLibraryCodes({
+      data: [['mainpage', './examples/mainpage']]
     })
-  }
 });
-
-await Company.default.set((qs) =>
-    qs
-      .join(User, 'usersOfCompany', (qs) =>
-        qs.data(
-          {
-            firstName: 'Foo',
-            email: 'foo@bar.com'
-          },
-          {
-            firstName: 'John',
-            email: 'john@doe.com'
-          }
-        )
-      )
-      .data({
-        name: 'Evil Foo',
-        isActive: true
-      })
-);
-`,
-  [`schemas.ts`]:
-    "import * as p from '@palmares/schemas';\n" +
-    '\n' +
-    'export const userSchema = p.object({\n' +
-    '  name: p.string(),\n' +
-    '  age: p.number().omit()\n' +
-    '}).onSave(async (data) => {\n' +
-    '  console.log(`Saving the user ${data.name} with age ${data.age} to the database`);\n' +
-    '  return data;\n' +
-    '});\n' +
-    '\n' +
-    "const validationResp = await userSchema.validate({ name: 'John', age: 30 }, {});\n" +
-    'if (!validationResp.isValid) {\n' +
-    '  throw new Error(`Invalid Data ${validationResp.errors}`)\n' +
-    '}\n' +
-    'const data = await validationResp.save();\n' +
-    '\n' +
-    "console.log('Age is ommited, check the type', data.age);\n" +
-    "console.log('Just name is returned', data.name);\n" +
-    '',
-  [`server.ts`]: `import { path, Response, middleware } from '@palmares/server';
-
-import { User } from './databases';
-import { userSchema } from './schemas';
-
-const companyMiddleware = middleware({
-  request: async (request) => {
-    console.log('Request received', request.url);
-
-    return request.clone({
-      context: {
-        company: {
-          id: 123,
-        }
-      }
-    });
-  }
-})
-
-path('/users')
-  .middlewares([companyMiddleware])
-  .get(async (request) => {
-    const users = await User.default.get((qs) =>
-      qs.where({
-        companyId: request.context.company.id
-      })
-    );
-    return Response.json({ users });
-  })
-  .post(async (request) => {
-    const validationResp = await userSchema.validate(await request.json(), {});
-    if (!validationResp.isValid) {
-      return Response.json({
-        success: false,
-        errors: validationResp.errors
-      }, { status: 400 });
-    }
-    return Response.json({ success: true, data: await validationResp.save() });
-  })
-  .nested((path) => [
-    path('/<id: number>')
-      .get(async (request) => {
-        const user = await User.default.get((qs) => qs.where({ id: request.params.id }));
-        return Response.json({ user: user[0] });
-      })
-  ]);
-`,
-  [`tests.ts`]: `import { describe } from '@palmares/tests';
-
-describe('My tests', ({ test }) => {
-  test('My first test', ({ expect }) => {
-    expect(1 + 1).toBe(2);
-  })
-})
-`
-};
-
+//
+// const fileByCode = {
+//   [`databases.ts`]: `import { define, fields, Model, ON_DELETE } from '@palmares/databases';
+//
+// export class Company extends Model<Company>() {
+//   fields = {
+//     id: fields.auto(),
+//     name: fields.char({ maxLen: 255 }),
+//     isActive: fields.bool().default(true)
+//   }
+// }
+//
+// export const User = define('User', {
+//   fields: {
+//     id: fields.auto(),
+//     firstName: fields.char({ maxLen: 255 }),
+//     email: fields.text().allowNull(),
+//     companyId: fields.foreignKey({
+//       relatedTo: () => Company,
+//       toField: 'id',
+//       relationName: 'company',
+//       relatedName: 'usersOfCompany',
+//       onDelete: ON_DELETE.CASCADE
+//     })
+//   }
+// });
+//
+// await Company.default.set((qs) =>
+//     qs
+//       .join(User, 'usersOfCompany', (qs) =>
+//         qs.data(
+//           {
+//             firstName: 'Foo',
+//             email: 'foo@bar.com'
+//           },
+//           {
+//             firstName: 'John',
+//             email: 'john@doe.com'
+//           }
+//         )
+//       )
+//       .data({
+//         name: 'Evil Foo',
+//         isActive: true
+//       })
+// );
+// `,
+//   [`schemas.ts`]:
+//     "import * as p from '@palmares/schemas';\n" +
+//     '\n' +
+//     'export const userSchema = p.object({\n' +
+//     '  name: p.string(),\n' +
+//     '  age: p.number().omit()\n' +
+//     '}).onSave(async (data) => {\n' +
+//     '  console.log(`Saving the user ${data.name} with age ${data.age} to the database`);\n' +
+//     '  return data;\n' +
+//     '});\n' +
+//     '\n' +
+//     "const validationResp = await userSchema.validate({ name: 'John', age: 30 }, {});\n" +
+//     'if (!validationResp.isValid) {\n' +
+//     '  throw new Error(`Invalid Data ${validationResp.errors}`)\n' +
+//     '}\n' +
+//     'const data = await validationResp.save();\n' +
+//     '\n' +
+//     "console.log('Age is ommited, check the type', data.age);\n" +
+//     "console.log('Just name is returned', data.name);\n" +
+//     '',
+//   [`server.ts`]: `import { path, Response, middleware } from '@palmares/server';
+//
+// import { User } from './databases';
+// import { userSchema } from './schemas';
+//
+// const companyMiddleware = middleware({
+//   request: async (request) => {
+//     console.log('Request received', request.url);
+//
+//     return request.clone({
+//       context: {
+//         company: {
+//           id: 123,
+//         }
+//       }
+//     });
+//   }
+// })
+//
+// path('/users')
+//   .middlewares([companyMiddleware])
+//   .get(async (request) => {
+//     const users = await User.default.get((qs) =>
+//       qs.where({
+//         companyId: request.context.company.id
+//       })
+//     );
+//     return Response.json({ users });
+//   })
+//   .post(async (request) => {
+//     const validationResp = await userSchema.validate(await request.json(), {});
+//     if (!validationResp.isValid) {
+//       return Response.json({
+//         success: false,
+//         errors: validationResp.errors
+//       }, { status: 400 });
+//     }
+//     return Response.json({ success: true, data: await validationResp.save() });
+//   })
+//   .nested((path) => [
+//     path('/<id: number>')
+//       .get(async (request) => {
+//         const user = await User.default.get((qs) => qs.where({ id: request.params.id }));
+//         return Response.json({ user: user[0] });
+//       })
+//   ]);
+// `,
+//   [`tests.ts`]: `import { describe } from '@palmares/tests';
+//
+// describe('My tests', ({ test }) => {
+//   test('My first test', ({ expect }) => {
+//     expect(1 + 1).toBe(2);
+//   })
+// })
+// `
+// };
+//
 function Home() {
-  const [selectedCode, setSelectedCode] = useState<keyof typeof fileByCode>('databases.ts');
+  const [selectedCode, setSelectedCode] = useState<string>('src/core/database.ts');
   const state = Route.useLoaderData();
-
+  const codeFiles = state?.['mainpage'] || {};
+  console.log('codeFiles', Object.keys(codeFiles));
   return (
     <div className="flex flex-col bg-[#ffffff]">
       <nav className="flex flex-row justify-center items-center w-full mt-24 mb-24">
@@ -275,8 +303,8 @@ function Home() {
         <Code
           height={840}
           width={680}
-          text={fileByCode[selectedCode]}
-          extraDts={fileByCode}
+          text={codeFiles[selectedCode]}
+          extraDts={codeFiles}
           libraries={state}
           sidebarWidth={'9rem'}
           commands={[
@@ -293,28 +321,36 @@ function Home() {
           ]}
           customSidebar={
             <div className="flex flex-col w-36 h-[840px] from-tertiary-500 to-white bg-gradient-to-b p-2">
-              {Object.keys(fileByCode).map((code, index) => (
-                <Fragment key={code}>
-                  <button
-                    type={'button'}
-                    onClick={() => setSelectedCode(code as keyof typeof fileByCode)}
-                    className={`flex flex-row items-center justify-between p-2 w-full text-left ${selectedCode === code ? 'bg-tertiary-200' : 'bg-transparent'} font-light text-sm rounded-md`}
-                  >
-                    {code}
-                    {selectedCode === code ? (
-                      <div className="flex flex-col w-[24px] max-h-[24px]">
-                        <svg className="w-full h-full" viewBox="0 0 50 50">
-                          <line className="stroke-primary-600" x1={35} y1={10} x2={40} y2={25} strokeWidth={2} />
-                          <line className="stroke-primary-600" x1={40} y1={25} x2={35} y2={40} strokeWidth={2} />
-                        </svg>
-                      </div>
-                    ) : null}
-                  </button>
-                  {index === Object.keys(fileByCode).length - 1 ? null : (
-                    <div className="h-[2px] w- bg-tertiary-300 mt-2 mb-2"></div>
-                  )}
-                </Fragment>
-              ))}
+              {Object.keys(codeFiles)
+                .filter(
+                  (code) =>
+                    code.endsWith('database.ts') ||
+                    code.endsWith('schemas.ts') ||
+                    code.endsWith('tests.ts') ||
+                    code.endsWith('server.ts')
+                )
+                .map((code, index) => (
+                  <Fragment key={code}>
+                    <button
+                      type={'button'}
+                      onClick={() => setSelectedCode(code)}
+                      className={`flex flex-row items-center justify-between p-2 w-full text-left ${selectedCode === code ? 'bg-tertiary-200' : 'bg-transparent'} font-light text-sm rounded-md`}
+                    >
+                      {code.replace('src/core/', '')}
+                      {selectedCode === code ? (
+                        <div className="flex flex-col w-[24px] max-h-[24px]">
+                          <svg className="w-full h-full" viewBox="0 0 50 50">
+                            <line className="stroke-primary-600" x1={35} y1={10} x2={40} y2={25} strokeWidth={2} />
+                            <line className="stroke-primary-600" x1={40} y1={25} x2={35} y2={40} strokeWidth={2} />
+                          </svg>
+                        </div>
+                      ) : null}
+                    </button>
+                    {index === Object.keys(codeFiles).length - 1 ? null : (
+                      <div className="h-[2px] w- bg-tertiary-300 mt-2 mb-2"></div>
+                    )}
+                  </Fragment>
+                ))}
             </div>
           }
         />

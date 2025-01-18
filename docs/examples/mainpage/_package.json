@@ -1,0 +1,36 @@
+{
+  "name": "mainpage",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "files": ["src", "manage.ts", "tsconfig.json"],
+  "scripts": {
+    "load": "tsx manage.ts load-models",
+    "makemigrations": "drizzle-kit generate",
+    "migrate": "tsx migrate.ts",
+    "test": "tsx --experimental-vm-modules manage.test.ts test",
+    "dev": "tsx watch manage.ts runserver"
+  },
+  "dependencies": {
+    "@palmares/console-logging": "^0.2.6",
+    "@palmares/core": "^0.2.6",
+    "@palmares/databases": "^0.2.14",
+    "@palmares/drizzle-engine": "^0.2.14",
+    "@palmares/express-adapter": "^0.2.7",
+    "@palmares/logging": "^0.2.6",
+    "@palmares/node-std": "^0.2.6",
+    "@palmares/schemas": "^0.2.14",
+    "@palmares/server": "^0.2.7",
+    "@palmares/zod-schema": "^0.2.14",
+    "@palmares/jest-tests": "^0.2.7",
+    "better-sqlite3": "^11.7.2",
+    "drizzle-kit": "^0.30.1"
+  },
+  "devDependencies": {
+    "@palmares/tests": "^0.2.7",
+    "@types/better-sqlite3": "^7.6.12",
+    "ts-jest-mock-import-meta": "^1.2.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
