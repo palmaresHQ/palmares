@@ -92,7 +92,7 @@ export function getEditor(): NonNullable<typeof promise> {
             });
 
             webcontainer
-              .boot()
+              .boot({ coep: 'credentialless' })
               .then((webcontainerInstance) => {
                 resolve({
                   monaco,

@@ -11,7 +11,7 @@ export const userSchema = p
     return data;
   });
 
-export function validateUser(data: p.infer<typeof userSchema>) {
+export async function validateUser(data: p.infer<typeof userSchema>) {
   const validationResp = await userSchema.validate({ name: 'John', age: 30 }, {});
   if (!validationResp.isValid) {
     throw new Error(`Invalid Data ${validationResp.errors}`);

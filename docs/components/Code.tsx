@@ -6,6 +6,8 @@ import typescript from 'typescript';
 
 import { getEditor, monacoEditorRules, monacoEditorColors } from '../utils';
 
+import type { FileSystemTree } from '@webcontainer/api';
+
 type LibraryCode = { [key: string]: Record<string, string> };
 
 type Props = {
@@ -18,41 +20,6 @@ type Props = {
   customSidebar?: React.ReactNode;
   commands: { command: string; tag?: string; shouldExit?: boolean }[];
   extraDts?: Record<string, string>;
-};
-
-const files = {
-  'index.js': {
-    file: {
-      contents: `
-import express from 'express';
-const app = express();
-const port = 3111;
-
-app.get('/', (req, res) => {
-  res.send('Welcome to a WebContainers app! 🥳');
-});
-
-app.listen(port, () => {
-  console.log(\`App is live at http://localhost:\${port}\`);
-});`
-    }
-  },
-  'package.json': {
-    file: {
-      contents: `
-{
-  "name": "example-app",
-  "type": "module",
-  "dependencies": {
-    "express": "latest",
-    "nodemon": "latest"
-  },
-  "scripts": {
-    "start": "nodemon --watch './' index.js"
-  }
-}`
-    }
-  }
 };
 
 export default function Code(props: Props) {
@@ -84,8 +51,34 @@ export default function Code(props: Props) {
   const [activeTag, setActiveTag] = useState<string>(terminalTags[0]);
 
   async function initWebContainer(args: Awaited<ReturnType<typeof getEditor>>) {
+    console.log('init web container', args.webcontainerInstance);
     if (typeof args.webcontainerInstance !== 'undefined') {
-      await args.webcontainerInstance.mount(files);
+      const parsedExtraDts = Object.entries(props.extraDts || {}).reduce((accumulator, currentValue) => {
+        const [key, value] = currentValue;
+        const splittedPath = key.split('/');
+        let data = accumulator;
+        for (let i = 0; i < splittedPath.length; i++) {
+          const isLastPath = i === splittedPath.length - 1;
+          if (isLastPath === false) {
+            if (data[splittedPath[i]] === undefined)
+              data[splittedPath[i]] = {
+                directory: {}
+              };
+            data = (data[splittedPath[i]] as any).directory as FileSystemTree;
+            continue;
+          } else {
+            data[splittedPath[i]] = {
+              file: {
+                contents: value
+              }
+            };
+          }
+        }
+
+        return accumulator;
+      }, {} as FileSystemTree);
+      console.log('mounting', parsedExtraDts);
+      await args.webcontainerInstance.mount(parsedExtraDts);
 
       const organizeCommands = props.commands.reduce(
         (acc, currentValue) => {
@@ -100,10 +93,10 @@ export default function Code(props: Props) {
         {} as Record<string, { shouldExit?: boolean; command: string }[]>
       );
 
+      /*
       for (const [tag, commands] of Object.entries(organizeCommands)) {
         const commandOutput = terminalsRef.current[tag || 'default'];
 
-        console.log(tag, commandOutput);
         if (!commandOutput) continue;
         const terminal = new args.Terminal({
           convertEol: true,
@@ -136,11 +129,41 @@ export default function Code(props: Props) {
           if (command.shouldExit) await process.exit;
         }
       }
+      */
+      const terminal = new args.Terminal({
+        convertEol: true,
+        fontSize: 10,
+        fontFamily: 'monospace',
+        theme: {
+          foreground: '#EEEEEE',
+          background: 'rgba(0, 0, 0, 0.0)',
+          cursor: '#CFF5DB'
+        }
+      });
+      const fitAddon = new args.FitAddon();
+      terminal.loadAddon(fitAddon);
+      terminal.open(terminalsRef.current['default'] as any);
+      fitAddon.fit();
+
+      const shellProcess = await args.webcontainerInstance.spawn('jsh');
+      shellProcess.output.pipeTo(
+        new WritableStream({
+          write(data) {
+            terminal.write(data);
+          }
+        })
+      );
+      const input = shellProcess.input.getWriter();
+      terminal.onData((data) => {
+        input.write(data);
+      });
     }
   }
 
   useEffect(() => {
-    if (divEl.current) {
+    const shouldLoadMonaco =
+      divEl.current && Object.keys(props.extraDts || {}).length > 0 && Object.keys(props.libraries || {}).length > 0;
+    if (shouldLoadMonaco) {
       getEditor().then(
         ({
           sandbox,
@@ -212,7 +235,7 @@ export default function Code(props: Props) {
     return () => {
       editor.current?.dispose();
     };
-  }, []);
+  }, [props.extraDts, props.libraries]);
 
   useEffect(() => {
     if (divEl.current && sb.current) {
@@ -282,7 +305,6 @@ export default function Code(props: Props) {
           }}
           className="flex flex-col items-center justify-center terminal"
           style={{
-            display: tag === activeTag ? 'block' : 'none',
             height: 240,
             backgroundColor: 'rgba(0,0,0,0.8)',
             width: `calc(${props.width || 720}px + ${props.sidebarWidth || '0px'})`

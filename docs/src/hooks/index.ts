@@ -1,1 +1,0 @@
-export { useMDXComponents } from './useMDXComponents';

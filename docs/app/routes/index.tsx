@@ -70,7 +70,6 @@ const getLibraryCodes = async (
 const getAllLibraryCodes = createServerFn({ method: 'GET' })
   .validator((data: [string, string][]) => (Array.isArray(data) ? data : undefined))
   .handler((ctx) => {
-    console.log('getAllLibraryCodes', ctx.data);
     return getLibraryCodes(
       (ctx.data || []).concat([
         ['@palmares/console-logging', '../libs/console-logging'],
@@ -101,135 +100,12 @@ export const Route = createFileRoute('/')({
       data: [['mainpage', './examples/mainpage']]
     })
 });
-//
-// const fileByCode = {
-//   [`databases.ts`]: `import { define, fields, Model, ON_DELETE } from '@palmares/databases';
-//
-// export class Company extends Model<Company>() {
-//   fields = {
-//     id: fields.auto(),
-//     name: fields.char({ maxLen: 255 }),
-//     isActive: fields.bool().default(true)
-//   }
-// }
-//
-// export const User = define('User', {
-//   fields: {
-//     id: fields.auto(),
-//     firstName: fields.char({ maxLen: 255 }),
-//     email: fields.text().allowNull(),
-//     companyId: fields.foreignKey({
-//       relatedTo: () => Company,
-//       toField: 'id',
-//       relationName: 'company',
-//       relatedName: 'usersOfCompany',
-//       onDelete: ON_DELETE.CASCADE
-//     })
-//   }
-// });
-//
-// await Company.default.set((qs) =>
-//     qs
-//       .join(User, 'usersOfCompany', (qs) =>
-//         qs.data(
-//           {
-//             firstName: 'Foo',
-//             email: 'foo@bar.com'
-//           },
-//           {
-//             firstName: 'John',
-//             email: 'john@doe.com'
-//           }
-//         )
-//       )
-//       .data({
-//         name: 'Evil Foo',
-//         isActive: true
-//       })
-// );
-// `,
-//   [`schemas.ts`]:
-//     "import * as p from '@palmares/schemas';\n" +
-//     '\n' +
-//     'export const userSchema = p.object({\n' +
-//     '  name: p.string(),\n' +
-//     '  age: p.number().omit()\n' +
-//     '}).onSave(async (data) => {\n' +
-//     '  console.log(`Saving the user ${data.name} with age ${data.age} to the database`);\n' +
-//     '  return data;\n' +
-//     '});\n' +
-//     '\n' +
-//     "const validationResp = await userSchema.validate({ name: 'John', age: 30 }, {});\n" +
-//     'if (!validationResp.isValid) {\n' +
-//     '  throw new Error(`Invalid Data ${validationResp.errors}`)\n' +
-//     '}\n' +
-//     'const data = await validationResp.save();\n' +
-//     '\n' +
-//     "console.log('Age is ommited, check the type', data.age);\n" +
-//     "console.log('Just name is returned', data.name);\n" +
-//     '',
-//   [`server.ts`]: `import { path, Response, middleware } from '@palmares/server';
-//
-// import { User } from './databases';
-// import { userSchema } from './schemas';
-//
-// const companyMiddleware = middleware({
-//   request: async (request) => {
-//     console.log('Request received', request.url);
-//
-//     return request.clone({
-//       context: {
-//         company: {
-//           id: 123,
-//         }
-//       }
-//     });
-//   }
-// })
-//
-// path('/users')
-//   .middlewares([companyMiddleware])
-//   .get(async (request) => {
-//     const users = await User.default.get((qs) =>
-//       qs.where({
-//         companyId: request.context.company.id
-//       })
-//     );
-//     return Response.json({ users });
-//   })
-//   .post(async (request) => {
-//     const validationResp = await userSchema.validate(await request.json(), {});
-//     if (!validationResp.isValid) {
-//       return Response.json({
-//         success: false,
-//         errors: validationResp.errors
-//       }, { status: 400 });
-//     }
-//     return Response.json({ success: true, data: await validationResp.save() });
-//   })
-//   .nested((path) => [
-//     path('/<id: number>')
-//       .get(async (request) => {
-//         const user = await User.default.get((qs) => qs.where({ id: request.params.id }));
-//         return Response.json({ user: user[0] });
-//       })
-//   ]);
-// `,
-//   [`tests.ts`]: `import { describe } from '@palmares/tests';
-//
-// describe('My tests', ({ test }) => {
-//   test('My first test', ({ expect }) => {
-//     expect(1 + 1).toBe(2);
-//   })
-// })
-// `
-// };
-//
+
 function Home() {
   const [selectedCode, setSelectedCode] = useState<string>('src/core/database.ts');
   const state = Route.useLoaderData();
   const codeFiles = state?.['mainpage'] || {};
-  console.log('codeFiles', Object.keys(codeFiles));
+
   return (
     <div className="flex flex-col bg-[#ffffff]">
       <nav className="flex flex-row justify-center items-center w-full mt-24 mb-24">
@@ -310,14 +186,14 @@ function Home() {
           commands={[
             {
               command: 'npm install',
-              tag: 'installation',
+              tag: 'default',
               shouldExit: true
-            },
-            {
-              command: 'npm run start',
-              tag: 'start',
-              shouldExit: false
             }
+            // {
+            //   command: 'npm run load',
+            //   tag: 'load',
+            //   shouldExit: false
+            // }
           ]}
           customSidebar={
             <div className="flex flex-col w-36 h-[840px] from-tertiary-500 to-white bg-gradient-to-b p-2">
