@@ -15,10 +15,15 @@ type Props = {
   height?: number;
   width?: number;
   sidebarWidth?: string;
-  libraries?: LibraryCode;
-  dependencies?: Record<string, string>;
+  libraries?: Record<
+    string,
+    {
+      raw: LibraryCode[string];
+      formatted: FileSystemTree;
+    }
+  >;
   customSidebar?: React.ReactNode;
-  commands: { command: string; tag?: string; shouldExit?: boolean }[];
+  commands: { command: string; tag?: string; shouldExit?: boolean; show?: boolean }[];
   extraDts?: Record<string, string>;
 };
 
@@ -51,49 +56,47 @@ export default function Code(props: Props) {
   const [activeTag, setActiveTag] = useState<string>(terminalTags[0]);
 
   async function initWebContainer(args: Awaited<ReturnType<typeof getEditor>>) {
-    console.log('init web container', args.webcontainerInstance);
     if (typeof args.webcontainerInstance !== 'undefined') {
-      const parsedExtraDts = Object.entries(props.extraDts || {}).reduce((accumulator, currentValue) => {
-        const [key, value] = currentValue;
-        const splittedPath = key.split('/');
-        let data = accumulator;
-        for (let i = 0; i < splittedPath.length; i++) {
-          const isLastPath = i === splittedPath.length - 1;
-          if (isLastPath === false) {
-            if (data[splittedPath[i]] === undefined)
-              data[splittedPath[i]] = {
-                directory: {}
-              };
-            data = (data[splittedPath[i]] as any).directory as FileSystemTree;
-            continue;
-          } else {
-            data[splittedPath[i]] = {
-              file: {
-                contents: value
-              }
-            };
-          }
-        }
-
-        return accumulator;
-      }, {} as FileSystemTree);
-      console.log('mounting', parsedExtraDts);
-      await args.webcontainerInstance.mount(parsedExtraDts);
+      // const parsedExtraDts = Object.entries(props.extraDts || {}).reduce((accumulator, currentValue) => {
+      //   const [key, value] = currentValue;
+      //   const splittedPath = key.split('/');
+      //   let data = accumulator;
+      //   for (let i = 0; i < splittedPath.length; i++) {
+      //     const isLastPath = i === splittedPath.length - 1;
+      //     if (isLastPath === false) {
+      //       if (data[splittedPath[i]] === undefined)
+      //         data[splittedPath[i]] = {
+      //           directory: {}
+      //         };
+      //       data = (data[splittedPath[i]] as any).directory as FileSystemTree;
+      //       continue;
+      //     } else {
+      //       data[splittedPath[i]] = {
+      //         file: {
+      //           contents: value
+      //         }
+      //       };
+      //     }
+      //   }
+      //
+      //   return accumulator;
+      // }, {} as FileSystemTree);
+      await args.webcontainerInstance.mount(props.libraries);
 
       const organizeCommands = props.commands.reduce(
         (acc, currentValue) => {
           const commandData = {
             shouldExit: typeof currentValue.shouldExit === 'boolean' ? currentValue.shouldExit : true,
-            command: currentValue.command
+            command: currentValue.command,
+            show: typeof currentValue.show === 'boolean' ? currentValue.show : true
           };
           if (acc[currentValue.tag || 'default']) acc[currentValue.tag || 'default'].push(commandData);
           else acc[currentValue.tag || 'default'] = [commandData];
           return acc;
         },
-        {} as Record<string, { shouldExit?: boolean; command: string }[]>
+        {} as Record<string, { shouldExit?: boolean; command: string; show?: boolean }[]>
       );
 
-      /*
       for (const [tag, commands] of Object.entries(organizeCommands)) {
         const commandOutput = terminalsRef.current[tag || 'default'];
 
@@ -119,50 +122,25 @@ export default function Code(props: Props) {
           const commandToRun = actualCommandToRun.shift() as string;
 
           const process = await args.webcontainerInstance.spawn(commandToRun, actualCommandToRun);
-          process.output.pipeTo(
-            new WritableStream({
-              write(chunk) {
-                terminal.write(chunk);
-              }
-            })
-          );
+          if (command.show !== false)
+            process.output.pipeTo(
+              new WritableStream({
+                write(chunk) {
+                  terminal.write(chunk);
+                }
+              })
+            );
+
           if (command.shouldExit) await process.exit;
         }
       }
-      */
-      const terminal = new args.Terminal({
-        convertEol: true,
-        fontSize: 10,
-        fontFamily: 'monospace',
-        theme: {
-          foreground: '#EEEEEE',
-          background: 'rgba(0, 0, 0, 0.0)',
-          cursor: '#CFF5DB'
-        }
-      });
-      const fitAddon = new args.FitAddon();
-      terminal.loadAddon(fitAddon);
-      terminal.open(terminalsRef.current['default'] as any);
-      fitAddon.fit();
-
-      const shellProcess = await args.webcontainerInstance.spawn('jsh');
-      shellProcess.output.pipeTo(
-        new WritableStream({
-          write(data) {
-            terminal.write(data);
-          }
-        })
-      );
-      const input = shellProcess.input.getWriter();
-      terminal.onData((data) => {
-        input.write(data);
-      });
     }
   }
 
   useEffect(() => {
     const shouldLoadMonaco =
       divEl.current && Object.keys(props.extraDts || {}).length > 0 && Object.keys(props.libraries || {}).length > 0;
+
     if (shouldLoadMonaco) {
       getEditor().then(
         ({
@@ -204,9 +182,8 @@ export default function Code(props: Props) {
               handleMouseWheel: false
             }
           });
-
           Object.entries(props.libraries || {}).forEach(([libName, dtss]) => {
-            Object.entries(dtss).forEach(([path, dts]) => {
+            Object.entries(dtss.raw).forEach(([path, dts]) => {
               path = `file:///node_modules/${libName}/${path}`;
               sb.current?.languageServiceDefaults.addExtraLib(dts, path);
             });
@@ -235,7 +212,7 @@ export default function Code(props: Props) {
     return () => {
       editor.current?.dispose();
     };
-  }, [props.extraDts, props.libraries]);
+  }, []);
 
   useEffect(() => {
     if (divEl.current && sb.current) {
@@ -273,6 +250,7 @@ export default function Code(props: Props) {
         <div
           className="flex flex-center items-start justify-start h-24 w-full bg-primary-100"
           style={{
+            backgroundColor: '#ffffff',
             width: `calc(${props.width || 720}px + ${props.sidebarWidth || '0px'})`
           }}
         >
@@ -285,7 +263,7 @@ export default function Code(props: Props) {
               style={{
                 paddingLeft: '0.5rem',
                 paddingRight: '0.5rem',
-                backgroundColor: tag === activeTag ? 'rgba(1,1,1,0.2)' : 'transparent',
+                backgroundColor: tag === activeTag ? '#ffffff' : 'transparent',
                 boxShadow:
                   tag === activeTag
                     ? '0px 4px 16px rgba(17,17,26,0.1), 0px 8px 24px rgba(17,17,26,0.1), 0px 16px 56px rgba(17,17,26,0.1)'
@@ -306,6 +284,7 @@ export default function Code(props: Props) {
           className="flex flex-col items-center justify-center terminal"
           style={{
             height: 240,
+            display: tag === activeTag ? 'flex' : 'none',
             backgroundColor: 'rgba(0,0,0,0.8)',
             width: `calc(${props.width || 720}px + ${props.sidebarWidth || '0px'})`
           }}

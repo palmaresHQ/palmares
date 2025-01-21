@@ -40,7 +40,7 @@ function initialSetupEditor(args: {
 export function getEditor(): NonNullable<typeof promise> {
   if (promise) return promise;
 
-  promise = new Promise(async (resolve, reject) => {
+  promise = new Promise((resolve, reject) => {
     try {
       if (window.self && typeof window.self !== 'undefined') {
         (
@@ -92,7 +92,7 @@ export function getEditor(): NonNullable<typeof promise> {
             });
 
             webcontainer
-              .boot({ coep: 'credentialless' })
+              .boot({ coep: 'require-corp' })
               .then((webcontainerInstance) => {
                 resolve({
                   monaco,

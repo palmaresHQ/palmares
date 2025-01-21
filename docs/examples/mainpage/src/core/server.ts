@@ -1,13 +1,11 @@
 // @ts-nocheck
 import { path, Response, middleware } from '@palmares/server';
 
-import { User } from './databases';
+import { User } from './database';
 import { userSchema } from './schemas';
 
 const companyMiddleware = middleware({
   request: async (request) => {
-    console.log('Request received', request.url);
-
     return request.clone({
       context: {
         company: {

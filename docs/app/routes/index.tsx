@@ -3,22 +3,41 @@ import * as path from 'node:path';
 
 import { createFileRoute } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/start';
-import { Fragment, lazy, Suspense, useState } from 'react';
+import { Fragment, lazy, useState } from 'react';
+
+import type { FileSystemTree } from '@webcontainer/api';
 
 const Code = lazy(() => import('../../components/Code'));
 
 type LibraryCode = { [key: string]: Record<string, string> };
 
-const getLibraryCodes = async (
+async function getLibraryCodes(
   libraries: [string, string][],
   parser: ((args: { path: string; content: string }) => { path: string; content: string }) | undefined = undefined
-) => {
-  let libraryCodes = {} as LibraryCode;
+): Promise<
+  Record<
+    string,
+    {
+      raw: LibraryCode[string];
+      formatted: FileSystemTree;
+    }
+  >
+> {
+  let libraryCodes = {} as Record<
+    string,
+    {
+      raw: LibraryCode[string];
+      formatted: FileSystemTree;
+    }
+  >;
 
   async function getFiles(
     dir: string,
     rootDir = dir,
-    files = {} as LibraryCode[string],
+    files = {
+      raw: {} as LibraryCode[string],
+      formatted: {} as FileSystemTree
+    },
     filesOrFoldersToConsider = undefined as string[] | undefined,
     hasFoundPackageJson = false
   ) {
@@ -30,7 +49,12 @@ const getLibraryCodes = async (
           const packageJsonContents = await fs.readFile(path.join(dir, file), 'utf8');
           const packageJson = JSON.parse(packageJsonContents);
           if (packageJson.files) {
-            files['package.json'] = packageJsonContents;
+            files.raw['package.json'] = packageJsonContents;
+            files.formatted['package.json'] = {
+              file: {
+                contents: packageJsonContents
+              }
+            };
             return getFiles(dir, rootDir, files, packageJson.files, true);
           }
           break;
@@ -52,7 +76,27 @@ const getLibraryCodes = async (
               fileContent = parsed.content;
             }
 
-            files[filePathRelativeToRoot] = fileContent;
+            files.raw[filePathRelativeToRoot] = fileContent;
+            const splittedPath = filePathRelativeToRoot.split('/');
+
+            let data = files.formatted;
+            for (let i = 0; i < splittedPath.length; i++) {
+              const isLastPath = i === splittedPath.length - 1;
+              const fileOrFolder = splittedPath[i];
+              if (isLastPath === false) {
+                if (data[fileOrFolder] === undefined)
+                  data[fileOrFolder] = {
+                    directory: {}
+                  };
+                data = (data[fileOrFolder] as any).directory as FileSystemTree;
+                continue;
+              } else
+                data[splittedPath[i]] = {
+                  file: {
+                    contents: fileContent
+                  }
+                };
+            }
           }
         })
       );
@@ -60,17 +104,23 @@ const getLibraryCodes = async (
   }
   await Promise.all(
     libraries.map(async ([library, path]) => {
-      libraryCodes[library] = {} as LibraryCode[string];
+      libraryCodes[library] = {
+        raw: {} as LibraryCode[string],
+        formatted: {} as FileSystemTree
+      } as {
+        raw: LibraryCode[string];
+        formatted: FileSystemTree;
+      };
       await getFiles(path, path, libraryCodes[library]);
     })
   );
   return libraryCodes;
-};
+}
 
 const getAllLibraryCodes = createServerFn({ method: 'GET' })
   .validator((data: [string, string][]) => (Array.isArray(data) ? data : undefined))
-  .handler((ctx) => {
-    return getLibraryCodes(
+  .handler(async (ctx) => {
+    const libraryCodes = await getLibraryCodes(
       (ctx.data || []).concat([
         ['@palmares/console-logging', '../libs/console-logging'],
         ['@palmares/drizzle-engine', '../libs/drizzle-engine'],
@@ -91,6 +141,7 @@ const getAllLibraryCodes = createServerFn({ method: 'GET' })
         return { path: path.replace('_', ''), content: content.replace('// @ts-nocheck\n', '') };
       }
     );
+    return libraryCodes as any;
   });
 
 export const Route = createFileRoute('/')({
@@ -104,7 +155,7 @@ export const Route = createFileRoute('/')({
 function Home() {
   const [selectedCode, setSelectedCode] = useState<string>('src/core/database.ts');
   const state = Route.useLoaderData();
-  const codeFiles = state?.['mainpage'] || {};
+  const codeFiles = state?.['mainpage'];
 
   return (
     <div className="flex flex-col bg-[#ffffff]">
@@ -175,62 +226,60 @@ function Home() {
           </span>
         </h1>
       </div>
-      <Suspense fallback="Loading Code">
-        <Code
-          height={840}
-          width={680}
-          text={codeFiles[selectedCode]}
-          extraDts={codeFiles}
-          libraries={state}
-          sidebarWidth={'9rem'}
-          commands={[
-            {
-              command: 'npm install',
-              tag: 'default',
-              shouldExit: true
-            }
-            // {
-            //   command: 'npm run load',
-            //   tag: 'load',
-            //   shouldExit: false
-            // }
-          ]}
-          customSidebar={
-            <div className="flex flex-col w-36 h-[840px] from-tertiary-500 to-white bg-gradient-to-b p-2">
-              {Object.keys(codeFiles)
-                .filter(
-                  (code) =>
-                    code.endsWith('database.ts') ||
-                    code.endsWith('schemas.ts') ||
-                    code.endsWith('tests.ts') ||
-                    code.endsWith('server.ts')
-                )
-                .map((code, index) => (
-                  <Fragment key={code}>
-                    <button
-                      type={'button'}
-                      onClick={() => setSelectedCode(code)}
-                      className={`flex flex-row items-center justify-between p-2 w-full text-left ${selectedCode === code ? 'bg-tertiary-200' : 'bg-transparent'} font-light text-sm rounded-md`}
-                    >
-                      {code.replace('src/core/', '')}
-                      {selectedCode === code ? (
-                        <div className="flex flex-col w-[24px] max-h-[24px]">
-                          <svg className="w-full h-full" viewBox="0 0 50 50">
-                            <line className="stroke-primary-600" x1={35} y1={10} x2={40} y2={25} strokeWidth={2} />
-                            <line className="stroke-primary-600" x1={40} y1={25} x2={35} y2={40} strokeWidth={2} />
-                          </svg>
-                        </div>
-                      ) : null}
-                    </button>
-                    {index === Object.keys(codeFiles).length - 1 ? null : (
-                      <div className="h-[2px] w- bg-tertiary-300 mt-2 mb-2"></div>
-                    )}
-                  </Fragment>
-                ))}
-            </div>
+      <Code
+        height={840}
+        width={680}
+        text={codeFiles?.raw[selectedCode]}
+        extraDts={codeFiles?.raw}
+        libraries={state}
+        sidebarWidth={'9rem'}
+        commands={[
+          {
+            command: 'npm install',
+            tag: 'Install',
+            shouldExit: true
+          },
+          {
+            command: 'npm run dev',
+            tag: 'Server',
+            shouldExit: false
           }
-        />
-      </Suspense>
+        ]}
+        customSidebar={
+          <div className="flex flex-col w-36 h-[840px] from-tertiary-500 to-white bg-gradient-to-b p-2">
+            {Object.keys(codeFiles?.raw || {})
+              .filter(
+                (code) =>
+                  code.endsWith('database.ts') ||
+                  code.endsWith('schemas.ts') ||
+                  code.endsWith('tests.ts') ||
+                  code.endsWith('server.ts')
+              )
+              .map((code, index) => (
+                <Fragment key={code}>
+                  <button
+                    type={'button'}
+                    onClick={() => setSelectedCode(code)}
+                    className={`flex flex-row items-center justify-between p-2 w-full text-left ${selectedCode === code ? 'bg-tertiary-200' : 'bg-transparent'} font-light text-sm rounded-md`}
+                  >
+                    {code.replace('src/core/', '')}
+                    {selectedCode === code ? (
+                      <div className="flex flex-col w-[24px] max-h-[24px]">
+                        <svg className="w-full h-full" viewBox="0 0 50 50">
+                          <line className="stroke-primary-600" x1={35} y1={10} x2={40} y2={25} strokeWidth={2} />
+                          <line className="stroke-primary-600" x1={40} y1={25} x2={35} y2={40} strokeWidth={2} />
+                        </svg>
+                      </div>
+                    ) : null}
+                  </button>
+                  {index === Object.keys(codeFiles).length - 1 ? null : (
+                    <div className="h-[2px] w- bg-tertiary-300 mt-2 mb-2"></div>
+                  )}
+                </Fragment>
+              ))}
+          </div>
+        }
+      />
     </div>
   );
 }
