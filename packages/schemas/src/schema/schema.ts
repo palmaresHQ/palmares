@@ -1,5 +1,3 @@
-import { SuiteContext } from 'node:test';
-
 import { getDefaultAdapter } from '../conf';
 import { formatErrorFromParseMethod } from '../utils';
 
@@ -811,7 +809,7 @@ export class Schema<
     | { isValid: false; errors: any[]; save: undefined }
     | { isValid: true; save: () => Promise<TType['representation']>; errors: undefined }
   > {
-    const { errors, parsed } = await this.__parse(value, [], { context: SuiteContext } as any);
+    const { errors, parsed } = await this.__parse(value, [], { context } as any);
     // eslint-disable-next-line ts/no-unnecessary-condition
     if ((errors || []).length > 0) return { isValid: false, errors: errors, save: undefined };
     return { isValid: true, save: async () => this._save.bind(this)(parsed, context), errors: undefined };

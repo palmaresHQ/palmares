@@ -27,7 +27,7 @@ export const usersRoute = path('/users')
     return Response.json({ users });
   })
   .post(async (request) => {
-    const validationResp = await userSchema.validate(await request.json(), {});
+    const validationResp = await userSchema.validate((await request.json()) as any, {});
     if (!validationResp.isValid) {
       return Response.json(
         {

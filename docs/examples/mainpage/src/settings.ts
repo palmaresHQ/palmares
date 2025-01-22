@@ -9,13 +9,26 @@ import { NodeStd } from '@palmares/node-std';
 import { SchemaDomain } from '@palmares/schemas';
 import { Response, ServerDomain } from '@palmares/server';
 import { ZodSchemaAdapter } from '@palmares/zod-schema';
+
+import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 
 import mainDomain from './core';
 
+// const database = new Database("db.sqlite3");
+// export const drizzle = drizzleBetterSqlite3(database, { schema: schema });
+// export const databaseEngine = DrizzleDatabaseAdapter.new({
+//   output: "./drizzle/schema.ts",
+//   type: "better-sqlite3",
+//   drizzle,
+// });
+//
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 export default defineSettings({
-  basePath: dirname(resolve(import.meta.dirname)),
-  settingsLocation: import.meta.filename,
+  basePath: dirname(resolve(__dirname)),
+  settingsLocation: __filename,
   std: NodeStd,
   installedDomains: [
     mainDomain,

@@ -1,6 +1,5 @@
 import { adapterMigrations } from '@palmares/databases';
 
-import type SequelizeEngine from './engine';
 import type {
   CircularDependenciesInMigrationType,
   GetForeignKeyReferencesForTableReturnType,
@@ -16,6 +15,7 @@ import type {
   QueryInterfaceIndexOptions,
   Sequelize
 } from 'sequelize';
+
 import type { SetRequired } from 'sequelize/types/utils/set-required';
 
 const circularDependenciesInMigration: CircularDependenciesInMigrationType[] = [];
@@ -159,7 +159,7 @@ async function handleIndexes(
       );
       if (hasTheSameFieldsInTheIndexName) {
         try {
-          const optionsToAddIndex = Object.assign({ transaction: migration.transaction }, toModelIndex) as SetNonNullable<
+          const optionsToAddIndex = Object.assign({ transaction: migration.transaction }, toModelIndex) as SetRequired<
             QueryInterfaceIndexOptions,
             'fields'
           >;
@@ -198,7 +198,7 @@ async function handleIndexes(
         const optionsToAddIndex = Object.assign(
           { transaction: migration.transaction },
           toTryToAddOnThisIteration.index
-        ) as SetNonNullable<QueryInterfaceIndexOptions, 'fields'>;
+        ) as SetRequired<QueryInterfaceIndexOptions, 'fields'>;
         await queryInterface.addIndex(toTryToAddOnThisIteration.tableName, optionsToAddIndex);
       } catch (e) {
         failedIndexesForNextIteration.push(toTryToAddOnThisIteration);

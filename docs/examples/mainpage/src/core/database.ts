@@ -24,7 +24,7 @@ export const User = define('User', {
   }
 });
 
-export async function createUser(data: InferModel<typeof Company, 'create'>) {
+export async function createUser(data: InferModel<Company, 'create'>) {
   await Company.default.set((qs) =>
     qs
       .join(User, 'usersOfCompany', (qs) =>

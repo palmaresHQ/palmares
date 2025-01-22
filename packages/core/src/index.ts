@@ -22,7 +22,7 @@ export { AppServer, appServer } from './app';
 export type { AppServerInterface } from './app/types';
 export { ImportsError, getDefaultStd, setDefaultStd, std } from './std';
 export { Std, type Asker, type ChildProcess, type FilesAndFolders, type Os, type AskSelect } from './std-adapter';
+export { FileOrDirectoryDoesNotExistError } from './std/exceptions';
 
 export { coreDomain as CoreDomain } from './domain/default';
 export { coreDomain as default } from './domain/default';
-export const test = 'needs to contain type';

@@ -81,59 +81,130 @@ export default function Code(props: Props) {
       //
       //   return accumulator;
       // }, {} as FileSystemTree);
-      await args.webcontainerInstance.mount(props.libraries);
-
-      const organizeCommands = props.commands.reduce(
-        (acc, currentValue) => {
-          const commandData = {
-            shouldExit: typeof currentValue.shouldExit === 'boolean' ? currentValue.shouldExit : true,
-            command: currentValue.command,
-            show: typeof currentValue.show === 'boolean' ? currentValue.show : true
+      const formattedLibraries = Object.entries(props.libraries || {}).reduce((acc, [key, currentValue]) => {
+        if (acc['packages'] === undefined)
+          acc['packages'] = {
+            directory: {}
           };
-          if (acc[currentValue.tag || 'default']) acc[currentValue.tag || 'default'].push(commandData);
-          else acc[currentValue.tag || 'default'] = [commandData];
-          return acc;
-        },
-        {} as Record<string, { shouldExit?: boolean; command: string; show?: boolean }[]>
-      );
+        if (acc['apps'] === undefined)
+          acc['apps'] = {
+            directory: {}
+          };
 
-      for (const [tag, commands] of Object.entries(organizeCommands)) {
-        const commandOutput = terminalsRef.current[tag || 'default'];
-
-        if (!commandOutput) continue;
-        const terminal = new args.Terminal({
-          convertEol: true,
-          fontSize: 10,
-          fontFamily: 'monospace',
-          theme: {
-            foreground: '#EEEEEE',
-            background: 'rgba(0, 0, 0, 0.0)',
-            cursor: '#CFF5DB'
-          }
-        });
-
-        const fitAddon = new args.FitAddon();
-        terminal.loadAddon(fitAddon);
-        terminal.open(commandOutput);
-        fitAddon.fit();
-
-        for (const command of commands) {
-          const actualCommandToRun = command.command.split(' ');
-          const commandToRun = actualCommandToRun.shift() as string;
-
-          const process = await args.webcontainerInstance.spawn(commandToRun, actualCommandToRun);
-          if (command.show !== false)
-            process.output.pipeTo(
-              new WritableStream({
-                write(chunk) {
-                  terminal.write(chunk);
-                }
-              })
-            );
-
-          if (command.shouldExit) await process.exit;
+        if (key.startsWith('@palmares/')) {
+          const keyWithoutPalmares = key.replace('@palmares/', '');
+          (acc['packages'] as any)['directory'][keyWithoutPalmares] = {
+            directory: currentValue.formatted
+          };
+        } else {
+          (acc['apps'] as any)['directory'][key] = {
+            directory: currentValue.formatted
+          };
         }
-      }
+
+        return acc;
+      }, {} as FileSystemTree);
+
+      formattedLibraries['package.json'] = {
+        file: {
+          contents: JSON.stringify(
+            {
+              name: 'palmares-app',
+              version: '0.0.0',
+              private: true,
+              type: 'module',
+              workspaces: ['apps/**/*', 'packages/**/*']
+            },
+            null,
+            2
+          )
+        }
+      };
+      await args.webcontainerInstance.mount(formattedLibraries);
+
+      const commandOutput = terminalsRef.current['Install'];
+      if (!commandOutput) return;
+      const terminal = new args.Terminal({
+        convertEol: true,
+        fontSize: 10,
+        fontFamily: 'monospace',
+        theme: {
+          foreground: '#EEEEEE',
+          background: 'rgba(0, 0, 0, 0.0)',
+          cursor: '#CFF5DB'
+        }
+      });
+
+      const fitAddon = new args.FitAddon();
+      terminal.loadAddon(fitAddon);
+      terminal.open(commandOutput);
+      fitAddon.fit();
+
+      const shellProcess = await args.webcontainerInstance.spawn('jsh');
+      shellProcess.output.pipeTo(
+        new WritableStream({
+          write(data) {
+            terminal.write(data);
+          }
+        })
+      );
+      const input = shellProcess.input.getWriter();
+      terminal.onData((data) => {
+        input.write(data);
+      });
+
+      //
+      // const organizeCommands = props.commands.reduce(
+      //   (acc, currentValue) => {
+      //     const commandData = {
+      //       shouldExit: typeof currentValue.shouldExit === 'boolean' ? currentValue.shouldExit : true,
+      //       command: currentValue.command,
+      //       show: typeof currentValue.show === 'boolean' ? currentValue.show : true
+      //     };
+      //     if (acc[currentValue.tag || 'default']) acc[currentValue.tag || 'default'].push(commandData);
+      //     else acc[currentValue.tag || 'default'] = [commandData];
+      //     return acc;
+      //   },
+      //   {} as Record<string, { shouldExit?: boolean; command: string; show?: boolean }[]>
+      // );
+      //
+      // for (const [tag, commands] of Object.entries(organizeCommands)) {
+      //   const commandOutput = terminalsRef.current[tag || 'default'];
+      //
+      //   if (!commandOutput) continue;
+      //   const terminal = new args.Terminal({
+      //     convertEol: true,
+      //     fontSize: 10,
+      //     fontFamily: 'monospace',
+      //     theme: {
+      //       foreground: '#EEEEEE',
+      //       background: 'rgba(0, 0, 0, 0.0)',
+      //       cursor: '#CFF5DB'
+      //     }
+      //   });
+      //
+      //   const fitAddon = new args.FitAddon();
+      //   terminal.loadAddon(fitAddon);
+      //   terminal.open(commandOutput);
+      //   fitAddon.fit();
+      //
+      //   for (const command of commands) {
+      //     const actualCommandToRun = command.command.split(' ');
+      //     const commandToRun = actualCommandToRun.shift() as string;
+      //
+      //     const process = await args.webcontainerInstance.spawn(commandToRun, actualCommandToRun);
+      //     if (command.show !== false)
+      //       process.output.pipeTo(
+      //         new WritableStream({
+      //           write(chunk) {
+      //             terminal.write(chunk);
+      //           }
+      //         })
+      //       );
+      //
+      //     if (command.shouldExit) await process.exit;
+      //   }
+      // }
     }
   }
 

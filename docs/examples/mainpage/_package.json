@@ -5,9 +5,8 @@
   "type": "module",
   "files": ["src", "manage.ts", "_tsconfig.json"],
   "scripts": {
-    "load": "tsx manage.ts load-models",
-    "makemigrations": "drizzle-kit generate",
-    "migrate": "tsx migrate.ts",
+    "makemigrations": "tsx manage.ts makemigrations",
+    "migrate": "tsx manage.ts migrate",
     "test": "tsx --experimental-vm-modules manage.test.ts test",
     "dev": "tsx watch manage.ts runserver"
   },
@@ -25,8 +24,7 @@
     "@palmares/zod-schema": "^0.2.14",
     "@palmares/jest-tests": "^0.2.7",
     "@palmares/tests": "^0.2.7",
-    "better-sqlite3": "^11.7.2",
-    "drizzle-kit": "^0.30.1"
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",
