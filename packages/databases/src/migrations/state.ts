@@ -141,7 +141,7 @@ export class State {
    * @return - Returns an object with the models that were initialized in the state and the engine
    * instance.
    */
-  async geInitializedModelsByName(engineInstance: DatabaseAdapter) {
+  async getInitializedModelsByName(engineInstance: DatabaseAdapter) {
     let duplicatedEngineInstance: undefined | DatabaseAdapter = undefined;
 
     const wasDefaultDuplicateCalled = { value: false };

@@ -20,7 +20,6 @@
   },
   "scripts": {
     "copy:templates": "copyfiles -u 1 \"templates/**/*\" ../../bin/templates/db",
-    "test": "tsx ./src/index.ts",
     "clear": "rimraf ./dist",
     "build:types": "tsc --project tsconfig.types.json",
     "build:cjs:esm": "tsup ./src --out-dir ./dist/src --format cjs,esm --silent --no-splitting",

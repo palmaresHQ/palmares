@@ -96,7 +96,6 @@ export function handleRelatedField(
       onDelete: translatedOnDelete,
       sourceKey: field.toField
     };
-
     if ((field as any)?.['typeName'] === 'ForeignKeyField') {
       relationOptions.as = field.relatedName as string;
       relatedToModel.hasMany(modelWithForeignKeyField, relationOptions);

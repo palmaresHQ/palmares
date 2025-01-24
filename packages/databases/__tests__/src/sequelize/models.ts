@@ -1,4 +1,4 @@
-import {
+/*import {
   AutoField,
   BooleanField,
   CharField,
@@ -12,13 +12,14 @@ import {
   ON_DELETE,
   UuidField,
   define
-} from '@palmares/databases';
+} from '@palmares/databases';*/
 
+import { define, fields, Model, ON_DELETE, InferModel } from '@palmares/databases';
 //import { Company as DCompany, User as DUser } from '../../.drizzle/schema';
 
 import type { ModelOptionsType } from '@palmares/databases';
 
-class Authentication extends Manager<CompanyAbstract> {
+/*class Authentication extends Manager<CompanyAbstract> {
   test() {
     return 'test';
   }
@@ -65,9 +66,6 @@ export const ProfileType = define('ProfileType', {
   }
 });
 
-//*********************************/
-//**      Modelos Palmares       **/
-//*********************************/
 export class User extends Model<User>() {
   fields = {
     id: AutoField.new(),
@@ -101,4 +99,27 @@ export class User extends Model<User>() {
     tableName: 'users'
     // instance: DUser
   } satisfies ModelOptionsType<User>;
+}*/
+
+export class Company extends Model<Company>() {
+  fields = {
+    id: fields.auto(),
+    name: fields.char({ maxLen: 255 }),
+    isActive: fields.bool().default(true)
+  };
 }
+
+export const User = define('User', {
+  fields: {
+    id: fields.auto(),
+    firstName: fields.char({ maxLen: 255 }),
+    email: fields.text().allowNull(),
+    companyId: fields.foreignKey({
+      relatedTo: () => Company,
+      toField: 'id',
+      relationName: 'company',
+      relatedName: 'usersOfCompany',
+      onDelete: ON_DELETE.CASCADE
+    })
+  }
+});

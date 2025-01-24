@@ -243,7 +243,8 @@ export default function Code(props: Props) {
           sb.current.monaco.editor.setTheme('default');
           sb.current.editor.updateOptions({
             lineNumbers: 'off',
-            automaticLayout: true,
+            automaticLayout: false,
+
             'semanticHighlighting.enabled': true,
             minimap: { enabled: false },
             overviewRulerLanes: 0,
@@ -251,7 +252,9 @@ export default function Code(props: Props) {
               vertical: 'hidden',
               horizontal: 'hidden',
               handleMouseWheel: false
-            }
+            },
+            scrollBeyondLastLine: false,
+            scrollBeyondLastColumn: 0
           });
           Object.entries(props.libraries || {}).forEach(([libName, dtss]) => {
             Object.entries(dtss.raw).forEach(([path, dts]) => {
@@ -260,6 +263,9 @@ export default function Code(props: Props) {
             });
           });
 
+          sb.current.editor.onDidChangeModelContent((e) => {
+            console.log(sb.current?.getModel());
+          });
           for (const [fileName, content] of Object.entries(props.extraDts || {})) {
             sb.current?.languageServiceDefaults.addExtraLib(content, `file:///${fileName}`);
           }

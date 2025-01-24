@@ -78,7 +78,6 @@ async function getLibraryCodes(
             }
 
             files.raw[filePathRelativeToRoot] = fileContent;
-
             const splittedPath = filePathRelativeToRoot.split('/');
 
             let data = files.formatted;
@@ -176,6 +175,13 @@ function Home() {
   const [selectedCode, setSelectedCode] = useState<string>('src/core/database.ts');
   const state = Route.useLoaderData();
   const codeFiles = state?.['mainpage'];
+  const sidebarFiles = Object.keys(codeFiles?.raw || {}).filter(
+    (code) =>
+      code.endsWith('database.ts') ||
+      code.endsWith('schemas.ts') ||
+      code.endsWith('tests.ts') ||
+      code.endsWith('server.ts')
+  );
 
   return (
     <div className="flex flex-col bg-[#ffffff]">
@@ -268,36 +274,28 @@ function Home() {
           ]}
           customSidebar={
             <div className="flex flex-col w-36 h-[840px] from-tertiary-500 to-white bg-gradient-to-b p-2">
-              {Object.keys(codeFiles?.raw || {})
-                .filter(
-                  (code) =>
-                    code.endsWith('database.ts') ||
-                    code.endsWith('schemas.ts') ||
-                    code.endsWith('tests.ts') ||
-                    code.endsWith('server.ts')
-                )
-                .map((code, index) => (
-                  <Fragment key={code}>
-                    <button
-                      type={'button'}
-                      onClick={() => setSelectedCode(code)}
-                      className={`flex flex-row items-center justify-between p-2 w-full text-left ${selectedCode === code ? 'bg-tertiary-200' : 'bg-transparent'} font-light text-sm rounded-md`}
-                    >
-                      {code.replace('src/core/', '')}
-                      {selectedCode === code ? (
-                        <div className="flex flex-col w-[24px] max-h-[24px]">
-                          <svg className="w-full h-full" viewBox="0 0 50 50">
-                            <line className="stroke-primary-600" x1={35} y1={10} x2={40} y2={25} strokeWidth={2} />
-                            <line className="stroke-primary-600" x1={40} y1={25} x2={35} y2={40} strokeWidth={2} />
-                          </svg>
-                        </div>
-                      ) : null}
-                    </button>
-                    {index === Object.keys(codeFiles).length - 1 ? null : (
-                      <div className="h-[2px] w- bg-tertiary-300 mt-2 mb-2"></div>
-                    )}
-                  </Fragment>
-                ))}
+              {sidebarFiles.map((code, index) => (
+                <Fragment key={code}>
+                  <button
+                    type={'button'}
+                    onClick={() => setSelectedCode(code)}
+                    className={`flex flex-row items-center justify-between p-2 w-full text-left ${selectedCode === code ? 'bg-tertiary-200' : 'bg-transparent'} font-light text-sm rounded-md`}
+                  >
+                    {code.replace('src/core/', '')}
+                    {selectedCode === code ? (
+                      <div className="flex flex-col w-[24px] max-h-[24px]">
+                        <svg className="w-full h-full" viewBox="0 0 50 50">
+                          <line className="stroke-primary-600" x1={35} y1={10} x2={40} y2={25} strokeWidth={2} />
+                          <line className="stroke-primary-600" x1={40} y1={25} x2={35} y2={40} strokeWidth={2} />
+                        </svg>
+                      </div>
+                    ) : null}
+                  </button>
+                  {index === sidebarFiles.length - 1 ? null : (
+                    <div className="h-[2px] w- bg-tertiary-300 mt-2 mb-2"></div>
+                  )}
+                </Fragment>
+              ))}
             </div>
           }
         />
