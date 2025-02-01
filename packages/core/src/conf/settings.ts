@@ -3,6 +3,7 @@ import { setDefaultStd } from '../std/config';
 import { PALMARES_SETTINGS_MODULE_ENVIRONMENT_VARIABLE } from '../utils';
 
 import type { SettingsType2 } from './types';
+import type { Domain } from '../domain/domain';
 import type { Std } from '../std-adapter';
 
 let $PCachedSettings: SettingsType2 | undefined;

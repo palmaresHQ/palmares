@@ -25,11 +25,6 @@ export async function test(domains: TestDomain[], settings: AllTestsSettingsType
       `require('@palmares/tests')['run']('` +
       `${(await std.os.platform()) === 'windows' ? 'file:/' : ''}` +
       `${std.files.getPathToFileURL(settings.settingsLocation)}'); }`,
-    {
-      mkdir: std.files.makeDirectory,
-      join: std.files.join,
-      writeFile: std.files.writeFile,
-      removeFile: std.files.removeFile
-    }
+    std.files
   );
 }

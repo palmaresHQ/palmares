@@ -7,6 +7,7 @@ import typescript from 'typescript';
 import { getEditor, monacoEditorRules, monacoEditorColors } from '../utils';
 
 import type { FileSystemTree } from '@webcontainer/api';
+import type { Terminal } from '@xterm/xterm';
 
 type LibraryCode = { [key: string]: Record<string, string> };
 
@@ -23,7 +24,13 @@ type Props = {
     }
   >;
   customSidebar?: React.ReactNode;
-  commands: { command: string; tag?: string; shouldExit?: boolean; show?: boolean }[];
+  commands: {
+    command: string;
+    serverReady?: (url: string, port: number, terminal: Terminal) => Promise<void>;
+    tag?: string;
+    shouldExit?: boolean;
+    show?: boolean;
+  }[];
   extraDts?: Record<string, string>;
 };
 
@@ -44,43 +51,42 @@ export default function Code(props: Props) {
     if (reducedCommandTags.size === 0) return ['default'];
     return Array.from(reducedCommandTags) as string[];
   }, [props.commands]);
-  const terminalsRef = useRef<Record<string, HTMLDivElement | null>>(
+  const terminalsRef = useRef<
+    Record<
+      string,
+      {
+        terminal: null | Terminal;
+        container: HTMLDivElement | null;
+      }
+    >
+  >(
     terminalTags.reduce(
       (acc, tag) => {
-        acc[tag] = null;
+        acc[tag] = {
+          terminal: null,
+          container: null
+        };
         return acc;
       },
-      {} as Record<string, HTMLDivElement | null>
-    ) as Record<string, HTMLDivElement | null>
+      {} as Record<
+        string,
+        {
+          terminal: null | Terminal;
+          container: HTMLDivElement | null;
+        }
+      >
+    ) as Record<
+      string,
+      {
+        terminal: null | Terminal;
+        container: HTMLDivElement | null;
+      }
+    >
   );
   const [activeTag, setActiveTag] = useState<string>(terminalTags[0]);
 
   async function initWebContainer(args: Awaited<ReturnType<typeof getEditor>>) {
     if (typeof args.webcontainerInstance !== 'undefined') {
-      // const parsedExtraDts = Object.entries(props.extraDts || {}).reduce((accumulator, currentValue) => {
-      //   const [key, value] = currentValue;
-      //   const splittedPath = key.split('/');
-      //   let data = accumulator;
-      //   for (let i = 0; i < splittedPath.length; i++) {
-      //     const isLastPath = i === splittedPath.length - 1;
-      //     if (isLastPath === false) {
-      //       if (data[splittedPath[i]] === undefined)
-      //         data[splittedPath[i]] = {
-      //           directory: {}
-      //         };
-      //       data = (data[splittedPath[i]] as any).directory as FileSystemTree;
-      //       continue;
-      //     } else {
-      //       data[splittedPath[i]] = {
-      //         file: {
-      //           contents: value
-      //         }
-      //       };
-      //     }
-      //   }
-      //
-      //   return accumulator;
-      // }, {} as FileSystemTree);
       const formattedLibraries = Object.entries(props.libraries || {}).reduce((acc, [key, currentValue]) => {
         if (acc['packages'] === undefined)
           acc['packages'] = {
@@ -122,89 +128,53 @@ export default function Code(props: Props) {
       };
       await args.webcontainerInstance.mount(formattedLibraries);
 
-      const commandOutput = terminalsRef.current['Install'];
-      if (!commandOutput) return;
-      const terminal = new args.Terminal({
-        convertEol: true,
-        fontSize: 10,
-        fontFamily: 'monospace',
-        theme: {
-          foreground: '#EEEEEE',
-          background: 'rgba(0, 0, 0, 0.0)',
-          cursor: '#CFF5DB'
+      for (const command of props.commands || []) {
+        const tag = command.tag || 'default';
+        const commandOutput = terminalsRef.current[tag];
+
+        if (!commandOutput?.container) continue;
+        if (!commandOutput.terminal) {
+          const terminal = new args.Terminal({
+            convertEol: true,
+            fontSize: 10,
+            fontFamily: 'monospace',
+            theme: {
+              foreground: '#EEEEEE',
+              background: 'rgba(0, 0, 0, 0.0)',
+              cursor: '#CFF5DB'
+            }
+          });
+
+          commandOutput.terminal = terminal;
+          const fitAddon = new args.FitAddon();
+          terminal.loadAddon(fitAddon);
+          terminal.open(commandOutput.container);
+          fitAddon.fit();
         }
-      });
 
-      const fitAddon = new args.FitAddon();
-      terminal.loadAddon(fitAddon);
-      terminal.open(commandOutput);
-      fitAddon.fit();
+        const actualCommandToRun = command.command.split(' ');
+        const commandToRun = actualCommandToRun.shift() as string;
 
-      const shellProcess = await args.webcontainerInstance.spawn('jsh');
-      shellProcess.output.pipeTo(
-        new WritableStream({
-          write(data) {
-            terminal.write(data);
-          }
-        })
-      );
-      const input = shellProcess.input.getWriter();
-      terminal.onData((data) => {
-        input.write(data);
-      });
+        const process = await args.webcontainerInstance.spawn(commandToRun, actualCommandToRun);
+        if (command.show !== false)
+          process.output.pipeTo(
+            new WritableStream({
+              write(chunk) {
+                commandOutput.terminal?.write(chunk);
+              }
+            })
+          );
 
-      //
-      // const organizeCommands = props.commands.reduce(
-      //   (acc, currentValue) => {
-      //     const commandData = {
-      //       shouldExit: typeof currentValue.shouldExit === 'boolean' ? currentValue.shouldExit : true,
-      //       command: currentValue.command,
-      //       show: typeof currentValue.show === 'boolean' ? currentValue.show : true
-      //     };
-      //     if (acc[currentValue.tag || 'default']) acc[currentValue.tag || 'default'].push(commandData);
-      //     else acc[currentValue.tag || 'default'] = [commandData];
-      //     return acc;
-      //   },
-      //   {} as Record<string, { shouldExit?: boolean; command: string; show?: boolean }[]>
-      // );
-      //
-      // for (const [tag, commands] of Object.entries(organizeCommands)) {
-      //   const commandOutput = terminalsRef.current[tag || 'default'];
-      //
-      //   if (!commandOutput) continue;
-      //   const terminal = new args.Terminal({
-      //     convertEol: true,
-      //     fontSize: 10,
-      //     fontFamily: 'monospace',
-      //     theme: {
-      //       foreground: '#EEEEEE',
-      //       background: 'rgba(0, 0, 0, 0.0)',
-      //       cursor: '#CFF5DB'
-      //     }
-      //   });
-      //
-      //   const fitAddon = new args.FitAddon();
-      //   terminal.loadAddon(fitAddon);
-      //   terminal.open(commandOutput);
-      //   fitAddon.fit();
-      //
-      //   for (const command of commands) {
-      //     const actualCommandToRun = command.command.split(' ');
-      //     const commandToRun = actualCommandToRun.shift() as string;
-      //
-      //     const process = await args.webcontainerInstance.spawn(commandToRun, actualCommandToRun);
-      //     if (command.show !== false)
-      //       process.output.pipeTo(
-      //         new WritableStream({
-      //           write(chunk) {
-      //             terminal.write(chunk);
-      //           }
-      //         })
-      //       );
-      //
-      //     if (command.shouldExit) await process.exit;
-      //   }
-      // }
+        if (command.serverReady) {
+          args.webcontainerInstance.on('server-ready', (port, url) => {
+            if (command?.serverReady === undefined) return;
+            if (!commandOutput?.terminal) return;
+            command?.serverReady?.(url, port, commandOutput.terminal);
+          });
+        }
+
+        if (command.shouldExit) await process.exit;
+      }
     }
   }
 
@@ -253,8 +223,7 @@ export default function Code(props: Props) {
               horizontal: 'hidden',
               handleMouseWheel: false
             },
-            scrollBeyondLastLine: false,
-            scrollBeyondLastColumn: 0
+            scrollBeyondLastLine: false
           });
           Object.entries(props.libraries || {}).forEach(([libName, dtss]) => {
             Object.entries(dtss.raw).forEach(([path, dts]) => {
@@ -356,9 +325,9 @@ export default function Code(props: Props) {
         <div
           key={tag}
           ref={(el) => {
-            terminalsRef.current[tag] = el;
+            terminalsRef.current[tag].container = el;
           }}
-          className="flex flex-col items-center justify-center terminal"
+          className="flex flex-col items-center justify-center overflow-hidden terminal"
           style={{
             height: 240,
             display: tag === activeTag ? 'flex' : 'none',

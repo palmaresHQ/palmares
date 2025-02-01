@@ -46,6 +46,7 @@
   "dependencies": {
     "@palmares/core": "workspace:*",
     "@palmares/databases": "workspace:*",
-    "@palmares/server": "workspace:*"
+    "@palmares/server": "workspace:*",
+    "@standard-schema/spec": "^1.0.0"
   }
 }

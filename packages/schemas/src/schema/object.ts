@@ -11,24 +11,28 @@ import { Validator } from '../validators/utils';
 import type { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from './types';
 import type { SchemaAdapter } from '../adapter';
 import type { FieldAdapter } from '../adapter/fields';
+import type { StandardSchemaV1 } from '@standard-schema/spec';
 
 export class ObjectSchema<
-  TType extends {
-    input: any;
-    validate: any;
-    internal: any;
-    representation: any;
-    output: any;
-  } = {
-    input: Record<any, any>;
-    output: Record<any, any>;
-    validate: Record<any, any>;
-    internal: Record<any, any>;
-    representation: Record<any, any>;
-  },
-  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>,
-  TData extends Record<any, any> = Record<any, any>
-> extends Schema<TType, TDefinitions> {
+    TType extends {
+      input: any;
+      validate: any;
+      internal: any;
+      representation: any;
+      output: any;
+    } = {
+      input: Record<any, any>;
+      output: Record<any, any>;
+      validate: Record<any, any>;
+      internal: Record<any, any>;
+      representation: Record<any, any>;
+    },
+    TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>,
+    TData extends Record<any, any> = Record<any, any>
+  >
+  extends Schema<TType, TDefinitions>
+  implements StandardSchemaV1<TType['input'], TType['output']>
+{
   protected fieldType = 'object';
 
   protected __data: Record<any, Schema>;

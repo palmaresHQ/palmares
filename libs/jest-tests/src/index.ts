@@ -1,4 +1,5 @@
 /* eslint-disable ts/consistent-type-imports */
+import { std as palmaresStd } from '@palmares/core';
 import { TestAdapter } from '@palmares/tests';
 
 import { JestExpectAdapter } from './expect';
@@ -51,23 +52,20 @@ class JestTestAdapter extends TestAdapter {
     }
   }
 
-  async run(
-    filesToRun: string[],
-    globalSetupFunctionBody: string,
-    std: {
-      mkdir: (path: string | string[]) => Promise<void>;
-      join: (...args: string[]) => Promise<string>;
-      writeFile: (path: string | string[], content: string) => Promise<void>;
-      removeFile: (path: string | string[]) => Promise<void>;
-    }
-  ) {
-    let dirnameToCreate = '';
+  async run(filesToRun: string[], globalSetupFunctionBody: string, std: (typeof palmaresStd)['files']) {
+    let dirnameToCreate: undefined | string = '';
     try {
       dirnameToCreate = __dirname;
     } catch (e) {
       try {
         // @ts-ignore because i don't care
         dirnameToCreate = import.meta.dirname;
+        // eslint-disable-next-line ts/no-unnecessary-condition
+        if (dirnameToCreate === undefined) {
+          // @ts-ignore because i don't care
+          const __filename = std.getFileURLToPath(import.meta.url);
+          dirnameToCreate = std.dirname(__filename);
+        }
       } catch (e) {
         try {
           // @ts-ignore because i don't care
@@ -78,6 +76,7 @@ class JestTestAdapter extends TestAdapter {
         }
       }
     }
+
     let jest;
     try {
       jest = require('jest');
@@ -85,8 +84,8 @@ class JestTestAdapter extends TestAdapter {
       jest = await import('jest');
     }
     const [_, __, whereToCreateJestConfig, whereToCreateGlobalSetup] = await Promise.all([
-      std.mkdir(await std.join(dirnameToCreate, '.jest')),
-      std.mkdir(await std.join(dirnameToCreate, '.jest')),
+      std.makeDirectory(await std.join(dirnameToCreate, '.jest')),
+      std.makeDirectory(await std.join(dirnameToCreate, '.jest')),
       std.join(dirnameToCreate, '.jest', 'jest.config.js'),
       std.join(dirnameToCreate, '.jest', 'setup-jest.js')
     ]);

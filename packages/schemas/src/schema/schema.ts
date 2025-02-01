@@ -6,6 +6,7 @@ import type { SchemaAdapter } from '../adapter';
 import type { FieldAdapter } from '../adapter/fields';
 import type { ValidationDataBasedOnType } from '../adapter/types';
 import type { Validator } from '../validators/utils';
+import type { StandardSchemaV1 } from '@standard-schema/spec';
 
 export class Schema<
   TType extends {
@@ -22,7 +23,9 @@ export class Schema<
     representation: any;
   },
   TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>
-> {
+> implements StandardSchemaV1<TType['input'], TType['output']>
+{
+  readonly '~standard': StandardSchemaV1.Props<TType['input'], TType['output']>;
   protected $$type = '$PSchema';
   protected fieldType = 'schema';
   // Those functions will assume control of the validation process on adapters, instead of the schema.

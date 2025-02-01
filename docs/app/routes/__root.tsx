@@ -18,6 +18,7 @@ export const Route = createRootRoute({
     </div>
   ),
   headers: () => ({
+    'Cross-Origin-Resource-Policy': 'cross-origin',
     'Cross-Origin-Embedder-Policy': 'require-corp',
     'Cross-Origin-Opener-Policy': 'same-origin'
   }),

@@ -4,12 +4,14 @@
   "description": "testing the server",
   "main": "manage.ts",
   "scripts": {
-    "test": "tsx manage.ts test",
+    "test": "tsx --experimental-vm-modules manage.ts test",
     "test:watch": "WATCH=true tsx manage.ts test"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "private": true,
+  "type": "module",
   "dependencies": {
     "@palmares/console-logging": "workspace:*",
     "@palmares/core": "workspace:*",
@@ -26,7 +28,10 @@
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.11",
     "@types/cors": "^2.8.17",
+    "@types/supertest": "^6.0.2",
     "eslint": "^9.9.1",
+    "supertest": "^7.0.0",
+    "ts-jest-mock-import-meta": "^1.2.0",
     "tsx": "^4.19.2",
     "typescript": "^5.5.4"
   }

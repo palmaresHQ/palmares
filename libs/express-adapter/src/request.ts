@@ -9,9 +9,6 @@ import { servers } from './server';
 import type { ToFormDataOptions } from './types';
 
 export const requestAdapter = serverRequestAdapter({
-  customToFormDataOptions<TType extends keyof ReturnType<typeof multer>>(args: ToFormDataOptions<TType>) {
-    return args;
-  },
   // eslint-disable-next-line ts/require-await
   toRaw: async (_, __, _serverRequestAndResponseData, _options) => {
     return undefined;

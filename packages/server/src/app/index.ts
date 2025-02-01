@@ -1,7 +1,6 @@
 import { appServer } from '@palmares/core';
 
-import { ServerAlreadyInitializedError } from './exceptions';
-import { initializeRouters } from './utils';
+import { loadServer } from './utils';
 import { getServerInstances } from '../config';
 import { DEFAULT_SERVER_PORT } from '../defaults';
 import { serverLogger } from '../logging';
@@ -20,7 +19,7 @@ import type { AllServerSettingsType } from '../types';
  * - `close`: Called when SIGINT is received.
  */
 export const httpAppServer = appServer({
-  load: async (args: {
+  load: (args: {
     settings: AllServerSettingsType;
     commandLineArgs: {
       keywordArgs: {
@@ -30,26 +29,7 @@ export const httpAppServer = appServer({
     };
     domains: ServerDomain[];
   }) => {
-    const serverEntries = Object.entries(args.settings.servers);
-    for (const [serverName, serverSettings] of serverEntries) {
-      const serverInstances = getServerInstances();
-      const serverWasNotInitialized = !serverInstances.has(serverName);
-      if (serverWasNotInitialized) {
-        const newServerInstance = new serverSettings.server(
-          serverName,
-          args.settings,
-          args.settings.servers[serverName],
-          args.domains
-        );
-        const loadedServer = await newServerInstance.load(serverName, args.domains, serverSettings);
-        serverInstances.set(serverName, {
-          server: newServerInstance,
-          settings: serverSettings,
-          loadedServer
-        });
-        await initializeRouters(loadedServer, args.domains, serverSettings, args.settings, newServerInstance);
-      } else throw new ServerAlreadyInitializedError();
-    }
+    return loadServer(args);
   },
   start: async (configureCleanup) => {
     const promises: Promise<void>[] = [];

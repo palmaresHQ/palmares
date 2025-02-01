@@ -16,17 +16,11 @@ export function serverRequestAdapter<
   TParamsFunction extends ServerRequestAdapter['params'],
   TQueryFunction extends ServerRequestAdapter['query'],
   TToJsonFunction extends ServerRequestAdapter['toJson'],
-  TCustomToJsonOptionsFunction extends (typeof ServerRequestAdapter)['customToJsonOptions'],
   TToFormDataFunction extends ServerRequestAdapter['toFormData'],
-  TCustomToFormDataOptionsFunction extends (typeof ServerRequestAdapter)['customToFormDataOptions'],
   TToArrayBufferFunction extends ServerRequestAdapter['toArrayBuffer'],
-  TCustomToArrayBufferOptionsFunction extends (typeof ServerRequestAdapter)['customToArrayBufferOptions'],
   TToBlobFunction extends ServerRequestAdapter['toBlob'],
-  TCustomToBlobOptionsFunction extends (typeof ServerRequestAdapter)['customToBlobOptions'],
   TToTextFunction extends ServerRequestAdapter['toText'],
-  TCustomToTextOptionsFunction extends (typeof ServerRequestAdapter)['customToTextOptions'],
-  TToRawFunction extends ServerRequestAdapter['toRaw'],
-  TCustomToRawOptionsFunction extends (typeof ServerRequestAdapter)['customToRawOptions']
+  TToRawFunction extends ServerRequestAdapter['toRaw']
 >(args: {
   /**
    * This should return the full concatenated url of the request, with domain and path.
@@ -444,20 +438,6 @@ export function serverRequestAdapter<
    * @returns - A promise that resolves to the parsed raw data.
    */
   toRaw: TToRawFunction;
-  customToRawOptions?: TCustomToRawOptionsFunction;
-  /**
-   * If you want to pass custom options to the `toFormData` method, you can override this method, the user
-   * will need to call this method so he can have intellisense on the options.
-   *
-   * You can totally ignore this method and just pass the options directly to the `toFormData` method.
-   *
-   * @param args - The arguments that you want to pass to the `toFormData` method.
-   */
-  customToFormDataOptions?: TCustomToFormDataOptionsFunction;
-  customToJsonOptions?: TCustomToJsonOptionsFunction;
-  customToArrayBufferOptions?: TCustomToArrayBufferOptionsFunction;
-  customToBlobOptions?: TCustomToBlobOptionsFunction;
-  customToTextOptions?: TCustomToTextOptionsFunction;
 }) {
   class CustomServerRequestAdapter extends ServerRequestAdapter {
     url = args.url;
@@ -467,33 +447,14 @@ export function serverRequestAdapter<
     query = args.query;
 
     toJson = args.toJson;
-    static customToJsonOptions = args.customToJsonOptions || ServerRequestAdapter.customToJsonOptions;
-
     toFormData = args.toFormData;
-    static customToFormDataOptions = args.customToFormDataOptions || ServerRequestAdapter.customToFormDataOptions;
-
     toArrayBuffer = args.toArrayBuffer;
-    static customToArrayBufferOptions =
-      args.customToArrayBufferOptions || ServerRequestAdapter.customToArrayBufferOptions;
-
     toBlob = args.toBlob;
-    static customToBlobOptions = args.customToBlobOptions || ServerRequestAdapter.customToBlobOptions;
-
     toText = args.toText;
-    static customToTextOptions = args.customToTextOptions || ServerRequestAdapter.customToTextOptions;
-
     toRaw = args.toRaw;
-    static customToRawOptions = args.customToRawOptions || ServerRequestAdapter.customToRawOptions;
   }
 
   return CustomServerRequestAdapter as {
-    customToFormDataOptions?: TCustomToFormDataOptionsFunction;
-    customToJsonOptions?: TCustomToJsonOptionsFunction;
-    customToArrayBufferOptions?: TCustomToArrayBufferOptionsFunction;
-    customToBlobOptions?: TCustomToBlobOptionsFunction;
-    customToTextOptions?: TCustomToTextOptionsFunction;
-    customToRawOptions?: TCustomToRawOptionsFunction;
-
     new (): ServerRequestAdapter & {
       url: TUrlMethodFunction;
       method: TMethodFunction;

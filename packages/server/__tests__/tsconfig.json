@@ -1,11 +1,12 @@
 {
   "extends": "../../../tsconfig.json",
   "compilerOptions": {
-    "declaration": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "outDir": "./dist",
-    "types": ["node"]
+    "declaration": false,
+    "types": ["node"],
+    "lib": ["DOM", "ES2020", "DOM.Iterable"]
   },
   "include": ["./src/**/*", "manage.drizzle.ts", "manage.sequelize.ts", "./src/core/types.test.ts"]
 }

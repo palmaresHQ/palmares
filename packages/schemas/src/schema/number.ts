@@ -11,23 +11,27 @@ import { is, nullable, optional } from '../validators/schema';
 
 import type { DefinitionsOfSchemaType } from './types';
 import type { SchemaAdapter } from '../adapter';
+import type { StandardSchemaV1 } from '@standard-schema/spec';
 
 export class NumberSchema<
-  TType extends {
-    input: any;
-    validate: any;
-    internal: any;
-    output: any;
-    representation: any;
-  } = {
-    input: number;
-    output: number;
-    validate: number;
-    internal: number;
-    representation: number;
-  },
-  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>
-> extends Schema<TType, TDefinitions> {
+    TType extends {
+      input: any;
+      validate: any;
+      internal: any;
+      output: any;
+      representation: any;
+    } = {
+      input: number;
+      output: number;
+      validate: number;
+      internal: number;
+      representation: number;
+    },
+    TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>
+  >
+  extends Schema<TType, TDefinitions>
+  implements StandardSchemaV1<TType['input'], TType['output']>
+{
   protected fieldType = 'number';
 
   protected __allowString!: boolean;

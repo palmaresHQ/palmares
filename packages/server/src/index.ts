@@ -24,5 +24,7 @@ export * as status from './response/status';
 export type { FormDataLike } from './request/types';
 export { Serverless } from './serverless';
 export { MethodsRouter, IncludesRouter, BaseRouter } from './router/routers';
+export { getAdapterServer } from './utils/store-server';
+export { loadServerWhenTesting } from './tests';
 
 export { serverDomain as default } from './domain';

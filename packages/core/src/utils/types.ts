@@ -4,7 +4,6 @@ export type NarrowRaw<T> =
   | (T extends [] ? [] : never)
   | (T extends Narrowable ? T : never)
   | {
-      // eslint-disable-next-line ts/ban-types
       [K in keyof T]: T[K] extends Function ? T[K] : NarrowRaw<T[K]>;
     };
 

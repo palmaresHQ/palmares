@@ -9,20 +9,14 @@ import { NodeStd } from '@palmares/node-std';
 import { SchemaDomain } from '@palmares/schemas';
 import { Response, ServerDomain } from '@palmares/server';
 import { ZodSchemaAdapter } from '@palmares/zod-schema';
+import TestsDomain from '@palmares/tests';
+import JestTestAdapter from '@palmares/jest-tests';
 
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
+import { fileURLToPath, pathToFileURL } from 'url';
+import { join, dirname, resolve } from 'path';
 
 import mainDomain from './core';
 
-// const database = new Database("db.sqlite3");
-// export const drizzle = drizzleBetterSqlite3(database, { schema: schema });
-// export const databaseEngine = DrizzleDatabaseAdapter.new({
-//   output: "./drizzle/schema.ts",
-//   type: "better-sqlite3",
-//   drizzle,
-// });
-//
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -78,6 +72,44 @@ export default defineSettings({
       SchemaDomain,
       {
         schemaAdapter: ZodSchemaAdapter
+      }
+    ],
+    [
+      TestsDomain,
+      {
+        testAdapter: JestTestAdapter.new({
+          config: {
+            extensionsToTreatAsEsm: ['.ts'],
+            transform: {
+              // '^.+\\.[tj]sx?$' to process ts,js,tsx,jsx with `ts-jest`
+              // '^.+\\.m?[tj]sx?$' to process ts,js,tsx,jsx,mts,mjs,mtsx,mjsx with `ts-jest`
+              '^.+\\.ts?$': [
+                'ts-jest',
+                {
+                  tsconfig: join(dirname(resolve(__dirname)), 'tsconfig.json'),
+                  useESM: true,
+                  diagnostics: {
+                    ignoreCodes: [1343]
+                  },
+                  astTransformers: {
+                    before: [
+                      {
+                        path: '../../node_modules/ts-jest-mock-import-meta',
+                        options: {
+                          metaObjectReplacement: {
+                            filename: __filename,
+                            dirname: __dirname,
+                            url: pathToFileURL(__filename)
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        })
       }
     ],
     [

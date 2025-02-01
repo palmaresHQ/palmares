@@ -9,11 +9,9 @@ export const typescript = {
     'error',
     {
       'ts-expect-error': false,
-      'ts-ignore': 'allow-with-description',
-    },
+      'ts-ignore': 'allow-with-description'
+    }
   ],
-  /** Bans problematic built-in types and suggests alternatives */
-  'ts/ban-types': 'error',
   /** Enforce import type { T } */
   'ts/consistent-type-imports': ['error', { prefer: 'type-imports' }],
   /** Shorthand method style is less strict */
@@ -28,9 +26,9 @@ export const typescript = {
       trailingUnderscore: 'forbid',
       custom: {
         regex: '^(T|T[A-Z][A-Za-z0-9]+)$',
-        match: true,
-      },
-    },
+        match: true
+      }
+    }
   ],
   /**  */
   'ts/no-explicit-any': 'off',
@@ -59,5 +57,5 @@ export const typescript = {
   /** Warn about async functions which have no await expression */
   'ts/require-await': 'warn',
   /** Prefer of ES6-style import declarations */
-  'ts/triple-slash-reference': 'error',
-}
+  'ts/triple-slash-reference': 'error'
+};

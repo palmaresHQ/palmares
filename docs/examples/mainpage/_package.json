@@ -7,9 +7,10 @@
   "scripts": {
     "makemigrations": "tsx manage.ts makemigrations",
     "migrate": "tsx manage.ts migrate",
-    "test": "tsx --experimental-vm-modules manage.test.ts test",
-    "curl": "tsx manage.ts curl",
-    "setup": "nodemon --exec 'npm run makemigrations && npm run migrate && npm run dev'",
+    "seed": "tsx manage.ts seed",
+    "test": "tsx --experimental-vm-modules manage.ts test",
+    "curl": "curl http://localhost:3000/users",
+    "setup": "npm run test",
     "dev": "tsx manage.ts runserver"
   },
   "dependencies": {
@@ -28,9 +29,10 @@
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9",
+    "@types/supertest": "^6.0.2",
     "@types/better-sqlite3": "^7.6.12",
     "ts-jest-mock-import-meta": "^1.2.1",
+    "supertest": "^7.0.0",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   }

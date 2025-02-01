@@ -9,13 +9,43 @@ import { usersRoute } from './server';
 import * as models from './database';
 import * as migrations from './migrations';
 
-import mainDomain from './core';
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export default domain('orders', __dirname, {
   getRoutes: async () => usersRoute,
   getModels: async () => [models.User, models.Company],
-  getMigrations: async () => migrations
+  getTests: () => [__dirname + '/tests.ts'],
+  getMigrations: async () => migrations,
+  commands: {
+    seed: {
+      description: 'Seed the database with some data. Used for testing.',
+      keywordArgs: undefined,
+      positionalArgs: undefined,
+      handler: async () => {
+        await models.Company.default.set((qs) =>
+          qs
+            .join(models.User, 'usersOfCompany', (qs) =>
+              qs.data(
+                {
+                  id: 1,
+                  firstName: 'Your mom',
+                  email: 'sobigitdoesntfit@example.com'
+                },
+                {
+                  id: 2,
+                  firstName: 'Your dad',
+                  email: 'missing@example.com'
+                }
+              )
+            )
+            .data({
+              id: 1,
+              name: 'Your family',
+              isActive: true
+            })
+        );
+      }
+    }
+  }
 });

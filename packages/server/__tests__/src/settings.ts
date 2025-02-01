@@ -6,10 +6,13 @@ import LoggingDomain from '@palmares/logging';
 import NodeStd from '@palmares/node-std';
 import ServerDomain, { Response, path } from '@palmares/server';
 import TestsDomain from '@palmares/tests';
-import cors from 'cors';
-import { dirname, resolve } from 'path';
+import { dirname, join, resolve } from 'path';
+import { fileURLToPath, pathToFileURL } from 'url';
 
 import CustomCoreDomain from './core';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 declare global {
   // eslint-disable-next-line ts/no-namespace
@@ -18,15 +21,6 @@ declare global {
   }
 }
 //import * as schema from '../.drizzle/schema';
-
-path('/test').get(
-  (request) => {
-    return Response.json({ message: 'test' });
-  },
-  {
-    customOptions: [cors()]
-  }
-);
 
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
@@ -49,7 +43,39 @@ export default defineSettings({
     [
       TestsDomain,
       {
-        testAdapter: JestTestAdapter
+        testAdapter: JestTestAdapter.new({
+          config: {
+            extensionsToTreatAsEsm: ['.ts'],
+            transform: {
+              // '^.+\\.[tj]sx?$' to process ts,js,tsx,jsx with `ts-jest`
+              // '^.+\\.m?[tj]sx?$' to process ts,js,tsx,jsx,mts,mjs,mtsx,mjsx with `ts-jest`
+              '^.+\\.ts?$': [
+                'ts-jest',
+                {
+                  tsconfig: join(dirname(resolve(__dirname)), 'tsconfig.json'),
+                  useESM: true,
+                  diagnostics: {
+                    ignoreCodes: [1343]
+                  },
+                  astTransformers: {
+                    before: [
+                      {
+                        path: 'node_modules/ts-jest-mock-import-meta',
+                        options: {
+                          metaObjectReplacement: {
+                            filename: __filename,
+                            dirname: __dirname,
+                            url: pathToFileURL(__filename)
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        })
       }
     ],
     [

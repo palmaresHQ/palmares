@@ -5,6 +5,7 @@ import {
   RedirectionStatusCodesMustHaveALocationHeaderError,
   ResponseNotReturnedFromResponseOnMiddlewareError
 } from './exceptions';
+import { getServerInstances } from '../config';
 import {
   DEFAULT_NOT_FOUND_STATUS_TEXT_MESSAGE,
   DEFAULT_RESPONSE_HEADERS_LOCATION_HEADER_KEY,
@@ -18,6 +19,7 @@ import { Response } from '../response';
 import { HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR, isRedirect } from '../response/status';
 import { AsyncGeneratorFunction, GeneratorFunction } from '../response/utils';
 import { path } from '../router';
+import { setServerAdapterInstance } from '../utils/store-server';
 
 import type { ServerAdapter } from '../adapters';
 import type { ServerRequestAdapter } from '../adapters/requests';
@@ -31,6 +33,41 @@ import type { BaseRouter, MethodsRouter } from '../router/routers';
 import type { HandlerType, MethodTypes, RouterOptionsType } from '../router/types';
 import type { AllServerSettingsType } from '../types';
 
+export async function loadServer(args: {
+  settings: AllServerSettingsType;
+  commandLineArgs: {
+    keywordArgs: {
+      port?: number;
+    };
+    positionalArgs: object;
+  };
+  domains: ServerDomain[];
+}) {
+  const serverEntries = Object.entries(args.settings.servers);
+  for (const [serverName, serverSettings] of serverEntries) {
+    const serverInstances = getServerInstances();
+    const serverWasNotInitialized = !serverInstances.has(serverName);
+    if (serverWasNotInitialized) {
+      const newServerInstance = new serverSettings.server(
+        serverName,
+        args.settings,
+        args.settings.servers[serverName],
+        args.domains
+      );
+      const loadedServer = await newServerInstance.load(serverName, args.domains, serverSettings);
+
+      if ((newServerInstance as ServerAdapter).$$type === '$PServerAdapter')
+        setServerAdapterInstance(serverSettings.server as typeof ServerAdapter, loadedServer);
+
+      serverInstances.set(serverName, {
+        server: newServerInstance,
+        settings: serverSettings,
+        loadedServer
+      });
+      await initializeRouters(loadedServer, args.domains, serverSettings, args.settings, newServerInstance);
+    }
+  }
+}
 /**
  * By default we don't know how to handle the routes by itself. Pretty much MethodsRouter does everything
  * that we need here during runtime. So we pretty much need to extract this data "for free".

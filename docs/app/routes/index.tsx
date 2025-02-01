@@ -1,13 +1,13 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
+import { Fragment, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/start';
-import { Fragment, lazy, useState } from 'react';
+
+import Code from '../../components/Code';
 
 import type { FileSystemTree } from '@webcontainer/api';
-
-const Code = lazy(() => import('../../components/Code'));
 
 type LibraryCode = { [key: string]: Record<string, string> };
 
@@ -115,7 +115,7 @@ async function getLibraryCodes(
       await getFiles(path, path, libraryCodes[library]);
     })
   );
-  for (const [library, values] of Object.entries(libraryCodes)) {
+  for (const values of Object.values(libraryCodes)) {
     const packageJsonOfLibrary = values.raw['package.json'];
     const packageJsonFormatted = JSON.parse(packageJsonOfLibrary);
     for (const type of ['dependencies', 'devDependencies', 'peerDependencies']) {
@@ -165,23 +165,27 @@ const getAllLibraryCodes = createServerFn({ method: 'GET' })
 
 export const Route = createFileRoute('/')({
   component: Home,
-  loader: async () =>
-    await getAllLibraryCodes({
+  loader: async () => ({
+    data: await getAllLibraryCodes({
       data: [['mainpage', './examples/mainpage']]
     })
+  })
 });
 
 function Home() {
   const [selectedCode, setSelectedCode] = useState<string>('src/core/database.ts');
-  const state = Route.useLoaderData();
-  const codeFiles = state?.['mainpage'];
-  const sidebarFiles = Object.keys(codeFiles?.raw || {}).filter(
-    (code) =>
-      code.endsWith('database.ts') ||
-      code.endsWith('schemas.ts') ||
-      code.endsWith('tests.ts') ||
-      code.endsWith('server.ts')
-  );
+  const { data } = Route.useLoaderData();
+
+  const codeFiles = (data as Awaited<ReturnType<typeof getLibraryCodes>>)['mainpage'];
+  const sidebarFiles = Object.keys(codeFiles?.raw || {})
+    .filter(
+      (code) =>
+        code.endsWith('database.ts') ||
+        code.endsWith('schemas.ts') ||
+        code.endsWith('tests.ts') ||
+        code.endsWith('server.ts')
+    )
+    .sort();
 
   return (
     <div className="flex flex-col bg-[#ffffff]">
@@ -252,54 +256,53 @@ function Home() {
           </span>
         </h1>
       </div>
-      {codeFiles ? (
-        <Code
-          height={840}
-          width={680}
-          text={codeFiles?.raw[selectedCode]}
-          extraDts={codeFiles?.raw}
-          libraries={state}
-          sidebarWidth={'9rem'}
-          commands={[
-            {
-              command: 'npm install',
-              tag: 'Install',
-              shouldExit: true
-            },
-            {
-              command: 'npm run dev',
-              tag: 'Server',
-              shouldExit: false
-            }
-          ]}
-          customSidebar={
-            <div className="flex flex-col w-36 h-[840px] from-tertiary-500 to-white bg-gradient-to-b p-2">
-              {sidebarFiles.map((code, index) => (
-                <Fragment key={code}>
-                  <button
-                    type={'button'}
-                    onClick={() => setSelectedCode(code)}
-                    className={`flex flex-row items-center justify-between p-2 w-full text-left ${selectedCode === code ? 'bg-tertiary-200' : 'bg-transparent'} font-light text-sm rounded-md`}
-                  >
-                    {code.replace('src/core/', '')}
-                    {selectedCode === code ? (
-                      <div className="flex flex-col w-[24px] max-h-[24px]">
-                        <svg className="w-full h-full" viewBox="0 0 50 50">
-                          <line className="stroke-primary-600" x1={35} y1={10} x2={40} y2={25} strokeWidth={2} />
-                          <line className="stroke-primary-600" x1={40} y1={25} x2={35} y2={40} strokeWidth={2} />
-                        </svg>
-                      </div>
-                    ) : null}
-                  </button>
-                  {index === sidebarFiles.length - 1 ? null : (
-                    <div className="h-[2px] w- bg-tertiary-300 mt-2 mb-2"></div>
-                  )}
-                </Fragment>
-              ))}
-            </div>
+      <Code
+        height={860}
+        width={680}
+        text={codeFiles?.raw[selectedCode]}
+        extraDts={codeFiles?.raw}
+        libraries={data as Awaited<ReturnType<typeof getLibraryCodes>>}
+        sidebarWidth={'9rem'}
+        commands={[
+          {
+            command: 'npm install',
+            tag: 'Dev Server',
+            shouldExit: true
+          },
+          {
+            command: 'npm run setup -w mainpage',
+            tag: 'Dev Server',
+            shouldExit: true
           }
-        />
-      ) : null}
+        ]}
+        customSidebar={
+          <div className="flex flex-col w-36 h-[860px] from-tertiary-500 to-white bg-gradient-to-b p-2">
+            {sidebarFiles.map((code, index) => (
+              <Fragment key={code}>
+                <button
+                  type={'button'}
+                  onClick={() => setSelectedCode(code)}
+                  className={`flex flex-row items-center justify-between p-2 w-full text-left ${selectedCode === code ? 'bg-tertiary-200' : 'bg-transparent'} font-light text-sm rounded-md`}
+                >
+                  {code.replace('src/core/', '')}
+                  {selectedCode === code ? (
+                    <div className="flex flex-col w-[24px] max-h-[24px]">
+                      <svg className="w-full h-full" viewBox="0 0 50 50">
+                        <line className="stroke-primary-600" x1={35} y1={10} x2={40} y2={25} strokeWidth={2} />
+                        <line className="stroke-primary-600" x1={40} y1={25} x2={35} y2={40} strokeWidth={2} />
+                      </svg>
+                    </div>
+                  ) : null}
+                </button>
+                {index === sidebarFiles.length - 1 ? null : (
+                  <div className="h-[2px] w- bg-tertiary-300 mt-2 mb-2"></div>
+                )}
+              </Fragment>
+            ))}
+          </div>
+        }
+      />
+      );
     </div>
   );
 }
