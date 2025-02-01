@@ -10,7 +10,7 @@
     "seed": "tsx manage.ts seed",
     "test": "tsx --experimental-vm-modules manage.ts test",
     "curl": "curl http://localhost:3000/users",
-    "setup": "npm run test",
+    "setup": "npm run makemigrations && npm run migrate && npm run seed && npm run test",
     "dev": "tsx manage.ts runserver"
   },
   "dependencies": {

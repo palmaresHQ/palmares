@@ -4,14 +4,13 @@ import { getAdapterServer, loadServerWhenTesting } from '@palmares/server';
 import { beforeAll, describe } from '@palmares/tests';
 import supertest from 'supertest';
 
-import type JestTestAdapter from '@palmares/jest-tests';
 import type { Http2Server } from 'http2';
 
 beforeAll(async () => {
   await loadServerWhenTesting({ port: 4000 });
 });
 
-describe<JestTestAdapter>('Basic server tests', ({ test }) => {
+describe('Basic server tests', ({ test }) => {
   test('test a basic request', async ({ expect }) => {
     const server = getAdapterServer(ExpressServerAdapter);
     const response = await supertest(server)
@@ -33,10 +32,3 @@ describe<JestTestAdapter>('Basic server tests', ({ test }) => {
     console.log(response.body);
   });
 });
-// import { describe } from '@palmares/tests';
-//
-// describe('My tests', ({ test }) => {
-//   test('My first test', ({ expect }) => {
-//     expect(1 + 1).toBe(2);
-//   });
-// });
