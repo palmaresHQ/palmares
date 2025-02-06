@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { domain } from '@palmares/core';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -50,4 +49,3 @@ export default domain('orders', __dirname, {
     }
   }
 });
-// @ts-nocheck

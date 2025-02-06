@@ -1,15 +1,15 @@
-// @ts-nocheck
-import { path, Response, middleware } from '@palmares/server';
+import { Response, middleware, path } from '@palmares/server';
 
 import { User } from './database';
 import { userSchema } from './schemas';
 
 const companyMiddleware = middleware({
+  // eslint-disable-next-line ts/require-await
   request: async (request) => {
     return request.clone({
       context: {
         company: {
-          id: 1
+          id: 123
         }
       }
     });
@@ -27,7 +27,7 @@ export const usersRoute = path('/users')
     return Response.json({ users });
   })
   .post(async (request) => {
-    const validationResp = await userSchema.validate((await request.json()) as any, {});
+    const validationResp = await userSchema.validate(await request.json(), {});
     if (!validationResp.isValid) {
       return Response.json(
         {

@@ -1,3 +1,4 @@
+import { RelationNameIsNotPartOfModelException } from './exceptions';
 import { parseSearchField } from './search';
 import { databaseLogger } from '../logging';
 import { retrieveInputAndOutputParsersFromFieldAndCache } from '../models/utils';
@@ -20,7 +21,6 @@ import type {
 } from '../models/fields';
 import type { BaseModel, Model, ModelType } from '../models/model';
 import type { ModelFields } from '../models/types';
-import { RelationNameIsNotPartOfModelException } from './exceptions';
 
 export type ModelsFields<TModel> = TModel extends ModelType<{ fields: infer TFields }, any> | { fields: infer TFields }
   ? TFields

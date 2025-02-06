@@ -42,7 +42,7 @@ export function getEditor(): NonNullable<typeof promise> {
 
   promise = new Promise((resolve, reject) => {
     try {
-      if (window.self && typeof window.self !== 'undefined') {
+      if (window?.self && typeof window.self !== 'undefined') {
         (
           Promise.all([
             import('@typescript/sandbox'),

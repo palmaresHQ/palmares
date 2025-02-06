@@ -6,7 +6,6 @@ import type { baseContractRoute, contractByIdRoute } from './routes';
 
 export const contractByIdController = pathNested<typeof contractByIdRoute>()().get(async (request) => {
   const contract = await getContractByIdAndProfileId(request.params.id, request.context.profile.id);
-
   if (!contract) return Response.text('', { status: 404 });
   return Response.json(contract);
 });

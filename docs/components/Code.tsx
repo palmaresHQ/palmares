@@ -1,11 +1,11 @@
 import '@xterm/xterm/css/xterm.css';
 
 import { useRef, useEffect, useId, useMemo, useState } from 'react';
-import type * as TMonaco from 'monaco-editor';
 import typescript from 'typescript';
 
 import { getEditor, monacoEditorRules, monacoEditorColors } from '../utils';
 
+import type * as TMonaco from 'monaco-editor';
 import type { FileSystemTree } from '@webcontainer/api';
 import type { Terminal } from '@xterm/xterm';
 
@@ -127,54 +127,87 @@ export default function Code(props: Props) {
         }
       };
       await args.webcontainerInstance.mount(formattedLibraries);
+      const commandOutput = terminalsRef.current['Dev Server'];
+      if (!commandOutput?.container) return;
 
-      for (const command of props.commands || []) {
-        const tag = command.tag || 'default';
-        const commandOutput = terminalsRef.current[tag];
-
-        if (!commandOutput?.container) continue;
-        if (!commandOutput.terminal) {
-          const terminal = new args.Terminal({
-            convertEol: true,
-            fontSize: 10,
-            fontFamily: 'monospace',
-            theme: {
-              foreground: '#EEEEEE',
-              background: 'rgba(0, 0, 0, 0.0)',
-              cursor: '#CFF5DB'
-            }
-          });
-
-          commandOutput.terminal = terminal;
-          const fitAddon = new args.FitAddon();
-          terminal.loadAddon(fitAddon);
-          terminal.open(commandOutput.container);
-          fitAddon.fit();
+      const terminal = new args.Terminal({
+        convertEol: true,
+        fontSize: 10,
+        fontFamily: 'monospace',
+        theme: {
+          foreground: '#EEEEEE',
+          background: 'rgba(0, 0, 0, 0.0)',
+          cursor: '#CFF5DB'
         }
+      });
 
-        const actualCommandToRun = command.command.split(' ');
-        const commandToRun = actualCommandToRun.shift() as string;
+      commandOutput.terminal = terminal;
+      const fitAddon = new args.FitAddon();
+      terminal.loadAddon(fitAddon);
+      terminal.open(commandOutput.container);
+      fitAddon.fit();
 
-        const process = await args.webcontainerInstance.spawn(commandToRun, actualCommandToRun);
-        if (command.show !== false)
-          process.output.pipeTo(
-            new WritableStream({
-              write(chunk) {
-                commandOutput.terminal?.write(chunk);
-              }
-            })
-          );
+      const shellProcess = await args.webcontainerInstance.spawn('jsh');
+      shellProcess.output.pipeTo(
+        new WritableStream({
+          write(data) {
+            terminal.write(data);
+          }
+        })
+      );
 
-        if (command.serverReady) {
-          args.webcontainerInstance.on('server-ready', (port, url) => {
-            if (command?.serverReady === undefined) return;
-            if (!commandOutput?.terminal) return;
-            command?.serverReady?.(url, port, commandOutput.terminal);
-          });
-        }
+      const input = shellProcess.input.getWriter();
 
-        if (command.shouldExit) await process.exit;
-      }
+      terminal.onData((data) => {
+        input.write(data);
+      });
+      // for (const command of props.commands || []) {
+      //   const tag = command.tag || 'default';
+      //   const commandOutput = terminalsRef.current[tag];
+      //
+      //   if (!commandOutput?.container) continue;
+      //   if (!commandOutput.terminal) {
+      //     const terminal = new args.Terminal({
+      //       convertEol: true,
+      //       fontSize: 10,
+      //       fontFamily: 'monospace',
+      //       theme: {
+      //         foreground: '#EEEEEE',
+      //         background: 'rgba(0, 0, 0, 0.0)',
+      //         cursor: '#CFF5DB'
+      //       }
+      //     });
+      //
+      //     commandOutput.terminal = terminal;
+      //     const fitAddon = new args.FitAddon();
+      //     terminal.loadAddon(fitAddon);
+      //     terminal.open(commandOutput.container);
+      //     fitAddon.fit();
+      //   }
+      //
+      //   const actualCommandToRun = command.command.split(' ');
+      //   const commandToRun = actualCommandToRun.shift() as string;
+      //
+      //   const process = await args.webcontainerInstance.spawn(commandToRun, actualCommandToRun);
+      //   if (command.show !== false)
+      //     process.output.pipeTo(
+      //       new WritableStream({
+      //         write(chunk) {
+      //           commandOutput.terminal?.write(chunk);
+      //         }
+      //       })
+      //     );
+      //
+      //   if (command.serverReady) {
+      //     args.webcontainerInstance.on('server-ready', (port, url) => {
+      //       if (command?.serverReady === undefined) return;
+      //       if (!commandOutput?.terminal) return;
+      //       command?.serverReady?.(url, port, commandOutput.terminal);
+      //     });
+      //   }
+      //
+      //   if (command.shouldExit) await process.exit;
+      // }
     }
   }
 
@@ -182,7 +215,7 @@ export default function Code(props: Props) {
     const shouldLoadMonaco =
       divEl.current && Object.keys(props.extraDts || {}).length > 0 && Object.keys(props.libraries || {}).length > 0;
 
-    if (shouldLoadMonaco) {
+    if (shouldLoadMonaco && typeof window !== 'undefined') {
       getEditor().then(
         ({
           sandbox,
@@ -209,12 +242,12 @@ export default function Code(props: Props) {
             colors: monacoEditorColors
           } satisfies import('monaco-editor').editor.IStandaloneThemeData;
           monaco.editor.defineTheme('default', themeData);
+
           sb.current = sandbox.createTypeScriptSandbox(sandboxConfig, monaco, typescript);
           sb.current.monaco.editor.setTheme('default');
           sb.current.editor.updateOptions({
             lineNumbers: 'off',
             automaticLayout: false,
-
             'semanticHighlighting.enabled': true,
             minimap: { enabled: false },
             overviewRulerLanes: 0,
@@ -232,9 +265,6 @@ export default function Code(props: Props) {
             });
           });
 
-          sb.current.editor.onDidChangeModelContent((e) => {
-            console.log(sb.current?.getModel());
-          });
           for (const [fileName, content] of Object.entries(props.extraDts || {})) {
             sb.current?.languageServiceDefaults.addExtraLib(content, `file:///${fileName}`);
           }

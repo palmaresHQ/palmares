@@ -157,7 +157,10 @@ const getAllLibraryCodes = createServerFn({ method: 'GET' })
         ['@palmares/events', '../packages/events']
       ]),
       ({ path, content }) => {
-        return { path: path.replace('_', ''), content: content.replace('// @ts-nocheck\n', '') };
+        return {
+          path: path.replace('_', ''),
+          content: content.startsWith('// @ts-nocheck\n') ? content.replace('// @ts-nocheck\n', '') : content
+        };
       }
     );
     return libraryCodes as any;
@@ -271,6 +274,11 @@ function Home() {
           },
           {
             command: 'npm run setup -w mainpage',
+            tag: 'Dev Server',
+            shouldExit: true
+          },
+          {
+            command: 'npm run test -w mainpage',
             tag: 'Dev Server',
             shouldExit: true
           }
