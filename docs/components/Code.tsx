@@ -85,131 +85,132 @@ export default function Code(props: Props) {
   );
   const [activeTag, setActiveTag] = useState<string>(terminalTags[0]);
 
-  async function initWebContainer(args: Awaited<ReturnType<typeof getEditor>>) {
-    if (typeof args.webcontainerInstance !== 'undefined') {
-      const formattedLibraries = Object.entries(props.libraries || {}).reduce((acc, [key, currentValue]) => {
-        if (acc['packages'] === undefined)
-          acc['packages'] = {
-            directory: {}
-          };
-        if (acc['apps'] === undefined)
-          acc['apps'] = {
-            directory: {}
-          };
-
-        if (key.startsWith('@palmares/')) {
-          const keyWithoutPalmares = key.replace('@palmares/', '');
-          (acc['packages'] as any)['directory'][keyWithoutPalmares] = {
-            directory: currentValue.formatted
-          };
-        } else {
-          (acc['apps'] as any)['directory'][key] = {
-            directory: currentValue.formatted
-          };
-        }
-
-        return acc;
-      }, {} as FileSystemTree);
-
-      formattedLibraries['package.json'] = {
-        file: {
-          contents: JSON.stringify(
-            {
-              name: 'palmares-app',
-              version: '0.0.0',
-              private: true,
-              type: 'module',
-              workspaces: ['apps/**/*', 'packages/**/*']
-            },
-            null,
-            2
-          )
-        }
-      };
-      await args.webcontainerInstance.mount(formattedLibraries);
-      const commandOutput = terminalsRef.current['Dev Server'];
-      if (!commandOutput?.container) return;
-
-      const terminal = new args.Terminal({
-        convertEol: true,
-        fontSize: 10,
-        fontFamily: 'monospace',
-        theme: {
-          foreground: '#EEEEEE',
-          background: 'rgba(0, 0, 0, 0.0)',
-          cursor: '#CFF5DB'
-        }
-      });
-
-      commandOutput.terminal = terminal;
-      const fitAddon = new args.FitAddon();
-      terminal.loadAddon(fitAddon);
-      terminal.open(commandOutput.container);
-      fitAddon.fit();
-
-      const shellProcess = await args.webcontainerInstance.spawn('jsh');
-      shellProcess.output.pipeTo(
-        new WritableStream({
-          write(data) {
-            terminal.write(data);
-          }
-        })
-      );
-
-      const input = shellProcess.input.getWriter();
-
-      terminal.onData((data) => {
-        input.write(data);
-      });
-      // for (const command of props.commands || []) {
-      //   const tag = command.tag || 'default';
-      //   const commandOutput = terminalsRef.current[tag];
-      //
-      //   if (!commandOutput?.container) continue;
-      //   if (!commandOutput.terminal) {
-      //     const terminal = new args.Terminal({
-      //       convertEol: true,
-      //       fontSize: 10,
-      //       fontFamily: 'monospace',
-      //       theme: {
-      //         foreground: '#EEEEEE',
-      //         background: 'rgba(0, 0, 0, 0.0)',
-      //         cursor: '#CFF5DB'
-      //       }
-      //     });
-      //
-      //     commandOutput.terminal = terminal;
-      //     const fitAddon = new args.FitAddon();
-      //     terminal.loadAddon(fitAddon);
-      //     terminal.open(commandOutput.container);
-      //     fitAddon.fit();
-      //   }
-      //
-      //   const actualCommandToRun = command.command.split(' ');
-      //   const commandToRun = actualCommandToRun.shift() as string;
-      //
-      //   const process = await args.webcontainerInstance.spawn(commandToRun, actualCommandToRun);
-      //   if (command.show !== false)
-      //     process.output.pipeTo(
-      //       new WritableStream({
-      //         write(chunk) {
-      //           commandOutput.terminal?.write(chunk);
-      //         }
-      //       })
-      //     );
-      //
-      //   if (command.serverReady) {
-      //     args.webcontainerInstance.on('server-ready', (port, url) => {
-      //       if (command?.serverReady === undefined) return;
-      //       if (!commandOutput?.terminal) return;
-      //       command?.serverReady?.(url, port, commandOutput.terminal);
-      //     });
-      //   }
-      //
-      //   if (command.shouldExit) await process.exit;
-      // }
-    }
-  }
+  //
+  // async function initWebContainer(args: Awaited<ReturnType<typeof getEditor>>) {
+  //   if (typeof args.webcontainerInstance !== 'undefined') {
+  //     const formattedLibraries = Object.entries(props.libraries || {}).reduce((acc, [key, currentValue]) => {
+  //       if (acc['packages'] === undefined)
+  //         acc['packages'] = {
+  //           directory: {}
+  //         };
+  //       if (acc['apps'] === undefined)
+  //         acc['apps'] = {
+  //           directory: {}
+  //         };
+  //
+  //       if (key.startsWith('@palmares/')) {
+  //         const keyWithoutPalmares = key.replace('@palmares/', '');
+  //         (acc['packages'] as any)['directory'][keyWithoutPalmares] = {
+  //           directory: currentValue.formatted
+  //         };
+  //       } else {
+  //         (acc['apps'] as any)['directory'][key] = {
+  //           directory: currentValue.formatted
+  //         };
+  //       }
+  //
+  //       return acc;
+  //     }, {} as FileSystemTree);
+  //
+  //     formattedLibraries['package.json'] = {
+  //       file: {
+  //         contents: JSON.stringify(
+  //           {
+  //             name: 'palmares-app',
+  //             version: '0.0.0',
+  //             private: true,
+  //             type: 'module',
+  //             workspaces: ['apps/**/*', 'packages/**/*']
+  //           },
+  //           null,
+  //           2
+  //         )
+  //       }
+  //     };
+  //     await args.webcontainerInstance.mount(formattedLibraries);
+  //     const commandOutput = terminalsRef.current['Dev Server'];
+  //     if (!commandOutput?.container) return;
+  //
+  //     const terminal = new args.Terminal({
+  //       convertEol: true,
+  //       fontSize: 10,
+  //       fontFamily: 'monospace',
+  //       theme: {
+  //         foreground: '#EEEEEE',
+  //         background: 'rgba(0, 0, 0, 0.0)',
+  //         cursor: '#CFF5DB'
+  //       }
+  //     });
+  //
+  //     commandOutput.terminal = terminal;
+  //     const fitAddon = new args.FitAddon();
+  //     terminal.loadAddon(fitAddon);
+  //     terminal.open(commandOutput.container);
+  //     fitAddon.fit();
+  //
+  //     const shellProcess = await args.webcontainerInstance.spawn('jsh');
+  //     shellProcess.output.pipeTo(
+  //       new WritableStream({
+  //         write(data) {
+  //           terminal.write(data);
+  //         }
+  //       })
+  //     );
+  //
+  //     const input = shellProcess.input.getWriter();
+  //
+  //     terminal.onData((data) => {
+  //       input.write(data);
+  //     });
+  // for (const command of props.commands || []) {
+  //   const tag = command.tag || 'default';
+  //   const commandOutput = terminalsRef.current[tag];
+  //
+  //   if (!commandOutput?.container) continue;
+  //   if (!commandOutput.terminal) {
+  //     const terminal = new args.Terminal({
+  //       convertEol: true,
+  //       fontSize: 10,
+  //       fontFamily: 'monospace',
+  //       theme: {
+  //         foreground: '#EEEEEE',
+  //         background: 'rgba(0, 0, 0, 0.0)',
+  //         cursor: '#CFF5DB'
+  //       }
+  //     });
+  //
+  //     commandOutput.terminal = terminal;
+  //     const fitAddon = new args.FitAddon();
+  //     terminal.loadAddon(fitAddon);
+  //     terminal.open(commandOutput.container);
+  //     fitAddon.fit();
+  //   }
+  //
+  //   const actualCommandToRun = command.command.split(' ');
+  //   const commandToRun = actualCommandToRun.shift() as string;
+  //
+  //   const process = await args.webcontainerInstance.spawn(commandToRun, actualCommandToRun);
+  //   if (command.show !== false)
+  //     process.output.pipeTo(
+  //       new WritableStream({
+  //         write(chunk) {
+  //           commandOutput.terminal?.write(chunk);
+  //         }
+  //       })
+  //     );
+  //
+  //   if (command.serverReady) {
+  //     args.webcontainerInstance.on('server-ready', (port, url) => {
+  //       if (command?.serverReady === undefined) return;
+  //       if (!commandOutput?.terminal) return;
+  //       command?.serverReady?.(url, port, commandOutput.terminal);
+  //     });
+  //   }
+  //
+  //   if (command.shouldExit) await process.exit;
+  // }
+  //   }
+  // }
 
   useEffect(() => {
     const shouldLoadMonaco =
@@ -231,7 +232,6 @@ export default function Code(props: Props) {
         }) => {
           const sandboxConfig = {
             text: props.text,
-            compilerOptions: {},
             domID: id,
             acquireTypes: false
           } satisfies Parameters<Awaited<ReturnType<typeof getEditor>>['sandbox']['createTypeScriptSandbox']>[0];
@@ -244,6 +244,7 @@ export default function Code(props: Props) {
           monaco.editor.defineTheme('default', themeData);
 
           sb.current = sandbox.createTypeScriptSandbox(sandboxConfig, monaco, typescript);
+
           sb.current.monaco.editor.setTheme('default');
           sb.current.editor.updateOptions({
             lineNumbers: 'off',
@@ -269,18 +270,18 @@ export default function Code(props: Props) {
             sb.current?.languageServiceDefaults.addExtraLib(content, `file:///${fileName}`);
           }
 
-          initWebContainer({
-            sandbox,
-            monaco,
-            editorWorker,
-            jsonWorker,
-            cssWorker,
-            htmlWorker,
-            tsWorker,
-            Terminal,
-            FitAddon,
-            webcontainerInstance
-          });
+          // initWebContainer({
+          //   sandbox,
+          //   monaco,
+          //   editorWorker,
+          //   jsonWorker,
+          //   cssWorker,
+          //   htmlWorker,
+          //   tsWorker,
+          //   Terminal,
+          //   FitAddon,
+          //   webcontainerInstance
+          // });
         }
       );
     }

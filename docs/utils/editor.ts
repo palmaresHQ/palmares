@@ -1,3 +1,31 @@
+import * as monaco from 'monaco-editor';
+// import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
+// import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
+// import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
+// import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
+// import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
+//
+// if (typeof window !== 'undefined' && window && window.self && typeof window.self !== 'undefined') {
+//   // @ts-ignore
+//   window.self.MonacoEnvironment = {
+//     getWorker(_: any, label: string) {
+//       if (label === 'json') {
+//         return new jsonWorker();
+//       }
+//       if (label === 'css' || label === 'scss' || label === 'less') {
+//         return new cssWorker();
+//       }
+//       if (label === 'html' || label === 'handlebars' || label === 'razor') {
+//         return new htmlWorker();
+//       }
+//       if (label === 'typescript' || label === 'javascript') {
+//         return new tsWorker();
+//       }
+//       return new editorWorker();
+//     }
+//   };
+// }
+
 let promise:
   | undefined
   | Promise<{
@@ -21,7 +49,7 @@ function initialSetupEditor(args: {
   tsWorker: typeof import('monaco-editor/esm/vs/language/typescript/ts.worker?worker');
   monaco: typeof import('monaco-editor');
 }) {
-  if (window.self && typeof window.self !== 'undefined') {
+  if (typeof window !== 'undefined' && window.self && typeof window.self !== 'undefined') {
     window.self.MonacoEnvironment = {
       getWorker(_: any, label: string) {
         if (label === 'json') return new args.jsonWorker.default();
@@ -91,23 +119,35 @@ export function getEditor(): NonNullable<typeof promise> {
               monaco
             });
 
-            webcontainer
-              .boot({ coep: 'require-corp' })
-              .then((webcontainerInstance) => {
-                resolve({
-                  monaco,
-                  sandbox,
-                  editorWorker,
-                  jsonWorker,
-                  cssWorker,
-                  htmlWorker,
-                  tsWorker,
-                  Terminal,
-                  FitAddon,
-                  webcontainerInstance
-                });
-              })
-              .catch(reject);
+            resolve({
+              monaco,
+              sandbox,
+              editorWorker,
+              jsonWorker,
+              cssWorker,
+              htmlWorker,
+              tsWorker,
+              Terminal,
+              FitAddon,
+              webcontainerInstance: undefined as unknown as any
+            });
+            // webcontainer
+            //   .boot({ coep: 'require-corp' })
+            //   .then((webcontainerInstance) => {
+            //     resolve({
+            //       monaco,
+            //       sandbox,
+            //       editorWorker,
+            //       jsonWorker,
+            //       cssWorker,
+            //       htmlWorker,
+            //       tsWorker,
+            //       Terminal,
+            //       FitAddon,
+            //       webcontainerInstance
+            //     });
+            //   })
+            //   .catch(reject);
           })
           .catch(reject);
       }

@@ -1,7 +1,7 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
-import { Fragment, useState } from 'react';
+import { Fragment, Suspense, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { createServerFn } from '@tanstack/start';
 
@@ -141,20 +141,20 @@ const getAllLibraryCodes = createServerFn({ method: 'GET' })
   .handler(async (ctx) => {
     const libraryCodes = await getLibraryCodes(
       (ctx.data || []).concat([
-        ['@palmares/console-logging', '../libs/console-logging'],
-        ['@palmares/drizzle-engine', '../libs/drizzle-engine'],
-        ['@palmares/express-adapter', '../libs/express-adapter'],
-        ['@palmares/jest-tests', '../libs/jest-tests'],
-        ['@palmares/node-std', '../libs/node-std'],
-        ['@palmares/sequelize-engine', '../libs/sequelize-engine'],
-        ['@palmares/zod-schema', '../libs/zod-schema'],
-        ['@palmares/core', '../packages/core'],
-        ['@palmares/databases', '../packages/databases'],
-        ['@palmares/schemas', '../packages/schemas'],
-        ['@palmares/server', '../packages/server'],
-        ['@palmares/tests', '../packages/tests'],
-        ['@palmares/logging', '../packages/logging'],
-        ['@palmares/events', '../packages/events']
+        // ['@palmares/console-logging', '../libs/console-logging'],
+        // ['@palmares/drizzle-engine', '../libs/drizzle-engine'],
+        // ['@palmares/express-adapter', '../libs/express-adapter'],
+        // ['@palmares/jest-tests', '../libs/jest-tests'],
+        // ['@palmares/node-std', '../libs/node-std'],
+        // ['@palmares/sequelize-engine', '../libs/sequelize-engine'],
+        // ['@palmares/zod-schema', '../libs/zod-schema'],
+        // ['@palmares/core', '../packages/core'],
+        // ['@palmares/databases', '../packages/databases'],
+        // ['@palmares/schemas', '../packages/schemas'],
+        // ['@palmares/server', '../packages/server'],
+        // ['@palmares/tests', '../packages/tests'],
+        // ['@palmares/logging', '../packages/logging'],
+        // ['@palmares/events', '../packages/events']
       ]),
       ({ path, content }) => {
         return {
@@ -259,57 +259,59 @@ function Home() {
           </span>
         </h1>
       </div>
-      <Code
-        height={860}
-        width={680}
-        text={codeFiles?.raw[selectedCode]}
-        extraDts={codeFiles?.raw}
-        libraries={data as Awaited<ReturnType<typeof getLibraryCodes>>}
-        sidebarWidth={'9rem'}
-        commands={[
-          {
-            command: 'npm install',
-            tag: 'Dev Server',
-            shouldExit: true
-          },
-          {
-            command: 'npm run setup -w mainpage',
-            tag: 'Dev Server',
-            shouldExit: true
-          },
-          {
-            command: 'npm run test -w mainpage',
-            tag: 'Dev Server',
-            shouldExit: true
+      <Suspense fallback={<div>Loading...</div>}>
+        <Code
+          height={860}
+          width={680}
+          text={codeFiles?.raw[selectedCode]}
+          extraDts={codeFiles?.raw}
+          libraries={data as Awaited<ReturnType<typeof getLibraryCodes>>}
+          sidebarWidth={'9rem'}
+          commands={[
+            {
+              command: 'npm install',
+              tag: 'Dev Server',
+              shouldExit: true
+            },
+            {
+              command: 'npm run setup -w mainpage',
+              tag: 'Dev Server',
+              shouldExit: true
+            },
+            {
+              command: 'npm run test -w mainpage',
+              tag: 'Dev Server',
+              shouldExit: true
+            }
+          ]}
+          customSidebar={
+            <div className="flex flex-col w-36 h-[860px] from-tertiary-500 to-white bg-gradient-to-b p-2">
+              {sidebarFiles.map((code, index) => (
+                <Fragment key={code}>
+                  <button
+                    type={'button'}
+                    onClick={() => setSelectedCode(code)}
+                    className={`flex flex-row items-center justify-between p-2 w-full text-left ${selectedCode === code ? 'bg-tertiary-200' : 'bg-transparent'} font-light text-sm rounded-md`}
+                  >
+                    {code.replace('src/core/', '')}
+                    {selectedCode === code ? (
+                      <div className="flex flex-col w-[24px] max-h-[24px]">
+                        <svg className="w-full h-full" viewBox="0 0 50 50">
+                          <line className="stroke-primary-600" x1={35} y1={10} x2={40} y2={25} strokeWidth={2} />
+                          <line className="stroke-primary-600" x1={40} y1={25} x2={35} y2={40} strokeWidth={2} />
+                        </svg>
+                      </div>
+                    ) : null}
+                  </button>
+                  {index === sidebarFiles.length - 1 ? null : (
+                    <div className="h-[2px] w- bg-tertiary-300 mt-2 mb-2"></div>
+                  )}
+                </Fragment>
+              ))}
+            </div>
           }
-        ]}
-        customSidebar={
-          <div className="flex flex-col w-36 h-[860px] from-tertiary-500 to-white bg-gradient-to-b p-2">
-            {sidebarFiles.map((code, index) => (
-              <Fragment key={code}>
-                <button
-                  type={'button'}
-                  onClick={() => setSelectedCode(code)}
-                  className={`flex flex-row items-center justify-between p-2 w-full text-left ${selectedCode === code ? 'bg-tertiary-200' : 'bg-transparent'} font-light text-sm rounded-md`}
-                >
-                  {code.replace('src/core/', '')}
-                  {selectedCode === code ? (
-                    <div className="flex flex-col w-[24px] max-h-[24px]">
-                      <svg className="w-full h-full" viewBox="0 0 50 50">
-                        <line className="stroke-primary-600" x1={35} y1={10} x2={40} y2={25} strokeWidth={2} />
-                        <line className="stroke-primary-600" x1={40} y1={25} x2={35} y2={40} strokeWidth={2} />
-                      </svg>
-                    </div>
-                  ) : null}
-                </button>
-                {index === sidebarFiles.length - 1 ? null : (
-                  <div className="h-[2px] w- bg-tertiary-300 mt-2 mb-2"></div>
-                )}
-              </Fragment>
-            ))}
-          </div>
-        }
-      />
+        />
+      </Suspense>
       );
     </div>
   );
