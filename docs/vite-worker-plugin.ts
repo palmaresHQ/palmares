@@ -1,3 +1,4 @@
+// Reference: https://claude.ai/chat/f25964d1-f9b5-4e2b-bfe6-52b15dae5e3b
 import type { Plugin } from 'vite';
 
 export function monacoWorkerPlugin(): Plugin {
