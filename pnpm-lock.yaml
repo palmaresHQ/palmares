@@ -123,9 +123,15 @@ importers:
       '@mdx-js/react':
         specifier: ^3.1.0
         version: 3.1.0(@types/react@18.3.12)(react@18.3.1)
+      '@tanstack/react-query':
+        specifier: ^5.59.20
+        version: 5.59.20(react@18.3.1)
       '@tanstack/react-router':
         specifier: ^1.87.0
         version: 1.87.0(@tanstack/router-generator@1.86.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@tanstack/react-router-with-query':
+        specifier: ^1.101.2
+        version: 1.101.2(@tanstack/react-query@5.59.20(react@18.3.1))(@tanstack/react-router@1.87.0(@tanstack/router-generator@1.86.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/start':
         specifier: ^1.87.0
         version: 1.87.0(@electric-sql/pglite@0.2.12)(@libsql/client@0.10.0)(@planetscale/database@1.19.0)(@types/node@22.10.5)(better-sqlite3@11.2.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.12)(@libsql/client@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.2.1)(mysql2@3.11.4)(react@18.3.1))(encoding@0.1.13)(ioredis@5.4.1)(jiti@2.4.1)(mysql2@3.11.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(terser@5.36.0)(tsx@4.19.2)(typescript@5.5.4)(vite@5.4.10(@types/node@22.10.5)(terser@5.36.0))(yaml@2.4.3)
@@ -4979,6 +4985,15 @@ packages:
     resolution: {integrity: sha512-Zly0egsK0tFdfSbh5/mapSa+Zfc3Et0Zkar7Wo5sQkFzWyB3p3uZWOHR2wrlAEEV2L953eLuDBtbgFvMYiLvUw==}
     peerDependencies:
       react: ^18 || ^19
+
+  '@tanstack/react-router-with-query@1.101.2':
+    resolution: {integrity: sha512-2I9nUZ1VXCZSUHDMgkBAzDI+cI3q4PZhlkqnMcGWDekmALjKQQxS9aAuRdNcblI41mboN9tepa1rlH5rT7tMnA==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      '@tanstack/react-query': '>=5.49.2'
+      '@tanstack/react-router': '>=1.43.2'
+      react: '>=18.0.0 || >=19.0.0'
+      react-dom: '>=18.0.0 || >=19.0.0'
 
   '@tanstack/react-router@1.87.0':
     resolution: {integrity: sha512-F3UtSr7OOsjxQEzZIj+VBo2nxWyxqqGgNQKC0h3EK303YiB1Zzvs/W0BewTnzTSxd6fwctwCvNmzsVhF0Gb4zQ==}
@@ -17444,6 +17459,13 @@ snapshots:
     dependencies:
       '@tanstack/query-core': 5.59.20
       react: 18.3.1
+
+  '@tanstack/react-router-with-query@1.101.2(@tanstack/react-query@5.59.20(react@18.3.1))(@tanstack/react-router@1.87.0(@tanstack/router-generator@1.86.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@tanstack/react-query': 5.59.20(react@18.3.1)
+      '@tanstack/react-router': 1.87.0(@tanstack/router-generator@1.86.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   '@tanstack/react-router@1.87.0(@tanstack/router-generator@1.86.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:

@@ -1,9 +1,10 @@
-import { Outlet, ScrollRestoration, createRootRoute } from '@tanstack/react-router';
+import { Outlet, ScrollRestoration, createRootRoute, createRootRouteWithContext } from '@tanstack/react-router';
 import { Meta, Scripts } from '@tanstack/start';
 import type { ReactNode } from 'react';
 import appCss from '../styles/app.css?url';
+import { QueryClient } from '@tanstack/react-query';
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   notFoundComponent: () => (
     <div className="flex flex-col items-center justify-center h-[100vh] w-full">
       <div className="flex flex-col w-full items-center justify-center mt-12 mb-12">

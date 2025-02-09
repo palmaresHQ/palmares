@@ -5,10 +5,13 @@ import typescript from 'typescript';
 
 import { getEditor, monacoEditorRules, monacoEditorColors } from '../utils';
 
+import { useServerFn } from '@tanstack/start';
+import { useQuery } from '@tanstack/react-query';
+import { getAllLibraryCodes } from '../server/get-code';
+
 import type * as TMonaco from 'monaco-editor';
 import type { FileSystemTree } from '@webcontainer/api';
 import type { Terminal } from '@xterm/xterm';
-
 type LibraryCode = { [key: string]: Record<string, string> };
 
 type Props = {
@@ -40,6 +43,13 @@ export default function Code(props: Props) {
   const sb = useRef<ReturnType<Awaited<ReturnType<typeof getEditor>>['sandbox']['createTypeScriptSandbox']> | null>(
     null
   );
+  const getLibraryCodeFn = useServerFn(getAllLibraryCodes);
+  const { data: libraryCode } = useQuery({
+    queryKey: ['libraryCode'],
+    queryFn: () => getLibraryCodeFn()
+  });
+
+  console.log(Object.keys(libraryCode || {}));
   const divEl = useRef<HTMLDivElement>(null);
   const editor = useRef<TMonaco.editor.IStandaloneCodeEditor | null>(null);
   const terminalTags = useMemo<string[]>(() => {
