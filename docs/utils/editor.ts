@@ -1,30 +1,30 @@
-import * as monaco from 'monaco-editor';
-// import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
-// import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
-// import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
-// import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
-// import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
-//
-// if (typeof window !== 'undefined' && window && window.self && typeof window.self !== 'undefined') {
-//   // @ts-ignore
-//   window.self.MonacoEnvironment = {
-//     getWorker(_: any, label: string) {
-//       if (label === 'json') {
-//         return new jsonWorker();
-//       }
-//       if (label === 'css' || label === 'scss' || label === 'less') {
-//         return new cssWorker();
-//       }
-//       if (label === 'html' || label === 'handlebars' || label === 'razor') {
-//         return new htmlWorker();
-//       }
-//       if (label === 'typescript' || label === 'javascript') {
-//         return new tsWorker();
-//       }
-//       return new editorWorker();
-//     }
-//   };
-// }
+import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
+import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
+import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
+import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
+import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
+import { isChromium } from './is-chromium';
+
+if (typeof window !== 'undefined' && window && window.self && typeof window.self !== 'undefined') {
+  // @ts-ignore
+  window.self.MonacoEnvironment = {
+    getWorker(_: any, label: string) {
+      if (label === 'json') {
+        return new jsonWorker();
+      }
+      if (label === 'css' || label === 'scss' || label === 'less') {
+        return new cssWorker();
+      }
+      if (label === 'html' || label === 'handlebars' || label === 'razor') {
+        return new htmlWorker();
+      }
+      if (label === 'typescript' || label === 'javascript') {
+        return new tsWorker();
+      }
+      return new editorWorker();
+    }
+  };
+}
 
 let promise:
   | undefined
@@ -36,7 +36,7 @@ let promise:
       cssWorker: typeof import('monaco-editor/esm/vs/language/css/css.worker?worker');
       htmlWorker: typeof import('monaco-editor/esm/vs/language/html/html.worker?worker');
       tsWorker: typeof import('monaco-editor/esm/vs/language/typescript/ts.worker?worker');
-      webcontainerInstance: Awaited<ReturnType<(typeof import('@webcontainer/api'))['WebContainer']['boot']>>;
+      webcontainerInstance?: Awaited<ReturnType<(typeof import('@webcontainer/api'))['WebContainer']['boot']>>;
       Terminal: (typeof import('@xterm/xterm'))['Terminal'];
       FitAddon: (typeof import('@xterm/addon-fit'))['FitAddon'];
     }> = undefined;
@@ -119,6 +119,26 @@ export function getEditor(): NonNullable<typeof promise> {
               monaco
             });
 
+            if (isChromium()) {
+              return webcontainer
+                .boot({ coep: 'require-corp' })
+                .then((webcontainerInstance) => {
+                  resolve({
+                    monaco,
+                    sandbox,
+                    editorWorker,
+                    jsonWorker,
+                    cssWorker,
+                    htmlWorker,
+                    tsWorker,
+                    Terminal,
+                    FitAddon,
+                    webcontainerInstance
+                  });
+                })
+                .catch(reject);
+            }
+
             resolve({
               monaco,
               sandbox,
@@ -129,25 +149,8 @@ export function getEditor(): NonNullable<typeof promise> {
               tsWorker,
               Terminal,
               FitAddon,
-              webcontainerInstance: undefined as unknown as any
+              webcontainerInstance: undefined
             });
-            // webcontainer
-            //   .boot({ coep: 'require-corp' })
-            //   .then((webcontainerInstance) => {
-            //     resolve({
-            //       monaco,
-            //       sandbox,
-            //       editorWorker,
-            //       jsonWorker,
-            //       cssWorker,
-            //       htmlWorker,
-            //       tsWorker,
-            //       Terminal,
-            //       FitAddon,
-            //       webcontainerInstance
-            //     });
-            //   })
-            //   .catch(reject);
           })
           .catch(reject);
       }

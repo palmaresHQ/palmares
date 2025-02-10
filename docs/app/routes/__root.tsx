@@ -1,10 +1,17 @@
-import { Outlet, ScrollRestoration, createRootRoute, createRootRouteWithContext } from '@tanstack/react-router';
-import { Meta, Scripts } from '@tanstack/start';
+import { Outlet, ScrollRestoration, createRootRoute } from '@tanstack/react-router';
+import { createServerFn, Meta, Scripts } from '@tanstack/start';
 import type { ReactNode } from 'react';
 import appCss from '../styles/app.css?url';
-import { QueryClient } from '@tanstack/react-query';
+import { isChromium } from '../../utils/is-chromium';
+import { getHeaders } from 'vinxi/http';
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+const getIfIsChromium = createServerFn({ method: 'GET' }).handler(async () => {
+  return {
+    data: isChromium(getHeaders())
+  };
+});
+
+export const Route = createRootRoute({
   notFoundComponent: () => (
     <div className="flex flex-col items-center justify-center h-[100vh] w-full">
       <div className="flex flex-col w-full items-center justify-center mt-12 mb-12">
@@ -18,10 +25,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       </div>
     </div>
   ),
-  headers: () => ({
-    'Cross-Origin-Embedder-Policy': 'require-corp',
-    'Cross-Origin-Opener-Policy': 'same-origin'
-  }),
+  loader: async () => {
+    return {
+      data: await getIfIsChromium()
+    };
+  },
+  headers: (ctx) => {
+    if (ctx?.loaderData?.data?.data === false) return {};
+    return {
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Opener-Policy': 'same-origin'
+    } as any;
+  },
   head: () => ({
     links: [{ rel: 'stylesheet', href: appCss }],
     meta: [

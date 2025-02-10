@@ -7,16 +7,20 @@ import type { GetLibraryCodesFn } from '../../server/get-code';
 
 export const Route = createFileRoute('/')({
   component: Home,
-  loader: async () => ({
-    data: await getExamples({
-      data: [['mainpage', './examples/mainpage']]
-    })
-  })
+  loader: async () => {
+    return {
+      data: await getExamples({
+        data: [['mainpage', './examples/mainpage']]
+      })
+    };
+  }
 });
 
 function Home() {
   const [selectedCode, setSelectedCode] = useState<string>('src/core/database.ts');
-  const { data } = Route.useLoaderData();
+  const {
+    data: { data, isChromium }
+  } = Route.useLoaderData();
 
   const codeFiles = (data as Awaited<ReturnType<GetLibraryCodesFn>>)['mainpage'];
   const sidebarFiles = Object.keys(codeFiles?.raw || {})
@@ -98,60 +102,58 @@ function Home() {
           </span>
         </h1>
       </div>
-      <Suspense fallback={<div>Loading...</div>}>
-        <Code
-          height={860}
-          width={680}
-          text={codeFiles?.raw[selectedCode]}
-          extraDts={codeFiles?.raw}
-          libraries={data as Awaited<ReturnType<typeof getLibraryCodes>>}
-          sidebarWidth={'9rem'}
-          commands={[
-            {
-              command: 'npm install',
-              tag: 'Dev Server',
-              shouldExit: true
-            },
-            {
-              command: 'npm run setup -w mainpage',
-              tag: 'Dev Server',
-              shouldExit: true
-            },
-            {
-              command: 'npm run test -w mainpage',
-              tag: 'Dev Server',
-              shouldExit: true
-            }
-          ]}
-          customSidebar={
-            <div className="flex flex-col w-36 h-[860px] from-tertiary-500 to-white bg-gradient-to-b p-2">
-              {sidebarFiles.map((code, index) => (
-                <Fragment key={code}>
-                  <button
-                    type={'button'}
-                    onClick={() => setSelectedCode(code)}
-                    className={`flex flex-row items-center justify-between p-2 w-full text-left ${selectedCode === code ? 'bg-tertiary-200' : 'bg-transparent'} font-light text-sm rounded-md`}
-                  >
-                    {code.replace('src/core/', '')}
-                    {selectedCode === code ? (
-                      <div className="flex flex-col w-[24px] max-h-[24px]">
-                        <svg className="w-full h-full" viewBox="0 0 50 50">
-                          <line className="stroke-primary-600" x1={35} y1={10} x2={40} y2={25} strokeWidth={2} />
-                          <line className="stroke-primary-600" x1={40} y1={25} x2={35} y2={40} strokeWidth={2} />
-                        </svg>
-                      </div>
-                    ) : null}
-                  </button>
-                  {index === sidebarFiles.length - 1 ? null : (
-                    <div className="h-[2px] w- bg-tertiary-300 mt-2 mb-2"></div>
-                  )}
-                </Fragment>
-              ))}
-            </div>
+      <Code
+        height={860}
+        width={680}
+        isChromium={isChromium}
+        text={codeFiles?.raw[selectedCode]}
+        extraDts={codeFiles?.raw}
+        libraries={data as Awaited<ReturnType<GetLibraryCodesFn>>}
+        sidebarWidth={'9rem'}
+        commands={[
+          {
+            command: 'npm install',
+            tag: 'Dev Server',
+            shouldExit: true
+          },
+          {
+            command: 'npm run setup -w mainpage',
+            tag: 'Dev Server',
+            shouldExit: true
+          },
+          {
+            command: 'npm run test -w mainpage',
+            tag: 'Dev Server',
+            shouldExit: true
           }
-        />
-      </Suspense>
-      );
+        ]}
+        customSidebar={
+          <div className="flex flex-col w-36 h-[860px] from-tertiary-500 to-white bg-gradient-to-b p-2">
+            {sidebarFiles.map((code, index) => (
+              <Fragment key={code}>
+                <button
+                  type={'button'}
+                  onClick={() => setSelectedCode(code)}
+                  className={`flex flex-row items-center justify-between p-2 w-full text-left ${selectedCode === code ? 'bg-tertiary-200' : 'bg-transparent'} font-light text-sm rounded-md`}
+                >
+                  {code.replace('src/core/', '')}
+                  {selectedCode === code ? (
+                    <div className="flex flex-col w-[24px] max-h-[24px]">
+                      <svg className="w-full h-full" viewBox="0 0 50 50">
+                        <line className="stroke-primary-600" x1={35} y1={10} x2={40} y2={25} strokeWidth={2} />
+                        <line className="stroke-primary-600" x1={40} y1={25} x2={35} y2={40} strokeWidth={2} />
+                      </svg>
+                    </div>
+                  ) : null}
+                </button>
+                {index === sidebarFiles.length - 1 ? null : (
+                  <div className="h-[2px] w- bg-tertiary-300 mt-2 mb-2"></div>
+                )}
+              </Fragment>
+            ))}
+          </div>
+        }
+      />
     </div>
   );
 }

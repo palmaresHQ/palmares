@@ -2,8 +2,10 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
 import { createServerFn } from '@tanstack/start';
+import { getHeaders } from 'vinxi/http';
 
 import type { FileSystemTree } from '@webcontainer/api';
+import { isChromium } from '../utils/is-chromium';
 
 type LibraryCode = { [key: string]: Record<string, string> };
 
@@ -174,5 +176,8 @@ export const getExamples = createServerFn({ method: 'GET' })
         content: content.startsWith('// @ts-nocheck\n') ? content.replace('// @ts-nocheck\n', '') : content
       };
     });
-    return libraryCodes as any;
+    return {
+      isChromium: isChromium(getHeaders()),
+      data: libraryCodes
+    } as any;
   });
