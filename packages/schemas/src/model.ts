@@ -6,8 +6,12 @@ import { ObjectSchema } from './schema/object';
 import { string } from './schema/string';
 import { union } from './schema/union';
 
+import type { DatetimeSchema } from './schema/datetime';
+import type { NumberSchema } from './schema/number';
 import type { Schema } from './schema/schema';
+import type { StringSchema } from './schema/string';
 import type { DefinitionsOfSchemaType, ExtractTypeFromObjectOfSchemas } from './schema/types';
+import type { UnionSchema } from './schema/union';
 import type {
   CharField,
   DateField,
@@ -15,6 +19,7 @@ import type {
   EnumField,
   Field,
   ForeignKeyField,
+  InferModel,
   InternalModelClass_DoNotUse,
   Model,
   ModelFields,
@@ -42,7 +47,13 @@ async function getSchemaFromModelField(
   }
 ) {
   const fieldAsAny = field as any;
-  let schema: Schema<any, any> | undefined = undefined;
+  let schema:
+    | Schema<any, any>
+    | NumberSchema<any, any>
+    | StringSchema<any, any>
+    | DatetimeSchema<any, any>
+    | UnionSchema<any, any, any>
+    | undefined = undefined;
   if (options?.fieldParsersByType?.[field['__typeName']]) {
     schema = options.fieldParsersByType[field['__typeName']](field);
   } else if (fieldAsAny?.['$$type'] === '$PAutoField' || fieldAsAny?.['$$type'] === '$PBigAutoField')
@@ -60,7 +71,7 @@ async function getSchemaFromModelField(
   ) {
     schema = string();
     if (((field as TextField)['__allowBlank'] as boolean) === false)
-      schema = (schema as ReturnType<typeof string>).minLength(1);
+      schema = (schema as unknown as ReturnType<typeof string>).minLength(1);
     if (fieldAsAny?.['$$type'] === '$PCharField' && typeof (field as CharField)['__maxLength'] === 'number')
       schema = (schema as ReturnType<typeof string>).maxLength((field as CharField)['__maxLength']);
     if (fieldAsAny?.['$$type'] === '$PUuidField') {
@@ -245,13 +256,19 @@ export function modelSchema<
   const TShow extends readonly (keyof ModelFields<InstanceType<TModel>>)[] | undefined[] = undefined[],
   TMany extends boolean = false,
   TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> | undefined = undefined,
-  TAllModelFields = ModelFields<InstanceType<TModel>>,
+  TAllModelFieldsRead = InferModel<InstanceType<TModel>, 'read'>,
+  TAllModelFieldsCreate = InferModel<InstanceType<TModel>, 'create'>,
   TDefinitionsOfSchemaType extends DefinitionsOfSchemaType = DefinitionsOfSchemaType,
-  TFieldsOnModel = TOmit extends undefined[]
+  TFieldsOnModelRead = TOmit extends undefined[]
     ? TShow extends undefined[]
-      ? TAllModelFields
-      : Pick<TAllModelFields, TShow[number] extends keyof TAllModelFields ? TShow[number] : never>
-    : Omit<TAllModelFields, TOmit[number] extends keyof TAllModelFields ? TOmit[number] : never>,
+      ? TAllModelFieldsRead
+      : Pick<TAllModelFieldsRead, TShow[number] extends keyof TAllModelFieldsRead ? TShow[number] : never>
+    : Omit<TAllModelFieldsRead, TOmit[number] extends keyof TAllModelFieldsRead ? TOmit[number] : never>,
+  TFieldsOnModelCreateOrUpdate = TOmit extends undefined[]
+    ? TShow extends undefined[]
+      ? TAllModelFieldsCreate
+      : Pick<TAllModelFieldsCreate, TShow[number] extends keyof TAllModelFieldsCreate ? TShow[number] : never>
+    : Omit<TAllModelFieldsCreate, TOmit[number] extends keyof TAllModelFieldsCreate ? TOmit[number] : never>,
   TReturnType extends {
     input: any;
     output: any;
@@ -260,9 +277,9 @@ export function modelSchema<
     representation: any;
   } = {
     input: TFields extends undefined
-      ? TFieldsOnModel
+      ? TFieldsOnModelCreateOrUpdate
       : Omit<
-          TFieldsOnModel,
+          TFieldsOnModelCreateOrUpdate,
           keyof ExtractTypeFromObjectOfSchemas<
             // eslint-disable-next-line ts/ban-types
             TFields extends undefined ? {} : TFields,
@@ -275,9 +292,9 @@ export function modelSchema<
             'input'
           >;
     output: TFields extends undefined
-      ? TFieldsOnModel
+      ? TFieldsOnModelRead
       : Omit<
-          TFieldsOnModel,
+          TFieldsOnModelRead,
           keyof ExtractTypeFromObjectOfSchemas<
             // eslint-disable-next-line ts/ban-types
             TFields extends undefined ? {} : TFields,
@@ -290,9 +307,9 @@ export function modelSchema<
             'output'
           >;
     internal: TFields extends undefined
-      ? TFieldsOnModel
+      ? TFieldsOnModelCreateOrUpdate
       : Omit<
-          TFieldsOnModel,
+          TFieldsOnModelCreateOrUpdate,
           keyof ExtractTypeFromObjectOfSchemas<
             // eslint-disable-next-line ts/ban-types
             TFields extends undefined ? {} : TFields,
@@ -305,9 +322,9 @@ export function modelSchema<
             'internal'
           >;
     representation: TFields extends undefined
-      ? TFieldsOnModel
+      ? TFieldsOnModelRead
       : Omit<
-          TFieldsOnModel,
+          TFieldsOnModelRead,
           keyof ExtractTypeFromObjectOfSchemas<
             // eslint-disable-next-line ts/ban-types
             TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
@@ -320,9 +337,9 @@ export function modelSchema<
             'representation'
           >;
     validate: TFields extends undefined
-      ? TFieldsOnModel
+      ? TFieldsOnModelCreateOrUpdate
       : Omit<
-          TFieldsOnModel,
+          TFieldsOnModelCreateOrUpdate,
           keyof ExtractTypeFromObjectOfSchemas<
             // eslint-disable-next-line ts/ban-types
             TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
@@ -382,9 +399,9 @@ export function modelSchema<
       Record<any, any>
     > {
   const lazyModelSchema = ObjectSchema.new({} as any) as ObjectSchema<any, any, any> & {
-    __runBeforeParseAndData: Required<Schema<any, any>['__runBeforeParseAndData']>;
+    __runBeforeParseAndData: NonNullable<Schema<any, any>['__runBeforeParseAndData']>;
   };
-  const parentSchema = options?.many === true ? ArraySchema.new([lazyModelSchema]) : (lazyModelSchema as any);
+  const parentSchema = options?.many === true ? ArraySchema.new([lazyModelSchema as any]) : (lazyModelSchema as any);
   const omitRelationAsSet = new Set(options?.omitRelation || []);
   const omitAsSet = new Set(options?.omit || []);
   const showAsSet = new Set(options?.show || []);

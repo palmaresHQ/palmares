@@ -9,21 +9,27 @@ import { servers } from './server';
 import type { ToFormDataOptions } from './types';
 
 export const requestAdapter = serverRequestAdapter({
-  customToFormDataOptions<TType extends keyof ReturnType<typeof multer>>(args: ToFormDataOptions<TType>) {
-    return args;
-  },
   // eslint-disable-next-line ts/require-await
-  toRaw: async (_server, _serverRequestAndResponseData, _options) => {
+  toRaw: async (_, __, _serverRequestAndResponseData, _options) => {
     return undefined;
   },
-  toArrayBuffer: async (server, serverRequestAndResponseData: { req: Request; res: Response }) => {
+  toArrayBuffer: async (
+    server,
+    _,
+    serverRequestAndResponseData: { req: Request; res: Response },
+    options: Parameters<typeof express.raw>[0] = {}
+  ) => {
     const serverInstanceAndSettings = servers.get(server.serverName);
     const { req, res } = serverRequestAndResponseData;
 
     return new Promise((resolve) => {
       let rawBodyParser = serverInstanceAndSettings?.bodyRawParser;
       if (serverInstanceAndSettings && !serverInstanceAndSettings.bodyRawParser) {
-        const rawBodyParserSettings = serverInstanceAndSettings.settings.customServerSettings?.bodyRawOptions;
+        const rawBodyParserSettings = {
+          ...(serverInstanceAndSettings.settings.customServerSettings?.bodyRawOptions || {}),
+          // eslint-disable-next-line ts/no-unnecessary-condition
+          ...(options || {})
+        };
 
         serverInstanceAndSettings.bodyRawParser = express.raw(rawBodyParserSettings);
         rawBodyParser = serverInstanceAndSettings.bodyRawParser;
@@ -35,14 +41,23 @@ export const requestAdapter = serverRequestAdapter({
       });
     });
   },
-  toBlob: async (server, serverRequestAndResponseData: { req: Request }) => {
+  toBlob: async (
+    server,
+    _,
+    serverRequestAndResponseData: { req: Request },
+    options: Parameters<typeof express.raw>[0] = {}
+  ) => {
     const serverInstanceAndSettings = servers.get(server.serverName);
     const { req, res } = serverRequestAndResponseData as { req: Request; res: Response };
 
     return new Promise((resolve) => {
       let rawBodyParser = serverInstanceAndSettings?.bodyRawParser;
       if (serverInstanceAndSettings && !serverInstanceAndSettings.bodyRawParser) {
-        const rawBodyParserSettings = serverInstanceAndSettings.settings.customServerSettings?.bodyRawOptions;
+        const rawBodyParserSettings = {
+          ...(serverInstanceAndSettings.settings.customServerSettings?.bodyRawOptions || {}),
+          // eslint-disable-next-line ts/no-unnecessary-condition
+          ...(options || {})
+        };
 
         serverInstanceAndSettings.bodyRawParser = express.raw(rawBodyParserSettings);
         rawBodyParser = serverInstanceAndSettings.bodyRawParser;
@@ -54,13 +69,22 @@ export const requestAdapter = serverRequestAdapter({
       });
     });
   },
-  toJson: async (server, serverRequestAndResponseData: { req: Request }) => {
+  toJson: async (
+    server,
+    _,
+    serverRequestAndResponseData: { req: Request },
+    options: Parameters<typeof express.json>[0] = {}
+  ) => {
     const serverInstanceAndSettings = servers.get(server.serverName);
     const { req, res } = serverRequestAndResponseData as { req: Request; res: Response };
     return new Promise((resolve) => {
       let jsonParser = serverInstanceAndSettings?.jsonParser;
       if (serverInstanceAndSettings && !serverInstanceAndSettings.jsonParser) {
-        const jsonParserSettings = serverInstanceAndSettings.settings.customServerSettings?.jsonOptions;
+        const jsonParserSettings = {
+          ...(serverInstanceAndSettings.settings.customServerSettings?.jsonOptions || {}),
+          // eslint-disable-next-line ts/no-unnecessary-condition
+          ...(options || {})
+        };
 
         serverInstanceAndSettings.jsonParser = express.json(jsonParserSettings);
         jsonParser = serverInstanceAndSettings.jsonParser;
@@ -81,6 +105,7 @@ export const requestAdapter = serverRequestAdapter({
    */
   toFormData: async (
     server,
+    _serverInstance,
     serverRequestAndResponseData: { req: Request; res: Response },
     formDataConstructor,
     isUrlEncoded,
@@ -158,7 +183,7 @@ export const requestAdapter = serverRequestAdapter({
                 for (const file of req.files) {
                   if (file.fieldname === name)
                     files.push({
-                      value: new File([file.buffer], file.originalname, { type: file.mimetype }),
+                      value: new File([file.buffer as any], file.originalname, { type: file.mimetype }),
                       filename: file.originalname
                     });
                 }
@@ -170,7 +195,7 @@ export const requestAdapter = serverRequestAdapter({
                 for (const file of files) {
                   if (file.fieldname === name)
                     filesArray.push({
-                      value: new File([file.buffer], file.originalname, { type: file.mimetype }),
+                      value: new File([file.buffer as any], file.originalname, { type: file.mimetype }),
                       filename: file.originalname
                     });
                 }
@@ -182,7 +207,7 @@ export const requestAdapter = serverRequestAdapter({
               if (req.file.fieldname === name)
                 return [
                   {
-                    value: new File([req.file.buffer], req.file.originalname, { type: req.file.mimetype }),
+                    value: new File([req.file.buffer as any], req.file.originalname, { type: req.file.mimetype }),
                     filename: req.file.originalname
                   }
                 ];
@@ -194,14 +219,23 @@ export const requestAdapter = serverRequestAdapter({
       });
     });
   },
-  toText: async (server, serverRequestAndResponseData: { req: Request; res: Response }) => {
+  toText: async (
+    server,
+    _,
+    serverRequestAndResponseData: { req: Request; res: Response },
+    options: Parameters<typeof express.text>[0] = {}
+  ) => {
     const serverInstanceAndSettings = servers.get(server.serverName);
     const { req, res } = serverRequestAndResponseData;
 
     return new Promise((resolve) => {
       let textParser = serverInstanceAndSettings?.textParser;
       if (serverInstanceAndSettings && !serverInstanceAndSettings.textParser) {
-        const textParserSettings = serverInstanceAndSettings.settings.customServerSettings?.textOptions;
+        const textParserSettings = {
+          ...(serverInstanceAndSettings.settings.customServerSettings?.textOptions || {}),
+          // eslint-disable-next-line ts/no-unnecessary-condition
+          ...(options || {})
+        };
 
         serverInstanceAndSettings.textParser = express.text(textParserSettings);
         textParser = serverInstanceAndSettings.textParser;
@@ -213,19 +247,33 @@ export const requestAdapter = serverRequestAdapter({
       });
     });
   },
-  headers: (_, serverRequestAndResponseData, key) => {
+  headers: (_, __, serverRequestAndResponseData: { req: Request; res: Response }, key) => {
     const lowerCasedKey = key.toLowerCase();
+    const serverRequestAndResponseDataWithCachedHeaders = serverRequestAndResponseData as {
+      req: Request;
+      res: Response;
+      headers?: Record<string, string | undefined>;
+    };
     const { req } = serverRequestAndResponseData as { req: Request; headers?: Record<string, string> };
 
     // eslint-disable-next-line ts/no-unnecessary-condition
     if (!req.headers) return undefined;
-    if (serverRequestAndResponseData.headers && serverRequestAndResponseData.headers[lowerCasedKey])
-      return serverRequestAndResponseData.headers[lowerCasedKey];
-    if (!serverRequestAndResponseData.headers) serverRequestAndResponseData.headers = {};
-    serverRequestAndResponseData.headers[lowerCasedKey] = req.headers[lowerCasedKey];
-    return serverRequestAndResponseData.headers[lowerCasedKey];
+    if (
+      serverRequestAndResponseDataWithCachedHeaders.headers &&
+      serverRequestAndResponseDataWithCachedHeaders.headers[lowerCasedKey]
+    )
+      return serverRequestAndResponseDataWithCachedHeaders.headers[lowerCasedKey];
+    if (!serverRequestAndResponseDataWithCachedHeaders.headers)
+      serverRequestAndResponseDataWithCachedHeaders.headers = {};
+    serverRequestAndResponseDataWithCachedHeaders.headers[lowerCasedKey] =
+      req.headers[lowerCasedKey] === 'string'
+        ? req.headers[lowerCasedKey]
+        : Array.isArray(req.headers[lowerCasedKey])
+          ? req.headers[lowerCasedKey].join(',')
+          : undefined;
+    return serverRequestAndResponseDataWithCachedHeaders.headers[lowerCasedKey];
   },
-  params: (_server, serverRequestAndResponseData, key) => {
+  params: (_, __, serverRequestAndResponseData, key) => {
     const { req } = serverRequestAndResponseData as { req: Request; params?: Record<string, any> };
 
     // eslint-disable-next-line ts/no-unnecessary-condition
@@ -236,7 +284,7 @@ export const requestAdapter = serverRequestAdapter({
     serverRequestAndResponseData.params[key] = req.params[key];
     return serverRequestAndResponseData.params[key];
   },
-  query: (_server, serverRequestAndResponseData, key) => {
+  query: (_, __, serverRequestAndResponseData, key) => {
     const { req } = serverRequestAndResponseData as { req: Request; query?: Record<string, any> };
 
     // eslint-disable-next-line ts/no-unnecessary-condition
@@ -247,11 +295,11 @@ export const requestAdapter = serverRequestAdapter({
     serverRequestAndResponseData.query[key] = req.query[key];
     return serverRequestAndResponseData.query[key];
   },
-  method: (_server, serverRequestAndResponseData) => {
+  method: (_, __, serverRequestAndResponseData) => {
     const { req } = serverRequestAndResponseData as { req: Request };
     return req.method;
   },
-  url: (_server, serverRequestAndResponseData) => {
+  url: (_, __, serverRequestAndResponseData) => {
     const { req } = serverRequestAndResponseData as { req: Request };
     return req.url;
   }

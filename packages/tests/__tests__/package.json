@@ -3,8 +3,9 @@
   "version": "0.0.1",
   "description": "testing the tests",
   "main": "manage.ts",
+  "type": "module",
   "scripts": {
-    "test": "tsx manage.ts test",
+    "test": "tsx --experimental-vm-modules manage.ts test",
     "test:watch": "WATCH=true tsx manage.ts test"
   },
   "keywords": [],
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "tsx": "^4.19.2",
+    "ts-jest-mock-import-meta": "^1.2.0",
     "typescript": "^5.5.4"
   }
 }

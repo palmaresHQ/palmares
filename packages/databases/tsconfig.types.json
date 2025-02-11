@@ -2,6 +2,8 @@
   "extends": "../../build/tsconfig.types.json",
   "compilerOptions": {
     "declaration": true, /* Generate d.ts files */
+    "emitDeclarationOnly": true,
+    "module": "system",
     "rootDir": "./src",
     "outDir": "./dist/src",
     "types": ["node"]

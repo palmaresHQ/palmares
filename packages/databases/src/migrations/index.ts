@@ -1,4 +1,4 @@
-import { ERR_MODULE_NOT_FOUND, std } from '@palmares/core';
+import { ERR_MODULE_NOT_FOUND, FileOrDirectoryDoesNotExistError, std } from '@palmares/core';
 
 import { MakeMigrations } from './makemigrations';
 import { Migrate } from './migrate';
@@ -76,48 +76,52 @@ export class Migrations {
           });
         }
       } else {
-        const fullPath = await std.files.join(domain.path, 'migrations');
         try {
-          const directoryFiles = await std.files.readDirectory(fullPath);
-          const promises = directoryFiles.map(async (element) => {
-            const file = element;
-            const pathOfMigration = await std.files.join(fullPath, file);
-            const pathToGetMigration = std.files.getPathToFileURL(pathOfMigration);
+          const fullPath = await std.files.join(domain.path, 'migrations');
+          try {
+            const directoryFiles = await std.files.readDirectory(fullPath);
+            const promises = directoryFiles.map(async (element) => {
+              const file = element;
+              const pathOfMigration = await std.files.join(fullPath, file);
+              const pathToGetMigration = std.files.getPathToFileURL(pathOfMigration);
 
-            const migrationFile = (
-              await import(
-                (await std.os.platform()) === 'windows' && pathOfMigration.startsWith('file:') === false
-                  ? `file:/${pathToGetMigration}`
-                  : pathToGetMigration
-              )
-            ).default as MigrationFileType;
-            const isAValidMigrationFile =
-              typeof migrationFile === 'object' &&
-              // eslint-disable-next-line ts/no-unnecessary-condition
-              migrationFile !== undefined &&
-              typeof migrationFile.database === 'string' &&
-              Array.isArray(migrationFile.operations) &&
-              typeof migrationFile.name === 'string';
-            if (isAValidMigrationFile) {
-              foundMigrations.push({
-                domainName: domain.name,
-                domainPath: domain.path,
-                migration: migrationFile
-              });
+              const migrationFile = (
+                await import(
+                  (await std.os.platform()) === 'windows' && pathOfMigration.startsWith('file:') === false
+                    ? `file:/${pathToGetMigration}`
+                    : pathToGetMigration
+                )
+              ).default as MigrationFileType;
+              const isAValidMigrationFile =
+                typeof migrationFile === 'object' &&
+                // eslint-disable-next-line ts/no-unnecessary-condition
+                migrationFile !== undefined &&
+                typeof migrationFile.database === 'string' &&
+                Array.isArray(migrationFile.operations) &&
+                typeof migrationFile.name === 'string';
+              if (isAValidMigrationFile) {
+                foundMigrations.push({
+                  domainName: domain.name,
+                  domainPath: domain.path,
+                  migration: migrationFile
+                });
+              }
+            });
+            await Promise.all(promises);
+          } catch (e) {
+            const error: any = e;
+            const couldNotFindFileOrDirectory = error.message.startsWith('ENOENT: no such file or directory, scandir');
+            if (error.code === ERR_MODULE_NOT_FOUND || couldNotFindFileOrDirectory) {
+              if (this.settings.dismissNoMigrationsLog !== false)
+                databaseLogger.logMessage('MIGRATIONS_NOT_FOUND', {
+                  domainName: domain.name
+                });
+            } else {
+              throw e;
             }
-          });
-          await Promise.all(promises);
-        } catch (e) {
-          const error: any = e;
-          const couldNotFindFileOrDirectory = error.message.startsWith('ENOENT: no such file or directory, scandir');
-          if (error.code === ERR_MODULE_NOT_FOUND || couldNotFindFileOrDirectory) {
-            if (this.settings.dismissNoMigrationsLog !== false)
-              databaseLogger.logMessage('MIGRATIONS_NOT_FOUND', {
-                domainName: domain.name
-              });
-          } else {
-            throw e;
           }
+        } catch (e) {
+          if (e instanceof FileOrDirectoryDoesNotExistError) return;
         }
       }
     });

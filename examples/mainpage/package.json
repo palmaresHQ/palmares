@@ -1,0 +1,46 @@
+{
+  "name": "mainpage",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "src",
+    "manage.ts",
+    "_tsconfig.json"
+  ],
+  "scripts": {
+    "makemigrations": "tsx manage.ts makemigrations",
+    "migrate": "tsx manage.ts migrate",
+    "seed": "tsx manage.ts seed",
+    "test": "tsx --experimental-vm-modules manage.ts test",
+    "curl": "curl http://localhost:3000/users",
+    "setup": "npm run makemigrations && npm run migrate && npm run seed && npm run test",
+    "dev": "tsx manage.ts runserver"
+  },
+  "dependencies": {
+    "@palmares/console-logging": "workspace:*",
+    "@palmares/core": "workspace:*",
+    "@palmares/databases": "workspace:*",
+    "@palmares/express-adapter": "workspace:*",
+    "@palmares/jest-tests": "workspace:*",
+    "@palmares/logging": "workspace:*",
+    "@palmares/node-std": "workspace:*",
+    "@palmares/schemas": "workspace:*",
+    "@palmares/sequelize-engine": "workspace:*",
+    "@palmares/server": "workspace:*",
+    "@palmares/tests": "workspace:*",
+    "@palmares/zod-schema": "workspace:*",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.14.0",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/supertest": "^6.0.2",
+    "eslint": "^9.19.0",
+    "supertest": "^7.0.0",
+    "ts-jest-mock-import-meta": "^1.2.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.23.0"
+  }
+}

@@ -1,12 +1,17 @@
 export { ServerAdapter, serverAdapter } from './adapters';
 export { ServerRequestAdapter, serverRequestAdapter } from './adapters/requests';
 export { ServerResponseAdapter, serverResponseAdapter } from './adapters/response';
-export { ServerRouterAdapter, serverRouterAdapter } from './adapters/routers';
-export { ServerlessRouterAdapter, serverlessRouterAdapter } from './adapters/routers/serverless';
+export { ServerRouterAdapter, serverRouterAdapter, type ParseHandlersServer } from './adapters/routers';
+export {
+  ServerlessRouterAdapter,
+  serverlessRouterAdapter,
+  type ParseHandlerServerless
+} from './adapters/routers/serverless';
 export { ServerlessAdapter, serverlessAdapter } from './adapters/serverless';
 
 export * from './types';
 export { path, pathNested } from './router';
+export { type MethodTypes } from './router/types';
 export { Middleware, middleware, nestedMiddleware, requestMiddleware } from './middleware';
 export { Response } from './response';
 export { FileLike } from './response/utils';
@@ -19,5 +24,7 @@ export * as status from './response/status';
 export type { FormDataLike } from './request/types';
 export { Serverless } from './serverless';
 export { MethodsRouter, IncludesRouter, BaseRouter } from './router/routers';
+export { getAdapterServer } from './utils/store-server';
+export { loadServerWhenTesting } from './tests';
 
 export { serverDomain as default } from './domain';

@@ -111,7 +111,8 @@ export class Migrate {
         let returnOfInit: any = undefined;
         if (engineInstance.migrations.init) returnOfInit = await engineInstance.migrations.init(engineInstance);
         const currentState = await State.buildState(filteredMigrationsOfDatabase);
-        const initializedModelsByName = await currentState.geInitializedModelsByName(engineInstance);
+        console.log('running');
+        const initializedModelsByName = await currentState.getInitializedModelsByName(engineInstance);
         const formattedModelsByName: { [modelName: string]: any } = {};
 
         for (const [modelName, model] of Object.entries(initializedModelsByName.initializedModels))
@@ -130,9 +131,13 @@ export class Migrate {
           databaseLogger.logMessage('MIGRATIONS_RUNNING_FILE_NAME', {
             title: migrationName
           });
-          connectionsToClose = connectionsToClose.concat(
-            await Migration.buildFromFile(engineInstance, migrationFile, allMigrationsOfDatabase)
+          const connectionToClose = await Migration.buildFromFile(
+            engineInstance,
+            migrationFile,
+            allMigrationsOfDatabase
           );
+
+          connectionsToClose = connectionsToClose.concat(connectionToClose);
         }
         await this.saveMigration(migrationName, engineInstance.connectionName);
       }

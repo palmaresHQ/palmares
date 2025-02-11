@@ -1,17 +1,22 @@
 import { getSettings, initializeApp } from '@palmares/core';
 
 import { httpAppServer } from './app';
+import { loadServer } from './app/utils';
 
-export function runServerWhenTesting() {
+export function loadServerWhenTesting(args: { port?: number }) {
   const settings = getSettings();
-  if (settings)
-    initializeApp(
-      [],
-      settings,
-      {
-        positionalArgs: {},
-        keywordArgs: {}
-      },
-      httpAppServer
-    );
+  const domains = globalThis.$PCachedInitializedDomains;
+
+  if (settings && domains) {
+    return loadServer({
+      settings: settings as any,
+      domains,
+      commandLineArgs: {
+        keywordArgs: {
+          port: args.port
+        },
+        positionalArgs: {}
+      }
+    });
+  }
 }

@@ -19,8 +19,8 @@ import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateA
  */
 export function adapterBooleanFieldParser<
   TTranslateFunction extends AdapterBooleanFieldParser['translate'],
-  TInputParserFunction extends Required<AdapterBooleanFieldParser>['inputParser'],
-  TOutputParserFunction extends Required<AdapterBooleanFieldParser>['outputParser']
+  TInputParserFunction extends NonNullable<AdapterBooleanFieldParser>['inputParser'],
+  TOutputParserFunction extends NonNullable<AdapterBooleanFieldParser>['outputParser']
 >(args: {
   /**
    * @description

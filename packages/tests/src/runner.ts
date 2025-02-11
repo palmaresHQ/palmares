@@ -1,10 +1,19 @@
-import { initializeDomains, setDefaultStd } from '@palmares/core';
+import { initializeDomains, std as palmaresStd } from '@palmares/core';
 
 import { setTestAdapter } from './utils';
 
 export async function run(settingsPath: string) {
   try {
-    const settings = await import(settingsPath);
+    let settings: any = undefined;
+    try {
+      settings = await import(settingsPath);
+    } catch (e) {
+      try {
+        settings = await import(palmaresStd.files.getPathToFileURL(settingsPath));
+      } catch (e) {
+        console.error('Error importing settings', e);
+      }
+    }
     /*const settings = await import(settingsPath);*/ /*.catch((e) => {
       console.error('Error importing settings', e);
     });*/
@@ -26,5 +35,5 @@ export async function runIndependently(adapterLocation: string) {
     console.error('Error importing adapter', e);
   });
   const testAdapter = new adapter.default();
-  setTestAdapter(testAdapter);
+  setTestAdapter(testAdapter, true);
 }

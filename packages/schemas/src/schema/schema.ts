@@ -1,15 +1,12 @@
 import { getDefaultAdapter } from '../conf';
 import { formatErrorFromParseMethod } from '../utils';
 
-import type {
-  DefinitionsOfSchemaType,
-  OnlyFieldAdaptersFromSchemaAdapter,
-  ValidationFallbackCallbackReturnType
-} from './types';
+import type { DefinitionsOfSchemaType, ValidationFallbackCallbackReturnType } from './types';
 import type { SchemaAdapter } from '../adapter';
 import type { FieldAdapter } from '../adapter/fields';
 import type { ValidationDataBasedOnType } from '../adapter/types';
 import type { Validator } from '../validators/utils';
+import type { StandardSchemaV1 } from '@standard-schema/spec';
 
 export class Schema<
   TType extends {
@@ -25,8 +22,10 @@ export class Schema<
     output: any;
     representation: any;
   },
-  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
-> {
+  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>
+> implements StandardSchemaV1<TType['input'], TType['output']>
+{
+  readonly '~standard': StandardSchemaV1.Props<TType['input'], TType['output']>;
   protected $$type = '$PSchema';
   protected fieldType = 'schema';
   // Those functions will assume control of the validation process on adapters, instead of the schema.
@@ -65,7 +64,9 @@ export class Schema<
   protected __alreadyAppliedModel?: Promise<any>;
   protected __runBeforeParseAndData?: (self: any) => Promise<void>;
   protected __rootFallbacksValidator!: Validator;
-  protected __saveCallback?: <TContext = any>(value: any, context: TContext) => Promise<any | void> | any | void;
+  protected __saveCallback?:
+    | ((value: any) => (context: any) => Promise<TType['output']>)
+    | ((value: any) => Promise<TType['output']>);
   protected __modelOmitCallback?: () => void;
   protected __parsers: Record<
     'high' | 'medium' | 'low',
@@ -87,13 +88,10 @@ export class Schema<
     low: new Map(),
     _fallbacks: new Set()
   };
-  protected __refinements: ((
-    value: any
-  ) =>
-    | Promise<void | undefined | { code: string; message: string }>
-    | void
-    | undefined
-    | { code: string; message: string })[] = [];
+  protected __refinements: ((args: {
+    value: any;
+    context: any;
+  }) => Promise<void | undefined | { code: string; message: string }>)[] = [];
   protected __nullable: {
     message: string;
     allow: boolean;
@@ -125,7 +123,8 @@ export class Schema<
   > = {};
   protected __defaultFunction: (() => Promise<TType['input'] | TType['output']>) | undefined = undefined;
   protected __toRepresentation: ((value: TType['output']) => TType['output']) | undefined = undefined;
-  protected __toValidate: ((value: TType['input']) => TType['validate']) | undefined = undefined;
+  protected __toValidate: ((value: TType['input'], context: TDefinitions['context']) => TType['validate']) | undefined =
+    undefined;
   protected __toInternal: ((value: TType['validate']) => TType['internal']) | undefined = undefined;
   protected __type: {
     message: string;
@@ -419,7 +418,12 @@ export class Schema<
 
     await Promise.all(
       this.__refinements.map(async (refinement) => {
-        const errorOrNothing = await Promise.resolve(refinement(parseResult.parsed));
+        const errorOrNothing = await Promise.resolve(
+          refinement({
+            value: parseResult.parsed,
+            context: options.context
+          })
+        );
 
         if (typeof errorOrNothing === 'undefined') return;
         parseResult.errors.push({
@@ -458,30 +462,27 @@ export class Schema<
    * ```
    *
    * @param refinementCallback - The callback that will be called to validate the value.
-   * @param options - Options for the refinement.
-   * @param options.isAsync - Whether the callback is async or not. Defaults to true.
    */
-  refine(
-    refinementCallback: (
-      value: TType['input']
-    ) =>
-      | Promise<void | undefined | { code: string; message: string }>
-      | void
-      | undefined
-      | { code: string; message: string }
-  ) {
+  refine<
+    TRefinementCallback extends (args: {
+      value: TType['input'];
+      context: TDefinitions['context'];
+    }) => Promise<void | undefined | { code: string; message: string }>
+  >(
+    refinementCallback: TRefinementCallback
+  ): Schema<
+    {
+      input: TType['input'];
+      validate: TType['validate'];
+      internal: TType['internal'];
+      output: TType['output'];
+      representation: TType['representation'];
+    },
+    TDefinitions
+  > {
     this.__refinements.push(refinementCallback);
 
-    return this as unknown as Schema<
-      {
-        input: TType['input'];
-        validate: TType['validate'];
-        internal: TType['internal'];
-        output: TType['output'];
-        representation: TType['representation'];
-      },
-      TDefinitions
-    >;
+    return this as unknown as any;
   }
 
   /**
@@ -734,26 +735,28 @@ export class Schema<
    *
    * @returns The schema.
    */
-  onSave(
-    callback: <TContext = any>(
-      value: TType['internal'],
-      context: TContext
-    ) => Promise<TType['output']> | TType['output']
-  ) {
-    this.__saveCallback = callback;
+  onSave<
+    TSave extends
+      | ((value: TType['internal']) => (context: unknown) => Promise<TType['output']>)
+      | ((value: TType['internal']) => Promise<TType['output']>)
+  >(
+    callback: TSave
+  ): Schema<
+    {
+      input: TType['input'];
+      validate: TType['validate'];
+      internal: TType['internal'];
+      output: TType['output'];
+      representation: TType['representation'];
+    },
+    Omit<TDefinitions, 'hasSave' | 'context'> & {
+      hasSave: true;
+      context: ReturnType<TSave> extends (context: any) => any ? Parameters<ReturnType<TSave>>[0] : any;
+    }
+  > {
+    this.__saveCallback = callback as any;
 
-    return this as unknown as Schema<
-      {
-        input: TType['input'];
-        validate: TType['validate'];
-        internal: TType['internal'];
-        output: TType['output'];
-        representation: TType['representation'];
-      },
-      TDefinitions & {
-        hasSave: true;
-      }
-    >;
+    return this as unknown as any;
   }
 
   /**
@@ -803,13 +806,16 @@ export class Schema<
    * If the value is invalid, the property errors will be present.
    */
   async validate(
-    value: TType['input'],
-    context: any
-  ): Promise<{ isValid: false; errors: any[] } | { isValid: true; save: () => Promise<TType['representation']> }> {
+    value: unknown,
+    context: TDefinitions['context'] = {}
+  ): Promise<
+    | { isValid: false; errors: any[]; save: undefined }
+    | { isValid: true; save: () => Promise<TType['representation']>; errors: undefined }
+  > {
     const { errors, parsed } = await this.__parse(value, [], { context } as any);
     // eslint-disable-next-line ts/no-unnecessary-condition
-    if ((errors || []).length > 0) return { isValid: false, errors: errors };
-    return { isValid: true, save: async () => this._save.bind(this)(parsed, context) };
+    if ((errors || []).length > 0) return { isValid: false, errors: errors, save: undefined };
+    return { isValid: true, save: async () => this._save.bind(this)(parsed, context), errors: undefined };
   }
 
   /**
@@ -822,8 +828,9 @@ export class Schema<
    */
   protected async _save(value: TType['input'], context: any): Promise<TType['representation']> {
     if (this.__saveCallback) {
-      const result = await this.__saveCallback(value, context);
-      return this.data(result) as Promise<
+      let result: any = this.__saveCallback(value);
+      if (typeof result === 'function') result = result(context) as Promise<TType['representation']>;
+      return this.data(result instanceof Promise ? await result : result) as Promise<
         true extends TDefinitions['hasSave'] ? TType['representation'] : { errors?: any[]; parsed: TType['internal'] }
       >;
     }
@@ -849,7 +856,7 @@ export class Schema<
    *
    * @returns The parsed value.
    */
-  async parse(value: TType['input']): Promise<{ errors?: any[]; parsed: TType['internal'] }> {
+  async parse(value: unknown): Promise<{ errors?: any[]; parsed: TType['internal'] }> {
     return this.__parse(value, [], {} as any);
   }
 
@@ -1140,7 +1147,9 @@ export class Schema<
    *
    * @returns The schema with a new return type.
    */
-  toValidate<TValidate>(toValidateCallback: (value: TType['input']) => Promise<TValidate> | TValidate) {
+  toValidate<TValidate>(
+    toValidateCallback: (value: TType['input'], context: TDefinitions['context']) => Promise<TValidate> | TValidate
+  ) {
     this.__toValidate = toValidateCallback;
 
     return this as unknown as Schema<
@@ -1168,10 +1177,11 @@ export class Schema<
     return stringVersions;
   }
 
-  static new<TType extends { input: any; output: any; internal: any; representation: any; validate: any }>(
-    ..._args: any[]
-  ): Schema<TType> {
-    const result = new Schema<TType>();
+  static new<
+    TType extends { input: any; output: any; internal: any; representation: any; validate: any },
+    TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>
+  >(..._args: any[]): Schema<TType, TDefinitions> {
+    const result = new Schema<TType, TDefinitions>();
     return result;
   }
 }

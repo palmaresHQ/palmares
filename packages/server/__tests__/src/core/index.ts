@@ -1,9 +1,20 @@
 import { domain } from '@palmares/core';
+import { Response, path, serverDomainModifier } from '@palmares/server';
 import { testDomainModifier } from '@palmares/tests';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+console.log(__filename);
+const __dirname = dirname(__filename);
+console.log(__dirname);
+const route = path('/test').get(() => {
+  console.log('hello');
+  return Response.json({ message: 'hello' }, { status: 200 });
+});
 
 export default domain('testingExpressServer', __dirname, {
-  modifiers: [testDomainModifier] as const,
-  getTests: () => [
-    __dirname + '/test.test.ts',
-  ]
+  modifiers: [serverDomainModifier, testDomainModifier] as const,
+  getRoutes: () => route,
+  getTests: () => [__dirname + '/test.test.ts']
 });

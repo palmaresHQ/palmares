@@ -9,3 +9,10 @@ export type TestsSettingsType = {
 };
 
 export type TestDomain = Domain & Partial<ExtractModifierArguments<[typeof testDomainModifier]>>;
+
+declare global {
+  // eslint-disable-next-line ts/no-namespace
+  namespace Palmares {
+    interface PTestAdapter {}
+  }
+}

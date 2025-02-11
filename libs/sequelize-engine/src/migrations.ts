@@ -1,6 +1,5 @@
 import { adapterMigrations } from '@palmares/databases';
 
-import type SequelizeEngine from './engine';
 import type {
   CircularDependenciesInMigrationType,
   GetForeignKeyReferencesForTableReturnType,
@@ -16,6 +15,7 @@ import type {
   QueryInterfaceIndexOptions,
   Sequelize
 } from 'sequelize';
+
 import type { SetRequired } from 'sequelize/types/utils/set-required';
 
 const circularDependenciesInMigration: CircularDependenciesInMigrationType[] = [];

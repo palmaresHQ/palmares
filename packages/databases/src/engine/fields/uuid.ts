@@ -19,8 +19,8 @@ import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateA
  */
 export function adapterUuidFieldParser<
   TTranslateFunction extends AdapterUuidFieldParser['translate'],
-  TInputParserFunction extends Required<AdapterUuidFieldParser>['inputParser'],
-  TOutputParserFunction extends Required<AdapterUuidFieldParser>['outputParser']
+  TInputParserFunction extends NonNullable<AdapterUuidFieldParser>['inputParser'],
+  TOutputParserFunction extends NonNullable<AdapterUuidFieldParser>['outputParser']
 >(args: {
   /**
    * @description

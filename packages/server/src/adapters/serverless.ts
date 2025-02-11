@@ -17,16 +17,18 @@ export function serverlessAdapter<
   TCustomServerSettings extends (typeof ServerlessAdapter)['customServerSettings']
 >(args: {
   /**
-   * This is the {@link ServerRequestAdapter}. The request will hold all of the request data from the server, this way we can
-   * translate the original request to Palmares request, everything is all lazy loaded.
+   * This is the {@link ServerRequestAdapter}. The request will hold all of the request data from the server,
+   * this way we can translate the original request to Palmares request, everything is all lazy loaded.
    */
   request: TServerlessRequestAdapter;
   /**
-   * This is the {@link ServerResponseAdapter} instance to be used by the server so we can translate Palmares's response to the server's response.
+   * This is the {@link ServerResponseAdapter} instance to be used by the server so we can translate Palmares's
+   * response to the server's response.
    */
   response: TServerlessResponseAdapter;
   /**
-   * This is the {@link ServerlessRouterAdapter} instance to be used by the server so we can translate Palmares's router to the server's router.
+   * This is the {@link ServerlessRouterAdapter} instance to be used by the server so we can translate Palmares's
+   * router to the server's router.
    */
   routers: TServerlessRouterAdapter;
   customServerSettings: TCustomServerSettings;

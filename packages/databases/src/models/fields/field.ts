@@ -122,7 +122,7 @@ export class Field<
   protected __customAttributes!: Parameters<
     TDefinitions['engineInstance']['fields']['fieldsParser']['translate']
   >[0]['customAttributes'];
-  protected __allowedQueryOperations: Set<keyof Required<TFieldOperationTypes>> = new Set([
+  protected __allowedQueryOperations: Set<keyof NonNullable<TFieldOperationTypes>> = new Set([
     'eq',
     'is',
     'greaterThan',
@@ -131,7 +131,7 @@ export class Field<
     'between',
     'and',
     'or'
-  ] as (keyof Required<TFieldOperationTypes>)[]);
+  ] as (keyof NonNullable<TFieldOperationTypes>)[]);
   // eslint-disable-next-line ts/require-await
   protected __toStringCallback = defaultToStringCallback satisfies ToStringCallback;
   // eslint-disable-next-line ts/require-await
@@ -140,8 +140,8 @@ export class Field<
   protected __newInstanceCallback = defaultNewInstanceArgumentsCallback satisfies NewInstanceArgumentsCallback;
   protected __customImports: CustomImportsForFieldType[] = [];
   protected __getArgumentsCallback = defaultGetArgumentsCallback satisfies GetArgumentsCallback;
-  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser'] | null>();
-  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser'] | null>();
+  protected __inputParsers = new Map<string, NonNullable<AdapterFieldParser>['inputParser'] | null>();
+  protected __outputParsers = new Map<string, NonNullable<AdapterFieldParser>['outputParser'] | null>();
   protected __model?: ModelType<any, any> & typeof Model & typeof BaseModel;
   protected __fieldName!: string;
 

@@ -183,14 +183,14 @@ export class ForeignKeyField<
   protected __modelRelatedTo?: {
     new (...args: unknown[]): any;
   };
-  protected __allowedQueryOperations: Set<any> = new Set([] as (keyof Required<TFieldOperationTypes>)[]);
+  protected __allowedQueryOperations: Set<any> = new Set([] as (keyof NonNullable<TFieldOperationTypes>)[]);
   protected __onDelete: TDefinitions['onDelete'];
   protected __relatedName: TDefinitions['relatedName'];
   protected __relationName: TDefinitions['relationName'];
   protected __toField: TDefinitions['toField'];
   protected __originalRelatedName?: string;
-  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __inputParsers = new Map<string, NonNullable<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, NonNullable<AdapterFieldParser>['outputParser']>();
 
   /**
    * This is used internally by the engine to compare if the field is equal to another field.
@@ -257,7 +257,7 @@ export class ForeignKeyField<
         `toField: "${fieldAsForeignKey['__toField']}", ` +
         `onDelete: models.fields.ON_DELETE.${fieldAsForeignKey['__onDelete'].toUpperCase()}, ` +
         `relationName: "${fieldAsForeignKey['__relationName']}", ` +
-        `relatedName: "${fieldAsForeignKey['__originalRelatedName']}"` +
+        `relatedName: "${fieldAsForeignKey['__originalRelatedName'] || fieldAsForeignKey['__relatedName']}"` +
         `}`
     });
   }) satisfies ToStringCallback;
@@ -270,10 +270,13 @@ export class ForeignKeyField<
     const relatedName = fieldAsForeignKeyField['__relatedName'];
     const onDelete = fieldAsForeignKeyField['__onDelete'];
 
+    const model = fieldAsForeignKeyField['__model'];
+    const isState = model?.['__isState'];
+
     return {
       ...defaultCallback(field, defaultCallback),
       toField,
-      relatedTo: relatedTo as string,
+      relatedTo: isState && relatedTo?.startsWith('State') === false ? `State${relatedTo}` : (relatedTo as string),
       relationName,
       relatedName,
       onDelete: onDelete as ON_DELETE

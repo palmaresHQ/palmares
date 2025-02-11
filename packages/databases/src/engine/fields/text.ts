@@ -19,8 +19,8 @@ import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateA
  */
 export function adapterTextFieldParser<
   TTranslateFunction extends AdapterTextFieldParser['translate'],
-  TInputParserFunction extends Required<AdapterTextFieldParser>['inputParser'],
-  TOutputParserFunction extends Required<AdapterTextFieldParser>['outputParser']
+  TInputParserFunction extends NonNullable<AdapterTextFieldParser>['inputParser'],
+  TOutputParserFunction extends NonNullable<AdapterTextFieldParser>['outputParser']
 >(args: {
   /**
    * @description

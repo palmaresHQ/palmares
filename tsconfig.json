@@ -1,24 +1,24 @@
 {
-	"compilerOptions": {
-		"module": "commonjs",
-		"declaration": false,
-		"removeComments": true,
-		"emitDecoratorMetadata": true,
-		"experimentalDecorators": true,
-		"allowSyntheticDefaultImports": true,
-		"strictNullChecks": true,
-		"esModuleInterop": true,
-    "target": "ESNext",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": false,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "strictNullChecks": true,
+    "esModuleInterop": true,
+    "target": "ESNext" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
     "lib": ["ESNext"],
-		"sourceMap": true,
-		"outDir": "./dist/cjs",
-		"baseUrl": "./",
-		"incremental": true,
-		"skipLibCheck": true,
-		"strict": true,
-		"forceConsistentCasingInFileNames": true,
-		"noFallthroughCasesInSwitch": false,
-	},
-  "include": ["packages/**/*", "libs/**/*", "examples/**/*", "scripts/**/*", "bin/src/**/*"],
-  "exclude": ["node_modules", "**/*.spec.ts", "bin/template-palmares/**/*"]
+    "sourceMap": true,
+    "outDir": "./dist/cjs",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": false
+  },
+  "include": ["packages/**/*", "libs/**/*", "scripts/**/*", "bin/src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts", "examples/**/*", "bin/template-palmares/**/*"]
 }

@@ -28,14 +28,14 @@ export class Serverless {
       args.settings,
       args.settings.servers[serverName],
       args.domains
-    );
+    ) as ServerlessAdapter;
     await newServerInstance.load(serverName, args.domains, serverSettings);
-    await initializeRouters(args.domains, serverSettings, args.settings, newServerInstance, {
+    await initializeRouters(undefined, args.domains, serverSettings, args.settings, newServerInstance, {
       serverless: {
         generate: true
       }
     });
-    await newServerInstance.load(serverName, args.domains, serverSettings);
+    //await newServerInstance.load(args.domains, serverSettings);
   }
 
   /**
@@ -86,6 +86,7 @@ export class Serverless {
         : domains;
 
     return await initializeRouters(
+      undefined,
       domainRoutes as ServerDomain[],
       settingsServers.servers[args.serverName],
       settings as AllServerSettingsType,

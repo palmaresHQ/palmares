@@ -120,9 +120,9 @@ export class AutoField<
     'eq',
     'is',
     'between'
-  ] as (keyof Required<TFieldOperationTypes>)[]);
-  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser'] | null>();
-  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser'] | null>();
+  ] as (keyof NonNullable<TFieldOperationTypes>)[]);
+  protected __inputParsers = new Map<string, NonNullable<AdapterFieldParser>['inputParser'] | null>();
+  protected __outputParsers = new Map<string, NonNullable<AdapterFieldParser>['outputParser'] | null>();
 
   unique: never = (() => this) as never;
   auto: never = (() => this) as never;

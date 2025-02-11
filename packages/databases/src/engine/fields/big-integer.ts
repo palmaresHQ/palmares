@@ -19,8 +19,8 @@ import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateA
  */
 export function adapterBigIntegerFieldParser<
   TTranslateFunction extends AdapterBigIntegerFieldParser['translate'],
-  TInputParserFunction extends Required<AdapterBigIntegerFieldParser>['inputParser'],
-  TOutputParserFunction extends Required<AdapterBigIntegerFieldParser>['outputParser']
+  TInputParserFunction extends NonNullable<AdapterBigIntegerFieldParser>['inputParser'],
+  TOutputParserFunction extends NonNullable<AdapterBigIntegerFieldParser>['outputParser']
 >(args: {
   /**
    * @description

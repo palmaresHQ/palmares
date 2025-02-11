@@ -117,3 +117,7 @@ next-env.d.ts
 .DS_Store
 
 /bin/templates/
+
+# Tanstack/Start
+.output/
+.vinxi/

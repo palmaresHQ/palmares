@@ -892,7 +892,7 @@ export type ModelFieldsInQueries<
   TIsAllOptional extends boolean = false,
   TIsForSearch extends boolean = false
 > = TIsAllRequired extends true
-  ? Required<BaseModelFieldsInQueries<TModel, TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch>>
+  ? NonNullable<BaseModelFieldsInQueries<TModel, TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch>>
   : TIsAllOptional extends true
     ? Partial<BaseModelFieldsInQueries<TModel, TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch>>
     : BaseModelFieldsInQueries<TModel, TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch>;
@@ -963,7 +963,7 @@ type RelatedFieldOfModelOptional<
     : never;
 };
 
-type RelatedFieldOfModelRequired<
+type RelatedFieldOfModelNonNullable<
   TModel,
   TRelatedModel,
   TIncludes extends Includes,
@@ -1181,7 +1181,7 @@ type BaseFieldsWithRelationsFromIncludesType<
     TIsAllOptional,
     TIsForSearch
   > &
-  RelatedFieldOfModelRequired<
+  RelatedFieldOfModelNonNullable<
     TModel,
     InstanceType<TIncludedModel>,
     TToInclude,
@@ -1216,7 +1216,7 @@ export type FieldsWithRelationsFromIncludesType<
   TIsAllOptional extends boolean = false,
   TIsForSearch extends boolean = false
 > = TIsAllRequired extends true
-  ? Required<
+  ? NonNullable<
       BaseFieldsWithRelationsFromIncludesType<
         TType,
         TModel,
@@ -1259,7 +1259,7 @@ export type FieldsWithRelationsFromIncludesType<
       >;
 
 export type CleanNever<TObject> = {
-  [TKey in keyof TObject as Required<TObject>[TKey] extends never ? never : TKey]: TObject[TKey];
+  [TKey in keyof TObject as NonNullable<TObject>[TKey] extends never ? never : TKey]: TObject[TKey];
 };
 export type IncludesRelatedModels<
   TType,

@@ -235,6 +235,6 @@ export type ExtractIncludes<
   : TRouters;
 
 export type RouterOptionsType<TCustomRouterOptions = any> = MiddlewareOptions & {
-  customRouterOptions?: TCustomRouterOptions;
+  customOptions?: TCustomRouterOptions;
   middlewares?: Narrow<readonly Middleware[]>;
 };

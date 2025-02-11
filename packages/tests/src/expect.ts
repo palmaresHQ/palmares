@@ -2,7 +2,7 @@ import type { TestAdapter } from './adapter';
 
 export type Expect<
   TValue,
-  TTestAdapter extends TestAdapter,
+  TTestAdapter extends TestAdapter & Palmares.PTestAdapter = TestAdapter & Palmares.PTestAdapter,
   TIsNot extends boolean = false,
   TIsEventually extends boolean = false
 > = {
@@ -56,7 +56,7 @@ export type Expect<
 
 export function getExpect<
   TValue,
-  TTestAdapter extends TestAdapter,
+  TTestAdapter extends TestAdapter & Palmares.PTestAdapter = TestAdapter & Palmares.PTestAdapter,
   TIsNot extends boolean = false,
   TIsEventually extends boolean = false
 >(
@@ -87,7 +87,7 @@ export function getExpect<
                     .catch(reject);
                 })
               : testAdapter.expect.toBe(value, expected, isNot, customData);
-        else if (prop === 'toEqual')
+        else if (prop === 'toEqual') {
           return <TToEqualValue extends TValue>(
             expected: TToEqualValue,
             customData?: Parameters<TTestAdapter['expect']['toEqual']>[3]
@@ -105,7 +105,7 @@ export function getExpect<
                     .catch(reject);
                 })
               : testAdapter.expect.toEqual(value, expected, isNot, customData);
-        else if (prop === 'toStrictEqual')
+        } else if (prop === 'toStrictEqual')
           return <TToEqualValue extends TValue>(
             expected: TToEqualValue,
             customData?: Parameters<TTestAdapter['expect']['toStrictEqual']>[3]

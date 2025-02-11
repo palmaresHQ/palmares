@@ -139,7 +139,7 @@ function formatArgs(command: DefaultCommandType[string], args: string[]) {
       }
     } else if (Object.keys(positionalArguments).length > 0) {
       const [positionalArgument, positionalArgsData] = Object.entries(positionalArguments)[0];
-      console.log('positionalArgument', positionalArgument);
+
       positionalArgs[positionalArgument] = getValueFromType(positionalArgsData.type || 'string', arg);
       delete positionalArguments[positionalArgument];
       requiredPositionalArgs.delete(positionalArgument);

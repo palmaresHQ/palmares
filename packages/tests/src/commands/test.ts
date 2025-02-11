@@ -19,14 +19,12 @@ export async function test(domains: TestDomain[], settings: AllTestsSettingsType
 
   return newTestAdapter.run(
     filesToTest,
-    `import { run } from '@palmares/tests';\nawait run('` +
+    `try { await import('@palmares/tests').then(({ run }) => run('` +
       `${(await std.os.platform()) === 'windows' ? 'file:/' : ''}` +
-      `${std.files.getPathToFileURL(settings.settingsLocation)}');`,
-    {
-      mkdir: std.files.makeDirectory,
-      join: std.files.join,
-      writeFile: std.files.writeFile,
-      removeFile: std.files.removeFile
-    }
+      `${std.files.getPathToFileURL(settings.settingsLocation)}')).catch((e) => console.error(e)); } catch (e) {` +
+      `require('@palmares/tests')['run']('` +
+      `${(await std.os.platform()) === 'windows' ? 'file:/' : ''}` +
+      `${std.files.getPathToFileURL(settings.settingsLocation)}'); }`,
+    std.files
   );
 }

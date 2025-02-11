@@ -10,23 +10,28 @@ import { decimalPlaces, integer, max, maxDigits, min, numberValidation } from '.
 import { is, nullable, optional } from '../validators/schema';
 
 import type { DefinitionsOfSchemaType } from './types';
+import type { SchemaAdapter } from '../adapter';
+import type { StandardSchemaV1 } from '@standard-schema/spec';
 
 export class NumberSchema<
-  TType extends {
-    input: any;
-    validate: any;
-    internal: any;
-    output: any;
-    representation: any;
-  } = {
-    input: number;
-    output: number;
-    validate: number;
-    internal: number;
-    representation: number;
-  },
-  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType
-> extends Schema<TType, TDefinitions> {
+    TType extends {
+      input: any;
+      validate: any;
+      internal: any;
+      output: any;
+      representation: any;
+    } = {
+      input: number;
+      output: number;
+      validate: number;
+      internal: number;
+      representation: number;
+    },
+    TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>
+  >
+  extends Schema<TType, TDefinitions>
+  implements StandardSchemaV1<TType['input'], TType['output']>
+{
   protected fieldType = 'number';
 
   protected __allowString!: boolean;
@@ -149,25 +154,24 @@ export class NumberSchema<
    *
    * @returns The schema.
    */
-  refine(
-    refinementCallback: (
-      value: TType['input']
-    ) =>
-      | Promise<void | undefined | { code: string; message: string }>
-      | void
-      | undefined
-      | { code: string; message: string }
-  ) {
-    return super.refine(refinementCallback) as unknown as NumberSchema<
-      {
-        input: TType['input'];
-        validate: TType['validate'];
-        internal: TType['internal'];
-        output: TType['output'];
-        representation: TType['representation'];
-      },
-      TDefinitions
-    >;
+  refine<
+    TRefinementCallback extends (args: {
+      value: TType['input'];
+      context: TDefinitions['context'];
+    }) => Promise<void | undefined | { code: string; message: string }>
+  >(
+    refinementCallback: TRefinementCallback
+  ): NumberSchema<
+    {
+      input: TType['input'];
+      validate: TType['validate'];
+      internal: TType['internal'];
+      output: TType['output'];
+      representation: TType['representation'];
+    },
+    TDefinitions
+  > {
+    return super.refine(refinementCallback) as unknown as any;
   }
 
   /**
@@ -435,24 +439,26 @@ export class NumberSchema<
    *
    * @returns The schema.
    */
-  onSave(
-    callback: <TContext = any>(
-      value: TType['internal'],
-      context: TContext
-    ) => Promise<TType['output']> | TType['output']
-  ) {
-    return super.onSave(callback) as unknown as NumberSchema<
-      {
-        input: TType['input'];
-        validate: TType['validate'];
-        internal: TType['internal'];
-        output: TType['output'];
-        representation: TType['representation'];
-      },
-      TDefinitions & {
-        hasSave: true;
-      }
-    >;
+  onSave<
+    TSave extends
+      | ((value: TType['internal']) => (context: any) => Promise<TType['output']>)
+      | ((value: TType['internal']) => Promise<TType['output']>)
+  >(
+    callback: TSave
+  ): NumberSchema<
+    {
+      input: TType['input'];
+      validate: TType['validate'];
+      internal: TType['internal'];
+      output: TType['output'];
+      representation: TType['representation'];
+    },
+    Omit<TDefinitions, 'hasSave' | 'context'> & {
+      hasSave: true;
+      context: ReturnType<TSave> extends (context: any) => any ? Parameters<ReturnType<TSave>>[0] : any;
+    }
+  > {
+    return super.onSave(callback) as unknown as any;
   }
 
   /**
@@ -645,7 +651,9 @@ export class NumberSchema<
    *
    * @returns The schema with a new return type.
    */
-  toValidate<TValidate>(toValidateCallback: (value: TType['input']) => Promise<TValidate> | TValidate) {
+  toValidate<TValidate>(
+    toValidateCallback: (value: TType['input'], context: TDefinitions['context']) => Promise<TValidate> | TValidate
+  ) {
     return super.toValidate(toValidateCallback) as unknown as NumberSchema<
       {
         input: TType['input'];
@@ -910,7 +918,9 @@ export class NumberSchema<
     >;
   }
 
-  static new<TDefinitions extends DefinitionsOfSchemaType>() {
+  static new<
+    TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>
+  >() {
     const returnValue = new NumberSchema<
       {
         input: number;
@@ -926,4 +936,6 @@ export class NumberSchema<
   }
 }
 
-export const number = <TDefinitions extends DefinitionsOfSchemaType>() => NumberSchema.new<TDefinitions>();
+export const number = <
+  TDefinitions extends DefinitionsOfSchemaType = DefinitionsOfSchemaType<SchemaAdapter & Palmares.PSchemaAdapter>
+>() => NumberSchema.new<TDefinitions>();

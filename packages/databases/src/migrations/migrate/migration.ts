@@ -53,12 +53,11 @@ export class Migration {
       const operation = this.operations[i];
       const fromState = await State.buildState(allMigrations, this.name, i);
       const { initializedModels: fromStateModelsByModelName, closeEngineInstance: closeFromEngineInstance } =
-        await fromState.geInitializedModelsByName(this.engineInstance);
+        await fromState.getInitializedModelsByName(this.engineInstance);
 
       const toState = await State.buildState(allMigrations, this.name, i + 1);
       const { initializedModels: toStateModelsByModelName, closeEngineInstance: closeToEngineInstance } =
-        await toState.geInitializedModelsByName(this.engineInstance);
-
+        await toState.getInitializedModelsByName(this.engineInstance);
       await operation.run(
         this,
         this.engineInstance,
@@ -70,6 +69,7 @@ export class Migration {
       if (closeToEngineInstance) connectionsToClose.push(() => closeToEngineInstance(this.engineInstance));
       if (closeFromEngineInstance) connectionsToClose.push(() => closeFromEngineInstance(this.engineInstance));
     }
+
     return connectionsToClose;
   }
 

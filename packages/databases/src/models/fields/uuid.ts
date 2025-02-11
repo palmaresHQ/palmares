@@ -106,8 +106,8 @@ export class UuidField<
   protected $$type = '$PUuidField';
   protected __typeName = 'UuidField';
 
-  protected __inputParsers = new Map<string, Required<AdapterFieldParser>['inputParser']>();
-  protected __outputParsers = new Map<string, Required<AdapterFieldParser>['outputParser']>();
+  protected __inputParsers = new Map<string, NonNullable<AdapterFieldParser>['inputParser']>();
+  protected __outputParsers = new Map<string, NonNullable<AdapterFieldParser>['outputParser']>();
 
   protected __compareCallback = ((engine, oldField, newField, defaultCompareCallback) => {
     const oldFieldAsUuidField = oldField as UuidField<any, any>;

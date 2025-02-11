@@ -165,10 +165,12 @@ export function getRelatedToAsString(field: ForeignKeyField<any, any, any>) {
   const relatedToAsString = field['__relatedToAsString'];
 
   if (typeof relatedToAsString !== 'string') {
-    if (typeof relatedTo === 'function' && relatedTo['$$type'] !== '$PModel')
+    if (typeof relatedTo === 'function' && relatedTo['$$type'] !== '$PModel') {
       field['__relatedToAsString'] = relatedTo()['__getName']();
-    else if (typeof relatedTo === 'string') field['__relatedToAsString'] = relatedTo;
-    else field['__relatedToAsString'] = relatedTo['__getName']();
+    } else if (typeof relatedTo === 'string') field['__relatedToAsString'] = relatedTo;
+    else {
+      field['__relatedToAsString'] = relatedTo['__getName']();
+    }
   }
 }
 

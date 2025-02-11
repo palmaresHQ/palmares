@@ -20,8 +20,8 @@ import type { AdapterFieldParserInputAndOutputArgs, AdapterFieldParserTranslateA
  */
 export function adapterDateFieldParser<
   TTranslateFunction extends AdapterDateFieldParser['translate'],
-  TInputParserFunction extends Required<AdapterDateFieldParser>['inputParser'],
-  TOutputParserFunction extends Required<AdapterDateFieldParser>['outputParser']
+  TInputParserFunction extends NonNullable<AdapterDateFieldParser>['inputParser'],
+  TOutputParserFunction extends NonNullable<AdapterDateFieldParser>['outputParser']
 >(args: {
   /**
    * @description

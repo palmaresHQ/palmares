@@ -106,6 +106,7 @@ const sequelizeDatabaseAdapter = databaseAdapter({
   },
   close: async (databaseAdapter): Promise<void> => {
     const instanceData = checkIfInstanceSavedOrSave(databaseAdapter.connectionName, databaseAdapter.instance);
+    instancesByConnectionNames.delete(databaseAdapter.connectionName);
     try {
       await Promise.resolve(instanceData.instance.close());
     } catch (_) {}
