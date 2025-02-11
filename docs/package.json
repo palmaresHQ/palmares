@@ -20,7 +20,7 @@
   "type": "module",
   "scripts": {
     "docs:dev": "vinxi dev",
-    "docs:build": "vinxi build",
+    "docs:build": "vinxi build --preset vercel",
     "docs:start": "vinxi start",
     "docs:lint": "eslint"
   },

@@ -2,6 +2,9 @@ import { defineConfig } from '@tanstack/start/config';
 import { monacoWorkerPlugin } from './vite-worker-plugin';
 
 export default defineConfig({
+  server: {
+    preset: 'vercel'
+  },
   vite: {
     plugins: [monacoWorkerPlugin() as any],
     worker: {
