@@ -36,13 +36,13 @@
     "@palmares/node-std": "workspace:*",
     "@palmares/sequelize-engine": "workspace:*",
     "@palmares/tests": "workspace:*",
-    "better-sqlite3": "^11.1.2",
     "drizzle-kit": "^0.27.2",
     "drizzle-orm": "^0.36.1",
     "postgres": "^3.4.5",
     "sequelize": "^6.37.3"
   },
   "devDependencies": {
+    "better-sqlite3": "^11.1.2",
     "@types/better-sqlite3": "^7.6.11",
     "ts-jest-mock-import-meta": "^1.2.0",
     "tsx": "^4.19.2",

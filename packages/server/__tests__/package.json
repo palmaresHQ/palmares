@@ -21,12 +21,12 @@
     "@palmares/node-std": "workspace:*",
     "@palmares/server": "workspace:*",
     "@palmares/tests": "workspace:*",
-    "better-sqlite3": "^11.1.2",
     "drizzle-kit": "^0.27.2",
     "drizzle-orm": "^0.36.1"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.11",
+    "better-sqlite3": "^11.1.2",
     "@types/cors": "^2.8.17",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.9.1",
