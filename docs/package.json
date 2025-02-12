@@ -19,6 +19,7 @@
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "type": "module",
   "scripts": {
+    "predocs:build": "tsx prebuild.ts",
     "docs:dev": "vinxi dev",
     "docs:build": "vinxi build --preset vercel",
     "docs:start": "vinxi start",
