@@ -1,13 +1,15 @@
-import { Fragment, Suspense, useState } from 'react';
+import process from 'process';
+import { Fragment, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 
 import Code from '../../components/Code';
 import { getExamples } from '../../server/get-code';
 import type { GetLibraryCodesFn } from '../../server/get-code';
-
 export const Route = createFileRoute('/')({
   component: Home,
   loader: async () => {
+    console.log(process.cwd());
+
     return {
       data: await getExamples({
         data: [['mainpage', './examples/mainpage']]
