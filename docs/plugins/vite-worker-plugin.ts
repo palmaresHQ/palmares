@@ -8,7 +8,7 @@ export default function monacoWorkerPlugin(): Plugin {
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const isChromiumBrowser = isChromium(req.headers as any);
-        if (req.url?.includes('.worker.js')) {
+        if (/\.worker(?:-[A-Za-z0-9-]+)?\.js$/.test(req.url || '')) {
           if (isChromiumBrowser) {
             res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
             res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
@@ -24,7 +24,7 @@ export default function monacoWorkerPlugin(): Plugin {
     configurePreviewServer(server) {
       server.middlewares.use((req, res, next) => {
         const isChromiumBrowser = isChromium(req.headers as any);
-        if (req.url?.includes('.worker.js')) {
+        if (/\.worker(?:-[A-Za-z0-9-]+)?\.js$/.test(req.url || '')) {
           if (isChromiumBrowser) {
             res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
             res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
