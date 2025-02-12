@@ -2,8 +2,6 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import type { FileSystemTree } from '@webcontainer/api';
 
-export { useStorage } from 'nitropack/runtime/internal/storage';
-
 type LibraryCode = { [key: string]: Record<string, string> };
 
 const isProduction = process.env?.NODE_ENV === 'production';
