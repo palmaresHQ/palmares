@@ -121,3 +121,7 @@ next-env.d.ts
 # Tanstack/Start
 .output/
 .vinxi/
+
+# Docs website
+palmares-files.json
+example-files.json
