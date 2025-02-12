@@ -168,9 +168,7 @@ export async function getPalmaresFiles(args?: { generateJson: boolean }) {
 
 export async function getExamplesFiles(args?: { generateJson: boolean }) {
   if (isProduction) {
-    console.log(fs.readdir(process.cwd()));
-    console.log(useStorage('assets:server'));
-    console.log(useStorage('assets:server').getItem('examples-files.json'));
+    console.log(await fs.readdir(process.cwd()));
     return fs.readFile(path.join(process.cwd(), 'examples-files.json'), 'utf8');
   }
   const libraryCodes = await getLibraryCodes([['mainpage', path.join(process.cwd(), '.', 'examples', 'mainpage')]]);
