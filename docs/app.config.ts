@@ -1,5 +1,5 @@
 import { defineConfig } from '@tanstack/start/config';
-import { monacoWorkerPlugin } from './plugins/vite-worker-plugin';
+import monacoWorkerPlugin from './plugins/vite-worker-plugin';
 
 export default defineConfig({
   server: {

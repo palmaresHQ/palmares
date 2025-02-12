@@ -2,7 +2,7 @@
 import type { Plugin } from 'vite';
 import { isChromium } from '../utils/is-chromium';
 
-export function monacoWorkerPlugin(): Plugin {
+export default function monacoWorkerPlugin(): Plugin {
   return {
     name: 'monaco-worker-plugin',
     configureServer(server) {
