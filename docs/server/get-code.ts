@@ -20,7 +20,6 @@ export const getAllLibraryCodes = createServerFn({ method: 'GET' }).handler(asyn
 
 export const getExamples = createServerFn({ method: 'GET' }).handler(async () => {
   const headers = getHeaders();
-  console.log(headers['origin']);
   if (isProduction) {
     const exampleFilesResponse = await fetch(`${headers['origin'] || 'https://palmaresjs.com'}/examples-files.json`);
     const exampleFiles = await exampleFilesResponse.json();

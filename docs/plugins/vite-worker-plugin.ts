@@ -1,6 +1,6 @@
 // Reference: https://claude.ai/chat/f25964d1-f9b5-4e2b-bfe6-52b15dae5e3b
 import type { Plugin } from 'vite';
-import { isChromium } from './utils/is-chromium';
+import { isChromium } from '../utils/is-chromium';
 
 export function monacoWorkerPlugin(): Plugin {
   return {

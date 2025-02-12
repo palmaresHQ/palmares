@@ -1,9 +1,10 @@
 import { defineConfig } from '@tanstack/start/config';
-import { monacoWorkerPlugin } from './vite-worker-plugin';
+import { monacoWorkerPlugin } from './plugins/vite-worker-plugin';
 
 export default defineConfig({
   server: {
-    preset: 'vercel'
+    preset: 'vercel',
+    plugins: ['./plugins/nitro-worker.plugin.ts']
   },
   vite: {
     plugins: [monacoWorkerPlugin() as any],
