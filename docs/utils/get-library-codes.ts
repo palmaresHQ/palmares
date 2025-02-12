@@ -1,7 +1,8 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-
 import type { FileSystemTree } from '@webcontainer/api';
+
+export { useStorage } from 'nitropack/runtime/internal/storage';
 
 type LibraryCode = { [key: string]: Record<string, string> };
 
@@ -168,7 +169,12 @@ export async function getPalmaresFiles(args?: { generateJson: boolean }) {
 }
 
 export async function getExamplesFiles(args?: { generateJson: boolean }) {
-  if (isProduction) return fs.readFile(path.join(process.cwd(), 'examples-files.json'), 'utf8');
+  if (isProduction) {
+    console.log(fs.readdir(process.cwd()));
+    console.log(useStorage('assets:server'));
+    console.log(useStorage('assets:server').getItem('examples-files.json'));
+    return fs.readFile(path.join(process.cwd(), 'examples-files.json'), 'utf8');
+  }
   const libraryCodes = await getLibraryCodes([['mainpage', path.join(process.cwd(), '.', 'examples', 'mainpage')]]);
   if (args?.generateJson) {
     const json = JSON.stringify(libraryCodes, null, 2);
