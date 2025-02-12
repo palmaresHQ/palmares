@@ -139,20 +139,20 @@ export type GetLibraryCodesFn = typeof getLibraryCodes;
 export const getAllLibraryCodes = createServerFn({ method: 'GET' }).handler(async () => {
   const libraryCodes = await getLibraryCodes(
     [
-      ['@palmares/console-logging', '../libs/console-logging'],
-      ['@palmares/drizzle-engine', '../libs/drizzle-engine'],
-      ['@palmares/express-adapter', '../libs/express-adapter'],
-      ['@palmares/jest-tests', '../libs/jest-tests'],
-      ['@palmares/node-std', '../libs/node-std'],
-      ['@palmares/sequelize-engine', '../libs/sequelize-engine'],
-      ['@palmares/zod-schema', '../libs/zod-schema'],
-      ['@palmares/core', '../packages/core'],
-      ['@palmares/databases', '../packages/databases'],
-      ['@palmares/schemas', '../packages/schemas'],
-      ['@palmares/server', '../packages/server'],
-      ['@palmares/tests', '../packages/tests'],
-      ['@palmares/logging', '../packages/logging'],
-      ['@palmares/events', '../packages/events']
+      ['@palmares/console-logging', path.join(process.cwd(), '..', 'libs', 'console-logging')],
+      ['@palmares/drizzle-engine', path.join(process.cwd(), '..', 'libs', 'drizzle-engine')],
+      ['@palmares/express-adapter', path.join(process.cwd(), '..', 'libs', 'express-adapter')],
+      ['@palmares/jest-tests', path.join(process.cwd(), '..', 'libs', 'jest-tests')],
+      ['@palmares/node-std', path.join(process.cwd(), '..', 'libs', 'node-std')],
+      ['@palmares/sequelize-engine', path.join(process.cwd(), '..', 'libs', 'sequelize-engine')],
+      ['@palmares/zod-schema', path.join(process.cwd(), '..', 'libs', 'zod-schema')],
+      ['@palmares/core', path.join(process.cwd(), '..', 'packages', 'core')],
+      ['@palmares/databases', path.join(process.cwd(), '..', 'packages', 'databases')],
+      ['@palmares/schemas', path.join(process.cwd(), '..', 'packages', 'schemas')],
+      ['@palmares/server', path.join(process.cwd(), '..', 'packages', 'server')],
+      ['@palmares/tests', path.join(process.cwd(), '..', 'packages', 'tests')],
+      ['@palmares/logging', path.join(process.cwd(), '..', 'packages', 'logging')],
+      ['@palmares/events', path.join(process.cwd(), '..', 'packages', 'events')]
     ],
     ({ path, content }) => {
       return {

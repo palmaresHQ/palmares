@@ -5,6 +5,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import Code from '../../components/Code';
 import { getExamples } from '../../server/get-code';
 import type { GetLibraryCodesFn } from '../../server/get-code';
+import path from 'path';
 export const Route = createFileRoute('/')({
   component: Home,
   loader: async () => {
@@ -12,7 +13,7 @@ export const Route = createFileRoute('/')({
 
     return {
       data: await getExamples({
-        data: [['mainpage', './examples/mainpage']]
+        data: [['mainpage', path.join(process.cwd(), '.', 'examples', 'mainpage')]]
       })
     };
   }
