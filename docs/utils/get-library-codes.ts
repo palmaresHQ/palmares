@@ -4,8 +4,6 @@ import type { FileSystemTree } from '@webcontainer/api';
 
 type LibraryCode = { [key: string]: Record<string, string> };
 
-const isProduction = process.env?.NODE_ENV === 'production';
-
 export async function getLibraryCodes(
   libraries: [string, string][],
   parser: ((args: { path: string; content: string }) => { path: string; content: string }) | undefined = undefined
@@ -132,7 +130,6 @@ export async function getLibraryCodes(
 }
 
 export async function getPalmaresFiles(args?: { generateJson: boolean }) {
-  if (isProduction) return fs.readFile(path.join(process.cwd(), 'palmares-files.json'), 'utf8');
   const libraryCodes = await getLibraryCodes(
     [
       ['@palmares/console-logging', path.join(process.cwd(), '..', 'libs', 'console-logging')],
@@ -167,10 +164,6 @@ export async function getPalmaresFiles(args?: { generateJson: boolean }) {
 }
 
 export async function getExamplesFiles(args?: { generateJson: boolean }) {
-  if (isProduction) {
-    console.log(await fs.readdir(process.cwd()));
-    return fs.readFile(path.join(process.cwd(), 'examples-files.json'), 'utf8');
-  }
   const libraryCodes = await getLibraryCodes([['mainpage', path.join(process.cwd(), '.', 'examples', 'mainpage')]]);
   if (args?.generateJson) {
     const json = JSON.stringify(libraryCodes, null, 2);
