@@ -42,7 +42,7 @@
     "sequelize": "^6.37.3"
   },
   "devDependencies": {
-    "better-sqlite3": "^11.1.2",
+    "better-sqlite3": "^11.8.1",
     "@types/better-sqlite3": "^7.6.11",
     "ts-jest-mock-import-meta": "^1.2.0",
     "tsx": "^4.19.2",

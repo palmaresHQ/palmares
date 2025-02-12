@@ -37,7 +37,7 @@
     "@examples/with-code-share-shared": "workspace:*"
   },
   "devDependencies": {
-    "better-sqlite3": "^11.2.1",
+    "better-sqlite3": "^11.8.1",
     "@palmares/jest-tests": "^0.2.3",
     "@palmares/tests": "^0.2.3",
     "@swc/cli": "^0.4.0",
