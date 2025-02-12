@@ -8,8 +8,9 @@ export type GetLibraryCodesFn = typeof getLibraryCodes;
 const isProduction = process.env?.NODE_ENV === 'production';
 
 export const getAllLibraryCodes = createServerFn({ method: 'GET' }).handler(async () => {
+  const headers = getHeaders();
   if (isProduction) {
-    const libraryCodesResponse = await fetch('/palmares-files.json');
+    const libraryCodesResponse = await fetch(`${headers['origin'] || 'https://palmaresjs.com'}/palmares-files.json`);
     const libraryCodes = await libraryCodesResponse.json();
     return libraryCodes;
   }
@@ -18,8 +19,10 @@ export const getAllLibraryCodes = createServerFn({ method: 'GET' }).handler(asyn
 });
 
 export const getExamples = createServerFn({ method: 'GET' }).handler(async () => {
+  const headers = getHeaders();
+  console.log(headers['origin']);
   if (isProduction) {
-    const exampleFilesResponse = await fetch('/examples-files.json');
+    const exampleFilesResponse = await fetch(`${headers['origin'] || 'https://palmaresjs.com'}/examples-files.json`);
     const exampleFiles = await exampleFilesResponse.json();
 
     return {
