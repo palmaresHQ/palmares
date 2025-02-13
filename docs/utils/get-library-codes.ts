@@ -164,7 +164,15 @@ export async function getPalmaresFiles(args?: { generateJson: boolean }) {
 }
 
 export async function getExamplesFiles(args?: { generateJson: boolean }) {
-  const libraryCodes = await getLibraryCodes([['mainpage', path.join(process.cwd(), '.', 'examples', 'mainpage')]]);
+  const libraryCodes = await getLibraryCodes(
+    [['mainpage', path.join(process.cwd(), '.', 'examples', 'mainpage')]],
+    ({ path, content }) => {
+      return {
+        path: path.replace('_', ''),
+        content: content.startsWith('// @ts-nocheck\n') ? content.replace('// @ts-nocheck\n', '') : content
+      };
+    }
+  );
   if (args?.generateJson) {
     const json = JSON.stringify(libraryCodes, null, 2);
     await fs.writeFile(path.join(process.cwd(), 'public', 'examples-files.json'), json);

@@ -115,7 +115,17 @@ function Home() {
             shouldExit: true
           },
           {
-            command: 'npm run setup -w mainpage',
+            command: 'npm run makemigrations -w mainpage',
+            tag: 'Dev Server',
+            shouldExit: true
+          },
+          {
+            command: 'npm run migrate -w mainpage',
+            tag: 'Dev Server',
+            shouldExit: true
+          },
+          {
+            command: 'npm run seed -w mainpage',
             tag: 'Dev Server',
             shouldExit: true
           },

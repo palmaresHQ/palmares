@@ -144,88 +144,89 @@ export default function Code(props: Props) {
         }
       };
       await args.webcontainerInstance.mount(formattedLibraries);
-      const commandOutput = terminalsRef.current['Dev Server'];
-      if (!commandOutput?.container) return;
 
-      const terminal = new args.Terminal({
-        convertEol: true,
-        fontSize: 10,
-        fontFamily: 'monospace',
-        theme: {
-          foreground: '#EEEEEE',
-          background: 'rgba(0, 0, 0, 0.0)',
-          cursor: '#CFF5DB'
+      // const commandOutput = terminalsRef.current['Dev Server'];
+      // if (!commandOutput?.container) return;
+      //
+      // const terminal = new args.Terminal({
+      //   convertEol: true,
+      //   fontSize: 10,
+      //   fontFamily: 'monospace',
+      //   theme: {
+      //     foreground: '#EEEEEE',
+      //     background: 'rgba(0, 0, 0, 0.0)',
+      //     cursor: '#CFF5DB'
+      //   }
+      // });
+      //
+      // commandOutput.terminal = terminal;
+      // const fitAddon = new args.FitAddon();
+      // terminal.loadAddon(fitAddon);
+      // terminal.open(commandOutput.container);
+      // fitAddon.fit();
+      //
+      // const shellProcess = await args.webcontainerInstance.spawn('jsh');
+      // shellProcess.output.pipeTo(
+      //   new WritableStream({
+      //     write(data) {
+      //       terminal.write(data);
+      //     }
+      //   })
+      // );
+      //
+      // const input = shellProcess.input.getWriter();
+      //
+      // terminal.onData((data) => {
+      //   input.write(data);
+      // });
+
+      for (const command of props.commands || []) {
+        const tag = command.tag || 'default';
+        const commandOutput = terminalsRef.current[tag];
+
+        if (!commandOutput?.container) continue;
+        if (!commandOutput.terminal) {
+          const terminal = new args.Terminal({
+            convertEol: true,
+            fontSize: 10,
+            fontFamily: 'monospace',
+            theme: {
+              foreground: '#EEEEEE',
+              background: 'rgba(0, 0, 0, 0.0)',
+              cursor: '#CFF5DB'
+            }
+          });
+
+          commandOutput.terminal = terminal;
+          const fitAddon = new args.FitAddon();
+          terminal.loadAddon(fitAddon);
+          terminal.open(commandOutput.container);
+          fitAddon.fit();
         }
-      });
 
-      commandOutput.terminal = terminal;
-      const fitAddon = new args.FitAddon();
-      terminal.loadAddon(fitAddon);
-      terminal.open(commandOutput.container);
-      fitAddon.fit();
+        const actualCommandToRun = command.command.split(' ');
+        const commandToRun = actualCommandToRun.shift() as string;
 
-      const shellProcess = await args.webcontainerInstance.spawn('jsh');
-      shellProcess.output.pipeTo(
-        new WritableStream({
-          write(data) {
-            terminal.write(data);
-          }
-        })
-      );
+        const process = await args.webcontainerInstance.spawn(commandToRun, actualCommandToRun);
+        if (command.show !== false)
+          process.output.pipeTo(
+            new WritableStream({
+              write(chunk) {
+                commandOutput.terminal?.write(chunk);
+              }
+            })
+          );
 
-      const input = shellProcess.input.getWriter();
+        if (command.serverReady) {
+          args.webcontainerInstance.on('server-ready', (port, url) => {
+            if (command?.serverReady === undefined) return;
+            if (!commandOutput?.terminal) return;
+            command?.serverReady?.(url, port, commandOutput.terminal);
+          });
+        }
 
-      terminal.onData((data) => {
-        input.write(data);
-      });
-
-      // for (const command of props.commands || []) {
-      //   const tag = command.tag || 'default';
-      //   const commandOutput = terminalsRef.current[tag];
-      //
-      //   if (!commandOutput?.container) continue;
-      //   if (!commandOutput.terminal) {
-      //     const terminal = new args.Terminal({
-      //       convertEol: true,
-      //       fontSize: 10,
-      //       fontFamily: 'monospace',
-      //       theme: {
-      //         foreground: '#EEEEEE',
-      //         background: 'rgba(0, 0, 0, 0.0)',
-      //         cursor: '#CFF5DB'
-      //       }
-      //     });
-      //
-      //     commandOutput.terminal = terminal;
-      //     const fitAddon = new args.FitAddon();
-      //     terminal.loadAddon(fitAddon);
-      //     terminal.open(commandOutput.container);
-      //     fitAddon.fit();
-      //   }
-      //
-      //   const actualCommandToRun = command.command.split(' ');
-      //   const commandToRun = actualCommandToRun.shift() as string;
-      //
-      //   const process = await args.webcontainerInstance.spawn(commandToRun, actualCommandToRun);
-      //   if (command.show !== false)
-      //     process.output.pipeTo(
-      //       new WritableStream({
-      //         write(chunk) {
-      //           commandOutput.terminal?.write(chunk);
-      //         }
-      //       })
-      //     );
-      //
-      //   if (command.serverReady) {
-      //     args.webcontainerInstance.on('server-ready', (port, url) => {
-      //       if (command?.serverReady === undefined) return;
-      //       if (!commandOutput?.terminal) return;
-      //       command?.serverReady?.(url, port, commandOutput.terminal);
-      //     });
-      //   }
-      //
-      //   if (command.shouldExit) await process.exit;
-      // }
+        if (command.shouldExit) await process.exit;
+      }
     }
   }
 
