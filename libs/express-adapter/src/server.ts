@@ -25,6 +25,7 @@ export const servers = new Map<
 >();
 
 const expressServerAdapter = serverAdapter({
+  name: 'express',
   request: new requestAdapter(),
   response: new responseAdapter(),
   routers: new routerAdapter(),

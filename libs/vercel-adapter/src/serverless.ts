@@ -5,6 +5,7 @@ import VercelResponseAdapter from './response';
 import VercelRouterAdapter from './router';
 
 export default serverlessAdapter({
+  name: 'vercel',
   request: new VercelRequestAdapter(),
   response: new VercelResponseAdapter(),
   routers: new VercelRouterAdapter(),

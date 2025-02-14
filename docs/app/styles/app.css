@@ -1,3 +1,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.terminal {
+  width: 100%;
+}
+
+.terminal ::-webkit-scrollbar {
+  width: 10px;
+}
+
+.terminal ::-webkit-scrollbar-track {
+  border-radius: 100vh;
+  background: transparent;
+}
+
+.terminal ::-webkit-scrollbar-thumb {
+  background: #fcbe8e;
+  border-radius: 0;
+}
+
+.terminal ::-webkit-scrollbar-thumb:hover {
+  background: #f7ac6e;
+}

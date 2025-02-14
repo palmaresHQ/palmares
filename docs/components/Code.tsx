@@ -188,10 +188,11 @@ export default function Code(props: Props) {
         if (!commandOutput.terminal) {
           const terminal = new args.Terminal({
             convertEol: true,
-            fontSize: 10,
-            fontFamily: 'monospace',
+            fontSize: 12,
+            cursorBlink: true,
+            fontFamily: 'Menlo, courier-new, courier, monospace',
             theme: {
-              foreground: '#EEEEEE',
+              foreground: 'rgba(0, 0, 0)',
               background: 'rgba(0, 0, 0, 0.0)',
               cursor: '#CFF5DB'
             }
@@ -401,11 +402,13 @@ export default function Code(props: Props) {
               ref={(el) => {
                 terminalsRef.current[tag].container = el;
               }}
-              className="flex flex-col items-center justify-center overflow-hidden terminal"
+              className="scrollbar flex flex-col items-center justify-center overflow-hidden terminal border-[1px] border-secondary-300"
               style={{
                 height: 240,
+                border: '1px solid #d4d4d8',
+                boxShadow: 'inset 0em 0em 1em #d4d4d8',
+                backgroundColor: '#ffffff',
                 display: tag === activeTag ? 'flex' : 'none',
-                backgroundColor: 'rgba(0,0,0,0.8)',
                 width: `calc(${props.width || 720}px + ${props.sidebarWidth || '0px'})`
               }}
             />
