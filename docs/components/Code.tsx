@@ -98,7 +98,6 @@ export default function Code(props: Props) {
     args: Awaited<ReturnType<typeof getEditor>>,
     libraries: Awaited<ReturnType<GetLibraryCodesFn>>
   ) {
-    console.log('heeere', args.webcontainerInstance);
     if (typeof args.webcontainerInstance !== 'undefined') {
       const mergedLibrariesWithAppsCode = {
         ...props.libraries,
@@ -181,6 +180,7 @@ export default function Code(props: Props) {
       // });
 
       for (const command of props.commands || []) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         const tag = command.tag || 'default';
         const commandOutput = terminalsRef.current[tag];
 
@@ -212,6 +212,7 @@ export default function Code(props: Props) {
           process.output.pipeTo(
             new WritableStream({
               write(chunk) {
+                console.log(chunk);
                 commandOutput.terminal?.write(chunk);
               }
             })
