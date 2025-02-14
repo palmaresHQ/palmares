@@ -57,7 +57,7 @@ export async function loadServer(args: {
       const loadedServer = await newServerInstance.load(serverName, args.domains, serverSettings);
 
       if ((newServerInstance as ServerAdapter).$$type === '$PServerAdapter')
-        setServerAdapterInstance(serverSettings.server as typeof ServerAdapter, loadedServer);
+        setServerAdapterInstance(serverSettings.server as typeof ServerAdapter, serverName, loadedServer);
 
       serverInstances.set(serverName, {
         server: newServerInstance,

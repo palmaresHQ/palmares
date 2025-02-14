@@ -79,7 +79,7 @@ export function test<TTestAdapter extends TestAdapter & Palmares.PTestAdapter = 
     testName,
     async () => {
       const custom = (await defaultTestAdapter.getCustomProps?.()) as any;
-      Promise.resolve(
+      await Promise.resolve(
         callback({
           expect,
           custom
@@ -114,7 +114,7 @@ export function beforeEach<
   const defaultTestAdapter = getTestAdapter();
   defaultTestAdapter.functions.getBeforeEach(
     async () =>
-      Promise.resolve(
+      await Promise.resolve(
         callback({
           custom: (await defaultTestAdapter.getCustomProps?.()) as any
         })
@@ -147,7 +147,7 @@ export function afterEach<
   const defaultTestAdapter = getTestAdapter();
   defaultTestAdapter.functions.getAfterEach(
     async () =>
-      Promise.resolve(
+      await Promise.resolve(
         callback({
           custom: (await defaultTestAdapter.getCustomProps?.()) as any
         })
@@ -180,7 +180,7 @@ export function beforeAll<
   const defaultTestAdapter = getTestAdapter();
   defaultTestAdapter.functions.getBeforeAll(
     async () =>
-      Promise.resolve(
+      await Promise.resolve(
         callback({
           custom: (await defaultTestAdapter.getCustomProps?.()) as any
         })
@@ -213,7 +213,7 @@ export function afterAll<
   const defaultTestAdapter = getTestAdapter();
   defaultTestAdapter.functions.getAfterAll(
     async () =>
-      Promise.resolve(
+      await Promise.resolve(
         callback({
           custom: (await defaultTestAdapter.getCustomProps?.()) as any
         })

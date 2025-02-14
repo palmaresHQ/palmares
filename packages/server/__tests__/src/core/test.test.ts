@@ -4,7 +4,6 @@ import { beforeAll, describe } from '@palmares/tests';
 import supertest from 'supertest';
 
 import type JestTestAdapter from '@palmares/jest-tests';
-import type { Http2Server } from 'http2';
 
 beforeAll(async () => {
   await loadServerWhenTesting({ port: 4000 });
@@ -13,7 +12,9 @@ beforeAll(async () => {
 describe<JestTestAdapter>('Basic server tests', ({ test }) => {
   test('test a basic request', async ({ expect }) => {
     const server = getAdapterServer(ExpressServerAdapter);
-    await supertest(server).get('/test').expect(200, { message: 'hello1' });
+    const response = await supertest(server).get('/test');
+
+    expect(response.body).toStrictEqual({ message: 'hello' });
     // fetch('http://localhost:4000');
   });
 });

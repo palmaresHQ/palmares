@@ -12,6 +12,7 @@ describe('Basic server tests', ({ test }) => {
   test('test a basic request', async ({ expect }) => {
     const server = getAdapterServer(ExpressServerAdapter);
     const { status, body } = await supertest(server).get('/users');
-    console.log(status, body);
+
+    expect(status).toBe(200);
   });
 });

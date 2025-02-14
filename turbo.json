@@ -11,21 +11,14 @@
     "build:watch": {
       "persistent": true,
       "cache": true,
-      "outputs": [
-        "packages/**/dist/**",
-        "lib/**/dist/**"
-      ]
+      "outputs": ["packages/**/dist/**", "lib/**/dist/**"]
     },
     "publish": {
       "cache": false,
-      "dependsOn": [
-        "build"
-      ]
+      "dependsOn": ["build"]
     },
     "dev": {
-      "dependsOn": [
-        "build:watch"
-      ]
+      "dependsOn": ["build:watch"]
     }
   }
 }

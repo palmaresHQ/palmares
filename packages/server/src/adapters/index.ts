@@ -16,6 +16,7 @@ export function serverAdapter<
   TStartFunction extends ServerAdapter['start'],
   TCloseFunction extends ServerAdapter['close']
 >(args: {
+  name: string;
   /**
    * This is the {@link ServerRequestAdapter}. The request will hold all of the request data from
    * the server, this way we can translate the original request to Palmares request, everything
@@ -95,6 +96,7 @@ export function serverAdapter<
   };
 } {
   class CustomServerAdapter extends ServerAdapter {
+    static name = args.name;
     request = args.request;
     response = args.response;
     routers = args.routers as ServerRouterAdapter;

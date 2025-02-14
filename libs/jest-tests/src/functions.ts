@@ -38,8 +38,8 @@ export class JestTestFunctionsAdapter extends TestFunctionsAdapter {
 
   getAfterAll(callback: () => Promise<void>): void {
     const afterAll = require('@jest/globals').afterAll;
-    afterAll(() => {
-      callback();
+    afterAll(async () => {
+      await callback();
     });
   }
 }

@@ -16,6 +16,7 @@ export function serverlessAdapter<
   TStartFunction extends ServerlessAdapter['generate'],
   TCustomServerSettings extends (typeof ServerlessAdapter)['customServerSettings']
 >(args: {
+  name: string;
   /**
    * This is the {@link ServerRequestAdapter}. The request will hold all of the request data from the server,
    * this way we can translate the original request to Palmares request, everything is all lazy loaded.
@@ -36,6 +37,7 @@ export function serverlessAdapter<
   generate: TStartFunction;
 }) {
   class CustomServerAdapter extends ServerlessAdapter {
+    static name = args.name;
     request = args.request;
     response = args.response;
     routers = args.routers;
