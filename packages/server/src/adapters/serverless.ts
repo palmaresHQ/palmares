@@ -36,8 +36,7 @@ export function serverlessAdapter<
   load: TLoadFunction;
   generate: TStartFunction;
 }) {
-  class CustomServerAdapter extends ServerlessAdapter {
-    static name = args.name;
+  class CustomServerlessAdapter extends ServerlessAdapter {
     request = args.request;
     response = args.response;
     routers = args.routers;
@@ -46,7 +45,8 @@ export function serverlessAdapter<
     static customServerSettings = args.customServerSettings;
   }
 
-  return CustomServerAdapter as {
+  Reflect.defineProperty(CustomServerlessAdapter, 'name', { value: args.name });
+  return CustomServerlessAdapter as {
     customServerSettings: TCustomServerSettings;
     new (serverName: string): ServerlessAdapter & {
       request: TServerlessRequestAdapter;

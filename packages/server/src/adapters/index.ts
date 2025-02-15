@@ -96,7 +96,6 @@ export function serverAdapter<
   };
 } {
   class CustomServerAdapter extends ServerAdapter {
-    static name = args.name;
     request = args.request;
     response = args.response;
     routers = args.routers as ServerRouterAdapter;
@@ -105,6 +104,7 @@ export function serverAdapter<
     close = args.close;
   }
 
+  Reflect.defineProperty(CustomServerAdapter, 'name', { value: args.name });
   return CustomServerAdapter as {
     new (serverName: string): ServerAdapter & {
       request: TServerRequestAdapter;
