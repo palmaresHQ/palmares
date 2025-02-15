@@ -20,7 +20,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
           cache: 'pnpm'
 
       - name: Install Vercel CLI
@@ -28,9 +28,6 @@ jobs:
 
       - name: Install Dependencies
         run: pnpm install
-
-      - name: Build Project Artifacts
-        run: pnpm run build && cd docs && pnpm run predocs:build
 
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
