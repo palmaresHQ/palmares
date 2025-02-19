@@ -44,7 +44,7 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "devDependencies": {
-    "@types/node": "^22.10.5",
+    "@types/node": "^22.13.4",
     "@palmares/core": "workspace:*",
     "@palmares/server": "workspace:*"
   }
