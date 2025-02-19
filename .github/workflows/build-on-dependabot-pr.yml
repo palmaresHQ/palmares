@@ -5,7 +5,12 @@ on:
     types: [opened, synchronize]
     branches:
       - main
+<<<<<<< HEAD
 
+=======
+permissions:
+  pull-requests: write
+>>>>>>> upstream/main
 jobs:
   build:
     if: |
