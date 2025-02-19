@@ -58,7 +58,7 @@
     "@changesets/cli": "^2.27.9",
     "@types/node": "^22.13.4",
     "@typescript-eslint/eslint-plugin": "^8.19.1",
-    "@typescript-eslint/parser": "^8.19.1",
+    "@typescript-eslint/parser": "^8.24.1",
     "chokidar": "^4.0.3",
     "concurrently": "^9.1.2",
     "copyfiles": "^2.4.1",
