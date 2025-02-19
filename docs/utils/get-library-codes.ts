@@ -165,7 +165,10 @@ export async function getPalmaresFiles(args?: { generateJson: boolean }) {
 
 export async function getExamplesFiles(args?: { generateJson: boolean }) {
   const libraryCodes = await getLibraryCodes(
-    [['mainpage', path.join(process.cwd(), '.', 'examples', 'mainpage')]],
+    [
+      ['mainpage', path.join(process.cwd(), '.', 'examples', 'mainpage')],
+      ['favoritetools', path.join(process.cwd(), '.', 'examples', 'favoritetools')]
+    ],
     ({ path, content }) => {
       return {
         path: path.replace('_', ''),
