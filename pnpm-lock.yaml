@@ -122,19 +122,19 @@ importers:
         version: 3.1.0(acorn@8.14.0)
       '@mdx-js/react':
         specifier: ^3.1.0
-        version: 3.1.0(@types/react@18.3.12)(react@19.0.0)
+        version: 3.1.0(@types/react@18.3.12)(react@18.3.1)
       '@tanstack/react-router':
         specifier: ^1.87.0
-        version: 1.102.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        version: 1.102.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/start':
         specifier: ^1.87.0
-        version: 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
+        version: 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
       '@typescript/sandbox':
         specifier: ^0.1.7
         version: 0.1.8(typescript@5.7.3)
       '@webcontainer/api':
-        specifier: 1.5.1-internal.9
-        version: 1.5.1-internal.9
+        specifier: 1.5.1-internal.2
+        version: 1.5.1-internal.2
       '@xterm/addon-fit':
         specifier: ^0.10.0
         version: 0.10.0(@xterm/xterm@5.5.0)
@@ -149,16 +149,16 @@ importers:
         version: 0.52.2
       nitropack:
         specifier: ^2.10.4
-        version: 2.10.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(mysql2@3.12.0)(sqlite3@5.1.7)(typescript@5.7.3)
+        version: 2.10.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(mysql2@3.12.0)(sqlite3@5.1.7)(typescript@5.7.3)
       postcss:
         specifier: 8.4.47
         version: 8.4.47
       react:
-        specifier: ^19.0.0
-        version: 19.0.0
+        specifier: ^18.3.1
+        version: 18.3.1
       react-dom:
-        specifier: 19.0.0
-        version: 19.0.0(react@19.0.0)
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
       tailwindcss:
         specifier: 3.4.7
         version: 3.4.7(ts-node@10.9.1(@swc/core@1.10.15)(@types/node@22.13.4)(typescript@5.7.3))
@@ -167,7 +167,7 @@ importers:
         version: 5.7.3
       vinxi:
         specifier: ^0.5.1
-        version: 0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
+        version: 0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
     devDependencies:
       '@types/babel__core':
         specifier: ^7.20.5
@@ -5509,8 +5509,8 @@ packages:
   '@vitest/utils@2.1.9':
     resolution: {integrity: sha512-v0psaMSkNJ3A2NMrUEHFRzJtDPFn+/VWZ5WxImB21T9fjucJRmS7xCS3ppEnARb9y11OAzaD+P2Ps+b+BGX5iQ==}
 
-  '@webcontainer/api@1.5.1-internal.9':
-    resolution: {integrity: sha512-l5cR4pzGwe+ZnR+HFKtz5Rq6JntSqay5ivX/LHoaf4vmTv8lYbNK0FQDPsXSd6Ual6F95eofCUJkyExDqK7Ozw==}
+  '@webcontainer/api@1.5.1-internal.2':
+    resolution: {integrity: sha512-enh2JBcURG1+8gA3Y81zLREyP6CvtcG0H85rHBk01sywG71LFcyD9XQMqzCmPYux6fiyjf81yUcFLJ68uAlGjQ==}
 
   '@xata.io/client@0.30.1':
     resolution: {integrity: sha512-dAzDPHmIfenVIpF39m1elmW5ngjWu2mO8ZqJBN7dmYdXr98uhPANfLdVZnc3mUNG+NH37LqY1dSO862hIo2oRw==}
@@ -10536,6 +10536,11 @@ packages:
     resolution: {integrity: sha512-hlSJDQ2synMPKFZOsKo9Hi8WWZTC7POR8EmWvTSjow+VDgKzkmjQvFm2fk0tmRw+f0vTOIYKlarR0iL4996pdg==}
     engines: {node: '>=16.14.0'}
 
+  react-dom@18.3.1:
+    resolution: {integrity: sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw==}
+    peerDependencies:
+      react: ^18.3.1
+
   react-dom@19.0.0:
     resolution: {integrity: sha512-4GV5sHFG0e/0AD4X+ySy6UJd3jVl1iNsNHdpad0qhABJ11twS3TTBnseqsKurKcsNqCEFeGL3uLpVChpIO3QfQ==}
     peerDependencies:
@@ -10880,6 +10885,9 @@ packages:
 
   sax@1.4.1:
     resolution: {integrity: sha512-+aWOz7yVScEGoKNd4PA10LZ8sk0A/z5+nXQG5giUO5rprX9jgYsTdov9qCchZiPIZezbZH+jRut8nPodFAX4Jg==}
+
+  scheduler@0.23.2:
+    resolution: {integrity: sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ==}
 
   scheduler@0.24.0-canary-efb381bbf-20230505:
     resolution: {integrity: sha512-ABvovCDe/k9IluqSh4/ISoq8tIJnW8euVAWYt5j/bg6dRnqwQwiGO1F/V4AyK96NGF/FB04FhOUDuWj8IKfABA==}
@@ -15882,12 +15890,6 @@ snapshots:
       '@types/react': 18.3.12
       react: 18.3.1
 
-  '@mdx-js/react@3.1.0(@types/react@18.3.12)(react@19.0.0)':
-    dependencies:
-      '@types/mdx': 2.0.13
-      '@types/react': 18.3.12
-      react: 19.0.0
-
   '@mole-inc/bin-wrapper@8.0.1':
     dependencies:
       bin-check: 4.1.0
@@ -17241,33 +17243,33 @@ snapshots:
 
   '@tanstack/query-core@5.66.4': {}
 
-  '@tanstack/react-cross-context@1.99.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
+  '@tanstack/react-cross-context@1.99.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   '@tanstack/react-query@5.66.7(react@18.3.1)':
     dependencies:
       '@tanstack/query-core': 5.66.4
       react: 18.3.1
 
-  '@tanstack/react-router@1.102.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
+  '@tanstack/react-router@1.102.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@tanstack/history': 1.99.13
-      '@tanstack/react-store': 0.7.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@tanstack/react-store': 0.7.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/router-core': 1.102.0
       jsesc: 3.1.0
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
       tiny-invariant: 1.3.3
       tiny-warning: 1.0.3
 
-  '@tanstack/react-store@0.7.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
+  '@tanstack/react-store@0.7.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@tanstack/store': 0.7.0
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
-      use-sync-external-store: 1.4.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      use-sync-external-store: 1.4.0(react@18.3.1)
 
   '@tanstack/react-virtual@3.13.0(react-dom@19.0.0(react@18.3.1))(react@18.3.1)':
     dependencies:
@@ -17280,16 +17282,16 @@ snapshots:
       '@tanstack/history': 1.99.13
       '@tanstack/store': 0.7.0
 
-  '@tanstack/router-generator@1.102.3(@tanstack/react-router@1.102.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0))':
+  '@tanstack/router-generator@1.102.3(@tanstack/react-router@1.102.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))':
     dependencies:
       '@tanstack/virtual-file-routes': 1.99.0
       prettier: 3.5.0
       tsx: 4.19.2
       zod: 3.24.2
     optionalDependencies:
-      '@tanstack/react-router': 1.102.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@tanstack/react-router': 1.102.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
 
-  '@tanstack/router-plugin@1.102.3(@tanstack/react-router@1.102.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))':
+  '@tanstack/router-plugin@1.102.3(@tanstack/react-router@1.102.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))':
     dependencies:
       '@babel/core': 7.26.8
       '@babel/plugin-syntax-jsx': 7.25.9(@babel/core@7.26.8)
@@ -17297,7 +17299,7 @@ snapshots:
       '@babel/template': 7.26.8
       '@babel/traverse': 7.26.8
       '@babel/types': 7.26.9
-      '@tanstack/router-generator': 1.102.3(@tanstack/react-router@1.102.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
+      '@tanstack/router-generator': 1.102.3(@tanstack/react-router@1.102.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
       '@tanstack/router-utils': 1.102.2
       '@tanstack/virtual-file-routes': 1.99.0
       '@types/babel__core': 7.20.5
@@ -17308,7 +17310,7 @@ snapshots:
       unplugin: 2.2.0
       zod: 3.24.2
     optionalDependencies:
-      '@tanstack/react-router': 1.102.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@tanstack/react-router': 1.102.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       vite: 5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0)
     transitivePeerDependencies:
       - supports-color
@@ -17341,14 +17343,14 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
-  '@tanstack/start-api-routes@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
+  '@tanstack/start-api-routes@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
     dependencies:
-      '@tanstack/react-router': 1.102.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@tanstack/start-server': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
+      '@tanstack/react-router': 1.102.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@tanstack/start-server': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
       '@vitejs/plugin-react': 4.3.4(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
-      vinxi: 0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      vinxi: 0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
       vite: 5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0)
     transitivePeerDependencies:
       - '@azure/app-configuration'
@@ -17393,15 +17395,15 @@ snapshots:
       - xml2js
       - yaml
 
-  '@tanstack/start-client@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)':
+  '@tanstack/start-client@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)':
     dependencies:
-      '@tanstack/react-cross-context': 1.99.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@tanstack/react-router': 1.102.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@tanstack/react-cross-context': 1.99.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@tanstack/react-router': 1.102.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       jsesc: 3.1.0
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
       tiny-invariant: 1.3.3
-      vinxi: 0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
+      vinxi: 0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -17445,21 +17447,21 @@ snapshots:
       - xml2js
       - yaml
 
-  '@tanstack/start-config@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
+  '@tanstack/start-config@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
     dependencies:
-      '@tanstack/react-router': 1.102.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@tanstack/router-generator': 1.102.3(@tanstack/react-router@1.102.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0))
-      '@tanstack/router-plugin': 1.102.3(@tanstack/react-router@1.102.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))
+      '@tanstack/react-router': 1.102.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@tanstack/router-generator': 1.102.3(@tanstack/react-router@1.102.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
+      '@tanstack/router-plugin': 1.102.3(@tanstack/react-router@1.102.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))
       '@tanstack/server-functions-plugin': 1.102.2
       '@tanstack/start-plugin': 1.102.2
-      '@tanstack/start-server-functions-handler': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
+      '@tanstack/start-server-functions-handler': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
       '@vitejs/plugin-react': 4.3.4(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))
       import-meta-resolve: 4.1.0
-      nitropack: 2.10.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(mysql2@3.12.0)(sqlite3@5.1.7)(typescript@5.7.3)
+      nitropack: 2.10.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(mysql2@3.12.0)(sqlite3@5.1.7)(typescript@5.7.3)
       ofetch: 1.4.1
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
-      vinxi: 0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      vinxi: 0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
       vite: 5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0)
       zod: 3.24.2
     transitivePeerDependencies:
@@ -17527,13 +17529,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@tanstack/start-router-manifest@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
+  '@tanstack/start-router-manifest@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
     dependencies:
-      '@tanstack/react-router': 1.102.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@tanstack/react-router': 1.102.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@vitejs/plugin-react': 4.3.4(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
-      vinxi: 0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      vinxi: 0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -17578,13 +17580,13 @@ snapshots:
       - xml2js
       - yaml
 
-  '@tanstack/start-server-functions-client@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
+  '@tanstack/start-server-functions-client@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
     dependencies:
       '@tanstack/server-functions-plugin': 1.102.2
-      '@tanstack/start-server-functions-fetcher': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
+      '@tanstack/start-server-functions-fetcher': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
       '@vitejs/plugin-react': 4.3.4(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
       tiny-invariant: 1.3.3
     transitivePeerDependencies:
       - '@azure/app-configuration'
@@ -17631,13 +17633,13 @@ snapshots:
       - xml2js
       - yaml
 
-  '@tanstack/start-server-functions-fetcher@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
+  '@tanstack/start-server-functions-fetcher@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
     dependencies:
-      '@tanstack/react-router': 1.102.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@tanstack/start-client': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
+      '@tanstack/react-router': 1.102.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@tanstack/start-client': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
       '@vitejs/plugin-react': 4.3.4(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -17682,14 +17684,14 @@ snapshots:
       - xml2js
       - yaml
 
-  '@tanstack/start-server-functions-handler@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
+  '@tanstack/start-server-functions-handler@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
     dependencies:
-      '@tanstack/react-router': 1.102.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@tanstack/start-client': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
-      '@tanstack/start-server': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
+      '@tanstack/react-router': 1.102.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@tanstack/start-client': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
+      '@tanstack/start-server': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
       '@vitejs/plugin-react': 4.3.4(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
       tiny-invariant: 1.3.3
       vite: 5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0)
     transitivePeerDependencies:
@@ -17735,27 +17737,27 @@ snapshots:
       - xml2js
       - yaml
 
-  '@tanstack/start-server-functions-server@1.102.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))':
+  '@tanstack/start-server-functions-server@1.102.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))':
     dependencies:
       '@tanstack/server-functions-plugin': 1.102.2
       '@vitejs/plugin-react': 4.3.4(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
       tiny-invariant: 1.3.3
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
       - vite
 
-  '@tanstack/start-server-functions-ssr@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
+  '@tanstack/start-server-functions-ssr@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
     dependencies:
       '@tanstack/server-functions-plugin': 1.102.2
-      '@tanstack/start-client': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
-      '@tanstack/start-server': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
-      '@tanstack/start-server-functions-fetcher': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
+      '@tanstack/start-client': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
+      '@tanstack/start-server': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
+      '@tanstack/start-server-functions-fetcher': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
       '@vitejs/plugin-react': 4.3.4(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
       tiny-invariant: 1.3.3
       vite: 5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0)
     transitivePeerDependencies:
@@ -17802,17 +17804,17 @@ snapshots:
       - xml2js
       - yaml
 
-  '@tanstack/start-server@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
+  '@tanstack/start-server@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
     dependencies:
-      '@tanstack/react-cross-context': 1.99.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@tanstack/react-router': 1.102.3(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
-      '@tanstack/start-client': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
+      '@tanstack/react-cross-context': 1.99.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@tanstack/react-router': 1.102.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@tanstack/start-client': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
       '@vitejs/plugin-react': 4.3.4(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))
       h3: 1.13.0
       isbot: 5.1.22
       jsesc: 3.1.0
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
       unctx: 2.4.1
     transitivePeerDependencies:
       - '@azure/app-configuration'
@@ -17858,19 +17860,19 @@ snapshots:
       - xml2js
       - yaml
 
-  '@tanstack/start@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
+  '@tanstack/start@1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
     dependencies:
-      '@tanstack/start-api-routes': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
-      '@tanstack/start-client': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
-      '@tanstack/start-config': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
-      '@tanstack/start-router-manifest': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
-      '@tanstack/start-server': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
-      '@tanstack/start-server-functions-client': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
-      '@tanstack/start-server-functions-handler': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
-      '@tanstack/start-server-functions-server': 1.102.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))
-      '@tanstack/start-server-functions-ssr': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
-      react: 19.0.0
-      react-dom: 19.0.0(react@19.0.0)
+      '@tanstack/start-api-routes': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
+      '@tanstack/start-client': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0)
+      '@tanstack/start-config': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
+      '@tanstack/start-router-manifest': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
+      '@tanstack/start-server': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
+      '@tanstack/start-server-functions-client': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
+      '@tanstack/start-server-functions-handler': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
+      '@tanstack/start-server-functions-server': 1.102.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))
+      '@tanstack/start-server-functions-ssr': 1.102.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(vite@5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
       vite: 5.4.14(@types/node@22.13.4)(lightningcss@1.27.0)(terser@5.39.0)
     transitivePeerDependencies:
       - '@azure/app-configuration'
@@ -18824,7 +18826,7 @@ snapshots:
       loupe: 3.1.3
       tinyrainbow: 1.2.0
 
-  '@webcontainer/api@1.5.1-internal.9': {}
+  '@webcontainer/api@1.5.1-internal.2': {}
 
   '@xata.io/client@0.30.1(typescript@5.7.3)':
     dependencies:
@@ -20072,12 +20074,12 @@ snapshots:
       '@deno/shim-deno': 0.19.2
       undici-types: 5.28.4
 
-  db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7):
+  db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7):
     optionalDependencies:
       '@electric-sql/pglite': 0.2.17
       '@libsql/client': 0.14.0(bufferutil@4.0.9)
       better-sqlite3: 11.8.1
-      drizzle-orm: 0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7)
+      drizzle-orm: 0.38.4(@aws-sdk/client-rds-data@3.744.0)(@cloudflare/workers-types@4.20250214.0)(@electric-sql/pglite@0.2.17)(@libsql/client-wasm@0.14.0)(@libsql/client@0.14.0(bufferutil@4.0.9))(@neondatabase/serverless@0.10.4)(@op-engineering/op-sqlite@11.4.6(react-native@0.77.0(@babel/core@7.26.9)(@babel/preset-env@7.26.8(@babel/core@7.26.9))(@types/react@18.3.12)(bufferutil@4.0.9)(react@18.3.1))(react@18.3.1))(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@6.3.1(typescript@5.7.3))(@tidbcloud/serverless@0.2.0)(@types/better-sqlite3@7.6.12)(@types/pg@8.11.11)(@types/react@18.3.12)(@types/sql.js@1.4.9)(@vercel/postgres@0.10.0)(@xata.io/client@0.30.1(typescript@5.7.3))(better-sqlite3@11.8.1)(bun-types@1.2.2)(expo-sqlite@15.1.2(expo@52.0.32(@babel/core@7.26.9)(@babel/preset-env@7.26.8(@babel/core@7.26.9))(bufferutil@4.0.9)(encoding@0.1.13)(react-native@0.77.0(@babel/core@7.26.9)(@babel/preset-env@7.26.8(@babel/core@7.26.9))(@types/react@18.3.12)(bufferutil@4.0.9)(react@18.3.1))(react@18.3.1))(react-native@0.77.0(@babel/core@7.26.9)(@babel/preset-env@7.26.8(@babel/core@7.26.9))(@types/react@18.3.12)(bufferutil@4.0.9)(react@18.3.1))(react@18.3.1))(knex@3.1.0(better-sqlite3@11.8.1)(mysql2@3.12.0)(pg@8.13.2)(sqlite3@5.1.7))(kysely@0.27.5)(mysql2@3.12.0)(pg@8.13.2)(postgres@3.4.5)(react@18.3.1)(sql.js@1.12.0)(sqlite3@5.1.7)
       mysql2: 3.12.0
       sqlite3: 5.1.7
 
@@ -20308,18 +20310,6 @@ snapshots:
       react: 18.3.1
       sql.js: 1.12.0
       sqlite3: 5.1.7
-
-  drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7):
-    optionalDependencies:
-      '@electric-sql/pglite': 0.2.17
-      '@libsql/client': 0.14.0(bufferutil@4.0.9)
-      '@planetscale/database': 1.19.0
-      '@types/react': 18.3.12
-      better-sqlite3: 11.8.1
-      mysql2: 3.12.0
-      react: 19.0.0
-      sqlite3: 5.1.7
-    optional: true
 
   dunder-proto@1.0.1:
     dependencies:
@@ -24052,7 +24042,7 @@ snapshots:
 
   nice-try@1.0.5: {}
 
-  nitropack@2.10.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(mysql2@3.12.0)(sqlite3@5.1.7)(typescript@5.7.3):
+  nitropack@2.10.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(mysql2@3.12.0)(sqlite3@5.1.7)(typescript@5.7.3):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.4
       '@netlify/functions': 2.8.2
@@ -24076,7 +24066,7 @@ snapshots:
       cookie-es: 1.2.2
       croner: 9.0.0
       crossws: 0.3.4
-      db0: 0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7)
+      db0: 0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7)
       defu: 6.1.4
       destr: 2.0.3
       dot-prop: 9.0.0
@@ -24119,7 +24109,7 @@ snapshots:
       unctx: 2.4.1
       unenv: 1.10.0
       unimport: 3.14.6(rollup@4.34.6)
-      unstorage: 1.14.4(@planetscale/database@1.19.0)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(ioredis@5.5.0)
+      unstorage: 1.14.4(@planetscale/database@1.19.0)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(ioredis@5.5.0)
       untyped: 1.5.2
       unwasm: 0.3.9
     transitivePeerDependencies:
@@ -24983,14 +24973,15 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  react-dom@18.3.1(react@18.3.1):
+    dependencies:
+      loose-envify: 1.4.0
+      react: 18.3.1
+      scheduler: 0.23.2
+
   react-dom@19.0.0(react@18.3.1):
     dependencies:
       react: 18.3.1
-      scheduler: 0.25.0
-
-  react-dom@19.0.0(react@19.0.0):
-    dependencies:
-      react: 19.0.0
       scheduler: 0.25.0
 
   react-is@16.13.1: {}
@@ -25055,7 +25046,8 @@ snapshots:
     dependencies:
       loose-envify: 1.4.0
 
-  react@19.0.0: {}
+  react@19.0.0:
+    optional: true
 
   read-cache@1.0.0:
     dependencies:
@@ -25443,6 +25435,10 @@ snapshots:
   safer-buffer@2.1.2: {}
 
   sax@1.4.1: {}
+
+  scheduler@0.23.2:
+    dependencies:
+      loose-envify: 1.4.0
 
   scheduler@0.24.0-canary-efb381bbf-20230505:
     dependencies:
@@ -26733,7 +26729,7 @@ snapshots:
       acorn: 8.14.0
       webpack-virtual-modules: 0.6.2
 
-  unstorage@1.14.4(@planetscale/database@1.19.0)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(ioredis@5.5.0):
+  unstorage@1.14.4(@planetscale/database@1.19.0)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(ioredis@5.5.0):
     dependencies:
       anymatch: 3.1.3
       chokidar: 3.6.0
@@ -26745,7 +26741,7 @@ snapshots:
       ufo: 1.5.4
     optionalDependencies:
       '@planetscale/database': 1.19.0
-      db0: 0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7)
+      db0: 0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7)
       ioredis: 5.5.0
 
   untildify@4.0.0: {}
@@ -26794,9 +26790,9 @@ snapshots:
 
   urlpattern-polyfill@8.0.2: {}
 
-  use-sync-external-store@1.4.0(react@19.0.0):
+  use-sync-external-store@1.4.0(react@18.3.1):
     dependencies:
-      react: 19.0.0
+      react: 18.3.1
 
   util-deprecate@1.0.2: {}
 
@@ -26864,7 +26860,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.2
 
-  vinxi@0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0):
+  vinxi@0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.4)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.2)(typescript@5.7.3)(yaml@2.7.0):
     dependencies:
       '@babel/core': 7.26.8
       '@babel/plugin-syntax-jsx': 7.25.9(@babel/core@7.26.8)
@@ -26886,7 +26882,7 @@ snapshots:
       hookable: 5.5.3
       http-proxy: 1.18.1
       micromatch: 4.0.8
-      nitropack: 2.10.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(encoding@0.1.13)(mysql2@3.12.0)(sqlite3@5.1.7)(typescript@5.7.3)
+      nitropack: 2.10.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(encoding@0.1.13)(mysql2@3.12.0)(sqlite3@5.1.7)(typescript@5.7.3)
       node-fetch-native: 1.6.6
       path-to-regexp: 6.3.0
       pathe: 1.1.2
@@ -26897,7 +26893,7 @@ snapshots:
       ufo: 1.5.4
       unctx: 2.4.1
       unenv: 1.10.0
-      unstorage: 1.14.4(@planetscale/database@1.19.0)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@19.0.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(ioredis@5.5.0)
+      unstorage: 1.14.4(@planetscale/database@1.19.0)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.38.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/react@18.3.12)(better-sqlite3@11.8.1)(mysql2@3.12.0)(react@18.3.1)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(ioredis@5.5.0)
       vite: 6.1.0(@types/node@22.13.4)(jiti@2.4.2)(lightningcss@1.27.0)(terser@5.39.0)(tsx@4.19.2)(yaml@2.7.0)
       zod: 3.24.2
     transitivePeerDependencies:
