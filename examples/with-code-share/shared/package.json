@@ -23,7 +23,7 @@
   "license": "ISC",
   "devDependencies": {
     "@swc/cli": "^0.6.0",
-    "@swc/core": "^1.9.1",
+    "@swc/core": "^1.10.18",
     "rimraf": "^6.0.1",
     "tsup": "^8.2.4",
     "typescript": "^5.5.4"
