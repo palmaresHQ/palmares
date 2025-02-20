@@ -25,7 +25,7 @@
     "@palmares/express-adapter": "workspace:*",
     "@palmares/sequelize-engine": "workspace:*",
     "cors": "^2.8.5",
-    "pg": "^8.12.0"
+    "pg": "^8.13.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.12",
