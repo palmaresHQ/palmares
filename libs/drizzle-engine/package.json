@@ -14,7 +14,7 @@
   "peerDependencies": {
     "@aws-sdk/client-rds-data": ">=3",
     "@cloudflare/workers-types": ">=4",
-    "@electric-sql/pglite": ">=0.2.0",
+    "@electric-sql/pglite": ">=0.2.17",
     "@libsql/client": ">=0.10.0",
     "@libsql/client-wasm": ">=0.10.0",
     "@neondatabase/serverless": ">=0.10.0",
@@ -1698,14 +1698,14 @@
   "author": "Nicolas Melo",
   "license": "MIT",
   "dependencies": {
-    "drizzle-orm": "^0.38.4",
+    "drizzle-orm": "^0.39.3",
     "@palmares/core": "workspace:*",
     "@palmares/databases": "workspace:*"
   },
   "devDependencies": {
     "@aws-sdk/client-rds-data": ">=3",
     "@cloudflare/workers-types": ">=4",
-    "@electric-sql/pglite": ">=0.2.0",
+    "@electric-sql/pglite": ">=0.2.17",
     "@libsql/client": ">=0.10.0",
     "@libsql/client-wasm": ">=0.10.0",
     "@neondatabase/serverless": ">=0.10.0",
