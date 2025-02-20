@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@arktype/attest':
-        specifier: ^0.27.0
-        version: 0.27.0(typescript@5.7.3)
+        specifier: ^0.41.2
+        version: 0.41.2(typescript@5.7.3)
       '@changesets/cli':
         specifier: ^2.28.0
         version: 2.28.0
@@ -1429,17 +1429,17 @@ packages:
     resolution: {integrity: sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==}
     engines: {node: '>=6.0.0'}
 
-  '@ark/fs@0.23.0':
-    resolution: {integrity: sha512-ssVbprJal7RhoiIB3Rtk8Nxe256dElnEgQWl/Ss8BdewIaxIU+7SrzwLaOnSSTHoGRwIf+TLFDP7zPK7CrZKYA==}
+  '@ark/fs@0.39.0':
+    resolution: {integrity: sha512-FTigJLbfi0yUwsTG9JU4fqVFi2ANlres53QmCtFgryReG6SkNW1/Ok2CI8RiY0qSrHHNFeNIpSxkGWjRsf6R6A==}
 
-  '@ark/schema@0.23.0':
-    resolution: {integrity: sha512-406Zx0te3ICd7PkGise4XIxOfmjFzK64tEuiN5rmJDg14AqhySXygMk8QcHqHORDJ7VXhel7J41iduw8eyiFPg==}
+  '@ark/schema@0.39.0':
+    resolution: {integrity: sha512-LQbQUb3Sj461LgklXObAyUJNtsUUCBxZlO2HqRLYvRSqpStm0xTMrXn51DwBNNxeSULvKVpXFwoxiSec9kwKww==}
 
-  '@ark/util@0.23.0':
-    resolution: {integrity: sha512-2mb24N2leQENRh+zPqnlRJzFFf8Xr7BT+/4MJN46/G8C45davpqFfcqvOw0ZlXrjQpBi8H+ZqDQsi95lN/9oVg==}
+  '@ark/util@0.39.0':
+    resolution: {integrity: sha512-90APHVklk8BP4kku7hIh1BgrhuyKYqoZ4O7EybtFRo7cDl9mIyc/QUbGvYDg//73s0J2H0I/gW9pzroA1R4IBQ==}
 
-  '@arktype/attest@0.27.0':
-    resolution: {integrity: sha512-Fyfb8PgNJlob9G91HymGljVJmoY7kqqXfy2vfKCFcP0ePV/+wG0FqQuKVLZrXwI1VLaJHz09Mhvj6Fri3sPlSg==}
+  '@arktype/attest@0.41.2':
+    resolution: {integrity: sha512-8jKVKwb4PaW4I4RWDgySp4f+XB2gqNft7rr153I4x31fmMW6pJ1nmTXt9o23MJtufFGShT6rJ4H5LZNMYj9h4Q==}
     hasBin: true
     peerDependencies:
       typescript: '*'
@@ -3384,8 +3384,8 @@ packages:
   '@expo/vector-icons@14.0.4':
     resolution: {integrity: sha512-+yKshcbpDfbV4zoXOgHxCwh7lkE9VVTT5T03OUlBsqfze1PLy6Hi4jp1vSb1GVbY6eskvMIivGVc9SKzIv0oEQ==}
 
-  '@expo/ws-tunnel@1.0.4':
-    resolution: {integrity: sha512-spXCVXxbeKOe8YZ9igd+MDfXZe6LeDvFAdILijeTSG+XcxGrZLmqMWWkFKR0nV8lTWZ+NugUT3CoiXmEuKKQ7w==}
+  '@expo/ws-tunnel@1.0.5':
+    resolution: {integrity: sha512-Ta9KzslHAIbw2ZoyZ7Ud7/QImucy+K4YvOqo9AhGfUfH76hQzaffQreOySzYusDfW8Y+EXh0ZNWE68dfCumFFw==}
 
   '@expo/xcpretty@4.3.2':
     resolution: {integrity: sha512-ReZxZ8pdnoI3tP/dNnJdnmAk7uLT4FjsKDGW7YeDdvdOMz2XCQSmSCM9IWlrXuWtMF9zeSB6WJtEhCQ41gQOfw==}
@@ -5716,8 +5716,8 @@ packages:
     resolution: {integrity: sha512-COROpnaoap1E2F000S62r6A60uHZnmlvomhfyT2DlTcrY1OrBKn2UhH7qn5wTC9zMvD0AY7csdPSNwKP+7WiQw==}
     engines: {node: '>= 0.4'}
 
-  arktype@2.0.0-rc.23:
-    resolution: {integrity: sha512-P0e40t3J4rc3xRHzPjzyOK1CgdgKswQJOFBgFLuehSiGcjAuRx6p/9lDVPzXZ62m7q5yRUqFiX8ovN5FjWQjMQ==}
+  arktype@2.0.4:
+    resolution: {integrity: sha512-S68rWVDnJauwH7/QCm8zCUM3aTe9Xk6oRihdcc3FSUAtxCo/q1Fwq46JhcwB5Ufv1YStwdQRz+00Y/URlvbhAQ==}
 
   array-buffer-byte-length@1.0.2:
     resolution: {integrity: sha512-LHE+8BuR7RYGDKvnrmcuSq3tDcKv9OFEXQt/HpbZhY7V6h0zlUXutnAD82GiFx9rdieCMjkvtcsPqBwgUl1Iiw==}
@@ -10259,6 +10259,11 @@ packages:
     engines: {node: '>=14'}
     hasBin: true
 
+  prettier@3.4.2:
+    resolution: {integrity: sha512-e9MewbtFo+Fevyuxn/4rrcDAaq0IYxPGLvObpQjiZBMAzB9IGmzlnG9RZy3FFas+eBMu2vA0CszMeduow5dIuQ==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   prettier@3.5.1:
     resolution: {integrity: sha512-hPpFQvHwL3Qv5AdRvBFMhnKo4tYxp0ReXiPn2bxkiohEX6mBeBwEpBSQTkD458RaaDKQMYSp4hX4UtfUTA5wDw==}
     engines: {node: '>=14'}
@@ -12359,23 +12364,23 @@ snapshots:
       '@jridgewell/gen-mapping': 0.3.8
       '@jridgewell/trace-mapping': 0.3.25
 
-  '@ark/fs@0.23.0': {}
+  '@ark/fs@0.39.0': {}
 
-  '@ark/schema@0.23.0':
+  '@ark/schema@0.39.0':
     dependencies:
-      '@ark/util': 0.23.0
+      '@ark/util': 0.39.0
 
-  '@ark/util@0.23.0': {}
+  '@ark/util@0.39.0': {}
 
-  '@arktype/attest@0.27.0(typescript@5.7.3)':
+  '@arktype/attest@0.41.2(typescript@5.7.3)':
     dependencies:
-      '@ark/fs': 0.23.0
-      '@ark/util': 0.23.0
-      '@prettier/sync': 0.5.2(prettier@3.3.3)
+      '@ark/fs': 0.39.0
+      '@ark/util': 0.39.0
+      '@prettier/sync': 0.5.2(prettier@3.4.2)
       '@typescript/analyze-trace': 0.10.1
       '@typescript/vfs': 1.6.0(typescript@5.7.3)
-      arktype: 2.0.0-rc.23
-      prettier: 3.3.3
+      arktype: 2.0.4
+      prettier: 3.4.2
       typescript: 5.7.3
     transitivePeerDependencies:
       - supports-color
@@ -15165,7 +15170,7 @@ snapshots:
       '@expo/prebuild-config': 8.0.28
       '@expo/rudder-sdk-node': 1.1.1(encoding@0.1.13)
       '@expo/spawn-async': 1.7.2
-      '@expo/ws-tunnel': 1.0.4
+      '@expo/ws-tunnel': 1.0.5
       '@expo/xcpretty': 4.3.2
       '@react-native/dev-middleware': 0.76.7(bufferutil@4.0.9)
       '@urql/core': 5.1.0
@@ -15420,7 +15425,7 @@ snapshots:
     dependencies:
       prop-types: 15.8.1
 
-  '@expo/ws-tunnel@1.0.4': {}
+  '@expo/ws-tunnel@1.0.5': {}
 
   '@expo/xcpretty@4.3.2':
     dependencies:
@@ -16124,10 +16129,10 @@ snapshots:
 
   '@planetscale/database@1.19.0': {}
 
-  '@prettier/sync@0.5.2(prettier@3.3.3)':
+  '@prettier/sync@0.5.2(prettier@3.4.2)':
     dependencies:
       make-synchronized: 0.2.9
-      prettier: 3.3.3
+      prettier: 3.4.2
 
   '@prisma/client@6.4.0(typescript@5.7.3)':
     optionalDependencies:
@@ -18944,10 +18949,10 @@ snapshots:
 
   aria-query@5.3.2: {}
 
-  arktype@2.0.0-rc.23:
+  arktype@2.0.4:
     dependencies:
-      '@ark/schema': 0.23.0
-      '@ark/util': 0.23.0
+      '@ark/schema': 0.39.0
+      '@ark/util': 0.39.0
 
   array-buffer-byte-length@1.0.2:
     dependencies:
@@ -24654,6 +24659,8 @@ snapshots:
   prettier@2.8.8: {}
 
   prettier@3.3.3: {}
+
+  prettier@3.4.2: {}
 
   prettier@3.5.1: {}
 
