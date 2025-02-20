@@ -673,8 +673,8 @@ importers:
         specifier: ^8.4.2
         version: 8.5.4(@types/react@18.3.12)(storybook@8.5.4(bufferutil@4.0.9)(prettier@3.5.0))
       '@storybook/addon-interactions':
-        specifier: ^8.4.2
-        version: 8.5.4(storybook@8.5.4(bufferutil@4.0.9)(prettier@3.5.0))
+        specifier: ^8.5.8
+        version: 8.5.8(storybook@8.5.4(bufferutil@4.0.9)(prettier@3.5.0))
       '@storybook/addon-links':
         specifier: ^8.4.2
         version: 8.5.4(react@18.3.1)(storybook@8.5.4(bufferutil@4.0.9)(prettier@3.5.0))
@@ -2270,10 +2270,6 @@ packages:
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.0.0-0
-
-  '@babel/runtime@7.26.7':
-    resolution: {integrity: sha512-AOPI3D+a8dXnja+iwsUqGRjr1BbZIe771sXdapOtYI531gSqpi92vXivKcq2asu/DFpdl1ceFAKZyRzK2PCVcQ==}
-    engines: {node: '>=6.9.0'}
 
   '@babel/runtime@7.26.9':
     resolution: {integrity: sha512-aA63XwOkcl4xxQa3HjPMqOP6LiK0ZDv3mUPYEFXkpHbaFjtGggE1A61FjFzJnB+p7/oy2gA8E+rcBNl/zC1tMg==}
@@ -4540,10 +4536,10 @@ packages:
     peerDependencies:
       storybook: ^8.5.4
 
-  '@storybook/addon-interactions@8.5.4':
-    resolution: {integrity: sha512-9xhz7goOKV13WIAcrCZs4kP7pMutLqyMygjCt+oNHCiDx7Sj8q+heVT46uSR1xkgZU1C7uKpUeQWkb+kfkB54Q==}
+  '@storybook/addon-interactions@8.5.8':
+    resolution: {integrity: sha512-SDyIV3M+c41QemXgg1OchsFBO6YGZkZcmVeUF8C7aWm5SnzLh6B2OiggiKvRk0v3Eh3rDLXdkx3XdR2F/rG+0Q==}
     peerDependencies:
-      storybook: ^8.5.4
+      storybook: ^8.5.8
 
   '@storybook/addon-links@8.5.4':
     resolution: {integrity: sha512-t28NJXhtTGa4RbzGOWNoL0T9liqhdlVbq3wkhbpUgXI4ay5BA2bVsVUuO7vKDp26oNeaZDsSyWv78Gg7FoeVmQ==}
@@ -4631,11 +4627,6 @@ packages:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0-beta
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0-beta
 
-  '@storybook/instrumenter@8.5.4':
-    resolution: {integrity: sha512-6Y2d6SNZslZl2UhkfH8Ml6SzKX5b2x/QRBwkLAAXc/xZcFdK5luAOPk/fW1BU7jEAPAjtn493V3oo2nGA5D22A==}
-    peerDependencies:
-      storybook: ^8.5.4
-
   '@storybook/instrumenter@8.5.8':
     resolution: {integrity: sha512-+d5bbnwqcSQlj0wkZo6/1b+8rge70EU2wTq14DO22/VSXa9nm3bwPJlEyqBT7laWmC4DJQWHVJwF/790KjT9yg==}
     peerDependencies:
@@ -4685,11 +4676,6 @@ packages:
         optional: true
       typescript:
         optional: true
-
-  '@storybook/test@8.5.4':
-    resolution: {integrity: sha512-H7zV39GLiUSz/M7fJtv/NWOF1J99CTAqqXMaETwJU5wEpkj1Q3jzmWss+UFtl5x7f/OZC4niP9s9A3G8rZHpKw==}
-    peerDependencies:
-      storybook: ^8.5.4
 
   '@storybook/test@8.5.8':
     resolution: {integrity: sha512-cpdl9Vk4msRnkINwwSNLklyWXOwAsLAA7JsHMICNPR2GFVc8T+TwZHATcRToCHXhFJTZBMMBYrnqCdD5C2Kr3g==}
@@ -14335,10 +14321,6 @@ snapshots:
       pirates: 4.0.6
       source-map-support: 0.5.21
 
-  '@babel/runtime@7.26.7':
-    dependencies:
-      regenerator-runtime: 0.14.1
-
   '@babel/runtime@7.26.9':
     dependencies:
       regenerator-runtime: 0.14.1
@@ -16839,11 +16821,11 @@ snapshots:
       '@storybook/global': 5.0.0
       storybook: 8.5.4(bufferutil@4.0.9)(prettier@3.5.0)
 
-  '@storybook/addon-interactions@8.5.4(storybook@8.5.4(bufferutil@4.0.9)(prettier@3.5.0))':
+  '@storybook/addon-interactions@8.5.8(storybook@8.5.4(bufferutil@4.0.9)(prettier@3.5.0))':
     dependencies:
       '@storybook/global': 5.0.0
-      '@storybook/instrumenter': 8.5.4(storybook@8.5.4(bufferutil@4.0.9)(prettier@3.5.0))
-      '@storybook/test': 8.5.4(storybook@8.5.4(bufferutil@4.0.9)(prettier@3.5.0))
+      '@storybook/instrumenter': 8.5.8(storybook@8.5.4(bufferutil@4.0.9)(prettier@3.5.0))
+      '@storybook/test': 8.5.8(storybook@8.5.4(bufferutil@4.0.9)(prettier@3.5.0))
       polished: 4.3.1
       storybook: 8.5.4(bufferutil@4.0.9)(prettier@3.5.0)
       ts-dedent: 2.2.0
@@ -16944,12 +16926,6 @@ snapshots:
       react: 18.3.1
       react-dom: 19.0.0(react@18.3.1)
 
-  '@storybook/instrumenter@8.5.4(storybook@8.5.4(bufferutil@4.0.9)(prettier@3.5.0))':
-    dependencies:
-      '@storybook/global': 5.0.0
-      '@vitest/utils': 2.1.9
-      storybook: 8.5.4(bufferutil@4.0.9)(prettier@3.5.0)
-
   '@storybook/instrumenter@8.5.8(storybook@8.5.4(bufferutil@4.0.9)(prettier@3.5.0))':
     dependencies:
       '@storybook/global': 5.0.0
@@ -17006,18 +16982,6 @@ snapshots:
     optionalDependencies:
       '@storybook/test': 8.5.8(storybook@8.5.4(bufferutil@4.0.9)(prettier@3.5.0))
       typescript: 5.7.3
-
-  '@storybook/test@8.5.4(storybook@8.5.4(bufferutil@4.0.9)(prettier@3.5.0))':
-    dependencies:
-      '@storybook/csf': 0.1.12
-      '@storybook/global': 5.0.0
-      '@storybook/instrumenter': 8.5.4(storybook@8.5.4(bufferutil@4.0.9)(prettier@3.5.0))
-      '@testing-library/dom': 10.4.0
-      '@testing-library/jest-dom': 6.5.0
-      '@testing-library/user-event': 14.5.2(@testing-library/dom@10.4.0)
-      '@vitest/expect': 2.0.5
-      '@vitest/spy': 2.0.5
-      storybook: 8.5.4(bufferutil@4.0.9)(prettier@3.5.0)
 
   '@storybook/test@8.5.8(storybook@8.5.4(bufferutil@4.0.9)(prettier@3.5.0))':
     dependencies:
@@ -24534,7 +24498,7 @@ snapshots:
 
   polished@4.3.1:
     dependencies:
-      '@babel/runtime': 7.26.7
+      '@babel/runtime': 7.26.9
 
   possible-typed-array-names@1.1.0: {}
 
