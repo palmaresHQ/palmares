@@ -33,7 +33,7 @@
     "@palmares/server": "workspace:*",
     "cors": "^2.8.5",
     "drizzle-kit": "^0.27.2",
-    "drizzle-orm": "^0.36.1",
+    "drizzle-orm": "^0.39.3",
     "@examples/with-code-share-shared": "workspace:*"
   },
   "devDependencies": {
@@ -47,7 +47,7 @@
     "@types/node": "^22.13.4",
     "rimraf": "^6.0.1",
     "tsup": "^8.2.4",
-    "tsx": "^4.19.2",
+    "tsx": "^4.19.3",
     "typescript": "^5.5.4"
   },
   "type": "module",

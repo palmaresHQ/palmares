@@ -1698,7 +1698,7 @@
   "author": "Nicolas Melo",
   "license": "MIT",
   "dependencies": {
-    "drizzle-orm": "^0.38.4",
+    "drizzle-orm": "^0.39.3",
     "@palmares/core": "workspace:*",
     "@palmares/databases": "workspace:*"
   },
