@@ -32,7 +32,7 @@
     "@storybook/addon-interactions": "^8.5.8",
     "@storybook/addon-links": "^8.5.8",
     "@storybook/addon-onboarding": "^8.5.8",
-    "@storybook/blocks": "^8.4.2",
+    "@storybook/blocks": "^8.5.8",
     "@storybook/react": "^8.4.2",
     "@storybook/react-vite": "^8.4.2",
     "@storybook/test": "^8.5.8",
