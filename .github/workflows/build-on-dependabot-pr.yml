@@ -1,4 +1,4 @@
-name: Build on PR dependabot PR
+name: Build on Dependabot PR
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: build-${{ github.repository }}
+  group: dependabot-build-${{ github.repository }}
   cancel-in-progress: true
 
 jobs:
