@@ -40,7 +40,7 @@
     "better-sqlite3": "^11.8.1",
     "@palmares/jest-tests": "^0.2.3",
     "@palmares/tests": "^0.2.3",
-    "@swc/cli": "^0.4.0",
+    "@swc/cli": "^0.6.0",
     "@swc/core": "^1.9.1",
     "@types/better-sqlite3": "^7.6.11",
     "@types/cors": "^2.8.17",
