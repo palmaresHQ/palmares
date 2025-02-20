@@ -645,8 +645,8 @@ importers:
         specifier: workspace:*
         version: link:../../../../libs/zod-schema
       '@tanstack/react-query':
-        specifier: ^5.66.7
-        version: 5.66.7(react@18.3.1)
+        specifier: ^5.66.8
+        version: 5.66.8(react@18.3.1)
       '@tanstack/react-virtual':
         specifier: ^3.10.7
         version: 3.13.0(react-dom@19.0.0(react@18.3.1))(react@18.3.1)
@@ -4820,8 +4820,8 @@ packages:
       react: '>=18.0.0 || >=19.0.0'
       react-dom: '>=18.0.0 || >=19.0.0'
 
-  '@tanstack/react-query@5.66.7':
-    resolution: {integrity: sha512-qd3q/tUpF2K1xItfPZddk1k/8pSXnovg41XyCqJgPoyYEirMBtB0sVEVVQ/CsAOngzgWtBPXimVf4q4kM9uO6A==}
+  '@tanstack/react-query@5.66.8':
+    resolution: {integrity: sha512-LqYHYArmM7ycyT1I/Txc/n6KzI8S/hBFw2SQ9Uj1GpbZ89AvZLEvetquiQEHkZ5rFEm+iVNpZ6zYjTiPmJ9N5Q==}
     peerDependencies:
       react: ^18 || ^19
 
@@ -17188,7 +17188,7 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  '@tanstack/react-query@5.66.7(react@18.3.1)':
+  '@tanstack/react-query@5.66.8(react@18.3.1)':
     dependencies:
       '@tanstack/query-core': 5.66.4
       react: 18.3.1
