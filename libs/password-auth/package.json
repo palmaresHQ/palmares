@@ -1,7 +1,7 @@
 {
-  "name": "@palmares/auth",
-  "version": "0.1.0",
-  "description": "A flexible and secure authentication package for Palmares applications, providing multiple authentication strategies and security features out of the box.",
+  "name": "@palmares/password-auth",
+  "version": "0.0.0",
+  "description": "A flexible and secure authentication package for Palmares applications, providing password type authentication",
   "main": "./dist/src/index.cjs",
   "module": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
@@ -33,6 +33,7 @@
   },
   "keywords": [
     "palmares",
+    "password",
     "authentication"
   ],
   "type": "module",
@@ -44,6 +45,7 @@
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
     "@palmares/core": "workspace:*",
+    "@palmares/events": "workspace:*",
     "@palmares/logging": "workspace:*"
   }
 }
