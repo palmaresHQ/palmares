@@ -1047,7 +1047,7 @@ export async function initializeRouters(
       }
     });
     for await (const router of routers) {
-      if ((useServerless && router.handlers.has(method)) || router.handlers.get('all')) {
+      if ((useServerless && (router.handlers.has(method)) || router.handlers.get('all'))) {
         if (router.handlers.has(method))
           return (router.handlers.get(method) as any)?.handler(serverRequestAndResponseData);
         else return (router.handlers.get('all') as any)?.handler(serverRequestAndResponseData);
