@@ -1,5 +1,4 @@
 import { Request, Response, middleware, nestedMiddleware, path, pathNested } from '@palmares/server';
-import { ExpressServerRequestAdapter as esra } from '@palmares/express-adapter';
 
 import type {
   baseRouter,
@@ -42,7 +41,7 @@ export const formDataController = pathNested<typeof formDataRouter>()('').post(a
       };
     }
   >;
-  const formData = await requestModified.formData(esra.customToFormDataOptions?.({ type: 'array', options: ['file'] }));
+  const formData = await requestModified.formData({ type: 'array', options: ['file'] });
   console.log(formData?.get('file').name);
   return Response.json({
     hello: 'world',

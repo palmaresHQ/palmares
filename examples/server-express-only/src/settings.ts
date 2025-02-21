@@ -11,6 +11,12 @@ import RoutersDomain from './routers';
 import MiddlewaresDomain from './middlewares';
 import ResponsesDomain from './responses';
 
+declare global {
+  namespace Palmares {
+    interface PServerAdapter extends InstanceType<typeof ExpressServerAdapter> {}
+  }
+}
+
 export default defineSettings({
   basePath: dirname(resolve(__dirname)),
   settingsLocation: __filename,
