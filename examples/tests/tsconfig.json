@@ -9,7 +9,9 @@
       "*": ["node_modules/*"],
       "@palmares/server": ["../../packages/server/dist"],
       "@palmares/core": ["../../packages/server/node_modules/@palmares/core"],
-    }
+    },
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
   },
   "include": ["src/**/*"]
 }
