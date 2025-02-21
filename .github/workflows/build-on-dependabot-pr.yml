@@ -1,4 +1,4 @@
-name: Build on PR
+name: Build Palmares on Dependabot PR
 
 on:
   pull_request:
@@ -9,12 +9,12 @@ permissions:
   pull-requests: write
 jobs:
   build:
-    if: |
-      github.actor == 'dependabot[bot]' ||
-      (github.event.pull_request.author_association == 'OWNER' ||
-       github.event.pull_request.author_association == 'COLLABORATOR' ||
-       github.event.pull_request.author_association == 'MEMBER')
+    if: github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
+
+    concurrency:
+      group: dependabot-build
+      cancel-in-progress: true
 
     steps:
       - name: Checkout repository

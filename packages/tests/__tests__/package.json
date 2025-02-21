@@ -20,7 +20,7 @@
     "@palmares/tests": "workspace:*"
   },
   "devDependencies": {
-    "tsx": "^4.19.2",
+    "tsx": "^4.19.3",
     "ts-jest-mock-import-meta": "^1.2.0",
     "typescript": "^5.5.4"
   }
