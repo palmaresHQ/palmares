@@ -1,3 +1,4 @@
+// Copied from:
 import typescript from 'typescript';
 //
 // Taken from dts-gen: https://github.com/microsoft/dts-gen/blob/master/lib/names.ts

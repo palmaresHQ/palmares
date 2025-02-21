@@ -15,17 +15,18 @@ export const Route = createFileRoute('/')({
 });
 
 function Home() {
-  const [selectedCodeForMainPage, setSelectedCodeForMainPage] = useState<string>('src/core/database.ts');
+  const [selectedCodeForMainPage, setSelectedCodeForMainPage] = useState<string>('databases.ts');
   const {
     data: { data, isChromium }
   } = Route.useLoaderData();
 
   const mainpageCodeFiles = (data as Awaited<ReturnType<GetLibraryCodesFn>>)['mainpage'];
   const favoritetoolsCodeFiles = (data as Awaited<ReturnType<GetLibraryCodesFn>>)['favoritetools'];
+  console.log(mainpageCodeFiles?.raw[selectedCodeForMainPage] || '');
   const sidebarFiles = Object.keys(mainpageCodeFiles?.raw || {})
     .filter(
       (code) =>
-        code.endsWith('database.ts') ||
+        code.endsWith('databases.ts') ||
         code.endsWith('schemas.ts') ||
         code.endsWith('tests.ts') ||
         code.endsWith('server.ts')
@@ -105,7 +106,7 @@ function Home() {
         height={860}
         width={680}
         isChromium={isChromium}
-        text={mainpageCodeFiles?.raw[selectedCodeForMainPage]}
+        text={mainpageCodeFiles?.raw[selectedCodeForMainPage] || ''}
         extraDts={mainpageCodeFiles?.raw}
         libraries={data as Awaited<ReturnType<GetLibraryCodesFn>>}
         sidebarWidth={'9rem'}
@@ -182,7 +183,11 @@ function Home() {
         height={860}
         width={680}
         isChromium={isChromium}
-        text={favoritetoolsCodeFiles?.raw['src/core/database.ts']}
+        text={(favoritetoolsCodeFiles?.raw['src/core/databases.ts'] || '')
+          .replace('./schemas', './src/core/schemas')
+          .replace('./tests', './src/core/tests')
+          .replace('./server', './src/core/server')
+          .replace('./databases', './src/core/databases')}
         extraDts={favoritetoolsCodeFiles?.raw}
         libraries={data as Awaited<ReturnType<GetLibraryCodesFn>>}
         sidebarWidth={'9rem'}

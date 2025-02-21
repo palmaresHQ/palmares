@@ -16,9 +16,9 @@ import { setupTypeAcquisition } from '../utils/download-from-npm';
 
 type LibraryCode = { [key: string]: Record<string, string> };
 
-let retrieveTypes = setupTypeAcquisition({
-  toFilter: (deps) => deps.filter((dep) => dep.module.includes('@palmares') === false)
-});
+// let retrieveTypes = setupTypeAcquisition({
+//   toFilter: (deps) => deps.filter((dep) => dep.module.includes('@palmares') === false)
+// });
 let getAllLibraryCodesPromise: ReturnType<GetLibraryCodesFn>;
 
 type Props = {
@@ -245,6 +245,7 @@ export default function Code(props: Props) {
           });
         });
         for (const [fileName, content] of Object.entries(props.extraDts || {})) {
+          console.log(fileName);
           sb.current?.languageServiceDefaults.addExtraLib(content, `file:///${fileName}`);
         }
       });
@@ -255,6 +256,7 @@ export default function Code(props: Props) {
     const shouldLoadMonaco =
       divEl.current && Object.keys(props.extraDts || {}).length > 0 && Object.keys(props.libraries || {}).length > 0;
 
+    console.log(Object.keys(props.extraDts || {}).length > 0, Object.keys(props.libraries || {}).length > 0);
     if (shouldLoadMonaco && typeof window !== 'undefined') {
       getEditor().then(({ sandbox, monaco }) => {
         const sandboxConfig = {
@@ -338,14 +340,9 @@ export default function Code(props: Props) {
   }, []);
 
   useEffect(() => {
+    console.log(divEl.current, sb.current);
     if (divEl.current && sb.current) {
       sb.current.editor.setValue(props.text);
-      retrieveTypes(props.text).then((fs) => {
-        fs.entries().forEach(([path, dts]) => {
-          path = `file://${path}`;
-          sb.current?.languageServiceDefaults.addExtraLib(dts, path);
-        });
-      });
     }
   }, [props.text]);
 
