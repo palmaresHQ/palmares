@@ -1017,7 +1017,7 @@ export async function initializeRouters(
   }
 ) {
   const generateServerless = options?.serverless?.generate === true;
-  const useServerless = typeof options?.serverless?.use === 'object';
+  const useServerless = typeof options?.serverless === 'object';
   const method = (options?.serverless?.use?.getMethod() || '').toLowerCase() as MethodTypes;
   const route = options?.serverless?.use?.getRoute();
   const serverRequestAndResponseData = options?.serverless?.use?.requestAndResponseData;
