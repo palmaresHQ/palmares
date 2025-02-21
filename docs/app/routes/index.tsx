@@ -22,7 +22,6 @@ function Home() {
 
   const mainpageCodeFiles = (data as Awaited<ReturnType<GetLibraryCodesFn>>)['mainpage'];
   const favoritetoolsCodeFiles = (data as Awaited<ReturnType<GetLibraryCodesFn>>)['favoritetools'];
-  console.log(mainpageCodeFiles?.raw[selectedCodeForMainPage] || '');
   const sidebarFiles = Object.keys(mainpageCodeFiles?.raw || {})
     .filter(
       (code) =>
