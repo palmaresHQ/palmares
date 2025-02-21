@@ -1,0 +1,36 @@
+{
+  "name": "@examples/with-auth",
+  "version": "0.0.0",
+  "description": "Tests the auth package",
+  "keywords": [
+    "palmares",
+    "with",
+    "auth"
+  ],
+  "homepage": "https://github.com/palmaresHQ/palmares#readme",
+  "bugs": {
+    "url": "https://github.com/palmaresHQ/palmares/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/palmaresHQ/palmares.git"
+  },
+  "license": "MIT",
+  "author": "Vicente Sanchez",
+  "type": "module",
+  "main": "manage.ts",
+  "scripts": {
+    "dev": "tsx watch manage.ts runserver"
+  },
+  "dependencies": {
+    "@palmares/console-logging": "workspace:*",
+    "@palmares/core": "workspace:*",
+    "@palmares/databases": "workspace:*",
+    "@palmares/express-adapter": "workspace:*",
+    "@palmares/logging": "workspace:*",
+    "@palmares/node-std": "workspace:*",
+    "@palmares/sequelize-engine": "workspace:*",
+    "@palmares/server": "workspace:*",
+    "@palmares/password-auth": "workspace:*"
+  }
+}
