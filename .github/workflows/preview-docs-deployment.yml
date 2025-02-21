@@ -8,6 +8,8 @@ on:
       - main
 jobs:
   Deploy-Preview:
+    # dependabot doesn't have access to secrets so it's better to just skip it
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

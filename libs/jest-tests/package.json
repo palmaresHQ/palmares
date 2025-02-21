@@ -48,7 +48,7 @@
   "dependencies": {
     "@palmares/tests": "workspace:*",
     "@jest/globals": "^29.7.0",
-    "@babel/preset-env": "^7.25.0",
+    "@babel/preset-env": "^7.26.9",
     "@types/jest": "^29.5.12",
     "babel-jest": "^29.7.0",
     "jest": "^29.7.0",
