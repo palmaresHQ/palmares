@@ -1,7 +1,7 @@
 import { domain } from '@palmares/core';
 import { testDomainModifier } from '@palmares/tests';
 
-export default domain('testingTests', __dirname, {
+export default domain('testingTests', import.meta.dirname, {
   modifiers: [testDomainModifier] as const,
-  getTests: () => [__dirname + '/test.test.ts', __dirname + '/test.ts'],
+  getTests: () => [import.meta.dirname + '/test.test.ts', import.meta.dirname + '/test.ts'],
 });

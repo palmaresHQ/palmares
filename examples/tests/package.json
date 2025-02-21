@@ -6,10 +6,11 @@
   "scripts": {
     "serverless": "tsx manage.ts serverless",
     "help": "tsx manage.ts help",
-    "test": "tsx manage.ts test",
+    "test": "tsx --experimental-vm-modules manage.ts test",
     "run": "node ./dist/src/api/test.js",
     "clear": "rimraf ./dist"
   },
+  "type": "module",
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@types/qs": "^6.9.15",
-    "nodemon": "^3.1.4"
+    "nodemon": "^3.1.4",
+    "ts-jest-mock-import-meta": "^1.2.1"
   }
 }
