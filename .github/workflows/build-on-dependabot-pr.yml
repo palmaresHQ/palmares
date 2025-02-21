@@ -1,4 +1,4 @@
-name: Build on PR
+name: Build Palmares on Dependabot PR
 
 on:
   pull_request:
