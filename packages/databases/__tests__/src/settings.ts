@@ -11,18 +11,18 @@ import Database from 'better-sqlite3';
 import { dirname, join, resolve } from 'path';
 
 import DrizzleDomain from './drizzle';
-import * as schema from '../.drizzle/schema';
+// import * as schema from '../.drizzle/schema';
 
 const database = new Database('sqlite.db');
 
 const args = DrizzleEngine.new({
   output: './.drizzle/schema.ts',
   type: 'better-sqlite3',
-  drizzle: drizzleBetterSqlite3(database, { schema: schema })
+  drizzle: drizzleBetterSqlite3(database)
 });
 export const db = args[1]().instance.instance;
 
-const newDb = drizzleBetterSqlite3(database, { schema: schema });
+const newDb = drizzleBetterSqlite3(database);
 
 export default defineSettings({
   basePath: dirname(resolve(import.meta.dirname)),

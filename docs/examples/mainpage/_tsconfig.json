@@ -8,5 +8,5 @@
     "strict": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*", "manage.ts", "migrate.ts"]
+  "include": ["src/**/*", "manage.core.ts"]
 }
