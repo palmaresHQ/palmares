@@ -10,7 +10,7 @@ import { usersRoute } from './server';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export default domain('orders', __dirname, {
+export default domain('favoritetools', __dirname, {
   // eslint-disable-next-line ts/require-await
   getRoutes: async () => usersRoute,
   // eslint-disable-next-line ts/require-await

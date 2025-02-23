@@ -2,7 +2,7 @@
 import { ConsoleLogging } from '@palmares/console-logging';
 import { CoreDomain, defineSettings } from '@palmares/core';
 import { DatabasesDomain } from '@palmares/databases';
-import SequelizeEngine from '@palmares/sequelize-engine';
+import DrizzleEngine from '@palmares/drizzle-engine';
 import { ExpressServerAdapter } from '@palmares/express-adapter';
 import { loggingDomain as LoggingDomain } from '@palmares/logging';
 import { NodeStd } from '@palmares/node-std';
