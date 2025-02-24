@@ -807,7 +807,7 @@ export async function* getAllRouters(
           (accumulator, currentValue) => {
             const [method, handler] = currentValue;
             const routerWithProtected = router.router as MethodsRouter & { __domain: MethodsRouter['__domain'] };
-            
+
             accumulator.set(method as MethodTypes | 'all', {
               handler: generateServerlessHandler(
                 settings,
@@ -1037,7 +1037,7 @@ export async function initializeRouters(
   }
   
   if (serverAdapter.routers.parseHandlers || useServerless) {
-    const routers = getAllRouters(domains, settings, allSettings, serverAdapter, undefined, {
+    const routers = getAllRouters(domains, settings, allSettings, serverAdapter, customServerInstance, {
       serverless: {
         generate: generateServerless,
         use: {
