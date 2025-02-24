@@ -9,6 +9,9 @@ async function GET(request: Request) {
     serverName: 'default',
     adapter: VercelServerlessAdapter,
     getMethod: () => request.method,
+    method: 'get',
+    route: '/auth',
+    domainRoutes: ['auth']
   });
 }
 export { GET };
