@@ -16,6 +16,7 @@
     "@palmares/console-logging": "*",
     "@palmares/core": "*",
     "@palmares/databases": "*",
+    "@palmares/drizzle-engine": "*",
     "@palmares/sequelize-engine": "*",
     "@palmares/express-adapter": "*",
     "@palmares/logging": "*",
@@ -25,6 +26,7 @@
     "@palmares/zod-schema": "*",
     "@palmares/jest-tests": "*",
     "@palmares/tests": "*",
+    "better-sqlite3": "^11.8.1",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {

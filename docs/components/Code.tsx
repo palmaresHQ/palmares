@@ -35,7 +35,7 @@ type Props = {
     }
   >;
   customSidebar?: React.ReactNode;
-  commands: {
+  commands?: {
     command: string;
     serverReady?: (url: string, port: number, terminal: Terminal) => Promise<void>;
     tag?: string;
@@ -56,7 +56,7 @@ export default function Code(props: Props) {
   const divEl = useRef<HTMLDivElement>(null);
   const editor = useRef<TMonaco.editor.IStandaloneCodeEditor | null>(null);
   const terminalTags = useMemo<string[]>(() => {
-    const reducedCommandTags = props.commands.reduce((accumulator, currentValue) => {
+    const reducedCommandTags = (props.commands || []).reduce((accumulator, currentValue) => {
       if (accumulator.has(currentValue.tag)) return accumulator;
       accumulator.add(currentValue.tag);
       return accumulator;
@@ -239,13 +239,26 @@ export default function Code(props: Props) {
     if (getAllLibraryCodesPromise) {
       getAllLibraryCodesPromise.then((data) => {
         Object.entries(data).forEach(([libName, dtss]) => {
+          const packageJson = JSON.parse(dtss.raw['package.json']);
+          const exportKeys = Object.keys(packageJson.exports).map((key) => key.replace('./', ''));
           Object.entries(dtss.raw).forEach(([path, dts]) => {
             path = `file:///node_modules/${libName}/${path}`;
+            for (let i = 0; i < exportKeys.length; i++) {
+              const exportKey = exportKeys[i];
+              const splittedPath = path.split('.');
+              const exportKeyWithExtension = `${exportKey}.${splittedPath[splittedPath.length - 1]}`;
+              if (path.includes(exportKey)) {
+                const exportPath = `file:///node_modules/${libName}/${exportKeyWithExtension}`;
+
+                sb.current?.languageServiceDefaults.addExtraLib(dts, exportPath);
+                exportKeys.splice(i, 1);
+                break;
+              }
+            }
             sb.current?.languageServiceDefaults.addExtraLib(dts, path);
           });
         });
         for (const [fileName, content] of Object.entries(props.extraDts || {})) {
-          console.log(fileName);
           sb.current?.languageServiceDefaults.addExtraLib(content, `file:///${fileName}`);
         }
       });
@@ -256,7 +269,6 @@ export default function Code(props: Props) {
     const shouldLoadMonaco =
       divEl.current && Object.keys(props.extraDts || {}).length > 0 && Object.keys(props.libraries || {}).length > 0;
 
-    console.log(Object.keys(props.extraDts || {}).length > 0, Object.keys(props.libraries || {}).length > 0);
     if (shouldLoadMonaco && typeof window !== 'undefined') {
       getEditor().then(({ sandbox, monaco }) => {
         const sandboxConfig = {
@@ -340,7 +352,6 @@ export default function Code(props: Props) {
   }, []);
 
   useEffect(() => {
-    console.log(divEl.current, sb.current);
     if (divEl.current && sb.current) {
       sb.current.editor.setValue(props.text);
     }
@@ -372,7 +383,7 @@ export default function Code(props: Props) {
           />
         </div>
       </div>
-      {(typeof props.isChromium !== 'undefined' ? props.isChromium : isChromium()) ? (
+      {(typeof props.isChromium !== 'undefined' ? props.isChromium : isChromium()) && Array.isArray(props.commands) ? (
         <Fragment>
           {terminalTags.length > 1 ? (
             <div

@@ -20,9 +20,8 @@ function Home() {
     data: { data, isChromium }
   } = Route.useLoaderData();
 
-  const mainpageCodeFiles = (data as Awaited<ReturnType<GetLibraryCodesFn>>)['mainpage'];
-  const favoritetoolsCodeFiles = (data as Awaited<ReturnType<GetLibraryCodesFn>>)['favoritetools'];
-  const sidebarFiles = Object.keys(mainpageCodeFiles?.raw || {})
+  const codeFiles = (data as Awaited<ReturnType<GetLibraryCodesFn>>)['mainpage'];
+  const sidebarFiles = Object.keys(codeFiles?.raw || {})
     .filter(
       (code) =>
         code.endsWith('databases.ts') ||
@@ -105,8 +104,8 @@ function Home() {
         height={860}
         width={680}
         isChromium={isChromium}
-        text={mainpageCodeFiles?.raw[selectedCodeForMainPage] || ''}
-        extraDts={mainpageCodeFiles?.raw}
+        text={codeFiles?.raw[selectedCodeForMainPage] || ''}
+        extraDts={codeFiles?.raw}
         libraries={data as Awaited<ReturnType<GetLibraryCodesFn>>}
         sidebarWidth={'9rem'}
         commands={
@@ -182,43 +181,10 @@ function Home() {
         height={860}
         width={680}
         isChromium={isChromium}
-        text={(favoritetoolsCodeFiles?.raw['src/core/databases.ts'] || '')
-          .replace('./schemas', './src/core/schemas')
-          .replace('./tests', './src/core/tests')
-          .replace('./server', './src/core/server')
-          .replace('./databases', './src/core/databases')}
-        extraDts={favoritetoolsCodeFiles?.raw}
+        text={codeFiles?.raw['drizzle.ts'] || ''}
+        extraDts={codeFiles?.raw}
         libraries={data as Awaited<ReturnType<GetLibraryCodesFn>>}
         sidebarWidth={'9rem'}
-        commands={
-          [
-            // {
-            //   command: 'npm install',
-            //   tag: 'Dev Server',
-            //   shouldExit: true
-            // }
-            // {
-            //   command: 'npm run makemigrations -w mainpage',
-            //   tag: 'Dev Server',
-            //   shouldExit: true
-            // },
-            // {
-            //   command: 'npm run migrate -w mainpage',
-            //   tag: 'Dev Server',
-            //   shouldExit: true
-            // },
-            // {
-            //   command: 'npm run seed -w mainpage',
-            //   tag: 'Dev Server',
-            //   shouldExit: true
-            // },
-            // {
-            //   command: 'npm run test -w mainpage',
-            //   tag: 'Dev Server',
-            //   shouldExit: true
-            // }
-          ]
-        }
         // customSidebar={
         //   <div className="flex flex-col w-36 h-[860px] from-tertiary-500 to-white bg-gradient-to-b p-2">
         //     {sidebarFiles.map((code, index) => (

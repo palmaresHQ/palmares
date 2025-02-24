@@ -15,7 +15,7 @@ import JestTestAdapter from '@palmares/jest-tests';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { join, dirname, resolve } from 'path';
 
-import mainDomain from './core';
+import mainDomain from './core-domain';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

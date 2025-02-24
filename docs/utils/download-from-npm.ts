@@ -93,7 +93,7 @@ export async function getNPMVersionsForModule(moduleName: string) {
       if (res.ok) {
         return res.json();
       } else {
-        throw new Error('Error');
+        return new Error('Error');
       }
     })
     .then((data) => data);
