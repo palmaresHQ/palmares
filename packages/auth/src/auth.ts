@@ -1,12 +1,9 @@
 import { getAdapters } from './conf';
 
-import type { AuthAdapters } from '.';
 import type { AdapterMethods, AuthAdapter } from './adapter';
 
-type AuthProxy<TAdapters extends readonly (AuthAdapter | unknown)[]> = {
-  [KAdapter in TAdapters[number] as KAdapter extends AuthAdapter
-    ? KAdapter['name']
-    : never]: KAdapter extends AuthAdapter ? KAdapter['methods'] : never;
+type AuthProxy<TAdapters> = {
+  // [KAdapter in TAdapters[number] as KAdapter['name']]: KAdapter['methods'];
 };
 
 const createAdapterProxy = <TMethods extends AdapterMethods>(methods: TMethods): TMethods =>
@@ -19,14 +16,13 @@ const createAdapterProxy = <TMethods extends AdapterMethods>(methods: TMethods):
     }
   });
 
-export function getAuth<TAdapters extends AuthAdapters & Palmares.PAuth = AuthAdapters & Palmares.PAuth>(): AuthProxy<
-  TAdapters['adapters']
-> {
-  return new Proxy(
+type GetAdapters = ReturnType<typeof getAdapters>;
+
+const createAuthProxy = <TAdapters = Palmares.PAuth extends { adapters: any } ? true : false>(adapters: GetAdapters) =>
+  new Proxy(
     {},
     {
       get(_, adapterName: string) {
-        const adapters = getAdapters();
         const adapter = adapters.find((a) => a.name === adapterName);
 
         if (adapter) {
@@ -36,5 +32,6 @@ export function getAuth<TAdapters extends AuthAdapters & Palmares.PAuth = AuthAd
         throw new Error(`Adapter "${adapterName}" not found`);
       }
     }
-  ) as any;
-}
+  ) as AuthProxy<TAdapters>;
+
+export const Auth = createAuthProxy(getAdapters());

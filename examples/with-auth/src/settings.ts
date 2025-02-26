@@ -1,4 +1,5 @@
 import defineAuthConfig, { getAuth } from '@palmares/auth';
+import defineAuthDomain, { Auth, AuthAdapter } from '@palmares/auth';
 import ConsoleLogging from '@palmares/console-logging';
 import PalmaresCoreDomain, { defineSettings } from '@palmares/core';
 import { ExpressServerAdapter } from '@palmares/express-adapter';
@@ -65,9 +66,28 @@ export default defineSettings({
         }
       }
     ],
-    defineAuthConfig({
-      adapters: [passwordAdapter.new({ prefix: 'my-prefix', suffix: 'my-suffix' })]
+    defineAuthDomain({
+      adapters: [
+        passwordAdapter.new({
+          prefix: 'my-prefix',
+          suffix: 'my-suffix'
+        })
+      ]
     }),
     CoreDomain
   ]
 });
+
+declare global {
+  namespace Palmares {
+    interface PAuth {
+      adapters: [ReturnType<typeof PasswordAuthAdapter.new>];
+    }
+  }
+}
+
+const auth = Auth;
+
+type test2 = Palmares.PAuth['adapters'][number];
+
+type test3 = ReturnType<typeof PasswordAuthAdapter.new>;
