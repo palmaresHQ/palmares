@@ -8,7 +8,13 @@ import { dirname, resolve } from 'path';
 
 import PasswordAuthAdapter, { passwordAdapter } from '@palmares/password-auth';
 import CoreDomain from './core';
-import defineAuthDomain, { Auth, AuthAdapter } from '@palmares/auth';
+import defineAuthDomain, { AuthAdapters, getAuth } from '@palmares/auth';
+
+declare global {
+  namespace Palmares {
+    interface PAuth extends AuthAdapters<[ReturnType<typeof PasswordAuthAdapter.new>]> {}
+  }
+}
 
 export default defineSettings({
   basePath: dirname(resolve(import.meta.dirname)),
@@ -32,7 +38,7 @@ export default defineSettings({
     [
       ServerDomain,
       {
-      servers: {
+        servers: {
           default: {
             server: ExpressServerAdapter,
             debug: true,
@@ -57,25 +63,13 @@ export default defineSettings({
       }
     ],
     defineAuthDomain({
-      adapters: [passwordAdapter.new({
-        prefix: 'my-prefix',
-        suffix: 'my-suffix'
-      })]
+      adapters: [
+        passwordAdapter.new({
+          prefix: 'my-prefix',
+          suffix: 'my-suffix'
+        })
+      ]
     }),
     CoreDomain
   ]
 });
-
-declare global {
-  namespace Palmares {
-    interface PAuth {
-      adapters: [ReturnType<typeof PasswordAuthAdapter.new>]
-    }
-  }
-}
-
-const auth = Auth
-
-type test2 = Palmares.PAuth['adapters'][number]
-
-type test3 = ReturnType<typeof PasswordAuthAdapter.new>
