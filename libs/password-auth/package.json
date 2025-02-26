@@ -44,8 +44,13 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
+    "@palmares/auth": "workspace:*",
     "@palmares/core": "workspace:*",
     "@palmares/events": "workspace:*",
-    "@palmares/logging": "workspace:*"
+    "@palmares/logging": "workspace:*",
+    "bcrypt": "^5.1.1"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2"
   }
 }

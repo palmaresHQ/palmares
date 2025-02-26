@@ -1,15 +1,13 @@
 {
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "declaration": false,
-    "outDir": "./dist",
-    "types": ["node"],
-    "lib": ["DOM", "ES2020", "DOM.Iterable"],
-    "paths": {
-      "*": ["node_modules/*"],
-      "@palmares/server": ["../../packages/server/dist"],
-      "@palmares/core": ["../../packages/server/node_modules/@palmares/core"],
-    }
-  },
-  "include": ["src/**/*"]
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+      "module": "ESNext",
+      "moduleResolution": "bundler",
+      "declaration": false,
+      "outDir": "./dist",
+      "types": ["node"],
+      "lib": ["DOM", "ES2020", "DOM.Iterable"]
+    },
+    "include": ["src/**/*", "manage.ts"],
+    "exclude": []
 }

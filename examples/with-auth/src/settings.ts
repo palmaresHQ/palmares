@@ -6,7 +6,9 @@ import NodeStd from '@palmares/node-std';
 import ServerDomain, { Response } from '@palmares/server';
 import { dirname, resolve } from 'path';
 
+import PasswordAuthAdapter, { passwordAdapter } from '@palmares/password-auth';
 import CoreDomain from './core';
+import defineAuthDomain, { Auth, AuthAdapter } from '@palmares/auth';
 
 export default defineSettings({
   basePath: dirname(resolve(import.meta.dirname)),
@@ -30,7 +32,7 @@ export default defineSettings({
     [
       ServerDomain,
       {
-        servers: {
+      servers: {
           default: {
             server: ExpressServerAdapter,
             debug: true,
@@ -54,6 +56,26 @@ export default defineSettings({
         }
       }
     ],
+    defineAuthDomain({
+      adapters: [passwordAdapter.new({
+        prefix: 'my-prefix',
+        suffix: 'my-suffix'
+      })]
+    }),
     CoreDomain
   ]
 });
+
+declare global {
+  namespace Palmares {
+    interface PAuth {
+      adapters: [ReturnType<typeof PasswordAuthAdapter.new>]
+    }
+  }
+}
+
+const auth = Auth
+
+type test2 = Palmares.PAuth['adapters'][number]
+
+type test3 = ReturnType<typeof PasswordAuthAdapter.new>

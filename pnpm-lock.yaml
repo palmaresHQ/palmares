@@ -627,6 +627,9 @@ importers:
 
   examples/with-auth:
     dependencies:
+      '@palmares/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@palmares/console-logging':
         specifier: workspace:*
         version: link:../../libs/console-logging
@@ -645,6 +648,9 @@ importers:
       '@palmares/node-std':
         specifier: workspace:*
         version: link:../../libs/node-std
+      '@palmares/password-auth':
+        specifier: workspace:*
+        version: link:../../libs/password-auth
       '@palmares/sequelize-engine':
         specifier: workspace:*
         version: link:../../libs/sequelize-engine
@@ -1066,8 +1072,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/core
 
-  libs/passowrd-auth:
+  libs/password-auth:
     dependencies:
+      '@palmares/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@palmares/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -1077,6 +1086,13 @@ importers:
       '@palmares/logging':
         specifier: workspace:*
         version: link:../../packages/logging
+      bcrypt:
+        specifier: ^5.1.1
+        version: 5.1.1(encoding@0.1.13)
+    devDependencies:
+      '@types/bcrypt':
+        specifier: ^5.0.2
+        version: 5.0.2
 
   libs/redis-emitter:
     dependencies:
@@ -5089,6 +5105,9 @@ packages:
   '@types/babel__traverse@7.20.6':
     resolution: {integrity: sha512-r1bzfrm0tomOI8g1SzvCaQHo6Lcv6zu0EA+W2kHrt8dyrHQxGzBBL4kdkzIS+jBMV+EYcMAEAqXqYaLJq5rOZg==}
 
+  '@types/bcrypt@5.0.2':
+    resolution: {integrity: sha512-6atioO8Y75fNcbmj0G7UjI9lXN2pQ/IGJ2FWT4a/btd0Lk9lQalHLKhkgKVZ3r+spnmWUKfbMi1GEe9wyHQfNQ==}
+
   '@types/better-sqlite3@7.6.12':
     resolution: {integrity: sha512-fnQmj8lELIj7BSrZQAdBMHEHX8OZLYIHXqAKT1O7tDfLxaINzf00PMjw22r3N/xXh0w/sGHlO6SVaCQ2mj78lg==}
 
@@ -5980,6 +5999,10 @@ packages:
 
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
+
+  bcrypt@5.1.1:
+    resolution: {integrity: sha512-AGBHOG5hPYZ5Xl9KXzU5iKq9516yEmvCKDg3ecP5kX2aB6UqTeXZxk2ELnDgDm6BQSMlLt9rDB4LoSMx0rYwww==}
+    engines: {node: '>= 10.0.0'}
 
   better-opn@3.0.2:
     resolution: {integrity: sha512-aVNobHnJqLiUelTaHat9DZ1qM2w0C0Eym4LPI/3JxOnSokGVdsl1T1kN7TFvsEAD8G47A6VKQ0TVHqbBnYMJlQ==}
@@ -9631,6 +9654,9 @@ packages:
   node-abi@3.74.0:
     resolution: {integrity: sha512-c5XK0MjkGBrQPGYG24GBADZud0NCbznxNx0ZkS+ebUTrmV1qTDxPxSL8zEAPURXSbLRWVexxmP4986BziahL5w==}
     engines: {node: '>=10'}
+
+  node-addon-api@5.1.0:
+    resolution: {integrity: sha512-eh0GgfEkpnoWDq+VY8OyvYhFEzBk6jIYbRKdIlyTiAXIVJ8PyBaKb0rp7oDtoddbdoHWhq8wwr+XZ81F1rpNdA==}
 
   node-addon-api@7.1.1:
     resolution: {integrity: sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==}
@@ -15840,7 +15866,7 @@ snapshots:
       detect-libc: 2.0.3
       https-proxy-agent: 5.0.1
       make-dir: 3.1.0
-      node-fetch: 2.6.9(encoding@0.1.13)
+      node-fetch: 2.7.0(encoding@0.1.13)
       nopt: 5.0.0
       npmlog: 5.0.1
       rimraf: 3.0.2
@@ -17975,6 +18001,10 @@ snapshots:
     dependencies:
       '@babel/types': 7.26.8
 
+  '@types/bcrypt@5.0.2':
+    dependencies:
+      '@types/node': 22.13.4
+
   '@types/better-sqlite3@7.6.12':
     dependencies:
       '@types/node': 22.13.4
@@ -19351,6 +19381,14 @@ snapshots:
     optional: true
 
   base64-js@1.5.1: {}
+
+  bcrypt@5.1.1(encoding@0.1.13):
+    dependencies:
+      '@mapbox/node-pre-gyp': 1.0.11(encoding@0.1.13)
+      node-addon-api: 5.1.0
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
 
   better-opn@3.0.2:
     dependencies:
@@ -24048,6 +24086,8 @@ snapshots:
   node-abi@3.74.0:
     dependencies:
       semver: 7.7.1
+
+  node-addon-api@5.1.0: {}
 
   node-addon-api@7.1.1: {}
 

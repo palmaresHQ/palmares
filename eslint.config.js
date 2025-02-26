@@ -43,7 +43,8 @@ const config = tseslint.config({
     ...prettier,
     ...javascript,
     ...typescript,
-    ...imports
+    ...imports,
+    'ts/no-namespace': 'off'
   }
 });
 
