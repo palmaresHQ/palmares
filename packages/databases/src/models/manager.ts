@@ -13,6 +13,14 @@ import type { CommonQuerySet, GetDataFromModel, QuerySet } from '../queries/quer
 import type { DatabaseSettingsType } from '../types';
 import type { SettingsType2 } from '@palmares/core';
 
+type GetInstanceOfModel<TModel> = TModel extends {
+  options: {
+    instance: infer TInstance;
+  };
+}
+  ? TInstance
+  : boolean;
+
 /**
  * Managers define how you make queries on the database. Instead of making queries everywhere in your application
  * you should always use managers for your most common tasks.
@@ -151,11 +159,7 @@ export class Manager<
    *
    * @return - The instance of the the model inside that engine instance
    */
-  async getInstance<TDatabaseAdapter extends DatabaseAdapter = TDefinitions['engineInstance']>(
-    engineName?: string
-  ): Promise<
-    TDatabaseAdapter['models']['getTranslatedModels'] extends (...args: any[]) => infer TResult ? TResult : never
-  > {
+  async getInstance<TTranslatedModel = GetInstanceOfModel<TModel>>(engineName?: string): Promise<TTranslatedModel> {
     const engineInstanceName = engineName || this.__defaultEngineInstanceName;
     const doesInstanceExists = (this.__instances as any)[engineInstanceName] !== undefined;
     if (doesInstanceExists) return this.__instances[engineInstanceName].instance;

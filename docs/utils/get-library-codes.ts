@@ -1,12 +1,23 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import type { FileSystemTree } from '@webcontainer/api';
-
+import { setupTypeAcquisition } from './download-from-npm';
 type LibraryCode = { [key: string]: Record<string, string> };
+
+const retrieveTypes = setupTypeAcquisition({
+  toFilter: (deps) => deps.filter((dep) => dep.module.includes('@palmares') === false)
+});
 
 export async function getLibraryCodes(
   libraries: [string, string][],
-  parser: ((args: { path: string; content: string }) => { path: string; content: string }) | undefined = undefined
+  parser: ((args: { path: string; content: string }) => { path: string; content: string }) | undefined = undefined,
+  opts: {
+    shouldRetrieveExternalTypes?: boolean;
+    flattenPathOnRaw?: boolean;
+  } = {
+    shouldRetrieveExternalTypes: false,
+    flattenPathOnRaw: false
+  }
 ): Promise<
   Record<
     string,
@@ -64,13 +75,25 @@ export async function getLibraryCodes(
           else {
             let filePathRelativeToRoot = path.relative(rootDir, filePath);
             let fileContent = await fs.readFile(filePath, 'utf8');
+            const isTSFile = filePathRelativeToRoot.endsWith('.ts');
+            if (isTSFile && opts.shouldRetrieveExternalTypes) {
+              const dtsCode = await retrieveTypes(fileContent);
+              for (const [path, dts] of dtsCode.entries()) {
+                files.raw[path.replace('/node_modules/', 'node_modules/')] = dts;
+              }
+            }
             if (parser) {
               const parsed = parser({ path: filePathRelativeToRoot, content: fileContent });
               filePathRelativeToRoot = parsed.path;
               fileContent = parsed.content;
             }
 
-            files.raw[filePathRelativeToRoot] = fileContent;
+            if (opts.flattenPathOnRaw) {
+              const splittedPath = filePathRelativeToRoot.split('/');
+              files.raw[splittedPath[splittedPath.length - 1]] = fileContent;
+            } else {
+              files.raw[filePathRelativeToRoot] = fileContent;
+            }
             const splittedPath = filePathRelativeToRoot.split('/');
 
             let data = files.formatted;
@@ -171,6 +194,10 @@ export async function getExamplesFiles(args?: { generateJson: boolean }) {
         path: path.replace('_', ''),
         content: content.startsWith('// @ts-nocheck\n') ? content.replace('// @ts-nocheck\n', '') : content
       };
+    },
+    {
+      shouldRetrieveExternalTypes: true,
+      flattenPathOnRaw: true
     }
   );
   if (args?.generateJson) {

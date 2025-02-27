@@ -1,5 +1,5 @@
-import { Outlet, ScrollRestoration, createRootRoute } from '@tanstack/react-router';
-import { createServerFn, Meta, Scripts } from '@tanstack/start';
+import { HeadContent, Outlet, createRootRoute } from '@tanstack/react-router';
+import { createServerFn, Scripts } from '@tanstack/start';
 import type { ReactNode } from 'react';
 import appCss from '../styles/app.css?url';
 import { isChromium } from '../../utils/is-chromium';
@@ -67,11 +67,10 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html>
       <head>
-        <Meta />
+        <HeadContent />
       </head>
       <body>
         {children}
-        <ScrollRestoration />
         <Scripts />
       </body>
     </html>

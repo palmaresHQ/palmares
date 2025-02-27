@@ -30,7 +30,7 @@ export const booleanFieldParser = adapterBooleanFieldParser({
       {
         type: mainType === 'sqlite' ? 'integer' : 'boolean',
         databaseName: field.databaseName as string,
-        args: mainType === 'sqlite' ? "{ mode: 'number' }" : undefined
+        args: mainType === 'sqlite' ? "{ mode: 'boolean' }" : undefined
       },
       (defaultBuilderArgs) => {
         if (defaultOptions.primaryKey) defaultBuilderArgs.push(['primaryKey', '']);

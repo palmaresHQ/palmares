@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { path, Response, middleware } from '@palmares/server';
 
-import { User } from './databases';
+import { User } from './database';
 import { userSchema } from './schemas';
 
 const companyMiddleware = middleware({
