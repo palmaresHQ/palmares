@@ -1,4 +1,4 @@
-import { AllServerSettingsType, ServerAdapter, serverAdapter, ServerRouterAdapter, ServerSettingsType } from '@palmares/server';
+import { AllServerSettingsType, ServerAdapter } from '@palmares/server';
 import express, { type Express } from 'express';
 
 import { requestAdapter } from './request';
@@ -8,7 +8,6 @@ import { routerAdapter } from './router';
 import type { ServerSettingsTypeExpress } from './types';
 import type { Domain } from '@palmares/core';
 import type multer from 'multer';
-import { ExpressRequestAdapter } from '.';
 
 export const servers = new Map<
   string,
@@ -25,36 +24,6 @@ export const servers = new Map<
   }
 >();
 
-const expressServerAdapter = serverAdapter({
-  name: 'express',
-  request: new requestAdapter(),
-  response: new responseAdapter(),
-  routers: new routerAdapter(),
-  // eslint-disable-next-line ts/require-await
-  load: async (serverName: string, _domains: Domain[], settings: ServerSettingsTypeExpress) => {
-    let server: Express | undefined = servers.get(serverName)?.server;
-    if (!server) {
-      server = express();
-      servers.set(serverName, { server, settings });
-    }
-    if (settings.customServerSettings?.middlewares) {
-      settings.customServerSettings.middlewares.forEach((middleware) => {
-        server.use(middleware);
-      });
-    }
-    return server;
-  },
-  // eslint-disable-next-line ts/require-await
-  close: async (serverName) => {
-    servers.get(serverName)?.httpServer?.close();
-    servers.delete(serverName);
-  },
-  // eslint-disable-next-line ts/require-await
-  start: async (_serverName, server: Express, port, logServerStart) => {
-    server.listen(port, () => logServerStart());
-  }
-});
-
 let defaultConfig = {} as ServerSettingsTypeExpress;
 
 class ExpressServerAdapter extends ServerAdapter {
@@ -62,6 +31,20 @@ class ExpressServerAdapter extends ServerAdapter {
   request = new requestAdapter();
   response = new responseAdapter();
   routers = new routerAdapter();
+
+  constructor(
+    serverName: string,
+    allSettings: AllServerSettingsType,
+    settings: ServerSettingsTypeExpress,
+    domains: Domain[]
+  ) {
+    super(serverName, allSettings, settings, domains);
+    
+    // If this function is called without new, return a new instance
+    if (!(this instanceof ExpressServerAdapter)) {
+      return new ExpressServerAdapter(serverName, allSettings, settings, domains);
+    }
+  }
   
   // eslint-disable-next-line ts/require-await
   async load(serverName: string, _domains: Domain[], settings: ServerSettingsTypeExpress) {
@@ -101,4 +84,5 @@ class ExpressServerAdapter extends ServerAdapter {
   }
 }
 
-export { ExpressServerAdapter, expressServerAdapter };
+export { ExpressServerAdapter };
+export default ExpressServerAdapter;
