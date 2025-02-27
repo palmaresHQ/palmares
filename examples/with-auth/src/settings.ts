@@ -62,14 +62,10 @@ export default defineSettings({
         }
       }
     ],
-    defineAuthDomain({
-      adapters: [
-        passwordAdapter.new({
-          prefix: 'my-prefix',
-          suffix: 'my-suffix'
-        })
-      ]
-    }),
+    defineAuthConfig({
+      adapters: [passwordAdapter.new({ prefix: 'my-prefix', suffix: 'my-suffix' })]
+    })
     CoreDomain
   ]
 });
+
