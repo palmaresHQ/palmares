@@ -44,7 +44,7 @@
     "@swc/core": "^1.10.18",
     "@types/better-sqlite3": "^7.6.11",
     "@types/cors": "^2.8.17",
-    "@types/node": "^22.13.4",
+    "@types/node": "^22.13.7",
     "rimraf": "^6.0.1",
     "tsup": "^8.2.4",
     "tsx": "^4.19.3",
