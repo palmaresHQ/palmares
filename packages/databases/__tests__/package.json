@@ -36,7 +36,7 @@
     "@palmares/node-std": "workspace:*",
     "@palmares/sequelize-engine": "workspace:*",
     "@palmares/tests": "workspace:*",
-    "drizzle-kit": "^0.30.4",
+    "drizzle-kit": "^0.30.5",
     "drizzle-orm": "^0.39.3",
     "postgres": "^3.4.5",
     "sequelize": "^6.37.3"
