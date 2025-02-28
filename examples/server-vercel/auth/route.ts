@@ -1,6 +1,6 @@
 import { Serverless } from '@palmares/server';
 import { VercelServerlessAdapter } from '@palmares/vercel-adapter';
-import settings from '../../../../server-palmares/src/settings';
+import settings from '../src/settings';
 
 async function GET(request: Request) {
   return Serverless.handleServerless(settings, {
