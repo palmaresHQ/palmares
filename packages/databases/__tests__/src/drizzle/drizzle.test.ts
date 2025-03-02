@@ -1,10 +1,12 @@
 /* eslint-disable ts/naming-convention */
-import { DrizzleDatabaseAdapter } from '@palmares/drizzle-engine';
+import type { DrizzleDatabaseAdapter } from '@palmares/drizzle-engine';
 
 //import { Company, ProfileType, User } from '../drizzle/models';
 
 declare module '@palmares/databases' {
-  interface DatabaseAdapter extends typeof DrizzleDatabaseAdapter {}
+  interface DatabaseAdapter {
+    default: typeof DrizzleDatabaseAdapter;
+  }
 }
 
 /*
@@ -28,7 +30,7 @@ describe('drizzle models', ({ test }) => {
     //expect(user[0].profileType.name).toBe('admin');
   });*/
 
-  /*
+/*
   test('Simple Set', async ({ expect }) => {
     const company = await Company.default.set((qs) =>
       qs.data({
@@ -43,7 +45,7 @@ describe('drizzle models', ({ test }) => {
     //expect(company[0].usersOfCompany[0]?.profileTypeId).toBe(company[0].usersOfCompany[0]?.profileType?.id);
   });*/
 
-  /*
+/*
   test('Querying by selecting fields', async ({ expect }) => {
     const company = await Company.default.get((qs) =>
       qs
@@ -55,7 +57,7 @@ describe('drizzle models', ({ test }) => {
     console.log(JSON.stringify(company, null, 2));
   });*/
 
-  /*
+/*
   test('Test set data through relation', async ({ expect }) => {
     const company = await Company.default.set((qs) =>
       qs
@@ -143,7 +145,7 @@ describe('drizzle models', ({ test }) => {
     expect(company[0].usersOfCompany[0].profileTypeId).toBe(company[0].usersOfCompany[0].profileType?.id);
   });
 */
-  /*test('its limiting the query', async ({ expect }) => {
+/*test('its limiting the query', async ({ expect }) => {
     await Company.default.set((qs) => qs.data({ id: undefined, name: 'test', address: 'test' }))
     await Company.default.set((qs) => qs.data({ id: undefined, name: 'test', address: 'test' }))
 
@@ -210,5 +212,5 @@ describe('drizzle models', ({ test }) => {
   test('its allowing null to nullable fields', async ({ expect }) => {
     const data = await Company.default.set({ name: 'test', address: null, translatable: 12 });
     expect(data[0].address).toBe(null);
-  });*/
-});
+  });
+});*/

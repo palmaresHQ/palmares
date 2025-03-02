@@ -53,6 +53,7 @@ describe<JestTestAdapter>('test if test package works', ({ test }) => {
 
     const testAdapter = getTestAdapter();
     try {
+      // eslint-disable-next-line ts/require-await
       jest.spyOn(testAdapter, 'run').mockImplementation(async (filesToRun, globalSetupFunctionBody) => {
         expect(filesToRun.length).toEqual(0);
         expect(globalSetupFunctionBody).toEqual(`require('@palmares/tests').run('${settings.settingsLocation}');`);

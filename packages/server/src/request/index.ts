@@ -28,7 +28,6 @@ export class Request<
   TRoutePath extends string = string,
   TRequest extends {
     method?: RequestMethodTypes;
-    // eslint-disable-next-line ts/ban-types
     headers?: { [key: string]: string } | unknown;
     body?: unknown;
     responses?: Record<string, (...args: any[]) => Response<any, any> | Promise<Response<any, any>>> | undefined;

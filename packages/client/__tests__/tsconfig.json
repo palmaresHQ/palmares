@@ -1,12 +1,9 @@
 {
   "extends": "../../../tsconfig.json",
   "compilerOptions": {
-    "declaration": true,
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "lib": ["ES2022"],
-    "outDir": "./dist",
-    "types": ["node"]
+    "types": ["@palmares/core", "@palmares/server", "node"],
+    "rootDir": "..",
+    "baseUrl": ".."
   },
-  "include": ["src/**/*", "manage.ts"]
+  "include": ["./**/*"]
 }

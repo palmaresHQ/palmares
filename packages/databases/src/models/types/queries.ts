@@ -892,7 +892,9 @@ export type ModelFieldsInQueries<
   TIsAllOptional extends boolean = false,
   TIsForSearch extends boolean = false
 > = TIsAllRequired extends true
-  ? NonNullable<BaseModelFieldsInQueries<TModel, TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch>>
+  ? NonNullable<
+      BaseModelFieldsInQueries<TModel, TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch>
+    >
   : TIsAllOptional extends true
     ? Partial<BaseModelFieldsInQueries<TModel, TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch>>
     : BaseModelFieldsInQueries<TModel, TFieldsToConsider, TRelationsToIgnore, TIsCreateOrUpdate, TIsForSearch>;
