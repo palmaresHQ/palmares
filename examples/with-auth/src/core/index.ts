@@ -5,7 +5,7 @@ export default domain('core', import.meta.dirname, {
   modifiers: [serverDomainModifier],
 
   getRoutes: () =>
-    path('/test').get(async () => {
+    path('/test').get(() => {
       return Response.json({ message: 'hello' });
     })
 });

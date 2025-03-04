@@ -1,14 +1,17 @@
+import defineAuthConfig, { getAuth } from '@palmares/auth';
 import ConsoleLogging from '@palmares/console-logging';
 import PalmaresCoreDomain, { defineSettings } from '@palmares/core';
 import { ExpressServerAdapter } from '@palmares/express-adapter';
 import LoggingDomain from '@palmares/logging';
 import NodeStd from '@palmares/node-std';
+import { passwordAdapter } from '@palmares/password-auth';
 import ServerDomain, { Response } from '@palmares/server';
 import { dirname, resolve } from 'path';
 
-import PasswordAuthAdapter, { passwordAdapter } from '@palmares/password-auth';
 import CoreDomain from './core';
-import defineAuthDomain, { AuthAdapters, getAuth } from '@palmares/auth';
+
+import type { AuthAdapters } from '@palmares/auth';
+import type PasswordAuthAdapter from '@palmares/password-auth';
 
 declare global {
   namespace Palmares {
@@ -55,7 +58,7 @@ export default defineSettings({
                   message: 'Not found'
                 }
               }),
-            handler500: async (response: any) => {
+            handler500: (response: any) => {
               return response;
             }
           }
@@ -64,8 +67,7 @@ export default defineSettings({
     ],
     defineAuthConfig({
       adapters: [passwordAdapter.new({ prefix: 'my-prefix', suffix: 'my-suffix' })]
-    })
+    }),
     CoreDomain
   ]
 });
-

@@ -16,7 +16,7 @@ export {
 } from './exceptions';
 export type { AuthConfigurationType, AuthAdapterType } from './types';
 
-export { Auth, getAuth } from './auth';
+export { getAuth } from './auth';
 export { defineAuthDomain as default };
 
 export interface AuthAdapters<TAdapters extends readonly (AuthAdapter | unknown)[] = unknown[]> {
