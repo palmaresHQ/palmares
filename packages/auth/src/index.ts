@@ -1,5 +1,7 @@
 import { defineAuthDomain } from './domain';
 
+import type { AuthAdapter } from './adapter';
+
 export { authAdapter, AuthAdapter, type AdapterMethods } from './adapter';
 export {
   AuthenticationFailedException,
@@ -14,7 +16,11 @@ export {
 } from './exceptions';
 export type { AuthConfigurationType, AuthAdapterType } from './types';
 
-export { Auth } from './auth';
+export { getAuth } from './auth';
 export { defineAuthDomain as default };
+
+export interface AuthAdapters<TAdapters extends readonly (AuthAdapter | unknown)[] = unknown[]> {
+  adapters: TAdapters;
+}
 
 export { getAdapters } from './conf';
