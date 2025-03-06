@@ -12,7 +12,7 @@ import type { AllServerSettingsType } from '../types';
 /**
  * This is the http app server, it is responsible for loading the server and starting it configuring all of
  * the routes of the application.
- *
+ *  
  * The life cycle of the app is explained on '@palmares/core', but it's basically:
  * - `load`: Loads the constructor.
  * - `start`: Starts the appServer.

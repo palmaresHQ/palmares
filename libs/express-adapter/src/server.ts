@@ -1,4 +1,4 @@
-import { serverAdapter } from '@palmares/server';
+import { AllServerSettingsType, ServerAdapter } from '@palmares/server';
 import express, { type Express } from 'express';
 
 import { requestAdapter } from './request';
@@ -24,13 +24,30 @@ export const servers = new Map<
   }
 >();
 
-const expressServerAdapter = serverAdapter({
-  name: 'express',
-  request: new requestAdapter(),
-  response: new responseAdapter(),
-  routers: new routerAdapter(),
+let defaultConfig = {} as ServerSettingsTypeExpress;
+
+class ExpressServerAdapter extends ServerAdapter {
+  $$type = '$PServerAdapter';
+  request = new requestAdapter();
+  response = new responseAdapter();
+  routers = new routerAdapter();
+
+  constructor(
+    serverName: string,
+    allSettings: AllServerSettingsType,
+    settings: ServerSettingsTypeExpress,
+    domains: Domain[]
+  ) {
+    super(serverName, allSettings, settings, domains);
+    
+    // If this function is called without new, return a new instance
+    if (!(this instanceof ExpressServerAdapter)) {
+      return new ExpressServerAdapter(serverName, allSettings, settings, domains);
+    }
+  }
+  
   // eslint-disable-next-line ts/require-await
-  load: async (serverName: string, _domains: Domain[], settings: ServerSettingsTypeExpress) => {
+  async load(serverName: string, _domains: Domain[], settings: ServerSettingsTypeExpress) {
     let server: Express | undefined = servers.get(serverName)?.server;
     if (!server) {
       server = express();
@@ -42,17 +59,30 @@ const expressServerAdapter = serverAdapter({
       });
     }
     return server;
-  },
+  }
+  
   // eslint-disable-next-line ts/require-await
-  close: async (serverName) => {
+  static close(serverName: string) {
     servers.get(serverName)?.httpServer?.close();
     servers.delete(serverName);
-  },
+  }
+
   // eslint-disable-next-line ts/require-await
-  start: async (_serverName, server: Express, port, logServerStart) => {
+  async start(_serverName: string, server: Express, port: number, logServerStart: () => void) {
     server.listen(port, () => logServerStart());
   }
-});
 
-export { expressServerAdapter as ExpressServerAdapter };
-export { expressServerAdapter as default };
+  static new(args: Omit<ServerSettingsTypeExpress, 'server'>) {
+    defaultConfig = {
+      server: this,
+      ...args,
+    };
+
+    return {
+      server: this,
+    };
+  }
+}
+
+export { ExpressServerAdapter };
+export default ExpressServerAdapter;

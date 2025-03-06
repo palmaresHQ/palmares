@@ -47,19 +47,18 @@ export default defineSettings({
       ServerDomain,
       {
         servers: {
-          default: {
-            server: ExpressServerAdapter,
+          default: ExpressServerAdapter.new({
             port: 4001,
-            customServerSettings: ExpressServerAdapter.customServerSettings({
+            customServerSettings: {
               middlewares: [cors()],
               // Aqui eu poderia adicionar mais coisa
               // que eu não tenho no adapter e ai tenho acesso ao server direto
               additionalBehaviour: (app) => {
                 app.use(cors());
               },
-            }),
+            },
             handler500: middleware({ response: () => new Response() }),
-          },
+          }),
         },
       },
     ],

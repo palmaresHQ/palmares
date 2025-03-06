@@ -40,8 +40,7 @@ export default defineSettings({
       ServerDomain,
       {
         servers: {
-          default: {
-            server: ExpressServerAdapter,
+          default: ExpressServerAdapter.new({
             port: 4000,
             validation: {
               handler: () => {
@@ -55,10 +54,10 @@ export default defineSettings({
                   message: 'Not found'
                 }
               }),
-            handler500: async (response) => {
+            handler500: async (response: Response) => {
               return response;
             }
-          }
+          })
         }
       }
     ],

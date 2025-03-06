@@ -404,7 +404,7 @@ function wrapHandlerAndMiddlewares(
   handler500?: AllServerSettingsType['servers'][string]['handler500'],
   validation?: AllServerSettingsType['servers'][string]['validation']
 ) {
-  const wrappedHandler = async (serverRequestAndResponseData: any) => {
+  const wrappedHandler = async (serverRequestAndResponseData: any) => { 
     const startTime = new Date().getTime();
     let request = appendTranslatorToRequest(
       new Request(),
@@ -766,14 +766,14 @@ export async function* getAllRouters(
     (serverAdapter as ServerlessAdapter)?.$$type === '$PServerlessAdapter' &&
     typeof options?.serverless?.use === 'object';
 
-  const isGeneratingServerless =
+    const isGeneratingServerless =
     // eslint-disable-next-line ts/no-unnecessary-condition
     (serverAdapter as ServerlessAdapter)?.$$type === '$PServerlessAdapter' && options?.serverless?.generate === true;
-
+    
   const translatePath = translatePathFactory(serverAdapter, customServerInstance);
   const existsRootMiddlewares = Array.isArray(settings.middlewares) && settings.middlewares.length > 0;
   const rootRouterCompletePaths = await getRootRouterCompletePaths(domains, settings, settings.debug === true);
-
+  
   for (const [path, router] of rootRouterCompletePaths) {
     // eslint-disable-next-line ts/no-unnecessary-condition
     const handlerByMethod = Object.entries(router.handlers || {});
@@ -1035,9 +1035,9 @@ export async function initializeRouters(
       settings.handler500
     );
   }
-
+  
   if (serverAdapter.routers.parseHandlers || useServerless) {
-    const routers = getAllRouters(domains, settings, allSettings, serverAdapter, {
+    const routers = getAllRouters(domains, settings, allSettings, serverAdapter, customServerInstance, {
       serverless: {
         generate: generateServerless,
         use: {
