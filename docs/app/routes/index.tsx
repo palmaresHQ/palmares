@@ -16,18 +16,29 @@ export const Route = createFileRoute('/')({
 
 function Home() {
   const [selectedCodeForMainPage, setSelectedCodeForMainPage] = useState<string>('databases.ts');
+  const [selectedCodeForFavorites, setSelectedCodeForFavorites] = useState<string>('drizzle.ts');
   const {
     data: { data, isChromium }
   } = Route.useLoaderData();
 
   const codeFiles = (data as Awaited<ReturnType<GetLibraryCodesFn>>)['mainpage'];
-  const sidebarFiles = Object.keys(codeFiles?.raw || {})
+  const sidebarFilesForMainPage = Object.keys(codeFiles?.raw || {})
     .filter(
       (code) =>
         code.endsWith('databases.ts') ||
         code.endsWith('schemas.ts') ||
         code.endsWith('tests.ts') ||
         code.endsWith('server.ts')
+    )
+    .sort();
+
+  const sidebarFilesForFavorites = Object.keys(codeFiles?.raw || {})
+    .filter(
+      (code) =>
+        code.endsWith('drizzle.ts') ||
+        code.endsWith('express.ts') ||
+        code.endsWith('zod.ts') ||
+        code.endsWith('jest.ts')
     )
     .sort();
 
@@ -139,7 +150,7 @@ function Home() {
         }
         customSidebar={
           <div className="flex flex-col w-36 h-[860px] from-tertiary-500 to-white bg-gradient-to-b p-2">
-            {sidebarFiles.map((code, index) => (
+            {sidebarFilesForMainPage.map((code, index) => (
               <Fragment key={code}>
                 <button
                   type={'button'}
@@ -156,7 +167,7 @@ function Home() {
                     </div>
                   ) : null}
                 </button>
-                {index === sidebarFiles.length - 1 ? null : (
+                {index === sidebarFilesForMainPage.length - 1 ? null : (
                   <div className="h-[2px] w- bg-tertiary-300 mt-2 mb-2"></div>
                 )}
               </Fragment>
@@ -181,36 +192,36 @@ function Home() {
         height={860}
         width={680}
         isChromium={isChromium}
-        text={codeFiles?.raw['drizzle.ts'] || ''}
+        text={codeFiles?.raw[selectedCodeForFavorites] || ''}
         extraDts={codeFiles?.raw}
         libraries={data as Awaited<ReturnType<GetLibraryCodesFn>>}
         sidebarWidth={'9rem'}
-        // customSidebar={
-        //   <div className="flex flex-col w-36 h-[860px] from-tertiary-500 to-white bg-gradient-to-b p-2">
-        //     {sidebarFiles.map((code, index) => (
-        //       <Fragment key={code}>
-        //         <button
-        //           type={'button'}
-        //           onClick={() => setSelectedCode(code)}
-        //           className={`flex flex-row items-center justify-between p-2 w-full text-left ${selectedCode === code ? 'bg-tertiary-200' : 'bg-transparent'} font-light text-sm rounded-md`}
-        //         >
-        //           {code.replace('src/core/', '')}
-        //           {selectedCode === code ? (
-        //             <div className="flex flex-col w-[24px] max-h-[24px]">
-        //               <svg className="w-full h-full" viewBox="0 0 50 50">
-        //                 <line className="stroke-primary-600" x1={35} y1={10} x2={40} y2={25} strokeWidth={2} />
-        //                 <line className="stroke-primary-600" x1={40} y1={25} x2={35} y2={40} strokeWidth={2} />
-        //               </svg>
-        //             </div>
-        //           ) : null}
-        //         </button>
-        //         {index === sidebarFiles.length - 1 ? null : (
-        //           <div className="h-[2px] w- bg-tertiary-300 mt-2 mb-2"></div>
-        //         )}
-        //       </Fragment>
-        //     ))}
-        //   </div>
-        // }
+        customSidebar={
+          <div className="flex flex-col w-36 h-[860px] from-tertiary-500 to-white bg-gradient-to-b p-2">
+            {sidebarFilesForFavorites.map((code, index) => (
+              <Fragment key={code}>
+                <button
+                  type={'button'}
+                  onClick={() => setSelectedCodeForFavorites(code)}
+                  className={`flex flex-row items-center justify-between p-2 w-full text-left ${selectedCodeForFavorites === code ? 'bg-tertiary-200' : 'bg-transparent'} font-light text-sm rounded-md`}
+                >
+                  {code.replace('src/core/', '')}
+                  {selectedCodeForFavorites === code ? (
+                    <div className="flex flex-col w-[24px] max-h-[24px]">
+                      <svg className="w-full h-full" viewBox="0 0 50 50">
+                        <line className="stroke-primary-600" x1={35} y1={10} x2={40} y2={25} strokeWidth={2} />
+                        <line className="stroke-primary-600" x1={40} y1={25} x2={35} y2={40} strokeWidth={2} />
+                      </svg>
+                    </div>
+                  ) : null}
+                </button>
+                {index === sidebarFilesForFavorites.length - 1 ? null : (
+                  <div className="h-[2px] w- bg-tertiary-300 mt-2 mb-2" />
+                )}
+              </Fragment>
+            ))}
+          </div>
+        }
       />
     </div>
   );

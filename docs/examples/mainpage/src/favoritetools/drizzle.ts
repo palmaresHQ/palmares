@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { define, fields, Model, ON_DELETE, InferModel } from '@palmares/databases';
+import { define, fields } from '@palmares/databases';
 
 import * as schema from './.drizzle.schema';
 import { db } from './settings.favoritetools';
@@ -28,5 +28,5 @@ export async function createCompanyWithDrizzle() {
     isActive: true
   });
 
-  db.select().from(Company.default.instance).all();
+  db.select().from(drizzleCompany).all();
 }
