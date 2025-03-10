@@ -1,0 +1,59 @@
+{
+  "name": "@palmares/jwt-auth",
+  "version": "0.0.0",
+  "description": "A robust and versatile JWT authentication module designed for seamless integration with Palmares applications",
+  "main": "./dist/src/index.cjs",
+  "module": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "files": [
+    "dist",
+    "package.json",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js",
+      "require": "./dist/src/index.cjs"
+    }
+  },
+  "scripts": {
+    "clear": "rimraf ./dist",
+    "build:types": "tsc --project tsconfig.types.json",
+    "build:cjs:esm": "tsup ./src --out-dir ./dist/src --format cjs,esm --silent --no-splitting",
+    "build": "pnpm run clear && pnpm run build:cjs:esm && pnpm run build:types",
+    "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
+    "build:cjs:esm:watch": "tsup ./src --out-dir ./dist/src --format cjs,esm --watch --silent --no-splitting",
+    "build:watch": "pnpm run build:types:watch & pnpm run build:cjs:esm:watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/palmaresHQ/palmares.git"
+  },
+  "keywords": [
+    "palmares",
+    "jwt",
+    "authentication"
+  ],
+  "type": "module",
+  "author": "Vicente Sanchez",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/palmaresHQ/palmares/issues"
+  },
+  "homepage": "https://github.com/palmaresHQ/palmares#readme",
+  "dependencies": {
+    "@palmares/auth": "workspace:*",
+    "@palmares/core": "workspace:*",
+    "@palmares/events": "workspace:*",
+    "@palmares/logging": "workspace:*"
+  },
+  "peerDependencies": {
+    "jose": "^6.0.8",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.9"
+  }
+}
