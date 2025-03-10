@@ -642,6 +642,9 @@ importers:
       '@palmares/databases':
         specifier: workspace:*
         version: link:../../packages/databases
+      '@palmares/drizzle-engine':
+        specifier: workspace:*
+        version: link:../../libs/drizzle-engine
       '@palmares/express-adapter':
         specifier: workspace:*
         version: link:../../libs/express-adapter
@@ -654,12 +657,19 @@ importers:
       '@palmares/password-auth':
         specifier: workspace:*
         version: link:../../libs/password-auth
-      '@palmares/sequelize-engine':
+      '@palmares/schemas':
         specifier: workspace:*
-        version: link:../../libs/sequelize-engine
+        version: link:../../packages/schemas
       '@palmares/server':
         specifier: workspace:*
         version: link:../../packages/server
+      '@palmares/zod-schema':
+        specifier: workspace:*
+        version: link:../../libs/zod-schema
+    devDependencies:
+      drizzle-kit:
+        specifier: ^0.30.5
+        version: 0.30.5
 
   examples/with-code-share: {}
 

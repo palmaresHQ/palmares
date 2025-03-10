@@ -1,21 +1,27 @@
-import defineAuthConfig, { getAuth } from '@palmares/auth';
+import defineAuthConfig from '@palmares/auth';
 import ConsoleLogging from '@palmares/console-logging';
 import PalmaresCoreDomain, { defineSettings } from '@palmares/core';
+import DatabasesDomain from '@palmares/databases';
 import { ExpressServerAdapter } from '@palmares/express-adapter';
 import LoggingDomain from '@palmares/logging';
 import NodeStd from '@palmares/node-std';
 import { passwordAdapter } from '@palmares/password-auth';
+import { SchemaDomain } from '@palmares/schemas';
 import ServerDomain, { Response } from '@palmares/server';
+import { ZodSchemaAdapter } from '@palmares/zod-schema';
 import { dirname, resolve } from 'path';
 
 import CoreDomain from './core';
+import { databaseEngine } from './db';
 
 import type { AuthAdapters } from '@palmares/auth';
+import type { DrizzleDatabaseAdapter } from '@palmares/drizzle-engine';
 import type PasswordAuthAdapter from '@palmares/password-auth';
 
 declare global {
   namespace Palmares {
     interface PAuth extends AuthAdapters<[ReturnType<typeof PasswordAuthAdapter.new>]> {}
+    interface PDatabaseAdapter extends InstanceType<typeof DrizzleDatabaseAdapter> {}
   }
 }
 
@@ -35,6 +41,12 @@ export default defineSettings({
       PalmaresCoreDomain,
       {
         appName: 'My App'
+      }
+    ],
+    [
+      SchemaDomain,
+      {
+        schemaAdapter: ZodSchemaAdapter
       }
     ],
     // Server Domain, required for the server
@@ -65,8 +77,18 @@ export default defineSettings({
         }
       }
     ],
+    [
+      DatabasesDomain,
+      {
+        databases: {
+          default: {
+            engine: databaseEngine
+          }
+        }
+      }
+    ],
     defineAuthConfig({
-      adapters: [passwordAdapter.new({ prefix: 'my-prefix', suffix: 'my-suffix' })]
+      adapters: [passwordAdapter.new()]
     }),
     CoreDomain
   ]

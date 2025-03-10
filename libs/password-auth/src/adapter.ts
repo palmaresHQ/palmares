@@ -1,7 +1,7 @@
 import { authAdapter } from '@palmares/auth';
 import { compare, hash } from 'bcrypt';
 
-export const passwordAdapter = authAdapter((_args: { suffix: string; prefix: string }) => ({
+export const passwordAdapter = authAdapter(() => ({
   name: 'password',
   methods: {
     hash: (password: string) => {
