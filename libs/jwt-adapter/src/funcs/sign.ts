@@ -3,6 +3,16 @@ import * as jwt from 'jsonwebtoken';
 
 import type { JWTOptions, JWTPayload } from '../adapter';
 
+/**
+ * Signs a JWT using the specified library and options.
+ *
+ * @param {string} secret - The secret key used for signing the JWT.
+ * @param {'jsonwebtoken' | 'jose'} library - The library to use for signing ('jsonwebtoken' or 'jose').
+ * @param {JWTPayload} payload - The payload to be included in the JWT.
+ * @param {JWTOptions} options - The options to configure the JWT signing process.
+ * @returns {Promise<string>} A promise that resolves with the signed JWT.
+ * @throws {Error} If the specified library is not supported or if signing fails.
+ */
 export async function sign({
   secret,
   library,
@@ -45,6 +55,6 @@ export async function sign({
       return jwtJose;
     }
     default:
-      throw new Error(`unsupported jwt library: ${library}`);
+      throw new Error(`Unsupported JWT library: ${library}`);
   }
 }

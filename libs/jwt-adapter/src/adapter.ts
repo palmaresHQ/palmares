@@ -3,6 +3,9 @@ import { authAdapter } from '@palmares/auth';
 import { sign } from './funcs/sign';
 import { verify } from './funcs/verify';
 
+/**
+ * Defines the structure of the payload used in JWT operations.
+ */
 export interface JWTPayload {
   /**
    * JWT Issuer
@@ -57,6 +60,9 @@ export interface JWTPayload {
   [propName: string]: unknown;
 }
 
+/**
+ * Enumerates the supported JWT signing algorithms.
+ */
 export type JWTAlgorithm =
   | 'HS256'
   | 'HS384'
@@ -71,12 +77,22 @@ export type JWTAlgorithm =
   | 'PS384'
   | 'PS512';
 
+/**
+ * Defines the options for JWT operations.
+ */
 export interface JWTOptions {
   alg: JWTAlgorithm;
   typ?: 'JWT';
   exp: number; // in seconds
 }
 
+/**
+ * Provides JWT authentication methods such as signing and verifying tokens.
+ * We recommend using the 'jose' library for JWT operations due to its comprehensive support for modern JWT standards.
+ * Please refer to the documentation in `@palmares/auth` for more details on adapter implementations.
+ *
+ * Warning: Ensure that the `secret` provided is securely stored and managed to prevent security vulnerabilities.
+ */
 export const jwtAdapter = authAdapter(
   ({ secret, library = 'jose' }: { secret: string; library?: 'jsonwebtoken' | 'jose' }) => ({
     name: 'jwt',

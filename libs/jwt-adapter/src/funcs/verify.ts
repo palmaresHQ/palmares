@@ -1,6 +1,16 @@
 import * as jose from 'jose';
 import * as jwt from 'jsonwebtoken';
 
+/**
+ * Verifies a JWT token using the specified library and options.
+ *
+ * @param {string} secret - The secret key used to verify the JWT.
+ * @param {'jsonwebtoken' | 'jose'} library - The library to use for verification ('jsonwebtoken' or 'jose').
+ * @param {string} token - The JWT token to verify.
+ * @param {object} options - The options to pass to the JWT verification function.
+ * @returns {Promise<object>} A promise that resolves with the decoded token payload if verification is successful.
+ * @throws {Error} If the specified library is not supported or if verification fails.
+ */
 export async function verify({
   secret,
   library,
