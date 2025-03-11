@@ -38,8 +38,14 @@ export default domain('core', import.meta.dirname, {
 
       if (!isPasswordValid) return Response.json({ message: 'Invalid password', status: 401 });
 
-      const token = `${user[0].id}-${user[0].email}`;
-      // TODO: use JWT auth adapter
+      const token = await auth.jwt.sign(
+        {
+          sub: user[0].id
+        },
+        {
+          exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 // 7 days
+        }
+      );
 
       return Response.json({ token });
     }),

@@ -1,5 +1,5 @@
 {
-  "name": "@palmares/jwt-auth",
+  "name": "@palmares/jwt-adapter",
   "version": "0.0.0",
   "description": "A robust and versatile JWT authentication module designed for seamless integration with Palmares applications",
   "main": "./dist/src/index.cjs",

@@ -1,6 +1,6 @@
 import { jwtAdapter } from './adapter';
 
-export { JWTAlgorithm, JWTOptions, JWTPayload } from './adapter';
+export * from './adapter';
 export { sign } from './funcs/sign';
 export { verify } from './funcs/verify';
 

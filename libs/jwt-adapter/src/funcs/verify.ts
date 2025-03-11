@@ -1,6 +1,8 @@
 import * as jose from 'jose';
 import * as jwt from 'jsonwebtoken';
 
+import type { JWTAlgorithm } from '../adapter';
+
 /**
  * Verifies a JWT token using the specified library and options.
  *
@@ -15,17 +17,19 @@ export async function verify({
   secret,
   library,
   token,
-  options
+  options,
+  alg
 }: {
   secret: string;
   library: 'jsonwebtoken' | 'jose';
   token: string;
   options: object;
+  alg: JWTAlgorithm;
 }) {
   switch (library) {
     case 'jsonwebtoken':
       return new Promise((resolve, reject) => {
-        jwt.verify(token, secret, options, (err, decoded) => {
+        jwt.verify(token, secret, { ...options, algorithms: [alg] }, (err, decoded) => {
           if (err) {
             reject(err);
           } else {
@@ -35,7 +39,10 @@ export async function verify({
       });
     case 'jose':
       try {
-        const { payload } = await jose.jwtVerify(token, new TextEncoder().encode(secret), options);
+        const { payload } = await jose.jwtVerify(token, new TextEncoder().encode(secret), {
+          ...options,
+          algorithms: [alg]
+        });
         return Promise.resolve(payload);
       } catch (error) {
         return Promise.reject(error);

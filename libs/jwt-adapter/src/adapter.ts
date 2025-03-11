@@ -6,7 +6,7 @@ import { verify } from './funcs/verify';
 /**
  * Defines the structure of the payload used in JWT operations.
  */
-export interface JWTPayload {
+export type JWTPayload = {
   /**
    * JWT Issuer
    *
@@ -58,7 +58,7 @@ export interface JWTPayload {
 
   /** Any other JWT Claim Set member. */
   [propName: string]: unknown;
-}
+};
 
 /**
  * Enumerates the supported JWT signing algorithms.
@@ -81,7 +81,6 @@ export type JWTAlgorithm =
  * Defines the options for JWT operations.
  */
 export interface JWTOptions {
-  alg: JWTAlgorithm;
   typ?: 'JWT';
   exp: number; // in seconds
 }
@@ -94,7 +93,15 @@ export interface JWTOptions {
  * Warning: Ensure that the `secret` provided is securely stored and managed to prevent security vulnerabilities.
  */
 export const jwtAdapter = authAdapter(
-  ({ secret, library = 'jose' }: { secret: string; library?: 'jsonwebtoken' | 'jose' }) => ({
+  ({
+    secret,
+    library = 'jose',
+    alg = 'HS256'
+  }: {
+    secret: string;
+    library?: 'jsonwebtoken' | 'jose';
+    alg?: JWTAlgorithm;
+  }) => ({
     name: 'jwt',
     methods: {
       sign: (payload: JWTPayload, options: JWTOptions) =>
@@ -102,14 +109,16 @@ export const jwtAdapter = authAdapter(
           secret,
           library,
           payload,
-          options
+          options,
+          alg
         }),
       verify: (token: string, options: object) =>
         verify({
           secret,
           library,
           token,
-          options
+          options,
+          alg
         })
     }
   })

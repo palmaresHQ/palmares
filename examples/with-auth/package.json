@@ -38,7 +38,8 @@
     "@palmares/password-auth": "workspace:*",
     "@palmares/schemas": "workspace:*",
     "@palmares/server": "workspace:*",
-    "@palmares/zod-schema": "workspace:*"
+    "@palmares/zod-schema": "workspace:*",
+    "@palmares/jwt-adapter": "workspace:*"
   },
   "devDependencies": {
     "drizzle-kit": "^0.30.5"

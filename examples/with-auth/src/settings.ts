@@ -3,6 +3,7 @@ import ConsoleLogging from '@palmares/console-logging';
 import PalmaresCoreDomain, { defineSettings } from '@palmares/core';
 import DatabasesDomain from '@palmares/databases';
 import { ExpressServerAdapter } from '@palmares/express-adapter';
+import { jwtAdapter } from '@palmares/jwt-adapter';
 import LoggingDomain from '@palmares/logging';
 import NodeStd from '@palmares/node-std';
 import { passwordAdapter } from '@palmares/password-auth';
@@ -20,7 +21,8 @@ import type PasswordAuthAdapter from '@palmares/password-auth';
 
 declare global {
   namespace Palmares {
-    interface PAuth extends AuthAdapters<[ReturnType<typeof PasswordAuthAdapter.new>]> {}
+    interface PAuth
+      extends AuthAdapters<[ReturnType<typeof PasswordAuthAdapter.new>, ReturnType<typeof jwtAdapter.new>]> {}
     interface PDatabaseAdapter extends InstanceType<typeof DrizzleDatabaseAdapter> {}
   }
 }
@@ -88,7 +90,14 @@ export default defineSettings({
       }
     ],
     defineAuthConfig({
-      adapters: [passwordAdapter.new()]
+      adapters: [
+        passwordAdapter.new(),
+        jwtAdapter.new({
+          secret: 'my-secret',
+          library: 'jose',
+          alg: 'HS256'
+        })
+      ]
     }),
     CoreDomain
   ]

@@ -1,7 +1,7 @@
 import * as jose from 'jose';
 import * as jwt from 'jsonwebtoken';
 
-import type { JWTOptions, JWTPayload } from '../adapter';
+import type { JWTAlgorithm, JWTOptions, JWTPayload } from '../adapter';
 
 /**
  * Signs a JWT using the specified library and options.
@@ -17,38 +17,51 @@ export async function sign({
   secret,
   library,
   payload,
-  options
+  options,
+  alg
 }: {
   secret: string;
   library: 'jsonwebtoken' | 'jose';
   payload: JWTPayload;
   options: JWTOptions;
+  alg: JWTAlgorithm;
 }): Promise<string> {
   switch (library) {
     case 'jsonwebtoken': {
       const jwtOptions: jwt.SignOptions = {
-        algorithm: options.alg as jwt.Algorithm,
-        header: { alg: options.alg, typ: options.typ }
+        algorithm: alg as jwt.Algorithm,
+        header: { alg, typ: options.typ }
       };
       if (options.exp) {
         jwtOptions.expiresIn = options.exp;
       }
 
       return new Promise((resolve, reject) => {
-        jwt.sign(payload, secret, jwtOptions, (err, token) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(token as string);
+        jwt.sign(
+          {
+            ...payload,
+            iat: Math.floor(Date.now() / 1000)
+          },
+          secret,
+          {
+            ...jwtOptions,
+            algorithm: alg as jwt.Algorithm
+          },
+          (err, token) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(token as string);
+            }
           }
-        });
+        );
       });
     }
 
     case 'jose': {
       const encoder = new TextEncoder();
       const jwtJose = await new jose.SignJWT(payload)
-        .setProtectedHeader({ alg: options.alg, typ: options.typ })
+        .setProtectedHeader({ alg, typ: options.typ })
         .setIssuedAt()
         .setExpirationTime(options.exp)
         .sign(encoder.encode(secret));
