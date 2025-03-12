@@ -1,7 +1,7 @@
 {
-  "name": "@palmares/jwt-adapter",
+  "name": "@palmares/jwt",
   "version": "0.0.0",
-  "description": "A robust and versatile JWT authentication module designed for seamless integration with Palmares applications",
+  "description": "A standalone JWT package for secure and efficient JSON Web Token handling in various applications",
   "main": "./dist/src/index.cjs",
   "module": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",
@@ -42,18 +42,5 @@
   "bugs": {
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
-  "homepage": "https://github.com/palmaresHQ/palmares#readme",
-  "dependencies": {
-    "@palmares/auth": "workspace:*",
-    "@palmares/core": "workspace:*",
-    "@palmares/events": "workspace:*",
-    "@palmares/logging": "workspace:*"
-  },
-  "peerDependencies": {
-    "jose": "^6.0.8",
-    "jsonwebtoken": "^9.0.2"
-  },
-  "devDependencies": {
-    "@types/jsonwebtoken": "^9.0.9"
-  }
+  "homepage": "https://github.com/palmaresHQ/palmares#readme"
 }
