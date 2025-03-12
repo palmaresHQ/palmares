@@ -22,7 +22,7 @@ const args = DrizzleEngine.new({
 });
 export const db = args[1]().instance.instance;
 
-const newDb = drizzleBetterSqlite3(database);
+export const newDb = drizzleBetterSqlite3(database);
 
 export default defineSettings({
   basePath: dirname(resolve(import.meta.dirname)),

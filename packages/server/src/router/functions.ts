@@ -85,6 +85,7 @@ export function path<TPath extends string = ''>(path: TPath = '' as TPath) {
  * by just passing the parent router as a generic.
  *
  * On **routers.ts** file:
+ *
  * @example
  * ```ts
  * import { path, Response } from '@palmares/server';
@@ -98,6 +99,7 @@ export function path<TPath extends string = ''>(path: TPath = '' as TPath) {
  * ```
  *
  * On **controllers.ts** file:
+ *
  * @example
  * ```ts
  * import { pathNested, Response } from '@palmares/server';

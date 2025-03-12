@@ -1,7 +1,7 @@
 import { ServerAdapter } from '../index';
 
 import type { BaseRouter } from '../../router/routers';
-import type { MethodTypes, RouterOptionsType } from '../../router/types';
+import type { MethodTypes } from '../../router/types';
 import type { ServerRequestAdapter } from '../requests';
 import type { ServerResponseAdapter } from '../response';
 import type { ServerlessAdapter } from '../serverless';
