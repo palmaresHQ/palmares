@@ -21,14 +21,15 @@
     "@palmares/node-std": "workspace:*",
     "@palmares/server": "workspace:*",
     "@palmares/tests": "workspace:*",
+    "cors": "^2.8.5",
     "drizzle-kit": "^0.30.5",
     "drizzle-orm": "^0.39.3"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.11",
-    "better-sqlite3": "^11.8.1",
     "@types/cors": "^2.8.17",
     "@types/supertest": "^6.0.2",
+    "better-sqlite3": "^11.8.1",
     "eslint": "^9.9.1",
     "supertest": "^7.0.0",
     "ts-jest-mock-import-meta": "^1.2.0",

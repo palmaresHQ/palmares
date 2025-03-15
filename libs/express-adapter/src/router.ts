@@ -17,14 +17,16 @@ export const routerAdapter = serverRouterAdapter({
   parseHandlers(_, initializedServer: Express, path, handlers: ParseHandlersServer<RequestHandler[]>, __, handler404) {
     // This will initialize the server routes.
     initializedServer.all(path, (req: Request, res: Response) => {
-      let currentMiddlewareIndex = 0;
+      let currentMiddlewareIndex = -1;
 
       const runMiddlewares = (methodType: MethodTypes | 'all', req: Request, res: Response) => {
         const next = () => {
-          if (handlers.get(methodType)?.options?.[currentMiddlewareIndex])
+          currentMiddlewareIndex = Number(currentMiddlewareIndex) + 1;
+          if (handlers.get(methodType)?.options?.[currentMiddlewareIndex]) {
             handlers.get(methodType)?.options?.[currentMiddlewareIndex]?.(req, res, next);
-          else handlers.get(methodType)?.handler({ req, res });
-          currentMiddlewareIndex++;
+          } else {
+            handlers.get(methodType)?.handler({ req, res });
+          }
         };
 
         next();
