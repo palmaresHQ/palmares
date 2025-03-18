@@ -8,13 +8,13 @@ This implementation was inspired by the excellent [jose](https://github.com/panv
 
 ## Features
 
-- 🔒 Secure JWT signing and verification
-- ⚡ Fluent API design for intuitive usage
-- 📝 Comprehensive TypeScript support
-- 🎯 Standard JWT claims support
-- ⏰ Flexible expiration handling
-- 🔍 Detailed verification options
-- 📚 Extensive documentation
+-  Secure JWT signing and verification
+-  Fluent API design for intuitive usage
+-  Comprehensive TypeScript support
+-  Standard JWT claims support
+-  Flexible expiration handling
+-  Detailed verification options
+-  Extensive documentation
 
 ## Installation
 
@@ -147,11 +147,3 @@ interface VerifyOptions {
 7. **Consider token blacklisting**
    - Implement a mechanism to revoke tokens
    - Store revoked tokens in a database or cache
-
-## Development
-
-For detailed information about the development process, see [DEVELOPMENT.md](./DEVELOPMENT.md).
-
-## License
-
-MIT 
