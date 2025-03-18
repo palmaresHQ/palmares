@@ -9,6 +9,7 @@ import type { JwtHeader, JwtPayload, SignJWTState, VerifyJWTState, VerifyOptions
  */
 function base64UrlDecode(str: string): string {
   const buffer = Buffer.from(str.replace(/-/g, '+').replace(/_/g, '/'), 'base64');
+
   return buffer.toString('utf-8');
 }
 
@@ -19,6 +20,7 @@ function base64UrlDecode(str: string): string {
  */
 function base64UrlEncode(str: string): string {
   const buffer = Buffer.from(str);
+
   return buffer.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
@@ -30,8 +32,11 @@ function base64UrlEncode(str: string): string {
  */
 function createSignature(payload: string, secret: string): string {
   const hmac = createHmac('sha256', secret);
+
   hmac.update(payload);
+
   const digest = hmac.digest();
+
   return base64UrlEncode(digest.toString('hex'));
 }
 
@@ -42,9 +47,8 @@ function createSignature(payload: string, secret: string): string {
  */
 export function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error('JWT_SECRET environment variable is not set');
-  }
+  if (!secret) throw new Error('JWT_SECRET environment variable is not set');
+
   return secret;
 }
 
@@ -121,9 +125,8 @@ export function signJwt(payload: JwtPayload) {
           default:
             throw new Error('Invalid time unit. Use h, d, w, m, or y');
         }
-      } else {
-        state.expirationTime = time;
-      }
+      } else state.expirationTime = time;
+
       return this;
     },
 
@@ -135,12 +138,9 @@ export function signJwt(payload: JwtPayload) {
     // eslint-disable-next-line ts/require-await
     async sign(secret: string): Promise<string> {
       // Add issuedAt and expirationTime to payload if set
-      if (state.issuedAt) {
-        state.payload.iat = state.issuedAt;
-      }
-      if (state.expirationTime) {
-        state.payload.exp = state.expirationTime;
-      }
+      if (state.issuedAt) state.payload.iat = state.issuedAt;
+
+      if (state.expirationTime) state.payload.exp = state.expirationTime;
 
       // Encode header and payload
       const headerB64 = base64UrlEncode(JSON.stringify(state.header));
@@ -272,38 +272,26 @@ export function verifyJwt(token: string) {
         const payload: JwtPayload = JSON.parse(payloadStr);
 
         // Verify algorithm
-        if (!state.options.algorithms?.includes(header.alg)) {
-          throw new Error(`Algorithm ${header.alg} not allowed`);
-        }
+        if (!state.options.algorithms?.includes(header.alg)) throw new Error(`Algorithm ${header.alg} not allowed`);
 
         // Verify type
-        if (state.options.typ && header.typ !== state.options.typ) {
-          throw new Error(`Type ${header.typ} not allowed`);
-        }
+        if (state.options.typ && header.typ !== state.options.typ) throw new Error(`Type ${header.typ} not allowed`);
 
         // Verify issuer
-        if (state.options.issuer && payload.iss !== state.options.issuer) {
-          throw new Error('Invalid issuer');
-        }
+        if (state.options.issuer && payload.iss !== state.options.issuer) throw new Error('Invalid issuer');
 
         // Verify audience
-        if (state.options.audience && payload.aud !== state.options.audience) {
-          throw new Error('Invalid audience');
-        }
+        if (state.options.audience && payload.aud !== state.options.audience) throw new Error('Invalid audience');
 
         // Verify subject
-        if (state.options.subject && payload.sub !== state.options.subject) {
-          throw new Error('Invalid subject');
-        }
+        if (state.options.subject && payload.sub !== state.options.subject) throw new Error('Invalid subject');
 
         // Verify expiration
         if (payload.exp) {
           const now = Math.floor(Date.now() / 1000);
           const tolerance = state.options.clockTolerance || 0;
 
-          if (payload.exp < now - tolerance) {
-            throw new Error('Token has expired');
-          }
+          if (payload.exp < now - tolerance) throw new Error('Token has expired');
         }
 
         // Verify token age
@@ -320,15 +308,12 @@ export function verifyJwt(token: string) {
         const headerPayload = `${headerB64}.${payloadB64}`;
         const expectedSignature = createSignature(headerPayload, secret);
 
-        if (signature !== expectedSignature) {
-          throw new Error('Invalid signature');
-        }
+        if (signature !== expectedSignature) throw new Error('Invalid signature');
 
         return payload;
       } catch (error: unknown) {
-        if (error instanceof Error) {
-          throw new Error(`JWT verification failed: ${error.message}`);
-        }
+        if (error instanceof Error) throw new Error(`JWT verification failed: ${error.message}`);
+
         throw new Error('JWT verification failed: Unknown error');
       }
     }
