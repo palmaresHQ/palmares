@@ -42,5 +42,9 @@
   "bugs": {
     "url": "https://github.com/palmaresHQ/palmares/issues"
   },
-  "homepage": "https://github.com/palmaresHQ/palmares#readme"
+  "homepage": "https://github.com/palmaresHQ/palmares#readme",
+  "dependencies": {
+    "@palmares/core": "workspace:*",
+    "@palmares/auth": "workspace:*"
+  }
 }
