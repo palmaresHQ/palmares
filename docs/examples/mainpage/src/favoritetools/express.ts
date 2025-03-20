@@ -4,44 +4,27 @@ import { path, Response, middleware } from '@palmares/server';
 import { User } from './database';
 import { userSchema } from './schemas';
 
-const companyMiddleware = middleware({
-  request: async (request) => {
-    return request.clone({
-      context: {
-        company: {
-          id: 1
-        }
-      }
-    });
-  }
+// You already know how to create express middlewares, so just use it.
+const expressMiddleware = (req, res, next) => {
+  req.user = 'admin';
+  next();
+};
+
+// You can assign the middleware as customOption
+// Remember, this middleware is for express
+const adminOnlyMiddleware = middleware({
+  customOptions: [expressMiddleware()]
 });
 
 export const usersRoute = path('/users')
-  .middlewares([companyMiddleware])
+  .middlewares([adminOnlyMiddleware])
   .get(async (request) => {
-    const users = await User.default.get((qs) =>
-      qs.where({
-        companyId: request.context.company.id
-      })
-    );
-    return Response.json({ users });
-  })
-  .post(async (request) => {
-    const validationResp = await userSchema.validate((await request.json()) as any, {});
-    if (!validationResp.isValid) {
-      return Response.json(
-        {
-          success: false,
-          errors: validationResp.errors
-        },
-        { status: 400 }
-      );
+    // You can access the request data from Express.js from the request object
+    const { req, res } = request.serverData();
+    if (req.user !== 'admin') {
+      return Response.json({ message: 'You are not admin' }, { status: 403 });
     }
-    return Response.json({ success: true, data: await validationResp.save() });
-  })
-  .nested((path) => [
-    path('/<id: number>').get(async (request) => {
-      const user = await User.default.get((qs) => qs.where({ id: request.params.id }));
-      return Response.json({ user: user[0] });
-    })
-  ]);
+
+    // You can respond with the `res` object from Express.js
+    return res.json({ message: 'You are admin' });
+  });

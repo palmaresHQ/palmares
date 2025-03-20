@@ -19,6 +19,7 @@ import { Response } from '../response';
 import { HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR, isRedirect } from '../response/status';
 import { AsyncGeneratorFunction, GeneratorFunction } from '../response/utils';
 import { path } from '../router';
+import { mergeDeep } from '../utils/merge-deep';
 import { setServerAdapterInstance } from '../utils/store-server';
 
 import type { ServerAdapter } from '../adapters';
@@ -377,30 +378,6 @@ function translatePathFactory(serverAdapter: ServerAdapter | ServerlessAdapter, 
   };
 }
 
-function mergeDeep(...objects: any[]) {
-  const isObject = (obj: any) => obj && typeof obj === 'object';
-  return objects.reduce(
-    (prev, obj) => {
-      const keys = Array.isArray(obj) ? Array.from({ length: obj.length }).map((_, index) => index) : Object.keys(obj);
-      keys.forEach((key) => {
-        const keyAsNumber = Number(key);
-        const actualKeyValue = isNaN(keyAsNumber) === false ? Number(key) : key;
-        const pVal = prev[actualKeyValue];
-        const oVal = obj[actualKeyValue];
-        if (Array.isArray(pVal) && Array.isArray(oVal)) {
-          prev[actualKeyValue] = pVal.concat(...oVal);
-        } else if (isObject(pVal) && isObject(oVal)) {
-          prev[actualKeyValue] = mergeDeep(pVal, oVal);
-        } else {
-          prev[actualKeyValue] = oVal;
-        }
-      });
-      return prev;
-    },
-    Array.isArray(objects[0]) ? [] : {}
-  );
-}
-
 function mergeCustomOptionsFromMiddlewaresAndHandlers(middlewares: Middleware[], options: RouterOptionsType) {
   const originalCustomOptions = options.customOptions;
   // eslint-disable-next-line ts/no-unnecessary-condition
@@ -410,6 +387,7 @@ function mergeCustomOptionsFromMiddlewaresAndHandlers(middlewares: Middleware[],
     if (middleware.options?.customOptions) {
       // eslint-disable-next-line ts/no-unnecessary-condition
       if (options.customOptions)
+        // eslint-disable-next-line ts/no-unnecessary-condition
         options.customOptions = mergeDeep(options.customOptions, middleware.options.customOptions);
       else options.customOptions = middleware.options.customOptions;
     }
@@ -445,7 +423,6 @@ function wrapHandlerAndMiddlewares(
   validation?: AllServerSettingsType['servers'][string]['validation']
 ) {
   if (options === undefined) options = {};
-  console.log(options);
   if (server.$$type === '$PServerAdapter') mergeCustomOptionsFromMiddlewaresAndHandlers(middlewares, options);
   const wrappedHandler = async (serverRequestAndResponseData: any) => {
     const startTime = new Date().getTime();

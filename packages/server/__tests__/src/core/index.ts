@@ -10,7 +10,12 @@ const __dirname = dirname(__filename);
 
 const testMiddleware = middleware({
   options: {
-    customOptions: [cors()]
+    customOptions: [
+      (req, res, next) => {
+        req.params.test2 = 'test';
+        next();
+      }
+    ]
   }
 });
 const route = path('/test')
@@ -21,7 +26,12 @@ const route = path('/test')
       return Response.json({ message: 'hello' }, { status: 200 });
     },
     {
-      customOptions: [cors()]
+      customOptions: [
+        (req, res, next) => {
+          req.params.test = 'test';
+          next();
+        }
+      ]
     }
   );
 
