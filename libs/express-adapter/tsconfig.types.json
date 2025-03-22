@@ -3,6 +3,7 @@
   "compilerOptions": {
     "declaration": true /* Generate d.ts files */,
     "esModuleInterop": true,
+    "emitDeclarationOnly": false,
     "allowSyntheticDefaultImports": true,
     "rootDir": "./src",
     "outDir": "./dist/src",

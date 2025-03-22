@@ -581,24 +581,6 @@ export class MethodsRouter<
   TRootRoutesTree,
   TDefinitions
 > {
-  /*middlewares<const TRouterMiddlewares extends readonly Middleware[]>(
-    definedMiddlewares: Narrow<TRouterMiddlewares>
-  ): MethodsRouter<
-    TParentRouter,
-    TChildren,
-    readonly [...(TMiddlewares['length'] extends 0 ? [] : TMiddlewares), ...TRouterMiddlewares],
-    TRootPath,
-    TAlreadyDefinedHandlers,
-    TRootRoutesTree
-  > {
-    const middlewaresAsMutable = this.__middlewares as unknown as Middleware[];
-    (this.__middlewares as unknown as Middleware[]) = middlewaresAsMutable.concat(definedMiddlewares as Middleware[]);
-    for (const handler of this.__completePaths.values())
-      handler.middlewares = (definedMiddlewares as Middleware[]).concat(handler.middlewares);
-
-    return this as any;
-  }*/
-
   get<
     THandler extends HandlerType<
       TRootPath extends string ? TRootPath : string,
@@ -613,17 +595,7 @@ export class MethodsRouter<
       'GET',
       TOptions['responses']
     >,
-    TOptions extends RouterOptionsType<
-      TDefinitions['adapter']['routers']['parseHandlers'] extends (...args: any) => any
-        ? NonNullable<
-            Parameters<Parameters<TDefinitions['adapter']['routers']['parseHandlers']>[3]['set']>[1]
-          >['options']
-        : TDefinitions['adapter']['routers'] extends ServerRouterAdapter
-          ? TDefinitions['adapter']['routers']['parseHandler'] extends (...args: any) => any
-            ? Parameters<TDefinitions['adapter']['routers']['parseHandler']>[4]
-            : never
-          : never
-    >
+    TOptions extends RouterOptionsType<TDefinitions['adapter']>
   >(handler: THandler, options?: TOptions) {
     if (Array.isArray(options?.middlewares)) {
       const middlewaresAsMutable = this.__middlewares as unknown as Middleware[];
@@ -694,17 +666,7 @@ export class MethodsRouter<
       'POST',
       TOptions['responses'] extends undefined ? undefined : TOptions['responses']
     >,
-    TOptions extends RouterOptionsType<
-      TDefinitions['adapter']['routers']['parseHandlers'] extends (...args: any) => any
-        ? NonNullable<
-            Parameters<Parameters<TDefinitions['adapter']['routers']['parseHandlers']>[3]['set']>[1]
-          >['options']
-        : TDefinitions['adapter']['routers'] extends ServerRouterAdapter
-          ? TDefinitions['adapter']['routers']['parseHandler'] extends (...args: any) => any
-            ? Parameters<TDefinitions['adapter']['routers']['parseHandler']>[4]
-            : never
-          : never
-    >
+    TOptions extends RouterOptionsType<TDefinitions['adapter']>
   >(handler: THandler, options?: TOptions) {
     if (Array.isArray(options?.middlewares)) {
       const middlewaresAsMutable = this.__middlewares as unknown as Middleware[];
@@ -775,17 +737,7 @@ export class MethodsRouter<
       'DELETE',
       TOptions['responses'] extends undefined ? undefined : TOptions['responses']
     >,
-    TOptions extends RouterOptionsType<
-      TDefinitions['adapter']['routers']['parseHandlers'] extends (...args: any) => any
-        ? NonNullable<
-            Parameters<Parameters<TDefinitions['adapter']['routers']['parseHandlers']>[3]['set']>[1]
-          >['options']
-        : TDefinitions['adapter']['routers'] extends ServerRouterAdapter
-          ? TDefinitions['adapter']['routers']['parseHandler'] extends (...args: any) => any
-            ? Parameters<TDefinitions['adapter']['routers']['parseHandler']>[4]
-            : never
-          : never
-    >
+    TOptions extends RouterOptionsType<TDefinitions['adapter']>
   >(handler: THandler, options?: TOptions) {
     if (Array.isArray(options?.middlewares)) {
       const middlewaresAsMutable = this.__middlewares as unknown as Middleware[];
@@ -856,17 +808,7 @@ export class MethodsRouter<
       'OPTIONS',
       TOptions['responses']
     >,
-    TOptions extends RouterOptionsType<
-      TDefinitions['adapter']['routers']['parseHandlers'] extends (...args: any) => any
-        ? NonNullable<
-            Parameters<Parameters<TDefinitions['adapter']['routers']['parseHandlers']>[3]['set']>[1]
-          >['options']
-        : TDefinitions['adapter']['routers'] extends ServerRouterAdapter
-          ? TDefinitions['adapter']['routers']['parseHandler'] extends (...args: any) => any
-            ? Parameters<TDefinitions['adapter']['routers']['parseHandler']>[4]
-            : never
-          : never
-    >
+    TOptions extends RouterOptionsType<TDefinitions['adapter']>
   >(handler: THandler, options?: TOptions) {
     if (Array.isArray(options?.middlewares)) {
       const middlewaresAsMutable = this.__middlewares as unknown as Middleware[];
@@ -937,17 +879,7 @@ export class MethodsRouter<
       'HEAD',
       TOptions['responses']
     >,
-    TOptions extends RouterOptionsType<
-      TDefinitions['adapter']['routers']['parseHandlers'] extends (...args: any) => any
-        ? NonNullable<
-            Parameters<Parameters<TDefinitions['adapter']['routers']['parseHandlers']>[3]['set']>[1]
-          >['options']
-        : TDefinitions['adapter']['routers'] extends ServerRouterAdapter
-          ? TDefinitions['adapter']['routers']['parseHandler'] extends (...args: any) => any
-            ? Parameters<TDefinitions['adapter']['routers']['parseHandler']>[4]
-            : never
-          : never
-    >
+    TOptions extends RouterOptionsType<TDefinitions['adapter']>
   >(handler: THandler, options?: TOptions) {
     if (Array.isArray(options?.middlewares)) {
       const middlewaresAsMutable = this.__middlewares as unknown as Middleware[];
@@ -1018,17 +950,7 @@ export class MethodsRouter<
       'PUT',
       TOptions['responses']
     >,
-    TOptions extends RouterOptionsType<
-      TDefinitions['adapter']['routers']['parseHandlers'] extends (...args: any) => any
-        ? NonNullable<
-            Parameters<Parameters<TDefinitions['adapter']['routers']['parseHandlers']>[3]['set']>[1]
-          >['options']
-        : TDefinitions['adapter']['routers'] extends ServerRouterAdapter
-          ? TDefinitions['adapter']['routers']['parseHandler'] extends (...args: any) => any
-            ? Parameters<TDefinitions['adapter']['routers']['parseHandler']>[4]
-            : never
-          : never
-    >
+    TOptions extends RouterOptionsType<TDefinitions['adapter']>
   >(handler: THandler, options?: TOptions) {
     if (Array.isArray(options?.middlewares)) {
       const middlewaresAsMutable = this.__middlewares as unknown as Middleware[];
@@ -1097,17 +1019,7 @@ export class MethodsRouter<
       'PATCH',
       TOptions['responses']
     >,
-    TOptions extends RouterOptionsType<
-      TDefinitions['adapter']['routers']['parseHandlers'] extends (...args: any) => any
-        ? NonNullable<
-            Parameters<Parameters<TDefinitions['adapter']['routers']['parseHandlers']>[3]['set']>[1]
-          >['options']
-        : TDefinitions['adapter']['routers'] extends ServerRouterAdapter
-          ? TDefinitions['adapter']['routers']['parseHandler'] extends (...args: any) => any
-            ? Parameters<TDefinitions['adapter']['routers']['parseHandler']>[4]
-            : never
-          : never
-    >
+    TOptions extends RouterOptionsType<TDefinitions['adapter']>
   >(handler: THandler, options?: TOptions) {
     if (Array.isArray(options?.middlewares)) {
       const middlewaresAsMutable = this.__middlewares as unknown as Middleware[];
@@ -1176,17 +1088,7 @@ export class MethodsRouter<
       RequestMethodTypes,
       TOptions['responses']
     >,
-    TOptions extends RouterOptionsType<
-      TDefinitions['adapter']['routers']['parseHandlers'] extends (...args: any) => any
-        ? NonNullable<
-            Parameters<Parameters<TDefinitions['adapter']['routers']['parseHandlers']>[3]['set']>[1]
-          >['options']
-        : TDefinitions['adapter']['routers'] extends ServerRouterAdapter
-          ? TDefinitions['adapter']['routers']['parseHandler'] extends (...args: any) => any
-            ? Parameters<TDefinitions['adapter']['routers']['parseHandler']>[4]
-            : never
-          : never
-    >
+    TOptions extends RouterOptionsType<TDefinitions['adapter']>
   >(handler: THandler, options?: TOptions) {
     const handlersAsAny = this.__handlers as any;
 

@@ -1,4 +1,6 @@
 import type { BaseRouter } from './routers';
+import type { ServerAdapter } from '../adapters';
+import type { ServerlessAdapter } from '../adapters/serverless';
 import type { Middleware } from '../middleware';
 import type { ExtractRequestsFromMiddlewaresForServer, MiddlewareOptions } from '../middleware/types';
 import type { Request } from '../request';
@@ -234,7 +236,12 @@ export type ExtractIncludes<
     : TRouters
   : TRouters;
 
-export type RouterOptionsType<TCustomRouterOptions = any> = MiddlewareOptions & {
-  customOptions?: TCustomRouterOptions;
+export type RouterOptionsType<
+  TServerAdapter extends (ServerAdapter | ServerlessAdapter) & Palmares.PServerAdapter = (
+    | ServerAdapter
+    | ServerlessAdapter
+  ) &
+    Palmares.PServerAdapter
+> = MiddlewareOptions<TServerAdapter> & {
   middlewares?: Narrow<readonly Middleware[]>;
 };

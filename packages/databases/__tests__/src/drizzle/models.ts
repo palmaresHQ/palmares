@@ -5,17 +5,16 @@ import {
   DateField,
   DecimalField,
   EnumField,
-  Field,
   ForeignKeyField,
   IntegerField,
-  Manager,
-  Model,
   ON_DELETE,
   UuidField,
   define,
   getDatabasesWithDefaultAdapter
 } from '@palmares/databases';
 import { type DrizzleDatabaseAdapter, text } from '@palmares/drizzle-engine';
+
+import * as schemas from '../../.drizzle/schema';
 
 const pd = getDatabasesWithDefaultAdapter<typeof DrizzleDatabaseAdapter>();
 /*
@@ -63,8 +62,8 @@ export const Company = pd.define('Company', {
     custom: text({ length: 255 }).notNull()
   },
   options: {
-    tableName: 'companies'
-    //instance: DCompany
+    tableName: 'companies',
+    instance: schemas.Company
   }
 });
 
@@ -74,7 +73,8 @@ export const ProfileType = pd.define('ProfileType', {
     name: pd.fields.char({ maxLen: 255 })
   },
   options: {
-    tableName: 'profile_type'
+    tableName: 'profile_type',
+    instance: schemas.ProfileType
   }
 });
 
@@ -115,7 +115,7 @@ export const User = define('User', {
     createdAt: DateField.new().autoNowAdd()
   },
   options: {
-    tableName: 'users'
-    // instance: DUser
+    tableName: 'users',
+    instance: schemas.User
   }
 });

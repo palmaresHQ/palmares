@@ -12,9 +12,13 @@ import type * as TMonaco from 'monaco-editor';
 import type { FileSystemTree } from '@webcontainer/api';
 import type { Terminal } from '@xterm/xterm';
 import { isChromium } from '../utils/is-chromium';
+import { setupTypeAcquisition } from '../utils/download-from-npm';
 
 type LibraryCode = { [key: string]: Record<string, string> };
 
+// let retrieveTypes = setupTypeAcquisition({
+//   toFilter: (deps) => deps.filter((dep) => dep.module.includes('@palmares') === false)
+// });
 let getAllLibraryCodesPromise: ReturnType<GetLibraryCodesFn>;
 
 type Props = {
@@ -31,7 +35,7 @@ type Props = {
     }
   >;
   customSidebar?: React.ReactNode;
-  commands: {
+  commands?: {
     command: string;
     serverReady?: (url: string, port: number, terminal: Terminal) => Promise<void>;
     tag?: string;
@@ -52,7 +56,7 @@ export default function Code(props: Props) {
   const divEl = useRef<HTMLDivElement>(null);
   const editor = useRef<TMonaco.editor.IStandaloneCodeEditor | null>(null);
   const terminalTags = useMemo<string[]>(() => {
-    const reducedCommandTags = props.commands.reduce((accumulator, currentValue) => {
+    const reducedCommandTags = (props.commands || []).reduce((accumulator, currentValue) => {
       if (accumulator.has(currentValue.tag)) return accumulator;
       accumulator.add(currentValue.tag);
       return accumulator;
@@ -213,7 +217,6 @@ export default function Code(props: Props) {
           process.output.pipeTo(
             new WritableStream({
               write(chunk) {
-                console.log(chunk);
                 commandOutput.terminal?.write(chunk);
               }
             })
@@ -236,8 +239,22 @@ export default function Code(props: Props) {
     if (getAllLibraryCodesPromise) {
       getAllLibraryCodesPromise.then((data) => {
         Object.entries(data).forEach(([libName, dtss]) => {
+          const packageJson = JSON.parse(dtss.raw['package.json']);
+          const exportKeys = Object.keys(packageJson.exports).map((key) => key.replace('./', ''));
           Object.entries(dtss.raw).forEach(([path, dts]) => {
             path = `file:///node_modules/${libName}/${path}`;
+            for (let i = 0; i < exportKeys.length; i++) {
+              const exportKey = exportKeys[i];
+              const splittedPath = path.split('.');
+              const exportKeyWithExtension = `${exportKey}.${splittedPath[splittedPath.length - 1]}`;
+              if (path.includes(exportKey)) {
+                const exportPath = `file:///node_modules/${libName}/${exportKeyWithExtension}`;
+
+                sb.current?.languageServiceDefaults.addExtraLib(dts, exportPath);
+                exportKeys.splice(i, 1);
+                break;
+              }
+            }
             sb.current?.languageServiceDefaults.addExtraLib(dts, path);
           });
         });
@@ -257,7 +274,8 @@ export default function Code(props: Props) {
         const sandboxConfig = {
           text: props.text,
           domID: id,
-          acquireTypes: false
+          acquireTypes: false,
+          filetype: `${id}.ts` as any
         } satisfies Parameters<Awaited<ReturnType<typeof getEditor>>['sandbox']['createTypeScriptSandbox']>[0];
         const themeData = {
           base: 'vs',
@@ -365,7 +383,7 @@ export default function Code(props: Props) {
           />
         </div>
       </div>
-      {(typeof props.isChromium !== 'undefined' ? props.isChromium : isChromium()) ? (
+      {(typeof props.isChromium !== 'undefined' ? props.isChromium : isChromium()) && Array.isArray(props.commands) ? (
         <Fragment>
           {terminalTags.length > 1 ? (
             <div
