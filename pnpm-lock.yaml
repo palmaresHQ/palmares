@@ -397,7 +397,7 @@ importers:
         version: 7.0.0
       ts-jest-mock-import-meta:
         specifier: ^1.2.1
-        version: 1.2.1(ts-jest@29.2.5(@babel/core@7.26.10)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.10))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3))
+        version: 1.2.1(ts-jest@29.2.6(@babel/core@7.26.10)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.10))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3))
       tsx:
         specifier: ^4.19.3
         version: 4.19.3
@@ -626,7 +626,7 @@ importers:
         version: 3.1.9
       ts-jest-mock-import-meta:
         specifier: ^1.2.1
-        version: 1.2.1(ts-jest@29.2.5(@babel/core@7.26.10)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.10))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3))
+        version: 1.2.1(ts-jest@29.2.6(@babel/core@7.26.10)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.10))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3))
 
   examples/with-code-share: {}
 
@@ -1029,8 +1029,8 @@ importers:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3))
       ts-jest:
-        specifier: ^29.2.3
-        version: 29.2.5(@babel/core@7.26.8)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.8))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3)
+        specifier: ^29.2.6
+        version: 29.2.6(@babel/core@7.26.8)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.8))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3)
     devDependencies:
       '@palmares/core':
         specifier: workspace:*
@@ -1211,7 +1211,7 @@ importers:
         version: 11.8.1
       ts-jest-mock-import-meta:
         specifier: ^1.2.0
-        version: 1.2.1(ts-jest@29.2.5(@babel/core@7.26.10)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.10))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3))
+        version: 1.2.1(ts-jest@29.2.6(@babel/core@7.26.10)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.10))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3))
       tsx:
         specifier: ^4.19.3
         version: 4.19.3
@@ -1366,7 +1366,7 @@ importers:
         version: 7.0.0
       ts-jest-mock-import-meta:
         specifier: ^1.2.0
-        version: 1.2.1(ts-jest@29.2.5(@babel/core@7.26.10)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.10))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3))
+        version: 1.2.1(ts-jest@29.2.6(@babel/core@7.26.10)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.10))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3))
       tsx:
         specifier: ^4.19.3
         version: 4.19.3
@@ -1403,7 +1403,7 @@ importers:
     devDependencies:
       ts-jest-mock-import-meta:
         specifier: ^1.2.0
-        version: 1.2.1(ts-jest@29.2.5(@babel/core@7.26.10)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.10))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3))
+        version: 1.2.1(ts-jest@29.2.6(@babel/core@7.26.10)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.10))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3))
       tsx:
         specifier: ^4.19.3
         version: 4.19.3
@@ -11613,6 +11613,30 @@ packages:
 
   ts-jest@29.2.5:
     resolution: {integrity: sha512-KD8zB2aAZrcKIdGk4OwpJggeLcH1FgrICqDSROWqlnJXGCXK4Mn6FcdK2B6670Xr73lHMG1kHw8R87A0ecZ+vA==}
+    engines: {node: ^14.15.0 || ^16.10.0 || ^18.0.0 || >=20.0.0}
+    hasBin: true
+    peerDependencies:
+      '@babel/core': '>=7.0.0-beta.0 <8'
+      '@jest/transform': ^29.0.0
+      '@jest/types': ^29.0.0
+      babel-jest: ^29.0.0
+      esbuild: '*'
+      jest: ^29.0.0
+      typescript: '>=4.3 <6'
+    peerDependenciesMeta:
+      '@babel/core':
+        optional: true
+      '@jest/transform':
+        optional: true
+      '@jest/types':
+        optional: true
+      babel-jest:
+        optional: true
+      esbuild:
+        optional: true
+
+  ts-jest@29.2.6:
+    resolution: {integrity: sha512-yTNZVZqc8lSixm+QGVFcPe6+yj7+TWZwIesuOWvfcn4B9bz5x4NDzVCQQjOs7Hfouu36aEqfEbo9Qpo+gq8dDg==}
     engines: {node: ^14.15.0 || ^16.10.0 || ^18.0.0 || >=20.0.0}
     hasBin: true
     peerDependencies:
@@ -26349,9 +26373,9 @@ snapshots:
 
   ts-interface-checker@0.1.13: {}
 
-  ts-jest-mock-import-meta@1.2.1(ts-jest@29.2.5(@babel/core@7.26.10)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.10))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3)):
+  ts-jest-mock-import-meta@1.2.1(ts-jest@29.2.6(@babel/core@7.26.10)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.10))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3)):
     dependencies:
-      ts-jest: 29.2.5(@babel/core@7.26.10)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.10))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3)
+      ts-jest: 29.2.6(@babel/core@7.26.10)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.10))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3)
 
   ts-jest@29.2.5(@babel/core@7.26.10)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.10))(esbuild@0.19.12)(jest@29.7.0(@types/node@22.13.11))(typescript@5.7.3):
     dependencies:
@@ -26373,7 +26397,7 @@ snapshots:
       babel-jest: 29.7.0(@babel/core@7.26.10)
       esbuild: 0.19.12
 
-  ts-jest@29.2.5(@babel/core@7.26.10)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.10))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3):
+  ts-jest@29.2.6(@babel/core@7.26.10)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.10))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3):
     dependencies:
       bs-logger: 0.2.6
       ejs: 3.1.10
@@ -26392,7 +26416,7 @@ snapshots:
       '@jest/types': 29.6.3
       babel-jest: 29.7.0(@babel/core@7.26.10)
 
-  ts-jest@29.2.5(@babel/core@7.26.8)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.8))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3):
+  ts-jest@29.2.6(@babel/core@7.26.8)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.26.8))(jest@29.7.0(@types/node@22.13.11)(ts-node@10.9.1(@swc/core@1.10.18)(@types/node@22.13.11)(typescript@5.7.3)))(typescript@5.7.3):
     dependencies:
       bs-logger: 0.2.6
       ejs: 3.1.10
