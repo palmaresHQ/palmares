@@ -39,7 +39,7 @@
     "drizzle-kit": "^0.30.5",
     "drizzle-orm": "^0.39.3",
     "postgres": "^3.4.5",
-    "sequelize": "^6.37.3"
+    "sequelize": "^6.37.6"
   },
   "devDependencies": {
     "better-sqlite3": "^11.8.1",
