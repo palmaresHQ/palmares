@@ -9,7 +9,7 @@ beforeAll(async () => {
 });
 
 describe('Basic server tests', ({ test }) => {
-  test('test a basic request', async ({ expect }) => {
+  test('test a basic request', async ({ expect, custom: { jest } }) => {
     const server = getAdapterServer(ExpressServerAdapter);
     const { status, body } = await supertest(server).get('/users');
 
