@@ -25,15 +25,15 @@ export default defineSettings({
     [
       LoggingDomain,
       {
-        logger: ConsoleLogging,
-      },
+        logger: ConsoleLogging
+      }
     ],
     // Domain Core, required for palmares to work
     [
       CoreDomain,
       {
-        appName: 'example',
-      },
+        appName: 'example'
+      }
     ],
     // Server Domain, required for the server
     [
@@ -45,26 +45,33 @@ export default defineSettings({
             validation: {
               handler: () => {
                 return Response.json({ message: 'query params invalid' });
-              },
+              }
             },
             handler404: () =>
               Response.json({
                 status: 404,
                 body: {
-                  message: 'Not found',
-                },
+                  message: 'Not found'
+                }
               }),
-            handler500: async (response) => {
+            handler500: async (response: Response) => {
               return response;
+<<<<<<< HEAD
             },
           })
         },
       },
+=======
+            }
+          })
+        }
+      }
+>>>>>>> f4a426b7f4c1ccc67afc7f0089a41b91012112c7
     ],
     // We have just created this custom domain, and it defines our routes.
     RequestsDomain,
     RoutersDomain,
     MiddlewaresDomain,
-    ResponsesDomain,
-  ],
+    ResponsesDomain
+  ]
 });

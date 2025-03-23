@@ -108,6 +108,7 @@ export class DatabaseAdapter<
   migrations?: TMigrationsAdapter;
   ModelType: any;
   instance?: TInstanceType;
+  __totalModels = 0;
   __argumentsUsed!: any;
   __ignoreNotImplementedErrors = false;
   __modelsFilteredOutOfEngine!: { [modelName: string]: ReturnType<typeof model> };

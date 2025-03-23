@@ -240,8 +240,7 @@ export function middleware<
     ? TInferMiddlewares extends readonly Middleware[]
       ? TInferMiddlewares
       : never
-    : never,
-  TRequest extends Request<any, any> | undefined = undefined
+    : never
 >(options: {
   /**
    * This function is executed during the request lifecycle. It can return a {@link Request} or a {@link Response}.

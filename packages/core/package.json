@@ -30,12 +30,8 @@
   "scripts": {
     "copy:templates": "copyfiles -u 1 \"templates/**/*\" ../../bin/templates/app",
     "clear": "rimraf ./dist",
-    "build:types": "tsc --project tsconfig.types.json",
-    "build:cjs:esm": "tsup ./src --out-dir ./dist/src --format cjs,esm --silent --no-splitting",
-    "build": "pnpm run clear && pnpm run build:cjs:esm && pnpm run build:types",
-    "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
-    "build:cjs:esm:watch": "tsup ./src --out-dir ./dist/src --format cjs,esm --watch --silent --no-splitting",
-    "build:watch": "pnpm run build:cjs:esm:watch & pnpm run build:types:watch"
+    "build": "tsup ./src --out-dir ./dist/src --format cjs,esm --dts --tsconfig tsconfig.types.json --clean --silent --no-splitting",
+    "build:watch": "tsup ./src --out-dir ./dist/src --format cjs,esm --dts --tsconfig tsconfig.types.json --watch --silent --no-splitting"
   },
   "type": "module",
   "author": "Nicolas Leal",
@@ -45,6 +41,6 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "devDependencies": {
-    "@types/node": "^22.13.4"
+    "@types/node": "^22.13.11"
   }
 }

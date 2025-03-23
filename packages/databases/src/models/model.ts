@@ -193,6 +193,8 @@ export class BaseModel {
       functionToCallToTranslateModel(),
       currentPalmaresModelInstance.__initializeEvents(engineInstance)
     ]);
+
+    console.log('__init', initializedModelInstance);
     // Use the reference to modify itself.
     const translated = {
       instance: initializedModelInstance,

@@ -1,4 +1,7 @@
 import type { Middleware } from '.';
+import type { ServerAdapter } from '../adapters';
+import type { ServerRouterAdapter } from '../adapters/routers';
+import type { ServerlessAdapter } from '../adapters/serverless';
 import type { Request } from '../request';
 import type {
   RequestCache,
@@ -434,7 +437,13 @@ export type ExtractRequestsFromMiddlewaresForClient<
  * This defines the options for the middleware, those are custom options that you pass to your middleware that will
  * either be available to the handler or to the {@link Request} or {@link Response} objects.
  */
-export type MiddlewareOptions = {
+export type MiddlewareOptions<
+  TServerAdapter extends (ServerAdapter | ServerlessAdapter) & Palmares.PServerAdapter = (
+    | ServerAdapter
+    | ServerlessAdapter
+  ) &
+    Palmares.PServerAdapter
+> = {
   responses?:
     | {
         [TKey in StatusCodes]?: (...args: any[]) => Response<
@@ -447,4 +456,11 @@ export type MiddlewareOptions = {
         >;
       }
     | undefined;
+  customOptions?: TServerAdapter['routers']['parseHandlers'] extends (...args: any) => any
+    ? NonNullable<Parameters<Parameters<TServerAdapter['routers']['parseHandlers']>[3]['set']>[1]>['options']
+    : TServerAdapter['routers'] extends ServerRouterAdapter
+      ? TServerAdapter['routers']['parseHandler'] extends (...args: any) => any
+        ? Parameters<TServerAdapter['routers']['parseHandler']>[4]
+        : never
+      : never;
 };

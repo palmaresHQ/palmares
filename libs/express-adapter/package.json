@@ -1,6 +1,6 @@
 {
   "name": "@palmares/express-adapter",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "This is the adapter for express framework to work with Palmares framework",
   "main": "./dist/src/index.cjs",
   "module": "./dist/src/index.js",
@@ -20,12 +20,8 @@
   },
   "scripts": {
     "clear": "rimraf ./dist",
-    "build:types": "tsc --project tsconfig.types.json",
-    "build:cjs:esm": "tsup ./src --out-dir ./dist/src --format cjs,esm --silent --no-splitting",
-    "build": "pnpm run clear && pnpm run build:cjs:esm && pnpm run build:types",
-    "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
-    "build:cjs:esm:watch": "tsup ./src --out-dir ./dist/src --format cjs,esm --watch --silent --no-splitting",
-    "build:watch": "pnpm run build:cjs:esm:watch & pnpm run build:types:watch"
+    "build": "tsup ./src --out-dir ./dist/src --format cjs,esm --dts --tsconfig tsconfig.types.json --clean --silent --no-splitting",
+    "build:watch": "tsup ./src --out-dir ./dist/src --format cjs,esm --dts --tsconfig tsconfig.types.json --clean --watch --silent --no-splitting"
   },
   "type": "module",
   "repository": {
@@ -55,7 +51,7 @@
     "@types/express": "4.17.21",
     "@types/express-serve-static-core": "4.19.6",
     "@types/multer": "^1.4.9",
-    "@types/node": "^22.13.4",
+    "@types/node": "^22.13.11",
     "@types/qs": "^6.9.15"
   }
 }

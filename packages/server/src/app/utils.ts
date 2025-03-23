@@ -19,6 +19,7 @@ import { Response } from '../response';
 import { HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR, isRedirect } from '../response/status';
 import { AsyncGeneratorFunction, GeneratorFunction } from '../response/utils';
 import { path } from '../router';
+import { mergeDeep } from '../utils/merge-deep';
 import { setServerAdapterInstance } from '../utils/store-server';
 
 import type { ServerAdapter } from '../adapters';
@@ -377,6 +378,23 @@ function translatePathFactory(serverAdapter: ServerAdapter | ServerlessAdapter, 
   };
 }
 
+function mergeCustomOptionsFromMiddlewaresAndHandlers(middlewares: Middleware[], options: RouterOptionsType) {
+  const originalCustomOptions = options.customOptions;
+  // eslint-disable-next-line ts/no-unnecessary-condition
+  if (originalCustomOptions) options.customOptions = undefined;
+  for (const middleware of middlewares) {
+    // eslint-disable-next-line ts/no-unnecessary-condition
+    if (middleware.options?.customOptions) {
+      // eslint-disable-next-line ts/no-unnecessary-condition
+      if (options.customOptions)
+        // eslint-disable-next-line ts/no-unnecessary-condition
+        options.customOptions = mergeDeep(options.customOptions, middleware.options.customOptions);
+      else options.customOptions = middleware.options.customOptions;
+    }
+  }
+  // eslint-disable-next-line ts/no-unnecessary-condition
+  if (originalCustomOptions) options.customOptions = mergeDeep(options.customOptions, originalCustomOptions);
+}
 /**
  * Responsible for wrapping the handler and the middlewares into a single function that will be called when a
  * request is made to the server.
@@ -404,7 +422,9 @@ function wrapHandlerAndMiddlewares(
   handler500?: AllServerSettingsType['servers'][string]['handler500'],
   validation?: AllServerSettingsType['servers'][string]['validation']
 ) {
-  const wrappedHandler = async (serverRequestAndResponseData: any) => { 
+  if (options === undefined) options = {};
+  if (server.$$type === '$PServerAdapter') mergeCustomOptionsFromMiddlewaresAndHandlers(middlewares, options);
+  const wrappedHandler = async (serverRequestAndResponseData: any) => {
     const startTime = new Date().getTime();
     let request = appendTranslatorToRequest(
       new Request(),
@@ -766,14 +786,14 @@ export async function* getAllRouters(
     (serverAdapter as ServerlessAdapter)?.$$type === '$PServerlessAdapter' &&
     typeof options?.serverless?.use === 'object';
 
-    const isGeneratingServerless =
+  const isGeneratingServerless =
     // eslint-disable-next-line ts/no-unnecessary-condition
     (serverAdapter as ServerlessAdapter)?.$$type === '$PServerlessAdapter' && options?.serverless?.generate === true;
-    
+
   const translatePath = translatePathFactory(serverAdapter, customServerInstance);
   const existsRootMiddlewares = Array.isArray(settings.middlewares) && settings.middlewares.length > 0;
   const rootRouterCompletePaths = await getRootRouterCompletePaths(domains, settings, settings.debug === true);
-  
+
   for (const [path, router] of rootRouterCompletePaths) {
     // eslint-disable-next-line ts/no-unnecessary-condition
     const handlerByMethod = Object.entries(router.handlers || {});
@@ -1035,7 +1055,7 @@ export async function initializeRouters(
       settings.handler500
     );
   }
-  
+
   if (serverAdapter.routers.parseHandlers || useServerless) {
     const routers = getAllRouters(domains, settings, allSettings, serverAdapter, customServerInstance, {
       serverless: {

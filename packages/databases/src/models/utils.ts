@@ -198,10 +198,11 @@ export function retrieveInputAndOutputParsersFromFieldAndCache(
   fieldName: string,
   field: Field<any, any, any>
 ) {
-  if (!field) return
+  // eslint-disable-next-line ts/no-unnecessary-condition
+  if (!field) return { input: undefined, output: undefined };
   const existingOutputParser = field['__outputParsers'].get(engine.connectionName);
   const existingInputParser = field['__inputParsers'].get(engine.connectionName);
-  if (existingOutputParser !== undefined && existingInputParser !== undefined) {
+  if (existingOutputParser !== undefined || existingInputParser !== undefined) {
     return { input: existingInputParser, output: existingOutputParser };
   }
 
@@ -324,6 +325,7 @@ export async function initializeModels(
   engine: DatabaseAdapter,
   models: (ModelType<any, any> & typeof BaseModel & typeof Model)[]
 ) {
+  engine['__totalModels'] = models.length;
   const recursiveOptionsToEvaluateModels: {
     forceTranslation?: boolean;
   }[] = [{}];
@@ -445,7 +447,12 @@ export async function initializeModels(
       const { modelEntries, modelsByName } = initializedModels.reduce(
         (acc, model) => {
           const optionsOfModel = model.class['_options']();
-          if (optionsOfModel?.instance && (options || {}).forceTranslation !== true) return acc;
+          if (
+            optionsOfModel?.instance &&
+            (options || {}).forceTranslation !== true &&
+            (engine as any)['$didAnyModelDoesNotHaveInstance'] === false
+          )
+            return acc;
           const modelName = model.class['__getName']();
           acc.modelsByName[modelName] = model;
           acc.modelEntries.push([modelName, model.initialized]);
@@ -457,7 +464,6 @@ export async function initializeModels(
         }
       );
 
-      //console.log(modelEntries.length, initializeModels.length);
       if (
         modelEntries.length > 0 &&
         modelEntries.length < initializeModels.length &&
@@ -536,42 +542,79 @@ export function factoryFunctionForModelTranslate(
 
   return async () => {
     const modelName = modelConstructor['__getName']();
+    const alreadyHasInitializedModel = engine.initializedModels[modelName] !== undefined;
     const alreadyHasAnInstance =
-      options.forceTranslate !== true &&
-      (engine.initializedModels[modelName] !== undefined || model.options?.instance !== undefined);
-    const modelInstance = alreadyHasAnInstance
-      ? engine.initializedModels[modelName] !== undefined
-        ? engine.initializedModels[modelName]
-        : model.options?.instance
-      : await engine.models.translate(
-          engine,
-          modelName,
-          model,
-          fieldEntriesOfModel as any,
-          modelOptions,
-          modelOptions.customOptions,
-          async () => {
-            const options = await engine.models.translateOptions.bind(engine.models)(engine, modelName, modelOptions);
-            const fields =
-              typeof engine.models.translateFields === 'function'
-                ? await engine.models.translateFields.bind(engine.models)(
-                    engine,
-                    modelName,
-                    fieldEntriesOfModel as any,
-                    model,
-                    defaultParseFieldCallback,
-                    defaultTranslateFieldsCallback
-                  )
-                : await defaultTranslateFieldsCallback();
+      options.forceTranslate !== true && (alreadyHasInitializedModel || model.options?.instance !== undefined);
 
-            return {
-              options: options,
-              fields: fields
-            };
-          },
-          defaultParseFieldCallback,
-          defaultTranslateFieldsCallback
-        );
+    if ((engine as any)['$didAnyModelDoesNotHaveInstance'] === undefined)
+      (engine as any)['$didAnyModelDoesNotHaveInstance'] = false;
+    if (model.options?.instance === undefined) (engine as any)['$didAnyModelDoesNotHaveInstance'] = true;
+    else engine['__totalModels']--;
+
+    async function translateModel() {
+      const translatedModel = await engine.models.translate(
+        engine,
+        modelName,
+        model,
+        fieldEntriesOfModel as any,
+        modelOptions,
+        modelOptions.customOptions,
+        async () => {
+          const options = await engine.models.translateOptions.bind(engine.models)(engine, modelName, modelOptions);
+          const fields =
+            typeof engine.models.translateFields === 'function'
+              ? await engine.models.translateFields.bind(engine.models)(
+                  engine,
+                  modelName,
+                  fieldEntriesOfModel as any,
+                  model,
+                  defaultParseFieldCallback,
+                  defaultTranslateFieldsCallback
+                )
+              : await defaultTranslateFieldsCallback();
+
+          return {
+            options: options,
+            fields: fields
+          };
+        },
+        defaultParseFieldCallback,
+        defaultTranslateFieldsCallback
+      );
+
+      return translatedModel;
+    }
+
+    // The idea is that we will NOT TRANSLATE the model ONLY IF all the other models also have an instance.
+    // If just one of the models does not have an instance we will translate everything. This guarantees that it always
+    // works.
+    const modelInstance = alreadyHasAnInstance
+      ? alreadyHasInitializedModel
+        ? engine.initializedModels[modelName]
+        : await new Promise((resolve, reject) => {
+            function recursivelyCheckIfAnyModelDoesNotHaveInstance() {
+              const hasTranslatedAllModels = Object.keys(engine.initializedModels).length >= engine['__totalModels'];
+              if ((engine as any)['$didAnyModelDoesNotHaveInstance'] === true) {
+                engine['__totalModels']++;
+                translateModel()
+                  .then((translatedModel) => {
+                    resolve(translatedModel);
+                  })
+                  .catch((error) => {
+                    reject(error);
+                  });
+                return;
+              }
+              if (hasTranslatedAllModels === true) {
+                engine['__totalModels']++;
+                resolve(model.options?.instance);
+                return;
+              }
+              queueMicrotask(() => queueMicrotask(recursivelyCheckIfAnyModelDoesNotHaveInstance));
+            }
+            recursivelyCheckIfAnyModelDoesNotHaveInstance();
+          })
+      : await translateModel();
 
     engine.initializedModels[modelConstructor['__getName']()] = modelInstance;
 
