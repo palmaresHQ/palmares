@@ -1,5 +1,16 @@
 # @palmares/express-adapter
 
+## 0.2.8
+
+### Patch Changes
+
+- bfe2d46: "new" method for creating express servers
+- Updated dependencies [bfe2d46]
+- Updated dependencies [58e5187]
+- Updated dependencies [fa22823]
+- Updated dependencies [8bd331a]
+  - @palmares/server@0.3.0
+
 ## 0.2.7
 
 ### Patch Changes

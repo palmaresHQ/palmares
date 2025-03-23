@@ -1,6 +1,6 @@
 {
   "name": "@palmares/vercel-adapter",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "This is the adapter for Vercel allows you to deploy Palmares apps on Vercel",
   "main": "./dist/src/index.cjs",
   "module": "./dist/src/index.js",

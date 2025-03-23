@@ -1,5 +1,17 @@
 # @palmares/server
 
+## 0.3.0
+
+### Minor Changes
+
+- 8bd331a: fix: trigerring serverless at wrong time
+
+### Patch Changes
+
+- bfe2d46: "new" method for creating express servers
+- 58e5187: getAllRouters passing options at incorrect position
+- fa22823: functional example of server-express-only
+
 ## 0.2.7
 
 ### Patch Changes
