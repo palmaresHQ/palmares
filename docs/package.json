@@ -39,7 +39,7 @@
     "@webcontainer/api": "1.5.3",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
-    "autoprefixer": "^10.4.20",
+    "autoprefixer": "^10.4.21",
     "monaco-editor": "^0.52.2",
     "nitropack": "^2.10.4",
     "postcss": "8.5.3",
