@@ -1,0 +1,46 @@
+{
+  "name": "@examples/with-auth",
+  "version": "0.0.0",
+  "description": "Tests the auth package",
+  "keywords": [
+    "palmares",
+    "with",
+    "auth"
+  ],
+  "homepage": "https://github.com/palmaresHQ/palmares#readme",
+  "bugs": {
+    "url": "https://github.com/palmaresHQ/palmares/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/palmaresHQ/palmares.git"
+  },
+  "license": "MIT",
+  "author": "Vicente Sanchez",
+  "type": "module",
+  "main": "manage.ts",
+  "scripts": {
+    "dev": "tsx watch --env-file=.env manage.ts runserver",
+    "db:generate": "drizzle-kit generate --name",
+    "db:migrate": "tsx --env-file=.env manage.drizzle.ts drizzleMigrate",
+    "db:load": "tsx --env-file=.env manage.drizzle.ts load-models",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@palmares/auth": "workspace:*",
+    "@palmares/console-logging": "workspace:*",
+    "@palmares/core": "workspace:*",
+    "@palmares/databases": "workspace:*",
+    "@palmares/drizzle-engine": "workspace:*",
+    "@palmares/express-adapter": "workspace:*",
+    "@palmares/logging": "workspace:*",
+    "@palmares/node-std": "workspace:*",
+    "@palmares/password-auth": "workspace:*",
+    "@palmares/schemas": "workspace:*",
+    "@palmares/server": "workspace:*",
+    "@palmares/zod-schema": "workspace:*"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.30.5"
+  }
+}

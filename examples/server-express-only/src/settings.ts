@@ -56,10 +56,17 @@ export default defineSettings({
               }),
             handler500: async (response: Response) => {
               return response;
+<<<<<<< HEAD
+            },
+          })
+        },
+      },
+=======
             }
           })
         }
       }
+>>>>>>> f4a426b7f4c1ccc67afc7f0089a41b91012112c7
     ],
     // We have just created this custom domain, and it defines our routes.
     RequestsDomain,

@@ -1,0 +1,56 @@
+{
+  "name": "@palmares/password-auth",
+  "version": "0.0.0",
+  "description": "A flexible and secure authentication package for Palmares applications, providing password type authentication",
+  "main": "./dist/src/index.cjs",
+  "module": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "files": [
+    "dist",
+    "package.json",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js",
+      "require": "./dist/src/index.cjs"
+    }
+  },
+  "scripts": {
+    "clear": "rimraf ./dist",
+    "build:types": "tsc --project tsconfig.types.json",
+    "build:cjs:esm": "tsup ./src --out-dir ./dist/src --format cjs,esm --silent --no-splitting",
+    "build": "pnpm run clear && pnpm run build:cjs:esm && pnpm run build:types",
+    "build:types:watch": "tsc --project tsconfig.types.json --watch --preserveWatchOutput",
+    "build:cjs:esm:watch": "tsup ./src --out-dir ./dist/src --format cjs,esm --watch --silent --no-splitting",
+    "build:watch": "pnpm run build:types:watch & pnpm run build:cjs:esm:watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/palmaresHQ/palmares.git"
+  },
+  "keywords": [
+    "palmares",
+    "password",
+    "authentication"
+  ],
+  "type": "module",
+  "author": "Vicente Sanchez",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/palmaresHQ/palmares/issues"
+  },
+  "homepage": "https://github.com/palmaresHQ/palmares#readme",
+  "dependencies": {
+    "@palmares/auth": "workspace:*",
+    "@palmares/core": "workspace:*",
+    "@palmares/events": "workspace:*",
+    "@palmares/logging": "workspace:*",
+    "bcrypt": "^5.1.1"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2"
+  }
+}

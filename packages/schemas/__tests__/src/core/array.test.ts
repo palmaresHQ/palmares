@@ -1,15 +1,14 @@
-import type { ZodSchemaAdapter } from '@palmares/zod-schema';
-
 import * as p from '@palmares/schemas';
 import { describe } from '@palmares/tests';
+
 import type JestTestAdapter from '@palmares/jest-tests';
+import type { ZodSchemaAdapter } from '@palmares/zod-schema';
 
 declare global {
   namespace Palmares {
     interface PSchemaAdapter extends ZodSchemaAdapter {}
   }
-};
-
+}
 
 describe<JestTestAdapter>('Array Tests', ({ test }) => {
   test('optional', async ({ expect }) => {
@@ -17,7 +16,6 @@ describe<JestTestAdapter>('Array Tests', ({ test }) => {
     const tupleSchema = p.array(p.number(), p.string());
     const arraySchemaWithCustomMessage = p.array([p.number()]).nonOptional({ message: 'hello' });
     const tupleSchemaWithCustomMessage = p.array(p.number(), p.string()).nonOptional({ message: 'hello' });
-    
     const [
       { errors: errorsArrayOnFail },
       { errors: errorsTupleOnFail },
@@ -91,7 +89,7 @@ describe<JestTestAdapter>('Array Tests', ({ test }) => {
 
     console.log(data);
     expect(data[0]).toBe('hey');
-    expect(data[1]).toBe(1)
+    expect(data[1]).toBe(1);
   });
 
   test('min length', async ({ expect }) => {
