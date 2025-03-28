@@ -1,6 +1,6 @@
 import { domain } from '@palmares/core';
 
-import { setAdapters } from './conf';
+import { initConfig, setAdapters } from './conf';
 
 import type { AuthAdapter } from './adapter';
 
@@ -9,29 +9,33 @@ import type { AuthAdapter } from './adapter';
  */
 interface DefineAuthDomainConfig {
   /**
-   * Array of auth adapter factory functions returned from AuthAdapter.new()
+   * Array of auth adapter instances
    */
-  adapters: ReturnType<typeof AuthAdapter.new>[];
+  adapters: AuthAdapter[];
 }
 
 /**
  * Defines and configures the auth domain with the provided adapters.
  * This is the main entry point for setting up authentication in a Palmares application.
  *
- * @param config - Configuration object containing auth adapters
- * @returns Domain configuration for @palmares/auth
- *
  * @example
  * ```ts
  * defineAuthDomain({
  *   adapters: [
  *     JWTAuthAdapter.new({ secret: 'my-secret' }),
- *     SessionAuthAdapter.new()
+ *     PasswordAdapter.new({
+ *       minLength: 8,
+ *       requireSpecialChars: true
+ *     })
  *   ]
  * });
  * ```
  */
 export function defineAuthDomain(config: DefineAuthDomainConfig) {
+  // Initialize the config system
+  initConfig();
+
+  // Set the adapters
   setAdapters(config.adapters);
 
   return domain('@palmares/auth', '', {});

@@ -35,7 +35,7 @@ export interface JwtHeader {
  * @property {string} [issuer] - Expected token issuer
  * @property {string} [audience] - Expected token audience
  * @property {number} [clockTolerance] - Time tolerance in seconds for expiration checks
- * @property {number} [maxTokenAge] - Maximum allowed age of the token in seconds
+ * @property {number | string} [maxTokenAge] - Maximum allowed age of the token in seconds
  * @property {string} [subject] - Expected token subject
  * @property {string} [typ] - Expected token type
  */
@@ -44,7 +44,7 @@ export interface VerifyOptions {
   issuer?: string;
   audience?: string;
   clockTolerance?: number;
-  maxTokenAge?: number;
+  maxTokenAge?: number | string;
   subject?: string;
   typ?: string;
 }
@@ -56,7 +56,7 @@ export interface SignJWTState {
   payload: JwtPayload;
   header: JwtHeader;
   issuedAt?: number;
-  expirationTime?: number;
+  expiresIn?: number;
 }
 
 /**

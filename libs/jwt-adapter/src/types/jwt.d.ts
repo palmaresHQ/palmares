@@ -24,8 +24,20 @@ export interface JwtPayload {
  * @property {string} typ - The type of token (usually 'JWT')
  */
 export interface JwtHeader {
-  alg: string;
-  typ: string;
+  alg:
+    | 'HS256'
+    | 'HS384'
+    | 'HS512'
+    | 'RS256'
+    | 'RS384'
+    | 'RS512'
+    | 'ES256'
+    | 'ES384'
+    | 'ES512'
+    | 'PS256'
+    | 'PS384'
+    | 'PS512';
+  typ: 'JWT';
 }
 
 /**
@@ -40,7 +52,7 @@ export interface JwtHeader {
  * @property {string} [typ] - Expected token type
  */
 export interface VerifyOptions {
-  algorithms?: string[];
+  algorithm?: string;
   issuer?: string;
   audience?: string;
   clockTolerance?: number;
@@ -56,7 +68,7 @@ export interface SignJWTState {
   payload: JwtPayload;
   header: JwtHeader;
   issuedAt?: number;
-  expirationTime?: number;
+  expiresIn?: number;
 }
 
 /**

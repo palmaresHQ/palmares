@@ -1,38 +1,64 @@
+import { getAdapterConfig, setAdapterConfig } from './conf';
+
 export type AdapterMethods = {
-  [key: string]: (...params: any) => Promise<any> | any;
+  [key: string]: ((...params: any) => Promise<any> | any) | (new (...args: any[]) => any);
 };
+
+export type AdapterConfig = Record<string, any>;
 
 export function authAdapter<
   const TArgs extends {
     readonly name: AuthAdapter['name'];
     methods: AuthAdapter['methods'];
+    config?: AdapterConfig;
   },
   const TNewAdapter extends (..._args: any[]) => TArgs
->(newFn: TNewAdapter) {
+>(
+  newFn: TNewAdapter
+): {
+  new: (...args: Parameters<TNewAdapter>) => AuthAdapter & {
+    methods: ReturnType<TNewAdapter>['methods'];
+    name: ReturnType<TNewAdapter>['name'];
+  };
+};
+export function authAdapter<T extends typeof AuthAdapter>(AdapterClass: T): T;
+export function authAdapter(input: any) {
+  // Case: Class-based adapter
+  if (typeof input === 'function' && Object.getPrototypeOf(input) === AuthAdapter) {
+    return input;
+  }
+
+  // Case: Function-based adapter
+  const newFn = input;
   class CustomAuthAdapterBuilder {
     static new = (...args: any[]) => {
-      const nameAndMethods = newFn(...args);
+      const result = newFn(...args);
+      const { name, methods, config } = result;
 
       class CustomAuthAdapter extends AuthAdapter {
-        name = nameAndMethods.name;
-        methods = nameAndMethods.methods;
+        name = name;
+        methods = methods;
       }
+
+      // Store adapter config if provided
+      if (config) {
+        setAdapterConfig(name, config);
+      }
+
       return new CustomAuthAdapter();
     };
   }
 
   return CustomAuthAdapterBuilder as unknown as {
-    new: (...args: Parameters<TNewAdapter>) => AuthAdapter & {
-      methods: ReturnType<TNewAdapter>['methods'];
-      name: ReturnType<TNewAdapter>['name'];
+    new: (...args: Parameters<typeof newFn>) => AuthAdapter & {
+      methods: ReturnType<typeof newFn>['methods'];
+      name: ReturnType<typeof newFn>['name'];
     };
   };
 }
 
 /**
  * Base adapter class that all auth adapters should extend from.
- * Provides core authentication functionality and optional event/hook systems.
- * Specific auth strategies (JWT, Session, OAuth etc) implement their own methods.
  */
 export class AuthAdapter {
   readonly name!: string;
@@ -40,9 +66,15 @@ export class AuthAdapter {
 
   /**
    * Factory function for creating a new AuthAdapter instance.
-   * This is the only required method that must be implemented.
    */
   static new<TArgs extends any[]>(..._args: TArgs): AuthAdapter {
     throw new Error('AuthAdapter');
+  }
+
+  /**
+   * Get the configuration for this adapter
+   */
+  getConfig<T = any>(): T {
+    return getAdapterConfig<T>(this.name);
   }
 }

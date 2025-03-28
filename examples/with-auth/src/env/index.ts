@@ -7,7 +7,8 @@ import { z } from '@palmares/zod-schema';
 
 const envSchema = z.object({
   APP_ENV: z.enum(['dev', 'prod', 'test']).default('dev'),
-  DATABASE_URL: z.string()
+  DATABASE_URL: z.string(),
+  JWT_SECRET: z.string()
 });
 
 export const env = envSchema.parse(process.env);

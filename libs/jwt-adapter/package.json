@@ -1,5 +1,5 @@
 {
-  "name": "@palmares/jwt",
+  "name": "@palmares/jwt-adapter",
   "version": "0.0.0",
   "description": "A standalone JWT package for secure and efficient JSON Web Token handling in various applications",
   "main": "./dist/src/index.cjs",
