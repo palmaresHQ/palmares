@@ -32,7 +32,7 @@
     "@palmares/node-std": "workspace:*",
     "@palmares/server": "workspace:*",
     "cors": "^2.8.5",
-    "drizzle-kit": "^0.30.5",
+    "drizzle-kit": "^0.30.6",
     "drizzle-orm": "^0.39.3",
     "@examples/with-code-share-shared": "workspace:*"
   },
