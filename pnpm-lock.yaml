@@ -264,8 +264,8 @@ importers:
         specifier: ^5.2.1
         version: 5.2.1
       sequelize:
-        specifier: ^6.37.6
-        version: 6.37.6(mysql2@3.12.0)(pg@8.13.2)(sqlite3@5.1.7)
+        specifier: ^6.37.7
+        version: 6.37.7(mysql2@3.12.0)(pg@8.13.2)(sqlite3@5.1.7)
       sqlite3:
         specifier: ^5.1.6
         version: 5.1.7
@@ -322,8 +322,8 @@ importers:
         specifier: ^4.21.1
         version: 4.21.2
       sequelize:
-        specifier: ^6.37.6
-        version: 6.37.6(mysql2@3.12.0)(pg@8.13.2)(sqlite3@5.1.7)
+        specifier: ^6.37.7
+        version: 6.37.7(mysql2@3.12.0)(pg@8.13.2)(sqlite3@5.1.7)
       sqlite3:
         specifier: ^5.1.6
         version: 5.1.7
@@ -1064,8 +1064,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/databases
       sequelize:
-        specifier: ^6.37.6
-        version: 6.37.6(mysql2@3.12.0)(pg@8.13.2)(sqlite3@5.1.7)
+        specifier: ^6.37.7
+        version: 6.37.7(mysql2@3.12.0)(pg@8.13.2)(sqlite3@5.1.7)
     devDependencies:
       '@types/sequelize':
         specifier: ^4.28.14
@@ -1200,8 +1200,8 @@ importers:
         specifier: ^3.4.5
         version: 3.4.5
       sequelize:
-        specifier: ^6.37.6
-        version: 6.37.6(mysql2@3.12.0)(pg@8.13.2)(sqlite3@5.1.7)
+        specifier: ^6.37.7
+        version: 6.37.7(mysql2@3.12.0)(pg@8.13.2)(sqlite3@5.1.7)
     devDependencies:
       '@types/better-sqlite3':
         specifier: ^7.6.11
@@ -5505,6 +5505,9 @@ packages:
   '@types/validator@13.12.2':
     resolution: {integrity: sha512-6SlHBzUW8Jhf3liqrGGXyTJSIFe4nqlJ5A5KaMZ2l/vbM3Wh3KSybots/wfWVzNLK4D1NZluDlSQIbIEPx6oyA==}
 
+  '@types/validator@13.12.3':
+    resolution: {integrity: sha512-2ipwZ2NydGQJImne+FhNdhgRM37e9lCev99KnqkbFHd94Xn/mErARWI1RSLem1QA19ch5kOhzIZd7e8CA2FI8g==}
+
   '@types/ws@8.18.0':
     resolution: {integrity: sha512-8svvI3hMyvN0kKCJMvTJP/x6Y/EoQbepff882wL+Sn5QsXb3etnamgrJq4isrBxSJj5L2AuXcI0+bgkoAXGUJw==}
 
@@ -9794,8 +9797,8 @@ packages:
   mlly@1.7.4:
     resolution: {integrity: sha512-qmdSIPC4bDJXgZTCR7XosJiNKySV7O215tsPtDN9iEO/7q/76b/ijtgRu/+epFXSJhijtTCCGp3DWS549P3xKw==}
 
-  moment-timezone@0.5.47:
-    resolution: {integrity: sha512-UbNt/JAWS0m/NJOebR0QMRHBk0hu03r5dx9GK8Cs0AS3I81yDcOc9k+DytPItgVvBP7J6Mf6U2n3BPAacAV9oA==}
+  moment-timezone@0.5.48:
+    resolution: {integrity: sha512-f22b8LV1gbTO2ms2j2z13MuPogNoh5UzxL3nzNAYKGraILnbGc9NEE6dyiiiLv46DGRb8A4kg8UKWLjPthxBHw==}
 
   moment@2.30.1:
     resolution: {integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==}
@@ -10997,8 +11000,8 @@ packages:
   retimer@3.0.0:
     resolution: {integrity: sha512-WKE0j11Pa0ZJI5YIk0nflGI7SQsfl2ljihVy7ogh7DeQSeYAUi0ubZ/yEueGtDfUPk6GH5LRw1hBdLq4IwUBWA==}
 
-  retry-as-promised@7.0.4:
-    resolution: {integrity: sha512-XgmCoxKWkDofwH8WddD0w85ZfqYz+ZHlr5yo+3YUCfycWawU56T5ckWXsScsj5B8tqUcIG67DxXByo3VUgiAdA==}
+  retry-as-promised@7.1.1:
+    resolution: {integrity: sha512-hMD7odLOt3LkTjcif8aRZqi/hybjpLNgSk5oF5FCowfCjok6LukpN2bDX7R5wDmbgBQFn7YoBxSagmtXHaJYJw==}
 
   retry@0.12.0:
     resolution: {integrity: sha512-9LkiTwjUh6rT555DtE9rTX+BKByPfrMzEAtnlEtdEwr3Nkffwiihqe2bWADg+OQRjt9gl6ICdmB/ZFDCGAtSow==}
@@ -11157,8 +11160,8 @@ packages:
     resolution: {integrity: sha512-G9c0qlIWQSK29pR/5U2JF5dDQeqqHRragoyahj/Nx4KOOQ3CPPfzxnfqFPCSB7x5UgjOgnZ61nSxz+fjDpRlJg==}
     engines: {node: '>= 10.0.0'}
 
-  sequelize@6.37.6:
-    resolution: {integrity: sha512-4Slqjqpktofs7AVqWviFOInzP9w8ZRQDhF+DnRtm4WKIdIATpyzGgedyseP3xbgpBxapvfQcJv6CeIdZe4ZL2A==}
+  sequelize@6.37.7:
+    resolution: {integrity: sha512-mCnh83zuz7kQxxJirtFD7q6Huy6liPanI67BSlbzSYgVNl5eXVdE2CN1FuAeZwG1SNpGsNRCV+bJAVVnykZAFA==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       ibm_db: '*'
@@ -12354,8 +12357,8 @@ packages:
     resolution: {integrity: sha512-OljLrQ9SQdOUqTaQxqL5dEfZWrXExyyWsozYlAWFawPVNuD83igl7uJD2RTkNMbniIYgt8l81eCJGIdQF7avLQ==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
 
-  validator@13.12.0:
-    resolution: {integrity: sha512-c1Q0mCiPlgdTVVVIJIrBuxNicYE+t/7oKeI9MWLj3fh/uq2Pxh/3eeWbVZ4OcGW1TUf53At0njHw5SMdA3tmMg==}
+  validator@13.15.0:
+    resolution: {integrity: sha512-36B2ryl4+oL5QxZ3AzD0t5SsMNGvTtQHpjgFO5tbNxfXbMFkY822ktCDe1MnlqV3301QQI9SLHDNJokDI+Z9pA==}
     engines: {node: '>= 0.10'}
 
   vary@1.1.2:
@@ -17981,6 +17984,8 @@ snapshots:
   '@types/uuid@9.0.8': {}
 
   '@types/validator@13.12.2': {}
+
+  '@types/validator@13.12.3': {}
 
   '@types/ws@8.18.0':
     dependencies:
@@ -23735,7 +23740,7 @@ snapshots:
       pkg-types: 1.3.1
       ufo: 1.5.4
 
-  moment-timezone@0.5.47:
+  moment-timezone@0.5.48:
     dependencies:
       moment: 2.30.1
 
@@ -25124,7 +25129,7 @@ snapshots:
 
   retimer@3.0.0: {}
 
-  retry-as-promised@7.0.4: {}
+  retry-as-promised@7.1.1: {}
 
   retry@0.12.0:
     optional: true
@@ -25334,23 +25339,23 @@ snapshots:
 
   sequelize-pool@7.1.0: {}
 
-  sequelize@6.37.6(mysql2@3.12.0)(pg@8.13.2)(sqlite3@5.1.7):
+  sequelize@6.37.7(mysql2@3.12.0)(pg@8.13.2)(sqlite3@5.1.7):
     dependencies:
       '@types/debug': 4.1.12
-      '@types/validator': 13.12.2
+      '@types/validator': 13.12.3
       debug: 4.4.0(supports-color@5.5.0)
       dottie: 2.0.6
       inflection: 1.13.4
       lodash: 4.17.21
       moment: 2.30.1
-      moment-timezone: 0.5.47
+      moment-timezone: 0.5.48
       pg-connection-string: 2.7.0
-      retry-as-promised: 7.0.4
+      retry-as-promised: 7.1.1
       semver: 7.7.1
       sequelize-pool: 7.1.0
       toposort-class: 1.0.1
       uuid: 8.3.2
-      validator: 13.12.0
+      validator: 13.15.0
       wkx: 0.5.0
     optionalDependencies:
       mysql2: 3.12.0
@@ -26675,7 +26680,7 @@ snapshots:
 
   validate-npm-package-name@5.0.1: {}
 
-  validator@13.12.0: {}
+  validator@13.15.0: {}
 
   vary@1.1.2: {}
 
@@ -26927,7 +26932,7 @@ snapshots:
 
   wkx@0.5.0:
     dependencies:
-      '@types/node': 22.13.13
+      '@types/node': 22.13.14
 
   wonka@6.3.5: {}
 

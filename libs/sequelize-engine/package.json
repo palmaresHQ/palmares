@@ -44,7 +44,7 @@
   "author": "Nicolas Melo",
   "license": "MIT",
   "dependencies": {
-    "sequelize": "^6.37.6",
+    "sequelize": "^6.37.7",
     "@palmares/core": "workspace:*",
     "@palmares/databases": "workspace:*"
   },
