@@ -22,6 +22,7 @@
     "predocs:build": "tsx prebuild.ts",
     "docs:dev": "vinxi dev",
     "docs:build": "vinxi build --preset vercel",
+    "docs:build:raw": "vinxi build",
     "docs:start": "vinxi start",
     "docs:lint": "eslint"
   },
