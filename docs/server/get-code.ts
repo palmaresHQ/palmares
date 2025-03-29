@@ -11,22 +11,27 @@ const isProduction = process.env?.NODE_ENV === 'production';
 export const getAllLibraryCodes = createServerFn({ method: 'GET' }).handler(async () => {
   const headers = getHeaders();
   const origin = getOriginFromHeaders(headers as Record<string, string>);
+  const host = origin || 'https://palmaresjs.com';
 
   if (isProduction) {
-    const libraryCodesResponse = await fetch(`${origin || 'https://palmaresjs.com'}/palmares-files.json`);
+    const libraryCodesResponse = await fetch(`${host}/palmares-files.json`);
     const libraryCodes = await libraryCodesResponse.json();
     return libraryCodes;
   }
-  const libraryCodes = await getPalmaresFiles();
+  const libraryCodes = await getPalmaresFiles({
+    host,
+    generateJson: false
+  });
   return libraryCodes as any;
 });
 
 export const getExamples = createServerFn({ method: 'GET' }).handler(async () => {
   const headers = getHeaders();
   const origin = getOriginFromHeaders(headers as Record<string, string>);
+  const host = origin || 'https://palmaresjs.com';
 
   if (isProduction) {
-    const exampleFilesResponse = await fetch(`${origin || 'https://palmaresjs.com'}/examples-files.json`);
+    const exampleFilesResponse = await fetch(`${host}/examples-files.json`);
     const exampleFiles = await exampleFilesResponse.json();
 
     return {
@@ -34,7 +39,10 @@ export const getExamples = createServerFn({ method: 'GET' }).handler(async () =>
       data: exampleFiles
     } as any;
   }
-  const exampleFiles = await getExamplesFiles();
+  const exampleFiles = await getExamplesFiles({
+    host,
+    generateJson: false
+  });
   return {
     isChromium: isChromium(getHeaders()),
     data: exampleFiles

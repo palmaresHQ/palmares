@@ -1,6 +1,8 @@
 // Copied from:
 import typescript from 'typescript';
-//
+import fs from 'node:fs';
+import path from 'node:path';
+
 // Taken from dts-gen: https://github.com/microsoft/dts-gen/blob/master/lib/names.ts
 function getDTName(s: string) {
   if (s.indexOf('@') === 0 && s.indexOf('/') !== -1) {
@@ -136,12 +138,32 @@ export async function getFiletreeForModuleWithVersion(moduleName: string, versio
   }
 }
 
-export async function getDTSFileForModuleWithVersion(moduleName: string, version: string, file: string) {
-  // file comes with a prefix /
+export async function getDTSFileForModuleWithVersion(
+  moduleName: string,
+  version: string,
+  file: string,
+  externalTypes: string | undefined
+) {
+  if (externalTypes) {
+    const response = await fetch(`${externalTypes}/dependencies/${moduleName}/${version}/${file}`);
+    if (response.ok) return await response.text();
+  }
+  const dependenciesPath = path.join(process.cwd(), 'public', 'dependencies');
+  if (!fs.existsSync(dependenciesPath)) fs.mkdirSync(dependenciesPath, { recursive: true });
+  const modulePath = path.join(dependenciesPath, moduleName);
+  if (!fs.existsSync(modulePath)) fs.mkdirSync(modulePath, { recursive: true });
+  const versionPath = path.join(modulePath, version);
+  if (!fs.existsSync(versionPath)) fs.mkdirSync(versionPath, { recursive: true });
+  const filePath = path.join(versionPath, file);
+  if (fs.existsSync(filePath)) return fs.readFileSync(filePath, 'utf8');
+
+  // file comes with a prefix
   const url = `https://cdn.jsdelivr.net/npm/${moduleName}@${version}${file}`;
   const res = await fetch(url);
   if (res.ok) {
-    return res.text();
+    const text = await res.text();
+    fs.writeFileSync(filePath, text);
+    return text;
   } else {
     return new Error('OK');
   }
@@ -277,11 +299,22 @@ export const setupTypeAcquisition = (opts?: {
   const moduleMap = new Map<string, { state: 'loading' }>();
   const fsMap = new Map<string, string>();
 
-  return async (initialSourceFile: string) => {
-    return resolveDeps(initialSourceFile, 0);
+  return async (
+    initialSourceFile: string,
+    args: {
+      fetchExternalTypes?: string;
+    }
+  ) => {
+    return resolveDeps(initialSourceFile, 0, args);
   };
 
-  async function resolveDeps(initialSourceFile: string, depth: number) {
+  async function resolveDeps(
+    initialSourceFile: string,
+    depth: number,
+    args: {
+      fetchExternalTypes?: string;
+    }
+  ) {
     const depsToGet = getNewDependencies(moduleMap, initialSourceFile);
     const depsToGetFiltered = opts?.toFilter ? opts.toFilter(depsToGet) : depsToGet;
     // Make it so it won't get re-downloaded
@@ -317,7 +350,12 @@ export const setupTypeAcquisition = (opts?: {
       if (dtTreesOnly.includes(tree))
         prefix = `/node_modules/@types/${getDTName(tree.moduleName).replace('types__', '')}`;
       const path = prefix + '/package.json';
-      const pkgJSON = await getDTSFileForModuleWithVersion(tree.moduleName, tree.version, '/package.json');
+      const pkgJSON = await getDTSFileForModuleWithVersion(
+        tree.moduleName,
+        tree.version,
+        '/package.json',
+        args.fetchExternalTypes
+      );
 
       if (typeof pkgJSON == 'string') {
         fsMap.set(path, pkgJSON);
@@ -329,7 +367,12 @@ export const setupTypeAcquisition = (opts?: {
     // Grab all dts files
     await Promise.all(
       allDTSFiles.map(async (dts) => {
-        const dtsCode = await getDTSFileForModuleWithVersion(dts.moduleName, dts.moduleVersion, dts.path);
+        const dtsCode = await getDTSFileForModuleWithVersion(
+          dts.moduleName,
+          dts.moduleVersion,
+          dts.path,
+          args.fetchExternalTypes
+        );
         if (dtsCode instanceof Error) {
           // TODO?
           console.error(`Had an issue getting ${dts.path} for ${dts.moduleName}`);
@@ -337,7 +380,7 @@ export const setupTypeAcquisition = (opts?: {
           fsMap.set(dts.vfsPath, dtsCode);
 
           // Recurse through deps
-          await resolveDeps(dtsCode, depth + 1);
+          await resolveDeps(dtsCode, depth + 1, args);
         }
       })
     );

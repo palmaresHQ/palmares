@@ -13,9 +13,11 @@ export async function getLibraryCodes(
   parser: ((args: { path: string; content: string }) => { path: string; content: string }) | undefined = undefined,
   opts: {
     shouldRetrieveExternalTypes?: boolean;
+    fetchExternalTypes?: string;
     flattenPathOnRaw?: boolean;
   } = {
     shouldRetrieveExternalTypes: false,
+    fetchExternalTypes: undefined,
     flattenPathOnRaw: false
   }
 ): Promise<
@@ -77,7 +79,9 @@ export async function getLibraryCodes(
             let fileContent = await fs.readFile(filePath, 'utf8');
             const isTSFile = filePathRelativeToRoot.endsWith('.ts');
             if (isTSFile && opts.shouldRetrieveExternalTypes) {
-              const dtsCode = await retrieveTypes(fileContent);
+              const dtsCode = await retrieveTypes(fileContent, {
+                fetchExternalTypes: opts.fetchExternalTypes
+              });
               for (const [path, dts] of dtsCode.entries()) {
                 files.raw[path.replace('/node_modules/', 'node_modules/')] = dts;
               }
@@ -152,7 +156,7 @@ export async function getLibraryCodes(
   return libraryCodes;
 }
 
-export async function getPalmaresFiles(args?: { generateJson: boolean }) {
+export async function getPalmaresFiles(args?: { generateJson: boolean; host: string | undefined }) {
   const libraryCodes = await getLibraryCodes(
     [
       ['@palmares/console-logging', path.join(process.cwd(), '..', 'libs', 'console-logging')],
@@ -175,6 +179,10 @@ export async function getPalmaresFiles(args?: { generateJson: boolean }) {
         path: path.replace('_', ''),
         content: content.startsWith('// @ts-nocheck\n') ? content.replace('// @ts-nocheck\n', '') : content
       };
+    },
+    {
+      shouldRetrieveExternalTypes: true,
+      fetchExternalTypes: args?.host
     }
   );
 
@@ -186,7 +194,7 @@ export async function getPalmaresFiles(args?: { generateJson: boolean }) {
   return libraryCodes as any;
 }
 
-export async function getExamplesFiles(args?: { generateJson: boolean }) {
+export async function getExamplesFiles(args?: { generateJson: boolean; host: string | undefined }) {
   const libraryCodes = await getLibraryCodes(
     [['mainpage', path.join(process.cwd(), '.', 'examples', 'mainpage')]],
     ({ path, content }) => {
@@ -197,6 +205,7 @@ export async function getExamplesFiles(args?: { generateJson: boolean }) {
     },
     {
       shouldRetrieveExternalTypes: true,
+      fetchExternalTypes: args?.host,
       flattenPathOnRaw: true
     }
   );

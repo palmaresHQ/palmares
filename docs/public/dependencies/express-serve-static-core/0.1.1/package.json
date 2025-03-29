@@ -1,0 +1,12 @@
+{
+  "name": "express-serve-static-core",
+  "version": "0.1.1",
+  "description": "only here to make types work",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "typings": "express-serve-static-core.d.ts"
+}

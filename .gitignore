@@ -125,3 +125,4 @@ next-env.d.ts
 # Docs website
 palmares-files.json
 examples-files.json
+/public/dependencies

@@ -12,13 +12,9 @@ import type * as TMonaco from 'monaco-editor';
 import type { FileSystemTree } from '@webcontainer/api';
 import type { Terminal } from '@xterm/xterm';
 import { isChromium } from '../utils/is-chromium';
-import { setupTypeAcquisition } from '../utils/download-from-npm';
 
 type LibraryCode = { [key: string]: Record<string, string> };
 
-// let retrieveTypes = setupTypeAcquisition({
-//   toFilter: (deps) => deps.filter((dep) => dep.module.includes('@palmares') === false)
-// });
 let getAllLibraryCodesPromise: ReturnType<GetLibraryCodesFn>;
 
 type Props = {
@@ -274,7 +270,6 @@ export default function Code(props: Props) {
         const sandboxConfig = {
           text: props.text,
           domID: id,
-          acquireTypes: false,
           filetype: `${id}.ts` as any
         } satisfies Parameters<Awaited<ReturnType<typeof getEditor>>['sandbox']['createTypeScriptSandbox']>[0];
         const themeData = {
