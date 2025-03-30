@@ -1,7 +1,7 @@
 // Copied from:
 import typescript from 'typescript';
-import fs from 'node:fs';
-import path from 'node:path';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
 
 // Taken from dts-gen: https://github.com/microsoft/dts-gen/blob/master/lib/names.ts
 function getDTName(s: string) {
@@ -148,14 +148,14 @@ export async function getDTSFileForModuleWithVersion(
     const response = await fetch(`${externalTypes}/dependencies/${moduleName}/${version}/${file}`);
     if (response.ok) return await response.text();
   }
-  const dependenciesPath = path.join(process.cwd(), 'public', 'dependencies');
-  if (!fs.existsSync(dependenciesPath)) fs.mkdirSync(dependenciesPath, { recursive: true });
-  const modulePath = path.join(dependenciesPath, moduleName);
-  if (!fs.existsSync(modulePath)) fs.mkdirSync(modulePath, { recursive: true });
-  const versionPath = path.join(modulePath, version);
-  if (!fs.existsSync(versionPath)) fs.mkdirSync(versionPath, { recursive: true });
-  const filePath = path.join(versionPath, file);
-  if (fs.existsSync(filePath)) return fs.readFileSync(filePath, 'utf8');
+  const dependenciesPath = join(process.cwd(), 'public', 'dependencies');
+  if (!existsSync(dependenciesPath)) mkdirSync(dependenciesPath, { recursive: true });
+  const modulePath = join(dependenciesPath, moduleName);
+  if (!existsSync(modulePath)) mkdirSync(modulePath, { recursive: true });
+  const versionPath = join(modulePath, version);
+  if (!existsSync(versionPath)) mkdirSync(versionPath, { recursive: true });
+  const filePath = join(versionPath, file);
+  if (existsSync(filePath)) return readFileSync(filePath, 'utf8');
 
   // file comes with a prefix
   const url = `https://cdn.jsdelivr.net/npm/${moduleName}@${version}${file}`;
@@ -167,9 +167,9 @@ export async function getDTSFileForModuleWithVersion(
       if (res.ok) {
         const text = await res.text();
 
-        if (fs.existsSync(path.dirname(filePath))) {
-          fs.mkdirSync(path.dirname(filePath), { recursive: true });
-          fs.writeFileSync(filePath, text);
+        if (existsSync(dirname(filePath))) {
+          mkdirSync(dirname(filePath), { recursive: true });
+          writeFileSync(filePath, text);
         }
 
         return text;

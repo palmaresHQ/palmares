@@ -1,5 +1,5 @@
-import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
+import { readdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { join, relative } from 'path';
 import type { FileSystemTree } from '@webcontainer/api';
 import { setupTypeAcquisition } from './download-from-npm';
 type LibraryCode = { [key: string]: Record<string, string> };
@@ -47,12 +47,12 @@ export async function getLibraryCodes(
     filesOrFoldersToConsider = undefined as string[] | undefined,
     hasFoundPackageJson = false
   ) {
-    const fileList = await fs.readdir(dir);
+    const fileList = await readdir(dir);
     if (hasFoundPackageJson === false) {
       for (const file of fileList) {
         if (file.endsWith('package.json')) {
           hasFoundPackageJson = true;
-          const packageJsonContents = await fs.readFile(path.join(dir, file), 'utf8');
+          const packageJsonContents = await readFile(join(dir, file), 'utf8');
           const packageJson = JSON.parse(packageJsonContents);
 
           if (packageJson.files) {
@@ -70,13 +70,13 @@ export async function getLibraryCodes(
     } else {
       await Promise.all(
         fileList.map(async (file) => {
-          const filePath = path.join(dir, file);
+          const filePath = join(dir, file);
           if (Array.isArray(filesOrFoldersToConsider) && filesOrFoldersToConsider.includes(file) === false) return;
-          if ((await fs.stat(filePath)).isDirectory())
+          if ((await stat(filePath)).isDirectory())
             return getFiles(filePath, rootDir, files, undefined, hasFoundPackageJson);
           else {
-            let filePathRelativeToRoot = path.relative(rootDir, filePath);
-            let fileContent = await fs.readFile(filePath, 'utf8');
+            let filePathRelativeToRoot = relative(rootDir, filePath);
+            let fileContent = await readFile(filePath, 'utf8');
             const isTSFile = filePathRelativeToRoot.endsWith('.ts');
             if (isTSFile && opts.shouldRetrieveExternalTypes) {
               const dtsCode = await retrieveTypes(fileContent, {
@@ -159,20 +159,20 @@ export async function getLibraryCodes(
 export async function getPalmaresFiles(args?: { generateJson: boolean; host: string | undefined }) {
   const libraryCodes = await getLibraryCodes(
     [
-      ['@palmares/console-logging', path.join(process.cwd(), '..', 'libs', 'console-logging')],
-      ['@palmares/drizzle-engine', path.join(process.cwd(), '..', 'libs', 'drizzle-engine')],
-      ['@palmares/express-adapter', path.join(process.cwd(), '..', 'libs', 'express-adapter')],
-      ['@palmares/jest-tests', path.join(process.cwd(), '..', 'libs', 'jest-tests')],
-      ['@palmares/node-std', path.join(process.cwd(), '..', 'libs', 'node-std')],
-      ['@palmares/sequelize-engine', path.join(process.cwd(), '..', 'libs', 'sequelize-engine')],
-      ['@palmares/zod-schema', path.join(process.cwd(), '..', 'libs', 'zod-schema')],
-      ['@palmares/core', path.join(process.cwd(), '..', 'packages', 'core')],
-      ['@palmares/databases', path.join(process.cwd(), '..', 'packages', 'databases')],
-      ['@palmares/schemas', path.join(process.cwd(), '..', 'packages', 'schemas')],
-      ['@palmares/server', path.join(process.cwd(), '..', 'packages', 'server')],
-      ['@palmares/tests', path.join(process.cwd(), '..', 'packages', 'tests')],
-      ['@palmares/logging', path.join(process.cwd(), '..', 'packages', 'logging')],
-      ['@palmares/events', path.join(process.cwd(), '..', 'packages', 'events')]
+      ['@palmares/console-logging', join(process.cwd(), '..', 'libs', 'console-logging')],
+      ['@palmares/drizzle-engine', join(process.cwd(), '..', 'libs', 'drizzle-engine')],
+      ['@palmares/express-adapter', join(process.cwd(), '..', 'libs', 'express-adapter')],
+      ['@palmares/jest-tests', join(process.cwd(), '..', 'libs', 'jest-tests')],
+      ['@palmares/node-std', join(process.cwd(), '..', 'libs', 'node-std')],
+      ['@palmares/sequelize-engine', join(process.cwd(), '..', 'libs', 'sequelize-engine')],
+      ['@palmares/zod-schema', join(process.cwd(), '..', 'libs', 'zod-schema')],
+      ['@palmares/core', join(process.cwd(), '..', 'packages', 'core')],
+      ['@palmares/databases', join(process.cwd(), '..', 'packages', 'databases')],
+      ['@palmares/schemas', join(process.cwd(), '..', 'packages', 'schemas')],
+      ['@palmares/server', join(process.cwd(), '..', 'packages', 'server')],
+      ['@palmares/tests', join(process.cwd(), '..', 'packages', 'tests')],
+      ['@palmares/logging', join(process.cwd(), '..', 'packages', 'logging')],
+      ['@palmares/events', join(process.cwd(), '..', 'packages', 'events')]
     ],
     ({ path, content }) => {
       return {
@@ -187,7 +187,7 @@ export async function getPalmaresFiles(args?: { generateJson: boolean; host: str
 
   if (args?.generateJson) {
     const json = JSON.stringify(libraryCodes, null, 2);
-    await fs.writeFile(path.join(process.cwd(), 'public', 'palmares-files.json'), json);
+    await writeFile(join(process.cwd(), 'public', 'palmares-files.json'), json);
   }
 
   return libraryCodes as any;
@@ -195,7 +195,7 @@ export async function getPalmaresFiles(args?: { generateJson: boolean; host: str
 
 export async function getExamplesFiles(args?: { generateJson: boolean; host: string | undefined }) {
   const libraryCodes = await getLibraryCodes(
-    [['mainpage', path.join(process.cwd(), '.', 'examples', 'mainpage')]],
+    [['mainpage', join(process.cwd(), '.', 'examples', 'mainpage')]],
     ({ path, content }) => {
       return {
         path: path.replace('_', ''),
@@ -210,7 +210,7 @@ export async function getExamplesFiles(args?: { generateJson: boolean; host: str
   );
   if (args?.generateJson) {
     const json = JSON.stringify(libraryCodes, null, 2);
-    await fs.writeFile(path.join(process.cwd(), 'public', 'examples-files.json'), json);
+    await writeFile(join(process.cwd(), 'public', 'examples-files.json'), json);
   }
 
   return libraryCodes as any;
