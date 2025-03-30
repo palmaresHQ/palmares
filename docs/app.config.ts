@@ -3,6 +3,11 @@ import monacoWorkerPlugin from './plugins/vite-worker-plugin';
 
 export default defineConfig({
   server: {
+    esbuild: {
+      options: {
+        target: 'esnext'
+      }
+    },
     preset: 'vercel',
     plugins: ['./plugins/nitro-worker.plugin.ts'],
     routeRules: {
