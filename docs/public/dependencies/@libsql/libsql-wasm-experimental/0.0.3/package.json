@@ -1,0 +1,68 @@
+{
+  "name": "@libsql/libsql-wasm-experimental",
+  "version": "0.0.3",
+  "description": "libSQL Wasm packaged as an ES module.",
+  "keywords": [
+    "sqlite",
+    "sqlite3",
+    "sqlite-wasm",
+    "sqlite3-wasm",
+    "webassembly",
+    "wasm",
+    "esm",
+    "opfs",
+    "origin-private-file-system"
+  ],
+  "main": "index.mjs",
+  "node": "node.mjs",
+  "type": "module",
+  "files": [
+    "index.d.ts",
+    "index.mjs",
+    "node.mjs",
+    "sqlite-wasm/"
+  ],
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "node": "./node.mjs",
+      "import": "./index.mjs",
+      "main": "./index.mjs",
+      "browser": "./index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "sqlite-wasm": "bin/index.js"
+  },
+  "scripts": {
+    "publint": "npx publint",
+    "clean": "shx rm -rf sqlite-wasm",
+    "build": "npm run clean && node bin/index.js",
+    "start": "npx http-server --coop",
+    "fix": "npx prettier . --write",
+    "update": "npm run build && npm run fix && npm run publint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tursodatabase/libsql-wasm.git"
+  },
+  "author": "Thomas Steiner (tomac@google.com)",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/tursodatabase/libsql-wasm/issues"
+  },
+  "homepage": "https://github.com/tursodatabase/libsql-wasm#readme",
+  "devDependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "decompress": "^4.2.1",
+    "http-server": "github:vapier/http-server",
+    "module-workers-polyfill": "^0.3.2",
+    "node-fetch": "^3.3.2",
+    "prettier": "^3.1.0",
+    "publint": "^0.2.5",
+    "prettier-plugin-jsdoc": "^1.1.1",
+    "shx": "^0.3.4"
+  }
+}

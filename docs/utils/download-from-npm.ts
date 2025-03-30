@@ -143,7 +143,7 @@ export async function getDTSFileForModuleWithVersion(
   version: string,
   file: string,
   externalTypes: string | undefined
-) {
+): Promise<string | Error> {
   if (externalTypes) {
     const response = await fetch(`${externalTypes}/dependencies/${moduleName}/${version}/${file}`);
     if (response.ok) return await response.text();
@@ -159,14 +159,30 @@ export async function getDTSFileForModuleWithVersion(
 
   // file comes with a prefix
   const url = `https://cdn.jsdelivr.net/npm/${moduleName}@${version}${file}`;
-  const res = await fetch(url);
-  if (res.ok) {
-    const text = await res.text();
-    fs.writeFileSync(filePath, text);
-    return text;
-  } else {
-    return new Error('OK');
-  }
+  let tries = 0;
+  const fetchAndSave = async (): Promise<string | Error> => {
+    try {
+      console.log('Fetching', url);
+      const res = await fetch(url);
+      if (res.ok) {
+        const text = await res.text();
+
+        if (fs.existsSync(path.dirname(filePath))) {
+          fs.mkdirSync(path.dirname(filePath), { recursive: true });
+          fs.writeFileSync(filePath, text);
+        }
+
+        return text;
+      } else {
+        return new Error('OK');
+      }
+    } catch (e) {
+      tries++;
+      if (tries > 3) throw e;
+      return await new Promise((resolve, reject) => setTimeout(() => fetchAndSave().then(resolve).then(reject), 0));
+    }
+  };
+  return await fetchAndSave();
 }
 
 function treeToDTSFiles(tree: NPMTreeMeta, vfsPrefix: string) {

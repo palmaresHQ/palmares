@@ -1,0 +1,47 @@
+{
+  "name": "expo-manifests",
+  "version": "0.15.7",
+  "description": "Code to parse and use Expo and Expo Updates manifests.",
+  "main": "build/Manifests.js",
+  "types": "build/Manifests.d.ts",
+  "sideEffects": false,
+  "scripts": {
+    "build": "expo-module build",
+    "clean": "expo-module clean",
+    "lint": "expo-module lint",
+    "test": "expo-module test",
+    "prepare": "expo-module prepare",
+    "prepublishOnly": "expo-module prepublishOnly",
+    "expo-module": "expo-module"
+  },
+  "keywords": [
+    "react-native",
+    "expo",
+    "expo-manifests"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/expo/expo.git",
+    "directory": "packages/expo-manifests"
+  },
+  "bugs": {
+    "url": "https://github.com/expo/expo/issues"
+  },
+  "author": "650 Industries, Inc.",
+  "license": "MIT",
+  "homepage": "https://docs.expo.dev/versions/latest/sdk/manifests/",
+  "jest": {
+    "preset": "expo-module-scripts"
+  },
+  "dependencies": {
+    "@expo/config": "~10.0.10",
+    "expo-json-utils": "~0.14.0"
+  },
+  "devDependencies": {
+    "expo-module-scripts": "^4.0.4"
+  },
+  "peerDependencies": {
+    "expo": "*"
+  },
+  "gitHead": "50890a252047d8f4513d6859216229eee353fcb0"
+}

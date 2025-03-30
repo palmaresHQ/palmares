@@ -181,7 +181,6 @@ export async function getPalmaresFiles(args?: { generateJson: boolean; host: str
       };
     },
     {
-      shouldRetrieveExternalTypes: true,
       fetchExternalTypes: args?.host
     }
   );
