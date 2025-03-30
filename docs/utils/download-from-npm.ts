@@ -1,5 +1,5 @@
 // Copied from:
-import typescript from 'typescript';
+import { preProcessFile } from 'typescript';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 
@@ -211,7 +211,7 @@ function treeToDTSFiles(tree: NPMTreeMeta, vfsPrefix: string) {
  * npm versioning strat too if someone opts into a different version via an inline end of line comment
  */
 export function getReferencesForModule(code: string) {
-  const meta = typescript.preProcessFile(code);
+  const meta = preProcessFile(code);
 
   // Ensure we don't try download TypeScript lib references
   // @ts-ignore - private but likely to never change

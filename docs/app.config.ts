@@ -5,6 +5,12 @@ export default defineConfig({
   server: {
     preset: 'vercel',
     plugins: ['./plugins/nitro-worker.plugin.ts'],
+    esbuild: {
+      options: {
+        treeShaking: true,
+        target: 'esnext'
+      }
+    },
     routeRules: {
       '/assets/**': {
         headers: {
@@ -22,6 +28,9 @@ export default defineConfig({
   },
   vite: {
     plugins: [monacoWorkerPlugin() as any],
+    build: {
+      target: 'esnext'
+    },
     worker: {
       format: 'es'
     }
