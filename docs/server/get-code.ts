@@ -4,15 +4,9 @@ import { getHeaders } from 'vinxi/http';
 import { isChromium } from '../utils/is-chromium';
 import { getExamplesFiles, getLibraryCodes, getPalmaresFiles } from '../utils/get-library-codes';
 import { getOriginFromHeaders } from '../utils/get-origin-from-headers';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
 
 export type GetLibraryCodesFn = typeof getLibraryCodes;
 const isProduction = process.env?.NODE_ENV === 'production';
-if (isProduction) {
-  globalThis.__filename = fileURLToPath(import.meta.url);
-  globalThis.__dirname = dirname(globalThis.__filename);
-}
 
 export const getAllLibraryCodes = createServerFn({ method: 'GET' }).handler(async () => {
   const headers = getHeaders();

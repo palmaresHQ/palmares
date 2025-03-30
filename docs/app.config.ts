@@ -22,6 +22,9 @@ export default defineConfig({
   },
   vite: {
     plugins: [monacoWorkerPlugin() as any],
+    build: {
+      target: 'esnext'
+    },
     worker: {
       format: 'es'
     }
