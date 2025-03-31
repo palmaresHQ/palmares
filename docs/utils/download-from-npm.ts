@@ -141,21 +141,20 @@ export async function getFiletreeForModuleWithVersion(moduleName: string, versio
 export async function getDTSFileForModuleWithVersion(
   moduleName: string,
   version: string,
-  file: string,
-  externalTypes: string | undefined
+  file: string
 ): Promise<string | Error> {
-  if (externalTypes) {
-    const response = await fetch(`${externalTypes}/dependencies/${moduleName}/${version}/${file}`);
-    if (response.ok) return await response.text();
+  const isProduction = process.env?.NODE_ENV === 'production';
+  let filePath: string | undefined = undefined;
+  if (isProduction === false) {
+    const dependenciesPath = join(process.cwd(), 'public', 'dependencies');
+    if (!existsSync(dependenciesPath)) mkdirSync(dependenciesPath, { recursive: true });
+    const modulePath = join(dependenciesPath, moduleName);
+    if (!existsSync(modulePath)) mkdirSync(modulePath, { recursive: true });
+    const versionPath = join(modulePath, version);
+    if (!existsSync(versionPath)) mkdirSync(versionPath, { recursive: true });
+    filePath = join(versionPath, file);
+    if (existsSync(filePath)) return readFileSync(filePath, 'utf8');
   }
-  const dependenciesPath = join(process.cwd(), 'public', 'dependencies');
-  if (!existsSync(dependenciesPath)) mkdirSync(dependenciesPath, { recursive: true });
-  const modulePath = join(dependenciesPath, moduleName);
-  if (!existsSync(modulePath)) mkdirSync(modulePath, { recursive: true });
-  const versionPath = join(modulePath, version);
-  if (!existsSync(versionPath)) mkdirSync(versionPath, { recursive: true });
-  const filePath = join(versionPath, file);
-  if (existsSync(filePath)) return readFileSync(filePath, 'utf8');
 
   // file comes with a prefix
   const url = `https://cdn.jsdelivr.net/npm/${moduleName}@${version}${file}`;
@@ -166,10 +165,11 @@ export async function getDTSFileForModuleWithVersion(
       const res = await fetch(url);
       if (res.ok) {
         const text = await res.text();
-
-        if (existsSync(dirname(filePath))) {
-          mkdirSync(dirname(filePath), { recursive: true });
-          writeFileSync(filePath, text);
+        if (isProduction === false && filePath) {
+          if (existsSync(dirname(filePath))) {
+            mkdirSync(dirname(filePath), { recursive: true });
+            writeFileSync(filePath, text);
+          }
         }
 
         return text;
@@ -215,7 +215,7 @@ export function getReferencesForModule(code: string) {
 
   // Ensure we don't try download TypeScript lib references
   // @ts-ignore - private but likely to never change
-  const libMap: Map<string, string> = typescript.libMap || new Map();
+  const libMap: Map<string, string> = new Map();
 
   const references = meta.referencedFiles
     .concat(meta.importedFiles)
@@ -366,12 +366,7 @@ export const setupTypeAcquisition = (opts?: {
       if (dtTreesOnly.includes(tree))
         prefix = `/node_modules/@types/${getDTName(tree.moduleName).replace('types__', '')}`;
       const path = prefix + '/package.json';
-      const pkgJSON = await getDTSFileForModuleWithVersion(
-        tree.moduleName,
-        tree.version,
-        '/package.json',
-        args.fetchExternalTypes
-      );
+      const pkgJSON = await getDTSFileForModuleWithVersion(tree.moduleName, tree.version, '/package.json');
 
       if (typeof pkgJSON == 'string') {
         fsMap.set(path, pkgJSON);
@@ -383,12 +378,7 @@ export const setupTypeAcquisition = (opts?: {
     // Grab all dts files
     await Promise.all(
       allDTSFiles.map(async (dts) => {
-        const dtsCode = await getDTSFileForModuleWithVersion(
-          dts.moduleName,
-          dts.moduleVersion,
-          dts.path,
-          args.fetchExternalTypes
-        );
+        const dtsCode = await getDTSFileForModuleWithVersion(dts.moduleName, dts.moduleVersion, dts.path);
         if (dtsCode instanceof Error) {
           // TODO?
           console.error(`Had an issue getting ${dts.path} for ${dts.moduleName}`);

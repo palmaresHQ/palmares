@@ -1,0 +1,32 @@
+{
+  "name": "dom",
+  "version": "0.0.3",
+  "description": "dom traversal / manipulation library",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/shtylman/dom.git"
+  },
+  "scripts": {
+    "test": "zuul test/*.js --ui qunit"
+  },
+  "devDependencies": {
+    "mocha": "~1.7.0"
+  },
+  "author": "",
+  "license": "MIT",
+  "readmeFilename": "Readme.md",
+  "testling": {
+    "files": "test/*.js",
+    "browsers": [
+      "ie/9..latest",
+      "firefox/3.6..latest",
+      "chrome/4.0..latest",
+      "safari/5.1..latest"
+    ],
+    "harness": "mocha-qunit"
+  }
+}

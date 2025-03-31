@@ -7,10 +7,6 @@ import { getOriginFromHeaders } from '../utils/get-origin-from-headers';
 
 export type GetLibraryCodesFn = typeof getLibraryCodes;
 const isProduction = process.env?.NODE_ENV === 'production';
-if (isProduction) {
-  globalThis.__filename = '';
-  globalThis.__dirname = '';
-}
 
 export const getAllLibraryCodes = createServerFn({ method: 'GET' }).handler(async () => {
   const headers = getHeaders();
