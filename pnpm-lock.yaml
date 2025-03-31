@@ -648,8 +648,8 @@ importers:
         specifier: workspace:*
         version: link:../../../../libs/zod-schema
       '@tanstack/react-query':
-        specifier: ^5.66.11
-        version: 5.69.0(react@18.3.1)
+        specifier: ^5.69.3
+        version: 5.69.3(react@18.3.1)
       '@tanstack/react-virtual':
         specifier: ^3.13.6
         version: 3.13.6(react-dom@19.0.0(react@18.3.1))(react@18.3.1)
@@ -5093,8 +5093,8 @@ packages:
     resolution: {integrity: sha512-JMd7USmnp8zV8BRGIjALqzPxazvKtQ7PGXQC7n39HpbqdsmfV2ePCzieO84IvN+mwsTrXErpbjI4BfKCa+ZNCg==}
     engines: {node: '>=12'}
 
-  '@tanstack/query-core@5.69.0':
-    resolution: {integrity: sha512-Kn410jq6vs1P8Nm+ZsRj9H+U3C0kjuEkYLxbiCyn3MDEiYor1j2DGVULqAz62SLZtUZ/e9Xt6xMXiJ3NJ65WyQ==}
+  '@tanstack/query-core@5.69.2':
+    resolution: {integrity: sha512-+spKBqGMSxVMhYPMHr4L7efc4CDdb0Y8nE4UxP/FjV4V3ajP3uhBsh0T7pSuObBgYkU+nY1PRkJhKNmwlHmkUg==}
 
   '@tanstack/react-cross-context@1.99.0':
     resolution: {integrity: sha512-PJuVaijr3FTV8HJcmfzGcQ4+ZlNUwJ0B51MNlawClJ4pBOerJrW/iEKPIg0glPVx3KQ4WHMv8cEGmvN+xYtLJw==}
@@ -5102,8 +5102,8 @@ packages:
       react: '>=18.0.0 || >=19.0.0'
       react-dom: '>=18.0.0 || >=19.0.0'
 
-  '@tanstack/react-query@5.69.0':
-    resolution: {integrity: sha512-Ift3IUNQqTcaFa1AiIQ7WCb/PPy8aexZdq9pZWLXhfLcLxH0+PZqJ2xFImxCpdDZrFRZhLJrh76geevS5xjRhA==}
+  '@tanstack/react-query@5.69.3':
+    resolution: {integrity: sha512-EozCj1aFM/c827GQbVnvEt2x80oBax1vd2e5s/2EDeD469AZW9BPAyRK9VVyD0I1yvO6vOI+tPKXXFcadbSXvA==}
     peerDependencies:
       react: ^18 || ^19
 
@@ -17029,16 +17029,16 @@ snapshots:
 
   '@tanstack/history@1.99.13': {}
 
-  '@tanstack/query-core@5.69.0': {}
+  '@tanstack/query-core@5.69.2': {}
 
   '@tanstack/react-cross-context@1.99.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  '@tanstack/react-query@5.69.0(react@18.3.1)':
+  '@tanstack/react-query@5.69.3(react@18.3.1)':
     dependencies:
-      '@tanstack/query-core': 5.69.0
+      '@tanstack/query-core': 5.69.2
       react: 18.3.1
 
   '@tanstack/react-router@1.106.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
