@@ -1,5 +1,4 @@
 // Copied from:
-import { preProcessFile } from 'typescript';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 
@@ -146,13 +145,9 @@ export async function getDTSFileForModuleWithVersion(
   const isProduction = process.env?.NODE_ENV === 'production';
   let filePath: string | undefined = undefined;
   if (isProduction === false) {
-    const dependenciesPath = join(process.cwd(), 'public', 'dependencies');
-    if (!existsSync(dependenciesPath)) mkdirSync(dependenciesPath, { recursive: true });
-    const modulePath = join(dependenciesPath, moduleName);
-    if (!existsSync(modulePath)) mkdirSync(modulePath, { recursive: true });
-    const versionPath = join(modulePath, version);
-    if (!existsSync(versionPath)) mkdirSync(versionPath, { recursive: true });
-    filePath = join(versionPath, file);
+    filePath = join(process.cwd(), 'public', 'dependencies', moduleName, version, file);
+    const directoryPath = dirname(filePath);
+    if (!existsSync(directoryPath)) mkdirSync(directoryPath, { recursive: true });
     if (existsSync(filePath)) return readFileSync(filePath, 'utf8');
   }
 
@@ -206,11 +201,13 @@ function treeToDTSFiles(tree: NPMTreeMeta, vfsPrefix: string) {
   return dtsRefs;
 }
 
+let preProcessFile: import('typescript').preProcessFile;
 /**
  * Pull out any potential references to other modules (including relatives) with their
  * npm versioning strat too if someone opts into a different version via an inline end of line comment
  */
-export function getReferencesForModule(code: string) {
+export async function getReferencesForModule(code: string) {
+  if (preProcessFile === undefined) preProcessFile = (await import('typescript')).preProcessFile;
   const meta = preProcessFile(code);
 
   // Ensure we don't try download TypeScript lib references
@@ -239,8 +236,8 @@ export function getReferencesForModule(code: string) {
 }
 
 /** A list of modules from the current sourcefile which we don't have existing files for */
-export function getNewDependencies(moduleMap: Map<string, { state: 'loading' }>, code: string) {
-  const refs = getReferencesForModule(code).map((ref) => ({
+export async function getNewDependencies(moduleMap: Map<string, { state: 'loading' }>, code: string) {
+  const refs = (await getReferencesForModule(code)).map((ref) => ({
     ...ref,
     module: mapModuleNameToModule(ref.module)
   }));
@@ -331,7 +328,7 @@ export const setupTypeAcquisition = (opts?: {
       fetchExternalTypes?: string;
     }
   ) {
-    const depsToGet = getNewDependencies(moduleMap, initialSourceFile);
+    const depsToGet = await getNewDependencies(moduleMap, initialSourceFile);
     const depsToGetFiltered = opts?.toFilter ? opts.toFilter(depsToGet) : depsToGet;
     // Make it so it won't get re-downloaded
     depsToGetFiltered.forEach((dep) => moduleMap.set(dep.module, { state: 'loading' }));
