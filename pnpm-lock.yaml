@@ -119,7 +119,7 @@ importers:
         version: 7.26.0(@babel/core@7.26.10)
       '@mdx-js/mdx':
         specifier: ^3.1.0
-        version: 3.1.0(acorn@8.14.0)
+        version: 3.1.0(acorn@8.14.1)
       '@mdx-js/react':
         specifier: ^3.1.0
         version: 3.1.0(@types/react@18.3.12)(react@18.3.1)
@@ -128,7 +128,7 @@ importers:
         version: 1.106.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/start':
         specifier: ^1.107.0
-        version: 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(vite@5.4.17(@types/node@22.13.17)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
+        version: 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(vite@5.4.17(@types/node@22.13.17)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
       '@typescript/sandbox':
         specifier: ^0.1.7
         version: 0.1.8(typescript@5.7.3)
@@ -166,8 +166,8 @@ importers:
         specifier: ^5.5.4
         version: 5.7.3
       vinxi:
-        specifier: ^0.5.1
-        version: 0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
+        specifier: ^0.5.4
+        version: 0.5.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
     devDependencies:
       '@types/babel__core':
         specifier: ^7.20.5
@@ -2404,6 +2404,10 @@ packages:
     resolution: {integrity: sha512-YLPHc8yASwjNkmcDMQMY35yiWjoKAKnhUbPRszBRS0YgH+IXtsMp61j+yTcnCE3oO2DgP0U3iejLC8FTtKDC8Q==}
     engines: {node: '>=16.13'}
 
+  '@cloudflare/kv-asset-handler@0.4.0':
+    resolution: {integrity: sha512-+tv3z+SPp+gqTIcImN9o0hqE9xyfQjI1XD9pL6NuKjua9B1y7mNYv0S9cP+QEbA4ppVgGZEmKOvHX5G5Ei1CVA==}
+    engines: {node: '>=18.0.0'}
+
   '@cloudflare/workers-types@4.20250214.0':
     resolution: {integrity: sha512-+M8oOFVbyXT5GeJrYLWMUGyPf5wGB4+k59PPqdedtOig7NjZ5r4S79wMdaZ/EV5IV8JPtZBSNjTKpDnNmfxjaQ==}
 
@@ -3954,12 +3958,20 @@ packages:
     resolution: {integrity: sha512-DeoAQh8LuNPvBE4qsKlezjKj0PyXDryOFJfJKo3Z1qZLKzQ21sT314KQKPVjfvw6knqijj+IO+0kHXy/TJiqNA==}
     engines: {node: '>=14.0.0'}
 
+  '@netlify/functions@3.0.4':
+    resolution: {integrity: sha512-Ox8+ABI+nsLK+c4/oC5dpquXuEIjzfTlJrdQKgQijCsDQoje7inXFAtKDLvvaGvuvE+PVpMLwQcIUL6P9Ob1hQ==}
+    engines: {node: '>=18.0.0'}
+
   '@netlify/node-cookies@0.1.0':
     resolution: {integrity: sha512-OAs1xG+FfLX0LoRASpqzVntVV/RpYkgpI0VrUnw2u0Q1qiZUzcPffxRK8HF3gc4GjuhG5ahOEMJ9bswBiZPq0g==}
     engines: {node: ^14.16.0 || >=16.0.0}
 
   '@netlify/serverless-functions-api@1.26.1':
     resolution: {integrity: sha512-q3L9i3HoNfz0SGpTIS4zTcKBbRkxzCRpd169eyiTuk3IwcPC3/85mzLHranlKo2b+HYT0gu37YxGB45aD8A3Tw==}
+    engines: {node: '>=18.0.0'}
+
+  '@netlify/serverless-functions-api@1.36.0':
+    resolution: {integrity: sha512-z6okREyK8in0486a22Oro0k+YsuyEjDXJt46FpgeOgXqKJ9ElM8QPll0iuLBkpbH33ENiNbIPLd1cuClRQnhiw==}
     engines: {node: '>=18.0.0'}
 
   '@next/env@14.2.27':
@@ -4184,6 +4196,17 @@ packages:
     resolution: {integrity: sha512-Tv4jcFUFAFjOWrGSio49H6R2ijALv0ZzVBfJKIdm+kl9X046Fh4LLawrF9OMsglVbK6ukqMJsUCeucGAFTBcMA==}
     engines: {node: '>=16'}
 
+  '@poppinss/colors@4.1.4':
+    resolution: {integrity: sha512-FA+nTU8p6OcSH4tLDY5JilGYr1bVWHpNmcLr7xmMEdbWmKHa+3QZ+DqefrXKmdjO/brHTnQZo20lLSjaO7ydog==}
+    engines: {node: '>=18.16.0'}
+
+  '@poppinss/dumper@0.6.3':
+    resolution: {integrity: sha512-iombbn8ckOixMtuV1p3f8jN6vqhXefNjJttoPaJDMeIk/yIGhkkL3OrHkEjE9SRsgoAx1vBUU2GtgggjvA5hCA==}
+
+  '@poppinss/exception@1.2.1':
+    resolution: {integrity: sha512-aQypoot0HPSJa6gDPEPTntc1GT6QINrSbgRlRhadGW2WaYqUK3tK4Bw9SBMZXhmxd3GeAlZjVcODHgiu+THY7A==}
+    engines: {node: '>=18'}
+
   '@prettier/sync@0.5.2':
     resolution: {integrity: sha512-Yb569su456XNx5BsH/Vyem7xD6g/y9iLmLUzRKM1a/dhU/D7HqqvkAG72znulXlMXztbV0iiu9O5AL8K98TzZQ==}
     peerDependencies:
@@ -4350,6 +4373,15 @@ packages:
       rollup:
         optional: true
 
+  '@rollup/plugin-commonjs@28.0.3':
+    resolution: {integrity: sha512-pyltgilam1QPdn+Zd9gaCfOLcnjMEJ9gV+bTw6/r73INdvzf1ah9zLIJBm+kW7R6IUFIQ1YO+VqZtYxZNWFPEQ==}
+    engines: {node: '>=16.0.0 || 14 >= 14.17'}
+    peerDependencies:
+      rollup: ^2.68.0||^3.0.0||^4.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
+
   '@rollup/plugin-inject@5.0.5':
     resolution: {integrity: sha512-2+DEJbNBoPROPkgTDNe8/1YXWcqxbN5DTjASVIOx8HS+pITXushyNiBV56RB08zuptzz8gT3YfkqriTBVycepg==}
     engines: {node: '>=14.0.0'}
@@ -4370,6 +4402,15 @@ packages:
 
   '@rollup/plugin-node-resolve@15.3.1':
     resolution: {integrity: sha512-tgg6b91pAybXHJQMAAwW9VuWBO6Thi+q7BCNARLwSqlmsHz0XYURtGvh/AuwSADXSI4h/2uHbs7s4FzlZDGSGA==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^2.78.0||^3.0.0||^4.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
+
+  '@rollup/plugin-node-resolve@16.0.1':
+    resolution: {integrity: sha512-tk5YCxJWIG81umIvNkSod2qK5KyQW19qcBF/B78n1bjtOON6gzKoVeSzAE8yHCZEDmqkHKkxplExA8KzdJLJpA==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
       rollup: ^2.78.0||^3.0.0||^4.0.0
@@ -4625,6 +4666,10 @@ packages:
     resolution: {integrity: sha512-TV7t8GKYaJWsn00tFDqBw8+Uqmr8A0fRU1tvTQhyZzGv0sJCGRQL3JGMI3ucuKo3XIZdUP+Lx7/gh2t3lewy7g==}
     engines: {node: '>=14.16'}
 
+  '@sindresorhus/is@7.0.1':
+    resolution: {integrity: sha512-QWLl2P+rsCJeofkDNIT3WFmb6NrRud1SUYW8dIhXK/46XFV8Q/g7Bsvib0Askb0reRLe+WYPeeE+l5cH7SlkuQ==}
+    engines: {node: '>=18'}
+
   '@sindresorhus/merge-streams@2.3.0':
     resolution: {integrity: sha512-LtoMMhxAlorcGhmFYI+LhPgbPZCkgP6ra1YL604EeF6U98pLlQ3iWIGMdWSC+vWmPBWBNgmDBAhnAobLROJmwg==}
     engines: {node: '>=18'}
@@ -4802,6 +4847,9 @@ packages:
   '@smithy/util-utf8@4.0.0':
     resolution: {integrity: sha512-b+zebfKCfRdgNJDknHCob3O7FpeYQN6ZG6YLExMcasDHsCXlsXCEuiPZeLnJLpwa5dvPetGlnGCiMHuLwGvFow==}
     engines: {node: '>=18.0.0'}
+
+  '@speed-highlight/core@1.2.7':
+    resolution: {integrity: sha512-0dxmVj4gxg3Jg879kvFS/msl4s9F3T9UXC1InxgOf7t5NvcPD97u/WTA5vL/IxWHMn7qSxBozqrnnE2wvl1m8g==}
 
   '@standard-schema/spec@1.0.0':
     resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
@@ -5712,6 +5760,11 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
+  '@vercel/nft@0.29.2':
+    resolution: {integrity: sha512-A/Si4mrTkQqJ6EXJKv5EYCDQ3NL6nJXxG8VGXePsaiQigsomHYQC9xSpX8qGk7AEZk4b1ssbYIqJ0ISQQ7bfcA==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   '@vercel/node@3.2.29':
     resolution: {integrity: sha512-WRVYidBqtRyYUw36v/WyUB2v97PsiV2+LepUiOPWcW9UpszQGGT2DAzsXOYqWveXMJKFhx0aETR6Nn6i+Yps1Q==}
 
@@ -6376,6 +6429,14 @@ packages:
       magicast:
         optional: true
 
+  c12@3.0.3:
+    resolution: {integrity: sha512-uC3MacKBb0Z15o5QWCHvHWj5Zv34pGQj9P+iXKSpTuSGFS0KKhUWf4t9AJ+gWjYOdmWCPEGpEzm8sS0iqbpo1w==}
+    peerDependencies:
+      magicast: ^0.3.5
+    peerDependenciesMeta:
+      magicast:
+        optional: true
+
   cac@6.7.14:
     resolution: {integrity: sha512-b6Ilus+c3RrdDk+JhLKUAQfzzgLEPy6wcXqS7f/xe1EETvsDP6GORG7SFuOs6cID5YkqchW/LXZbX5bc8j7ZcQ==}
     engines: {node: '>=8'}
@@ -6719,12 +6780,19 @@ packages:
   confbox@0.1.8:
     resolution: {integrity: sha512-RMtmw0iFkeR4YV+fUOSucriAQNb9g8zFR52MWCtl+cCZOFRNL6zeB395vPzFhEjjn4fMxXudmELnl/KF/WrK6w==}
 
+  confbox@0.2.2:
+    resolution: {integrity: sha512-1NB+BKqhtNipMsov4xI/NnhCKp9XG9NamYp5PVm9klAT0fsrNPjaFICsCFhNhwZJKNh7zB/3q8qXz0E9oaMNtQ==}
+
   connect@3.7.0:
     resolution: {integrity: sha512-ZqRXc+tZukToSNmh5C2iWMSoV3X1YUcPbqEM4DkEG5tNQXrQUZCNVGGv3IuicnkMtPfGf3Xtp8WCXs295iQ1pQ==}
     engines: {node: '>= 0.10.0'}
 
   consola@3.4.0:
     resolution: {integrity: sha512-EiPU8G6dQG0GFHNR8ljnZFki/8a+cQwEQ+7wpxdChl02Q8HXlwEZWD5lqAF8vC2sEC3Tehr8hy7vErz88LHyUA==}
+    engines: {node: ^14.18.0 || >=16.10.0}
+
+  consola@3.4.2:
+    resolution: {integrity: sha512-5IKcdX0nnYavi6G7TtOhwkYzyjfJlatbjMjuLSfE2kYT5pMDOilZ4OvMhi637CcDICTmz3wARPoyhqyX1Y+XvA==}
     engines: {node: ^14.18.0 || >=16.10.0}
 
   console-control-strings@1.1.0:
@@ -6751,6 +6819,9 @@ packages:
 
   cookie-es@1.2.2:
     resolution: {integrity: sha512-+W7VmiVINB+ywl1HGXJXmrqkOhpKrIiVZV6tQuV54ZyQC7MMuBt81Vc336GMLoHBq5hV/F9eXgt5Mnx0Rha5Fg==}
+
+  cookie-es@2.0.0:
+    resolution: {integrity: sha512-RAj4E421UYRgqokKUmotqAwuplYw15qtdXfY+hGzgCJ/MBjCVZcSoHK/kH9kocfjRjcDME7IiDWR/1WX1TM2Pg==}
 
   cookie-signature@1.0.6:
     resolution: {integrity: sha512-QADzlaHc8icV8I7vbaJXJwod9HWYp8uCqf1xa4OfNu1T7JVxQIrUgOWtHdNDtPiywmFbiS12VjotIXLrKM3orQ==}
@@ -6864,6 +6935,29 @@ packages:
 
   db0@0.2.4:
     resolution: {integrity: sha512-hIzftLH1nMsF95zSLjDLYLbE9huOXnLYUTAQ5yKF5amp0FpeD+B15XJa8BvGYSOeSCH4gl2WahB/y1FcUByQSg==}
+    peerDependencies:
+      '@electric-sql/pglite': '*'
+      '@libsql/client': '*'
+      better-sqlite3: '*'
+      drizzle-orm: '*'
+      mysql2: '*'
+      sqlite3: '*'
+    peerDependenciesMeta:
+      '@electric-sql/pglite':
+        optional: true
+      '@libsql/client':
+        optional: true
+      better-sqlite3:
+        optional: true
+      drizzle-orm:
+        optional: true
+      mysql2:
+        optional: true
+      sqlite3:
+        optional: true
+
+  db0@0.3.1:
+    resolution: {integrity: sha512-3RogPLE2LLq6t4YiFCREyl572aBjkfMvfwPyN51df00TbPbryL3XqBYuJ/j6mgPssPK8AKfYdLxizaO5UG10sA==}
     peerDependencies:
       '@electric-sql/pglite': '*'
       '@libsql/client': '*'
@@ -7017,6 +7111,9 @@ packages:
 
   destr@2.0.3:
     resolution: {integrity: sha512-2N3BOUU4gYMpTP24s5rF5iP7BDr7uNTCs4ozw3kf/eKfvWSIu93GEBi5m427YoyJoeOzQ5smuu4nNAPGb8idSQ==}
+
+  destr@2.0.5:
+    resolution: {integrity: sha512-ugFTXCtDZunbzasqBxrK93Ik/DRYsO6S/fedkWEMKqt04xZ4csmnmwGDBAb07QWNaGMAmnTIemsYZCksjATwsA==}
 
   destroy@1.2.0:
     resolution: {integrity: sha512-2sJGJTaXIIaR1w4iJSNoN0hnMY7Gpc/n8D4qSCJw8QqFWXf7cuAgnEHxBpweaVcPevC2l3KpjYCx3NypQQgaJg==}
@@ -7268,6 +7365,9 @@ packages:
 
   error-ex@1.3.2:
     resolution: {integrity: sha512-7dFHNmqeFSEt2ZBsCriorKnn3Z2pj+fd9kmI6QoWw4//DL+icEBfc0U7qJCisqrTsKTjw4fNFy2pW9OqStD84g==}
+
+  error-stack-parser-es@1.0.5:
+    resolution: {integrity: sha512-5qucVt2XcuGMcEGgWI7i+yZpmpByQ8J1lHhcL7PwqCwu9FPP3VUXzT4ltHe5i2z9dePwEHcDVOAfSnHsOlCXRA==}
 
   error-stack-parser@2.1.4:
     resolution: {integrity: sha512-Sk5V6wVazPhq5MhpO+AUxJn5x7XSXGl1R93Vn7i+zS15KDVxQijejNCrz8340/2bgLBjR9GtEG8ZVKONDjcqGQ==}
@@ -7855,6 +7955,9 @@ packages:
     resolution: {integrity: sha512-28HqgMZAmih1Czt9ny7qr6ek2qddF4FclbMzwhCREB6OFfH+rXAnuNCwo1/wFvrtbgsQDb4kSbX9de9lFbrXnA==}
     engines: {node: '>= 0.10.0'}
 
+  exsolve@1.0.4:
+    resolution: {integrity: sha512-xsZH6PXaER4XoV+NiT7JHp1bJodJVT+cxeSH1G0f0tlT0lJqYuHUP3bUx2HtfTDvOagMINYp8rsqusxud3RXhw==}
+
   ext-list@2.2.2:
     resolution: {integrity: sha512-u+SQgsubraE6zItfVA0tBuCBhfU9ogSRnsvygI7wht9TS510oLkBRXBsqopeUG/GBOIQyKZO9wjTqIu/sf5zFA==}
     engines: {node: '>=0.10.0'}
@@ -8241,6 +8344,10 @@ packages:
     resolution: {integrity: sha512-Wv+daGyispVoA31TrWAVR+aAdP7roubTPEM/8JzRnqXhLbdJH0T9eQyXVFF8fjk3WKTsctII6QcyxILYgNp2DA==}
     hasBin: true
 
+  giget@2.0.0:
+    resolution: {integrity: sha512-L5bGsVkxJbJgdnwyuheIunkGatUF/zssUoxxjACCseZYAVbaqdh9Tsmmlkl8vYan09H7sbvKt4pS8GqKLBrEzA==}
+    hasBin: true
+
   github-from-package@0.0.0:
     resolution: {integrity: sha512-SyHy3T1v2NUXn29OsWdxmK6RwHD+vkj3v8en8AOBZ1wBQ/hCAQ5bAQTD02kW4W9tUp/3Qh6J8r9EvntiyCmOOw==}
 
@@ -8313,6 +8420,9 @@ packages:
 
   h3@1.13.0:
     resolution: {integrity: sha512-vFEAu/yf8UMUcB4s43OaDaigcqpQd14yanmOsn+NcRX3/guSKncyE2rOYhq8RIchgJrPSs/QiIddnTTR1ddiAg==}
+
+  h3@1.15.1:
+    resolution: {integrity: sha512-+ORaOBttdUm1E2Uu/obAyCguiI7MbBvsLTndc3gyK3zU+SYLoZXlyCP9Xgy0gikkGufFLTZXCXD6+4BsufnmHA==}
 
   has-async-hooks@1.0.0:
     resolution: {integrity: sha512-YF0VPGjkxr7AyyQQNykX8zK4PvtEDsUJAPqwu06UFz1lb6EvI53sPh5H1kWxg8NXI5LsfRCZ8uX9NkYDZBb/mw==}
@@ -8558,6 +8668,10 @@ packages:
 
   ioredis@5.5.0:
     resolution: {integrity: sha512-7CutT89g23FfSa8MDoIFs2GYYa0PaNiW/OrT+nRyjRXHDZd17HmIgy+reOQ/yhh72NznNjGuS8kbCAcA4Ro4mw==}
+    engines: {node: '>=12.22.0'}
+
+  ioredis@5.6.0:
+    resolution: {integrity: sha512-tBZlIIWbndeWBWCXWZiqtOF/yxf6yZX3tAlTJ7nfo5jhd6dctNxF7QnYlZLZ1a0o0pDoen7CgZqO+zjNaFbJAg==}
     engines: {node: '>=12.22.0'}
 
   ip-address@9.0.5:
@@ -9133,6 +9247,10 @@ packages:
     resolution: {integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==}
     engines: {node: '>=6'}
 
+  kleur@4.1.5:
+    resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
+    engines: {node: '>=6'}
+
   klona@2.0.6:
     resolution: {integrity: sha512-dhG34DXATL5hSxJbIexCft8FChFXtmskoZYnoPWjXQuebWYCNkVeV3KkGegCK9CP1oswI/vQibS2GY7Em/sJJA==}
     engines: {node: '>= 8'}
@@ -9287,6 +9405,10 @@ packages:
 
   local-pkg@1.0.0:
     resolution: {integrity: sha512-bbgPw/wmroJsil/GgL4qjDzs5YLTBMQ99weRsok1XCDccQeehbHA/I1oRvk2NPtr7KGZgT/Y5tPRnAtMqeG2Kg==}
+    engines: {node: '>=14'}
+
+  local-pkg@1.1.1:
+    resolution: {integrity: sha512-WunYko2W1NcdfAFpuLUoucsgULmgDBRkdxHxWQ7mK0cQqwPiy8E1enjuRBrhLtZkB5iScJ1XIPdhVEFK8aOLSg==}
     engines: {node: '>=14'}
 
   locate-path@3.0.0:
@@ -9682,6 +9804,11 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
+  mime@4.0.7:
+    resolution: {integrity: sha512-2OfDPL+e03E0LrXaGYOtTFIYhiuzep94NSsuhrNULq+stylcJedcHdzHtz0atMUuGwJfFYs0YL5xeC/Ca2x0eQ==}
+    engines: {node: '>=16'}
+    hasBin: true
+
   mimic-fn@1.2.0:
     resolution: {integrity: sha512-jf84uxzwiuiIVKiOLpfYk7N46TSy8ubTonmneY9vrpHNAnp0QBt2BxWV9dO3/j+BoVAb+a5G6YDPW3M5HOdMWQ==}
     engines: {node: '>=4'}
@@ -9898,6 +10025,16 @@ packages:
       xml2js:
         optional: true
 
+  nitropack@2.11.8:
+    resolution: {integrity: sha512-ummTu4R8Lhd1nO3nWrW7eeiHA2ey3ntbWFKkYakm4rcbvT6meWp+oykyrYBNFQKhobQl9CydmUWlCyztYXFPJw==}
+    engines: {node: ^16.11.0 || >=17.0.0}
+    hasBin: true
+    peerDependencies:
+      xml2js: ^0.6.2
+    peerDependenciesMeta:
+      xml2js:
+        optional: true
+
   node-abi@3.74.0:
     resolution: {integrity: sha512-c5XK0MjkGBrQPGYG24GBADZud0NCbznxNx0ZkS+ebUTrmV1qTDxPxSL8zEAPURXSbLRWVexxmP4986BziahL5w==}
     engines: {node: '>=10'}
@@ -9962,6 +10099,9 @@ packages:
 
   node-int64@0.4.0:
     resolution: {integrity: sha512-O5lz91xSOeoXP6DulyHfllpq+Eg00MWitZIbtPfoSEvqIHdl5gfcY6hYzDWnj0qD5tz52PI08u9qUvSVeUBeHw==}
+
+  node-mock-http@1.0.0:
+    resolution: {integrity: sha512-0uGYQ1WQL1M5kKvGRXWQ3uZCHtLTO8hln3oBjIusM75WoesZ909uQJs/Hb946i2SS+Gsrhkaa6iAO17jRIv6DQ==}
 
   node-releases@2.0.19:
     resolution: {integrity: sha512-xxOWJsBKtzAq7DY0J+DTzuz58K8e7sJbdgwkbMWQe8UYB6ekmsQ45q0M/tJDsGaZmbC+l7n57UV8Hl5tHxO9uw==}
@@ -10029,6 +10169,11 @@ packages:
     engines: {node: ^14.16.0 || >=16.10.0}
     hasBin: true
 
+  nypm@0.6.0:
+    resolution: {integrity: sha512-mn8wBFV9G9+UFHIrq+pZ2r2zL4aPau/by3kJb3cM7+5tQHMt6HGQB8FDIeKFYp8o0D2pnH6nVsO88N4AmUxIWg==}
+    engines: {node: ^14.16.0 || >=16.10.0}
+    hasBin: true
+
   ob1@0.81.4:
     resolution: {integrity: sha512-EZLYM8hfPraC2SYOR5EWLFAPV5e6g+p83m2Jth9bzCpFxP1NDQJYXdmXRB2bfbaWQSmm6NkIQlbzk7uU5lLfgg==}
     engines: {node: '>=18.18'}
@@ -10077,6 +10222,12 @@ packages:
 
   ohash@1.1.4:
     resolution: {integrity: sha512-FlDryZAahJmEF3VR3w1KogSEdWX3WhA5GPakFx4J81kEAiHyLMpdLLElS8n8dfNadMgAne/MywcvmogzscVt4g==}
+
+  ohash@1.1.6:
+    resolution: {integrity: sha512-TBu7PtV8YkAZn0tSxobKY2n2aAQva936lhRrj6957aDaCf9IEtqsKbgMzXE/F/sjqYOwmrukeORHNLe5glk7Cg==}
+
+  ohash@2.0.11:
+    resolution: {integrity: sha512-RdR9FQrFwNBNXAr4GixM8YaRZRJ5PUWbKYbE5eOsrwAjJW0q2REGcf79oYPsLyskQCZG1PLN+S/K1V00joZAoQ==}
 
   on-exit-leak-free@2.1.2:
     resolution: {integrity: sha512-0eJJY6hXLGf1udHwfNftBqH+g73EU4B504nZeKpz1sYRKafAghwxEJunB2O7rDZkL4PGfsMVnTXZ2EjibbqcsA==}
@@ -10428,6 +10579,9 @@ packages:
   pkg-types@1.3.1:
     resolution: {integrity: sha512-/Jm5M4RvtBFVkKWRu2BLUTNP8/M2a+UwuAX+ae4770q1qVGtfjG+WTCupoZixokjmHiry8uI+dlY8KXYV5HVVQ==}
 
+  pkg-types@2.1.0:
+    resolution: {integrity: sha512-wmJwA+8ihJixSoHKxZJRBQG1oY8Yr9pGLzRmSsNms0iNWyHHAlZCa7mmKiFR10YPZuz/2k169JiS/inOjBCZ2A==}
+
   plist@3.1.0:
     resolution: {integrity: sha512-uysumyrvkUX0rX/dEVqt8gC3sTBzd4zoWfLeS29nb53imdaXVvLINYXTI2GNqzaMuvacNx4uJQ8+b3zXR0pkgQ==}
     engines: {node: '>=10.4.0'}
@@ -10685,6 +10839,9 @@ packages:
   qs@6.14.0:
     resolution: {integrity: sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w==}
     engines: {node: '>=0.6'}
+
+  quansync@0.2.10:
+    resolution: {integrity: sha512-t41VRkMYbkHyCYmOvx/6URnN80H7k4X0lLdBMGsz+maAwrJQYB1djpV6vHrQIBE0WBSGqhtEHrK9U3DWWH8v7A==}
 
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
@@ -11430,6 +11587,9 @@ packages:
   std-env@3.8.0:
     resolution: {integrity: sha512-Bc3YwwCB+OzldMxOXJIIvC6cPRWr/LxOp48CdQTOkPyk/t4JWWJbrilwBd7RJzKV8QW7tJkcgAmeuLLJugl5/w==}
 
+  std-env@3.9.0:
+    resolution: {integrity: sha512-UGvjygr6F6tpH7o2qyqR6QYpwraIjKSdtzyBdyytFOHmPZY917kwdwLG0RbOjWOnKmnm3PeHjaoLLMie7kPLQw==}
+
   storybook@8.5.8:
     resolution: {integrity: sha512-k3QDa7z4a656oO3Mx929KNm+xIdEI2nIDCKatVl1mA6vt+ge+uwoiG+ro182J9LOEppR5XXD2mQQi4u1xNsy6A==}
     hasBin: true
@@ -11557,6 +11717,9 @@ packages:
   strip-literal@2.1.1:
     resolution: {integrity: sha512-631UJ6O00eNGfMiWG78ck80dfBab8X6IVFB51jZK5Icd7XAs60Z5y7QdSd/wGIklnWvRbUNloVzhOKKmutxQ6Q==}
 
+  strip-literal@3.0.0:
+    resolution: {integrity: sha512-TcccoMhJOM3OebGhSBEmp3UZ2SfDMZUEBdRA/9ynfLi8yYajyWX3JiXArcJt4Umh4vISpspkQIY8ZZoCqjbviA==}
+
   strnum@1.0.5:
     resolution: {integrity: sha512-J8bbNyKKXl5qYcR36TIO8W3mVGVHrmmxsd5PAItGkmyzwJvybiw2IVq5nqd0i4LSNSkB/sx9VHllbfFdr9k1JA==}
 
@@ -11602,6 +11765,10 @@ packages:
   supertest@7.0.0:
     resolution: {integrity: sha512-qlsr7fIC0lSddmA3tzojvzubYxvlGtzumcdHgPwbFWMISQwL22MhM2Y3LNt+6w9Yyx7559VW5ab70dgphm8qQA==}
     engines: {node: '>=14.18.0'}
+
+  supports-color@10.0.0:
+    resolution: {integrity: sha512-HRVVSbCCMbj7/kdWF9Q+bbckjBHLtHMEoJWlkmYzzdwhYMkjkOwubLM6t7NbWKjgKamGDrWL1++KrjUO1t9oAQ==}
+    engines: {node: '>=18'}
 
   supports-color@5.5.0:
     resolution: {integrity: sha512-QjVjwdXIt408MIiAqCX4oUKsgU2EqAGzs2Ppkm4aQYbjm+ZEWEcW4SfFNTr4uMNZma0ey4f5lgLrkB0aX0QMow==}
@@ -11767,6 +11934,10 @@ packages:
 
   tinyglobby@0.2.11:
     resolution: {integrity: sha512-32TmKeeKUahv0Go8WmQgiEp9Y21NuxjwjqiRC1nrUB51YacfSwuB44xgXD+HdIppmMRgjQNPdrHyA6vIybYZ+g==}
+    engines: {node: '>=12.0.0'}
+
+  tinyglobby@0.2.12:
+    resolution: {integrity: sha512-qkf4trmKSIiMTs/E63cxH+ojC2unam7rJ0WrauAzpT3ECNTxGRMlaXxVbfxMUC/w0LaYk6jQ4y/nGR9uBO3tww==}
     engines: {node: '>=12.0.0'}
 
   tinyrainbow@1.2.0:
@@ -12036,6 +12207,10 @@ packages:
     resolution: {integrity: sha512-6kSc32kT0rbwxD6QL1CYe8IqdzN/J/ILMrNK+HMQCKH3insCDRY/3ITb0vcBss0a3t72fzh2YSzj8ko1HgwT3g==}
     engines: {node: '>=16'}
 
+  type-fest@4.39.1:
+    resolution: {integrity: sha512-uW9qzd66uyHYxwyVBYiwS4Oi0qZyUqwjU+Oevr6ZogYiXt99EOYtwvzMSLw1c3lYo2HzJsep/NB23iEVEgjG/w==}
+    engines: {node: '>=16'}
+
   type-is@1.6.18:
     resolution: {integrity: sha512-TkRKr9sUTxEH8MdfuCSP7VizJyzRNMjj2J2do2Jr3Kym598JVdEksuzPQCnlFPW4ky9Q+iA+ma9BGm06XQBy8g==}
     engines: {node: '>= 0.6'}
@@ -12083,12 +12258,18 @@ packages:
   ufo@1.5.4:
     resolution: {integrity: sha512-UsUk3byDzKd04EyoZ7U4DOlxQaD14JUKQl6/P7wiX4FNvUfm3XL246n9W5AmqwW5RSFJ27NAuM0iLscAOYUiGQ==}
 
+  ufo@1.6.1:
+    resolution: {integrity: sha512-9a4/uxlTWJ4+a5i0ooc1rU7C7YOw3wT+UGqdeNNHWnOF9qcMBgLRS+4IYUqbczewFx4mLEig6gawh7X6mFlEkA==}
+
   uid-promise@1.0.0:
     resolution: {integrity: sha512-R8375j0qwXyIu/7R0tjdF06/sElHqbmdmWC9M2qQHpEVbvE4I5+38KJI7LUUmQMp7NVq4tKHiBMkT0NFM453Ig==}
 
   uint8array-extras@1.4.0:
     resolution: {integrity: sha512-ZPtzy0hu4cZjv3z5NW9gfKnNLjoz4y6uv4HlelAjDK7sY/xOkKZv9xK/WQpcsBB3jEybChz9DPC2U/+cusjJVQ==}
     engines: {node: '>=18'}
+
+  ultrahtml@1.6.0:
+    resolution: {integrity: sha512-R9fBn90VTJrqqLDwyMph+HGne8eqY1iPfYhPzZrvKpIfwkWZbcYlfpsb8B9dTvBfpy1/hqAD7Wi8EKfP9e8zdw==}
 
   unbox-primitive@1.1.0:
     resolution: {integrity: sha512-nWJ91DjeOkej/TA8pXQ3myruKpKEYgqvpw9lz4OPHj/NWFNluYrjbz9j01CJ8yKQd2g4jFoOkINCTW2I5LEEyw==}
@@ -12126,6 +12307,9 @@ packages:
   unenv@1.10.0:
     resolution: {integrity: sha512-wY5bskBQFL9n3Eca5XnhH6KbUo/tfvkwm9OpcdCvLaeA7piBNbavbOKJySEwQ1V0RH6HvNlSAFRTpvTqgKRQXQ==}
 
+  unenv@2.0.0-rc.15:
+    resolution: {integrity: sha512-J/rEIZU8w6FOfLNz/hNKsnY+fFHWnu9MH4yRbSZF3xbbGHovcetXPs7sD+9p8L6CeNC//I9bhRYAOsBt2u7/OA==}
+
   unicode-canonical-property-names-ecmascript@2.0.1:
     resolution: {integrity: sha512-dA8WbNeb2a6oQzAQ55YlT5vQAWGV9WXOsi3SskE3bcCdM0P4SDd+24zS/OCacdRq5BkdsRj9q3Pg6YyQoxIGqg==}
     engines: {node: '>=4'}
@@ -12151,6 +12335,10 @@ packages:
 
   unimport@3.14.6:
     resolution: {integrity: sha512-CYvbDaTT04Rh8bmD8jz3WPmHYZRG/NnvYVzwD6V1YAlvvKROlAeNDUBhkBGzNav2RKaeuXvlWYaa1V4Lfi/O0g==}
+
+  unimport@4.2.0:
+    resolution: {integrity: sha512-mYVtA0nmzrysnYnyb3ALMbByJ+Maosee2+WyE0puXl+Xm2bUwPorPaaeZt0ETfuroPOtG8jj1g/qeFZ6buFnag==}
+    engines: {node: '>=18.12.0'}
 
   unique-filename@1.1.1:
     resolution: {integrity: sha512-Vmp0jIp2ln35UTXuryvjzkjGdRyf9b2lTXuSYUiPmzRcl3FDtYqAwOnTJkAngD9SWhnoJzDbTKwaOrZ+STtxNQ==}
@@ -12204,12 +12392,16 @@ packages:
     resolution: {integrity: sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==}
     engines: {node: '>= 0.8'}
 
+  unplugin-utils@0.2.4:
+    resolution: {integrity: sha512-8U/MtpkPkkk3Atewj1+RcKIjb5WBimZ/WSLhhR3w6SsIj8XJuKTacSP8g+2JhfSGw0Cb125Y+2zA/IzJZDVbhA==}
+    engines: {node: '>=18.12.0'}
+
   unplugin@1.16.1:
     resolution: {integrity: sha512-4/u/j4FrCKdi17jaxuJA0jClGxB1AvU2hw/IuayPc4ay1XGaJs/rbb4v5WKwAjNifjmXK9PIFyuPiaK8azyR9w==}
     engines: {node: '>=14.0.0'}
 
-  unplugin@2.2.0:
-    resolution: {integrity: sha512-m1ekpSwuOT5hxkJeZGRxO7gXbXT3gF26NjQ7GdVHoLoF8/nopLcd/QfPigpCy7i51oFHiRJg/CyHhj4vs2+KGw==}
+  unplugin@2.2.2:
+    resolution: {integrity: sha512-Qp+iiD+qCRnUek+nDoYvtWX7tfnYyXsrOnJ452FRTgOyKmTM7TUJ3l+PLPJOOWPTUyKISKp4isC5JJPSXUjGgw==}
     engines: {node: '>=18.12.0'}
 
   unstorage@1.14.4:
@@ -12271,6 +12463,65 @@ packages:
       uploadthing:
         optional: true
 
+  unstorage@1.15.0:
+    resolution: {integrity: sha512-m40eHdGY/gA6xAPqo8eaxqXgBuzQTlAKfmB1iF7oCKXE1HfwHwzDJBywK+qQGn52dta+bPlZluPF7++yR3p/bg==}
+    peerDependencies:
+      '@azure/app-configuration': ^1.8.0
+      '@azure/cosmos': ^4.2.0
+      '@azure/data-tables': ^13.3.0
+      '@azure/identity': ^4.6.0
+      '@azure/keyvault-secrets': ^4.9.0
+      '@azure/storage-blob': ^12.26.0
+      '@capacitor/preferences': ^6.0.3
+      '@deno/kv': '>=0.9.0'
+      '@netlify/blobs': ^6.5.0 || ^7.0.0 || ^8.1.0
+      '@planetscale/database': ^1.19.0
+      '@upstash/redis': ^1.34.3
+      '@vercel/blob': '>=0.27.1'
+      '@vercel/kv': ^1.0.1
+      aws4fetch: ^1.0.20
+      db0: '>=0.2.1'
+      idb-keyval: ^6.2.1
+      ioredis: ^5.4.2
+      uploadthing: ^7.4.4
+    peerDependenciesMeta:
+      '@azure/app-configuration':
+        optional: true
+      '@azure/cosmos':
+        optional: true
+      '@azure/data-tables':
+        optional: true
+      '@azure/identity':
+        optional: true
+      '@azure/keyvault-secrets':
+        optional: true
+      '@azure/storage-blob':
+        optional: true
+      '@capacitor/preferences':
+        optional: true
+      '@deno/kv':
+        optional: true
+      '@netlify/blobs':
+        optional: true
+      '@planetscale/database':
+        optional: true
+      '@upstash/redis':
+        optional: true
+      '@vercel/blob':
+        optional: true
+      '@vercel/kv':
+        optional: true
+      aws4fetch:
+        optional: true
+      db0:
+        optional: true
+      idb-keyval:
+        optional: true
+      ioredis:
+        optional: true
+      uploadthing:
+        optional: true
+
   untildify@4.0.0:
     resolution: {integrity: sha512-KK8xQ1mkzZeg9inewmFVDNkg3l5LUhoq9kN6iWYB/CC9YMG8HA+c1Q8HwDe6dEX7kErrEVNVBO3fWsVq5iDgtw==}
     engines: {node: '>=8'}
@@ -12281,6 +12532,10 @@ packages:
 
   untyped@1.5.2:
     resolution: {integrity: sha512-eL/8PlhLcMmlMDtNPKhyyz9kEBDS3Uk4yMu/ewlkT2WFbtzScjHWPJLdQLmaGPUKjXzwe9MumOtOgc4Fro96Kg==}
+    hasBin: true
+
+  untyped@2.0.0:
+    resolution: {integrity: sha512-nwNCjxJTjNuLCgFr42fEak5OcLuB3ecca+9ksPFNvtfYSLpjf+iJqSIaSnIile6ZPbKYxI5k2AfXqeopGudK/g==}
     hasBin: true
 
   unwasm@0.3.9:
@@ -12371,6 +12626,10 @@ packages:
 
   vinxi@0.5.3:
     resolution: {integrity: sha512-4sL2SMrRzdzClapP44oXdGjCE1oq7/DagsbjY5A09EibmoIO4LP8ScRVdh03lfXxKRk7nCWK7n7dqKvm+fp/9w==}
+    hasBin: true
+
+  vinxi@0.5.4:
+    resolution: {integrity: sha512-ZVJjUfnlItWdbUpXIIOr+B87Hrc+ObEtYEHasHiFedBr/HwPlKI9rMClH2TTky9JhK3Gy6du3EJhhWeVuo7S1Q==}
     hasBin: true
 
   vite@5.4.17:
@@ -12694,6 +12953,14 @@ packages:
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
+
+  youch-core@0.3.2:
+    resolution: {integrity: sha512-fusrlIMLeRvTFYLUjJ9KzlGC3N+6MOPJ68HNj/yJv2nz7zq8t4HEviLms2gkdRPUS7F5rZ5n+pYx9r88m6IE1g==}
+    engines: {node: '>=18'}
+
+  youch@4.1.0-beta.7:
+    resolution: {integrity: sha512-HUn0M24AUTMvjdkoMtH8fJz2FEd+k1xvtR9EoTrDUoVUi6o7xl5X+pST/vjk4T3GEQo2mJ9FlAvhWBm8dIdD4g==}
+    engines: {node: '>=18'}
 
   yup@1.6.1:
     resolution: {integrity: sha512-JED8pB50qbA4FOkDol0bYF/p60qSEDQqBD0/qeIrUCG1KbPBIQ776fCUNb9ldbPcSTxA69g/47XTo4TqWiuXOA==}
@@ -14310,6 +14577,10 @@ snapshots:
     dependencies:
       mime: 3.0.0
 
+  '@cloudflare/kv-asset-handler@0.4.0':
+    dependencies:
+      mime: 3.0.0
+
   '@cloudflare/workers-types@4.20250214.0': {}
 
   '@colors/colors@1.5.0':
@@ -15574,7 +15845,7 @@ snapshots:
 
   '@mapbox/node-pre-gyp@2.0.0(encoding@0.1.13)':
     dependencies:
-      consola: 3.4.0
+      consola: 3.4.2
       detect-libc: 2.0.3
       https-proxy-agent: 7.0.6
       node-fetch: 2.7.0(encoding@0.1.13)
@@ -15585,7 +15856,7 @@ snapshots:
       - encoding
       - supports-color
 
-  '@mdx-js/mdx@3.1.0(acorn@8.14.0)':
+  '@mdx-js/mdx@3.1.0(acorn@8.14.1)':
     dependencies:
       '@types/estree': 1.0.6
       '@types/estree-jsx': 1.0.5
@@ -15599,7 +15870,7 @@ snapshots:
       hast-util-to-jsx-runtime: 2.3.2
       markdown-extensions: 2.0.0
       recma-build-jsx: 1.0.0
-      recma-jsx: 1.0.0(acorn@8.14.0)
+      recma-jsx: 1.0.0(acorn@8.14.1)
       recma-stringify: 1.0.0
       rehype-recma: 1.0.0
       remark-mdx: 3.1.0
@@ -15703,12 +15974,18 @@ snapshots:
     dependencies:
       '@netlify/serverless-functions-api': 1.26.1
 
+  '@netlify/functions@3.0.4':
+    dependencies:
+      '@netlify/serverless-functions-api': 1.36.0
+
   '@netlify/node-cookies@0.1.0': {}
 
   '@netlify/serverless-functions-api@1.26.1':
     dependencies:
       '@netlify/node-cookies': 0.1.0
       urlpattern-polyfill: 8.0.2
+
+  '@netlify/serverless-functions-api@1.36.0': {}
 
   '@next/env@14.2.27': {}
 
@@ -15894,6 +16171,18 @@ snapshots:
   '@pkgr/core@0.2.0': {}
 
   '@planetscale/database@1.19.0': {}
+
+  '@poppinss/colors@4.1.4':
+    dependencies:
+      kleur: 4.1.5
+
+  '@poppinss/dumper@0.6.3':
+    dependencies:
+      '@poppinss/colors': 4.1.4
+      '@sindresorhus/is': 7.0.1
+      supports-color: 10.0.0
+
+  '@poppinss/exception@1.2.1': {}
 
   '@prettier/sync@0.5.2(prettier@3.3.3)':
     dependencies:
@@ -16190,6 +16479,10 @@ snapshots:
     optionalDependencies:
       rollup: 4.34.6
 
+  '@rollup/plugin-alias@5.1.1(rollup@4.39.0)':
+    optionalDependencies:
+      rollup: 4.39.0
+
   '@rollup/plugin-commonjs@28.0.2(rollup@4.34.6)':
     dependencies:
       '@rollup/pluginutils': 5.1.4(rollup@4.34.6)
@@ -16202,6 +16495,18 @@ snapshots:
     optionalDependencies:
       rollup: 4.34.6
 
+  '@rollup/plugin-commonjs@28.0.3(rollup@4.39.0)':
+    dependencies:
+      '@rollup/pluginutils': 5.1.4(rollup@4.39.0)
+      commondir: 1.0.1
+      estree-walker: 2.0.2
+      fdir: 6.4.3(picomatch@4.0.2)
+      is-reference: 1.2.1
+      magic-string: 0.30.17
+      picomatch: 4.0.2
+    optionalDependencies:
+      rollup: 4.39.0
+
   '@rollup/plugin-inject@5.0.5(rollup@4.34.6)':
     dependencies:
       '@rollup/pluginutils': 5.1.4(rollup@4.34.6)
@@ -16210,11 +16515,25 @@ snapshots:
     optionalDependencies:
       rollup: 4.34.6
 
+  '@rollup/plugin-inject@5.0.5(rollup@4.39.0)':
+    dependencies:
+      '@rollup/pluginutils': 5.1.4(rollup@4.39.0)
+      estree-walker: 2.0.2
+      magic-string: 0.30.17
+    optionalDependencies:
+      rollup: 4.39.0
+
   '@rollup/plugin-json@6.1.0(rollup@4.34.6)':
     dependencies:
       '@rollup/pluginutils': 5.1.4(rollup@4.34.6)
     optionalDependencies:
       rollup: 4.34.6
+
+  '@rollup/plugin-json@6.1.0(rollup@4.39.0)':
+    dependencies:
+      '@rollup/pluginutils': 5.1.4(rollup@4.39.0)
+    optionalDependencies:
+      rollup: 4.39.0
 
   '@rollup/plugin-node-resolve@15.3.1(rollup@4.34.6)':
     dependencies:
@@ -16226,12 +16545,29 @@ snapshots:
     optionalDependencies:
       rollup: 4.34.6
 
+  '@rollup/plugin-node-resolve@16.0.1(rollup@4.39.0)':
+    dependencies:
+      '@rollup/pluginutils': 5.1.4(rollup@4.39.0)
+      '@types/resolve': 1.20.2
+      deepmerge: 4.3.1
+      is-module: 1.0.0
+      resolve: 1.22.10
+    optionalDependencies:
+      rollup: 4.39.0
+
   '@rollup/plugin-replace@6.0.2(rollup@4.34.6)':
     dependencies:
       '@rollup/pluginutils': 5.1.4(rollup@4.34.6)
       magic-string: 0.30.17
     optionalDependencies:
       rollup: 4.34.6
+
+  '@rollup/plugin-replace@6.0.2(rollup@4.39.0)':
+    dependencies:
+      '@rollup/pluginutils': 5.1.4(rollup@4.39.0)
+      magic-string: 0.30.17
+    optionalDependencies:
+      rollup: 4.39.0
 
   '@rollup/plugin-terser@0.4.4(rollup@4.34.6)':
     dependencies:
@@ -16240,6 +16576,14 @@ snapshots:
       terser: 5.38.2
     optionalDependencies:
       rollup: 4.34.6
+
+  '@rollup/plugin-terser@0.4.4(rollup@4.39.0)':
+    dependencies:
+      serialize-javascript: 6.0.2
+      smob: 1.5.0
+      terser: 5.38.2
+    optionalDependencies:
+      rollup: 4.39.0
 
   '@rollup/pluginutils@4.2.1':
     dependencies:
@@ -16395,6 +16739,8 @@ snapshots:
   '@sinclair/typebox@0.27.8': {}
 
   '@sindresorhus/is@5.6.0': {}
+
+  '@sindresorhus/is@7.0.1': {}
 
   '@sindresorhus/merge-streams@2.3.0': {}
 
@@ -16672,6 +17018,8 @@ snapshots:
     dependencies:
       '@smithy/util-buffer-from': 4.0.0
       tslib: 2.8.1
+
+  '@speed-highlight/core@1.2.7': {}
 
   '@standard-schema/spec@1.0.0': {}
 
@@ -17086,7 +17434,7 @@ snapshots:
       '@types/babel__traverse': 7.20.6
       babel-dead-code-elimination: 1.0.9
       chokidar: 3.6.0
-      unplugin: 2.2.0
+      unplugin: 2.2.2
       zod: 3.24.2
     optionalDependencies:
       '@tanstack/react-router': 1.106.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -17122,13 +17470,13 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
-  '@tanstack/start-api-routes@1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)':
+  '@tanstack/start-api-routes@1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)':
     dependencies:
       '@tanstack/react-router': 1.106.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@tanstack/start-server': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
+      '@tanstack/start-server': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
-      vinxi: 0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
+      vinxi: 0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -17167,12 +17515,11 @@ snapshots:
       - supports-color
       - terser
       - tsx
-      - typescript
       - uploadthing
       - xml2js
       - yaml
 
-  '@tanstack/start-client@1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)':
+  '@tanstack/start-client@1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)':
     dependencies:
       '@tanstack/react-cross-context': 1.99.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/react-router': 1.106.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -17181,7 +17528,7 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       tiny-invariant: 1.3.3
-      vinxi: 0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
+      vinxi: 0.5.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -17220,26 +17567,25 @@ snapshots:
       - supports-color
       - terser
       - tsx
-      - typescript
       - uploadthing
       - xml2js
       - yaml
 
-  '@tanstack/start-config@1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(vite@5.4.17(@types/node@22.13.17)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
+  '@tanstack/start-config@1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(vite@5.4.17(@types/node@22.13.17)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
     dependencies:
       '@tanstack/react-router': 1.106.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/router-generator': 1.106.0(@tanstack/react-router@1.106.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
       '@tanstack/router-plugin': 1.106.0(@tanstack/react-router@1.106.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(vite@5.4.17(@types/node@22.13.17)(lightningcss@1.27.0)(terser@5.39.0))
       '@tanstack/server-functions-plugin': 1.106.0
       '@tanstack/start-plugin': 1.107.0
-      '@tanstack/start-server-functions-handler': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
+      '@tanstack/start-server-functions-handler': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
       '@vitejs/plugin-react': 4.3.4(vite@5.4.17(@types/node@22.13.17)(lightningcss@1.27.0)(terser@5.39.0))
       import-meta-resolve: 4.1.0
       nitropack: 2.10.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(mysql2@3.12.0)(sqlite3@5.1.7)(typescript@5.7.3)
       ofetch: 1.4.1
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
-      vinxi: 0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
+      vinxi: 0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
       vite: 5.4.17(@types/node@22.13.17)(lightningcss@1.27.0)(terser@5.39.0)
       zod: 3.24.2
     transitivePeerDependencies:
@@ -17307,12 +17653,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@tanstack/start-router-manifest@1.106.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)':
+  '@tanstack/start-router-manifest@1.106.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)':
     dependencies:
       '@tanstack/react-router': 1.106.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
-      vinxi: 0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
+      vinxi: 0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -17351,15 +17697,14 @@ snapshots:
       - supports-color
       - terser
       - tsx
-      - typescript
       - uploadthing
       - xml2js
       - yaml
 
-  '@tanstack/start-server-functions-client@1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)':
+  '@tanstack/start-server-functions-client@1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)':
     dependencies:
       '@tanstack/server-functions-plugin': 1.106.0
-      '@tanstack/start-server-functions-fetcher': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
+      '@tanstack/start-server-functions-fetcher': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
     transitivePeerDependencies:
@@ -17401,15 +17746,14 @@ snapshots:
       - supports-color
       - terser
       - tsx
-      - typescript
       - uploadthing
       - xml2js
       - yaml
 
-  '@tanstack/start-server-functions-fetcher@1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)':
+  '@tanstack/start-server-functions-fetcher@1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)':
     dependencies:
       '@tanstack/react-router': 1.106.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@tanstack/start-client': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
+      '@tanstack/start-client': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
     transitivePeerDependencies:
@@ -17450,16 +17794,15 @@ snapshots:
       - supports-color
       - terser
       - tsx
-      - typescript
       - uploadthing
       - xml2js
       - yaml
 
-  '@tanstack/start-server-functions-handler@1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)':
+  '@tanstack/start-server-functions-handler@1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)':
     dependencies:
       '@tanstack/react-router': 1.106.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@tanstack/start-client': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
-      '@tanstack/start-server': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
+      '@tanstack/start-client': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
+      '@tanstack/start-server': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       tiny-invariant: 1.3.3
@@ -17501,7 +17844,6 @@ snapshots:
       - supports-color
       - terser
       - tsx
-      - typescript
       - uploadthing
       - xml2js
       - yaml
@@ -17516,12 +17858,12 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
-  '@tanstack/start-server-functions-ssr@1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)':
+  '@tanstack/start-server-functions-ssr@1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)':
     dependencies:
       '@tanstack/server-functions-plugin': 1.106.0
-      '@tanstack/start-client': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
-      '@tanstack/start-server': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
-      '@tanstack/start-server-functions-fetcher': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
+      '@tanstack/start-client': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
+      '@tanstack/start-server': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
+      '@tanstack/start-server-functions-fetcher': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       tiny-invariant: 1.3.3
@@ -17564,16 +17906,15 @@ snapshots:
       - supports-color
       - terser
       - tsx
-      - typescript
       - uploadthing
       - xml2js
       - yaml
 
-  '@tanstack/start-server@1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)':
+  '@tanstack/start-server@1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)':
     dependencies:
       '@tanstack/react-cross-context': 1.99.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/react-router': 1.106.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@tanstack/start-client': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
+      '@tanstack/start-client': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
       h3: 1.13.0
       isbot: 5.1.23
       jsesc: 3.1.0
@@ -17618,22 +17959,21 @@ snapshots:
       - supports-color
       - terser
       - tsx
-      - typescript
       - uploadthing
       - xml2js
       - yaml
 
-  '@tanstack/start@1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(vite@5.4.17(@types/node@22.13.17)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
+  '@tanstack/start@1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(vite@5.4.17(@types/node@22.13.17)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)':
     dependencies:
-      '@tanstack/start-api-routes': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
-      '@tanstack/start-client': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
-      '@tanstack/start-config': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(vite@5.4.17(@types/node@22.13.17)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
-      '@tanstack/start-router-manifest': 1.106.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
-      '@tanstack/start-server': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
-      '@tanstack/start-server-functions-client': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
-      '@tanstack/start-server-functions-handler': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
+      '@tanstack/start-api-routes': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
+      '@tanstack/start-client': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
+      '@tanstack/start-config': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(vite@5.4.17(@types/node@22.13.17)(lightningcss@1.27.0)(terser@5.39.0))(yaml@2.7.0)
+      '@tanstack/start-router-manifest': 1.106.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
+      '@tanstack/start-server': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
+      '@tanstack/start-server-functions-client': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
+      '@tanstack/start-server-functions-handler': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
       '@tanstack/start-server-functions-server': 1.106.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@tanstack/start-server-functions-ssr': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0)
+      '@tanstack/start-server-functions-ssr': 1.107.0(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       vite: 5.4.17(@types/node@22.13.17)(lightningcss@1.27.0)(terser@5.39.0)
@@ -18366,6 +18706,25 @@ snapshots:
       - encoding
       - supports-color
 
+  '@vercel/nft@0.29.2(encoding@0.1.13)(rollup@4.39.0)':
+    dependencies:
+      '@mapbox/node-pre-gyp': 2.0.0(encoding@0.1.13)
+      '@rollup/pluginutils': 5.1.4(rollup@4.39.0)
+      acorn: 8.14.1
+      acorn-import-attributes: 1.9.5(acorn@8.14.1)
+      async-sema: 3.1.1
+      bindings: 1.5.0
+      estree-walker: 2.0.2
+      glob: 10.4.5
+      graceful-fs: 4.2.11
+      node-gyp-build: 4.8.4
+      picomatch: 4.0.2
+      resolve-from: 5.0.0
+    transitivePeerDependencies:
+      - encoding
+      - rollup
+      - supports-color
+
   '@vercel/node@3.2.29(@swc/core@1.10.18)(encoding@0.1.13)':
     dependencies:
       '@edge-runtime/node-utils': 2.3.0
@@ -18480,17 +18839,17 @@ snapshots:
       '@parcel/watcher-wasm': 2.3.0
       citty: 0.1.6
       clipboardy: 4.0.0
-      consola: 3.4.0
+      consola: 3.4.2
       defu: 6.1.4
       get-port-please: 3.1.2
-      h3: 1.13.0
+      h3: 1.15.1
       http-shutdown: 1.2.2
       jiti: 1.21.7
       mlly: 1.7.4
       node-forge: 1.3.1
       pathe: 1.1.2
-      std-env: 3.8.0
-      ufo: 1.5.4
+      std-env: 3.9.0
+      ufo: 1.6.1
       untun: 0.1.3
       uqr: 0.1.2
 
@@ -18651,9 +19010,17 @@ snapshots:
     dependencies:
       acorn: 8.14.0
 
+  acorn-import-attributes@1.9.5(acorn@8.14.1):
+    dependencies:
+      acorn: 8.14.1
+
   acorn-jsx@5.3.2(acorn@8.14.0):
     dependencies:
       acorn: 8.14.0
+
+  acorn-jsx@5.3.2(acorn@8.14.1):
+    dependencies:
+      acorn: 8.14.1
 
   acorn-walk@8.3.4:
     dependencies:
@@ -19285,6 +19652,23 @@ snapshots:
     optionalDependencies:
       magicast: 0.3.5
 
+  c12@3.0.3(magicast@0.3.5):
+    dependencies:
+      chokidar: 4.0.3
+      confbox: 0.2.2
+      defu: 6.1.4
+      dotenv: 16.4.7
+      exsolve: 1.0.4
+      giget: 2.0.0
+      jiti: 2.4.2
+      ohash: 2.0.11
+      pathe: 2.0.3
+      perfect-debounce: 1.0.0
+      pkg-types: 2.1.0
+      rc9: 2.1.2
+    optionalDependencies:
+      magicast: 0.3.5
+
   cac@6.7.14: {}
 
   cacache@15.3.0:
@@ -19494,7 +19878,7 @@ snapshots:
 
   citty@0.1.6:
     dependencies:
-      consola: 3.4.0
+      consola: 3.4.2
 
   cjs-module-lexer@1.2.3: {}
 
@@ -19645,6 +20029,8 @@ snapshots:
 
   confbox@0.1.8: {}
 
+  confbox@0.2.2: {}
+
   connect@3.7.0:
     dependencies:
       debug: 2.6.9
@@ -19655,6 +20041,8 @@ snapshots:
       - supports-color
 
   consola@3.4.0: {}
+
+  consola@3.4.2: {}
 
   console-control-strings@1.1.0: {}
 
@@ -19671,6 +20059,8 @@ snapshots:
   convert-source-map@2.0.0: {}
 
   cookie-es@1.2.2: {}
+
+  cookie-es@2.0.0: {}
 
   cookie-signature@1.0.6: {}
 
@@ -19821,6 +20211,15 @@ snapshots:
       mysql2: 3.12.0
       sqlite3: 5.1.7
 
+  db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7):
+    optionalDependencies:
+      '@electric-sql/pglite': 0.2.17
+      '@libsql/client': 0.14.0(bufferutil@4.0.9)
+      better-sqlite3: 11.8.1
+      drizzle-orm: 0.39.3(@aws-sdk/client-rds-data@3.751.0)(@cloudflare/workers-types@4.20250214.0)(@electric-sql/pglite@0.2.17)(@libsql/client-wasm@0.14.0)(@libsql/client@0.14.0)(@neondatabase/serverless@0.10.4)(@op-engineering/op-sqlite@11.4.9)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@6.4.0(typescript@5.7.3))(@tidbcloud/serverless@0.2.0)(@types/better-sqlite3@7.6.12)(@types/pg@8.11.11)(@types/sql.js@1.4.9)(@vercel/postgres@0.10.0)(@xata.io/client@0.30.1(typescript@5.7.3))(better-sqlite3@11.8.1)(bun-types@1.2.8)(expo-sqlite@15.1.4)(knex@3.1.0(better-sqlite3@11.8.1)(mysql2@3.12.0)(pg@8.13.2)(sqlite3@5.1.7))(kysely@0.27.6)(mysql2@3.12.0)(pg@8.13.2)(postgres@3.4.5)(sql.js@1.12.0)(sqlite3@5.1.7)
+      mysql2: 3.12.0
+      sqlite3: 5.1.7
+
   debug@2.6.9:
     dependencies:
       ms: 2.0.0
@@ -19920,6 +20319,8 @@ snapshots:
   dequal@2.0.3: {}
 
   destr@2.0.3: {}
+
+  destr@2.0.5: {}
 
   destroy@1.2.0: {}
 
@@ -20125,6 +20526,8 @@ snapshots:
     dependencies:
       is-arrayish: 0.2.1
 
+  error-stack-parser-es@1.0.5: {}
+
   error-stack-parser@2.1.4:
     dependencies:
       stackframe: 1.3.4
@@ -20245,7 +20648,7 @@ snapshots:
   esast-util-from-js@2.0.1:
     dependencies:
       '@types/estree-jsx': 1.0.5
-      acorn: 8.14.0
+      acorn: 8.14.1
       esast-util-from-estree: 2.0.0
       vfile-message: 4.0.2
 
@@ -21120,6 +21523,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  exsolve@1.0.4: {}
+
   ext-list@2.2.2:
     dependencies:
       mime-db: 1.53.0
@@ -21577,13 +21982,22 @@ snapshots:
   giget@1.2.4:
     dependencies:
       citty: 0.1.6
-      consola: 3.4.0
+      consola: 3.4.2
       defu: 6.1.4
       node-fetch-native: 1.6.6
       nypm: 0.5.2
       ohash: 1.1.4
       pathe: 2.0.3
       tar: 6.2.1
+
+  giget@2.0.0:
+    dependencies:
+      citty: 0.1.6
+      consola: 3.4.2
+      defu: 6.1.4
+      node-fetch-native: 1.6.6
+      nypm: 0.6.0
+      pathe: 2.0.3
 
   github-from-package@0.0.0: {}
 
@@ -21684,13 +22098,25 @@ snapshots:
       cookie-es: 1.2.2
       crossws: 0.3.4
       defu: 6.1.4
-      destr: 2.0.3
+      destr: 2.0.5
       iron-webcrypto: 1.2.1
-      ohash: 1.1.4
+      ohash: 1.1.6
       radix3: 1.1.2
-      ufo: 1.5.4
+      ufo: 1.6.1
       uncrypto: 0.1.3
       unenv: 1.10.0
+
+  h3@1.15.1:
+    dependencies:
+      cookie-es: 1.2.2
+      crossws: 0.3.4
+      defu: 6.1.4
+      destr: 2.0.5
+      iron-webcrypto: 1.2.1
+      node-mock-http: 1.0.0
+      radix3: 1.1.2
+      ufo: 1.6.1
+      uncrypto: 0.1.3
 
   has-async-hooks@1.0.0: {}
 
@@ -21969,6 +22395,20 @@ snapshots:
       loose-envify: 1.4.0
 
   ioredis@5.5.0:
+    dependencies:
+      '@ioredis/commands': 1.2.0
+      cluster-key-slot: 1.1.2
+      debug: 4.4.0(supports-color@5.5.0)
+      denque: 2.1.0
+      lodash.defaults: 4.2.0
+      lodash.isarguments: 3.1.0
+      redis-errors: 1.2.0
+      redis-parser: 3.0.0
+      standard-as-callback: 2.1.0
+    transitivePeerDependencies:
+      - supports-color
+
+  ioredis@5.6.0:
     dependencies:
       '@ioredis/commands': 1.2.0
       cluster-key-slot: 1.1.2
@@ -22792,6 +23232,8 @@ snapshots:
 
   kleur@3.0.3: {}
 
+  kleur@4.1.5: {}
+
   klona@2.0.6: {}
 
   knex@3.1.0(better-sqlite3@11.8.1)(mysql2@3.12.0)(pg@8.13.2)(sqlite3@5.1.7):
@@ -22943,6 +23385,12 @@ snapshots:
     dependencies:
       mlly: 1.7.4
       pkg-types: 1.3.1
+
+  local-pkg@1.1.1:
+    dependencies:
+      mlly: 1.7.4
+      pkg-types: 2.1.0
+      quansync: 0.2.10
 
   locate-path@3.0.0:
     dependencies:
@@ -23448,8 +23896,8 @@ snapshots:
 
   micromark-extension-mdxjs@3.0.0:
     dependencies:
-      acorn: 8.14.0
-      acorn-jsx: 5.3.2(acorn@8.14.0)
+      acorn: 8.14.1
+      acorn-jsx: 5.3.2(acorn@8.14.1)
       micromark-extension-mdx-expression: 3.0.0
       micromark-extension-mdx-jsx: 3.0.1
       micromark-extension-mdx-md: 2.0.0
@@ -23616,6 +24064,8 @@ snapshots:
   mime@3.0.0: {}
 
   mime@4.0.6: {}
+
+  mime@4.0.7: {}
 
   mimic-fn@1.2.0: {}
 
@@ -23918,6 +24368,106 @@ snapshots:
       - typescript
       - uploadthing
 
+  nitropack@2.11.8(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(mysql2@3.12.0)(sqlite3@5.1.7):
+    dependencies:
+      '@cloudflare/kv-asset-handler': 0.4.0
+      '@netlify/functions': 3.0.4
+      '@rollup/plugin-alias': 5.1.1(rollup@4.39.0)
+      '@rollup/plugin-commonjs': 28.0.3(rollup@4.39.0)
+      '@rollup/plugin-inject': 5.0.5(rollup@4.39.0)
+      '@rollup/plugin-json': 6.1.0(rollup@4.39.0)
+      '@rollup/plugin-node-resolve': 16.0.1(rollup@4.39.0)
+      '@rollup/plugin-replace': 6.0.2(rollup@4.39.0)
+      '@rollup/plugin-terser': 0.4.4(rollup@4.39.0)
+      '@vercel/nft': 0.29.2(encoding@0.1.13)(rollup@4.39.0)
+      archiver: 7.0.1
+      c12: 3.0.3(magicast@0.3.5)
+      chokidar: 4.0.3
+      citty: 0.1.6
+      compatx: 0.1.8
+      confbox: 0.2.2
+      consola: 3.4.2
+      cookie-es: 2.0.0
+      croner: 9.0.0
+      crossws: 0.3.4
+      db0: 0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7)
+      defu: 6.1.4
+      destr: 2.0.5
+      dot-prop: 9.0.0
+      esbuild: 0.25.2
+      escape-string-regexp: 5.0.0
+      etag: 1.8.1
+      exsolve: 1.0.4
+      globby: 14.1.0
+      gzip-size: 7.0.0
+      h3: 1.15.1
+      hookable: 5.5.3
+      httpxy: 0.1.7
+      ioredis: 5.6.0
+      jiti: 2.4.2
+      klona: 2.0.6
+      knitwork: 1.2.0
+      listhen: 1.9.0
+      magic-string: 0.30.17
+      magicast: 0.3.5
+      mime: 4.0.7
+      mlly: 1.7.4
+      node-fetch-native: 1.6.6
+      node-mock-http: 1.0.0
+      ofetch: 1.4.1
+      ohash: 2.0.11
+      pathe: 2.0.3
+      perfect-debounce: 1.0.0
+      pkg-types: 2.1.0
+      pretty-bytes: 6.1.1
+      radix3: 1.1.2
+      rollup: 4.39.0
+      rollup-plugin-visualizer: 5.14.0(rollup@4.39.0)
+      scule: 1.3.0
+      semver: 7.7.1
+      serve-placeholder: 2.0.2
+      serve-static: 1.16.2
+      source-map: 0.7.4
+      std-env: 3.9.0
+      ufo: 1.6.1
+      ultrahtml: 1.6.0
+      uncrypto: 0.1.3
+      unctx: 2.4.1
+      unenv: 2.0.0-rc.15
+      unimport: 4.2.0
+      unplugin-utils: 0.2.4
+      unstorage: 1.15.0(@planetscale/database@1.19.0)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(ioredis@5.6.0)
+      untyped: 2.0.0
+      unwasm: 0.3.9
+      youch: 4.1.0-beta.7
+      youch-core: 0.3.2
+    transitivePeerDependencies:
+      - '@azure/app-configuration'
+      - '@azure/cosmos'
+      - '@azure/data-tables'
+      - '@azure/identity'
+      - '@azure/keyvault-secrets'
+      - '@azure/storage-blob'
+      - '@capacitor/preferences'
+      - '@deno/kv'
+      - '@electric-sql/pglite'
+      - '@libsql/client'
+      - '@netlify/blobs'
+      - '@planetscale/database'
+      - '@upstash/redis'
+      - '@vercel/blob'
+      - '@vercel/kv'
+      - aws4fetch
+      - better-sqlite3
+      - drizzle-orm
+      - encoding
+      - idb-keyval
+      - mysql2
+      - rolldown
+      - sqlite3
+      - supports-color
+      - uploadthing
+
   node-abi@3.74.0:
     dependencies:
       semver: 7.7.1
@@ -23978,6 +24528,8 @@ snapshots:
     optional: true
 
   node-int64@0.4.0: {}
+
+  node-mock-http@1.0.0: {}
 
   node-releases@2.0.19: {}
 
@@ -24052,11 +24604,19 @@ snapshots:
   nypm@0.5.2:
     dependencies:
       citty: 0.1.6
-      consola: 3.4.0
+      consola: 3.4.2
       pathe: 2.0.3
       pkg-types: 1.3.1
       tinyexec: 0.3.2
-      ufo: 1.5.4
+      ufo: 1.6.1
+
+  nypm@0.6.0:
+    dependencies:
+      citty: 0.1.6
+      consola: 3.4.2
+      pathe: 2.0.3
+      pkg-types: 2.1.0
+      tinyexec: 0.3.2
 
   ob1@0.81.4:
     dependencies:
@@ -24114,6 +24674,10 @@ snapshots:
       ufo: 1.5.4
 
   ohash@1.1.4: {}
+
+  ohash@1.1.6: {}
+
+  ohash@2.0.11: {}
 
   on-exit-leak-free@2.1.2: {}
 
@@ -24274,7 +24838,7 @@ snapshots:
     dependencies:
       '@babel/code-frame': 7.26.2
       index-to-position: 0.1.2
-      type-fest: 4.34.1
+      type-fest: 4.39.1
 
   parse-ms@2.1.0: {}
 
@@ -24446,6 +25010,12 @@ snapshots:
     dependencies:
       confbox: 0.1.8
       mlly: 1.7.4
+      pathe: 2.0.3
+
+  pkg-types@2.1.0:
+    dependencies:
+      confbox: 0.2.2
+      exsolve: 1.0.4
       pathe: 2.0.3
 
   plist@3.1.0:
@@ -24673,6 +25243,8 @@ snapshots:
   qs@6.14.0:
     dependencies:
       side-channel: 1.1.0
+
+  quansync@0.2.10: {}
 
   queue-microtask@1.2.3: {}
 
@@ -24916,9 +25488,9 @@ snapshots:
       estree-util-build-jsx: 3.0.1
       vfile: 6.0.3
 
-  recma-jsx@1.0.0(acorn@8.14.0):
+  recma-jsx@1.0.0(acorn@8.14.1):
     dependencies:
-      acorn-jsx: 5.3.2(acorn@8.14.0)
+      acorn-jsx: 5.3.2(acorn@8.14.1)
       estree-util-to-js: 2.0.0
       recma-parse: 1.0.0
       recma-stringify: 1.0.0
@@ -25140,6 +25712,15 @@ snapshots:
       yargs: 17.7.2
     optionalDependencies:
       rollup: 4.34.6
+
+  rollup-plugin-visualizer@5.14.0(rollup@4.39.0):
+    dependencies:
+      open: 8.4.2
+      picomatch: 4.0.2
+      source-map: 0.7.4
+      yargs: 17.7.2
+    optionalDependencies:
+      rollup: 4.39.0
 
   rollup@4.34.6:
     dependencies:
@@ -25593,6 +26174,8 @@ snapshots:
 
   std-env@3.8.0: {}
 
+  std-env@3.9.0: {}
+
   storybook@8.5.8(bufferutil@4.0.9)(prettier@3.5.1):
     dependencies:
       '@storybook/core': 8.5.8(bufferutil@4.0.9)(prettier@3.5.1)
@@ -25749,6 +26332,10 @@ snapshots:
     dependencies:
       js-tokens: 9.0.1
 
+  strip-literal@3.0.0:
+    dependencies:
+      js-tokens: 9.0.1
+
   strnum@1.0.5: {}
 
   strtok3@9.1.1:
@@ -25803,6 +26390,8 @@ snapshots:
       superagent: 9.0.2
     transitivePeerDependencies:
       - supports-color
+
+  supports-color@10.0.0: {}
 
   supports-color@5.5.0:
     dependencies:
@@ -25990,7 +26579,7 @@ snapshots:
   terser@5.38.2:
     dependencies:
       '@jridgewell/source-map': 0.3.6
-      acorn: 8.14.0
+      acorn: 8.14.1
       commander: 2.20.3
       source-map-support: 0.5.21
 
@@ -26060,6 +26649,11 @@ snapshots:
       picomatch: 4.0.2
 
   tinyglobby@0.2.11:
+    dependencies:
+      fdir: 6.4.3(picomatch@4.0.2)
+      picomatch: 4.0.2
+
+  tinyglobby@0.2.12:
     dependencies:
       fdir: 6.4.3(picomatch@4.0.2)
       picomatch: 4.0.2
@@ -26336,6 +26930,8 @@ snapshots:
 
   type-fest@4.34.1: {}
 
+  type-fest@4.39.1: {}
+
   type-is@1.6.18:
     dependencies:
       media-typer: 0.3.0
@@ -26404,9 +27000,13 @@ snapshots:
 
   ufo@1.5.4: {}
 
+  ufo@1.6.1: {}
+
   uid-promise@1.0.0: {}
 
   uint8array-extras@1.4.0: {}
+
+  ultrahtml@1.6.0: {}
 
   unbox-primitive@1.1.0:
     dependencies:
@@ -26424,10 +27024,10 @@ snapshots:
 
   unctx@2.4.1:
     dependencies:
-      acorn: 8.14.0
+      acorn: 8.14.1
       estree-walker: 3.0.3
       magic-string: 0.30.17
-      unplugin: 2.2.0
+      unplugin: 2.2.2
 
   undefsafe@2.0.5: {}
 
@@ -26445,11 +27045,19 @@ snapshots:
 
   unenv@1.10.0:
     dependencies:
-      consola: 3.4.0
+      consola: 3.4.2
       defu: 6.1.4
       mime: 3.0.0
       node-fetch-native: 1.6.6
       pathe: 1.1.2
+
+  unenv@2.0.0-rc.15:
+    dependencies:
+      defu: 6.1.4
+      exsolve: 1.0.4
+      ohash: 2.0.11
+      pathe: 2.0.3
+      ufo: 1.6.1
 
   unicode-canonical-property-names-ecmascript@2.0.1: {}
 
@@ -26492,6 +27100,23 @@ snapshots:
       unplugin: 1.16.1
     transitivePeerDependencies:
       - rollup
+
+  unimport@4.2.0:
+    dependencies:
+      acorn: 8.14.1
+      escape-string-regexp: 5.0.0
+      estree-walker: 3.0.3
+      local-pkg: 1.1.1
+      magic-string: 0.30.17
+      mlly: 1.7.4
+      pathe: 2.0.3
+      picomatch: 4.0.2
+      pkg-types: 2.1.0
+      scule: 1.3.0
+      strip-literal: 3.0.0
+      tinyglobby: 0.2.12
+      unplugin: 2.2.2
+      unplugin-utils: 0.2.4
 
   unique-filename@1.1.1:
     dependencies:
@@ -26550,14 +27175,19 @@ snapshots:
 
   unpipe@1.0.0: {}
 
+  unplugin-utils@0.2.4:
+    dependencies:
+      pathe: 2.0.3
+      picomatch: 4.0.2
+
   unplugin@1.16.1:
     dependencies:
-      acorn: 8.14.0
+      acorn: 8.14.1
       webpack-virtual-modules: 0.6.2
 
-  unplugin@2.2.0:
+  unplugin@2.2.2:
     dependencies:
-      acorn: 8.14.0
+      acorn: 8.14.1
       webpack-virtual-modules: 0.6.2
 
   unstorage@1.14.4(@planetscale/database@1.19.0)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(ioredis@5.5.0):
@@ -26575,12 +27205,27 @@ snapshots:
       db0: 0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7)
       ioredis: 5.5.0
 
+  unstorage@1.15.0(@planetscale/database@1.19.0)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(ioredis@5.6.0):
+    dependencies:
+      anymatch: 3.1.3
+      chokidar: 4.0.3
+      destr: 2.0.5
+      h3: 1.15.1
+      lru-cache: 10.4.3
+      node-fetch-native: 1.6.6
+      ofetch: 1.4.1
+      ufo: 1.6.1
+    optionalDependencies:
+      '@planetscale/database': 1.19.0
+      db0: 0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7)
+      ioredis: 5.6.0
+
   untildify@4.0.0: {}
 
   untun@0.1.3:
     dependencies:
       citty: 0.1.6
-      consola: 3.4.0
+      consola: 3.4.2
       pathe: 1.1.2
 
   untyped@1.5.2:
@@ -26595,6 +27240,14 @@ snapshots:
       scule: 1.3.0
     transitivePeerDependencies:
       - supports-color
+
+  untyped@2.0.0:
+    dependencies:
+      citty: 0.1.6
+      defu: 6.1.4
+      jiti: 2.4.2
+      knitwork: 1.2.0
+      scule: 1.3.0
 
   unwasm@0.3.9:
     dependencies:
@@ -26691,7 +27344,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.2
 
-  vinxi@0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.5.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(typescript@5.7.3)(yaml@2.7.0):
+  vinxi@0.5.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0):
     dependencies:
       '@babel/core': 7.26.10
       '@babel/plugin-syntax-jsx': 7.25.9(@babel/core@7.26.10)
@@ -26701,7 +27354,7 @@ snapshots:
       boxen: 7.1.1
       chokidar: 3.6.0
       citty: 0.1.6
-      consola: 3.4.0
+      consola: 3.4.2
       crossws: 0.3.4
       dax-sh: 0.39.2
       defu: 6.1.4
@@ -26713,7 +27366,7 @@ snapshots:
       hookable: 5.5.3
       http-proxy: 1.18.1
       micromatch: 4.0.8
-      nitropack: 2.10.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(mysql2@3.12.0)(sqlite3@5.1.7)(typescript@5.7.3)
+      nitropack: 2.11.8(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(mysql2@3.12.0)(sqlite3@5.1.7)
       node-fetch-native: 1.6.6
       path-to-regexp: 6.3.0
       pathe: 1.1.2
@@ -26721,10 +27374,10 @@ snapshots:
       resolve: 1.22.10
       serve-placeholder: 2.0.2
       serve-static: 1.16.2
-      ufo: 1.5.4
+      ufo: 1.6.1
       unctx: 2.4.1
       unenv: 1.10.0
-      unstorage: 1.14.4(@planetscale/database@1.19.0)(db0@0.2.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(ioredis@5.5.0)
+      unstorage: 1.15.0(@planetscale/database@1.19.0)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(ioredis@5.6.0)
       vite: 6.2.5(@types/node@22.13.17)(jiti@2.4.2)(lightningcss@1.27.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
       zod: 3.24.2
     transitivePeerDependencies:
@@ -26765,7 +27418,84 @@ snapshots:
       - supports-color
       - terser
       - tsx
-      - typescript
+      - uploadthing
+      - xml2js
+      - yaml
+
+  vinxi@0.5.4(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(@types/node@22.13.17)(better-sqlite3@11.8.1)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(ioredis@5.6.0)(jiti@2.4.2)(lightningcss@1.27.0)(mysql2@3.12.0)(sqlite3@5.1.7)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0):
+    dependencies:
+      '@babel/core': 7.26.10
+      '@babel/plugin-syntax-jsx': 7.25.9(@babel/core@7.26.10)
+      '@babel/plugin-syntax-typescript': 7.25.9(@babel/core@7.26.10)
+      '@types/micromatch': 4.0.9
+      '@vinxi/listhen': 1.5.6
+      boxen: 7.1.1
+      chokidar: 3.6.0
+      citty: 0.1.6
+      consola: 3.4.2
+      crossws: 0.3.4
+      dax-sh: 0.39.2
+      defu: 6.1.4
+      es-module-lexer: 1.6.0
+      esbuild: 0.20.2
+      fast-glob: 3.3.3
+      get-port-please: 3.1.2
+      h3: 1.13.0
+      hookable: 5.5.3
+      http-proxy: 1.18.1
+      micromatch: 4.0.8
+      nitropack: 2.11.8(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(encoding@0.1.13)(mysql2@3.12.0)(sqlite3@5.1.7)
+      node-fetch-native: 1.6.6
+      path-to-regexp: 6.3.0
+      pathe: 1.1.2
+      radix3: 1.1.2
+      resolve: 1.22.10
+      serve-placeholder: 2.0.2
+      serve-static: 1.16.2
+      ufo: 1.6.1
+      unctx: 2.4.1
+      unenv: 1.10.0
+      unstorage: 1.15.0(@planetscale/database@1.19.0)(db0@0.3.1(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(better-sqlite3@11.8.1)(drizzle-orm@0.39.3(@electric-sql/pglite@0.2.17)(@libsql/client@0.14.0)(@planetscale/database@1.19.0)(better-sqlite3@11.8.1)(mysql2@3.12.0)(sqlite3@5.1.7))(mysql2@3.12.0)(sqlite3@5.1.7))(ioredis@5.6.0)
+      vite: 6.2.5(@types/node@22.13.17)(jiti@2.4.2)(lightningcss@1.27.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
+      zod: 3.24.2
+    transitivePeerDependencies:
+      - '@azure/app-configuration'
+      - '@azure/cosmos'
+      - '@azure/data-tables'
+      - '@azure/identity'
+      - '@azure/keyvault-secrets'
+      - '@azure/storage-blob'
+      - '@capacitor/preferences'
+      - '@deno/kv'
+      - '@electric-sql/pglite'
+      - '@libsql/client'
+      - '@netlify/blobs'
+      - '@planetscale/database'
+      - '@types/node'
+      - '@upstash/redis'
+      - '@vercel/blob'
+      - '@vercel/kv'
+      - aws4fetch
+      - better-sqlite3
+      - db0
+      - debug
+      - drizzle-orm
+      - encoding
+      - idb-keyval
+      - ioredis
+      - jiti
+      - less
+      - lightningcss
+      - mysql2
+      - rolldown
+      - sass
+      - sass-embedded
+      - sqlite3
+      - stylus
+      - sugarss
+      - supports-color
+      - terser
+      - tsx
       - uploadthing
       - xml2js
       - yaml
@@ -27047,6 +27777,18 @@ snapshots:
   yn@3.1.1: {}
 
   yocto-queue@0.1.0: {}
+
+  youch-core@0.3.2:
+    dependencies:
+      '@poppinss/exception': 1.2.1
+      error-stack-parser-es: 1.0.5
+
+  youch@4.1.0-beta.7:
+    dependencies:
+      '@poppinss/dumper': 0.6.3
+      '@speed-highlight/core': 1.2.7
+      cookie: 1.0.2
+      youch-core: 0.3.2
 
   yup@1.6.1:
     dependencies:
