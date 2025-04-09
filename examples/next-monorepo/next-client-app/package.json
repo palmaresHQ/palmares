@@ -10,7 +10,7 @@
   "dependencies": {
     "react": "^18",
     "react-dom": "^19",
-    "next": "14.2.27",
+    "next": "14.2.28",
     "@palmares/console-logging": "workspace:*",
     "@palmares/logging": "workspace:*",
     "@palmares/core": "workspace:*",
