@@ -25,7 +25,7 @@
     "release:github": "tsx scripts/release/index.ts",
     "release": "pnpm run copy:templates && pnpm run build && pnpm run release:apply && pnpm run release:publish && pnpm run release:github",
     "docs:dev": "cd docs && pnpm run docs:dev",
-    "docs:build": "pnpm run build && cd docs && pnpm run predocs:build && pnpm run docs:build",
+    "docs:build": "pnpm run build && cd docs && pnpm run docs:build",
     "docs:start": "cd docs && pnpm run docs:start",
     "publish": "turbo run publish",
     "build": "turbo run build",
