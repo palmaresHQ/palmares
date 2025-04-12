@@ -2,6 +2,15 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 
+async function batchedPromiseAll<T>(promises: Promise<T>[], numberOfPromises: number = 50) {
+  const results: T[] = [];
+  for (let i = 0; i < promises.length; i += numberOfPromises) {
+    const batch = promises.slice(i, i + numberOfPromises);
+    const batchResults = await Promise.all(batch);
+    results.push(...batchResults);
+  }
+  return results as Promise<T>[];
+}
 // Taken from dts-gen: https://github.com/microsoft/dts-gen/blob/master/lib/names.ts
 function getDTName(s: string) {
   if (s.indexOf('@') === 0 && s.indexOf('/') !== -1) {
@@ -201,7 +210,7 @@ function treeToDTSFiles(tree: NPMTreeMeta, vfsPrefix: string) {
   return dtsRefs;
 }
 
-let preProcessFile: import('typescript').preProcessFile;
+let preProcessFile: any;
 /**
  * Pull out any potential references to other modules (including relatives) with their
  * npm versioning strat too if someone opts into a different version via an inline end of line comment
@@ -217,10 +226,10 @@ export async function getReferencesForModule(code: string) {
   const references = meta.referencedFiles
     .concat(meta.importedFiles)
     .concat(meta.libReferenceDirectives)
-    .filter((file) => !isDtsFile(file.fileName))
-    .filter((dir) => !libMap.has(dir.fileName));
+    .filter((file: any) => !isDtsFile(file.fileName))
+    .filter((dir: any) => !libMap.has(dir.fileName));
 
-  return references.map((reference) => {
+  return references.map((reference: any) => {
     let version = undefined;
     if (!reference.fileName.startsWith('.')) {
       version = 'latest';
@@ -237,13 +246,13 @@ export async function getReferencesForModule(code: string) {
 
 /** A list of modules from the current sourcefile which we don't have existing files for */
 export async function getNewDependencies(moduleMap: Map<string, { state: 'loading' }>, code: string) {
-  const refs = (await getReferencesForModule(code)).map((ref) => ({
+  const refs = (await getReferencesForModule(code)).map((ref: any) => ({
     ...ref,
     module: mapModuleNameToModule(ref.module)
   }));
 
   // Drop relative paths because we're getting all the files
-  const modules = refs.filter((f) => !f.module.startsWith('.')).filter((m) => !moduleMap.has(m.module));
+  const modules = refs.filter((f: any) => !f.module.startsWith('.')).filter((m: any) => !moduleMap.has(m.module));
   return modules;
 }
 
@@ -331,13 +340,14 @@ export const setupTypeAcquisition = (opts?: {
     const depsToGet = await getNewDependencies(moduleMap, initialSourceFile);
     const depsToGetFiltered = opts?.toFilter ? opts.toFilter(depsToGet) : depsToGet;
     // Make it so it won't get re-downloaded
-    depsToGetFiltered.forEach((dep) => moduleMap.set(dep.module, { state: 'loading' }));
+    depsToGetFiltered.forEach((dep: any) => moduleMap.set(dep.module, { state: 'loading' }));
 
     // Grab the module trees which gives us a list of files to download
-    const trees = await Promise.all(
-      depsToGetFiltered.map((file) => getFileTreeForModuleWithTag(file.module, file.version))
+    const trees = await batchedPromiseAll(
+      depsToGetFiltered.map((file: any) => getFileTreeForModuleWithTag(file.module, file.version)),
+      50
     );
-    const treesOnly = trees.filter((tree) => !('error' in tree)) as NPMTreeMeta[];
+    const treesOnly = (trees as any[]).filter((tree) => !('error' in tree)) as NPMTreeMeta[];
 
     // These are the modules which we can grab directly
     const hasDTS = treesOnly.filter((tree) => tree.files.find((file) => isDtsFile(file.name)));
@@ -345,11 +355,12 @@ export const setupTypeAcquisition = (opts?: {
 
     // These are ones we need to look on DT for (which may not be there, who knows)
     const mightBeOnDT = treesOnly.filter((tree) => !hasDTS.includes(tree));
-    const dtTrees = await Promise.all(
-      mightBeOnDT.map((file) => getFileTreeForModuleWithTag(`@types/${getDTName(file.moduleName)}`, 'latest'))
+    const dtTrees = await batchedPromiseAll(
+      mightBeOnDT.map((file) => getFileTreeForModuleWithTag(`@types/${getDTName(file.moduleName)}`, 'latest')),
+      50
     );
 
-    const dtTreesOnly = dtTrees.filter((t) => !('error' in t)) as NPMTreeMeta[];
+    const dtTreesOnly = (dtTrees as any[]).filter((t) => !('error' in t)) as NPMTreeMeta[];
     const dtsFilesFromDT = dtTreesOnly.map((t) =>
       treeToDTSFiles(t, `/node_modules/@types/${getDTName(t.moduleName).replace('types__', '')}`)
     );
@@ -373,7 +384,7 @@ export const setupTypeAcquisition = (opts?: {
     }
 
     // Grab all dts files
-    await Promise.all(
+    await batchedPromiseAll(
       allDTSFiles.map(async (dts) => {
         const dtsCode = await getDTSFileForModuleWithVersion(dts.moduleName, dts.moduleVersion, dts.path);
         if (dtsCode instanceof Error) {
@@ -385,7 +396,8 @@ export const setupTypeAcquisition = (opts?: {
           // Recurse through deps
           await resolveDeps(dtsCode, depth + 1, args);
         }
-      })
+      }),
+      50
     );
     return fsMap;
   }
