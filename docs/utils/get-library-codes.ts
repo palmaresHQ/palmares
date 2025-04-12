@@ -203,7 +203,7 @@ export async function getExamplesFiles(args?: { generateJson: boolean; host: str
       };
     },
     {
-      shouldRetrieveExternalTypes: true,
+      shouldRetrieveExternalTypes: args?.generateJson !== true ? true : false,
       fetchExternalTypes: args?.host,
       flattenPathOnRaw: true
     }
