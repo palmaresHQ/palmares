@@ -20,7 +20,7 @@
     "@palmares/node-std": "workspace:*",
     "@palmares/server": "workspace:*",
     "cors": "^2.8.5",
-    "zod": "^3.23.8"
+    "zod": "^3.24.3"
   },
   "devDependencies": {
     "@types/qs": "^6.9.15",
