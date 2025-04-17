@@ -44,7 +44,7 @@
   },
   "homepage": "https://github.com/palmaresHQ/palmares#readme",
   "dependencies": {
-    "zod": "^3.23.8",
+    "zod": "^3.24.3",
     "@palmares/schemas": "workspace:*"
   },
   "devDependencies": {
