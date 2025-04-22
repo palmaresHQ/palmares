@@ -1,7 +1,12 @@
-import { defineConfig } from '@tanstack/start/config';
+import { defineConfig } from '@tanstack/react-start/config';
 import monacoWorkerPlugin from './plugins/vite-worker-plugin';
+import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+  tsr: {
+    appDirectory: 'src'
+  },
   server: {
     preset: 'vercel',
     plugins: ['./plugins/nitro-worker.plugin.ts'],
@@ -27,7 +32,7 @@ export default defineConfig({
     }
   },
   vite: {
-    plugins: [monacoWorkerPlugin() as any],
+    plugins: [monacoWorkerPlugin() as any, react()],
     worker: {
       format: 'es'
     }

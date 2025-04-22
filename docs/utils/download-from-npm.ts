@@ -124,17 +124,24 @@ export async function getNPMVersionForModuleReference(moduleName: string, refere
 
 export type NPMTreeMeta = { default: string; files: Array<{ name: string }>; moduleName: string; version: string };
 
+const mapOfFlatFiles = new Map<string, any>();
 export async function getFiletreeForModuleWithVersion(moduleName: string, version: string) {
   const url = `https://data.jsdelivr.com/v1/package/npm/${moduleName}@${version}/flat`;
-  const res = await fetch(url)
-    .then((res) => {
-      if (res.ok) {
-        return res.json();
-      } else {
-        return new Error('Error');
-      }
-    })
-    .then((data) => data);
+  let res: any;
+  try {
+    res = await fetch(url)
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          return new Error('Error');
+        }
+      })
+      .then((data) => data);
+  } catch (e) {
+    console.error('Error fetching', url, e);
+    res = new Error('Error');
+  }
   if (res instanceof Error) {
     return res;
   } else {
@@ -345,7 +352,7 @@ export const setupTypeAcquisition = (opts?: {
     // Grab the module trees which gives us a list of files to download
     const trees = await batchedPromiseAll(
       depsToGetFiltered.map((file: any) => getFileTreeForModuleWithTag(file.module, file.version)),
-      50
+      25
     );
     const treesOnly = (trees as any[]).filter((tree) => !('error' in tree)) as NPMTreeMeta[];
 
@@ -357,7 +364,7 @@ export const setupTypeAcquisition = (opts?: {
     const mightBeOnDT = treesOnly.filter((tree) => !hasDTS.includes(tree));
     const dtTrees = await batchedPromiseAll(
       mightBeOnDT.map((file) => getFileTreeForModuleWithTag(`@types/${getDTName(file.moduleName)}`, 'latest')),
-      50
+      25
     );
 
     const dtTreesOnly = (dtTrees as any[]).filter((t) => !('error' in t)) as NPMTreeMeta[];
@@ -397,7 +404,7 @@ export const setupTypeAcquisition = (opts?: {
           await resolveDeps(dtsCode, depth + 1, args);
         }
       }),
-      50
+      25
     );
     return fsMap;
   }

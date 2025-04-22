@@ -1,4 +1,4 @@
-import { createServerFn } from '@tanstack/start';
+import { createServerFn } from '@tanstack/react-start';
 import { getHeaders } from 'vinxi/http';
 
 import { isChromium } from '../utils/is-chromium';

@@ -1,5 +1,5 @@
 import { HeadContent, Outlet, createRootRoute } from '@tanstack/react-router';
-import { createServerFn, Scripts } from '@tanstack/start';
+import { createServerFn, Scripts } from '@tanstack/react-start';
 import type { ReactNode } from 'react';
 import appCss from '../styles/app.css?url';
 import { isChromium } from '../../utils/is-chromium';

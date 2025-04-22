@@ -5,7 +5,7 @@ import typescript from 'typescript';
 
 import { getEditor, monacoEditorRules, monacoEditorColors } from '../utils';
 
-import { useServerFn } from '@tanstack/start';
+import { useServerFn } from '@tanstack/react-start';
 import { getAllLibraryCodes, GetLibraryCodesFn } from '../server/get-code';
 
 import type * as TMonaco from 'monaco-editor';
