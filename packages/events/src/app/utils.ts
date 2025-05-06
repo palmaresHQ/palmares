@@ -3,7 +3,8 @@ import type { EventsServer } from '../server';
 
 /**
  * This is used for loading the events on the server.
- * The events will be loaded asynchronously. To append an event without worrying about the result you should send an object for each key of the event handler
+ * The events will be loaded asynchronously. To append an event without worrying about the result you should send
+ * an object for each key of the event handler
  * like:
  *
  * ```

@@ -1,8 +1,8 @@
 import { setDatabaseConfig } from '@palmares/databases';
 import { NodeStd } from '@palmares/node-std';
 import { SequelizeEngine } from '@palmares/sequelize-engine';
-import * as migrations from './migrations';
 
+import * as migrations from './migrations';
 import { Company, User } from './models';
 
 export default setDatabaseConfig({
@@ -10,17 +10,17 @@ export default setDatabaseConfig({
     default: {
       engine: SequelizeEngine.new({
         dialect: 'sqlite',
-        storage: './standalone.sequelize.db',
-      }),
-    },
+        storage: './standalone.sequelize.db'
+      })
+    }
   },
   locations: [
     {
       name: 'default',
       path: import.meta.dirname,
       getMigrations: () => migrations,
-      getModels: () => [User, Company],
-    },
+      getModels: () => [User, Company]
+    }
   ],
-  std: new NodeStd(),
+  std: new NodeStd()
 });
