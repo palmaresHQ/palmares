@@ -270,7 +270,8 @@ export default function Code(props: Props) {
         const sandboxConfig = {
           text: props.text,
           domID: id,
-          filetype: `${id}.ts` as any
+          filetype: `${id}.ts` as any,
+          acquireTypes: false
         } satisfies Parameters<Awaited<ReturnType<typeof getEditor>>['sandbox']['createTypeScriptSandbox']>[0];
         const themeData = {
           base: 'vs',
@@ -280,7 +281,7 @@ export default function Code(props: Props) {
         } satisfies import('monaco-editor').editor.IStandaloneThemeData;
         monaco.editor.defineTheme('default', themeData);
 
-        sb.current = sandbox.createTypeScriptSandbox(sandboxConfig, monaco, typescript);
+        sb.current = sandbox.createTypeScriptSandbox(sandboxConfig, monaco, typescript as any);
 
         sb.current.monaco.editor.setTheme('default');
         sb.current.editor.updateOptions({
@@ -354,7 +355,7 @@ export default function Code(props: Props) {
 
   return (
     <div className="flex flex-col items-center justify-center h-full w-full">
-      <div className="flex flex-row items-center justify-center w-full h-full shadow-[10px_35px_60px_10px_rgba(60,60,60,0.5)]">
+      <div className="flex flex-row items-center justify-center w-[720px]">
         {props?.customSidebar}
         <div
           className={`flex flex-row w-[100vw] h-[${height}px] relative shadow-[10px_35px_60px_10px_rgba(60,60,60,0.5)]`}

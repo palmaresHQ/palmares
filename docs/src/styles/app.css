@@ -1,6 +1,52 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@theme {
+  --color-primary-100: oklch(0.962 0.011 271.5);
+  --color-primary-200: oklch(0.916 0.022 271.6);
+  --color-primary-300: oklch(0.851 0.034 266.1);
+  --color-primary-400: oklch(0.668 0.071 269.7);
+  --color-primary-500: oklch(0.479 0.086 273.3);
+  --color-primary-600: oklch(0.358 0.094 267.3);
+  --color-primary-700: oklch(0.273 0.11 271.4);
+  --color-primary-800: oklch(0.163 0.104 270.2);
+  --color-primary-900: oklch(0.083 0.115 280);
+  --color-primary-950: oklch(0.019 0.053 278.1);
+  --color-secondary-100: oklch(0.962 0.005 290.4);
+  --color-secondary-200: oklch(0.907 0.016 290.3);
+  --color-secondary-300: oklch(0.85 0.021 290.4);
+  --color-secondary-400: oklch(0.665 0.05 290.7);
+  --color-secondary-500: oklch(0.479 0.053 290.9);
+  --color-secondary-600: oklch(0.352 0.056 291.1);
+  --color-secondary-700: oklch(0.269 0.046 291.1);
+  --color-secondary-800: oklch(0.157 0.021 290.8);
+  --color-secondary-900: oklch(0.084 0.023 291);
+  --color-secondary-950: oklch(0.025 0.008 290.2);
+  --color-tertiary-200: oklch(0.974 0.052 71.3);
+  --color-tertiary-300: oklch(0.945 0.1 65.3);
+  --color-tertiary-400: oklch(0.92 0.152 65.2);
+  --color-tertiary-500: oklch(0.894 0.209 65.6);
+  --color-tertiary-600: oklch(0.869 0.264 64.9);
+  --color-tertiary-700: oklch(0.841 0.315 64.1);
+  --color-tertiary-800: oklch(0.816 0.368 63.4);
+  --color-tertiary-900: oklch(0.789 0.419 63.9);
+  --color-tertiary-950: oklch(0.763 0.476 63.7);
+
+  --font-exo2: 'Exo 2', 'sans-serif';
+}
+
+@font-face {
+  font-family: 'Exo 2';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../../public/fonts/Exo_2/Exo2-VariableFont_wght.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Exo 2';
+  font-style: italic;
+  font-weight: 400;
+  src: url('../../public/fonts/Exo_2/Exo2-Italic-VariableFont_wght.ttf') format('truetype');
+}
 
 .terminal {
   width: 100%;

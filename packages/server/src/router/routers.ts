@@ -596,7 +596,36 @@ export class MethodsRouter<
       TOptions['responses']
     >,
     TOptions extends RouterOptionsType<TDefinitions['adapter']>
-  >(handler: THandler, options?: TOptions) {
+  >(
+    handler: THandler,
+    options?: TOptions
+  ): Omit<
+    MethodsRouter<
+      TParentRouter,
+      TChildren,
+      TMiddlewares,
+      TRootPath,
+      DefineAlreadyDefinedMethodsType<
+        TRootPath extends string ? TRootPath : string,
+        TMiddlewares,
+        TAlreadyDefinedMethods,
+        THandler,
+        TOptions,
+        'get'
+      >,
+      {
+        [TKey in TRootPath as TKey extends string | number | symbol ? TKey : never]: DefineAlreadyDefinedMethodsType<
+          TRootPath extends string ? TRootPath : string,
+          TMiddlewares,
+          TAlreadyDefinedMethods,
+          THandler,
+          TOptions,
+          'get'
+        >;
+      } & TRootRoutesTree
+    >,
+    keyof TAlreadyDefinedMethods | 'get' | 'all'
+  > {
     if (Array.isArray(options?.middlewares)) {
       const middlewaresAsMutable = this.__middlewares as unknown as Middleware[];
       (this.__middlewares as unknown as Middleware[]) = middlewaresAsMutable.concat(
@@ -623,33 +652,7 @@ export class MethodsRouter<
       }
     };
 
-    return this as unknown as Omit<
-      MethodsRouter<
-        TParentRouter,
-        TChildren,
-        TMiddlewares,
-        TRootPath,
-        DefineAlreadyDefinedMethodsType<
-          TRootPath extends string ? TRootPath : string,
-          TMiddlewares,
-          TAlreadyDefinedMethods,
-          THandler,
-          TOptions,
-          'get'
-        >,
-        {
-          [TKey in TRootPath as TKey extends string | number | symbol ? TKey : never]: DefineAlreadyDefinedMethodsType<
-            TRootPath extends string ? TRootPath : string,
-            TMiddlewares,
-            TAlreadyDefinedMethods,
-            THandler,
-            TOptions,
-            'get'
-          >;
-        } & TRootRoutesTree
-      >,
-      keyof TAlreadyDefinedMethods | 'get' | 'all'
-    >;
+    return this as unknown as any;
   }
 
   post<
@@ -667,7 +670,36 @@ export class MethodsRouter<
       TOptions['responses'] extends undefined ? undefined : TOptions['responses']
     >,
     TOptions extends RouterOptionsType<TDefinitions['adapter']>
-  >(handler: THandler, options?: TOptions) {
+  >(
+    handler: THandler,
+    options?: TOptions
+  ): Omit<
+    MethodsRouter<
+      TParentRouter,
+      TChildren,
+      TMiddlewares,
+      TRootPath,
+      DefineAlreadyDefinedMethodsType<
+        TRootPath extends string ? TRootPath : string,
+        TMiddlewares,
+        TAlreadyDefinedMethods,
+        THandler,
+        TOptions,
+        'post'
+      >,
+      {
+        [TKey in TRootPath as TKey extends string | number | symbol ? TKey : never]: DefineAlreadyDefinedMethodsType<
+          TRootPath extends string ? TRootPath : string,
+          TMiddlewares,
+          TAlreadyDefinedMethods,
+          THandler,
+          TOptions,
+          'post'
+        >;
+      } & TRootRoutesTree
+    >,
+    keyof TAlreadyDefinedMethods | 'post' | 'all'
+  > {
     if (Array.isArray(options?.middlewares)) {
       const middlewaresAsMutable = this.__middlewares as unknown as Middleware[];
       (this.__middlewares as unknown as Middleware[]) = middlewaresAsMutable.concat(
@@ -694,33 +726,7 @@ export class MethodsRouter<
       }
     };
 
-    return this as unknown as Omit<
-      MethodsRouter<
-        TParentRouter,
-        TChildren,
-        TMiddlewares,
-        TRootPath,
-        DefineAlreadyDefinedMethodsType<
-          TRootPath extends string ? TRootPath : string,
-          TMiddlewares,
-          TAlreadyDefinedMethods,
-          THandler,
-          TOptions,
-          'post'
-        >,
-        {
-          [TKey in TRootPath as TKey extends string | number | symbol ? TKey : never]: DefineAlreadyDefinedMethodsType<
-            TRootPath extends string ? TRootPath : string,
-            TMiddlewares,
-            TAlreadyDefinedMethods,
-            THandler,
-            TOptions,
-            'post'
-          >;
-        } & TRootRoutesTree
-      >,
-      keyof TAlreadyDefinedMethods | 'post' | 'all'
-    >;
+    return this as unknown as any;
   }
 
   delete<

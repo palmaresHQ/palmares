@@ -1,30 +1,42 @@
 // @ts-nocheck
 import { path, Response, middleware } from '@palmares/server';
+import type { Request, Response as EResponse, NextFunction } from 'express';
+import { ExpressServerAdapter } from '@palmares/express-adapter';
 
-import { User } from './database';
-import { userSchema } from './schemas';
+type ExpressRequestWithUserType = Request & { user?: string };
 
+declare global {
+  namespace Palmares {
+    interface PServerAdapter extends InstanceType<typeof ExpressServerAdapter> {}
+  }
+}
 // You already know how to create express middlewares, so just use it.
-const expressMiddleware = (req, res, next) => {
-  req.user = 'admin';
-  next();
+const expressMiddleware = () => {
+  return (req: ExpressRequestWithUserType, _: EResponse, next: NextFunction) => {
+    req.user = 'admin';
+
+    next();
+  };
 };
 
 // You can assign the middleware as customOption
 // Remember, this middleware is for express
 const adminOnlyMiddleware = middleware({
-  customOptions: [expressMiddleware()]
+  options: {
+    customOptions: [expressMiddleware()]
+  }
 });
 
 export const usersRoute = path('/users')
   .middlewares([adminOnlyMiddleware])
-  .get(async (request) => {
+  .get((request) => {
     // You can access the request data from Express.js from the request object
     const { req, res } = request.serverData();
-    if (req.user !== 'admin') {
+    if ((req as ExpressRequestWithUserType).user !== 'admin') {
       return Response.json({ message: 'You are not admin' }, { status: 403 });
     }
 
     // You can respond with the `res` object from Express.js
-    return res.json({ message: 'You are admin' });
+    res.json({ message: 'You are admin' });
+    return;
   });

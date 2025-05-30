@@ -43,14 +43,19 @@ function Home() {
     .sort();
 
   return (
-    <div className="flex flex-col bg-[#ffffff]">
+    <div
+      className="flex flex-col bg-[#ffffff]"
+      style={{
+        fontFamily: 'Exo 2'
+      }}
+    >
       <nav className="flex flex-row justify-center items-center w-full mt-24 mb-24">
         <div className="flex flex-row justify-evenly w-96">
-          <a className="text-tertiary-950">blog</a>
+          <a className="text-tertiary-700">blog</a>
           <p className="text-primary-500 select-none">/</p>
-          <a className="text-tertiary-950">about</a>
+          <a className="text-tertiary-700">about</a>
           <p className="text-primary-500 select-none">/</p>
-          <a className="text-tertiary-950">docs</a>
+          <a className="text-tertiary-700">docs</a>
         </div>
       </nav>
       <div className="flex flex-col justify-center items-center mb-12">
@@ -60,13 +65,13 @@ function Home() {
         <div className="h-full w-24 bg-primary-400"></div>
       </div>
       <div className="flex flex-col w-full items-center justify-center mt-12 mb-12">
-        <h1 className="text-8xl font-black text-tertiary-900">palmares.</h1>
+        <h1 className="text-8xl font-black text-tertiary-500 font-exo2">palmares.</h1>
         <div className="flex w-48 h-48">
           <img src="/Palmares.png" alt="logo" className="w-full h-full" />
         </div>
         <button
           type="button"
-          className={`p-2 flex flex-col items-center justify-center  text-primary-600 font-light hover:text-tertiary-950 hover:font-normal hover:transition-all relative`}
+          className={`p-2 flex flex-col items-center justify-center  text-primary-600 font-light hover:text-tertiary-600 hover:font-normal hover:transition-all relative`}
         >
           <div className="p-2 h-full w-full absolute bg-transparent border-[1px] border-primary-300" />
           <div className="top-4 right-0 h-5 w-full absolute bg-transparent border-l-[1px] border-r-[1px] border-[#ffffff]" />
@@ -149,7 +154,7 @@ function Home() {
           ]
         }
         customSidebar={
-          <div className="flex flex-col w-36 h-[860px] from-tertiary-500 to-white bg-gradient-to-b p-2">
+          <div className="flex flex-col min-w-36 max-w-36 h-[860px] from-tertiary-500 to-white bg-gradient-to-b p-2">
             {sidebarFilesForMainPage.map((code, index) => (
               <Fragment key={code}>
                 <button
@@ -197,7 +202,7 @@ function Home() {
         libraries={data as Awaited<ReturnType<GetLibraryCodesFn>>}
         sidebarWidth={'9rem'}
         customSidebar={
-          <div className="flex flex-col w-36 h-[860px] from-tertiary-500 to-white bg-gradient-to-b p-2">
+          <div className="flex flex-col min-w-36 max-w-36 h-[860px] from-tertiary-500 to-white bg-gradient-to-b p-2">
             {sidebarFilesForFavorites.map((code, index) => (
               <Fragment key={code}>
                 <button

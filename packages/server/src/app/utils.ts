@@ -475,16 +475,19 @@ function wrapHandlerAndMiddlewares(
       // If the response is set, then we can just return it from the handler.
       const responseNotSet = response === undefined;
       if (responseNotSet) {
-        const handlerResponse = appendTranslatorToResponse(
-          await Promise.resolve(handler(request)),
-          server,
-          customServerInstance,
-          server.response,
-          serverRequestAndResponseData,
-          options
-        );
-        // eslint-disable-next-line ts/no-unnecessary-condition
-        if (handlerResponse) response = handlerResponse;
+        const maybeResponse = await Promise.resolve(handler(request));
+        if (maybeResponse) {
+          const handlerResponse = appendTranslatorToResponse(
+            maybeResponse,
+            server,
+            customServerInstance,
+            server.response,
+            serverRequestAndResponseData,
+            options
+          );
+          // eslint-disable-next-line ts/no-unnecessary-condition
+          if (handlerResponse) response = handlerResponse;
+        }
       }
     } catch (error) {
       // eslint-disable-next-line ts/no-unnecessary-condition

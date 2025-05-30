@@ -1,7 +1,7 @@
 import { defineConfig } from '@tanstack/react-start/config';
 import monacoWorkerPlugin from './plugins/vite-worker-plugin';
-import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
-import react from '@vitejs/plugin-react';
+import tsConfigPaths from 'vite-tsconfig-paths';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   tsr: {
@@ -32,7 +32,13 @@ export default defineConfig({
     }
   },
   vite: {
-    plugins: [monacoWorkerPlugin() as any, react()],
+    plugins: [
+      monacoWorkerPlugin() as any,
+      tailwindcss(),
+      tsConfigPaths({
+        projects: ['./tsconfig.json']
+      })
+    ],
     worker: {
       format: 'es'
     }

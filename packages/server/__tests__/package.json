@@ -23,11 +23,13 @@
     "@palmares/tests": "workspace:*",
     "cors": "^2.8.5",
     "drizzle-kit": "^0.30.6",
-    "drizzle-orm": "^0.39.3"
+    "drizzle-orm": "^0.39.3",
+    "express": "^4.21.1"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.11",
     "@types/cors": "^2.8.17",
+    "@types/express": "4.17.21",
     "@types/supertest": "^6.0.2",
     "better-sqlite3": "^11.8.1",
     "eslint": "^9.9.1",

@@ -27,10 +27,15 @@
     "@palmares/jest-tests": "*",
     "@palmares/tests": "*",
     "better-sqlite3": "^11.8.1",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "express": "^4.21.2"
   },
   "devDependencies": {
     "@types/supertest": "^6.0.2",
+    "@types/express": "^5.0.1",
+    "@types/body-parser": "^1.19.5",
+    "@types/express-serve-static-core": "^5.0.6",
+    "@types/serve-static": "^1.15.7",
     "@types/better-sqlite3": "^7.6.12",
     "ts-jest-mock-import-meta": "^1.2.1",
     "supertest": "^7.0.0",

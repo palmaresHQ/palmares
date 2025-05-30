@@ -89,10 +89,12 @@ export type HandlerType<
 > = (
   request: RequestOnHandlerType<TRootPath, TMiddlewares, TMethod, TResponses>
 ) => RequestOnHandlerType<TRootPath, TMiddlewares, TMethod, TResponses>['responses'] extends never
-  ? Promise<Response<any, any>> | Response<any, any>
-  : ExtractPossibleResponsesOfHandlerType<
-      RequestOnHandlerType<TRootPath, TMiddlewares, TMethod, TResponses>['responses']
-    >;
+  ? Promise<Response<any, any> | undefined> | Response<any, any> | undefined
+  :
+      | ExtractPossibleResponsesOfHandlerType<
+          RequestOnHandlerType<TRootPath, TMiddlewares, TMethod, TResponses>['responses'] | undefined
+        >
+      | undefined;
 
 /**
  * This is used for validating the response of the handler. If a response is defined on the handler or any
@@ -102,9 +104,9 @@ export type HandlerType<
  * structure, we can define it on the middlewares and the handler will be forced to follow that response.
  */
 type ExtractPossibleResponsesOfHandlerType<
-  TPossibleResponses extends Record<string, (...args: any) => Response<any, any>>
+  TPossibleResponses extends Record<string, (...args: any) => Response<any, any>> | undefined
 > =
-  | ReturnType<TPossibleResponses[keyof TPossibleResponses]>
+  | ReturnType<NonNullable<TPossibleResponses>[keyof TPossibleResponses]>
   | Response<
       any,
       {

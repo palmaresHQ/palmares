@@ -9,7 +9,7 @@ import TestsDomain from '@palmares/tests';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 
-import CustomCoreDomain from './core';
+// import CustomCoreDomain from './core';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -95,8 +95,8 @@ export default defineSettings({
           }
         }
       }
-    ],
+    ]
     // We have just created this custom domain, and it defines our routes.
-    CustomCoreDomain
+    // CustomCoreDomain
   ]
 });

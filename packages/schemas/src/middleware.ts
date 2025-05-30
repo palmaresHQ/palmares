@@ -47,6 +47,6 @@ export function schemaHandler<
       });
     }
 
-    return Response.json({ errors: validatedData.errors }, { status: 400 });
+    return Response.json({ errors: validatedData.errors }, { status: 403 });
   };
 }

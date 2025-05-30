@@ -38,7 +38,17 @@ export const Route = createRootRoute({
     } as any;
   },
   head: () => ({
-    links: [{ rel: 'stylesheet', href: appCss }],
+    links: [
+      { rel: 'stylesheet', href: appCss }
+      // {
+      //   href: '/fonts/Exo_2/Exo2-Italic-VariableFont_wght.ttf',
+      //   rel: 'stylesheet'
+      // },
+      // {
+      //   href: '/fonts/Exo_2/Exo2-VariableFont_wght.ttf',
+      //   rel: 'stylesheet'
+      // }
+    ],
     meta: [
       {
         charSet: 'utf-8'

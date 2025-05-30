@@ -1,5 +1,5 @@
 // @ts-nocheck
-import ExpressServerAdapter from '@palmares/express-adapter';
+import { ExpressServerAdapter } from '@palmares/express-adapter';
 import { getAdapterServer, loadServerWhenTesting } from '@palmares/server';
 import { beforeAll, describe } from '@palmares/tests';
 import supertest from 'supertest';

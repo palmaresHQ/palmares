@@ -2,12 +2,26 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 
-async function batchedPromiseAll<T>(promises: Promise<T>[], numberOfPromises: number = 50) {
+async function batchedPromiseAll<T>(promises: Promise<T>[], numberOfPromises: number = 10, retries: number = 3) {
   const results: T[] = [];
   for (let i = 0; i < promises.length; i += numberOfPromises) {
     const batch = promises.slice(i, i + numberOfPromises);
-    const batchResults = await Promise.all(batch);
-    results.push(...batchResults);
+    try {
+      const batchResults = await Promise.all(batch);
+      results.push(...batchResults);
+    } catch (e) {
+      if (retries > 0) {
+        console.log('Retrying', e);
+        return new Promise((resolve, reject) => {
+          queueMicrotask(() =>
+            batchedPromiseAll(promises, numberOfPromises, retries - 1)
+              .then(resolve)
+              .catch(reject)
+          );
+        });
+      }
+      throw e;
+    }
   }
   return results as Promise<T>[];
 }
@@ -96,9 +110,32 @@ export function mapModuleNameToModule(moduleSpecifier: string) {
   return moduleName;
 }
 
+const cache = new Map<string, any>();
+async function cacheFetch(...args: Parameters<typeof fetch>): ReturnType<typeof fetch> {
+  const key = args[0].toString();
+  console.log('Cache miss', key);
+  if (cache.has(key)) {
+    console.log('Cache HIT', key);
+    return cache.get(key);
+  } else {
+    const res = await fetch(...args);
+    return res.json().then((data) => {
+      console.log('Cache set', key, data);
+      const response: Response = {
+        ...res,
+        ok: res.ok,
+        json: async () => {
+          return data;
+        }
+      };
+      cache.set(key, { json: async () => data });
+      return response;
+    });
+  }
+}
 export async function getNPMVersionsForModule(moduleName: string) {
   const url = `https://data.jsdelivr.com/v1/package/npm/${moduleName}`;
-  return fetch(url, { cache: 'no-store' })
+  return cacheFetch(url, { cache: 'no-cache' })
     .then((res) => {
       if (res.ok) {
         return res.json();
@@ -111,7 +148,7 @@ export async function getNPMVersionsForModule(moduleName: string) {
 
 export async function getNPMVersionForModuleReference(moduleName: string, reference: string) {
   const url = `https://data.jsdelivr.com/v1/package/resolve/npm/${moduleName}@${reference}`;
-  return fetch(url)
+  return cacheFetch(url, { cache: 'no-cache' })
     .then((res) => {
       if (res.ok) {
         return res.json();
@@ -270,9 +307,11 @@ export const getFileTreeForModuleWithTag = async (moduleName: string, tag: strin
   // I think having at least 2 dots is a reasonable approx for being a semver and not a tag,
   // we can skip an API request, TBH this is probably rare
   if (toDownload.split('.').length < 2) {
+    let response: any;
+    const cacheKey = moduleName + toDownload;
     // The jsdelivr API needs a _version_ not a tag. So, we need to switch out
     // the tag to the version via an API request.
-    const response = await getNPMVersionForModuleReference(moduleName, toDownload);
+    response = await getNPMVersionForModuleReference(moduleName, toDownload);
     if (response instanceof Error) {
       return {
         error: response,
@@ -352,7 +391,7 @@ export const setupTypeAcquisition = (opts?: {
     // Grab the module trees which gives us a list of files to download
     const trees = await batchedPromiseAll(
       depsToGetFiltered.map((file: any) => getFileTreeForModuleWithTag(file.module, file.version)),
-      25
+      50
     );
     const treesOnly = (trees as any[]).filter((tree) => !('error' in tree)) as NPMTreeMeta[];
 
@@ -364,7 +403,7 @@ export const setupTypeAcquisition = (opts?: {
     const mightBeOnDT = treesOnly.filter((tree) => !hasDTS.includes(tree));
     const dtTrees = await batchedPromiseAll(
       mightBeOnDT.map((file) => getFileTreeForModuleWithTag(`@types/${getDTName(file.moduleName)}`, 'latest')),
-      25
+      50
     );
 
     const dtTreesOnly = (dtTrees as any[]).filter((t) => !('error' in t)) as NPMTreeMeta[];
@@ -404,7 +443,7 @@ export const setupTypeAcquisition = (opts?: {
           await resolveDeps(dtsCode, depth + 1, args);
         }
       }),
-      25
+      5
     );
     return fsMap;
   }

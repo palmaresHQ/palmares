@@ -24,6 +24,9 @@ import * as schema from './.drizzle.schema';
 declare global {
   namespace Palmares {
     interface PDatabaseAdapter extends InstanceType<typeof DrizzleEngine> {}
+    interface PSchemaAdapter extends InstanceType<typeof ZodSchemaAdapter> {}
+    interface PServerAdapter extends InstanceType<typeof ExpressServerAdapter> {}
+    interface PTestAdapter extends JestTestAdapter {}
   }
 }
 
