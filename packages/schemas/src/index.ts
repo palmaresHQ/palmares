@@ -180,59 +180,33 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
           ? TFieldsOnModelCreateOrUpdate
           : Omit<
               TFieldsOnModelCreateOrUpdate,
-              keyof ExtractTypeFromObjectOfSchemas<
-                // eslint-disable-next-line ts/ban-types
-                TFields extends undefined ? {} : TFields,
-                'input'
-              >
+              keyof ExtractTypeFromObjectOfSchemas<TFields extends undefined ? {} : TFields, 'input'>
             > &
-              ExtractTypeFromObjectOfSchemas<
-                // eslint-disable-next-line ts/ban-types
-                TFields extends undefined ? {} : TFields,
-                'input'
-              >;
+              ExtractTypeFromObjectOfSchemas<TFields extends undefined ? {} : TFields, 'input'>;
         output: TFields extends undefined
           ? TFieldsOnModelRead
           : Omit<
               TFieldsOnModelRead,
-              keyof ExtractTypeFromObjectOfSchemas<
-                // eslint-disable-next-line ts/ban-types
-                TFields extends undefined ? {} : TFields,
-                'output'
-              >
+              keyof ExtractTypeFromObjectOfSchemas<TFields extends undefined ? {} : TFields, 'output'>
             > &
-              ExtractTypeFromObjectOfSchemas<
-                // eslint-disable-next-line ts/ban-types
-                TFields extends undefined ? {} : TFields,
-                'output'
-              >;
+              ExtractTypeFromObjectOfSchemas<TFields extends undefined ? {} : TFields, 'output'>;
         internal: TFields extends undefined
           ? TFieldsOnModelCreateOrUpdate
           : Omit<
               TFieldsOnModelCreateOrUpdate,
-              keyof ExtractTypeFromObjectOfSchemas<
-                // eslint-disable-next-line ts/ban-types
-                TFields extends undefined ? {} : TFields,
-                'internal'
-              >
+              keyof ExtractTypeFromObjectOfSchemas<TFields extends undefined ? {} : TFields, 'internal'>
             > &
-              ExtractTypeFromObjectOfSchemas<
-                // eslint-disable-next-line ts/ban-types
-                TFields extends undefined ? {} : TFields,
-                'internal'
-              >;
+              ExtractTypeFromObjectOfSchemas<TFields extends undefined ? {} : TFields, 'internal'>;
         representation: TFields extends undefined
           ? TFieldsOnModelRead
           : Omit<
               TFieldsOnModelRead,
               keyof ExtractTypeFromObjectOfSchemas<
-                // eslint-disable-next-line ts/ban-types
                 TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
                 'representation'
               >
             > &
               ExtractTypeFromObjectOfSchemas<
-                // eslint-disable-next-line ts/ban-types
                 TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
                 'representation'
               >;
@@ -241,13 +215,11 @@ export function getSchemasWithDefaultAdapter<TAdapter extends SchemaAdapter>() {
           : Omit<
               TFieldsOnModelCreateOrUpdate,
               keyof ExtractTypeFromObjectOfSchemas<
-                // eslint-disable-next-line ts/ban-types
                 TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
                 'validate'
               >
             > &
               ExtractTypeFromObjectOfSchemas<
-                // eslint-disable-next-line ts/ban-types
                 TFields extends Record<any, Schema<any, DefinitionsOfSchemaType>> ? TFields : {},
                 'validate'
               >;

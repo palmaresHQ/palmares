@@ -1,4 +1,4 @@
-import { defineSettings, domain } from '@palmares/core';
+import coreDomain, { defineSettings, domain } from '@palmares/core';
 import ExpressServerAdapter from '@palmares/express-adapter';
 import ServerDomain, { Response, middleware, path, serverDomainModifier } from '@palmares/server';
 import { dirname, resolve } from 'path';
@@ -8,8 +8,6 @@ import type { MethodsRouter } from '@palmares/server';
 type ExtractRoutesAndHandlerFromRouter<
   TRouter extends MethodsRouter<any, any, any, any, any, any> | Omit<MethodsRouter<any, any, any, any, any, any>, any>
 > = TRouter extends MethodsRouter<any, any, any, any, any, infer TRootPath> ? TRootPath : TRouter;
-
-
 
 export const settings = defineSettings({
   basePath: dirname(resolve(__dirname)),
@@ -37,7 +35,7 @@ export const settings = defineSettings({
                   message: 'Not found'
                 }
               }),
-            handler500: async (response: any) => {
+            handler500: (response: any) => {
               return response;
             }
           }

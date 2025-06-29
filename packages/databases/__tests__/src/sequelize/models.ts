@@ -14,7 +14,7 @@
   define
 } from '@palmares/databases';*/
 
-import { define, fields, Model, ON_DELETE, InferModel } from '@palmares/databases';
+import { InferModel, Model, ON_DELETE, define, fields } from '@palmares/databases';
 //import { Company as DCompany, User as DUser } from '../../.drizzle/schema';
 
 import type { ModelOptionsType } from '@palmares/databases';

@@ -90,6 +90,7 @@ describe<JestTestAdapter>('Schema Types', ({ test }) => {
       unionSchema.parse(true as any),
       unionSchema.parse(2)
     ]);
+
     expect((errorsOfInvalid?.length || 0) > 0).toBe(true);
     expect((errorsOfValid?.length || 0) === 0).toBe(true);
     expect(parsed).toBe(2);
