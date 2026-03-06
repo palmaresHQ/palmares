@@ -51,7 +51,7 @@ function Home() {
     >
       <nav className="flex flex-row justify-center items-center w-full mt-24 mb-24">
         <div className="flex flex-row justify-evenly w-96">
-          <a className="text-tertiary-700">blog</a>
+          <a className="text-tertiary-600">blog</a>
           <p className="text-primary-500 select-none">/</p>
           <a className="text-tertiary-700">about</a>
           <p className="text-primary-500 select-none">/</p>

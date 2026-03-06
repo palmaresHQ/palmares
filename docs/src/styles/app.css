@@ -38,14 +38,14 @@
   font-family: 'Exo 2';
   font-style: normal;
   font-weight: 400;
-  src: url('../../public/fonts/Exo_2/Exo2-VariableFont_wght.ttf') format('truetype');
+  src: url('/fonts/Exo_2/Exo2-VariableFont_wght.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Exo 2';
   font-style: italic;
   font-weight: 400;
-  src: url('../../public/fonts/Exo_2/Exo2-Italic-VariableFont_wght.ttf') format('truetype');
+  src: url('/fonts/Exo_2/Exo2-Italic-VariableFont_wght.ttf') format('truetype');
 }
 
 .terminal {

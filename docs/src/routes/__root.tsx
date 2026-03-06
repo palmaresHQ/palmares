@@ -1,13 +1,18 @@
+// src/routes/__root.tsx
+/// <reference types="vite/client" />
 import { HeadContent, Outlet, createRootRoute } from '@tanstack/react-router';
-import { createServerFn, Scripts } from '@tanstack/react-start';
+import { Scripts } from '@tanstack/react-router';
+import { createServerFn } from '@tanstack/react-start';
 import type { ReactNode } from 'react';
 import appCss from '../styles/app.css?url';
 import { isChromium } from '../../utils/is-chromium';
-import { getHeaders } from 'vinxi/http';
+import { getWebRequest } from '@tanstack/react-start/server';
 
-const getIfIsChromium = createServerFn({ method: 'GET' }).handler(async () => {
+const getIfIsChromium = createServerFn({ method: 'GET' }).handler(async (ctx) => {
+  const headers = getWebRequest().headers;
+
   return {
-    data: isChromium(getHeaders())
+    data: isChromium(headers)
   };
 });
 
@@ -39,15 +44,15 @@ export const Route = createRootRoute({
   },
   head: () => ({
     links: [
-      { rel: 'stylesheet', href: appCss }
-      // {
-      //   href: '/fonts/Exo_2/Exo2-Italic-VariableFont_wght.ttf',
-      //   rel: 'stylesheet'
-      // },
-      // {
-      //   href: '/fonts/Exo_2/Exo2-VariableFont_wght.ttf',
-      //   rel: 'stylesheet'
-      // }
+      { rel: 'stylesheet', href: appCss },
+      {
+        href: '/fonts/Exo_2/Exo2-Italic-VariableFont_wght.ttf',
+        rel: 'stylesheet'
+      },
+      {
+        href: '/fonts/Exo_2/Exo2-VariableFont_wght.ttf',
+        rel: 'stylesheet'
+      }
     ],
     meta: [
       {

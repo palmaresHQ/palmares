@@ -44,6 +44,8 @@ type Props = {
 export default function Code(props: Props) {
   const id = useId();
   const height = props?.height || 300;
+  const [isEditorLoading, setIsEditorLoading] = useState(true);
+  const [editorError, setEditorError] = useState<string | null>(null);
   const sb = useRef<ReturnType<Awaited<ReturnType<typeof getEditor>>['sandbox']['createTypeScriptSandbox']> | null>(
     null
   );

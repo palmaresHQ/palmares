@@ -14,7 +14,7 @@
   define
 } from '@palmares/databases';*/
 
-import { define, fields, Model, ON_DELETE, InferModel } from '@palmares/databases';
+import { InferModel, Model, ON_DELETE, define, fields } from '@palmares/databases';
 //import { Company as DCompany, User as DUser } from '../../.drizzle/schema';
 
 import type { ModelOptionsType } from '@palmares/databases';
@@ -113,7 +113,7 @@ export const User = define('User', {
   fields: {
     id: fields.auto(),
     firstName: fields.char({ maxLen: 255 }),
-    email: fields.text().allowNull(),
+    email: fields.text().allowNull().unique(),
     companyId: fields.foreignKey({
       relatedTo: () => Company,
       toField: 'id',

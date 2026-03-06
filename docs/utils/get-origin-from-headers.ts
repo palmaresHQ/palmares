@@ -1,26 +1,17 @@
-export function getOriginFromHeaders(headers: {
-  'x-forwarded-proto'?: string;
-  'x-forwarded-ssl'?: string;
-  'front-end-https'?: string;
-  'x-url-scheme'?: string;
-  'strict-transport-security'?: string;
-  host?: string;
-  'x-forwarded-host'?: string;
-  'x-original-host'?: string;
-}): string {
+export function getOriginFromHeaders(headers: Headers): string {
   // Check HTTPS indicators
   const httpsIndicators = {
-    'x-forwarded-proto': headers['x-forwarded-proto'] === 'https',
-    'x-forwarded-ssl': headers['x-forwarded-ssl'] === 'on',
-    'front-end-https': headers['front-end-https'] === 'on',
-    'x-url-scheme': headers['x-url-scheme'] === 'https'
+    'x-forwarded-proto': headers.get('x-forwarded-proto') === 'https',
+    'x-forwarded-ssl': headers.get('x-forwarded-ssl') === 'on',
+    'front-end-https': headers.get('front-end-https') === 'on',
+    'x-url-scheme': headers.get('x-url-scheme') === 'https'
   };
 
-  const hasHSTS = 'strict-transport-security' in headers;
+  const hasHSTS = headers.has('strict-transport-security');
   const isHttps = Object.values(httpsIndicators).some(Boolean) || hasHSTS;
 
   // Get host from headers
-  const host = headers['host'] || headers['x-forwarded-host'] || headers['x-original-host'] || '';
+  const host = headers.get('host') || headers.get('x-forwarded-host') || headers.get('x-original-host') || '';
 
   // Check if host includes port
   const [hostname, port] = host.split(':');
