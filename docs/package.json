@@ -35,7 +35,7 @@
     "@mdx-js/mdx": "^3.1.0",
     "@mdx-js/react": "^3.1.0",
     "@tailwindcss/postcss": "^4.1.11",
-    "@tailwindcss/vite": "^4.1.11",
+    "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-router": "^1.122.0",
     "@tanstack/react-start": "^1.122.0",
     "@typescript/sandbox": "^0.1.9",
